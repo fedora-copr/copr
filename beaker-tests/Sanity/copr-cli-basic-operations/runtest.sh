@@ -157,12 +157,12 @@ rlJournalStart
 
         ## test to modify list of enabled chroots in the project
         # create project
-        rlRun "copr-cli create --chroot fedora-26-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
+        rlRun "copr-cli create --chroot fedora-27-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
         # modify chroots
         rlRun "copr-cli modify --chroot fedora-27-x86_64 --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
         # the old chroot should not be enabled anymore
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-26-x86_64" 1
-        # only F26 and rawhide from previous modify command should be enabled now
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-23-x86_64" 1
+        # only F27 and rawhide from previous modify command should be enabled now
         rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-27-x86_64" 0
         rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-rawhide-x86_64" 0
         # it should not be possible to select non-existing chroot
@@ -171,8 +171,8 @@ rlJournalStart
         rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not enabled: non-existing-1" |wc -l` 1
 
         ## test distgit builds
-        rlRun "copr-cli create --chroot fedora-26-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
-        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/389-admin-console.git --branch f26 ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli create --chroot fedora-27-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/389-admin-console.git --branch f27 ${NAME_PREFIX}ProjectDistGitBuilds"
 
         ## test mock-config feature
         mc_project=${NAME_PREFIX}MockConfig
@@ -198,17 +198,17 @@ rlJournalStart
         }
         " > $TMPCOMPS
         TMPCOMPS_BASENAME=`basename $TMPCOMPS`
-        rlRun "copr-cli create ${NAME_PREFIX}EditChrootProject --chroot fedora-27-x86_64"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --upload-comps $TMPCOMPS"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"comps_name\": \"$TMPCOMPS_BASENAME\"'"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --delete-comps"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"comps_name\": null'"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.repos == [\"http://foo/repo\", \"http://bar/repo\"]'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.buildroot_pkgs == [\"gcc\"]'"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --repos '' --packages ''"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.repos == []'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.buildroot_pkgs == []'"
+        rlRun "copr-cli create ${NAME_PREFIX}EditChrootProject --chroot $mc_chroot"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --upload-comps $TMPCOMPS"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | grep '\"comps_name\": \"$TMPCOMPS_BASENAME\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --delete-comps"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | grep '\"comps_name\": null'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.repos == [\"http://foo/repo\", \"http://bar/repo\"]'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.buildroot_pkgs == [\"gcc\"]'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --repos '' --packages ''"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.repos == []'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.buildroot_pkgs == []'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_65" 1
         rm $TMPCOMPS
 

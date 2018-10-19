@@ -293,7 +293,7 @@
     "pkgs": "",
     "project_name": "copr-dev",
     "project_owner": "@copr",
-    "repos": [{"id": "foo", "name": "foo", "url": "http://download.fedoraproject.org/pub/fedora/linux/releases/26/Everything/x86_64/os/"}],
+    "repos": [{"id": "foo", "name": "foo", "url": "http://download.fedoraproject.org/pub/fedora/linux/releases/27/Everything/x86_64/os/"}],
     "submitter": "clime",
     "task_id": "340-custom-1-x86_64",
     "timeout": 86400,
