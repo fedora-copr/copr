@@ -25,15 +25,15 @@ BuildArch: noarch
 # rpkg spec --sources
 Source0: {{{ git_dir_archive }}}
 
-BuildRequires: %python-devel
-BuildRequires: %rpm_python
+BuildRequires: %{python}-devel
+BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
-BuildRequires: %python-setuptools
-BuildRequires: %python-pytest
-BuildRequires: %python_pfx-munch
-BuildRequires: %python-requests
-BuildRequires: %python_pfx-jinja2
-BuildRequires: %python-configparser
+BuildRequires: %{python}-setuptools
+BuildRequires: %{python}-pytest
+BuildRequires: %{python_pfx}-munch
+BuildRequires: %{python}-requests
+BuildRequires: %{python_pfx}-jinja2
+BuildRequires: %{python}-configparser
 
 BuildRequires: python-rpm-macros
 
@@ -42,11 +42,11 @@ BuildRequires: python2-mock
 %endif
 
 Requires: %python
-Requires: %python_pfx-jinja2
-Requires: %python_pfx-munch
-Requires: %python-configparser
-Requires: %python-requests
-Requires: %python_pfx-simplejson
+Requires: %{python_pfx}-jinja2
+Requires: %{python_pfx}-munch
+Requires: %{python}-configparser
+Requires: %{python}-requests
+Requires: %{python_pfx}-simplejson
 
 Requires: mock
 Requires: git
