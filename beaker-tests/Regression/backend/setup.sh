@@ -18,7 +18,7 @@ fi
 cp -rT $SCRIPTPATH/files /
 
 # install stuff needed for the test
-dnf copr enable -y @copr/copr
+dnf copr enable -y @copr/copr-dev
 dnf -y install docker vagrant vagrant-libvirt jq wget rsync rpkg
 
 # enable libvirtd for Vagrant (distgit)

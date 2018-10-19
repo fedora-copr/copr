@@ -17,7 +17,7 @@ fi
 # install files from 'files'
 cp -rT $SCRIPTPATH/files /
 
-dnf -y copr enable @copr/copr
+dnf -y copr enable @copr/copr-dev
 dnf -y install vagrant vagrant-libvirt jq rpkg
 
 # enable libvirtd for Vagrant (distgit)
