@@ -1,4 +1,4 @@
-from munch import Munch
+from .munch import Munch
 
 
 class CoprException(Exception):
