@@ -236,48 +236,6 @@ def parse_copr_name(name):
     return ownername, projectname
 
 
-def generate_repo_name(repo_url):
-    """ based on url, generate repo name """
-    repo_url = re.sub("[^a-zA-Z0-9]", '_', repo_url)
-    repo_url = re.sub("(__*)", '_', repo_url)
-    repo_url = re.sub("(_*$)|^_*", '', repo_url)
-    return repo_url
-
-
-def preprocess_repo_url(repo_url, chroot, backend_base_url):
-    """
-    Expands variables and sanitize repo url to be used for mock config
-    """
-    parsed_url = urlparse(repo_url)
-
-    if parsed_url.scheme == "copr":
-        user = parsed_url.netloc
-        prj = parsed_url.path.split("/")[1]
-        repo_url = "/".join([
-            backend_base_url,
-            "results", user, prj, chroot
-        ]) + "/"
-
-    repo_url = repo_url.replace("$chroot", chroot)
-    repo_url = repo_url.replace("$distname", chroot.rsplit("-", 2)[0])
-    return repo_url
-
-
-def get_additional_repo_configs(repo_urls, chroot, backend_base_url):
-    repo_configs = []
-
-    for repo_url in repo_urls:
-        repo_name = generate_repo_name(repo_url)
-        repo_config = {
-            "id": repo_name,
-            "url": preprocess_repo_url(repo_url, chroot, backend_base_url),
-            "name": "Additional repo {0}".format(repo_name),
-        }
-        repo_configs.append(repo_config)
-
-    return repo_configs
-
-
 def dump_live_log(logfile):
     filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
     tee_output = "tee -a {0}".format(pipes.quote(logfile))

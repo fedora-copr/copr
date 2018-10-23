@@ -24,7 +24,7 @@ except ImportError:
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
-    SourceType, parse_copr_name, get_additional_repo_configs, \
+    SourceType, parse_copr_name, \
     copr_chroot_to_task_id, dump_live_log
 
 try:
@@ -213,11 +213,6 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
             'type': args.type,
             'srpm_build_method': args.srpm_build_method,
         })
-
-    # temporary due to transition to using api3 instead of /backend/ interface
-    if not task.get('repos') and task.get('additional_repos'):
-        task['repos'] = get_additional_repo_configs(
-            task['additional_repos'], args.chroot, config.get('main', 'backend_url'))
 
     return task
 
