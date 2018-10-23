@@ -25,6 +25,9 @@ config_opts['yum.conf'] += \"\"\"
 [{{ repo.id }}]
 name="{{ repo.name }}"
 baseurl={{ repo.url }}
+{%- if repo.priority %}
+priority={{ repo.priority }}
+{%- endif %}
 gpgcheck=0
 enabled=1
 skip_if_unavailable=1
