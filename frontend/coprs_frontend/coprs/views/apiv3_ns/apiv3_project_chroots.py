@@ -28,6 +28,7 @@ def to_build_config_dict(project_chroot):
     return {
         "chroot": project_chroot.name,
         "repos": config["repos"],
+        "additional_repos": generate_additional_repos(project_chroot),
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
         "use_bootstrap_container": project_chroot.copr.use_bootstrap_container,
         "enable_net": project_chroot.copr.enable_net,
