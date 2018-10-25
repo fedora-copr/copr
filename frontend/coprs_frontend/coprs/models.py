@@ -376,10 +376,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def repo_id(self):
-        if self.is_a_group_project:
-            return "group_{}-{}".format(self.group.name, self.main_dir.name)
-        else:
-            return "{}-{}".format(self.user.name, self.main_dir.name)
+        return "-".join([self.owner_name.replace("@", "group_"), self.name])
 
     @property
     def modules_url(self):
