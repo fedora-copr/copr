@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import itertools
 import argparse
 import os
 import subprocess
@@ -536,10 +535,19 @@ class NotifyOutdatedChrootsCommand(Command):
         self.all = all
 
         outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
-        for copr, chroots in itertools.groupby(outdated, key=lambda x: x.copr):
+        for user, chroots in self.get_user_chroots_map(outdated).items():
             chroots = self.filter_chroots([chroot for chroot in chroots])
-            self.notify(copr, chroots)
+            self.notify(user, chroots)
             self.store_notify_timesamp(chroots)
+
+    def get_user_chroots_map(self, chroots):
+        user_chroot_map = {}
+        for chroot in chroots:
+            for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(chroot.copr):
+                if admin not in user_chroot_map:
+                    user_chroot_map[admin] = []
+                user_chroot_map[admin].append(chroot)
+        return user_chroot_map
 
     def filter_chroots(self, chroots):
         if self.all:
@@ -557,14 +565,13 @@ class NotifyOutdatedChrootsCommand(Command):
 
         return filtered
 
-    def notify(self, copr, chroots):
-        admins = [user.mail for user in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(copr)]
+    def notify(self, user, chroots):
         if self.dry_run:
-            chnames = [chroot.name for chroot in chroots]
-            print("Notify {} about {} - {}".format(admins, copr.full_name, chnames))
+            about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
+            print("Notify {} about {}".format(user.mail, about))
         else:
-            msg = OutdatedChrootMessage(copr, chroots)
-            send_mail(admins, msg)
+            msg = OutdatedChrootMessage(chroots)
+            send_mail(user.mail, msg)
 
     def store_notify_timesamp(self, chroots):
         if self.dry_run:
