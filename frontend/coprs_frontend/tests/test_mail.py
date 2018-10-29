@@ -38,13 +38,14 @@ class TestMail(CoprsTestCase):
             chroot.delete_after = datetime.datetime.now() + datetime.timedelta(days=7 + 1) # 7 days = 6d, 23h, 59m, ...
 
         app.config["SERVER_NAME"] = "localhost"
+        app.config["DELETE_EOL_CHROOTS_AFTER"] = 123
         with app.app_context():
             msg = OutdatedChrootMessage(self.c2, self.c2.copr_chroots)
         assert msg.subject == "Upcoming deletion of outdated chroots in foocopr"
         assert msg.text == ("You have been notified, as a project user2/foocopr admin, that it has some builds in "
                             "outdated chroot(s).\n\n"
                             "According to the 'Copr outdated chroots removal policy' [1], data are going"
-                            "to be preserved 180 days after the chroot is EOL and then automatically deleted,"
+                            "to be preserved 123 days after the chroot is EOL and then automatically deleted,"
                             "unless you decide to prolong the expiration period.\n\n"
 
                             "Project: user2/foocopr\n"

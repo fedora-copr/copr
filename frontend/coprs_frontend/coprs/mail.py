@@ -2,7 +2,7 @@ import flask
 import platform
 import smtplib
 from email.mime.text import MIMEText
-from coprs import helpers
+from coprs import app, helpers
 
 
 class Message(object):
@@ -83,8 +83,9 @@ class OutdatedChrootMessage(Message):
         self.text = ("You have been notified, as a project {0} admin, that it has some builds in "
                      "outdated chroot(s).\n\n"
                      "According to the 'Copr outdated chroots removal policy' [1], data are going"
-                     "to be preserved 180 days after the chroot is EOL and then automatically deleted,"
-                     "unless you decide to prolong the expiration period.\n\n".format(copr.full_name))
+                     "to be preserved {1} days after the chroot is EOL and then automatically deleted,"
+                     "unless you decide to prolong the expiration period.\n\n"
+                     .format(copr.full_name, app.config["DELETE_EOL_CHROOTS_AFTER"]))
 
         for chroot in copr_chroots:
             self.text += ("Project: {0}\n"

@@ -636,10 +636,10 @@ def copr_repositories_post(copr):
 
     form = forms.CoprChrootExtend()
     copr_chroot = coprs_logic.CoprChrootsLogic.get_by_name(copr, form.name.data, active_only=False).one()
-    DELETE_EOL_CHROOTS_AFTER = 181 # (days) Move this to the config
-    delete_after = datetime.datetime.now() + datetime.timedelta(days=DELETE_EOL_CHROOTS_AFTER)
+    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(days=delete_after_days)
     coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
-                                               delete_after=delete_after)
+                                               delete_after=delete_after_timestamp)
     db.session.commit()
     return render_copr_repositories(copr)
 

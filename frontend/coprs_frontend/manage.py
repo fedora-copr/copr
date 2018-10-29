@@ -275,8 +275,8 @@ class AlterChrootCommand(ChrootCommand):
                     continue
 
                 for copr_chroot in mock_chroot.copr_chroots:
-                    DELETE_EOL_CHROOTS_AFTER = 181 # (days) Move this to the config
-                    delete_after = datetime.datetime.now() + datetime.timedelta(days=DELETE_EOL_CHROOTS_AFTER)
+                    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+                    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(delete_after_days)
                     # Workarounding an auth here
                     coprs_logic.CoprChrootsLogic.update_chroot(copr_chroot.copr.user, copr_chroot,
                                                                delete_after=delete_after_timestamp)
