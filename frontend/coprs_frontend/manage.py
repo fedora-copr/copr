@@ -526,12 +526,15 @@ class NotifyOutdatedChrootsCommand(Command):
     option_list = [
         Option("--dry-run", action="store_true",
                help="Do not actually notify the people, but rather print information on stdout"),
+        Option("-e", "--email", action="append", dest="email_filter",
+               help="Notify only "),
         Option("-a", "--all", action="store_true",
                help="Notify all (even the recently notified) relevant people"),
     ]
 
-    def run(self, dry_run, all):
+    def run(self, dry_run, email_filter, all):
         self.dry_run = dry_run
+        self.email_filter = email_filter
         self.all = all
 
         outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
@@ -544,6 +547,8 @@ class NotifyOutdatedChrootsCommand(Command):
         user_chroot_map = {}
         for chroot in chroots:
             for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(chroot.copr):
+                if self.email_filter and admin.mail not in self.email_filter:
+                    continue
                 if admin not in user_chroot_map:
                     user_chroot_map[admin] = []
                 user_chroot_map[admin].append(chroot)
