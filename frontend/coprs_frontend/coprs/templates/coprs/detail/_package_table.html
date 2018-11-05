@@ -1,5 +1,5 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
-{% from "_helpers.html" import build_href_from_sql, build_state %}
+{% from "_helpers.html" import build_href_from_sql, build_state, initialize_datatables %}
 
 {% macro package_table(builds) %}
 <noscript><p>WARNING!! This page is using JavaScript to filter and sort the table.</p></noscript>
@@ -43,13 +43,6 @@
   <h3>No builds so far</h3>
 {% endif %}
 
-<script>
-  // Initialize Datatables
-  $(document).ready(function() {
-    $('.datatable').dataTable({
-      "order": [[ 0, "desc" ]]
-    });
-  });
-</script>
+{{ initialize_datatables() }}
 
 {% endmacro %}

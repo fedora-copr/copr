@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import fas_group_href %}
+{% from "_helpers.html" import fas_group_href, initialize_datatables %}
 {% block title %}Add a Group{% endblock %}
 {% block header %}Add a Group{% endblock %}
 
@@ -61,16 +61,6 @@
   <h3>You are not listed in any FAS group.</h3>
 {% endif %}
 
-<script>
-  // Initialize Datatables
-  $(document).ready(function() {
-    $('.datatable').dataTable({
-      "order": [[ 0, "desc" ]]
-    });
-  });
-</script>
-
-
-
+{{ initialize_datatables() }}
 
 {% endblock %}

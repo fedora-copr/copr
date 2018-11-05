@@ -1,5 +1,5 @@
 {% from "_helpers.html" import copr_url %}
-{% from "_helpers.html" import module_state %}
+{% from "_helpers.html" import module_state, initialize_datatables %}
 
 {% macro modules_table(modules) %}
 {% if modules %}
@@ -34,13 +34,6 @@
 <h3>No modules so far</h3>
 {% endif %}
 
-<script>
-  // Initialize Datatables
-  $(document).ready(function() {
-    $('.datatable').dataTable({
-      "order": [[ 0, "desc" ]]
-    });
-  });
-</script>
+{{ initialize_datatables() }}
 
 {% endmacro %}

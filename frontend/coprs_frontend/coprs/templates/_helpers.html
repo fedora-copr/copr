@@ -582,6 +582,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       </div>
 {% endmacro %}
 
+
 {% macro warn_server_admin(copr) %}
   {% if g.user and g.user.admin and g.user != copr.user %}
     {% if not g.user.permissions_for_copr(copr) or g.user.permissions_for_copr(copr).copr_admin < 2 %}
@@ -590,4 +591,16 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       {{ alert(msg, type="warning") }}
     {% endif %}
   {% endif %}
+{% endmacro %}
+
+
+{% macro initialize_datatables(order="desc") %}
+  <script>
+  // Initialize Datatables
+  $(document).ready(function() {
+    $('.datatable').dataTable({
+      "order": [[ 0, "{{ order }}" ]]
+    });
+  });
+  </script>
 {% endmacro %}

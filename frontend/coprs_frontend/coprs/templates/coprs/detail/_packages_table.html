@@ -1,4 +1,4 @@
-{% from "_helpers.html" import copr_url, build_state %}
+{% from "_helpers.html" import copr_url, build_state, initialize_datatables %}
 
 {% macro packages_table(packages) %}
 {% if packages %}
@@ -66,13 +66,6 @@
   <h3>No packages so far</h3>
 {% endif %}
 
-<script>
-  // Initialize Datatables
-  $(document).ready(function() {
-    $('.datatable').dataTable({
-      "order": [[ 0, "asc" ]]
-    });
-  });
-</script>
+{{ initialize_datatables(order="asc") }}
 
 {% endmacro %}

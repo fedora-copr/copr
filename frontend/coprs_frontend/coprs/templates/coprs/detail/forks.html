@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_name, owner_url %}
+{% from "_helpers.html" import copr_name, owner_url, initialize_datatables %}
 
 {% block title %}Forks of {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "forks" %}
@@ -40,13 +40,6 @@
 <h3>Nobody forked this project</h3>
 {% endif %}
 
-<script>
-  // Initialize Datatables
-  $(document).ready(function() {
-    $('.datatable').dataTable({
-      "order": [[ 0, "desc" ]]
-    });
-  });
-</script>
+{{ initialize_datatables() }}
 
 {% endblock %}
