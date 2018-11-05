@@ -232,6 +232,14 @@
 {%- endmacro %}
 
 
+{%- macro owner_url(copr) %}
+  {% if copr.is_a_group_project %}
+    {{- url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}
+  {% else %}
+    {{- url_for('coprs_ns.coprs_by_user', username=copr.user.name) }}
+  {% endif %}
+{%- endmacro %}
+
 
 {% macro user_projects_panel(user) %}
   <div class="panel panel-default">

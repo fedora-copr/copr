@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_name %}
+{% from "_helpers.html" import copr_name, owner_url %}
 
 {% block title %}Forks of {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "forks" %}
@@ -27,12 +27,7 @@
   {% for fork in copr.forks %}
     <tr class="fork-row" >
       <td class="col-md-3" data-order="{{ fork.owner_name }}">
-        {% if fork.is_a_group_project %}
-          {% set owner_href = url_for('groups_ns.list_projects_by_group', group_name=fork.group.name) %}
-        {% else %}
-          {% set owner_href = url_for('coprs_ns.coprs_by_user', username=fork.user.name) %}
-        {% endif %}
-        <b><a href="{{ owner_href }}">{{ fork.owner_name }}</a></b>
+        <b><a href="{{ owner_url(fork) }}">{{ fork.owner_name }}</a></b>
       </td>
       <td>
         <b><a href="{{ copr_url('coprs_ns.copr_detail', fork) }}">{{ fork.name }}</a></b>
