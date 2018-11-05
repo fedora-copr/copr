@@ -166,7 +166,11 @@
           <a href="{{ copr_url('coprs_ns.copr_fork', copr) }}" class="btn btn-default">
             <i class="fa fa-code-fork"></i> Fork this project
           </a>
+          <a href="{{ copr_url('coprs_ns.copr_forks', copr) }}" class="btn btn-default">
+            {{ copr.forks | count }}
+          </a>
         </div>
+        <br>
         {% endif %}
 
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">

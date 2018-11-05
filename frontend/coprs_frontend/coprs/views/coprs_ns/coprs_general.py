@@ -833,6 +833,13 @@ def copr_fork_post(copr):
     return render_copr_fork(copr, form)
 
 
+@coprs_ns.route("/<username>/<coprname>/forks/")
+@coprs_ns.route("/g/<group_name>/<coprname>/forks/")
+@req_with_copr
+def copr_forks(copr):
+    return flask.render_template("coprs/detail/forks.html", copr=copr)
+
+
 @coprs_ns.route("/update_search_index/", methods=["POST"])
 def copr_update_search_index():
     subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update_indexes_quick', '1'])
