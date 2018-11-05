@@ -63,8 +63,10 @@ def get_project(ownername, projectname):
 @apiv3_ns.route("/project/list", methods=GET)
 @pagination()
 @query_params()
-def get_project_list(ownername, **kwargs):
-    if ownername.startswith("@"):
+def get_project_list(ownername=None, **kwargs):
+    if not ownername:
+        query = CoprsLogic.get_multiple()
+    elif ownername.startswith("@"):
         group_name = ownername[1:]
         query = CoprsLogic.get_multiple()
         query = CoprsLogic.filter_by_group_name(query, group_name)
