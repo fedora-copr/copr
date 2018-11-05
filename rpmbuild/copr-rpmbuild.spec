@@ -51,11 +51,11 @@ Requires: %{python_pfx}-simplejson
 Requires: mock
 Requires: git
 Requires: git-svn
-Requires: rpkg
 Requires: expect
-Requires: tito
 
 %if 0%{?fedora} || 0%{?rhel} > 7
+Recommends: rpkg
+Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
 %endif
@@ -68,6 +68,8 @@ build build-id 12345 for chroot epel-7-x86_64.
 %package -n copr-builder
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
+Requires: rpkg
+Requires: tito
 Requires: rubygem-gem2rpm
 Requires: pyp2rpm
 
