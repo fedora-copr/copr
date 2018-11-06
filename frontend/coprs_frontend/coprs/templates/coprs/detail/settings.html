@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_name %}
+{% from "_helpers.html" import copr_name, warn_server_admin %}
 {% block title %}Settings {{ copr_name(copr) }}{% endblock %}
 
 {% set selected_tab = "settings" %}
@@ -27,6 +27,8 @@
 
 
 {% block detail_body %}
+
+{{ warn_server_admin(copr) }}
 
 <ul class="nav nav-tabs nav-tabs-pf">
 
