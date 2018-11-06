@@ -35,7 +35,7 @@ Requires:      python3-simplejson
 
 Recommends:    python3-progress
 
-BuildRequires: python3-copr
+BuildRequires: python3-copr >= 1.89
 BuildRequires: python3-devel
 BuildRequires: python3-jinja2
 BuildRequires: python3-pylint
@@ -49,7 +49,7 @@ Requires:      python-jinja2
 Requires:      python-simplejson
 
 BuildRequires: pytest
-BuildRequires: python-copr
+BuildRequires: python-copr >= 1.89
 BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-mock
