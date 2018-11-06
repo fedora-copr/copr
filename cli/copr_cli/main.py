@@ -303,8 +303,8 @@ class Commands(object):
             print("Build was added to {0}:".format(builds[0].projectname))
 
             for build in builds:
-                url = urljoin(self.config["copr_url"], "/coprs/build/{}".format(build.id))
-                print("  {}".format(url))
+                url = urljoin(self.config["copr_url"], "/coprs/build/{0}".format(build.id))
+                print("  {0}".format(url))
 
             build_ids = [build.id for build in builds]
             print("Created builds: {0}".format(" ".join(map(str, build_ids))))
@@ -370,7 +370,7 @@ class Commands(object):
         """
         username, copr = self.parse_name(args.copr)
         project = self.client.project_proxy.delete(ownername=username, projectname=copr)
-        print("Project {} has been deleted.".format(project.name))
+        print("Project {0} has been deleted.".format(project.name))
 
     @requires_api_auth
     def action_fork(self, args):
@@ -391,10 +391,10 @@ class Commands(object):
                                                  dstownername=dstownername, dstprojectname=dstprojectname,
                                                  confirm=args.confirm)
         if not dst:
-            print("Forking project {}/{} for you into {}.\nPlease be aware that it may take a few minutes "
+            print("Forking project {0}/{1} for you into {2}.\nPlease be aware that it may take a few minutes "
                   "to duplicate backend data.".format(srcownername, srcprojectname, project.full_name))
         else:
-            print("Updating packages in {} from {}/{}.\nPlease be aware that it may take a few minutes "
+            print("Updating packages in {0} from {1}/{2}.\nPlease be aware that it may take a few minutes "
                   "to duplicate backend data.".format(project.full_name, srcownername, srcprojectname))
 
     def action_mock_config(self, args):
@@ -426,14 +426,14 @@ class Commands(object):
                 return
 
             for project in projects:
-                print("Name: {}".format(project.name))
-                print("  Description: {}".format(project.description))
+                print("Name: {0}".format(project.name))
+                print("  Description: {0}".format(project.description))
                 if project.chroot_repos:
                     print("  Repo(s):")
                     for name, url in project.chroot_repos.items():
-                        print("    {}: {}".format(name, url))
+                        print("    {0}: {1}".format(name, url))
                 if project.additional_repos:
-                    print("  Additional repo: {}".format(" ".join(project.additional_repos)))
+                    print("  Additional repo: {0}".format(" ".join(project.additional_repos)))
                 print("")
 
         except CoprRequestException as ex:
@@ -652,7 +652,7 @@ class Commands(object):
                 module = self.client.module_proxy.build_from_file(ownername, projectname, args.yaml)
             else:
                 module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
-            print("Created module {}".format(module.nsv))
+            print("Created module {0}".format(module.nsv))
 
         except CoprRequestException as ex:
             print(ex)
