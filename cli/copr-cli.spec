@@ -54,6 +54,7 @@ BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-mock
 BuildRequires: python-setuptools
+BuildRequires: python-simplejson
 BuildRequires: python-munch
 %endif
 
