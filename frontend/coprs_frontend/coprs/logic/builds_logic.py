@@ -494,14 +494,14 @@ GROUP BY
 
         build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
                                pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
-                               srpm_url=source_build.srpm_url, **build_options)
+                               srpm_url=source_build.srpm_url, copr_dirname=source_build.copr_dir.name, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
         return build
 
     @classmethod
-    def create_new_from_url(cls, user, copr, url,
-                            chroot_names=None, **build_options):
+    def create_new_from_url(cls, user, copr, url, chroot_names=None,
+                            copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -514,12 +514,12 @@ GROUP BY
         source_json = json.dumps({"url": url})
         srpm_url = None if url.endswith('.spec') else url
         return cls.create_new(user, copr, source_type, source_json, chroot_names,
-                              pkgs=url, srpm_url=srpm_url, **build_options)
+                              pkgs=url, srpm_url=srpm_url, copr_dirname=copr_dirname, **build_options)
 
     @classmethod
     def create_new_from_scm(cls, user, copr, scm_type, clone_url,
                             committish='', subdirectory='', spec='', srpm_build_method='rpkg',
-                            chroot_names=None, **build_options):
+                            chroot_names=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -535,11 +535,11 @@ GROUP BY
                                   "subdirectory": subdirectory,
                                   "spec": spec,
                                   "srpm_build_method": srpm_build_method})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, copr_dirname=copr_dirname, **build_options)
 
     @classmethod
     def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, spec_template,
-                             python_versions, chroot_names=None, **build_options):
+                             python_versions, chroot_names=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -556,11 +556,11 @@ GROUP BY
                                   "pypi_package_version": pypi_package_version,
                                   "spec_template": spec_template,
                                   "python_versions": python_versions})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, copr_dirname=copr_dirname, **build_options)
 
     @classmethod
-    def create_new_from_rubygems(cls, user, copr, gem_name,
-                                 chroot_names=None, **build_options):
+    def create_new_from_rubygems(cls, user, copr, gem_name, chroot_names=None,
+                                 copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -570,12 +570,11 @@ GROUP BY
         """
         source_type = helpers.BuildSourceEnum("rubygems")
         source_json = json.dumps({"gem_name": gem_name})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, copr_dirname=copr_dirname, **build_options)
 
     @classmethod
-    def create_new_from_custom(cls, user, copr,
-            script, script_chroot=None, script_builddeps=None,
-            script_resultdir=None, chroot_names=None, **kwargs):
+    def create_new_from_custom(cls, user, copr, script, script_chroot=None, script_builddeps=None,
+                               script_resultdir=None, chroot_names=None, copr_dirname=None, **kwargs):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -595,11 +594,11 @@ GROUP BY
         }
 
         return cls.create_new(user, copr, source_type, json.dumps(source_dict),
-                chroot_names, **kwargs)
+                              chroot_names, copr_dirname=copr_dirname, **kwargs)
 
     @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
-                               chroot_names=None, **build_options):
+                               chroot_names=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -625,7 +624,8 @@ GROUP BY
 
         try:
             build = cls.create_new(user, copr, source_type, source_json,
-                                   chroot_names, pkgs=pkg_url, srpm_url=srpm_url, **build_options)
+                                   chroot_names, pkgs=pkg_url, srpm_url=srpm_url,
+                                   copr_dirname=copr_dirname, **build_options)
         except Exception:
             shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
             raise
@@ -635,7 +635,7 @@ GROUP BY
     @classmethod
     def create_new(cls, user, copr, source_type, source_json, chroot_names=None, pkgs="",
                    git_hashes=None, skip_import=False, background=False, batch=None,
-                   srpm_url=None, **build_options):
+                   srpm_url=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -669,6 +669,7 @@ GROUP BY
             skip_import=skip_import,
             batch=batch,
             srpm_url=srpm_url,
+            copr_dirname=copr_dirname,
         )
 
         if user.proven:
@@ -681,7 +682,7 @@ GROUP BY
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
-            srpm_url=None):
+            srpm_url=None, copr_dirname=None):
 
         if chroots is None:
             chroots = []
@@ -712,6 +713,12 @@ GROUP BY
             chroot_status = StatusEnum("waiting")
             source_status = StatusEnum("pending")
 
+        copr_dir = None
+        if copr_dirname:
+            if not copr_dirname.startswith(copr.name+':') and copr_dirname != copr.name:
+                raise MalformedArgumentException("Copr dirname not starting with copr name.")
+            copr_dir = coprs_logic.CoprDirsLogic.get_or_create(copr, copr_dirname)
+
         build = models.Build(
             user=user,
             pkgs=pkgs,
@@ -725,6 +732,7 @@ GROUP BY
             is_background=bool(background),
             batch=batch,
             srpm_url=srpm_url,
+            copr_dir=copr_dir,
         )
 
         if timeout:

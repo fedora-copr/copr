@@ -250,10 +250,11 @@ WHERE package.copr_dir_id = :copr_dir_id;
 
 
     @classmethod
-    def build_package(cls, user, copr, package, chroot_names=None, **build_options):
+    def build_package(cls, user, copr, package, chroot_names=None, copr_dirname=None, **build_options):
         if not package.has_source_type_set or not package.source_json:
             raise exceptions.NoPackageSourceException('Unset default source for package {0}'.format(package.name))
-        return builds_logic.BuildsLogic.create_new(user, copr, package.source_type, package.source_json, chroot_names, **build_options)
+        return builds_logic.BuildsLogic.create_new(user, copr, package.source_type, package.source_json,
+                                                   chroot_names, copr_dirname=copr_dirname, **build_options)
 
 
     @classmethod

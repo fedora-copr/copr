@@ -26,6 +26,7 @@ def to_dict(build):
         "ended_on": build.max_ended_on,
         "submitter": build.user.name if build.user else None,
         "chroots": [chroot.name for chroot in build.build_chroots],
+        "project_dirname": build.copr_dir.name,
     }
 
 
@@ -135,6 +136,7 @@ def create_from_url():
             url=pkg,
             chroot_names=form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         ) for pkg in pkgs]
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -154,6 +156,7 @@ def create_from_upload():
             orig_filename=secure_filename(form.pkgs.data.filename),
             chroot_names=form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -177,6 +180,7 @@ def create_from_scm():
             srpm_build_method=form.srpm_build_method.data,
             chroot_names=form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -202,6 +206,7 @@ def create_from_pypi():
             form.python_versions.data,
             form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -220,6 +225,7 @@ def create_from_rubygems():
             form.gem_name.data,
             form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -241,6 +247,7 @@ def create_from_custom():
             form.resultdir.data,
             chroot_names=form.selected_chroots,
             background=form.background.data,
+            copr_dirname=form.project_dirname.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 

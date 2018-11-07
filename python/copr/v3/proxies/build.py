@@ -79,7 +79,7 @@ class BuildProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
-    def create_from_urls(self, ownername, projectname, urls, buildopts=None):
+    def create_from_urls(self, ownername, projectname, urls, buildopts=None, project_dirname=None):
         """
         Create builds from a list of URLs
 
@@ -87,6 +87,7 @@ class BuildProxy(BaseProxy):
         :param str projectname:
         :param list urls:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/url"
@@ -94,10 +95,11 @@ class BuildProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "pkgs": urls,
+            "project_dirname": project_dirname,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
-    def create_from_url(self, ownername, projectname, url, buildopts=None):
+    def create_from_url(self, ownername, projectname, url, buildopts=None, project_dirname=None):
         """
         Create a build from URL
 
@@ -105,14 +107,16 @@ class BuildProxy(BaseProxy):
         :param str projectname:
         :param str url:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         if len(url.split()) > 1:
             raise CoprValidationException("This method doesn't allow submitting multiple URLs at once. "
                                           "Use `create_from_urls` instead.")
-        return self.create_from_urls(ownername, projectname, [url], buildopts=buildopts)[0]
+        return self.create_from_urls(ownername, projectname, [url], buildopts=buildopts,
+                                     project_dirname=project_dirname)[0]
 
-    def create_from_file(self, ownername, projectname, path, buildopts=None):
+    def create_from_file(self, ownername, projectname, path, buildopts=None, project_dirname=None):
         """
         Create a build from local SRPM file
 
@@ -120,6 +124,7 @@ class BuildProxy(BaseProxy):
         :param str projectname:
         :param str path:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/upload"
@@ -128,6 +133,7 @@ class BuildProxy(BaseProxy):
         data = {
             "ownername": ownername,
             "projectname": projectname,
+            "project_dirname": project_dirname,
         }
         files = {
             "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
@@ -135,7 +141,7 @@ class BuildProxy(BaseProxy):
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
     def create_from_scm(self, ownername, projectname, clone_url, committish="", subdirectory="", spec="",
-                        scm_type="git", source_build_method="rpkg", buildopts=None):
+                        scm_type="git", source_build_method="rpkg", buildopts=None, project_dirname=None):
         """
         Create a build from SCM repository
 
@@ -148,6 +154,7 @@ class BuildProxy(BaseProxy):
         :param str scm_type:
         :param str source_build_method:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/scm"
@@ -160,11 +167,12 @@ class BuildProxy(BaseProxy):
             "spec": spec,
             "scm_type": scm_type,
             "source_build_method": source_build_method,
+            "project_dirname": project_dirname,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_pypi(self, ownername, projectname, pypi_package_name, pypi_package_version=None,
-                         spec_template='', python_versions=None, buildopts=None):
+                         spec_template='', python_versions=None, buildopts=None, project_dirname=None):
         """
         Create a build from PyPI - https://pypi.org/
 
@@ -175,6 +183,7 @@ class BuildProxy(BaseProxy):
         :param str spec_template: what pyp2rpm spec template to use
         :param list python_versions: list of python versions to build for
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/pypi"
@@ -185,10 +194,11 @@ class BuildProxy(BaseProxy):
             "pypi_package_version": pypi_package_version,
             "spec_template": spec_template,
             "python_versions": python_versions or [3, 2],
+            "project_dirname": project_dirname,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
-    def create_from_rubygems(self, ownername, projectname, gem_name, buildopts=None):
+    def create_from_rubygems(self, ownername, projectname, gem_name, buildopts=None, project_dirname=None):
         """
         Create a build from RubyGems - https://rubygems.org/
 
@@ -196,6 +206,7 @@ class BuildProxy(BaseProxy):
         :param str projectname:
         :param str gem_name:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/rubygems"
@@ -203,11 +214,13 @@ class BuildProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "gem_name": gem_name,
+            "project_dirname": project_dirname,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_custom(self, ownername, projectname, script, script_chroot=None,
-                           script_builddeps=None, script_resultdir=None, buildopts=None):
+                           script_builddeps=None, script_resultdir=None, buildopts=None,
+                           project_dirname=None):
         """
         Create a build from custom script.
 
@@ -219,6 +232,7 @@ class BuildProxy(BaseProxy):
         :param script_builddeps: [optional] list of script's dependencies
         :param script_resultdir: [optional] where script generates results
             (relative to cwd)
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/build/create/custom"
@@ -229,6 +243,7 @@ class BuildProxy(BaseProxy):
             "chroot": script_chroot,
             "builddeps": script_builddeps,
             "resultdir": script_resultdir,
+            "project_dirname": project_dirname,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 

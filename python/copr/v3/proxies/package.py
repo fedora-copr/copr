@@ -120,7 +120,7 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
-    def build(self, ownername, projectname, packagename, buildopts=None):
+    def build(self, ownername, projectname, packagename, buildopts=None, project_dirname=None):
         """
         Create a build from a package configuration
 
@@ -128,6 +128,7 @@ class PackageProxy(BaseProxy):
         :param str projectname:
         :param str packagename:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         endpoint = "/package/build"
@@ -135,6 +136,7 @@ class PackageProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "package_name": packagename,
+            "project_dirname": project_dirname,
         }
         build_proxy = BuildProxy(self.config)
         return build_proxy._create(endpoint, data, buildopts=buildopts)

@@ -119,7 +119,8 @@ def package_build():
                              .format(name=form.package_name.data, copr=copr.name))
     if form.validate_on_submit():
         buildopts = {k: v for k, v in form.data.items() if k in data}
-        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **buildopts)
+        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots,
+                                            copr_dirname=form.project_dirname.data, **buildopts)
         db.session.commit()
     else:
         raise BadRequest(form.errors)

@@ -292,12 +292,15 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
     def process_build(self, args, build_function, data, bar=None, progress_callback=None):
-        username, copr = self.parse_name(args.copr)
+        username, project_dirname = self.parse_name(args.copr_dir)
+        projectname = project_dirname.split(':')[0]
 
         try:
             buildopts = {"memory": args.memory, "timeout": args.timeout, "chroots": args.chroots,
                          "background": args.background, "progress_callback": progress_callback}
-            result = build_function(ownername=username, projectname=copr, buildopts=buildopts, **data)
+
+            result = build_function(ownername=username, projectname=projectname,
+                                    project_dirname=project_dirname, buildopts=buildopts, **data)
 
             builds = result if type(result) == list else [result]
             print("Build was added to {0}:".format(builds[0].projectname))
@@ -630,7 +633,9 @@ class Commands(object):
         print("Package's default source was successfully reseted.")
 
     def action_build_package(self, args):
-        ownername, projectname = self.parse_name(args.copr)
+        ownername, project_dirname = self.parse_name(args.copr_dir)
+        projectname = project_dirname.split(':')[0]
+
         buildopts = {
             "chroots": args.chroots,
             #"memory": args.memory,
@@ -638,7 +643,8 @@ class Commands(object):
         }
         try:
             build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
-                                                     packagename=args.name, buildopts=buildopts)
+                                                    packagename=args.name, buildopts=buildopts,
+                                                    project_dirname=project_dirname)
             print("Build was added to {0}.".format(build.projectname))
             print("Created builds: {0}".format(build.id))
 
@@ -857,8 +863,9 @@ def setup_parser():
 
     # parent parser for the builds commands below
     parser_build_parent = argparse.ArgumentParser(add_help=False)
-    parser_build_parent.add_argument("copr",
-                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project.")
+    parser_build_parent.add_argument("copr_dir",
+                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project. "
+                                     "It can also be a copr directory name such as project:<suffix>, where <suffix> is arbitrary.")
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help="")
     parser_build_parent.add_argument("--timeout", dest="timeout",

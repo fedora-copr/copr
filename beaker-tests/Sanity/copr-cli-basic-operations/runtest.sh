@@ -550,6 +550,10 @@ rlJournalStart
         rlRun "copr-cli modify ${NAME_PREFIX}BootstrapProject --use-bootstrap off"
         rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` false
 
+        ## test building in copr dirs
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}CoprDirTest"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url http://github.com/clime/example.git" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url https://github.com/clime/example.git" 0
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
@@ -583,6 +587,8 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfigParent"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1444804"
         rlRun "copr-cli delete ${NAME_PREFIX}BootstrapProject"
+        rlRun "copr-cli delete ${NAME_PREFIX}CoprDirTest"
+
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

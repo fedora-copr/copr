@@ -374,6 +374,7 @@ class BuildFormRebuildFactory(object):
 
             enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
             background = wtforms.BooleanField(false_values=FALSE_VALUES)
+            project_dirname = wtforms.StringField(default=None)
 
         F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
@@ -757,6 +758,7 @@ class BaseBuildFormFactory(object):
 
         F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
         F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+        F.project_dirname = wtforms.StringField(default=None)
 
         # overrides BasePackageForm.package_name and is unused for building
         F.package_name = wtforms.StringField()
