@@ -135,6 +135,8 @@ class TestUpdateBuilds(CoprsTestCase):
         updated = self.models.Build.query.filter(
             self.models.Build.id == 1).one()
 
+        assert len(updated.build_chroots) == 1
+        assert updated.build_chroots[0].status == 1
         assert updated.status == 1
         assert updated.chroots_ended_on == {'fedora-18-x86_64': 1490866440}
 
@@ -264,18 +266,51 @@ class TestUpdateActions(CoprsTestCase):
 
 
 class TestImportingBuilds(CoprsTestCase):
+    data = """
+{
+  "builds":[
+    {
+      "id": 1,
+      "task_id": 1,
+      "srpm_url": "http://foo",
+      "status": 1,
+      "pkg_name": "foo",
+      "pkg_version": 1
+    },
+    {
+      "id": 2,
+      "task_id": 2,
+      "srpm_url": "http://bar",
+      "status": 1,
+      "pkg_name": "bar",
+      "pkg_version": 2
+    }
+  ]
+}"""
+
     def test_bg_priority_in_queue(self, f_users, f_coprs, f_mock_chroots, f_db):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
         BuildsLogic.create_new_from_url(self.u1, self.c1, "bar")
 
+        self.tc.post("/backend/update/",
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=self.data)
+
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data[0]["srpm_url"] == "bar"
+        assert data[0]["srpm_url"] == "http://bar"
 
     def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
         BuildsLogic.create_new_from_url(self.u1, self.c1, "bar", background=True)
 
+        self.tc.post("/backend/update/",
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=self.data)
+
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data[0]["srpm_url"] == "foo"
+        assert data[0]["srpm_url"] == "http://foo"
+        assert data[1]["srpm_url"] == "http://bar"

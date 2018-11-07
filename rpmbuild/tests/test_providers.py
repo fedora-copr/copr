@@ -2,7 +2,7 @@ import unittest
 import pytest
 
 from copr_rpmbuild.providers import (factory, RubyGemsProvider, PyPIProvider,
-                                     SpecUrlProvider)
+                                     UrlProvider)
 
 from copr_rpmbuild.helpers import SourceType
 
@@ -14,6 +14,6 @@ class TestProvidersFactory(unittest.TestCase):
     def test_factory(self):
         self.assertEqual(factory(SourceType.RUBYGEMS), RubyGemsProvider)
         self.assertEqual(factory(SourceType.PYPI), PyPIProvider)
-        self.assertEqual(factory(SourceType.LINK), SpecUrlProvider)
+        self.assertEqual(factory(SourceType.LINK), UrlProvider)
         with pytest.raises(RuntimeError):
             factory(self.not_existing_source_type)

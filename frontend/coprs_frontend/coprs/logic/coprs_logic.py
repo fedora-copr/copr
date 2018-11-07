@@ -700,6 +700,10 @@ class MockChrootsLogic(object):
         return new_chroot
 
     @classmethod
+    def active_names(cls):
+        return [ch.name for ch in cls.get_multiple(active_only=True).all()]
+
+    @classmethod
     def new(cls, mock_chroot):
         db.session.add(mock_chroot)
 

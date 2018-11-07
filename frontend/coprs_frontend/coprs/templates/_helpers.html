@@ -132,10 +132,16 @@
   {% if build.canceled %}
     {{ build_state_text("canceled") }}
   {% else %}
-    {% if build.status|state_from_num == "waiting" %}
+    {% if build.status is not none %}
+      {% if build.status|state_from_num == "waiting" %}
+        {{ build_state_text(build.source_status|state_from_num) }}
+      {% else %}
+        {{ build_state_text(build.status|state_from_num) }}
+      {% endif %}
+    {% elif build.source_status %}
       {{ build_state_text(build.source_status|state_from_num) }}
     {% else %}
-      {{ build_state_text(build.status|state_from_num) }}
+      {{ build_state_text(0|state_from_num) }}
     {% endif %}
   {% endif %}
 {% endmacro %}
@@ -532,14 +538,14 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 
 
 {% macro render_srpm_build_method_box(form) %}
-  <!-- This closes "2. Provide the source" panel, so we can create a new one.
+  <!-- This closes "Provide the source" panel, so we can create a new one.
        It is particularly ugly and needs to be changed -->
     </div>
   </div>
 
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">3. How to build SRPM from the source</h3>
+      <h3 class="panel-title">{{ counter('instructions') }}. How to build SRPM from the source</h3>
     </div>
     <div class="panel-body">
       <div class="list-group" style="margin-bottom: 0px">

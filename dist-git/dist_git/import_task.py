@@ -20,6 +20,7 @@ class ImportTask(object):
             task.project = task_dict["project"]
             task.branches = task_dict["branches"]
             task.srpm_url = task_dict["srpm_url"]
+            task.pkg_name = task_dict["pkg_name"]
         except (KeyError, ValueError) as e:
             raise PackageImportException(str(e))
 

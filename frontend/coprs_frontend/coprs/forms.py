@@ -6,6 +6,7 @@ import wtforms
 import json
 
 from flask_wtf.file import FileRequired, FileField
+from fnmatch import fnmatch
 
 try: # get rid of deprecation warning with newer flask_wtf
     from flask_wtf import FlaskForm
@@ -15,7 +16,7 @@ except ImportError:
 from coprs import constants
 from coprs import helpers
 from coprs import models
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs import exceptions
 
@@ -170,13 +171,10 @@ class ChrootsValidator(object):
             return
 
         selected = set(field.data.split())
-        enabled = set(self.chroots_list())
+        enabled = set(MockChrootsLogic.active_names())
 
-        if not (selected <= enabled):
-            raise wtforms.ValidationError("Such chroot is not enabled: {}".format(", ".join(selected - enabled)))
-
-    def chroots_list(self):
-        return [c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()]
+        if selected - enabled:
+            raise wtforms.ValidationError("Such chroot is not available: {}".format(", ".join(selected - enabled)))
 
 
 class NameNotNumberValidator(object):
@@ -312,17 +310,13 @@ class CoprFormFactory(object):
                         have_any = True
                 return have_any
 
-        F.chroots_list = list(map(lambda x: x.name,
-                             models.MockChroot.query.filter(
-                                 models.MockChroot.is_active == True
-                             ).all()))
+        F.chroots_list = MockChrootsLogic.active_names()
         F.chroots_list.sort()
         # sets of chroots according to how we should print them in columns
         F.chroots_sets = {}
         for ch in F.chroots_list:
             checkbox_default = False
-            if mock_chroots and ch in map(lambda x: x.name,
-                                          mock_chroots):
+            if mock_chroots and ch in [x.name for x in mock_chroots]:
                 checkbox_default = True
 
             setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default, false_values=FALSE_VALUES))
@@ -404,11 +398,48 @@ class RebuildPackageFactory(object):
         return form
 
 
+def cleanup_chroot_blacklist(string):
+    if not string:
+        return string
+    fields = [x.lstrip().rstrip() for x in string.split(',')]
+    return ', '.join(fields)
+
+
+def validate_chroot_blacklist(form, field):
+    if field.data:
+        string = field.data
+        fields = [x.lstrip().rstrip() for x in string.split(',')]
+        for field in fields:
+            pattern = r'^[a-z0-9-*]+$'
+            if not re.match(pattern, field):
+                raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(field, pattern))
+
+            matched = set()
+            all_chroots = MockChrootsLogic.active_names()
+            for chroot in all_chroots:
+                if fnmatch(chroot, field):
+                    matched.add(chroot)
+
+            if not matched:
+                raise wtforms.ValidationError('no chroot matched by pattern "{0}"'.format(field))
+
+            if matched == all_chroots:
+                raise wtforms.ValidationError('patterns are black-listing all chroots')
+
+
 class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[wtforms.validators.DataRequired()])
     webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+    chroot_blacklist = wtforms.StringField(
+        "Chroot blacklist",
+        filters=[cleanup_chroot_blacklist],
+        validators=[
+            wtforms.validators.Optional(),
+            validate_chroot_blacklist,
+        ],
+    )
 
 
 class PackageFormScm(BasePackageForm):
@@ -696,7 +727,7 @@ class RebuildAllPackagesFormFactory(object):
 
 
 class BaseBuildFormFactory(object):
-    def __new__(cls, active_chroots, form):
+    def __new__(cls, active_chroots, form, package=None):
         class F(form):
             @property
             def selected_chroots(self):
@@ -730,11 +761,18 @@ class BaseBuildFormFactory(object):
         # overrides BasePackageForm.package_name and is unused for building
         F.package_name = wtforms.StringField()
 
-        F.chroots_list = list(map(lambda x: x.name, active_chroots))
+        # fill chroots based on project settings
+        F.chroots_list = [x.name for x in active_chroots]
         F.chroots_list.sort()
         F.chroots_sets = {}
+
+        package_chroots = set(F.chroots_list)
+        if package:
+            package_chroots = set([ch.name for ch in package.chroots])
+
         for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True, false_values=FALSE_VALUES))
+            default = ch in package_chroots
+            setattr(F, ch, wtforms.BooleanField(ch, default=default, false_values=FALSE_VALUES))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -743,8 +781,8 @@ class BaseBuildFormFactory(object):
 
 
 class BuildFormScmFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormScm)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormScm, package)
 
 
 class BuildFormTitoFactory(object):
@@ -764,13 +802,13 @@ class BuildFormMockFactory(object):
 
 
 class BuildFormPyPIFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormPyPI)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormPyPI, package)
 
 
 class BuildFormRubyGemsFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems, package)
 
 
 class BuildFormDistGitFactory(object):
@@ -788,8 +826,8 @@ class BuildFormUploadFactory(object):
 
 
 class BuildFormCustomFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormCustom)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormCustom, package)
 
 
 class BuildFormUrlFactory(object):

@@ -69,3 +69,16 @@ def login_menu():
             })
 
     return dict(login_menu=menu)
+
+@app.context_processor
+def counter_processor():
+    def counter(name):
+        if not 'counters' in flask.g:
+            flask.g.counters = {}
+        if not name in flask.g.counters:
+            flask.g.counters[name] = 0
+
+        flask.g.counters[name] += 1
+        return str(flask.g.counters[name])
+
+    return dict(counter=counter)

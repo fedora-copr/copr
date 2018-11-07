@@ -420,6 +420,13 @@ class CoprsTestCase(object):
                                 summary="Sum 3", description="Desc 3", created_on=time.time())
         self.db.session.add_all([self.m1, self.m2, self.m3])
 
+    @pytest.fixture
+    def f_pr_dir(self):
+        self.c4_dir = models.CoprDir(name=u"foocopr:PR", copr=self.c1,
+                main=False)
+        self.p4 = models.Package(
+            copr=self.c1, copr_dir=self.c4_dir, name="hello-world",
+            source_type=0)
 
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,

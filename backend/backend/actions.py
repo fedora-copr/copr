@@ -499,6 +499,7 @@ class Action(object):
                 self.log.exception(e)
 
 
+# TODO: sync with ActionTypeEnum from common
 class ActionType(object):
     DELETE = 0
     RENAME = 1
