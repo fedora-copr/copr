@@ -292,7 +292,7 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
     def process_build(self, args, build_function, data, bar=None, progress_callback=None):
-        username, project_dirname = self.parse_name(args.copr_dir)
+        username, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
 
         try:
@@ -633,7 +633,7 @@ class Commands(object):
         print("Package's default source was successfully reseted.")
 
     def action_build_package(self, args):
-        ownername, project_dirname = self.parse_name(args.copr_dir)
+        ownername, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
 
         buildopts = {
@@ -863,9 +863,9 @@ def setup_parser():
 
     # parent parser for the builds commands below
     parser_build_parent = argparse.ArgumentParser(add_help=False)
-    parser_build_parent.add_argument("copr_dir",
+    parser_build_parent.add_argument("copr_repo",
                                      help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project. "
-                                     "It can also be a copr directory name such as project:<suffix>, where <suffix> is arbitrary.")
+                                     "It can also be project:<suffix>, where <suffix> is arbitrary.")
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help="")
     parser_build_parent.add_argument("--timeout", dest="timeout",
