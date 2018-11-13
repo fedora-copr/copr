@@ -24,7 +24,7 @@ except ImportError:
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
-     SourceType, parse_copr_name, dump_live_log
+     SourceType, parse_copr_name, dump_live_log, copr_chroot_to_task_id
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -203,7 +203,7 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
         task['chroot'] = args.chroot
 
     if args.copr:
-        task['task_id'] = task['repo_id']
+        task['task_id'] = copr_chroot_to_task_id(args.copr, args.chroot)
 
     if args.submode == 'scm':
         task['source_type'] = SourceType.SCM
