@@ -10,7 +10,7 @@ template_string = """\
 
 include('/etc/mock/{{chroot}}.cfg')
 
-config_opts['root'] = '{{project_id}}_{{chroot}}'
+config_opts['root'] = '{{ rootdir }}'
 config_opts['chroot_additional_packages'] = '
 {%- for pkg in additional_packages -%}
 {%- if loop.last -%}

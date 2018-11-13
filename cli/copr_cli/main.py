@@ -424,6 +424,7 @@ class Commands(object):
         sys.stderr.write("# This command is deprecated and will be removed in a future release.\n")
         ownername, projectname = self.parse_name(args.project)
         build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
+        build_config.rootdir = "{}-{}_{}".format(ownername.replace("@", "group_"), projectname, args.chroot)
         print(MockProfile(build_config))
 
 
