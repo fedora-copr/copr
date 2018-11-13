@@ -261,3 +261,25 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+
+    @classmethod
+    def send_delete_chroot(cls, copr_chroot):
+        """
+        Schedules deletion of a chroot directory from project
+        Useful to remove outdated chroots
+        :type build: models.CoprChroot
+        """
+        data_dict = {
+            "ownername": copr_chroot.copr.owner_name,
+            "projectname": copr_chroot.copr.name,
+            "chrootname": copr_chroot.name,
+        }
+
+        action = models.Action(
+            action_type=ActionTypeEnum("delete"),
+            object_type="chroot",
+            object_id=None,
+            data=json.dumps(data_dict),
+            created_on=int(time.time())
+        )
+        db.session.add(action)

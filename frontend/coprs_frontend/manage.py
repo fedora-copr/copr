@@ -36,6 +36,7 @@ commands = {
     "update_graphs": "UpdateGraphsDataCommand",
     "vacuum_graphs": "RemoveGraphsDataCommand",
     "notify_outdated_chroots": "NotifyOutdatedChrootsCommand",
+    "delete_outdated_chroots": "DeleteOutdatedChrootsCommand",
 }
 
 

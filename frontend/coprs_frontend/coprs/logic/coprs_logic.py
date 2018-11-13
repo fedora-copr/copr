@@ -678,6 +678,10 @@ class CoprChrootsLogic(object):
     def filter_outdated(cls, query):
         return query.filter(models.CoprChroot.delete_after >= datetime.datetime.now())
 
+    @classmethod
+    def filter_outdated_to_be_deleted(cls, query):
+        return query.filter(models.CoprChroot.delete_after < datetime.datetime.now())
+
 
 class MockChrootsLogic(object):
     @classmethod

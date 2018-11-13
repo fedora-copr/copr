@@ -289,6 +289,22 @@ class Action(object):
             except CreateRepoError:
                 self.log.exception("Error making local repo: %s", full_path)
 
+    def handle_delete_chroot(self):
+        self.log.info("Action delete project chroot.")
+
+        ext_data = json.loads(self.data["data"])
+        ownername = ext_data["ownername"]
+        projectname = ext_data["projectname"]
+        chrootname = ext_data["chrootname"]
+
+        chroot_path = os.path.join(self.destdir, ownername, projectname, chrootname)
+        self.log.info("Going to delete: %s", chroot_path)
+
+        if not os.path.isdir(chroot_path):
+            self.log.error("Directory %s not found", chroot_path)
+            return
+        shutil.rmtree(chroot_path)
+
     def handle_generate_gpg_key(self, result):
         ext_data = json.loads(self.data["data"])
         self.log.info("Action generate gpg key: %s", ext_data)
@@ -456,6 +472,8 @@ class Action(object):
                 self.handle_delete_project(result)
             elif self.data["object_type"] == "build":
                 self.handle_delete_build()
+            elif self.data["object_type"] == "chroot":
+                self.handle_delete_chroot()
 
             result.result = ActionResult.SUCCESS
 
