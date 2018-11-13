@@ -24,7 +24,7 @@ config_opts['yum.conf'] += \"\"\"
 {% for repo in repos %}
 [{{ repo.id }}]
 name="{{ repo.name }}"
-baseurl={{ repo.url }}
+baseurl={{ repo.baseurl }}
 {%- if repo.priority %}
 priority={{ repo.priority }}
 {%- endif %}
