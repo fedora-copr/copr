@@ -35,25 +35,27 @@ Requires:      python3-simplejson
 
 Recommends:    python3-progress
 
-BuildRequires: python3-copr
+BuildRequires: python3-copr >= 1.89
 BuildRequires: python3-devel
 BuildRequires: python3-jinja2
 BuildRequires: python3-pylint
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
+BuildRequires: python3-munch
 %else
 Requires:      python-copr >= 1.89
 Requires:      python-jinja2
 Requires:      python-simplejson
 
 BuildRequires: pytest
-BuildRequires: python-copr
+BuildRequires: python-copr >= 1.89
 BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-mock
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
+BuildRequires: python-munch
 %endif
 
 # We historically shipped empty doc package, uninstall it.
