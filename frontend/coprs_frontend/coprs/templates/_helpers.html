@@ -573,3 +573,13 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
         {% endfor %}
       </div>
 {% endmacro %}
+
+{% macro warn_server_admin(copr) %}
+  {% if g.user and g.user.admin and g.user != copr.user %}
+    {% if not g.user.permissions_for_copr(copr) or g.user.permissions_for_copr(copr).copr_admin < 2 %}
+      {% set msg = "As a maintainer of this Copr instance, you have permissions to modify this project,
+                    but if you are acting as a regular user now, be aware that this is not your project." %}
+      {{ alert(msg, type="warning") }}
+    {% endif %}
+  {% endif %}
+{% endmacro %}
