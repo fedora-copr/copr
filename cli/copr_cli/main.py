@@ -406,8 +406,14 @@ class Commands(object):
         """
         sys.stderr.write("# This command is deprecated and will be removed in a future release.\n")
         ownername, projectname = self.parse_name(args.project)
-        build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
-        print(MockProfile(build_config))
+        client = CoprClient.create_from_file_config()
+        result = client.get_build_config('{0}/{1}'.format(ownername, projectname), args.chroot)
+
+        if result.output != "ok":
+            sys.stderr.write(result.error + "\n")
+            sys.stderr.write("Un-expected data returned, please report this issue\n")
+
+        print(MockProfile(result.build_config))
 
 
     @check_username_presence
