@@ -23,7 +23,7 @@ class ProjectProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
-    def get_list(self, ownername, pagination=None):
+    def get_list(self, ownername=None, pagination=None):
         """
         Return a list of projects
 
