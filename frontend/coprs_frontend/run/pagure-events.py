@@ -14,7 +14,7 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
 
-from coprs import db, app
+from coprs import db, app, models
 from coprs.logic.coprs_logic import CoprDirsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -74,11 +74,14 @@ class ScmPackage(object):
         else:
             package = self.package
 
-        build = BuildsLogic.rebuild_package(
+        db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
+        if models.Build.query.filter(models.Build.scm_object_url == scm_object_url).first():
+            log.info('\t -> Build for {} already exists.'.format(scm_object_url))
+            return None
+
+        return BuildsLogic.rebuild_package(
             package, source_dict_update, copr_dir, update_callback,
             scm_object_type, scm_object_id, scm_object_url)
-
-        return build
 
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
@@ -262,7 +265,7 @@ def build_on_fedmsg_loop():
                     and (not pkg.committish or event_info.branch_to.endswith(pkg.committish))
                     and pkg.is_dir_in_commit(raw_commit_text)):
 
-                log.info('\t -> rebuilding.')
+                log.info('\t -> accepted.')
 
                 if event_info.object_type == 'pull-request':
                     dirname = pkg.copr.name + ':pr:' + str(event_info.object_id)
@@ -292,7 +295,9 @@ def build_on_fedmsg_loop():
                     event_info.object_id,
                     scm_object_url
                 )
-                log.info('\t -> {}'.format(build.to_dict()))
+                if build:
+                    log.info('\t -> {}'.format(build.to_dict()))
+
                 db.session.commit()
             else:
                 log.info('\t -> skipping.')
