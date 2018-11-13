@@ -3,8 +3,8 @@ from __future__ import absolute_import
 import os
 import json
 import requests
+from munch import Munch
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
-from .munch import Munch
 from .helpers import List
 from .exceptions import CoprRequestException, CoprNoResultException
 

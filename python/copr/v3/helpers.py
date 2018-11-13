@@ -1,7 +1,7 @@
 import os
 import six
 import configparser
-from .munch import Munch
+from munch import Munch
 from .exceptions import CoprNoConfigException, CoprConfigException
 
 
