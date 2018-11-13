@@ -223,12 +223,6 @@ def build_srpm(srcdir, destdir):
     run_cmd(cmd)
 
 
-def copr_chroot_to_task_id(copr, chroot):
-    copr_token = re.sub('@', 'group_', copr)
-    copr_token = re.sub('/', '-', copr_token)
-    return copr_token +'-'+chroot
-
-
 def parse_copr_name(name):
     m = re.match(r"([^/]+)/(.*)", name)
     ownername = m.group(1)

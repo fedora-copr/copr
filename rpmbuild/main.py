@@ -24,8 +24,7 @@ except ImportError:
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
-    SourceType, parse_copr_name, \
-    copr_chroot_to_task_id, dump_live_log
+     SourceType, parse_copr_name, dump_live_log
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -203,6 +202,9 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
     if args.chroot:
         task['chroot'] = args.chroot
 
+    if args.copr:
+        task['task_id'] = task['repo_id']
+
     if args.submode == 'scm':
         task['source_type'] = SourceType.SCM
         task['source_json'].update({
@@ -250,11 +252,13 @@ def build_rpm(args, config):
     if not args.chroot:
         raise RuntimeError("Missing --chroot parameter")
 
+    task_id = None
+    build_config_url_path = None
+
     if args.build_id:
         task_id = "-".join([args.build_id, args.chroot])
         build_config_url_path = urljoin("/backend/get-build-task/", task_id)
     elif args.copr:
-        task_id = copr_chroot_to_task_id(args.copr, args.chroot)
         ownername, projectname = parse_copr_name(args.copr)
         get_params = {
             'ownername': ownername,
@@ -263,9 +267,6 @@ def build_rpm(args, config):
         }
         build_config_url_path = ("/api_3/project-chroot/build-config?"
                                  + urlencode(get_params))
-    else:
-        task_id = None
-        build_config_url_path = None
 
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
@@ -291,11 +292,13 @@ def dump_configs(args, config):
     if not args.chroot:
         raise RuntimeError("Missing --chroot parameter")
 
+    task_id = None
+    build_config_url_path = None
+
     if args.build_id:
         task_id = "-".join([args.build_id, args.chroot])
         build_config_url_path = urljoin("/backend/get-build-task/", task_id)
     elif args.copr:
-        task_id = copr_chroot_to_task_id(args.copr, args.chroot)
         ownername, projectname = parse_copr_name(args.copr)
         get_params = {
             'ownername': ownername,
@@ -304,9 +307,6 @@ def dump_configs(args, config):
         }
         build_config_url_path = ("/api_3/project-chroot/build-config?"
                                  + urlencode(get_params))
-    else:
-        task_id = None
-        build_config_url_path = None
 
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)

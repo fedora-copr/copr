@@ -26,6 +26,7 @@ def to_dict(project_chroot):
 def to_build_config_dict(project_chroot):
     config = generate_build_config(project_chroot.copr, project_chroot.name)
     return {
+        "repo_id": "_".join([config["project_id"], project_chroot.name]),
         "chroot": project_chroot.name,
         "repos": config["repos"],
         "additional_repos": generate_additional_repos(project_chroot),
