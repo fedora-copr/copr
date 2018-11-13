@@ -27,9 +27,11 @@
           all builds
         </a>
         {% for copr_dir in copr.dirs|sort(attribute='name') %}
+          {% if copr_dir.main or (copr_dir.packages | count) > 0 %}
             <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}">
-            {{ copr_dir.name }}
-          </a>
+              {{ copr_dir.name }}
+            </a>
+          {% endif %}
         {% endfor %}
       </div>
     </div>
