@@ -509,14 +509,14 @@ def generate_build_config(copr, chroot_id):
 
     repos = [{
         "id": "copr_base",
-        "url": copr.repo_url + "/{}/".format(chroot_id),
+        "baseurl": copr.repo_url + "/{}/".format(chroot_id),
         "name": "Copr repository",
     }]
 
     if not copr.auto_createrepo:
         repos.append({
             "id": "copr_base_devel",
-            "url": copr.repo_url + "/{}/devel/".format(chroot_id),
+            "baseurl": copr.repo_url + "/{}/devel/".format(chroot_id),
             "name": "Copr buildroot",
         })
 
@@ -526,7 +526,7 @@ def generate_build_config(copr, chroot_id):
             params = parse_repo_params(repo)
             repo_view = {
                 "id": generate_repo_name(repo),
-                "url": pre_process_repo_url(chroot_id, repo),
+                "baseurl": pre_process_repo_url(chroot_id, repo),
                 "name": "Additional repo " + generate_repo_name(repo),
             }
             repo_view.update(params)

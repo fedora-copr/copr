@@ -1074,4 +1074,8 @@ def copr_build_config(copr, chroot):
     if not output['build_config']:
         raise LegacyApiError('Chroot not found.')
 
+    # To preserve backwards compatibility, repos needs to have the `url` attribute
+    for repo in output["build_config"]["repos"]:
+        repo["url"] = repo["baseurl"]
+
     return flask.jsonify(output)
