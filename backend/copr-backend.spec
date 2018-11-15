@@ -30,7 +30,7 @@ BuildRequires: python3-requests
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-munch
-BuildRequires: python3-lockfile
+BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-daemon
 BuildRequires: python3-requests
 BuildRequires: python3-setproctitle
@@ -52,7 +52,7 @@ Requires:   mock
 Requires:   createrepo_c
 Requires:   python3-munch
 Requires:   python3-daemon
-Requires:   python3-lockfile
+Requires:   python3-oslo-concurrency
 Requires:   python3-requests
 Requires:   python3-setproctitle
 Requires:   python3-retask
