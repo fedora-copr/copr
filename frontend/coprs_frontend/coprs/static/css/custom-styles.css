@@ -29,3 +29,8 @@ code {
 span.build-waiting {
     color: #666666;
 }
+
+span.padding {
+    width: 5px;
+    display: inline-block;
+}
