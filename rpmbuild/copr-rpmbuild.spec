@@ -55,6 +55,7 @@ Requires: expect
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg
+Recommends: python-srpm-macros
 Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
@@ -72,6 +73,7 @@ Requires: rpkg
 Requires: tito
 Requires: rubygem-gem2rpm
 Requires: pyp2rpm
+Requires: python-srpm-macros
 
 %description -n copr-builder
 Provides command capable of running COPR build-tasks.
