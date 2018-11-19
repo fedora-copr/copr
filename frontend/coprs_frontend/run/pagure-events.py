@@ -287,18 +287,22 @@ def build_on_fedmsg_loop():
                     'committish': event_info.end_commit,
                 }
 
-                build = pkg.build(
-                    source_dict_update,
-                    copr_dir,
-                    update_callback,
-                    event_info.object_type,
-                    event_info.object_id,
-                    scm_object_url
-                )
-                if build:
-                    log.info('\t -> {}'.format(build.to_dict()))
-
-                db.session.commit()
+                try:
+                    build = pkg.build(
+                        source_dict_update,
+                        copr_dir,
+                        update_callback,
+                        event_info.object_type,
+                        event_info.object_id,
+                        scm_object_url
+                    )
+                    if build:
+                        log.info('\t -> {}'.format(build.to_dict()))
+                except Exception as e:
+                    log.error(str(e))
+                    db.session.rollback()
+                else:
+                    db.session.commit()
             else:
                 log.info('\t -> skipping.')
 
