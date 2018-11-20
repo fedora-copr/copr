@@ -56,10 +56,13 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
     log.info('Running: ' + cmd_readable(cmd))
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
+
     try:
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
         (stdout, stderr) = process.communicate()
+    except FileNotFoundError:
+        raise RuntimeError("Package with `{}` command is not installed".format(cmd[0]))
     except OSError as e:
         raise RuntimeError(str(e))
 

@@ -25,15 +25,15 @@ BuildArch: noarch
 # rpkg spec --sources
 Source0: {{{ git_dir_archive }}}
 
-BuildRequires: %python-devel
-BuildRequires: %rpm_python
+BuildRequires: %{python}-devel
+BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
-BuildRequires: %python-setuptools
-BuildRequires: %python-pytest
-BuildRequires: %python_pfx-munch
-BuildRequires: %python-requests
-BuildRequires: %python_pfx-jinja2
-BuildRequires: %python-configparser
+BuildRequires: %{python}-setuptools
+BuildRequires: %{python}-pytest
+BuildRequires: %{python_pfx}-munch
+BuildRequires: %{python}-requests
+BuildRequires: %{python_pfx}-jinja2
+BuildRequires: %{python}-configparser
 
 BuildRequires: python-rpm-macros
 
@@ -42,20 +42,21 @@ BuildRequires: python2-mock
 %endif
 
 Requires: %python
-Requires: %python_pfx-jinja2
-Requires: %python_pfx-munch
-Requires: %python-configparser
-Requires: %python-requests
-Requires: %python_pfx-simplejson
+Requires: %{python_pfx}-jinja2
+Requires: %{python_pfx}-munch
+Requires: %{python}-configparser
+Requires: %{python}-requests
+Requires: %{python_pfx}-simplejson
 
 Requires: mock
 Requires: git
 Requires: git-svn
-Requires: rpkg
 Requires: expect
-Requires: tito
 
 %if 0%{?fedora} || 0%{?rhel} > 7
+Recommends: rpkg
+Recommends: python-srpm-macros
+Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
 %endif
@@ -64,6 +65,22 @@ Suggests: pyp2rpm
 Provides command capable of running COPR build-tasks.
 Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
 build build-id 12345 for chroot epel-7-x86_64.
+
+%package -n copr-builder
+Summary: copr-rpmbuild with all weak dependencies
+Requires: %{name} = %{version}-%{release}
+Requires: rpkg
+Requires: tito
+Requires: rubygem-gem2rpm
+Requires: pyp2rpm
+Requires: python-srpm-macros
+
+%description -n copr-builder
+Provides command capable of running COPR build-tasks.
+Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
+build build-id 12345 for chroot epel-7-x86_64.
+
+This package contains all optional modules for building SRPM.
 
 %prep
 %setup -q
@@ -112,6 +129,9 @@ name="%{name}" version="%{version}" summary="%{summary}" %py_install
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
+
+%files -n copr-builder
+%license LICENSE
 
 %changelog
 {{{ git_dir_changelog since_tag=copr-rpmbuild-0.18-1 }}}
