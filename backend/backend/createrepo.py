@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 
 from shlex import split
 from setproctitle import getproctitle, setproctitle
-from lockfile import LockFile
+from oslo_concurrency import lockutils
 
 # todo: add logging here
 # from backend.helpers import BackendConfigReader, get_redis_logger
@@ -14,14 +14,14 @@ from .helpers import get_auto_createrepo_status
 from .exceptions import CreateRepoError
 
 
-def run_cmd_unsafe(comm_str, lock_path):
+def run_cmd_unsafe(comm_str, lock_name, lock_path="/var/lock/copr-backend"):
     # log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)
     title = getproctitle()
     try:
         # TODO change this to logger
         setproctitle("[locked] in createrepo")
-        with LockFile(lock_path):
+        with lockutils.lock(name=lock_name, external=True, lock_path=lock_path):
             cmd = Popen(comm, stdout=PIPE, stderr=PIPE, encoding="utf-8")
             out, err = cmd.communicate()
     except Exception as err:

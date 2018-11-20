@@ -103,7 +103,7 @@ class TestCreaterepo(object):
         mc_popen.return_value.communicate.return_value = ("stdout", "stderr")
         mc_popen.return_value.returncode = 0
 
-        assert run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+        assert run_cmd_unsafe(cmd, self.tmp_dir_name, lock_path="/tmp") == "stdout"
         mc_popen.reset()
 
     def test_run_cmd_unsafe_err_popen(self, mc_popen):
@@ -111,7 +111,7 @@ class TestCreaterepo(object):
         mc_popen.side_effect = IOError()
 
         with pytest.raises(CreateRepoError) as err:
-            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+            run_cmd_unsafe(cmd, self.tmp_dir_name, lock_path="/tmp") == "stdout"
 
         assert err.value.cmd == cmd
         assert mc_popen.call_args[0][0] == ["foo", "--bar"]
@@ -124,7 +124,7 @@ class TestCreaterepo(object):
 
 
         with pytest.raises(CreateRepoError) as err:
-            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+            run_cmd_unsafe(cmd, self.tmp_dir_name, lock_path="/tmp") == "stdout"
 
         assert err.value.cmd == cmd
         assert err.value.stdout == "stdout"
@@ -141,7 +141,7 @@ class TestCreaterepo(object):
         mc_handle.side_effect = RuntimeError()
 
         with pytest.raises(CreateRepoError) as err:
-            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+            run_cmd_unsafe(cmd, self.tmp_dir_name, lock_path="/tmp") == "stdout"
 
         assert err.value.cmd == cmd
         assert mc_popen.call_args[0][0] == ["foo", "--bar"]
