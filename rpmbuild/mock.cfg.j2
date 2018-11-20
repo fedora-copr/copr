@@ -27,7 +27,7 @@ config_opts['{{ pkg_manager_conf }}.conf'] += """
 {% for repo in repos %}
 [{{ repo["id"] }}]
 name='{{ repo["name"] }}'
-baseurl={{ repo["url"] }}
+baseurl={{ repo["baseurl"] }}
 gpgcheck=0
 enabled=1
 skip_if_unavailable=1

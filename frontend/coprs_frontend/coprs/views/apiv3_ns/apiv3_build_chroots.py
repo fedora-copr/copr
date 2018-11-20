@@ -20,6 +20,7 @@ def build_config(build_chroot):
     config = generate_build_config(build_chroot.build.copr, build_chroot.name)
     copr_chroot = CoprChrootsLogic.get_by_name_safe(build_chroot.build.copr, build_chroot.name)
     return {
+        "repos": config.get("repos"),
         "additional_repos": generate_additional_repos(copr_chroot),
         "additional_packages": config.get("additional_packages"),
         "use_bootstrap_container": config.get("use_bootstrap_container"),
