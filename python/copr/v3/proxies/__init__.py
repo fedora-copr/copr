@@ -1,6 +1,7 @@
 import os
 from ..helpers import config_from_file
 from ..requests import Request, munchify
+from ..helpers import for_all_methods, bind_proxy
 
 
 class BaseProxy(object):
@@ -9,6 +10,7 @@ class BaseProxy(object):
     """
 
     def __init__(self, config):
+        for_all_methods(self.__class__, bind_proxy)
         self.config = config
 
     @classmethod
