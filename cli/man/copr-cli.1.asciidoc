@@ -197,7 +197,7 @@ BUILD ACTIONS
 
 usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--background]
-                      project PKG [PKG ...]
+                      copr_repo PKG [PKG ...]
 
 -r, --chroot::
 If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
@@ -214,11 +214,15 @@ Don't wait for build completion.
 --background::
 Run the build at a lower priority.
 
-project::
-The project build the package in. This can be a simple name of some of
-your projects. Alternatively, you can specify it as username/project or
-@groupname/project. This way you can build into the project of another
-user or group, provided you have the permissions to do so.
+copr_repo::
+The copr repository to build the package in. This can be a simple name of some of
+your projects or it can be specified fully as username/project or @groupname/project.
+This way you can build into the project of another user or group, provided you have
+permissions to do so. Finally, instead of just project name, you can also use
+project:suffix. In that case, the build will land into a project side repository
+instead of the main repository. The side repository of name project:suffix will be
+created automatically if it doesn't exist yet. You can e.g. use this feature to
+launch test builds while the main user-facing repository stays intact.
 
 PKG::
 This can be either file on your local workstation or URL of the package to build. When URL is used, then the package must be placed on a public web or
@@ -330,7 +334,7 @@ usage: copr buildscm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
                      [--method {rpkg,tito,tito_test,make_srpm}]
                      [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                      [-r CHROOTS] [--background]
-                     copr
+                     copr_repo
 
 Build package from a Git/DistGit/SVN repository.
 
