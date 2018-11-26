@@ -19,42 +19,44 @@ class TestHelpers(object):
 
 
 class TestWait(object):
-    proxy = BuildProxy({})
-
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait(self, mock_get):
-        build = Munch(id=1, state="importing")
+        build = MunchMock(id=1, state="importing")
 
-        mock_get.return_value = Munch(id=1, state="succeeded")
-        assert wait(build, self.proxy)
+        mock_get.return_value = MunchMock(id=1, state="succeeded")
+        assert wait(build)
 
-        mock_get.return_value = Munch(id=1, state="unknown")
+        mock_get.return_value = MunchMock(id=1, state="unknown")
         with pytest.raises(CoprException) as ex:
-            wait(build, self.proxy)
+            wait(build)
         assert "Unknown status" in str(ex)
 
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait_list(self, mock_get):
-        builds = [Munch(id=1, state="succeeded"), Munch(id=2, state="failed")]
+        builds = [MunchMock(id=1, state="succeeded"), MunchMock(id=2, state="failed")]
         mock_get.side_effect = lambda id: builds[id-1]
-        assert wait(builds, self.proxy)
+        assert wait(builds)
 
     @mock.patch("time.time")
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait_timeout(self, mock_get, mock_time):
-        build = Munch(id=1, state="importing")
+        build = MunchMock(id=1, state="importing")
 
-        mock_get.return_value = Munch(id=1, state="running")
+        mock_get.return_value = MunchMock(id=1, state="running")
         mock_time.return_value = 0
         with pytest.raises(CoprException) as ex:
-            wait(build, self.proxy, interval=0, timeout=-10)
+            wait(build, interval=0, timeout=-10)
         assert "Timeouted" in str(ex)
 
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait_callback(self, mock_get):
-        build = Munch(id=1, state="importing")
+        build = MunchMock(id=1, state="importing")
 
         callback = mock.Mock()
-        mock_get.return_value = Munch(id=1, state="failed")
-        wait(build, self.proxy, interval=0, callback=callback)
+        mock_get.return_value = MunchMock(id=1, state="failed")
+        wait(build, interval=0, callback=callback)
         assert callback.called
+
+
+class MunchMock(Munch):
+    __proxy__ = BuildProxy({})

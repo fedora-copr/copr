@@ -62,7 +62,7 @@ def bind_proxy(func):
     return wrapper
 
 
-def wait(result, build_proxy, interval=30, callback=None, timeout=0):
+def wait(result, interval=30, callback=None, timeout=0):
     """
     :param Munch/list result: A Munch result or list of results
     :param int interval: How many seconds wait before requesting updated Munches from frontend
@@ -79,7 +79,7 @@ def wait(result, build_proxy, interval=30, callback=None, timeout=0):
 
     while True:
         for build_id in watched.copy():
-            build = munches[build_id] = build_proxy.get(build_id)
+            build = munches[build_id] = munches[build_id].__proxy__.get(build_id)
             if build.state in ["failed"]:
                 failed.append(build_id)
             if build.state in ["succeeded", "skipped", "failed", "canceled"]:
