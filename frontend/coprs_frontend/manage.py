@@ -4,6 +4,7 @@ import argparse
 import os
 import subprocess
 import sqlalchemy
+import datetime
 import time
 
 import flask
@@ -15,11 +16,12 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
+from coprs.mail import send_mail, OutdatedChrootMessage
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic, users_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from sqlalchemy import and_, or_
-from coprs.helpers import chroot_to_branch
+from coprs.helpers import chroot_to_branch, PermissionEnum
 
 
 class TestCommand(Command):
@@ -265,8 +267,18 @@ class AlterChrootCommand(ChrootCommand):
         activate = (action == "activate")
         for chroot_name in chroot_names:
             try:
-                coprs_logic.MockChrootsLogic.edit_by_name(
+                mock_chroot = coprs_logic.MockChrootsLogic.edit_by_name(
                     chroot_name, activate)
+
+                if action != "eol":
+                    continue
+
+                for copr_chroot in mock_chroot.copr_chroots:
+                    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+                    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(delete_after_days)
+                    # Workarounding an auth here
+                    coprs_logic.CoprChrootsLogic.update_chroot(copr_chroot.copr.user, copr_chroot,
+                                                               delete_after=delete_after_timestamp)
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)
@@ -278,7 +290,7 @@ class AlterChrootCommand(ChrootCommand):
                "-a",
                dest="action",
                help="Action to take - currently activate or deactivate",
-               choices=["activate", "deactivate"],
+               choices=["activate", "deactivate", "eol"],
                required=True),
     )
 
@@ -507,6 +519,73 @@ class RemoveGraphsDataCommand(Command):
         db.session.commit()
 
 
+class NotifyOutdatedChrootsCommand(Command):
+    """
+    Notify all admins of projects with builds in outdated chroots about upcoming deletion.
+    """
+    option_list = [
+        Option("--dry-run", action="store_true",
+               help="Do not actually notify the people, but rather print information on stdout"),
+        Option("-e", "--email", action="append", dest="email_filter",
+               help="Notify only "),
+        Option("-a", "--all", action="store_true",
+               help="Notify all (even the recently notified) relevant people"),
+    ]
+
+    def run(self, dry_run, email_filter, all):
+        self.dry_run = dry_run
+        self.email_filter = email_filter
+        self.all = all
+
+        outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
+        for user, chroots in self.get_user_chroots_map(outdated).items():
+            chroots = self.filter_chroots([chroot for chroot in chroots])
+            self.notify(user, chroots)
+            self.store_notify_timesamp(chroots)
+
+    def get_user_chroots_map(self, chroots):
+        user_chroot_map = {}
+        for chroot in chroots:
+            for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(chroot.copr):
+                if self.email_filter and admin.mail not in self.email_filter:
+                    continue
+                if admin not in user_chroot_map:
+                    user_chroot_map[admin] = []
+                user_chroot_map[admin].append(chroot)
+        return user_chroot_map
+
+    def filter_chroots(self, chroots):
+        if self.all:
+            return chroots
+
+        filtered = []
+        for chroot in chroots:
+            if not chroot.delete_notify:
+                filtered.append(chroot)
+                continue
+
+            now = datetime.datetime.now()
+            if (now - chroot.delete_notify).days >= 14:
+                filtered.append(chroot)
+
+        return filtered
+
+    def notify(self, user, chroots):
+        if self.dry_run:
+            about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
+            print("Notify {} about {}".format(user.mail, about))
+        else:
+            msg = OutdatedChrootMessage(chroots)
+            send_mail(user.mail, msg)
+
+    def store_notify_timesamp(self, chroots):
+        if self.dry_run:
+            return
+        for chroot in chroots:
+            chroot.delete_after_notify = datetime.datetime.now()
+        db.session.commit()
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -526,6 +605,7 @@ manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
 manager.add_command("update_graphs", UpdateGraphsDataCommand())
 manager.add_command("vacuum_graphs", RemoveGraphsDataCommand())
+manager.add_command("notify_outdated_chroots", NotifyOutdatedChrootsCommand())
 
 if __name__ == "__main__":
     manager.run()

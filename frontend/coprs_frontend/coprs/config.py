@@ -76,6 +76,9 @@ class Config(object):
     NEWS_URL = "https://fedora-copr.github.io/"
     NEWS_FEED_URL = "https://fedora-copr.github.io/feed.xml"
 
+    # When the data in EOL chroots should be deleted (in days)
+    DELETE_EOL_CHROOTS_AFTER = 180
+
 
 class ProductionConfig(Config):
     DEBUG = False

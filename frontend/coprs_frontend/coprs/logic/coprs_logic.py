@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 
 from sqlalchemy import and_
 from sqlalchemy.sql import func
@@ -387,6 +388,11 @@ class CoprPermissionsLogic(object):
         return query
 
     @classmethod
+    def get_admins_for_copr(cls, copr):
+        permissions = cls.get_for_copr(copr)
+        return [copr.user] + [p.user for p in permissions if p.copr_admin == helpers.PermissionEnum("approved")]
+
+    @classmethod
     def new(cls, copr_permission):
         db.session.add(copr_permission)
 
@@ -497,6 +503,10 @@ class BranchesLogic(object):
 
 class CoprChrootsLogic(object):
     @classmethod
+    def get_multiple(cls):
+        return models.CoprChroot.query
+
+    @classmethod
     def mock_chroots_from_names(cls, names):
 
         db_chroots = models.MockChroot.query.all()
@@ -508,8 +518,8 @@ class CoprChrootsLogic(object):
         return mock_chroots
 
     @classmethod
-    def get_by_name(cls, copr, chroot_name):
-        mc = MockChrootsLogic.get_from_name(chroot_name, active_only=True).one()
+    def get_by_name(cls, copr, chroot_name, active_only=True):
+        mc = MockChrootsLogic.get_from_name(chroot_name, active_only=active_only).one()
         query = (
             models.CoprChroot.query.join(models.MockChroot)
             .filter(models.CoprChroot.copr_id == copr.id)
@@ -538,8 +548,9 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def create_chroot(cls, user, copr, mock_chroot,
-                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None, with_opts="", without_opts=""):
+    def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
+                      module_md=None, module_md_name=None, with_opts="", without_opts="",
+                      delete_after=None, delete_notify=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -553,12 +564,14 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot, with_opts, without_opts)
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot,
+                           with_opts, without_opts, delete_after, delete_notify)
         return chroot
 
     @classmethod
-    def update_chroot(cls, user, copr_chroot,
-                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None, with_opts="", without_opts=""):
+    def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
+                      module_md=None, module_md_name=None, with_opts="", without_opts="",
+                      delete_after=None, delete_notify=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -567,11 +580,13 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot, with_opts, without_opts)
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name,
+                           copr_chroot, with_opts, without_opts, delete_after, delete_notify)
         return copr_chroot
 
     @classmethod
-    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot, with_opts, without_opts):
+    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name,
+                       copr_chroot, with_opts, without_opts, delete_after, delete_notify):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
 
@@ -593,6 +608,12 @@ class CoprChrootsLogic(object):
             copr_chroot.update_module_md(module_md)
             copr_chroot.module_md_name = module_md_name
             ActionsLogic.send_update_module_md(copr_chroot)
+
+        if delete_after is not None:
+            copr_chroot.delete_after = delete_after
+
+        if delete_notify is not None:
+            copr_chroot.delete_notify = delete_notify
 
         db.session.add(copr_chroot)
 
@@ -652,6 +673,10 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         db.session.delete(copr_chroot)
+
+    @classmethod
+    def filter_outdated(cls, query):
+        return query.filter(models.CoprChroot.delete_after >= datetime.datetime.now())
 
 
 class MockChrootsLogic(object):

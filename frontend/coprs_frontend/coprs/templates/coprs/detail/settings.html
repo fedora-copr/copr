@@ -47,6 +47,10 @@
   {% endif %}
 
   {% if g.user.can_edit(copr) %}
+    {{ tab("repositories", "Repositories", copr_url('coprs_ns.copr_repositories', copr)) }}
+  {% endif %}
+
+  {% if g.user.can_edit(copr) %}
     {{ tab("delete", "Delete Project", copr_url('coprs_ns.copr_delete', copr)) }}
   {% endif %}
 {% endif %}

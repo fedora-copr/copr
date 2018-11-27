@@ -892,6 +892,11 @@ class ChrootForm(FlaskForm):
     with_opts = wtforms.TextField("With options")
     without_opts = wtforms.TextField("Without options")
 
+
+class CoprChrootExtend(FlaskForm):
+    name = wtforms.StringField("Chroot name", validators=[wtforms.validators.DataRequired])
+
+
 class CoprLegalFlagForm(FlaskForm):
     comment = wtforms.TextAreaField("Comment")
 

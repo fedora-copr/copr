@@ -2,7 +2,7 @@ import flask
 import platform
 import smtplib
 from email.mime.text import MIMEText
-from coprs import helpers
+from coprs import app, helpers
 
 
 class Message(object):
@@ -71,6 +71,33 @@ class LegalFlagMessage(Message):
                         copr.user.mail,
                         reporter.name,
                         reporter.mail))
+
+
+class OutdatedChrootMessage(Message):
+    def __init__(self, copr_chroots):
+        """
+        :param models.Copr copr:
+        :param list copr_chroots: list of models.CoprChroot instances
+        """
+        self.subject = "Upcoming deletion of outdated chroots in your projects"
+        self.text = ("You have been notified because you are an admin of projects,"
+                     "that have some builds in outdated chroots\n\n"
+
+                     "According to the 'Copr outdated chroots removal policy'\n"
+                     "https://docs.pagure.org/copr.copr/copr_outdated_chroots_removal_policy.html\n"
+                     "data are going to be preserved {0} days after the chroot is EOL"
+                     "and then automatically deleted, unless you decide to prolong the expiration period.\n\n"
+
+                     "Please, visit the projects settings if you want to extend the time.\n\n"
+                     .format(app.config["DELETE_EOL_CHROOTS_AFTER"]))
+
+        for chroot in copr_chroots:
+            self.text += (
+                "Project: {0}\n"
+                "Chroot: {1}\n"
+                "Remaining: {2} days\n"
+                "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days,
+                                 helpers.copr_url('coprs_ns.copr_repositories', chroot.copr, _external=True)))
 
 
 def send_mail(recipient, message, sender=None):

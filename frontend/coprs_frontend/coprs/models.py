@@ -312,6 +312,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         return sorted(self.active_chroots, key=lambda ch: ch.name)
 
     @property
+    def outdated_chroots(self):
+        return [chroot for chroot in self.copr_chroots if chroot.delete_after]
+
+    @property
     def active_chroots_grouped(self):
         """
         Return list of active mock_chroots of this copr
@@ -1044,6 +1048,11 @@ class CoprChroot(db.Model, helpers.Serializer):
     with_opts = db.Column(db.Text, default="", server_default="", nullable=False)
     without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
 
+    # Once mock_chroot gets EOL, copr_chroots are going to be deleted
+    # if their owner doesn't extend their time span
+    delete_after = db.Column(db.DateTime)
+    delete_notify = db.Column(db.DateTime)
+
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
             data = comps_xml.encode("utf-8")
@@ -1097,6 +1106,13 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def is_active(self):
         return self.mock_chroot.is_active
+
+    @property
+    def delete_after_days(self):
+        if not self.delete_after:
+            return None
+        now = datetime.datetime.now()
+        return (self.delete_after - now).days
 
     def to_dict(self):
         options = {"__columns_only__": [
