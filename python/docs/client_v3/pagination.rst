@@ -50,7 +50,7 @@ And finally, in some cases, it may be useful to iterate through all objects, but
 
     from copr.v3 import next_page
 
-    package_page = package_proxy.get_list("@copr", "copr", pagination={"limit": 3})
+    package_page = client.package_proxy.get_list("@copr", "copr", pagination={"limit": 3})
     while package_page:
         for package in package_page:
             print(package)
