@@ -865,7 +865,7 @@ def setup_parser():
     parser_build_parent = argparse.ArgumentParser(add_help=False)
     parser_build_parent.add_argument("copr_repo",
                                      help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project. "
-                                     "It can also be project:<suffix>, where <suffix> is arbitrary.")
+                                     "It can also be in the form project:<tag>, which will put the build into a side repository with the user-chosen tag in its name.")
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help="")
     parser_build_parent.add_argument("--timeout", dest="timeout",

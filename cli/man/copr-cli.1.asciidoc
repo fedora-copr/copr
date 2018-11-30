@@ -218,11 +218,12 @@ copr_repo::
 The copr repository to build the package in. This can be a simple name of some of
 your projects or it can be specified fully as username/project or @groupname/project.
 This way you can build into the project of another user or group, provided you have
-permissions to do so. Finally, instead of just project name, you can also use
-project:suffix. In that case, the build will land into a project side repository
-instead of the main repository. The side repository of name project:suffix will be
-created automatically if it doesn't exist yet. You can e.g. use this feature to
-launch test builds while the main user-facing repository stays intact.
+permissions to do so. Finally, instead of just project name, you can also pass
+project:tag. In that case, the build will land into the project side repository
+instead of the main repository. The side repository of the name project:tag will
+be automatically created if it doesn't exist yet. You can e.g. use this feature
+to launch test builds while the main user-facing repository stays intact. You
+can specify any tag that is appropriate for the given build(s).
 
 PKG::
 This can be either file on your local workstation or URL of the package to build. When URL is used, then the package must be placed on a public web or
