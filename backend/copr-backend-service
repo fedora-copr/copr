@@ -8,7 +8,7 @@ fi
 
 
 copr_target_services() {
-    echo copr-backend copr-backend-vmm copr-backend-log
+    echo copr-backend copr-backend-build copr-backend-log copr-backend-action
 }
 
 turn_on() {
