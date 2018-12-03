@@ -1,8 +1,9 @@
 import os
 import six
+import time
 import configparser
 from munch import Munch
-from .exceptions import CoprNoConfigException, CoprConfigException
+from .exceptions import CoprNoConfigException, CoprConfigException, CoprException
 
 
 class List(list):
@@ -59,3 +60,63 @@ def bind_proxy(func):
         result.__proxy__ = args[0]
         return result
     return wrapper
+
+
+def wait(waitable, interval=30, callback=None, timeout=0):
+    """
+    Wait for a waitable thing to finish. At this point, it is possible to wait only
+    for builds, but this function should be enhanced to wait for
+    e.g. modules or images, etc in the future
+
+    :param Munch/list waitable: A Munch result or list of munches
+    :param int interval: How many seconds wait before requesting updated Munches from frontend
+    :param callable callback: Callable taking one argument (list of build Munches).
+                              It will be triggered before every sleep interval.
+    :param int timeout: Limit how many seconds should be waited before this function unsuccessfully ends
+    :return: list of build Munches
+
+    Example usage:
+
+        build1 = client.build_proxy.create_from_file(...)
+        build2 = client.build_proxy.create_from_scm(...)
+        wait([build1, build2])
+
+    """
+    builds = waitable if type(waitable) == list else [waitable]
+    watched = set([build.id for build in builds])
+    munches = {build.id: build for build in builds}
+    failed = []
+    terminate = time.time() + timeout
+
+    while True:
+        for build_id in watched.copy():
+            build = munches[build_id] = munches[build_id].__proxy__.get(build_id)
+            if build.state in ["failed"]:
+                failed.append(build_id)
+            if build.state in ["succeeded", "skipped", "failed", "canceled"]:
+                watched.remove(build_id)
+            if build.state == "unknown":
+                raise CoprException("Unknown status.")
+
+        if callback:
+            callback(list(munches.values()))
+        if not watched:
+            break
+        if timeout and time.time() >= terminate:
+            raise CoprException("Timeouted")
+        time.sleep(interval)
+    return list(munches.values())
+
+
+def succeeded(builds):
+    """
+    Determine, whether the list of builds finished successfully.
+
+    :param Munch/list builds: A list of builds or a single build Munch
+    :return bool:
+    """
+    builds = builds if type(builds) == list else [builds]
+    for build in builds:
+        if build.state != "succeeded":
+            return False
+    return True
