@@ -62,16 +62,27 @@ def bind_proxy(func):
     return wrapper
 
 
-def wait(result, interval=30, callback=None, timeout=0):
+def wait(waitable, interval=30, callback=None, timeout=0):
     """
-    :param Munch/list result: A Munch result or list of results
+    Wait for a waitable thing to finish. At this point, it is possible to wait only
+    for builds, but this function should be enhanced to wait for
+    e.g. modules or images, etc in the future
+
+    :param Munch/list waitable: A Munch result or list of munches
     :param int interval: How many seconds wait before requesting updated Munches from frontend
     :param callable callback: Callable taking one argument (list of build Munches).
                               It will be triggered before every sleep interval.
     :param int timeout: Limit how many seconds should be waited before this function unsuccessfully ends
     :return: list of build Munches
+
+    Example usage:
+
+        build1 = client.build_proxy.create_from_file(...)
+        build2 = client.build_proxy.create_from_scm(...)
+        wait([build1, build2])
+
     """
-    builds = result if type(result) == list else [result]
+    builds = waitable if type(waitable) == list else [waitable]
     watched = set([build.id for build in builds])
     munches = {build.id: build for build in builds}
     failed = []
@@ -97,9 +108,15 @@ def wait(result, interval=30, callback=None, timeout=0):
     return list(munches.values())
 
 
-def succeeded(result):
-    result = result if type(result) == list else [result]
-    for build in result:
+def succeeded(builds):
+    """
+    Determine, whether the list of builds finished successfully.
+
+    :param Munch/list builds: A list of builds or a single build Munch
+    :return bool:
+    """
+    builds = builds if type(builds) == list else [builds]
+    for build in builds:
         if build.state != "succeeded":
             return False
     return True
