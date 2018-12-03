@@ -31,6 +31,28 @@ class CoprSearchRelatedData(object):
         raise "Not Implemented"
 
 
+class UserPrivate(db.Model, helpers.Serializer):
+    """
+    Records all the private information for a user.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    # email
+    mail = db.Column(db.String(150), nullable=False)
+
+    # optional timezone
+    timezone = db.Column(db.String(50), nullable=True)
+
+    # stuff for the cli interface
+    api_login = db.Column(db.String(40), nullable=False, default="abc")
+    api_token = db.Column(db.String(40), nullable=False, default="abc")
+    api_token_expiration = db.Column(
+        db.Date, nullable=False, default=datetime.date(2000, 1, 1))
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True, nullable=False)
+    user = db.relationship("User", back_populates="private")
+
+
 class User(db.Model, helpers.Serializer):
     """
     Represents user of the copr frontend
@@ -40,12 +62,6 @@ class User(db.Model, helpers.Serializer):
 
     # unique username
     username = db.Column(db.String(100), nullable=False, unique=True)
-
-    # email
-    mail = db.Column(db.String(150), nullable=False)
-
-    # optional timezone
-    timezone = db.Column(db.String(50), nullable=True)
 
     # is this user proven? proven users can modify builder memory and
     # timeout for single builds
@@ -57,21 +73,72 @@ class User(db.Model, helpers.Serializer):
     # can this user behave as someone else?
     proxy = db.Column(db.Boolean, default=False)
 
-    # stuff for the cli interface
-    api_login = db.Column(db.String(40), nullable=False, default="abc")
-    api_token = db.Column(db.String(40), nullable=False, default="abc")
-    api_token_expiration = db.Column(
-        db.Date, nullable=False, default=datetime.date(2000, 1, 1))
-
     # list of groups as retrieved from openid
     openid_groups = db.Column(JSONEncodedDict)
+
+    # private info
+    private = db.relationship("UserPrivate", uselist=False, back_populates="user")
+
+    def set_private(self, attr, value):
+        if not self.private:
+            self.private = UserPrivate()
+        setattr(self.private, attr, value)
+
+    @property
+    def mail(self):
+        if self.private:
+            return self.private.mail
+        return None
+
+    @property
+    def timezone(self):
+        if self.private:
+            return self.private.timezone
+        return None
+
+    @property
+    def api_login(self):
+        if self.private:
+            return self.private.api_login
+        return None
+
+    @property
+    def api_token(self):
+        if self.private:
+            return self.private.api_token
+        return None
+
+    @property
+    def api_token_expiration(self):
+        if self.private:
+            return self.private.api_token_expiration
+        return None
+
+    @mail.setter
+    def mail(self, value):
+        self.set_private("mail", value)
+
+    @timezone.setter
+    def timezone(self, value):
+        self.set_private("timezone", value)
+
+    @api_login.setter
+    def api_login(self, value):
+        self.set_private("api_login", value)
+
+    @api_token.setter
+    def api_token(self, value):
+        self.set_private("api_token", value)
+
+    @api_token_expiration.setter
+    def api_token_expiration(self, value):
+        self.set_private("api_token_expiration", value)
 
     @property
     def name(self):
         """
         Return the short username of the user, e.g. bkabrda
         """
-
         return self.username
 
     def permissions_for_copr(self, copr):
@@ -179,9 +246,31 @@ class User(db.Model, helpers.Serializer):
             return ""
 
 
+class CoprPrivate(db.Model, helpers.Serializer):
+    """
+    Records all the private information for a copr.
+    """
+
+    __table_args__ = (
+        db.Index('copr_private_webhook_secret', 'webhook_secret'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # a secret to be used for webhooks authentication
+    webhook_secret = db.Column(db.String(100))
+
+    # remote Git sites auth info
+    scm_api_auth_json = db.Column(db.Text)
+
+    # copr relation
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True, nullable=False)
+    copr = db.relationship("Copr", back_populates="private")
+
+
 class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
-    Represents a single copr (private repo with builds, mock chroots, etc.).
+    Represents a single copr (personal repo with builds, mock chroots, etc.).
     """
 
     __table_args__ = (
@@ -217,9 +306,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     forked_from_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     forked_from = db.relationship("Copr", remote_side=id, backref=db.backref("forks"))
 
-    # a secret to be used for webhooks authentication
-    webhook_secret = db.Column(db.String(100))
-
     # enable networking for the builds by default
     build_enable_net = db.Column(db.Boolean, default=True,
                                  server_default="1", nullable=False)
@@ -244,11 +330,38 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # scm integration properties
     scm_repo_url = db.Column(db.Text)
     scm_api_type = db.Column(db.Text)
-    scm_api_auth_json = db.Column(db.Text)
+
+    # private info
+    private = db.relationship("CoprPrivate", uselist=False, back_populates="copr")
 
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
+
+    def set_private(self, attr, value):
+        if not self.private:
+            self.private = CoprPrivate()
+        setattr(self.private, attr, value)
+
+    @property
+    def webhook_secret(self):
+        if self.private:
+            return self.private.webhook_secret
+        return None
+
+    @property
+    def scm_api_auth_json(self):
+        if self.private:
+            return self.private.scm_api_auth_json
+        return None
+
+    @webhook_secret.setter
+    def webhook_secret(self, value):
+        self.set_private("webhook_secret", value)
+
+    @scm_api_auth_json.setter
+    def scm_api_auth_json(self, value):
+        self.set_private("scm_api_auth_json", value)
 
     @property
     def main_dir(self):

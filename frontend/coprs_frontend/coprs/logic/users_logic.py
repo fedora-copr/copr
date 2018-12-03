@@ -3,7 +3,7 @@ from coprs import exceptions
 from flask import url_for
 
 from coprs import app, db
-from coprs.models import User, Group
+from coprs.models import User, Group, UserPrivate
 from coprs.helpers import copr_url
 from sqlalchemy import update
 
@@ -16,7 +16,7 @@ class UsersLogic(object):
 
     @classmethod
     def get_by_api_login(cls, login):
-        return User.query.filter(User.api_login == login)
+        return User.query.join(UserPrivate).filter(UserPrivate.api_login == login)
 
     @classmethod
     def raise_if_cant_update_copr(cls, user, copr, message):

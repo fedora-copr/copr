@@ -147,7 +147,7 @@ WHERE package.copr_dir_id = :copr_dir_id;
         clone_url_stripped = re.sub(r'(\.git)?/*$', '', clone_url)
 
         packages = (models.Package.query.join(models.Copr)
-                    .filter(models.Copr.webhook_secret == webhook_secret)
+                    .filter(models.CoprPrivate.webhook_secret == webhook_secret)
                     .filter(models.Package.source_type == helpers.BuildSourceEnum("scm"))
                     .filter(models.Package.copr_id == copr_id)
                     .filter(models.Package.webhook_rebuild == true())
