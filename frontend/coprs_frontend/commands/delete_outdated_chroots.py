@@ -31,3 +31,4 @@ class DeleteOutdatedChrootsCommand(Command):
             print("Add delete_chroot action for {} in {}".format(chroot.name, chroot.copr.full_name))
         else:
             actions_logic.ActionsLogic.send_delete_chroot(chroot)
+            chroot.delete_after = None
