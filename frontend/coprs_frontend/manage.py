@@ -586,6 +586,13 @@ class NotifyOutdatedChrootsCommand(Command):
         db.session.commit()
 
 
+class GetAdminsCommand(Command):
+
+    def run(self, **kwargs):
+        for u in models.User.query.filter(models.User.admin == True).all():
+            print(u.username)
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -606,6 +613,7 @@ manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand
 manager.add_command("update_graphs", UpdateGraphsDataCommand())
 manager.add_command("vacuum_graphs", RemoveGraphsDataCommand())
 manager.add_command("notify_outdated_chroots", NotifyOutdatedChrootsCommand())
+manager.add_command("get_admins", GetAdminsCommand())
 
 if __name__ == "__main__":
     manager.run()
