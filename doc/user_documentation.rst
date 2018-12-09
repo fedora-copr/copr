@@ -284,6 +284,11 @@ If you think that some repo may be violating a license, you can raise a legal fl
 
 It would be nice if you stated the license of your packages in the Description or Install instructions.
 
+Packages in Copr do **not** need to follow the
+`Fedora Packaging Guidelines <https://docs.fedoraproject.org/en-US/packaging-guidelines/>`_,
+though they are recommended to do so. In particular, kernel modules
+may be built in Copr, as long as they don't violate the license
+requirements in point 2. above.
 
 .. _`How can I enable a Copr repository?`:
 
