@@ -85,7 +85,8 @@ from coprs.views.user_ns import user_ns
 from coprs.views.user_ns import user_general
 from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.webhooks_ns import webhooks_general
-
+from coprs.views.rss_ns import rss_ns
+from coprs.views.rss_ns import rss_general
 
 from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException
 from .context_processors import include_banner, inject_fedmenu, counter_processor
@@ -105,6 +106,7 @@ app.register_blueprint(tmp_ns.tmp_ns)
 app.register_blueprint(groups_ns)
 app.register_blueprint(user_ns)
 app.register_blueprint(webhooks_ns)
+app.register_blueprint(rss_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 

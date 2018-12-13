@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+{% from "_helpers.html" import copr_url %}
+<rss version="2.0">
+<channel>
+  <title>Copr Home Page</title>
+  <link>https://copr.fedorainfracloud.org/coprs/</link>
+  <description>Copr is an easy-to-use automatic build system providing a package repository as its output</description>
+  {% for copr in coprs %}
+  <item>
+	  <title>{{copr.full_name}}</title>
+	  <link>{{copr_url('coprs_ns.copr_detail', copr, _external=True)}}</link>
+	  <description>{{copr.description}}</description>
+  </item>
+ {% endfor %}
+</channel>
+</rss>
