@@ -62,15 +62,15 @@ if __name__ == "__main__":
                 a = input('Project {0}/{1} does not exist.\nDelete paths {2} and {3} [y/n/Y/N]? '
                           .format(username, projectname, repos_project_path, pkgs_project_path))
 
-                if a == 'n' or a == 'no':
+                if a in ['n', 'no']:
                     answer = 'n'
-                if a == 'y' or a == 'yes':
+                if a in ['y', 'yes']:
                     answer = 'y'
 
-                if a == 'Y' or a == 'YES':
+                if a in ['Y', 'YES']:
                     always_yes = True
                     answer = 'y'
-                if a == 'N' or a == 'NO':
+                if a in ['N', 'NO']:
                     sys.exit(1)
 
             if answer == 'y':
