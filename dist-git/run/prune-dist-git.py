@@ -18,8 +18,9 @@ parser = argparse.ArgumentParser(description="Prune DistGit repositories and loo
                                  "Requires to be run as copr-dist-git user. You will be asked before anything is deleted. "
                                  "If you no longer want to be asked, answer 'Y', if you want to exit the script, answer 'N'.")
 parser.add_argument('--repos', action='store', help='local path to a DistGit repository root', required=True)
-parser.add_argument('--pkgs', action='store', help='local path to a DistGit lookaside cache pkgs root', required=True)
+parser.add_argument('--lookasidepkgs', action='store', help='local path to a DistGit lookaside cache pkgs root', required=True)
 parser.add_argument('--copr-config', action='store', help='path to copr config with API credentials', required=True)
+parser.add_argument('--always-yes', action='store_true', help="Assume answer 'yes' for each deletion.")
 
 args = parser.parse_args()
 
@@ -52,26 +53,20 @@ if __name__ == "__main__":
             else:
                 continue
 
-            pkgs_project_path = os.path.join(args.pkgs, username, projectname)
+            pkgs_project_path = os.path.join(args.lookasidepkgs, username, projectname)
 
             answer = None
-            if always_yes:
+            if args.always_yes:
                 answer = 'y'
 
             while not answer:
-                a = input('Project {0}/{1} does not exist.\nDelete paths {2} and {3} [y/n/Y/N]? '
+                a = input('Project {0}/{1} does not exist.\nDelete paths {2} and {3} [y/n]? '
                           .format(username, projectname, repos_project_path, pkgs_project_path))
 
                 if a in ['n', 'no']:
                     answer = 'n'
                 if a in ['y', 'yes']:
                     answer = 'y'
-
-                if a in ['Y', 'YES']:
-                    always_yes = True
-                    answer = 'y'
-                if a in ['N', 'NO']:
-                    sys.exit(1)
 
             if answer == 'y':
                 print("Deleting {0}".format(repos_project_path))
