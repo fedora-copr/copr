@@ -33,6 +33,8 @@ Requires: python3-munch
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
 
+Recommends: python3-copr
+
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
 
