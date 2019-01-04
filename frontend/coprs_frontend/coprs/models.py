@@ -1050,8 +1050,8 @@ class CoprChroot(db.Model, helpers.Serializer):
 
     # Once mock_chroot gets EOL, copr_chroots are going to be deleted
     # if their owner doesn't extend their time span
-    delete_after = db.Column(db.DateTime)
-    delete_notify = db.Column(db.DateTime)
+    delete_after = db.Column(db.DateTime, index=True)
+    delete_notify = db.Column(db.DateTime, index=True)
 
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
