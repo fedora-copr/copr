@@ -89,6 +89,12 @@
             <textarea class="form-control" rows="2" cols="50"><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name, _external=True) }}"><img src="{{ copr_url('coprs_ns.copr_package_icon', copr, package_name=package.name, _external=True) }}" /></a></textarea>
           </dd>
         </dl>
+        <dl class="dl-horizontal">
+          <dt> Markdown Code: </dt>
+          <dd>
+            <textarea class="form-control" rows="2" cols="50">[![Copr build status]({{ copr_url('coprs_ns.copr_package_icon', copr, package_name=package.name, _external=True) }})]({{ copr_url('coprs_ns.copr_package', copr, package_name=package.name, _external=True) }})</textarea>
+          </dd>
+        </dl>
       </div>
     </div>
 
