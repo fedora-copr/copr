@@ -18,7 +18,11 @@ class DeleteOutdatedChrootsCommand(Command):
 
         chroots = coprs_logic.CoprChrootsLogic \
             .filter_outdated_to_be_deleted(coprs_logic.CoprChrootsLogic.get_multiple())
-        for chroot in chroots:
+        for i, chroot in enumerate(chroots, start=1):
+            # This command will possibly delete a lot of chroots and can be a performance issue when committing
+            # all at once. We are going to commit every x actions to avoid that.
+            if i % 1000 == 0 and not self.dry_run:
+                db.session.commit()
             self.delete(chroot)
         db.session.commit()
 
