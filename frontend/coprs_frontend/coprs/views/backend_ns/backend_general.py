@@ -168,6 +168,14 @@ def pending_action():
     return flask.jsonify(action_record)
 
 
+@backend_ns.route("/pending-action-count/")
+def pending_action_count():
+    """
+    Return pending action count.
+    """
+    return flask.jsonify(actions_logic.ActionsLogic.get_waiting().count())
+
+
 @backend_ns.route("/pending-jobs/")
 def pending_jobs():
     """
