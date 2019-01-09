@@ -274,7 +274,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
 
     __table_args__ = (
-        db.Index('copr_webhook_secret', 'webhook_secret'),
         db.Index('copr_name_group_id_idx', 'name', 'group_id'),
     )
 

@@ -1,14 +1,14 @@
 """separate private stuff into private tables by schema
 
 Revision ID: 29c352bde564
-Revises: 6fed8655d074
+Revises: b64659389c54
 Create Date: 2018-12-03 12:55:34.810037
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '29c352bde564'
-down_revision = '6fed8655d074'
+down_revision = 'b64659389c54'
 
 from alembic import op
 import sqlalchemy as sa
