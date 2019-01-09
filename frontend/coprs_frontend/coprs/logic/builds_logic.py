@@ -392,7 +392,9 @@ LEFT OUTER JOIN "group"
 WHERE build.copr_id = :copr_id
     AND (:dirname = '' OR :dirname = copr_dir.name)
 GROUP BY
-    build.id;
+    build.id
+ORDER BY
+    build.id DESC;
 """
 
         if db.engine.url.drivername == "sqlite":
