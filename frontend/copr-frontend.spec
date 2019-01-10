@@ -96,7 +96,7 @@ BuildRequires: python3-CommonMark
 BuildRequires: python3-pygments
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-gobject
-BuildRequires: libmodulemd
+BuildRequires: libmodulemd < 2
 BuildRequires: python3-requests
 BuildRequires: redis
 %endif
@@ -129,7 +129,7 @@ Requires: python3-blinker
 Requires: python3-flask-openid
 Requires: python3-openid-teams
 Requires: python3-gobject
-Requires: libmodulemd
+Requires: libmodulemd < 2
 Requires: python3-pygments
 Requires: python3-CommonMark
 Requires: python3-psycopg2
