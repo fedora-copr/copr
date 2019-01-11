@@ -42,3 +42,6 @@ allow httpd_t git_user_content_t:dir read;
 allow httpd_t git_user_content_t:file { getattr read open };
 allow syslogd_t auditd_log_t:dir search;
 allow syslogd_t auditd_log_t:file { read getattr open ioctl };
+
+#keygen
+allow httpd_t httpd_var_lib_t:sock_file { create getattr setattr unlink write };
