@@ -135,7 +135,7 @@ class Commands(object):
                     if build_id in done:
                         continue
 
-                    build_details = self.client.build_proxy.get(build_id)
+                    build_details = self.client.build_proxy.get(build_id=build_id)
                     now = datetime.datetime.now()
                     if prevstatus[build_id] != build_details.state:
                         prevstatus[build_id] = build_details.state

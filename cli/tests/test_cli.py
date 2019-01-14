@@ -500,18 +500,18 @@ class TestCreateBuild(object):
         def incr(*args, **kwargs):
             self.stage += 1
 
-        def result_map(build_id, *args, **kwargs):
+        def result_map(*args, **kwargs):
             if self.stage == 0:
                 return Munch(state="pending")
             elif self.stage == 1:
                 smap = {0: "pending", 1: "starting", 2: "running"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
             elif self.stage == 2:
                 smap = {0: "starting", 1: "running", 2: "succeeded"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
             elif self.stage == 3:
                 smap = {0: "skipped", 1: "succeeded", 2: "succeeded"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
 
         mock_time.sleep.side_effect = incr
         build_proxy_get.side_effect = result_map
@@ -537,18 +537,18 @@ class TestCreateBuild(object):
         def incr(*args, **kwargs):
             self.stage += 1
 
-        def result_map(build_id, *args, **kwargs):
+        def result_map(*args, **kwargs):
             if self.stage == 0:
                 return Munch(state="pending")
             elif self.stage == 1:
                 smap = {0: "pending", 1: "starting", 2: "running"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
             elif self.stage == 2:
                 smap = {0: "failed", 1: "running", 2: "succeeded"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
             elif self.stage == 3:
                 smap = {0: "failed", 1: "failed", 2: "succeeded"}
-                return Munch(state=smap[build_id])
+                return Munch(state=smap[kwargs["build_id"]])
 
         mock_time.sleep.side_effect = incr
         build_proxy_get.side_effect = result_map
