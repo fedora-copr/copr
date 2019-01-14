@@ -46,7 +46,7 @@ echo "BACKEND_URL = $BACKEND_URL"
 # Some tests might want to install built packages
 # Therefore, these packages need to be built for the same fedora version
 # as this script is going to be run from
-CHROOT="fedora-27-x86_64"
+CHROOT="fedora-28-x86_64"
 
 SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
