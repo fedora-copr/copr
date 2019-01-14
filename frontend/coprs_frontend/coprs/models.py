@@ -519,7 +519,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     builds = db.relationship("Build", order_by="Build.id")
 
     # relations
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("packages"))
 
     copr_dir_id = db.Column(db.Integer, db.ForeignKey("copr_dir.id"), index=True)
