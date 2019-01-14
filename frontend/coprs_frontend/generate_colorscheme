@@ -1,4 +1,4 @@
-#! /bin/sh -x
+#!/usr/bin/bash -x
 
 opt_static_files=coprs_frontend/coprs/static
 opt_base_color='#214d8b'

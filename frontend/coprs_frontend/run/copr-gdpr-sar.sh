@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 # Purpose of this script is to be remotely executed from batcave01
 # to collect user SAR data
 # Read more: http://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/gdpr_sar.html
