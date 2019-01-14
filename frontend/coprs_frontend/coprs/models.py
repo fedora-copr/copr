@@ -208,7 +208,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     auto_createrepo = db.Column(db.Boolean, default=True)
 
     # relations
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     user = db.relationship("User", backref=db.backref("coprs"))
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
     group = db.relationship("Group", backref=db.backref("groups"))
