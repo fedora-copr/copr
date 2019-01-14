@@ -703,7 +703,7 @@ class Build(db.Model, helpers.Serializer):
     user = db.relationship("User", backref=db.backref("builds"))
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("builds"))
-    package_id = db.Column(db.Integer, db.ForeignKey("package.id"))
+    package_id = db.Column(db.Integer, db.ForeignKey("package.id"), index=True)
     package = db.relationship("Package")
 
     chroots = association_proxy("build_chroots", "mock_chroot")
