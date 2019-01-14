@@ -700,7 +700,7 @@ class Build(db.Model, helpers.Serializer):
     srpm_url = db.Column(db.Text)
 
     # relations
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     user = db.relationship("User", backref=db.backref("builds"))
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("builds"))
