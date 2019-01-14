@@ -357,16 +357,18 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "--repo", "repo1", "--repo", "repo2",
         "--initial-pkgs", "pkg1"
     ])
-
     stdout, stderr = capsys.readouterr()
 
-    project_proxy_add.assert_called_with(auto_prune=True,
-        ownername=None, persistent=False, projectname="foo", description="desc string",
-        instructions="instruction string", chroots=["f20", "f21"],
-        additional_repos=["repo1", "repo2"],
-        unlisted_on_hp=None, devel_mode=None, enable_net=False,
-        use_bootstrap_container=None)
-
+    project_proxy_add.assert_called_once()
+    args, kwargs = project_proxy_add.call_args
+    assert kwargs == {
+        "auto_prune": True,
+        "ownername": None, "persistent": False, "projectname": "foo", "description": "desc string",
+        "instructions": "instruction string", "chroots": ["f20", "f21"],
+        "additional_repos": ["repo1", "repo2"],
+        "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
+        "use_bootstrap_container": None
+    }
     assert stdout == "New project was successfully created.\n"
 
 
