@@ -84,7 +84,7 @@ def wait(waitable, interval=30, callback=None, timeout=0):
     """
     builds = waitable if type(waitable) == list else [waitable]
     watched = set([build.id for build in builds])
-    munches = {build.id: build for build in builds}
+    munches = dict((build.id, build) for build in builds)
     failed = []
     terminate = time.time() + timeout
 
