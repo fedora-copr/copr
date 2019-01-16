@@ -43,8 +43,8 @@ rlJournalStart
         mkdir -p ~/.config || :
         cp ./config ~/.config/copr
         rlRun "dnf config-manager --set-enabled fedora --save"
-        rlRun "dnf install -y python2-copr copr-cli"
-        rlRun "dnf upgrade python2-copr copr-cli"
+        rlRun "dnf install -y python3-copr copr-cli"
+        rlRun "dnf upgrade python3-copr copr-cli"
 
         rlLog "Installing repo for DNF with modularity support."
         rlLog "It is disabled though"
