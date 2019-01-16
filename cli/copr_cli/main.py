@@ -187,8 +187,18 @@ class Commands(object):
                 answer = 'y'
 
         if answer == 'y':
-            ownername, coprname = parse_name(args.name)
-            result = self.client.new_webhook_secret(coprname, ownername)
+            ownername, projectname = self.parse_name(args.name)
+
+            # @TODO Rewrite this call to the APIv3.
+            # @TODO I am not doing it right away because it is a release-blocker
+            # @TODO and I don't have a time to do it right now.
+            client = CoprClient.create_from_file_config()
+            result = client.new_webhook_secret(projectname, ownername=ownername)
+
+            if result.output != "ok":
+                sys.stderr.write(result.error + "\n")
+                sys.stderr.write("Un-expected data returned, please report this issue\n")
+
             print(result.message)
 
     @requires_api_auth
