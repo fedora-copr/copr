@@ -59,6 +59,7 @@ def serializable(result):
     if isinstance(result, dict):
         new_result = result.copy()
         new_result.pop("__response__", None)
+        new_result.pop("__proxy__", None)
         return new_result
     return result
 
