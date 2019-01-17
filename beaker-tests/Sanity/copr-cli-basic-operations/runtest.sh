@@ -168,7 +168,7 @@ rlJournalStart
         # it should not be possible to select non-existing chroot
         OUTPUT=`mktemp`
         rlRun "copr-cli modify --chroot non-existing-1 ${NAME_PREFIX}ModifyProjectChroots &> $OUTPUT" 1
-        rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not enabled: non-existing-1" |wc -l` 1
+        rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not available: non-existing-1" |wc -l` 1
 
         ## test distgit builds
         rlRun "copr-cli create --chroot fedora-27-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
