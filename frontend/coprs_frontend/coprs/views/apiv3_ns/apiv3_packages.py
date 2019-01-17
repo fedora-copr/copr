@@ -1,6 +1,6 @@
 import flask
 from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data, get_input
+from .json2form import get_form_compatible_data, get_input, without_empty_fields
 from coprs.exceptions import (ObjectNotFound, BadRequest)
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms
@@ -68,7 +68,7 @@ def get_package_list(ownername, projectname, **kwargs):
 @api_login_required
 def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(get_input())
+    data = rename_fields(without_empty_fields(get_input()))
     process_package_add_or_edit(copr, source_type_text, data=data)
     package = PackagesLogic.get(copr.main_dir.id, package_name).first()
     return flask.jsonify(to_dict(package))
@@ -78,7 +78,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
 @api_login_required
 def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(get_input())
+    data = rename_fields(without_empty_fields(get_input()))
     try:
         package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text

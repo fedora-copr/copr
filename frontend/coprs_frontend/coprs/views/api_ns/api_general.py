@@ -869,7 +869,14 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
             "You are not allowed to add or edit packages in this copr.")
 
     try:
-        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(data or flask.request.form, csrf_enabled=False)
+        formdata = data or flask.request.form
+        if package and data:
+            formdata = data.copy()
+            for key in package.source_json_dict.keys() - data.keys():
+                value = package.source_json_dict[key]
+                add_function = formdata.setlist if type(value) == list else formdata.add
+                add_function(key, value)
+        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, csrf_enabled=False)
     except UnknownSourceTypeException:
         raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
 
