@@ -816,15 +816,17 @@ def setup_parser():
     ###             Source-type related options           ###
     #########################################################
 
-    parser_pypi_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_pypi_args_parent.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION", default=[3, 2],
+    parser_pypi_args_optional = argparse.ArgumentParser(add_help=False)
+    parser_pypi_args_optional.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION",
                                          help="For what Python versions to build (by default: 3 2)")
-    parser_pypi_args_parent.add_argument("--packageversion", metavar = "PYPIVERSION",
+    parser_pypi_args_optional.add_argument("--packageversion", metavar = "PYPIVERSION",
                                          help="Version of the PyPI package to be built (by default latest)")
+    parser_pypi_args_optional.add_argument("--template", "-t", dest="spec_template",
+                                         help="Spec template to be used to build srpm with pyp2rpm")
+
+    parser_pypi_args_parent = argparse.ArgumentParser(add_help=False, parents=[parser_pypi_args_optional])
     parser_pypi_args_parent.add_argument("--packagename", required=True, metavar="PYPINAME",
                                          help="Name of the PyPI package to be built, required.")
-    parser_pypi_args_parent.add_argument("--template", "-t", dest="spec_template",
-                                         help="Spec template to be used to build srpm with pyp2rpm")
 
     parser_scm_args_parent = argparse.ArgumentParser(add_help=False)
     parser_scm_args_parent.add_argument("--clone-url", required=True,
@@ -999,7 +1001,9 @@ def setup_parser():
 
     parser_edit_package_pypi = subparsers.add_parser("edit-package-pypi",
                                                      help="Edits an existing PyPI package",
-                                                     parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
+                                                     parents=[parser_pypi_args_optional, parser_add_or_edit_package_parent])
+    parser_edit_package_pypi.add_argument("--packagename", required=False, metavar="PYPINAME",
+                                          help="Name of the PyPI package to be built, required.")
     parser_edit_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=False)
 
 
