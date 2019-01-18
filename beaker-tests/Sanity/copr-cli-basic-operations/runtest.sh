@@ -480,7 +480,8 @@ rlJournalStart
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot $CHROOT" 0
-        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if cat $WAITING | grep action_type; then break; fi; done
+        rlRun "curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING"
+        rlRun "cat $WAITING | grep action_type"
         cat $WAITING # debug
         rlRun "cat $WAITING | grep -E '.*data.*ownername.*' | grep $OWNER" 0
 
