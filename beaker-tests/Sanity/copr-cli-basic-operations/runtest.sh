@@ -279,7 +279,7 @@ rlJournalStart
         # PyPI package templates
         rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --template fedora"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.source_dict.spec_template == \"fedora\"" `cat $SOURCE_DICT | jq '.spec_template'` '"fedora"'
 
         ## Package listing
