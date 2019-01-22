@@ -12,8 +12,11 @@ require {
         type httpd_t;
         type git_script_t;
         type git_user_content_t;
+        type gpg_web_t;
         type syslogd_t;
         type auditd_log_t;
+        type httpd_var_lib_t;
+        type user_tmp_t;
         class dir { write getattr read remove_name open add_name create rmdir};
         class file { rename write getattr read create open lock unlink};
 }
@@ -45,3 +48,7 @@ allow syslogd_t auditd_log_t:file { read getattr open ioctl };
 
 #keygen
 allow httpd_t httpd_var_lib_t:sock_file { create getattr setattr unlink write };
+allow gpg_web_t httpd_var_lib_t:dir { search getattr read write add_name remove_name };
+allow gpg_web_t httpd_var_lib_t:file { getattr read open write create unlink rename link };
+allow gpg_web_t httpd_var_lib_t:sock_file { getattr write create };
+allow gpg_web_t user_tmp_t:dir { search };
