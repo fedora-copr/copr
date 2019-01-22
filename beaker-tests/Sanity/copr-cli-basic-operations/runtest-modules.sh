@@ -146,7 +146,7 @@ rlJournalStart
         PACKAGES=`mktemp`
         wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 600 $PACKAGES
 
-        SRPM=`rpmbuild -bs files/test-macros.spec |grep Wrote: |cut -d ' ' -f2`
+        SRPM=`rpmbuild -bs $HERE/files/test-macros.spec |grep Wrote: |cut -d ' ' -f2`
         copr-cli build "module-test-macros-module-beakertest-$DATE" $SRPM
         ID=`copr-cli get-package module-test-macros-module-beakertest-$DATE --name test-macros --with-all-builds | jq '.builds[0].id'`
         TMP=`mktemp -d`
