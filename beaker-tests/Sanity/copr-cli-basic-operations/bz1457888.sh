@@ -69,7 +69,10 @@ rlJournalStart
 
     rlPhaseStartTest
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1457888 --chroot fedora-27-x86_64" 0
-        rlRun "copr-cli buildmock ${NAME_PREFIX}TestBug1457888 --scm-url https://pagure.io/module-macros.git --spec module-macros.spec" 0
+        # The Bug 1457888 specifically concerns the Mock SCM method
+        # but since it was deprecated and even removed from the code,
+        # we are going to use its successor for this test
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1457888 --clone-url https://pagure.io/module-macros.git --spec module-macros.spec" 0
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1457888"
     rlPhaseEnd
 

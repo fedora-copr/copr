@@ -70,11 +70,14 @@ rlJournalStart
     rlPhaseStartTest
         # Test for https://pagure.io/copr/copr/issue/67
         rlRun "copr-cli create ${NAME_PREFIX}TestBugPagure67 --chroot fedora-28-x86_64" 0
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
+        # The issue #67 specifically concerns the *-package-tito commands,
+        # but since they were deprecated and even removed from the code,
+        # we are going to use its successor for this test
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --webhook-rebuild on --commit foo --subdir bar"
         OUTPUT=`mktemp`
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
         rlAssertEquals "" `cat $OUTPUT | jq '.webhook_rebuild'` "true"
-        rlRun "copr-cli edit-package-tito ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --git-url http://github.com/clime/example.git --test on --git-branch foo --git-dir bar"
+        rlRun "copr-cli edit-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --commit foo --subdir bar"
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
         rlAssertEquals "" `cat $OUTPUT | jq '.webhook_rebuild'` "true"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBugPagure67"
