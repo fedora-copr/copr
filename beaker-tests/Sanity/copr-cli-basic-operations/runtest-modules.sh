@@ -30,10 +30,10 @@
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
 if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="http://copr-fe-dev.cloud.fedoraproject.org"
+    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
 fi
 if [[ ! $BACKEND_URL ]]; then
-    BACKEND_URL="http://copr-be-dev.cloud.fedoraproject.org"
+    BACKEND_URL="https://copr-be-dev.cloud.fedoraproject.org"
 fi
 USER=`copr-cli whoami`
 

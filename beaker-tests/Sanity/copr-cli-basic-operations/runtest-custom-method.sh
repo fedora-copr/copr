@@ -11,7 +11,7 @@ export IN=$TESTPATH/action-tasks.json
 export OUT=$TESTPATH/action-results.out.json
 
 if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="http://copr-fe-dev.cloud.fedoraproject.org"
+    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
 fi
 
 
