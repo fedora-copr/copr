@@ -465,16 +465,17 @@ class Commands(object):
 
     def action_download_build(self, args):
         build = self.client.build_proxy.get(args.build_id)
-        base_len = len(os.path.split(build.results))
+        base_len = len(os.path.split(build.repo_url))
+        build_chroots = self.client.build_chroot_proxy.get_list(args.build_id)
 
-        for chroot, url in build.results_by_chroot.items():
-            if args.chroots and chroot not in args.chroots:
+        for chroot in build_chroots:
+            if args.chroots and chroot.name not in args.chroots:
                 continue
 
             cmd = "wget -r -nH --no-parent --reject 'index.html*'".split(' ')
-            cmd.extend(['-P', os.path.join(args.dest, chroot)])
+            cmd.extend(['-P', os.path.join(args.dest, chroot.name)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
-            cmd.append(url)
+            cmd.append(chroot.result_url)
             subprocess.call(cmd)
 
     @requires_api_auth

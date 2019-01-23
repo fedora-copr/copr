@@ -281,19 +281,22 @@ def test_delete_project(config_from_file, project_proxy_delete, capsys):
 
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr.v3.proxies.build_chroot.BuildChrootProxy.get_list')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
-def test_download_build(config_from_file, build_proxy_get, mock_sp, capsys):
-    build_proxy_get.return_value = \
-        MagicMock(
-            data={"chroots": {
-                u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
-            }},
-            results="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20",
-            results_by_chroot={
-                u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
-                u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
-            }
-        )
+def test_download_build(config_from_file, build_chroot_proxy_get_list, build_proxy_get, mock_sp, capsys):
+    build_proxy_get.return_value = MagicMock(
+        repo_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
+
+    mock_ch1 = MagicMock()
+    mock_ch1.configure_mock(
+        name="epel-6-x86_64",
+        result_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
+
+    mock_ch2 = MagicMock()
+    mock_ch2.configure_mock(
+        name="epel-6-i386",
+        result_url="http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20")
+    build_chroot_proxy_get_list.return_value = [mock_ch1, mock_ch2]
 
     mock_sp.call.return_value = None
     main.main(argv=["download-build", "foo"])
@@ -318,19 +321,22 @@ def test_download_build(config_from_file, build_proxy_get, mock_sp, capsys):
 
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr.v3.proxies.build_chroot.BuildChrootProxy.get_list')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
-def test_download_build_select_chroot(config_from_file, build_proxy_get, mock_sp, capsys):
-    build_proxy_get.return_value = \
-        MagicMock(
-            data={"chroots": {
-                u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
-            }},
-            results="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20",
-            results_by_chroot={
-                u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
-                u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
-            }
-        )
+def test_download_build_select_chroot(config_from_file, build_chroot_proxy_get_list, build_proxy_get, mock_sp, capsys):
+    build_proxy_get.return_value = MagicMock(
+        repo_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
+
+    mock_ch1 = MagicMock()
+    mock_ch1.configure_mock(
+        name="epel-6-x86_64",
+        result_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
+
+    mock_ch2 = MagicMock()
+    mock_ch2.configure_mock(
+        name="epel-6-i386",
+        result_url="http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20")
+    build_chroot_proxy_get_list.return_value = [mock_ch1, mock_ch2]
 
     mock_sp.call.return_value = None
     main.main(argv=["download-build", "foo", "-r", "epel-6-x86_64"])
