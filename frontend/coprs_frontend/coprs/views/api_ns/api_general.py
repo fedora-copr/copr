@@ -868,8 +868,8 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
         raise InsufficientRightsException(
             "You are not allowed to add or edit packages in this copr.")
 
+    formdata = data or flask.request.form
     try:
-        formdata = data or flask.request.form
         if package and data:
             formdata = data.copy()
             for key in package.source_json_dict.keys() - data.keys():
@@ -896,7 +896,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
 
         package.source_type = source_type
         package.source_json = form.source_json
-        if "webhook_rebuild" in flask.request.form:
+        if "webhook_rebuild" in formdata:
             package.webhook_rebuild = form.webhook_rebuild.data
 
         db.session.add(package)
