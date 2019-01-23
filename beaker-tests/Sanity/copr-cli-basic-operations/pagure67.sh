@@ -76,10 +76,10 @@ rlJournalStart
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --webhook-rebuild on --commit foo --subdir bar"
         OUTPUT=`mktemp`
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
-        rlAssertEquals "" `cat $OUTPUT | jq '.webhook_rebuild'` "true"
+        rlAssertEquals "" `cat $OUTPUT | jq '.auto_rebuild'` "true"
         rlRun "copr-cli edit-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --commit foo --subdir bar"
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
-        rlAssertEquals "" `cat $OUTPUT | jq '.webhook_rebuild'` "true"
+        rlAssertEquals "" `cat $OUTPUT | jq '.auto_rebuild'` "true"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBugPagure67"
         rm $OUTPUT
     rlPhaseEnd
