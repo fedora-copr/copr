@@ -864,6 +864,7 @@ def setup_parser():
             help='mock chroot to build sources for the SRPM in')
     parser_custom_args_parent.add_argument(
             '--script-builddeps',
+            type=lambda x: x.split(),  # Store the deps as a list
             help='space separated list of packages needed to build the sources')
     parser_custom_args_parent.add_argument(
             '--script-resultdir',

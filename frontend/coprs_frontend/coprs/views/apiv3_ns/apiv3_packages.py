@@ -34,6 +34,9 @@ def rename_fields(input):
         "is_background": "background",
         "memory_limit": "memory_reqs",
         "source_build_method": "srpm_build_method",
+        "script_builddeps": "builddeps",
+        "script_resultdir": "resultdir",
+        "script_chroot": "chroot",
     }
     output = input.copy()
     for from_name, to_name in replace.items():
