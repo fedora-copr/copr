@@ -2,11 +2,15 @@ import flask
 from werkzeug.datastructures import MultiDict
 
 
-def get_form_compatible_data():
+def get_form_compatible_data(preserve=None):
     input = without_empty_fields(get_input_dict())
-    output = {}
+    output = dict(input).copy()
 
     for k, v in input.items():
+        # Preserve the original value and return it unchanged
+        if k in (preserve or []):
+            continue
+
         # Transform lists to strings separated with spaces
         if type(v) == list:
             v = " ".join(map(str, v))

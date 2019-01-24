@@ -68,7 +68,7 @@ def get_package_list(ownername, projectname, **kwargs):
 @api_login_required
 def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(without_empty_fields(get_input()))
+    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
     process_package_add_or_edit(copr, source_type_text, data=data)
     package = PackagesLogic.get(copr.main_dir.id, package_name).first()
     return flask.jsonify(to_dict(package))
@@ -78,7 +78,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
 @api_login_required
 def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(without_empty_fields(get_input()))
+    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
     try:
         package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text
@@ -110,7 +110,7 @@ def package_reset():
 @api_login_required
 def package_build():
     copr = get_copr()
-    data = rename_fields(get_form_compatible_data())
+    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
     form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, csrf_enabled=False)
     try:
         package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
