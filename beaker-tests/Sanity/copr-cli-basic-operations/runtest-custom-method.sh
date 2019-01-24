@@ -144,7 +144,7 @@ rlJournalStart
         --script-chroot fedora-rawhide-x86_64'
     rlRun -s 'copr build-package "$PROJECT" --name quick-package --nowait'
     rlRun 'parse_build_id'
-    # Invalid BUILDDEPS value, should fail
+    # valid BUILDDEPS, this should succeed
     rlRun 'copr watch-build $BUILD_ID'
     rlRun 'copr download-build $BUILD_ID --dest $RESULTDIR'
     rlRun 'FILES="success" check_resultdir quick-package-0-0'
