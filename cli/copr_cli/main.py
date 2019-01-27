@@ -670,15 +670,11 @@ class Commands(object):
         """
         ownername, projectname = self.parse_name(args.copr)
 
-        try:
-            if args.yaml:
-                module = self.client.module_proxy.build_from_file(ownername, projectname, args.yaml)
-            else:
-                module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
-            print("Created module {0}".format(module.nsv))
-
-        except CoprRequestException as ex:
-            print(ex)
+        if args.yaml:
+            module = self.client.module_proxy.build_from_file(ownername, projectname, args.yaml)
+        else:
+            module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
+        print("Created module {0}".format(module.nsv))
 
 
 def setup_parser():
