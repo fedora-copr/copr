@@ -774,7 +774,7 @@ def generate_module_repo_file(copr, name_release, module_nsv):
 def render_generate_module_repo_file(copr, name_release, module_nsv):
     module = ModulesLogic.get_by_nsv_str(copr, module_nsv).one()
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
-    url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
+    url = os.path.join(copr.main_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, copr.modules_url)
     baseurl = "{}+{}/latest/$basearch".format(repo_url.rstrip("/"), module_nsv)
     pubkey_url = urljoin(url, "pubkey.gpg")
