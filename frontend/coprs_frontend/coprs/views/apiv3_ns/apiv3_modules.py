@@ -37,5 +37,7 @@ def build_module(ownername, projectname):
         raise BadRequest(str(ex))
 
     except sqlalchemy.exc.IntegrityError:
-        raise DuplicateException("Module {}-{}-{} already exists".format(
-                                 facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version))
+        raise DuplicateException("Module {}-{}-{} already exists"
+                                 .format(facade.modulemd.get_name(),
+                                         facade.modulemd.get_stream(),
+                                         facade.modulemd.get_version()))
