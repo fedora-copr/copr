@@ -75,7 +75,7 @@ function test_successful_packages()
     local tmp=$2
     rlAssertEquals "All packages should succeed" `cat $tmp |grep "state" | grep "succeeded" |wc -l` `echo $packages |wc -w`
     for pkg in $packages; do
-        rlAssertEquals "Package $pkg is missing" `cat $tmp | grep "name" |grep "$pkg" |wc -l` 1
+        rlAssertEquals "Package $pkg is missing" `cat $tmp |jq '.[] | .name' |grep "$pkg" |wc -l` 1
     done
 }
 
