@@ -191,8 +191,6 @@ rlJournalStart
 
 
         # Test that module can be enabled with dnf
-        rlRun "dnf -y upgrade dnf --enablerepo mhatina-dnf-modularity-nightly"
-
         # Module repository should be allowed via DNF, but the code isn't merged yet
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
         rlRun "curl $FRONTEND_URL/coprs/$USER/module-testmodule-beakertest-$DATE/module_repo/fedora-rawhide/testmodule-beakertest-$DATE.repo > /etc/yum.repos.d/testmodule.repo"
@@ -203,7 +201,6 @@ rlJournalStart
         rlRun "rpm -q mksh"
         rlRun "dnf -y module remove testmodule"
         rlRun "dnf -y module disable testmodule"
-        rlRun "dnf -y downgrade dnf"
 
 
         # @TODO Test that enabled module info is correct
