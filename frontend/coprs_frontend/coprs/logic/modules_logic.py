@@ -209,7 +209,7 @@ class ModuleProvider(object):
 
     @classmethod
     def from_file(cls, ref):
-        return cls(ref.filename, ref.read())
+        return cls(ref.filename, ref.read().decode("utf-8"))
 
     @classmethod
     def from_url(cls, url):
