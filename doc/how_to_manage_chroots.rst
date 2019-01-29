@@ -64,6 +64,8 @@ Once the mock configs are available on the builders, you can re-enable the chroo
 When everything is done, `send an information email to a mailing list <#mailing-lists>`_.
 
 
+.. _eol_deactivation_process:
+
 EOL deactivation process
 ------------------------
 
@@ -73,7 +75,7 @@ comfortably deal with it. It can be done like this
 
 ::
 
-    copr-frontend alter_chroot --action deactivate fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
+    copr-frontend alter_chroot --action eol fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
 
 After running such command, no data are going to be removed. All repositories for the chroot are preserved. It is just
 disabled and users can't build new packages in it anymore.
