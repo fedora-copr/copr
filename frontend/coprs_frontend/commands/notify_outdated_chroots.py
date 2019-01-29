@@ -19,15 +19,15 @@ class NotifyOutdatedChrootsCommand(Command):
     ]
 
     def run(self, dry_run, email_filter, all):
-        self.dry_run = dry_run
         self.email_filter = email_filter
         self.all = all
+        notifier = DryRunNotifier() if dry_run else Notifier()
 
         outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
         for user, chroots in self.get_user_chroots_map(outdated).items():
             chroots = self.filter_chroots([chroot for chroot in chroots])
-            self.notify(user, chroots)
-            self.store_notify_timesamp(chroots)
+            notifier.notify(user, chroots)
+            notifier.store_timestamp(chroots)
 
     def get_user_chroots_map(self, chroots):
         user_chroot_map = {}
@@ -56,19 +56,22 @@ class NotifyOutdatedChrootsCommand(Command):
 
         return filtered
 
-    def notify(self, user, chroots):
-        if self.dry_run:
-            about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
-            print("Notify {} about {}".format(user.mail, about))
-        else:
-            msg = OutdatedChrootMessage(chroots)
-            send_mail(user.mail, msg)
 
-    def store_notify_timesamp(self, chroots):
-        if self.dry_run:
-            return
+class Notifier(object):
+    def notify(self, user, chroots):
+        msg = OutdatedChrootMessage(chroots)
+        send_mail(user.mail, msg)
+
+    def store_timestamp(self, chroots):
         for chroot in chroots:
-            chroot.delete_after_notify = datetime.datetime.now()
+            chroot.delete_notify = datetime.datetime.now()
         db.session.commit()
 
 
+class DryRunNotifier(object):
+    def notify(self, user, chroots):
+        about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
+        print("Notify {} about {}".format(user.mail, about))
+
+    def store_timestamp(self, chroots):
+        pass
