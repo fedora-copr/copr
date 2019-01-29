@@ -1,6 +1,7 @@
+import sys
 import datetime
 from flask_script import Command, Option
-from coprs import db
+from coprs import db, app
 from coprs.logic import coprs_logic
 from coprs.mail import send_mail, OutdatedChrootMessage
 
@@ -21,8 +22,11 @@ class NotifyOutdatedChrootsCommand(Command):
     def run(self, dry_run, email_filter, all):
         self.email_filter = email_filter
         self.all = all
-        notifier = DryRunNotifier() if dry_run else Notifier()
 
+        if not dry_run:
+            self.dev_instance_warning()
+
+        notifier = DryRunNotifier() if dry_run else Notifier()
         outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
         for user, chroots in self.get_user_chroots_map(outdated).items():
             chroots = self.filter_chroots([chroot for chroot in chroots])
@@ -57,6 +61,12 @@ class NotifyOutdatedChrootsCommand(Command):
                 filtered.append(chroot)
 
         return filtered
+
+    def dev_instance_warning(self):
+        if "copr-fe-dev" in app.config["PUBLIC_COPR_HOSTNAME"] and not self.email_filter:
+            sys.stderr.write("I will not let you send emails to all Copr users from the dev instance!\n")
+            sys.stderr.write("Please use this command with -e myself@foo.bar\n")
+            sys.exit(1)
 
 
 class Notifier(object):
