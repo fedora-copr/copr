@@ -648,7 +648,9 @@ class Build(db.Model, helpers.Serializer):
 
     __table_args__ = (db.Index('build_canceled', "canceled"),
                       db.Index('build_order', "is_background", "id"),
-                      db.Index('build_filter', "source_type", "canceled"))
+                      db.Index('build_filter', "source_type", "canceled"),
+                      db.Index('build_canceled_is_background_source_status_id_idx', 'canceled', "is_background", "source_status", "id"),
+                     )
 
     def __init__(self, *args, **kwargs):
         if kwargs.get('source_type') == helpers.BuildSourceEnum("custom"):
