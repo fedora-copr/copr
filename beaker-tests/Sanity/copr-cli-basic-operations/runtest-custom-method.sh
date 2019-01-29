@@ -128,6 +128,7 @@ rlJournalStart
     rlRun 'quick_package_script "BUILDDEPS=xxx generate_specfile"'
     rlRun 'copr edit-package-custom "$PROJECT" \
         --name quick-package \
+        --script-resultdir "" \
         --script script \
         --script-builddeps "$builddeps" \
         --script-chroot fedora-rawhide-x86_64'
