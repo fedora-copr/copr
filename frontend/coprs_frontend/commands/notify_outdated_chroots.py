@@ -26,6 +26,8 @@ class NotifyOutdatedChrootsCommand(Command):
         outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
         for user, chroots in self.get_user_chroots_map(outdated).items():
             chroots = self.filter_chroots([chroot for chroot in chroots])
+            if not chroots:
+                continue
             notifier.notify(user, chroots)
             notifier.store_timestamp(chroots)
 

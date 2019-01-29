@@ -91,6 +91,9 @@ class OutdatedChrootMessage(Message):
                      "Please, visit the projects settings if you want to extend the time.\n\n"
                      .format(app.config["DELETE_EOL_CHROOTS_AFTER"]))
 
+        if not copr_chroots:
+            raise AttributeError("No outdated chroots to notify about")
+
         for chroot in copr_chroots:
             self.text += (
                 "Project: {0}\n"

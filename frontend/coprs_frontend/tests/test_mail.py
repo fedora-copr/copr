@@ -1,3 +1,4 @@
+import pytest
 import datetime
 from coprs.mail import PermissionRequestMessage, PermissionChangeMessage, LegalFlagMessage, OutdatedChrootMessage
 from tests.coprs_test_case import CoprsTestCase
@@ -62,3 +63,8 @@ class TestMail(CoprsTestCase):
                             "Chroot: fedora-17-x86_64\n"
                             "Remaining: 7 days\n"
                             "http://localhost/coprs/user2/foocopr/repositories/\n\n")
+
+    def test_outdated_chroot_message_empty_chroots(self):
+        with pytest.raises(AttributeError) as ex:
+            OutdatedChrootMessage(copr_chroots=[])
+        assert "No outdated chroots" in str(ex)
