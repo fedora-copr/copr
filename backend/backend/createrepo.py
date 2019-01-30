@@ -108,6 +108,7 @@ INCLUDE_ICONS = \
 INCLUDE_MODULES = \
     """/usr/bin/modifyrepo_c \
 --mdtype modules \
+--compress-type gz \
 {packages_dir}/modules.yaml \
 {packages_dir}/repodata
 """
