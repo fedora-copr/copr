@@ -417,12 +417,13 @@ class Action(object):
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
             self.log.info(modulemd_data)
 
-            mmd = Modulemd.ModuleStream()
-            mmd.import_from_string(modulemd_data)
-            artifacts = Modulemd.SimpleSet()
-
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
+                mmd = Modulemd.ModuleStream()
+                mmd.import_from_string(modulemd_data)
+                mmd.set_arch(arch)
+                artifacts = Modulemd.SimpleSet()
+
                 srcdir = os.path.join(project_path, chroot)
                 module_tag = "{}+{}-{}-{}".format(chroot, mmd.get_name(), (mmd.get_stream() or ''),
                                                   (str(mmd.get_version()) or '1'))
