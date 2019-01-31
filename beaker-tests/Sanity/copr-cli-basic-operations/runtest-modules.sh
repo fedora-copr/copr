@@ -199,7 +199,7 @@ rlJournalStart
         rlRun "dnf module enable testmodule:beakertest"
         rlRun "dnf -y module install testmodule/default"
         rlRun "rpm -q mksh"
-        rlRun "dnf -y module remove testmodule"
+        rlRun "dnf -y module remove testmodule:beakertest/default"
         rlRun "dnf -y module disable testmodule"
 
 
