@@ -17,10 +17,11 @@ import gi
 gi.require_version('Modulemd', '1.0')
 from gi.repository import Modulemd
 
+from copr_common.rpm import splitFilename
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug, format_filename
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 from .vm_manage.manager import VmManager
@@ -444,7 +445,8 @@ class Action(object):
                         for f in os.listdir(os.path.join(destdir, folder)):
                             if not f.endswith(".rpm") or f.endswith(".src.rpm"):
                                 continue
-                            artifacts.add(str(f.rstrip(".rpm")))
+                            artifact = format_filename(zero_epoch=True, *splitFilename(f))
+                            artifacts.add(artifact)
 
                     mmd.set_rpm_artifacts(artifacts)
                     self.log.info("Module artifacts: %s", mmd.get_rpm_artifacts())

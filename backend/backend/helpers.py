@@ -531,3 +531,11 @@ def pkg_name_evr(srpm_path):
         evr = "{}-{}".format(version, release)
 
     return name, evr
+
+
+def format_filename(name, version, release, epoch, arch, zero_epoch=False):
+    if not epoch.isdigit() and zero_epoch:
+        epoch = "0"
+    if epoch.isdigit():
+        return "{}-{}:{}-{}.{}".format(name, epoch, version, release, arch)
+    return "{}-{}-{}.{}".format(name, version, release, arch)
