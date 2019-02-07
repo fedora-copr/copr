@@ -3,6 +3,7 @@ import logging
 
 
 class Config(object):
+    ENV = "devel"
     DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
     DATABASE = os.path.join(DATA_DIR, "copr.db")
     OPENID_STORE = os.path.join(DATA_DIR, "openid_store")

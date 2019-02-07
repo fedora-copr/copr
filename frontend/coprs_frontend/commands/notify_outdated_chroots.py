@@ -63,7 +63,7 @@ class NotifyOutdatedChrootsCommand(Command):
         return filtered
 
     def dev_instance_warning(self):
-        if "copr-fe-dev" in app.config["PUBLIC_COPR_HOSTNAME"] and not self.email_filter:
+        if app.config["ENV"] != "production" and not self.email_filter:
             sys.stderr.write("I will not let you send emails to all Copr users from the dev instance!\n")
             sys.stderr.write("Please use this command with -e myself@foo.bar\n")
             sys.exit(1)
