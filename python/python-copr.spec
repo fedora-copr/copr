@@ -119,7 +119,6 @@ BuildRequires: python3-pylint
 BuildRequires: python3-sphinx
 BuildRequires: python3-docutils
 BuildRequires: python3-munch
-BuildRequires: python3-configparser
 
 Requires: python3-setuptools
 Requires: python3-six
@@ -127,7 +126,6 @@ Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-marshmallow
 Requires: python3-munch
-Requires: python3-configparser
 
 %{?python_provide:%python_provide python3-copr}
 

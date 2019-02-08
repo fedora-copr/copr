@@ -33,18 +33,18 @@ BuildRequires: %{python}-pytest
 BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
-BuildRequires: %{python}-configparser
 
 BuildRequires: python-rpm-macros
 
 %if %{?python} == "python2"
+BuildRequires: python2-configparser
 BuildRequires: python2-mock
+Requires: python2-configparser
 %endif
 
 Requires: %python
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
-Requires: %{python}-configparser
 Requires: %{python}-requests
 Requires: %{python_pfx}-simplejson
 

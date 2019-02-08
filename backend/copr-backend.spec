@@ -27,7 +27,6 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
 
-BuildRequires: python3-configparser
 BuildRequires: python3-copr
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
@@ -56,7 +55,6 @@ Requires:   mock
 Requires:   obs-signd
 Requires:   openssh-clients
 Requires:   prunerepo
-Requires:   python3-configparser
 Requires:   python3-copr
 Requires:   python3-copr-common > 0.4
 Requires:   python3-daemon
