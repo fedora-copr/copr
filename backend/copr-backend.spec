@@ -65,6 +65,7 @@ Requires:   python3-fedmsg
 Requires:   python3-gobject
 Requires:   python3-munch
 Requires:   python3-netaddr
+Requires:   python3-novaclient
 Requires:   python3-oslo-concurrency
 Requires:   python3-pytz
 Requires:   python3-requests
