@@ -360,7 +360,13 @@ Yes. See the link in the footer of every Copr page or jump directly to the `API 
 
 .. rubric:: How long do you keep the builds? :ref:`¶ <How long do you keep the builds?>`
 
-We keep the last successful build from each package indefinitely. All other builds (old packages, failed builds) are deleted after 14 days.
+We keep one build for each package in one project indefinitely.  All other
+builds (old packages, failed builds) are deleted after 14 days.
+
+Note that we keep the build with the greatest EPOCH:NAME-VERSION-RELEASE,
+even though that build might not be the newest one.  Also, if there are
+two builds of the same package version, it is undefined which one is going
+to be kept.
 
 .. _`How is Copr pronounced?`:
 
