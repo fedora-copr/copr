@@ -13,6 +13,7 @@
         <th>Submitted</th>
         <th>Build Time</th>
         <th>Status</th>
+        <th data-orderable="false"><a href="#" onclick="$('tr.build-row :checkbox').prop('checked', $('tr.build-row :checkbox').length != $('tr.build-row :checkbox:checked').length); return false;">Mark all</a></th>
       </tr>
     </thead>
     <tbody>
@@ -42,6 +43,9 @@
         <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
         <td>
           {{ build_state(build) }}
+        </td>
+        <td>
+          <input type="checkbox" name="build_ids" value="{{ build.id }}"></input>
         </td>
       </tr>
     {% endfor %}

@@ -471,3 +471,24 @@ def copr_delete_build(username, coprname, build_id):
         flask.flash("Build has been deleted successfully.")
 
     return flask.redirect(helpers.url_for_copr_builds(build.copr))
+
+################################ xhr batch delete ################################
+
+@coprs_ns.route("/<username>/<coprname>/delete_builds/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/delete_builds/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_delete_builds(copr):
+    build_ids = flask.request.form.getlist("build_ids[]")
+
+    for build_id in build_ids:
+        build = ComplexLogic.get_build_safe(build_id)
+        try:
+            builds_logic.BuildsLogic.delete_build(flask.g.user, build)
+        except (InsufficientRightsException, ActionInProgressException) as e:
+            flask.flash(str(e), "error")
+
+    db.session.commit()
+    build_ids_str = ", ".join(build_ids).strip(", ")
+    flask.flash("Builds {} have been deleted successfully.".format(build_ids_str), "success")
+    return flask.jsonify({"msg": "success"})

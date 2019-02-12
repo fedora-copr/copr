@@ -200,3 +200,29 @@
     </button>
   </form>
 {% endmacro %}
+
+{% macro copr_delete_builds(copr, class="") %}
+  <form class="{{ class }} delete-builds" action="#" method="post">
+    <button class="btn btn-danger" type="submit">
+      <span class="pficon pficon-delete"></span> Delete all marked
+    </button>
+  </form>
+
+  <script>
+    $('form.delete-builds').submit(function(event) {
+      var build_ids = [];
+      $('tr.build-row :checkbox[name=build_ids]:checked').each(function() {
+        build_ids.push(this.value);
+      });
+
+      if (!confirm('Are you sure, you want to delete ' + build_ids.length + ' builds from your copr?')) {
+        return false;
+      }
+
+      $.post("{{ url_for('coprs_ns.copr_delete_builds', username=copr.user.name, coprname=copr.name) }}", {"build_ids": build_ids}, function() {
+        $(location).attr('href', '{{ copr_url('coprs_ns.copr_builds', copr) }}');
+      });
+      return false;
+  });
+  </script>
+{% endmacro %}

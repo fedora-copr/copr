@@ -4,6 +4,7 @@
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
+{% from "coprs/detail/_builds_forms.html" import copr_delete_builds %}
 
 {% set selected_tab = "builds" %}
 
@@ -15,7 +16,12 @@
 
 {% block detail_body %}
 {% if g.user and g.user.can_build_in(copr) %}
-  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"><span class="pficon pficon-add-circle-o"></span> New Build</a>
+  <a class="btn btn-primary button-new pull-right" style="margin-left:5px" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">
+    <span class="pficon pficon-add-circle-o"></span> New Build
+  </a>
+  {% if builds %}
+    {{ copr_delete_builds(copr, class="pull-right button-build-action") }}
+  {% endif %}
 {% endif %}
 
 <h2 class="page-title">Project Builds</h2>
