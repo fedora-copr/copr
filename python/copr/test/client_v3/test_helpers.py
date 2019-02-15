@@ -1,7 +1,7 @@
 import pytest
 import mock
 from munch import Munch
-from copr.v3.helpers import wait, succeeded
+from copr.v3.helpers import wait, succeeded, List
 from copr.v3 import BuildProxy, CoprException
 
 
@@ -35,6 +35,12 @@ class TestWait(object):
     def test_wait_list(self, mock_get):
         builds = [MunchMock(id=1, state="succeeded"), MunchMock(id=2, state="failed")]
         mock_get.side_effect = lambda id: builds[id-1]
+        assert wait(builds)
+
+    @mock.patch("copr.v3.proxies.build.BuildProxy.get")
+    def test_wait_custom_list(self, mock_get):
+        builds = List([Munch(id=1, state="succeeded"), Munch(id=2, state="failed")], proxy=BuildProxy({}))
+        mock_get.side_effect = lambda self, id: builds[id-1]
         assert wait(builds)
 
     @mock.patch("time.time")

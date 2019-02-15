@@ -82,7 +82,7 @@ def wait(waitable, interval=30, callback=None, timeout=0):
         wait([build1, build2])
 
     """
-    builds = waitable if type(waitable) == list else [waitable]
+    builds = waitable if isinstance(waitable, list) else [waitable]
     watched = set([build.id for build in builds])
     munches = dict((build.id, build) for build in builds)
     failed = []
@@ -90,7 +90,12 @@ def wait(waitable, interval=30, callback=None, timeout=0):
 
     while True:
         for build_id in watched.copy():
-            build = munches[build_id] = munches[build_id].__proxy__.get(build_id)
+            if hasattr(munches[build_id], "__proxy__"):
+                proxy = munches[build_id].__proxy__
+            else:
+                proxy = waitable.__proxy__
+            build = munches[build_id] = proxy.get(build_id)
+
             if build.state in ["failed"]:
                 failed.append(build_id)
             if build.state in ["succeeded", "skipped", "failed", "canceled"]:
