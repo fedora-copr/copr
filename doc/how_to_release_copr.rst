@@ -35,7 +35,7 @@ Check that .repo files correctly points to copr-dev. And run on batcave01.phx2.f
 
     sudo rbac-playbook -l copr-keygen-dev.cloud.fedoraproject.org groups/copr-keygen.yml
 
-    sudo rbac-playbook -l copr-fe-dev.cloud.fedoraproject.org groups/copr-frontend.yml
+    sudo rbac-playbook -l copr-fe-dev.cloud.fedoraproject.org groups/copr-frontend-cloud.yml
 
     sudo rbac-playbook -l copr-dist-git-dev.fedorainfracloud.org groups/copr-dist-git.yml
 
@@ -149,7 +149,7 @@ Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mi
 
     sudo rbac-playbook -l copr-keygen.cloud.fedoraproject.org groups/copr-keygen.yml
 
-    sudo rbac-playbook -l copr-fe.cloud.fedoraproject.org groups/copr-frontend.yml
+    sudo rbac-playbook -l copr-fe.cloud.fedoraproject.org groups/copr-frontend-cloud.yml
 
     sudo rbac-playbook -l copr-dist-git.fedorainfracloud.org groups/copr-dist-git.yml
 
