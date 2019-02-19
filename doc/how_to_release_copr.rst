@@ -81,7 +81,7 @@ If you cannot run that, tell somebody with access to run that (msuchy has access
 Release package to Fedora
 -------------------------
 
-Make sure that ``releng/releasers.conf`` has up to date list of branches.
+Make sure that ``releng/releasers.ini`` has up to date list of branches.
 
 Make sure you are co-maintainer of those packages in Fedora.
 
