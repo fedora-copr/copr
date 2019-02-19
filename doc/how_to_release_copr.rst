@@ -168,12 +168,12 @@ Send email to copr-dev mailing list. If there is some important change you can s
 Post release
 ------------
 
-Check if the MODIFIED bugs (that are not ON_QA) are fixed in released Copr or not, move them ON_QA if they are:
+Check if the `MODIFIED bugs <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&classification=Community&list_id=4678039&product=Copr&query_format=advanced>`_
+(that are not ON_QA) are fixed in released Copr or not, move them ON_QA.
 
-https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&classification=Community&list_id=4678039&product=Copr&query_format=advanced
 
-Change status of all ON_DEV, ON_QA, VERIFIED, and RELEASE_PENDING bugs to CLOSED/CURRENTRELEASE with comment like 'New Copr has been released.':
+Change status of all `ON_DEV, ON_QA, VERIFIED, and RELEASE_PENDING bugs <https://bugzilla.redhat.com/buglist.cgi?bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678045&product=Copr&query_format=advanced>`_
+to CLOSED/CURRENTRELEASE with comment like 'New Copr has been released.'
 
-https://bugzilla.redhat.com/buglist.cgi?bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678045&product=Copr&query_format=advanced
 
 Fix this document to make it easy for the release nanny of the next release to use it.
