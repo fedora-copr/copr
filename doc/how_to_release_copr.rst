@@ -52,7 +52,7 @@ Call for QA
 
 Move MODIFIED+ bugzillas to ON_QA.
 
-Ask people to test, verify bugs, and generally help with QA. They will ignore it but you will feel good about giving them a chance. 
+Ask people to test, verify bugs, and generally help with QA. They will ignore it but you will feel good about giving them a chance.
 
 Test
 ----
