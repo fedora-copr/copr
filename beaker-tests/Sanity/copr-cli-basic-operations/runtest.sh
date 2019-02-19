@@ -46,7 +46,8 @@ echo "BACKEND_URL = $BACKEND_URL"
 # Some tests might want to install built packages
 # Therefore, these packages need to be built for the same fedora version
 # as this script is going to be run from
-CHROOT="fedora-28-x86_64"
+FEDORA_VERSION=28
+CHROOT="fedora-$FEDORA_VERSION-x86_64"
 
 SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -150,20 +151,20 @@ rlJournalStart
         rlRun "copr-cli status `cat hello_p3.id`" 1
 
         ## test --auto-prune option
-        rlRun "copr-cli create --auto-prune off --chroot fedora-27-x86_64 ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli create --auto-prune off --chroot $CHROOT ${NAME_PREFIX}AutoPrune"
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": false'" 0
         rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
 
         ## test to modify list of enabled chroots in the project
         # create project
-        rlRun "copr-cli create --chroot fedora-27-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}ModifyProjectChroots"
         # modify chroots
-        rlRun "copr-cli modify --chroot fedora-27-x86_64 --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
+        rlRun "copr-cli modify --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
         # the old chroot should not be enabled anymore
         rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-23-x86_64" 1
         # only F27 and rawhide from previous modify command should be enabled now
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-27-x86_64" 0
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/$CHROOT" 0
         rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-rawhide-x86_64" 0
         # it should not be possible to select non-existing chroot
         OUTPUT=`mktemp`
@@ -171,14 +172,14 @@ rlJournalStart
         rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not available: non-existing-1" |wc -l` 1
 
         ## test distgit builds
-        rlRun "copr-cli create --chroot fedora-27-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
-        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/389-admin-console.git --branch f27 ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/389-admin-console.git --branch f$FEDORA_VERSION ${NAME_PREFIX}ProjectDistGitBuilds"
 
         ## test mock-config feature
         mc_project=${NAME_PREFIX}MockConfig
         mc_parent_project=${mc_project}Parent
         mc_output=`mktemp`
-        mc_chroot=fedora-27-x86_64
+        mc_chroot=$CHROOT
 
         rlRun "copr-cli create --chroot $mc_chroot $mc_parent_project"
         create_opts="--repo copr://$mc_parent_project"
@@ -209,7 +210,7 @@ rlJournalStart
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --repos '' --packages ''"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.repos == []'"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.buildroot_pkgs == []'"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_65" 1
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-$FEDORA_VERSION-x86_65" 1
         rm $TMPCOMPS
 
         ## test background builds
@@ -384,7 +385,7 @@ rlJournalStart
 
         ## test package building
         # create special repo for our test
-        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-27-x86_64 ${NAME_PREFIX}Project6"
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project6"
 
         # create a package
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url http://github.com/clime/example.git"
@@ -414,13 +415,13 @@ rlJournalStart
         rlRun "curl $FRONTEND_URL --silent | grep Project7" 0 # project should be visible on hp now
 
         # test search index update by copr insertion
-        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-27-x86_64 ${NAME_PREFIX}Project8"
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project8"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
 
         # test search index update by package addition
-        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-27-x86_64 ${NAME_PREFIX}Project9" && sleep 65
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url http://github.com/clime/example.git" # insert package to the copr
@@ -529,12 +530,12 @@ rlJournalStart
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot fedora-27-x86_64" 0
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot fedora-27-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot $CHROOT" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot $CHROOT" 0
         rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url https://github.com/clime/example.git" 0
         rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url https://github.com/clime/example.git" 0
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/fedora-27-x86_64" 0
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-27-x86_64" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/$CHROOT" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/$CHROOT" 0
 
         # Bug 1444804 - Logs are not present for failed builds
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot $CHROOT" 0
