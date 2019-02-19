@@ -116,7 +116,7 @@ Run::
     rpkg --path common srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/python-copr-common*.src.rpm
 
-And create erratas in Bodhi.
+And create erratas in `Bodhi <https://bodhi.fedoraproject.org/>`_.
 
 Generate documentation
 ----------------------
