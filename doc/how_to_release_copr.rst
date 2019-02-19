@@ -153,7 +153,7 @@ Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mi
 
     sudo rbac-playbook -l copr-dist-git.fedorainfracloud.org groups/copr-dist-git.yml
 
-Note: if need run manually DB upgrade.
+Note: You shouldn't need to upgrade DB manually, playbook covers it.
 
 Test production machine
 -----------------------
