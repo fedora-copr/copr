@@ -121,7 +121,14 @@ And create erratas in `Bodhi <https://bodhi.fedoraproject.org/>`_.
 Generate documentation
 ----------------------
 
-Go to:
+Generate `Copr project documentation <https://docs.pagure.org/copr.copr/>`_
+
+::
+
+    cd doc
+    ./update_docs.sh
+
+Generate package specific documentation by going to:
 
 * https://readthedocs.org/projects/copr-rest-api/
 
@@ -131,7 +138,7 @@ Go to:
 
 * https://readthedocs.org/projects/python-copr/
 
-And hit "Build" button for each of those projects.
+And hitting "Build" button for each of those projects.
 
 If schema was modified you should generate new Schema documentation.
 
