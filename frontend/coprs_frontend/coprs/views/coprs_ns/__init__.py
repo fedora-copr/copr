@@ -3,26 +3,27 @@
 import flask
 
 from coprs.views.misc import page_not_found, access_restricted, bad_request_handler, server_error_handler
-from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException
+from coprs.exceptions import CoprHttpException
 
 coprs_ns = flask.Blueprint("coprs_ns", __name__, url_prefix="/coprs")
 
 
-@coprs_ns.errorhandler(ObjectNotFound)
-def handle_404(error):
-    return page_not_found(error.message)
+class UIErrorHandler(object):
+    def handle_404(self, error):
+        return page_not_found(self.message(error))
 
+    def handle_403(self, error):
+        return access_restricted(self.message(error))
 
-@coprs_ns.errorhandler(AccessRestricted)
-def handle_403(error):
-    return access_restricted(error.message)
+    def handle_400(self, error):
+        return bad_request_handler(self.message(error))
 
+    def handle_500(self, error):
+        return server_error_handler(self.message(error))
 
-@coprs_ns.errorhandler(BadRequest)
-def handle_400(error):
-    return bad_request_handler(error.message)
-
-
-@coprs_ns.errorhandler(CoprHttpException)
-def handle_500(error):
-    return server_error_handler(error.message)
+    def message(self, error):
+        if isinstance(error, CoprHttpException):
+            return error.message
+        if hasattr(error, "description"):
+            return error.description
+        return str(error)

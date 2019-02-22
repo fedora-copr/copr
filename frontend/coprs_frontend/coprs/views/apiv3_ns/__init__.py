@@ -6,7 +6,7 @@ import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict
 from coprs import app
-from coprs.exceptions import CoprHttpException
+from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.logic.complex_logic import ComplexLogic
 
 
@@ -20,25 +20,35 @@ PUT = ["POST", "PUT"]
 DELETE = ["POST", "DELETE"]
 
 
-@app.errorhandler(CoprHttpException)
-def handle_copr_exception(error):
-    return handle_api_error(error.message, error.code)
+class APIErrorHandler(object):
+    def handle_404(self, error):
+        if isinstance(error, ObjectNotFound):
+            return self.respond(str(error), 404)
+        return self.respond("Such API endpoint doesn't exist", 404)
 
+    def handle_403(self, error):
+        return self.handle_xxx(error)
 
-@app.errorhandler(404)
-def page_not_found(error):
-    return handle_api_error("Such API endpoint doesn't exist", 404)
+    def handle_400(self, error):
+        return self.handle_xxx(error)
 
+    def handle_500(self, error):
+        return self.respond("Request wasn't successful, there is probably a bug in the API code.", 500)
 
-@app.errorhandler(500)
-def page_not_found(error):
-    return handle_api_error("Request wasn't successful, there is probably a bug in the API code.", 500)
+    def handle_xxx(self, error):
+        return self.respond(self.message(error), error.code)
 
+    def respond(self, message, code):
+        response = flask.jsonify(error=message)
+        response.status_code = code
+        return response
 
-def handle_api_error(message, code):
-    response = flask.jsonify(error=message)
-    response.status_code = code
-    return response
+    def message(self, error):
+        if isinstance(error, CoprHttpException):
+            return error.message
+        if hasattr(error, "description"):
+            return error.description
+        return str(error)
 
 
 def query_params():

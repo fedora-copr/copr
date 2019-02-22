@@ -479,6 +479,11 @@ class CoprsTestCase(object):
             }
         )
 
+    def post_api3_with_auth(self, url, content, user):
+        headers = {"Authorization": self._get_auth_string(user.api_login, user.api_token),
+                   "Content-Type": "application/json"}
+        return self.tc.post(url, data=json.dumps(content), headers=headers)
+
 
 class TransactionDecorator(object):
 

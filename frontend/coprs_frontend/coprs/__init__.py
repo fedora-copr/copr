@@ -74,6 +74,7 @@ from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.webhooks_ns import webhooks_general
 
 
+from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException
 from .context_processors import include_banner, inject_fedmenu, counter_processor
 
 setup_log()
@@ -93,6 +94,42 @@ app.register_blueprint(user_ns)
 app.register_blueprint(webhooks_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
+
+
+def get_error_handler():
+    # http://flask.pocoo.org/docs/1.0/blueprints/#error-handlers
+    if flask.request.path.startswith('/api_3/'):
+        return apiv3_ns.APIErrorHandler()
+    return coprs_ns.UIErrorHandler()
+
+
+@app.errorhandler(404)
+@app.errorhandler(ObjectNotFound)
+def handle_404(error):
+    error_handler = get_error_handler()
+    return error_handler.handle_404(error)
+
+
+@app.errorhandler(403)
+@app.errorhandler(AccessRestricted)
+def handle_403(error):
+    error_handler = get_error_handler()
+    return error_handler.handle_403(error)
+
+
+@app.errorhandler(400)
+@app.errorhandler(BadRequest)
+def handle_400(error):
+    error_handler = get_error_handler()
+    return error_handler.handle_400(error)
+
+
+@app.errorhandler(500)
+@app.errorhandler(CoprHttpException)
+def handle_500(error):
+    error_handler = get_error_handler()
+    return error_handler.handle_500(error)
+
 
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True

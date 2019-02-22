@@ -79,12 +79,10 @@ def lookup_current_user():
             models.User.username == username).first()
 
 
-@app.errorhandler(404)
 def page_not_found(message):
     return flask.render_template("404.html", message=message), 404
 
 
-@app.errorhandler(403)
 def access_restricted(message):
     return flask.render_template("403.html", message=message), 403
 
@@ -102,9 +100,6 @@ def generic_error(message, code=500, title=None):
 
 server_error_handler = partial(generic_error, code=500, title="Internal Server Error")
 bad_request_handler = partial(generic_error, code=400, title="Bad Request")
-
-app.errorhandler(500)(server_error_handler)
-app.errorhandler(400)(bad_request_handler)
 
 misc = flask.Blueprint("misc", __name__)
 
