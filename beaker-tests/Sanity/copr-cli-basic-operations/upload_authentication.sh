@@ -29,23 +29,10 @@
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
-PACKAGE="copr"
-OWNER="@copr"
-NAME_VAR="TEST$(date +%s)" # names should be unique
-NAME_PREFIX="$OWNER/$NAME_VAR"
+# Load config settings
+HERE=$(dirname "$(realpath "$0")")
+source "$HERE/config"
 
-if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
-fi
-if [[ ! $BACKEND_URL ]]; then
-    BACKEND_URL="https://copr-be-dev.cloud.fedoraproject.org"
-fi
-
-echo "FRONTEND_URL = $FRONTEND_URL"
-echo "BACKEND_URL = $BACKEND_URL"
-
-SCRIPT=`realpath $0`
-HERE=`dirname $SCRIPT`
 
 rlJournalStart
     rlPhaseStartSetup

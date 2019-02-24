@@ -3,20 +3,11 @@
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
+# Load config settings
+HERE=$(dirname "$(realpath "$0")")
+source "$HERE/config"
+
 export RESULTDIR=`mktemp -d`
-
-export TESTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-export IN=$TESTPATH/action-tasks.json
-export OUT=$TESTPATH/action-results.out.json
-
-if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
-fi
-
-
-NAME_VAR="TEST$(date +%s)"
-
 
 parse_build_id()
 {
@@ -62,7 +53,7 @@ check_http_status ()
 
 quick_package_script ()
 {
-    cp "$TESTPATH/files/quick-package.sh" script
+    cp "$HERE/files/quick-package.sh" script
     echo "$1" >> script
 }
 

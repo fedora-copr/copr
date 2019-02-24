@@ -29,26 +29,10 @@
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
-PACKAGE="copr"
-OWNER="@copr"
-NAME_VAR="TEST$(date +%s)" # names should be unique
-NAME_PREFIX="$OWNER/$NAME_VAR"
-if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
-fi
-if [[ ! $BACKEND_URL ]]; then
-    BACKEND_URL="https://copr-be-dev.cloud.fedoraproject.org"
-fi
+# Load config settings
+HERE=$(dirname "$(realpath "$0")")
+source "$HERE/config"
 
-echo "FRONTEND_URL = $FRONTEND_URL"
-echo "BACKEND_URL = $BACKEND_URL"
-
-# Some tests might want to install built packages
-# Therefore, these packages need to be built for the same fedora version
-# as this script is going to be run from
-CHROOT="fedora-28-x86_64"
-
-SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 rlJournalStart
     rlPhaseStartSetup

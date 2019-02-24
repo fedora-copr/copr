@@ -29,20 +29,10 @@
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
-if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
-fi
-if [[ ! $BACKEND_URL ]]; then
-    BACKEND_URL="https://copr-be-dev.cloud.fedoraproject.org"
-fi
-USER=`copr-cli whoami`
+# Load config settings
+HERE=$(dirname "$(realpath "$0")")
+source "$HERE/config"
 
-echo "FRONTEND_URL = $FRONTEND_URL"
-echo "BACKEND_URL = $BACKEND_URL"
-echo "USER = $USER"
-
-SCRIPT=`realpath $0`
-HERE=`dirname $SCRIPT`
 
 function wait_for_finished_module()
 {
