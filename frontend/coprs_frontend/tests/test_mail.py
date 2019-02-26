@@ -43,7 +43,7 @@ class TestMail(CoprsTestCase):
         app.config["DELETE_EOL_CHROOTS_AFTER"] = 123
         with app.app_context():
             msg = OutdatedChrootMessage(chroots)
-        assert msg.subject == "Upcoming deletion of outdated chroots in your projects"
+        assert msg.subject == "[Copr] upcoming deletion of outdated chroots in your projects"
         assert msg.text == ("You have been notified because you are an admin of projects,"
                             "that have some builds in outdated chroots\n\n"
 

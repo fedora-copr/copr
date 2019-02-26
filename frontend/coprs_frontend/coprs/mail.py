@@ -79,7 +79,7 @@ class OutdatedChrootMessage(Message):
         :param models.Copr copr:
         :param list copr_chroots: list of models.CoprChroot instances
         """
-        self.subject = "Upcoming deletion of outdated chroots in your projects"
+        self.subject = "[Copr] upcoming deletion of outdated chroots in your projects"
         self.text = ("You have been notified because you are an admin of projects,"
                      "that have some builds in outdated chroots\n\n"
 
