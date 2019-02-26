@@ -121,17 +121,18 @@ rlJournalStart
 
         ## test build watching and deletion using Project3
         # build 1st package without waiting
-        rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm > hello_p3.out"
-        rlRun "awk '/Created build/ { print \$3 }' hello_p3.out > hello_p3.id"
+        TMP=`mktemp -d`
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm > $TMP/hello_p3.out"
+        rlRun "awk '/Created build/ { print \$3 }' $TMP/hello_p3.out > $TMP/hello_p3.id"
         # initial status should be in progress, e.g. pending/running
-        rlRun "xargs copr-cli status < hello_p3.id | grep -v succeeded"
+        rlRun "xargs copr-cli status < $TMP/hello_p3.id | grep -v succeeded"
         # wait for the build to complete and ensure it succeeded
-        rlRun "xargs copr-cli watch-build < hello_p3.id"
-        rlRun "xargs copr-cli status < hello_p3.id | grep succeeded"
+        rlRun "xargs copr-cli watch-build < $TMP/hello_p3.id"
+        rlRun "xargs copr-cli status < $TMP/hello_p3.id | grep succeeded"
         # test build deletion
-        rlRun "copr-cli status `cat hello_p3.id`" 0
-        rlRun "cat hello_p3.id|xargs copr-cli delete-build"
-        rlRun "copr-cli status `cat hello_p3.id`" 1
+        rlRun "copr-cli status `cat $TMP/hello_p3.id`" 0
+        rlRun "cat $TMP/hello_p3.id|xargs copr-cli delete-build"
+        rlRun "copr-cli status `cat $TMP/hello_p3.id`" 1
 
         ## test --auto-prune option
         rlRun "copr-cli create --auto-prune off --chroot $CHROOT ${NAME_PREFIX}AutoPrune"
@@ -340,11 +341,12 @@ rlJournalStart
         rlAssertEquals "There is no latest build." `cat $LATEST_BUILD` 'null'
         rlAssertEquals "And there is no latest succeeded build." `cat $LATEST_SUCCEEDED_BUILD` 'null'
 
+        TMP=`mktemp -d`
         # run the build and wait
-        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > succeeded_example_build_id"
+        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/succeeded_example_build_id"
 
         # this build should fail
-        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
+        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
 
         # run the tests after build
         rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
@@ -353,8 +355,8 @@ rlJournalStart
         cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
 
         rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
-        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat failed_example_build_id`
-        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat succeeded_example_build_id`
+        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat $TMP/failed_example_build_id`
+        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat $TMP/succeeded_example_build_id`
 
         # run the same tests for list-packages cmd and its first (should be the only one) result
         rlRun "copr-cli list-packages ${NAME_PREFIX}Project5 --with-all-builds --with-latest-build --with-latest-succeeded-build | jq '.[0]' > $OUTPUT"
@@ -363,8 +365,8 @@ rlJournalStart
         cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
 
         rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
-        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat failed_example_build_id`
-        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat succeeded_example_build_id`
+        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat $TMP/failed_example_build_id`
+        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat $TMP/succeeded_example_build_id`
 
         ## test package building
         # create special repo for our test
@@ -453,9 +455,10 @@ rlJournalStart
 
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 $CHROOT"
         REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O pubkey_source.gpg"
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O pubkey_fork.gpg"
-        rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
+        TMP=`mktemp -d`
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_fork.gpg"
+        rlRun "diff $TMP/pubkey_source.gpg $TMP/pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
 
         # clean
         rlRun "dnf remove -y hello"
@@ -481,10 +484,11 @@ rlJournalStart
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
+        TMP=`mktemp -d`
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url http://github.com/clime/example.git"
-        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
-        BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt`
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteGroupBuild_example_build_id.txt"
+        BUILD_ID=`cat $TMP/TestDeleteGroupBuild_example_build_id.txt`
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
         rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory (ideally with results) is present on backend"
@@ -582,13 +586,13 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rm $SCRIPTPATH/TestDeleteGroupBuild_example_build_id.txt
-        rm $SCRIPTPATH/failed_example_build_id
-        rm $SCRIPTPATH/hello_p3.id
-        rm $SCRIPTPATH/hello_p3.out
-        rm $SCRIPTPATH/pubkey_fork.gpg
-        rm $SCRIPTPATH/pubkey_source.gpg
-        rm $SCRIPTPATH/succeeded_example_build_id
+        rm $TMP/TestDeleteGroupBuild_example_build_id.txt
+        rm $TMP/failed_example_build_id
+        rm $TMP/hello_p3.id
+        rm $TMP/hello_p3.out
+        rm $TMP/pubkey_fork.gpg
+        rm $TMP/pubkey_source.gpg
+        rm $TMP/succeeded_example_build_id
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd

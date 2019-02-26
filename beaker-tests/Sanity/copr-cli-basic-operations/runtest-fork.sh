@@ -75,9 +75,10 @@ rlJournalStart
 
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 $CHROOT"
         REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O pubkey_source.gpg"
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O pubkey_fork.gpg"
-        rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
+        TMP=`mktemp -d`
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_fork.gpg"
+        rlRun "diff $TMP/pubkey_source.gpg $TMP/pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
 
         # clean
         rlRun "dnf remove -y example"
@@ -86,8 +87,8 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rm $SCRIPTPATH/pubkey_fork.gpg
-        rm $SCRIPTPATH/pubkey_source.gpg
+        rm $TMP/pubkey_fork.gpg
+        rm $TMP/pubkey_source.gpg
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
