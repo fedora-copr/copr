@@ -48,7 +48,8 @@ Requires:   crontabs
 Requires:   euca2ools
 Requires:   gawk
 Requires:   libappstream-glib-builder
-Requires:   libmodulemd
+Requires:   libmodulemd < 2
+Requires:   libmodulemd >= 1.7.0
 Requires:   lighttpd
 Requires:   logrotate
 Requires:   mock
