@@ -1185,6 +1185,8 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def result_dir_url(self):
+        if not self.result_dir:
+            return None
         return urljoin(app.config["BACKEND_BASE_URL"], os.path.join(
             "results", self.build.copr_dir.full_name, self.name, self.result_dir, ""))
 

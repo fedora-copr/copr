@@ -472,7 +472,11 @@ class Commands(object):
             if args.chroots and chroot.name not in args.chroots:
                 continue
 
-            cmd = "wget -r -nH --no-parent --reject 'index.html*'".split(' ')
+            if not chroot.result_url:
+                sys.stderr.write("No data for build id: {} and chroot: {}.\n".format(args.build_id, chroot.name))
+                continue
+
+            cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off']
             cmd.extend(['-P', os.path.join(args.dest, chroot.name)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
             cmd.append(chroot.result_url)
