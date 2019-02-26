@@ -1,4 +1,4 @@
-FROM fedora:26
+FROM fedora:28
 MAINTAINER jkadlcik@redhat.com
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr

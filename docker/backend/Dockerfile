@@ -1,4 +1,4 @@
-FROM fedora:26
+FROM fedora:28
 MAINTAINER clime@redhat.com
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
@@ -58,7 +58,7 @@ RUN cd `mktemp -d` && dnf -y download --source copr-keygen && \
     dnf clean all
 
 # system setup for copr-keygen
-RUN mkdir /var/log/uwsgi && \
+RUN mkdir /var/log/uwsgi /var/run/uwsgi && \
     chown apache:apache /var/log/uwsgi && \
     chmod 775 /var/log/uwsgi && \
     chown apache:apache /var/run/uwsgi && \
