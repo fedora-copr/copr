@@ -67,13 +67,6 @@ Test
 Run :ref:`beaker_tests` and check the results.
 
 
-Build packages for production
------------------------------
-
-Build all packages for @copr projects::
-
-    releng/build-packages @copr/copr
-
 Release python-copr to PyPi
 ---------------------------
 
@@ -85,8 +78,8 @@ Substitute `<current_pkg_version>` with the current package version.
 
 If you cannot run that, tell somebody with access to run that (msuchy has access).
 
-Release package to Fedora
--------------------------
+Build packages for production
+-----------------------------
 
 Make sure that ``releng/releasers.ini`` has up to date list of branches.
 
