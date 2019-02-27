@@ -123,6 +123,9 @@ Run::
     rpkg --path common srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/python-copr-common*.src.rpm
 
+    rpkg --path rpmbuild srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-rpmbuild*.src.rpm
+
 And create erratas in `Bodhi <https://bodhi.fedoraproject.org/>`_.
 
 Generate documentation
