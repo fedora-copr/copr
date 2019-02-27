@@ -160,6 +160,13 @@ Prepare release notes
 
 Go over bugs, which were resolved. Write some nice announce.
 
+Schedule outage
+---------------
+
+Schedule outage even if it has to happen in the next 5 minutes!
+
+Follow the instructions in `Outage SOP <https://docs.pagure.org/infra-docs/sysadmin-guide/sops/outage.html#id1>`_.
+
 Upgrade production machines
 ---------------------------
 
