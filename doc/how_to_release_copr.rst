@@ -158,7 +158,10 @@ If schema was modified you should generate new Schema documentation.
 Prepare release notes
 ---------------------
 
-Go over bugs, which were resolved. Write some nice announce.
+Go over bugs, which were resolved. Write some nice announce. It is useful to prepare the release notes beforehand
+because developers usualy don't remember what they worked on and therefore don't know what to test once
+production instances are upgraded. Sharing the prepared notes with team members before doing the actuall release
+is appreciated.
 
 Schedule outage
 ---------------
