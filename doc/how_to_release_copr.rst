@@ -46,6 +46,13 @@ Note: if need manually run DB upgrade on frontend::
 
     alembic upgrade head
 
+Note: If there is a new version of copr-rpmbuild, run this on backend::
+
+    redis-cli
+    127.0.0.1:6379> FLUSHALL
+    cleanup_vm_nova.py
+    systemctl restart copr-backend
+
 
 Call for QA
 -----------
@@ -161,6 +168,8 @@ Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mi
     sudo rbac-playbook -l copr-dist-git.fedorainfracloud.org groups/copr-dist-git.yml
 
 Note: You shouldn't need to upgrade DB manually, playbook covers it.
+
+Note: If there is a new version of copr-rpmbuild, throw away all builders and reprovision them.
 
 Test production machine
 -----------------------
