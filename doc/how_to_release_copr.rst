@@ -157,6 +157,9 @@ Go over bugs, which were resolved. Write some nice announce.
 Upgrade production machines
 ---------------------------
 
+It is advised to stop ``copr-backend.service`` before upgrading production machines to avoid failing
+builds due to temporarily having installed incompatible versions of Copr packages.
+
 Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
     sudo rbac-playbook -l copr-be.cloud.fedoraproject.org groups/copr-backend.yml
