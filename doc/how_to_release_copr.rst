@@ -96,33 +96,43 @@ Run::
 
     rm -r /tmp/rpkg
 
+    git checkout <latest-python-tag>
     rpkg --path python srpm --outdir /tmp/rpkg
     releng/fedora-release git-all /tmp/rpkg/python-copr*.src.rpm
 
+    git checkout <latest-cli-tag>
     rpkg --path cli srpm --outdir /tmp/rpkg
     releng/fedora-release git-all /tmp/rpkg/copr-cli*.src.rpm
 
+    git checkout <latest-frontend-tag>
     rpkg --path frontend srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-frontend*.src.rpm
 
+    git checkout <latest-backend-tag>
     rpkg --path backend srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-backend*.src.rpm
 
+    git checkout <latest-distgit-tag>
     rpkg --path dist-git srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-dist-git*.src.rpm
 
+    git checkout <latest-keygen-tag>
     rpkg --path keygen srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-keygen*.src.rpm
 
+    git checkout <latest-selinux-tag>
     rpkg --path selinux srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-selinux*.src.rpm
 
+    git checkout <latest-prunerepo-tag>
     rpkg --path prunerepo srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/prunerepo*.src.rpm
 
+    git checkout <latest-common-tag>
     rpkg --path common srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/python-copr-common*.src.rpm
 
+    git checkout <latest-srpm-tag>
     rpkg --path rpmbuild srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-rpmbuild*.src.rpm
 
