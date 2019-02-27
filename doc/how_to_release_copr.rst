@@ -24,12 +24,12 @@ Build packages
 
 Build all packages::
 
-    releng/build-packages @copr/copr-dev
+    releng/build-packages @copr/copr
 
 Upgrade -dev machines
 ---------------------
 
-Check that .repo files correctly points to copr-dev. And run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
+Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
     sudo rbac-playbook -l copr-be-dev.cloud.fedoraproject.org groups/copr-backend.yml
 
