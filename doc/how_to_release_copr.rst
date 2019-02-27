@@ -78,6 +78,8 @@ Substitute `<current_pkg_version>` with the current package version.
 
 If you cannot run that, tell somebody with access to run that (msuchy has access).
 
+.. _build_packages_for_production:
+
 Build packages for production
 -----------------------------
 
@@ -129,7 +131,9 @@ Run::
     rpkg --path rpmbuild srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-rpmbuild*.src.rpm
 
-And create erratas in `Bodhi <https://bodhi.fedoraproject.org/>`_.
+And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
+Not even every fedora infra member can to this, ping clime or ask on ``#fedora-admin``.
+
 
 Generate documentation
 ----------------------
@@ -194,6 +198,11 @@ Test production machine
 -----------------------
 
 Just run some build and check if it succeeds.
+
+Submit Bodhi updates
+--------------------
+
+Create updates in `Bodhi <https://bodhi.fedoraproject.org/>`_ for :ref:`every package built in Koji <build_packages_for_production>`.
 
 Announce the release
 --------------------
