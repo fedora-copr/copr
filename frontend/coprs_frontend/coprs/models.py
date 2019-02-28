@@ -978,6 +978,10 @@ class MockChroot(db.Model, helpers.Serializer):
     distgit_branch = db.relationship("DistGitBranch",
             backref=db.backref("chroots"))
 
+    # After a mock_chroot is EOLed, this is set to true so that copr_prune_results
+    # will skip all projects using this chroot
+    final_prunerepo_done = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
+
     @classmethod
     def latest_fedora_branched_chroot(cls, arch='x86_64'):
         return (cls.query

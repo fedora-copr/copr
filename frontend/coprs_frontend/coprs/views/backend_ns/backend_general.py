@@ -10,6 +10,8 @@ from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.coprs_logic import MockChrootsLogic
+from coprs.exceptions import MalformedArgumentException
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
@@ -342,3 +344,13 @@ def reschedule_build_chroot():
             response["msg"] = "build chroot is not in running states, ignoring"
 
     return flask.jsonify(response)
+
+@backend_ns.route("/chroots-prunerepo-status/", methods=["POST", "PUT"])
+def chroots_prunerepo_status():
+    return flask.jsonify(MockChrootsLogic.chroots_prunerepo_status())
+
+@backend_ns.route("/final-prunerepo-done/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def final_prunerepo_done():
+    chroots_pruned = flask.request.get_json()
+    return flask.jsonify(MockChrootsLogic.prunerepo_finished(chroots_pruned))

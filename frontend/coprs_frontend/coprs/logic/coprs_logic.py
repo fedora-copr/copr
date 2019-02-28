@@ -791,3 +791,23 @@ class MockChrootsLogic(object):
             split_name.append(None)
 
         return tuple(split_name)
+
+    @classmethod
+    def prunerepo_finished(cls, chroots_pruned):
+        for chroot_name in chroots_pruned:
+            chroot = cls.get_from_name(chroot_name).one()
+            if not chroot.is_active:
+                chroot.final_prunerepo_done = True
+
+        db.session.commit()
+        return True
+
+    @classmethod
+    def chroots_prunerepo_status(cls):
+        query = models.MockChroot.query
+        chroots = {}
+        for chroot in query:
+            if chroot.is_active or not chroot.final_prunerepo_done:
+                chroots[chroot.name] = chroot.is_active
+
+        return chroots

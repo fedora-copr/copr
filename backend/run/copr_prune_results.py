@@ -7,6 +7,8 @@ import logging
 import subprocess
 import pwd
 
+import json
+
 log = logging.getLogger(__name__)
 
 from copr.exceptions import CoprException
@@ -16,6 +18,7 @@ sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader
 from backend.helpers import get_auto_createrepo_status,get_persistent_status,get_auto_prune_status
+from backend.frontend import FrontendClient
 
 DEF_DAYS = 14
 
@@ -56,8 +59,13 @@ class Pruner(object):
     def __init__(self, opts):
         self.opts = opts
         self.prune_days = getattr(self.opts, "prune_days", DEF_DAYS)
+        self.chroots = {}
+        self.frontend_client = FrontendClient(self.opts)
 
     def run(self):
+        response = self.frontend_client._post_to_frontend_repeatedly("", "chroots-prunerepo-status")
+        self.chroots = json.loads(response.content)
+
         results_dir = self.opts.destdir
         loginfo("Pruning results dir: {} ".format(results_dir))
         user_dir_names, user_dirs = list_subdir(results_dir)
@@ -73,6 +81,14 @@ class Pruner(object):
                 self.prune_project(project_path, username, projectdir)
                 loginfo("--------------------------------------------")
 
+        loginfo("Setting final_prunerepo_done for deactivated chroots")
+        chroots_to_prune = []
+        for chroot, active in self.chroots.items():
+            if not active:
+                chroots_to_prune.append(chroot)
+        self.frontend_client._post_to_frontend_repeatedly(chroots_to_prune, "final-prunerepo-done")
+
+        loginfo("--------------------------------------------")
         loginfo("Pruning finished")
 
     def prune_project(self, project_path, username, projectdir):
@@ -106,6 +122,10 @@ class Pruner(object):
                 continue
 
             if not os.path.isdir(chroot_path):
+                continue
+
+            if sub_dir_name not in self.chroots:
+                loginfo("Final pruning already done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
                 continue
 
             try:
