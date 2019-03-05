@@ -358,36 +358,6 @@ def req_with_copr(f):
     return wrapper
 
 
-@misc.route("/migration-report/")
-@misc.route("/migration-report/<username>")
-def coprs_migration_report(username=None):
-    if not username and not flask.g.user:
-        return generic_error("You are not logged in")
-    elif not username:
-        username = flask.g.user.name
-    user = UsersLogic.get(username).first()
-
-    coprs = CoprsLogic.filter_without_group_projects(CoprsLogic.get_multiple_owned_by_username(username)).all()
-    for group in UsersLogic.get_groups_by_fas_names_list(user.user_teams).all():
-        coprs.extend(CoprsLogic.get_multiple_by_group_id(group.id).all())
-
-    return render_migration_report(coprs, user=user)
-
-
-@misc.route("/migration-report/g/<group_name>")
-def group_coprs_migration_report(group_name=None):
-    group = ComplexLogic.get_group_by_name_safe(group_name)
-    coprs = CoprsLogic.get_multiple_by_group_id(group.id)
-    return render_migration_report(coprs, group=group)
-
-
-def render_migration_report(coprs, user=None, group=None):
-    return flask.render_template("migration-report.html",
-                                 user=user,
-                                 group=group,
-                                 coprs=coprs)
-
-
 def send_build_icon(build):
     if not build:
         return send_file("static/status_images/unknown.png",
