@@ -338,9 +338,8 @@ class PackageWrapper(UnicodeMixin):
             client=self.client,
             ownername=self.ownername, projectname=self.projectname,
             copr_id=self.copr_id, enable_net=self.enable_net, name=self.name,
-            id=self.id, old_status=self.old_status,
-            source_json=self.source_json, source_type=self.source_type,
-            webhook_rebuild=self.webhook_rebuild
+            id=self.id, source_json=self.source_json,
+            source_type=self.source_type, webhook_rebuild=self.webhook_rebuild
         )
 
     def __getattr__(self, item):
