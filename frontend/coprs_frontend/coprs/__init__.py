@@ -4,6 +4,7 @@ import os
 import flask
 
 from flask_sqlalchemy import SQLAlchemy
+from contextlib import contextmanager
 from flask_openid import OpenID
 from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse
@@ -31,6 +32,18 @@ oid = OpenID(
 )
 
 db = SQLAlchemy(app)
+
+@contextmanager
+def db_session_scope():
+    """Provide a transactional scope around a series of operations."""
+    session = db.session
+    try:
+        yield session
+        session.commit()
+    except Exception as err:
+        session.rollback()
+        raise
+
 whooshee = Whooshee(app)
 
 
