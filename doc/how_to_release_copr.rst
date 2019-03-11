@@ -197,7 +197,12 @@ Note: If there is a new version of copr-rpmbuild, throw away all builders and re
 Test production machine
 -----------------------
 
-Just run some build and check if it succeeds.
+Run post-release beaker test::
+
+    [root@test-env ~]$ cd /root/copr/beaker-tests/Sanity/copr-cli-basic-operations/
+    [root@test-env ~]$ ./runtest-production.sh
+
+or just run some build and check if it succeeds.
 
 Submit Bodhi updates
 --------------------
