@@ -6,7 +6,7 @@ import requests
 from munch import Munch
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from .helpers import List
-from .exceptions import CoprRequestException, CoprNoResultException
+from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException
 
 
 GET = "GET"
@@ -100,6 +100,10 @@ def handle_errors(response):
 
         if response.status_code == 404:
             raise CoprNoResultException(response_json["error"], response=response)
+
+        if response.status_code == 504:
+            raise CoprTimeoutException(response_json["error"], response=response)
+
         raise CoprRequestException(response_json["error"], response=response)
 
     except ValueError:

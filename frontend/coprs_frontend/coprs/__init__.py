@@ -146,6 +146,12 @@ def handle_500(error):
     return error_handler.handle_500(error)
 
 
+@app.errorhandler(504)
+def handle_504(error):
+    error_handler = get_error_handler()
+    return error_handler.handle_504(error)
+
+
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 

@@ -21,6 +21,9 @@ class UIErrorHandler(object):
     def handle_500(self, error):
         return server_error_handler(self.message(error))
 
+    def handle_504(self, error):
+        return server_error_handler(self.message(error))
+
     def message(self, error):
         if isinstance(error, CoprHttpException):
             return error.message

@@ -24,6 +24,13 @@ class CoprNoResultException(CoprException):
     pass
 
 
+class CoprTimeoutException(CoprException):
+    """
+    Raised when the API request timeouted
+    """
+    pass
+
+
 class CoprValidationException(CoprException):
     """
     Raised when the data sent from client to API are not valid

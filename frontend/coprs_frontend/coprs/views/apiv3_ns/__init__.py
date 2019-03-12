@@ -35,6 +35,9 @@ class APIErrorHandler(object):
     def handle_500(self, error):
         return self.respond("Request wasn't successful, there is probably a bug in the API code.", 500)
 
+    def handle_504(self, error):
+        return self.respond("The API request timeouted", 504)
+
     def handle_xxx(self, error):
         return self.respond(self.message(error), error.code)
 
