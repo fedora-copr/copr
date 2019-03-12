@@ -37,7 +37,11 @@
           {% endif %}
         </td>
         <td>
-          {{ build_state(package) }}
+          {% if package.status is not none %}
+            {{ build_state(package) }}
+          {% else %}
+            not built yet
+          {% endif %}
         </td>
 
         <td data-order="{{ package.webhook_rebuild }}">
