@@ -274,7 +274,7 @@ c. is categorized as a "Forbidden Item" at
 d. is designed to interfere with, disable, overburden, damage,
    impair or disrupt Copr or Fedora Project infrastructure;
 
-e. violates any rules or guidelines of the Fedora Project; or
+e. violates any rules or guidelines of the Fedora Project - especially the Fedora Project `Code of Conduct <https://docs.fedoraproject.org/en-US/project/code-of-conduct/index.html>`_ You do **not** need to comply with `Packaging Guidelines <https://docs.fedoraproject.org/en-US/packaging-guidelines/>`_.; or
 
 f. violates any applicable laws and regulations.
 
