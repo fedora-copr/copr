@@ -304,13 +304,13 @@ def test_download_build(config_from_file, build_chroot_proxy_get_list, build_pro
 
     expected_sp_call_args = [
         mock.call([
-            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
-            '-P', './epel-6-x86_64', '--cut-dirs', '6',
+            'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
+            '-e', 'robots=off', '-P', './epel-6-x86_64', '--cut-dirs', '6',
             'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
         ]),
         mock.call([
-            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
-            '-P', './epel-6-i386', '--cut-dirs', '6',
+            'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
+            '-e', 'robots=off', '-P', './epel-6-i386', '--cut-dirs', '6',
             'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20'
         ])
     ]
@@ -343,8 +343,8 @@ def test_download_build_select_chroot(config_from_file, build_chroot_proxy_get_l
     stdout, stderr = capsys.readouterr()
     expected_sp_call_args = [
         mock.call([
-            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
-            '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
+            'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
+            '-e', 'robots=off', '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
             'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
         ]),
     ]
