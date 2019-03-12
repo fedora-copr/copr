@@ -347,7 +347,7 @@ class Action(object):
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
             createrepo(path=chrootdir, front_url=self.front_url,
-                       username=data["user"], projectname=data["copr"],
+                       username=data["ownername"], projectname=data["projectname"],
                        override_acr_flag=True)
         except:
             result.result = ActionResult.FAILURE
