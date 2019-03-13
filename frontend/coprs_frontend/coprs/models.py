@@ -864,7 +864,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return StatusEnum("canceled")
 
-        use_src_statuses = ["starting", "pending", "running"]
+        use_src_statuses = ["starting", "pending", "running", "failed"]
         if self.source_status in [StatusEnum(s) for s in use_src_statuses]:
             return self.source_status
 
