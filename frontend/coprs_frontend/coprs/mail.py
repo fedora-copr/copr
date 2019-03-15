@@ -103,7 +103,7 @@ class OutdatedChrootMessage(Message):
                                  helpers.copr_url('coprs_ns.copr_repositories', chroot.copr, _external=True)))
 
 
-def send_mail(recipient, message, sender=None):
+def send_mail(recipient, message, sender=None, reply_to=None):
     """
     :param str/list recipient: One recipient email as a string or multiple emails in a list
     :param Message message:
@@ -114,6 +114,7 @@ def send_mail(recipient, message, sender=None):
     msg["Subject"] = message.subject
     msg["From"] = sender or "root@{0}".format(platform.node())
     msg["To"] = ", ".join(recipient) if type(recipient) == list else recipient
+    msg.add_header("reply-to", reply_to or app.config["REPLY_TO"])
     s = smtplib.SMTP("localhost")
     s.sendmail("root@{0}".format(platform.node()), recipient, msg.as_string())
     s.quit()

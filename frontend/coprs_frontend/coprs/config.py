@@ -35,6 +35,7 @@ class Config(object):
     LOGGING_LEVEL = logging.DEBUG
 
     SEND_LEGAL_TO = ["root@localhost"]
+    REPLY_TO = "copr-devel@lists.fedorahosted.org"
 
     # post-process url leading to backend
     # possible options: None, "http", "https"
