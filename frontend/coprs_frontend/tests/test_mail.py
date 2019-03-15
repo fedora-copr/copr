@@ -44,12 +44,12 @@ class TestMail(CoprsTestCase):
         with app.app_context():
             msg = OutdatedChrootMessage(chroots)
         assert msg.subject == "[Copr] upcoming deletion of outdated chroots in your projects"
-        assert msg.text == ("You have been notified because you are an admin of projects,"
+        assert msg.text == ("You have been notified because you are an admin of projects, "
                             "that have some builds in outdated chroots\n\n"
 
                             "According to the 'Copr outdated chroots removal policy'\n"
                             "https://docs.pagure.org/copr.copr/copr_outdated_chroots_removal_policy.html\n"
-                            "data are going to be preserved 123 days after the chroot is EOL"
+                            "data are going to be preserved 123 days after the chroot is EOL "
                             "and then automatically deleted, unless you decide to prolong the expiration period.\n\n"
 
                             "Please, visit the projects settings if you want to extend the time.\n\n"
