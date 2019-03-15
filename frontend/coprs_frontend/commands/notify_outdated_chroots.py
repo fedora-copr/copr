@@ -32,6 +32,7 @@ class NotifyOutdatedChrootsCommand(Command):
             chroots = self.filter_chroots([chroot for chroot in chroots])
             if not chroots:
                 continue
+            chroots.sort(key=lambda x: x.copr.full_name)
             notifier.notify(user, chroots)
             notifier.store_timestamp(chroots)
 
