@@ -6,6 +6,8 @@ import sys
 import logging
 import subprocess
 import pwd
+import time
+import argparse
 
 import json
 
@@ -21,6 +23,16 @@ from backend.helpers import get_auto_createrepo_status,get_persistent_status,get
 from backend.frontend import FrontendClient
 
 DEF_DAYS = 14
+
+
+parser = argparse.ArgumentParser(
+        description="Automatically prune copr result directory")
+parser.add_argument(
+        "--no-mtime-optimization",
+        action='store_true',
+        help=("Also try to prune repositories where no new builds "
+              "have been done for a long time"))
+
 
 def list_subdir(path):
     dir_names = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -56,11 +68,14 @@ def runcmd(cmd):
 
 
 class Pruner(object):
-    def __init__(self, opts):
+    def __init__(self, opts, cmdline_opts=None):
         self.opts = opts
         self.prune_days = getattr(self.opts, "prune_days", DEF_DAYS)
         self.chroots = {}
         self.frontend_client = FrontendClient(self.opts)
+        self.mtime_optimization = True
+        if cmdline_opts:
+            self.mtime_optimization = not cmdline_opts.no_mtime_optimization
 
     def run(self):
         response = self.frontend_client._post_to_frontend_repeatedly("", "chroots-prunerepo-status")
@@ -128,6 +143,23 @@ class Pruner(object):
                 loginfo("Final pruning already done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
                 continue
 
+            if self.mtime_optimization:
+                # We only ever remove builds that were done at least
+                # 'self.prune_days' ago.  And because we run prunerepo _daily_
+                # we know that the candidates for removal (if there are such)
+                # are removed about a day after "build_time + self.prune_days".
+                touched_before = time.time()-os.stat(chroot_path).st_mtime
+                touched_before = touched_before/3600/24 # seconds -> days
+
+                # Because it might happen that prunerepo has some problems to
+                # successfully go through the directory for some time (bug, user
+                # error, I/O problems...) we rather wait 10 more days till we
+                # really start to ignore the directory.
+                if touched_before > int(self.prune_days) + 10:
+                    loginfo("Skipping {} - not changed for {} days".format(
+                        sub_dir_name, touched_before))
+                    continue
+
             try:
                 cmd = ['prunerepo', '--verbose', '--days={0}'.format(self.prune_days), '--cleancopr', chroot_path]
                 stdout = runcmd(cmd)
@@ -142,8 +174,9 @@ class Pruner(object):
 
 
 def main():
+    args = parser.parse_args()
     config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
-    pruner = Pruner(BackendConfigReader(config_file).read())
+    pruner = Pruner(BackendConfigReader(config_file).read(), args)
     try:
         pruner.run()
     except Exception as e:
