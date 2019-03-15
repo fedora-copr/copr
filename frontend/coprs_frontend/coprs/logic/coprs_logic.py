@@ -503,8 +503,11 @@ class BranchesLogic(object):
 
 class CoprChrootsLogic(object):
     @classmethod
-    def get_multiple(cls):
-        return models.CoprChroot.query
+    def get_multiple(cls, include_deleted=False):
+        query = models.CoprChroot.query.join(models.Copr)
+        if not include_deleted:
+            query = query.filter(models.Copr.deleted.is_(False))
+        return query
 
     @classmethod
     def mock_chroots_from_names(cls, names):
