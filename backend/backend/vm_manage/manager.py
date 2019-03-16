@@ -209,7 +209,7 @@ class VmManager(object):
         vmd_list = self.get_all_vm_in_group(group)
         return [vmd for vmd in vmd_list if vmd.bound_to_user is not None]
 
-    def acquire_vm(self, groups, ownername, pid, task_id=None, build_id=None, chroot=None):
+    def acquire_vm(self, groups, ownername, pid, task_id="None", build_id="None", chroot="None"):
         """
         Try to acquire VM from pool.
 
@@ -262,7 +262,7 @@ class VmManager(object):
         self.log.info("Release vm result `%s`", lua_result)
         return lua_result == "OK"
 
-    def start_vm_termination(self, vm_name, allowed_pre_state=None):
+    def start_vm_termination(self, vm_name, allowed_pre_state="None"):
         """
         Initiate VM termination process using redis publish.
 

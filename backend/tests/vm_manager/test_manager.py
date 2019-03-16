@@ -128,6 +128,7 @@ class TestManager(object):
         vmd.store_field(self.rc, "state", VmStates.READY)
 
         # undefined both last_health_check and server_start_timestamp
+        mc_time.time.return_value = 0.1
         with pytest.raises(NoVmAvailable):
             self.vmm.acquire_vm([GID1], self.ownername, 42)
 
