@@ -82,21 +82,21 @@ for developers only.\
 Summary: %summary
 
 %if 0%{?rhel} < 8 && 0%{?rhel} > 0
-Requires: python-setuptools
-Requires: python-six >= 1.9.0
-Requires: python-requests
-Requires: python-requests-toolbelt
+Requires: python-configparser
 Requires: python-marshmallow
 Requires: python-munch
-Requires: python-configparser
+Requires: python-requests
+Requires: python-requests-toolbelt
+Requires: python-setuptools
+Requires: python-six >= 1.9.0
 %else
-Requires: python2-setuptools
-Requires: python2-six >= 1.9.0
+Requires: python2-configparser
+Requires: python2-marshmallow
+Requires: python2-munch
 Requires: python2-requests
 Requires: python2-requests-toolbelt
-Requires: python2-marshmallow
-Requires: python-munch
-Requires: python2-configparser
+Requires: python2-setuptools
+Requires: python2-six >= 1.9.0
 %endif
 
 %{?python_provide:%python_provide python2-copr}
@@ -109,24 +109,24 @@ Requires: python2-configparser
 Summary:        Python interface for Copr
 
 BuildRequires: python3-devel
-BuildRequires: python3-setuptools
-BuildRequires: python3-pytest
-BuildRequires: python3-requests
-BuildRequires: python3-requests-toolbelt
-BuildRequires: python3-marshmallow
-BuildRequires: python3-six
-BuildRequires: python3-pylint
-BuildRequires: python3-sphinx
 BuildRequires: python3-docutils
 BuildRequires: python3-mock
 BuildRequires: python3-munch
+BuildRequires: python3-marshmallow
+BuildRequires: python3-pylint
+BuildRequires: python3-pytest
+BuildRequires: python3-setuptools
+BuildRequires: python3-requests
+BuildRequires: python3-requests-toolbelt
+BuildRequires: python3-six
+BuildRequires: python3-sphinx
 
-Requires: python3-setuptools
-Requires: python3-six
-Requires: python3-requests
-Requires: python3-requests-toolbelt
 Requires: python3-marshmallow
 Requires: python3-munch
+Requires: python3-requests
+Requires: python3-requests-toolbelt
+Requires: python3-setuptools
+Requires: python3-six
 
 %{?python_provide:%python_provide python3-copr}
 
