@@ -118,6 +118,7 @@ BuildRequires: python3-six
 BuildRequires: python3-pylint
 BuildRequires: python3-sphinx
 BuildRequires: python3-docutils
+BuildRequires: python3-mock
 BuildRequires: python3-munch
 
 Requires: python3-setuptools
