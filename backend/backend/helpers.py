@@ -378,7 +378,7 @@ def get_redis_connection(opts):
     if hasattr(opts, "redis_port"):
         kwargs["port"] = opts.redis_port
 
-    return StrictRedis(charset="utf-8", decode_responses=True, **kwargs)
+    return StrictRedis(encoding="utf-8", decode_responses=True, **kwargs)
 
 
 def format_tb(ex, ex_traceback):
