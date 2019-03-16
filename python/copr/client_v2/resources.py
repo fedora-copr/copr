@@ -1,6 +1,13 @@
 # pylint: disable=R0903
 # coding: utf-8
-from collections import Iterable
+
+import six
+
+if six.PY2:
+    from collections import Iterable
+else:
+    from collections.abc import Iterable
+
 from six import with_metaclass
 
 from ..util import UnicodeMixin
