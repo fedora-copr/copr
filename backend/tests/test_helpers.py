@@ -1,9 +1,12 @@
 # coding: utf-8
 
 from munch import Munch
+import json
 
 from backend.exceptions import BuilderError
-from backend.helpers import get_redis_logger, get_chroot_arch, format_filename
+from backend.helpers import get_redis_logger, get_chroot_arch, \
+        format_filename, get_redis_connection
+from backend.constants import LOG_PUB_SUB
 
 """
 SOME TESTS REQUIRES RUNNING REDIS
@@ -20,15 +23,28 @@ class TestHelpers(object):
             redis_port=7777,
         )
 
+        rc = get_redis_connection(self.opts)
+        self.channel = rc.pubsub(ignore_subscribe_messages=True)
+        self.channel.subscribe(LOG_PUB_SUB)
+
     def teardown_method(self, method):
         pass
 
     def test_redis_logger_exception(self):
         log = get_redis_logger(self.opts, "backend.test", "test")
         try:
-            raise BuilderError("foobar", return_code=1, stdout="STDOUT", stderr="STDERR")
+            raise BuilderError("foobar")
         except Exception as err:
             log.exception("error occurred: {}".format(err))
+
+        # read only one message
+        for raw in self.channel.listen():
+            assert raw.get("type") == "message"
+            data = json.loads(raw['data'])
+            assert data.get("traceback")
+            assert data.get("who") == "test"
+            assert 'backend.exceptions.BuilderError: foobar\n' in data['traceback']
+            break
 
     def test_get_chroot_arch(self):
         assert get_chroot_arch("fedora-26-x86_64") == "x86_64"

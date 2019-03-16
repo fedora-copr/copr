@@ -411,7 +411,7 @@ class RedisPublishHandler(logging.Handler):
 
             if msg.get("exc_info"):
                 # from celery.contrib import rdb; rdb.set_trace()
-                _, error, tb = msg.pop("exc_info")
+                _, error, tb = msg.get("exc_info")
                 msg["traceback"] = format_tb(error, tb)
 
             self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg, default=default))
