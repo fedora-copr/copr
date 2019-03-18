@@ -17,13 +17,22 @@
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
   <li class="{% block importing_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.importing') }}">Importing</a>
+      <a href="{{ url_for('status_ns.importing') }}">
+          Importing
+          <span class="badge">{{ queue_sizes['importing'] }}</span>
+      </a>
   </li>
   <li class="{% block pending_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.pending') }}">Pending</a>
+      <a href="{{ url_for('status_ns.pending') }}">
+          Pending
+          <span class="badge">{{ queue_sizes['pending'] }}</span>
+      </a>
   </li>
   <li class="{% block running_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.running') }}">Running</a>
+      <a href="{{ url_for('status_ns.running') }}">
+          Running
+          <span class="badge">{{ queue_sizes['running'] }}</span>
+      </a>
   </li>
   <li class="{% block stats_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.stats') }}">Statistics</a>
