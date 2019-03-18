@@ -41,7 +41,6 @@ rlJournalStart
         rlLog "Installing copr production repos."
         cp ./copr.repo /etc/yum.repos.d/
         mkdir -p ~/.config || :
-        cp ./config ~/.config/copr
         rlRun "dnf config-manager --set-enabled fedora --save"
         rlRun "dnf install -y python3-copr copr-cli"
         rlRun "dnf upgrade python3-copr copr-cli"
@@ -55,3 +54,8 @@ rlJournalStart
 
 rlJournalPrintText
 rlJournalEnd
+
+echo "A manual work is required!"
+echo "Please obtain your personal API config from"
+echo "https://copr-fe-dev.cloud.fedoraproject.org/api/"
+echo "and paste it to the ~/.config/copr"
