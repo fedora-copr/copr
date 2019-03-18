@@ -14,7 +14,6 @@ fi
 
 
 # Owner and project
-PACKAGE="copr"
 OWNER="@copr"
 NAME_VAR="TEST$(date +%s)" # names should be unique
 NAME_PREFIX="$OWNER/$NAME_VAR"
