@@ -55,7 +55,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1457888 --chroot fedora-27-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1457888 --chroot $CHROOT" 0
         # The Bug 1457888 specifically concerns the Mock SCM method
         # but since it was deprecated and even removed from the code,
         # we are going to use its successor for this test

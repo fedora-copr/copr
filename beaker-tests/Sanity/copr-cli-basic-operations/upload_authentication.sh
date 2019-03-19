@@ -55,7 +55,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create ${NAME_PREFIX}AuthTest --chroot fedora-27-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}AuthTest --chroot $CHROOT" 0
         rlRun "copr-cli build ${NAME_PREFIX}AuthTest $HERE/files/auth_test.src.rpm" 0
         rlRun "copr-cli --config $HERE/files/copr-config-bad build ${NAME_PREFIX}AuthTest $HERE/files/auth_test.src.rpm" 1
         rlRun "copr-cli --config $HERE/files/copr-config-bad build ${NAME_PREFIX}AuthTest $HERE/files/auth_test.src.rpm | grep 'Uploading package'" 1
