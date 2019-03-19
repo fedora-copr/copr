@@ -7,6 +7,11 @@ from coprs.logic import builds_logic
 from coprs.logic import complex_logic
 
 
+@status_ns.context_processor
+def inject_common_blueprint_variables():
+    return dict(queue_sizes=complex_logic.ComplexLogic.get_queue_sizes())
+
+
 @status_ns.route("/")
 @status_ns.route("/pending/")
 def pending():
@@ -29,9 +34,8 @@ def importing():
 
 
 def render_status(build_status, tasks, bg_tasks_cnt=None):
-    queue_sizes = complex_logic.ComplexLogic.get_queue_sizes()
-    return flask.render_template("status/{}.html".format(build_status), number=len(tasks), tasks=tasks,
-                                 bg_tasks_cnt=bg_tasks_cnt, queue_sizes=queue_sizes)
+    return flask.render_template("status/{}.html".format(build_status), number=len(tasks),
+                                 tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
 @status_ns.route("/stats/")
