@@ -26,20 +26,20 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Include Beaker environment
-
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
+HERE=$(dirname "$(realpath "$0")")
 PACKAGE="tests"
 
 rlJournalStart
     rlPhaseStartSetup
         if [[ ! $RELEASETEST ]]; then
             rlLog "Installing copr dev repos."
-            cp ./copr-dev.repo /etc/yum.repos.d/
+            cp "$HERE/copr-dev.repo" /etc/yum.repos.d/
         fi
         rlLog "Installing copr production repos."
-        cp ./copr.repo /etc/yum.repos.d/
+        cp "$HERE/copr.repo" /etc/yum.repos.d/
         mkdir -p ~/.config || :
         rlRun "dnf config-manager --set-enabled fedora --save"
         rlRun "dnf install -y python3-copr copr-cli"
