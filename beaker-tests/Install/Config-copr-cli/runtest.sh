@@ -45,10 +45,6 @@ rlJournalStart
         rlRun "dnf install -y python3-copr copr-cli"
         rlRun "dnf upgrade python3-copr copr-cli"
 
-        rlLog "Installing repo for DNF with modularity support."
-        rlLog "It is disabled though"
-        cp ./dnf-modules.repo /etc/yum.repos.d/
-
         rlAssertRpm copr-cli
     rlPhaseEnd
 
