@@ -3,7 +3,7 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urlparse, parse_qs
+from six.moves.urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import re
 
 import flask
@@ -431,6 +431,8 @@ def pre_process_repo_url(chroot, repo_url):
     Expands variables and sanitize repo url to be used for mock config
     """
     parsed_url = urlparse(repo_url)
+    query = parse_qs(parsed_url.query)
+
     if parsed_url.scheme == "copr":
         user = parsed_url.netloc
         prj = parsed_url.path.split("/")[1]
@@ -438,6 +440,12 @@ def pre_process_repo_url(chroot, repo_url):
             flask.current_app.config["BACKEND_BASE_URL"],
             "results", user, prj, chroot
         ]) + "/"
+
+    elif "priority" in query:
+        query.pop("priority")
+        query_string = urlencode(query, doseq=True)
+        parsed_url = parsed_url._replace(query=query_string)
+        repo_url = urlunparse(parsed_url)
 
     repo_url = repo_url.replace("$chroot", chroot)
     repo_url = repo_url.replace("$distname", chroot.rsplit("-", 2)[0])
@@ -451,9 +459,6 @@ def parse_repo_params(repo, supported_keys=None):
     :return: dict of optional parameters parsed from the repo URL
     """
     supported_keys = supported_keys or ["priority"]
-    if not repo.startswith("copr://"):
-        return {}
-
     params = {}
     qs = parse_qs(urlparse(repo).query)
     for k, v in qs.items():

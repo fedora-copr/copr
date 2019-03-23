@@ -127,6 +127,10 @@ class TestHelpers(CoprsTestCase):
             ("copr://someuser/someproject", "http://backend/results/someuser/someproject/fedora-rawhide-x86_64/"),
             ("copr://someuser/someproject?foo=bar&baz=10",
              "http://backend/results/someuser/someproject/fedora-rawhide-x86_64/"),
+            ("http://example1.com/foo/$chroot?priority=10",
+             "http://example1.com/foo/fedora-rawhide-x86_64"),
+            ("http://example1.com/foo/$chroot?priority=10&foo=bar",
+             "http://example1.com/foo/fedora-rawhide-x86_64?foo=bar"),
         ]
         with app.app_context():
             for url, exp in test_cases:
@@ -137,7 +141,7 @@ class TestHelpers(CoprsTestCase):
             ("copr://foo/bar", {}),
             ("copr://foo/bar?priority=10", {"priority": 10}),
             ("copr://foo/bar?priority=10&unexp1=baz&unexp2=qux", {"priority": 10}),
-            ("http://example1.com/foo?priority=10", {}),
+            ("http://example1.com/foo?priority=10", {"priority": 10}),
         ]
         for repo, exp in test_cases:
             assert parse_repo_params(repo) == exp
