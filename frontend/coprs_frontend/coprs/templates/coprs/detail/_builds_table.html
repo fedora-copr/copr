@@ -26,8 +26,12 @@
           </a></b>
         </td>
         <td>
+            {# When builds are queried with custom SQL select #}
             {% if build.pkg_name %}
                 {{ build.pkg_name }}
+            {# When builds are really a ``models.Build`` instances #}
+            {% elif build.package_name %}
+                {{ build.package_name }}
             {% else %}
                  -
             {% endif %}
