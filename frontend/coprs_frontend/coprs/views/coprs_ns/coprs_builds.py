@@ -278,7 +278,7 @@ def copr_new_build_custom(copr):
 
     # TODO: parametric decorator for this view && url_on_success
     view = 'coprs_ns.copr_new_build_custom'
-    url_on_success = helpers.copr_url('coprs_ns.copr_add_build_custom', copr)
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
 
     def factory(**build_options):
         BuildsLogic.create_new_from_custom(
