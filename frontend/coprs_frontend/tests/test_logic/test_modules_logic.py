@@ -41,6 +41,21 @@ class TestModuleBuildFacade(CoprsTestCase):
         expected_batches = [{"pkg4": pkg4}, {"pkg1": pkg1, "pkg2": pkg2}, {"pkg3": pkg3}, {"pkg5": pkg5}]
         assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
+    def test_buildorder_issue_599(self):
+        pkg1 = Modulemd.ComponentRpm(name="jss", rationale="JSS packages")
+        pkg2 = Modulemd.ComponentRpm(name="tomcatjss", rationale="TomcatJSS packages", buildorder=10)
+        pkg3 = Modulemd.ComponentRpm(name="ldapjdk", rationale="LDAP JDK packages", buildorder=10)
+        pkg4 = Modulemd.ComponentRpm(name="pki-core", rationale="PKI Core packages", buildorder=20)
+        pkg5 = Modulemd.ComponentRpm(name="dogtag-pki", rationale="Dogtag PKI packages", buildorder=20)
+
+        rpms = {"jss": pkg1, "tomcatjss": pkg2, "ldapjdk": pkg3, "pki-core": pkg4, "dogtag-pki": pkg5}
+        batches = ModuleBuildFacade.get_build_batches(rpms)
+
+        assert len(batches) == 3
+        assert batches[0] == {"jss": pkg1}
+        assert batches[1] == {"tomcatjss": pkg2, "ldapjdk": pkg3}
+        assert batches[2] == {"pki-core": pkg4, "dogtag-pki": pkg5}
+
 
 class TestModulemdGenerator(CoprsTestCase):
     config = {"DIST_GIT_URL": "http://distgiturl.org"}
