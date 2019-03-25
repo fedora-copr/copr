@@ -57,12 +57,12 @@ class TestMail(CoprsTestCase):
                             "Project: user1/foocopr\n"
                             "Chroot: fedora-18-x86_64\n"
                             "Remaining: 7 days\n"
-                            "http://localhost/coprs/user1/foocopr/repositories/\n\n"
+                            "https://localhost/coprs/user1/foocopr/repositories/\n\n"
 
                             "Project: user2/foocopr\n"
                             "Chroot: fedora-17-x86_64\n"
                             "Remaining: 7 days\n"
-                            "http://localhost/coprs/user2/foocopr/repositories/\n\n")
+                            "https://localhost/coprs/user2/foocopr/repositories/\n\n")
 
     def test_outdated_chroot_message_empty_chroots(self):
         with pytest.raises(AttributeError) as ex:

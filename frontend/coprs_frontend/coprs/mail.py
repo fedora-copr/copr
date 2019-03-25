@@ -95,12 +95,13 @@ class OutdatedChrootMessage(Message):
             raise AttributeError("No outdated chroots to notify about")
 
         for chroot in copr_chroots:
+            url = helpers.fix_protocol_for_frontend(
+                helpers.copr_url('coprs_ns.copr_repositories', chroot.copr, _external=True))
             self.text += (
                 "Project: {0}\n"
                 "Chroot: {1}\n"
                 "Remaining: {2} days\n"
-                "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days,
-                                 helpers.copr_url('coprs_ns.copr_repositories', chroot.copr, _external=True)))
+                "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days, url))
 
 
 def send_mail(recipient, message, sender=None, reply_to=None):
