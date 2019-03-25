@@ -3,4 +3,4 @@
 runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend pypi --delta=172800 &> /dev/null' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend rubygems --delta=172800 &> /dev/null' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py update_indexes_quick 120 &> /dev/null' - copr-fe
-runuser -c '/usr/share/copr/coprs_frontend/manage.py update_graphs' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py update_graphs &> /dev/null' - copr-fe

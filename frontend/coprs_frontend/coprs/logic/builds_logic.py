@@ -13,6 +13,7 @@ from sqlalchemy import func
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import bindparam, Integer, String
+from sqlalchemy.exc import IntegrityError
 
 from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
@@ -217,14 +218,17 @@ class BuildsLogic(object):
         if result:
             return
 
-        cached_data = models.BuildsStatistics(
-            time = time,
-            stat_type = type,
-            running = running,
-            pending = pending
-        )
-        db.session.merge(cached_data)
-        db.session.commit()
+        try:
+            cached_data = models.BuildsStatistics(
+                time = time,
+                stat_type = type,
+                running = running,
+                pending = pending
+            )
+            db.session.add(cached_data)
+            db.session.commit()
+        except IntegrityError: # other process already calculated the graph data and cached it
+            db.session.rollback()
 
     @classmethod
     def get_graph_parameters(cls, type):
