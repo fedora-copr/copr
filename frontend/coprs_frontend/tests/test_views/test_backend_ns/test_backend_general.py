@@ -1,6 +1,6 @@
 import json
 
-from copr_common.enums import BackendResultEnum
+from copr_common.enums import BackendResultEnum, StatusEnum
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -46,6 +46,22 @@ class TestWaitingBuilds(CoprsTestCase):
         r = self.tc.get("/backend/pending-jobs/")
         data = json.loads(r.data.decode("utf-8"))
         assert data[0]["build_id"] == 3
+
+    def test_pending_blocked_builds(self, f_users, f_coprs, f_mock_chroots, f_builds, f_batches, f_db):
+        for build in [self.b2, self.b3, self.b4]:
+            build.source_status = StatusEnum("pending")
+
+        self.b2.batch = self.batch2
+        self.b3.batch = self.batch3
+        self.batch3.blocked_by = self.batch2
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/pending-jobs/")
+        data = json.loads(r.data.decode("utf-8"))
+
+        ids = [job["build_id"] for job in data]
+        assert self.b3.id not in ids
+        assert {self.b2.id, self.b4.id}.issubset(ids)
 
 
 # status = 0 # failure

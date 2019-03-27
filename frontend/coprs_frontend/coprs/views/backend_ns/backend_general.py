@@ -183,8 +183,9 @@ def pending_jobs():
     """
     Return the job queue.
     """
+    srpm_tasks = [build for build in BuildsLogic.get_pending_srpm_build_tasks() if not build.blocked]
     build_records = ([get_build_record(task) for task in BuildsLogic.get_pending_build_tasks()] +
-                     [get_srpm_build_record(task) for task in BuildsLogic.get_pending_srpm_build_tasks()])
+                     [get_srpm_build_record(task) for task in srpm_tasks])
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
 

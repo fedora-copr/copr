@@ -1029,6 +1029,10 @@ class Build(db.Model, helpers.Serializer):
         return all([chroot.finished for chroot in self.build_chroots])
 
     @property
+    def blocked(self):
+        return bool(self.batch and self.batch.blocked_by and not self.batch.blocked_by.finished)
+
+    @property
     def persistent(self):
         """
         Find out if this build is persistent.
@@ -1445,6 +1449,12 @@ class Group(db.Model, helpers.Serializer):
 
 class Batch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    blocked_by_id = db.Column(db.Integer, db.ForeignKey("batch.id"), nullable=True)
+    blocked_by = db.relationship("Batch", remote_side=[id])
+
+    @property
+    def finished(self):
+        return all([b.finished for b in self.builds])
 
 
 class Module(db.Model, helpers.Serializer):

@@ -443,6 +443,13 @@ class CoprsTestCase(object):
             copr=self.c1, copr_dir=self.c4_dir, name="hello-world",
             source_type=0)
 
+    @pytest.fixture
+    def f_batches(self):
+        self.batch1 = models.Batch()
+        self.batch2 = models.Batch()
+        self.batch3 = models.Batch()
+        self.batch4 = models.Batch()
+
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,
                                    content=None, method="GET",
