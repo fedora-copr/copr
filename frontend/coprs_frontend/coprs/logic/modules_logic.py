@@ -111,8 +111,10 @@ class ModuleBuildFacade(object):
         return [batches[number] for number in sorted(batches.keys())]
 
     def add_builds(self, rpms, module):
+        blocked_by_id = None
         for group in self.get_build_batches(rpms):
             batch = models.Batch()
+            batch.blocked_by_id = blocked_by_id
             db.session.add(batch)
             for pkgname, rpm in group.items():
                 clone_url = self.get_clone_url(pkgname, rpm)
@@ -122,6 +124,9 @@ class ModuleBuildFacade(object):
                 build.batch_id = batch.id
                 build.module_id = module.id
                 db.session.add(build)
+
+            # Every batch needs to by blocked by the previous one
+            blocked_by_id = batch.id
 
     def get_clone_url(self, pkgname, rpm):
         if rpm.get_repository():

@@ -56,6 +56,19 @@ class TestModuleBuildFacade(CoprsTestCase):
         assert batches[1] == {"tomcatjss": pkg2, "ldapjdk": pkg3}
         assert batches[2] == {"pki-core": pkg4, "dogtag-pki": pkg5}
 
+    def test_add_builds_batches(self, f_users, f_coprs, f_mock_chroots, f_builds, f_modules, f_db):
+        pkg1 = Modulemd.ComponentRpm(name="foo", rationale="foo package")
+        pkg2 = Modulemd.ComponentRpm(name="bar", rationale="bar package", buildorder=10)
+        pkg3 = Modulemd.ComponentRpm(name="baz", rationale="baz package", buildorder=10)
+
+        generator = ModulemdGenerator(name="testmodule", stream="master", version=123, summary="some summary")
+        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
+        facade.add_builds({"foo": pkg1, "bar": pkg2, "baz": pkg3}, self.m1)
+
+        b1, b2, b3 = self.m1.builds
+        assert b1.batch != b2.batch == b3.batch
+        assert b2.batch.blocked_by == b1.batch
+
 
 class TestModulemdGenerator(CoprsTestCase):
     config = {"DIST_GIT_URL": "http://distgiturl.org"}
