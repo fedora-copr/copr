@@ -1,3 +1,4 @@
+from copr_common.enums import StatusEnum
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -42,3 +43,19 @@ class TestBuildModel(CoprsTestCase):
         # even though we blacklised (by mistake) all chroots, package builds
         # against all chroots (fallback)
         assert len(list(self.p1.chroots)) == 15
+
+    def test_finished(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.b1.build_chroots[0].status = StatusEnum("pending")
+        assert not self.b1.finished
+
+        self.b1.build_chroots[0].status = StatusEnum("succeeded")
+        assert self.b1.finished
+
+        self.b1.build_chroots[0].status = StatusEnum("running")
+        assert not self.b1.finished
+
+        self.b1.build_chroots[0].status = StatusEnum("failed")
+        assert self.b1.finished
+
+        self.b1.source_status = StatusEnum("canceled")
+        assert self.b1.finished

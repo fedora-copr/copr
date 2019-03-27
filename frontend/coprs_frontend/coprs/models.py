@@ -1021,7 +1021,12 @@ class Build(db.Model, helpers.Serializer):
         Build is finished only if all its build_chroots are in finished state or
         the build was canceled.
         """
-        return self.canceled or all([chroot.finished for chroot in self.build_chroots])
+        if self.canceled:
+            return True
+        if not self.build_chroots:
+            # Not even SRPM is finished
+            return False
+        return all([chroot.finished for chroot in self.build_chroots])
 
     @property
     def persistent(self):
