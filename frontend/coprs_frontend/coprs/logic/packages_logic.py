@@ -146,7 +146,10 @@ WHERE package.copr_dir_id = :copr_dir_id;
     def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
         clone_url_stripped = re.sub(r'(\.git)?/*$', '', clone_url)
 
+        # FIXME - this can be later improved as we can join on Package.copr_id == CoprPrivate.id
+        # and leave models.Copr from the join
         packages = (models.Package.query.join(models.Copr)
+                    .join(models.CoprPrivate)
                     .filter(models.CoprPrivate.webhook_secret == webhook_secret)
                     .filter(models.Package.source_type == helpers.BuildSourceEnum("scm"))
                     .filter(models.Package.copr_id == copr_id)
