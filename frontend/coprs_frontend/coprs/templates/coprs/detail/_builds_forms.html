@@ -219,7 +219,7 @@
         return false;
       }
 
-      $.post("{{ url_for('coprs_ns.copr_delete_builds', username=copr.user.name, coprname=copr.name) }}", {"build_ids": build_ids}, function() {
+      $.post("{{ copr_url('coprs_ns.copr_delete_builds', copr) }}", {"build_ids": build_ids}, function() {
         $(location).attr('href', '{{ copr_url('coprs_ns.copr_builds', copr) }}');
       });
       return false;
