@@ -898,6 +898,8 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
         package.source_json = form.source_json
         if "webhook_rebuild" in formdata:
             package.webhook_rebuild = form.webhook_rebuild.data
+        if "max_builds" in formdata:
+            package.max_builds = form.max_builds.data
 
         db.session.add(package)
         db.session.commit()

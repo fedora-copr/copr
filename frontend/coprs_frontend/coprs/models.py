@@ -8,7 +8,7 @@ from fnmatch import fnmatch
 
 from sqlalchemy import outerjoin
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import column_property
+from sqlalchemy.orm import column_property, validates
 from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
@@ -589,6 +589,13 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     webhook_rebuild = db.Column(db.Boolean, default=False)
     # enable networking during a build process
     enable_net = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
+
+    # don't keep more builds of this package per copr-dir
+    max_builds = db.Column(db.Integer, index=True)
+
+    @validates('max_builds')
+    def validate_max_builds(self, field, value):
+        return None if value == 0 else value
 
     builds = db.relationship("Build", order_by="Build.id")
 

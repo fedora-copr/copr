@@ -500,6 +500,16 @@ class BasePackageForm(FlaskForm):
             validate_chroot_blacklist,
         ],
     )
+    max_builds = wtforms.IntegerField(
+        "Max number of builds",
+        description="""Keep only the specified number of the newest-by-id builds
+        (garbage collector is run daily)""",
+        render_kw={'placeholder': 'Optional - integer, e.g. 10, zero/empty disables'},
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.NumberRange(min=0, max=100)],
+        default=None,
+    )
 
 
 class PackageFormScm(BasePackageForm):

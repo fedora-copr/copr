@@ -233,3 +233,26 @@ class TestBuildsLogic(CoprsTestCase):
         assert self.b1.status == StatusEnum("succeeded")
         assert self.b3.status == StatusEnum("failed")
         assert type(BuildsLogic.mark_as_failed(self.b3.id)) == models.Build
+
+    def test_build_garbage_collector_works(self, f_users, f_coprs,
+            f_mock_chroots, f_builds, f_db):
+
+        assert len(self.db.session.query(models.Build).all()) == 4
+
+        p = models.Package.query.filter_by(name='whatsupthere-world').first()
+        p.max_builds = 1
+        self.db.session.add(p)
+
+        assert len(models.Package.query.all()) == 3
+        BuildsLogic.clean_old_builds()
+
+        # we can not delete not-yet finished builds!
+        assert len(self.db.session.query(models.Build).all()) == 4
+
+        for bch in self.b3.build_chroots:
+            bch.status = StatusEnum('succeeded')
+            self.db.session.add(bch)
+
+        assert len(self.db.session.query(models.Build).all()) == 4
+        BuildsLogic.clean_old_builds()
+        assert len(self.db.session.query(models.Build).all()) == 3

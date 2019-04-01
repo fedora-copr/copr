@@ -2,3 +2,4 @@
 
 runuser -c '/usr/share/copr/coprs_frontend/manage.py vacuum_graphs' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py clean_expired_project' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py clean_old_builds' - copr-fe

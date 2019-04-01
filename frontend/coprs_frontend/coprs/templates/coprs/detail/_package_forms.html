@@ -62,6 +62,7 @@
                 placeholder="Optional - comma-separated list of wildcard-patterns, e.g.  fedora-*, *-i386",
                 info="What chroots should be skipped for this package, by default we build for all.",
 )}}
+{{ render_field(form.max_builds)}}
 {% endmacro %}
 
 {% macro render_anitya_autorebuild(form) %}

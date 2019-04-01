@@ -541,6 +541,7 @@ class Commands(object):
             "pypi_package_version": args.packageversion,
             "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
+            "max_builds": args.max_builds,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -560,6 +561,7 @@ class Commands(object):
             "spec": args.spec,
             "scm_type": args.scm_type,
             "source_build_method": args.srpm_build_method,
+            "max_builds": args.max_builds,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -574,6 +576,7 @@ class Commands(object):
         data = {
             "package_name": args.name,
             "gem_name": args.gem_name,
+            "max_builds": args.max_builds,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -591,6 +594,7 @@ class Commands(object):
             "script_chroot": args.script_chroot,
             "script_builddeps": args.script_builddeps,
             "script_resultdir": args.script_resultdir,
+            "max_builds": args.max_builds,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -999,6 +1003,10 @@ def setup_parser():
                                                    help="The copr repo for the package. Can be just name of project or even in format username/project or @groupname/project.")
     parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
                                                    choices=["on", "off"], help="Enable auto-rebuilding.")
+    parser_add_or_edit_package_parent.add_argument(
+            "--max-builds",
+            help="Keep only the specified number of the newest-by-id builds "\
+                 "(garbage collector is run daily), zero disables (default)")
 
     # PyPI edit/create
     parser_add_package_pypi = subparsers.add_parser("add-package-pypi",

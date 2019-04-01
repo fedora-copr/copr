@@ -158,6 +158,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
     data["chroot_blacklist"] = package.chroot_blacklist_raw
+    data["max_builds"] = package.max_builds
 
     if package.has_source_type_set and not source_type_text:
         source_type_text = package.source_type_text
@@ -229,6 +230,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
             package.webhook_rebuild = form.webhook_rebuild.data
             package.source_json = form.source_json
             package.chroot_blacklist_raw = form.chroot_blacklist.data
+            package.max_builds = form.max_builds.data
 
             db.session.add(package)
             db.session.commit()

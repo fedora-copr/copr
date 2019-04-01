@@ -9,7 +9,7 @@ import requests
 from sqlalchemy.sql import text
 from sqlalchemy import or_
 from sqlalchemy import and_
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import bindparam, Integer, String
@@ -1107,6 +1107,39 @@ ORDER BY
     def filter_by_package_name(cls, query, package_name):
         return query.join(models.Package).filter(models.Package.name == package_name)
 
+    @classmethod
+    def clean_old_builds(cls):
+        dirs = (
+            db.session.query(
+                models.CoprDir.id,
+                models.Package.id,
+                models.Package.max_builds)
+            .join(models.Build)
+            .join(models.Package)
+            .filter(models.Package.max_builds > 0)
+            .group_by(
+                models.CoprDir.id,
+                models.Package.max_builds,
+                models.Package.id)
+            .having(func.count(models.Build.id) > models.Package.max_builds)
+        )
+
+        for dir_id, package_id, limit in dirs.all():
+            delete_builds = (
+                models.Build.query.filter(
+                    models.Build.copr_dir_id==dir_id,
+                    models.Build.package_id==package_id)
+                .order_by(desc(models.Build.id))
+                .offset(limit)
+                .all()
+            )
+
+            for build in delete_builds:
+                try:
+                    cls.delete_build(build.copr.user, build)
+                except ActionInProgressException:
+                    # postpone this one to next day run
+                    log.error("Build(id={}) delete failed, unfinished action.".format(build.id))
 
 class BuildChrootsLogic(object):
     @classmethod

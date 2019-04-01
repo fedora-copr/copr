@@ -14,6 +14,10 @@
             <small class="text-muted pficon pficon-info"></small> {{line|safe}}
           </li>
           {% endfor %}
+        {% elif field.description %}
+          <li class="help-block">
+            <small class="text-muted pficon pficon-info"></small> {{field.description|safe}}
+          </li>
         {% endif %}
         {% if field.errors %}
           {% for error in field.errors %}
