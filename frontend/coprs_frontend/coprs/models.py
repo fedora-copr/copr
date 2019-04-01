@@ -759,11 +759,11 @@ class Build(db.Model, helpers.Serializer):
     def id_fixed_width(self):
         return "{:08d}".format(self.id)
 
-    @property
-    def import_log_urls(self):
-        backend_log = self.import_log_url_backend
-        types = [helpers.BuildSourceEnum("upload"), helpers.BuildSourceEnum("link")]
-        return filter(None, [backend_log, self.import_log_url_distgit])
+    def get_import_log_urls(self, admin=False):
+        logs = [self.import_log_url_backend]
+        if admin:
+            logs.append(self.import_log_url_distgit)
+        return list(filter(None, logs))
 
     @property
     def import_log_url_distgit(self):

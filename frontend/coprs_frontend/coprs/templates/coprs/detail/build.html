@@ -161,9 +161,9 @@
       <div class="panel-body">
         <dl class="dl-horizontal">
         {{ describe_failure(build) }}
-        <dt>Import logs:</dt>
+        <dt>Import log:</dt>
         <dd>
-          {% for url in build.import_log_urls %}
+          {% for url in build.get_import_log_urls(g.user.admin) %}
             <a href="{{ url }}">{{ url |basename }}</a>
             {{ "," if not loop.last }}
           {% endfor %}
