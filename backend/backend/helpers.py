@@ -414,6 +414,12 @@ class RedisPublishHandler(logging.Handler):
                 _, error, tb = msg.get("exc_info")
                 msg["traceback"] = format_tb(error, tb)
 
+            # For the message arguments, it is better to expand them right now
+            # instead of relying on method in json.dumps(..., default=default)
+            # and even worse rely on it's reverse action in RedisLogHandler.
+            msg['msg'] = msg['msg'] % msg['args']
+            msg['args'] = ()
+
             self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg, default=default))
         # pylint: disable=W0703
         except Exception as error:
