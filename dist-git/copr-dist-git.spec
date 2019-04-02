@@ -32,6 +32,7 @@ Requires: python3-rpkg
 Requires: python3-munch
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
+Requires: crontabs
 
 Recommends: python3-copr
 
@@ -69,6 +70,9 @@ install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
 install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
 install -d %{buildroot}%{_bindir}/
+install -d %{buildroot}%{_sysconfdir}/cron.monthly
+
+install -p -m 755 conf/cron.monthly/copr-dist-git %{buildroot}%{_sysconfdir}/cron.monthly/copr-dist-git
 
 cp -a dist_git/* %{buildroot}%{_datadir}/copr/dist_git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
@@ -100,11 +104,12 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %license LICENSE
 
 %{_bindir}/*
-%dir %{_datadir}/copr 
+%dir %{_datadir}/copr
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr-dist-git) %{_sysconfdir}/copr/copr-dist-git.conf
 %config(noreplace) %attr(0644, root, root) %{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
+%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.monthly/copr-dist-git
 
 %dir %attr(0755, copr-dist-git, copr-dist-git) %{_sharedstatedir}/copr-dist-git/
 

@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+runuser -c 'find /var/lib/copr-dist-git/per-task-logs -name *.log -mtime +30 -delete' - copr-dist-git
