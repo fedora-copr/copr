@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 
 
+import os
+import sys
+import pipes
 import importlib
 from flask_script import Manager
 from coprs import app
@@ -39,6 +42,11 @@ commands = {
     "delete_outdated_chroots": "DeleteOutdatedChrootsCommand",
 }
 
+if os.getuid() == 0:
+    sys.stderr.write("Please don't run this script as a 'root' user, use:\n")
+    sys.stderr.write("$ sudo -u copr-fe {}\n".format(
+            ' '.join([pipes.quote(arg) for arg in sys.argv])))
+    sys.exit(1)
 
 manager = Manager(app)
 for cmdname, clsname in commands.items():
