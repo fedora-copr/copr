@@ -35,7 +35,10 @@ class UserPrivate(db.Model, helpers.Serializer):
     """
     Records all the private information for a user.
     """
-    id = db.Column(db.Integer, primary_key=True)
+    # id (primary key + foreign key)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"),
+                        primary_key=True, nullable=False)
+    user = db.relationship("User", back_populates="private")
 
     # email
     mail = db.Column(db.String(150), nullable=False)
@@ -49,8 +52,6 @@ class UserPrivate(db.Model, helpers.Serializer):
     api_token_expiration = db.Column(
         db.Date, nullable=False, default=datetime.date(2000, 1, 1))
 
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True, nullable=False)
-    user = db.relationship("User", back_populates="private")
 
 
 class User(db.Model, helpers.Serializer):
@@ -255,17 +256,16 @@ class CoprPrivate(db.Model, helpers.Serializer):
         db.Index('copr_private_webhook_secret', 'webhook_secret'),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
+    # copr relation
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True,
+            nullable=False, primary_key=True)
+    copr = db.relationship("Copr", back_populates="private")
 
     # a secret to be used for webhooks authentication
     webhook_secret = db.Column(db.String(100))
 
     # remote Git sites auth info
     scm_api_auth_json = db.Column(db.Text)
-
-    # copr relation
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True, nullable=False)
-    copr = db.relationship("Copr", back_populates="private")
 
 
 class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):

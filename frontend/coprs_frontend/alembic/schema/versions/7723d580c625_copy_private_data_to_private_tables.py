@@ -19,7 +19,7 @@ def upgrade():
     session.execute("""INSERT INTO copr_private(webhook_secret, scm_api_auth_json, copr_id)
                     (select webhook_secret, scm_api_auth_json, id from copr) ON CONFLICT DO NOTHING;""")
     session.execute("""INSERT INTO user_private(mail, timezone, api_login, api_token, api_token_expiration, user_id)
-                    (select mail, timezone, api_login, api_token, api_token_expiration, id from \"user\") ON CONFLICT DO NOTHING;""")
+                    (select mail, timezone, api_login, api_token, api_token_expiration, id as user_id from \"user\") ON CONFLICT DO NOTHING;""")
 
 def downgrade():
     # no downgrade
