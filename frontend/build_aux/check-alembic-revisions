@@ -1,0 +1,71 @@
+#! /usr/bin/python3
+
+import os
+import re
+import sys
+import glob
+from runpy import run_path
+
+script_dir = os.path.dirname(__file__)
+
+sys.path.append(os.path.join(script_dir, '..', 'coprs_frontend'))
+
+version_files  = os.path.join(
+    script_dir,
+    '..',
+    'coprs_frontend',
+    'alembic',
+    'schema',
+    'versions',
+    '*.py'
+)
+
+
+rev_map = {}
+rev_db = {}
+initial_revision = None
+
+for py_file in glob.glob(version_files):
+    pattern = "^\s*{}\s*=\s*['\"](.*)['\"]\s*$"
+    revision = None
+    down_revision = None
+    for line in open(py_file):
+        match = re.match(pattern.format("revision"), line)
+        if match:
+            revision = match[1]
+        match = re.match(pattern.format("down_revision"), line)
+        if match:
+            down_revision = match[1]
+
+    if not down_revision:
+        initial_revision = revision
+    else:
+        rev_map[down_revision] = {
+            'next': revision,
+        }
+    rev_db[revision] = {
+        'revision': revision,
+        'file': py_file,
+    }
+
+def print_revision(revision):
+    print(os.path.basename(revision['file']))
+
+printed_rev = initial_revision
+while True:
+    revision = rev_db[printed_rev]
+    revision['printed'] = True # mark as printed, for later linting
+    print_revision(revision)
+    if not printed_rev in rev_map:
+        break
+    printed_rev = rev_map[printed_rev]['next']
+
+
+fail = False
+for rev in rev_db:
+    if 'printed' not in rev_db[rev]:
+        sys.stderr.write("WARNING: dangling revision '{}'\n".format(rev))
+        fail = True
+
+if fail:
+    sys.exit(1)
