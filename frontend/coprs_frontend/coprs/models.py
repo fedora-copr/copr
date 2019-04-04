@@ -6,7 +6,9 @@ import base64
 import uuid
 from fnmatch import fnmatch
 
+from sqlalchemy import outerjoin
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import column_property
 from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
@@ -31,33 +33,11 @@ class CoprSearchRelatedData(object):
         raise "Not Implemented"
 
 
-class UserPrivate(db.Model, helpers.Serializer):
-    """
-    Records all the private information for a user.
-    """
-    # id (primary key + foreign key)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"),
-                        primary_key=True, nullable=False)
-    user = db.relationship("User", back_populates="private")
-
-    # email
-    mail = db.Column(db.String(150), nullable=False)
-
-    # optional timezone
-    timezone = db.Column(db.String(50), nullable=True)
-
-    # stuff for the cli interface
-    api_login = db.Column(db.String(40), nullable=False, default="abc")
-    api_token = db.Column(db.String(40), nullable=False, default="abc")
-    api_token_expiration = db.Column(
-        db.Date, nullable=False, default=datetime.date(2000, 1, 1))
-
-
-
-class User(db.Model, helpers.Serializer):
+class _UserPublic(db.Model, helpers.Serializer):
     """
     Represents user of the copr frontend
     """
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -77,69 +57,38 @@ class User(db.Model, helpers.Serializer):
     # list of groups as retrieved from openid
     openid_groups = db.Column(JSONEncodedDict)
 
-    # private info
-    private = db.relationship("UserPrivate", uselist=False, back_populates="user")
 
-    def set_private(self, attr, value):
-        if not self.private:
-            self.private = UserPrivate()
-        setattr(self.private, attr, value)
+class _UserPrivate(db.Model, helpers.Serializer):
+    """
+    Records all the private information for a user.
+    """
+    # id (primary key + foreign key)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True,
+            nullable=False)
 
-    @property
-    def mail(self):
-        if self.private:
-            return self.private.mail
-        return None
+    # email
+    mail = db.Column(db.String(150), nullable=False)
 
-    @property
-    def timezone(self):
-        if self.private:
-            return self.private.timezone
-        return None
+    # optional timezone
+    timezone = db.Column(db.String(50), nullable=True)
 
-    @property
-    def api_login(self):
-        if self.private:
-            return self.private.api_login
-        return None
+    # stuff for the cli interface
+    api_login = db.Column(db.String(40), nullable=False, default="abc")
+    api_token = db.Column(db.String(40), nullable=False, default="abc")
+    api_token_expiration = db.Column(
+        db.Date, nullable=False, default=datetime.date(2000, 1, 1))
 
-    @property
-    def api_token(self):
-        if self.private:
-            return self.private.api_token
-        return None
 
-    @property
-    def api_token_expiration(self):
-        if self.private:
-            return self.private.api_token_expiration
-        return None
-
-    @mail.setter
-    def mail(self, value):
-        self.set_private("mail", value)
-
-    @timezone.setter
-    def timezone(self, value):
-        self.set_private("timezone", value)
-
-    @api_login.setter
-    def api_login(self, value):
-        self.set_private("api_login", value)
-
-    @api_token.setter
-    def api_token(self, value):
-        self.set_private("api_token", value)
-
-    @api_token_expiration.setter
-    def api_token_expiration(self, value):
-        self.set_private("api_token_expiration", value)
+class User(db.Model, helpers.Serializer):
+    __table__ = outerjoin(_UserPublic.__table__, _UserPrivate.__table__)
+    id = column_property(_UserPublic.__table__.c.id, _UserPrivate.__table__.c.user_id)
 
     @property
     def name(self):
         """
         Return the short username of the user, e.g. bkabrda
         """
+
         return self.username
 
     def permissions_for_copr(self, copr):
@@ -247,32 +196,13 @@ class User(db.Model, helpers.Serializer):
             return ""
 
 
-class CoprPrivate(db.Model, helpers.Serializer):
+class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
-    Records all the private information for a copr.
-    """
-
-    __table_args__ = (
-        db.Index('copr_private_webhook_secret', 'webhook_secret'),
-    )
-
-    # copr relation
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True,
-            nullable=False, primary_key=True)
-    copr = db.relationship("Copr", back_populates="private")
-
-    # a secret to be used for webhooks authentication
-    webhook_secret = db.Column(db.String(100))
-
-    # remote Git sites auth info
-    scm_api_auth_json = db.Column(db.Text)
-
-
-class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
-    """
-    Represents a single copr (personal repo with builds, mock chroots, etc.).
+    Represents public part of a single copr (personal repo with builds, mock
+    chroots, etc.).
     """
 
+    __tablename__ = "copr"
     __table_args__ = (
         db.Index('copr_name_group_id_idx', 'name', 'group_id'),
     )
@@ -298,12 +228,8 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
-    user = db.relationship("User", backref=db.backref("coprs"))
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
-    group = db.relationship("Group", backref=db.backref("groups"))
-    mock_chroots = association_proxy("copr_chroots", "mock_chroot")
     forked_from_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
-    forked_from = db.relationship("Copr", remote_side=id, backref=db.backref("forks"))
 
     # enable networking for the builds by default
     build_enable_net = db.Column(db.Boolean, default=True,
@@ -330,37 +256,54 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     scm_repo_url = db.Column(db.Text)
     scm_api_type = db.Column(db.Text)
 
-    # private info
-    private = db.relationship("CoprPrivate", uselist=False, back_populates="copr")
-
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
 
-    def set_private(self, attr, value):
-        if not self.private:
-            self.private = CoprPrivate()
-        setattr(self.private, attr, value)
 
-    @property
-    def webhook_secret(self):
-        if self.private:
-            return self.private.webhook_secret
-        return None
+class _CoprPrivate(db.Model, helpers.Serializer):
+    """
+    Represents private part of a single copr (personal repo with builds, mock
+    chroots, etc.).
+    """
 
-    @property
-    def scm_api_auth_json(self):
-        if self.private:
-            return self.private.scm_api_auth_json
-        return None
+    __table_args__ = (
+        db.Index('copr_private_webhook_secret', 'webhook_secret'),
+    )
 
-    @webhook_secret.setter
-    def webhook_secret(self, value):
-        self.set_private("webhook_secret", value)
+    # copr relation
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True,
+            nullable=False, primary_key=True)
 
-    @scm_api_auth_json.setter
-    def scm_api_auth_json(self, value):
-        self.set_private("scm_api_auth_json", value)
+    # a secret to be used for webhooks authentication
+    webhook_secret = db.Column(db.String(100))
+
+    # remote Git sites auth info
+    scm_api_auth_json = db.Column(db.Text)
+
+
+class Copr(db.Model, helpers.Serializer):
+    """
+    Represents private a single copr (personal repo with builds, mock chroots,
+    etc.).
+    """
+
+    # This model doesn't have a single corresponding database table - so please
+    # define any new Columns in _CoprPublic or _CoprPrivate models!
+    __table__ = outerjoin(_CoprPublic.__table__, _CoprPrivate.__table__)
+    id = column_property(
+        _CoprPublic.__table__.c.id,
+        _CoprPrivate.__table__.c.copr_id
+    )
+
+    # relations
+    user = db.relationship("User", backref=db.backref("coprs"))
+    group = db.relationship("Group", backref=db.backref("groups"))
+    mock_chroots = association_proxy("copr_chroots", "mock_chroot")
+    forked_from = db.relationship("Copr",
+            remote_side=_CoprPublic.id,
+            foreign_keys=[_CoprPublic.forked_from_id],
+            backref=db.backref("forks"))
 
     @property
     def main_dir(self):
