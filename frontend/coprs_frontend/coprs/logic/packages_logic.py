@@ -119,13 +119,15 @@ WHERE package.copr_dir_id = :copr_dir_id;
                                            models.Package.name == package_name)
 
     @classmethod
-    def get_by_dir_name(cls, copr_dir_name, package_name):
+    def get_by_dir(cls, copr_dir, package_name):
         return models.Package.query.join(models.CoprDir).filter(
-            models.CoprDir.name == copr_dir_name, models.Package.name == package_name)
+            models.CoprDir.id==copr_dir.id,
+            models.Package.name==package_name
+        )
 
     @classmethod
     def get_or_create(cls, copr_dir, package_name, src_pkg):
-        package = cls.get_by_dir_name(copr_dir.name, package_name).first()
+        package = cls.get_by_dir(copr_dir, package_name).first()
 
         if package:
             return package

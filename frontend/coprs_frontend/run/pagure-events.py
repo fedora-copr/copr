@@ -55,16 +55,13 @@ TOPICS = {
 
 class ScmPackage(object):
     def __init__(self, db_row):
-        self.pkg_id = db_row.package_id
-        self.copr_id = db_row.copr_id
-
         self.source_json_dict = json.loads(db_row.source_json)
         self.clone_url = self.source_json_dict.get('clone_url') or ''
         self.committish = self.source_json_dict.get('committish') or ''
         self.subdirectory = self.source_json_dict.get('subdirectory') or ''
 
-        self.package = ComplexLogic.get_package_by_id_safe(self.pkg_id)
-        self.copr = ComplexLogic.get_copr_by_id_safe(self.copr_id)
+        self.package = ComplexLogic.get_package_by_id_safe(db_row.package_id)
+        self.copr = self.package.copr
 
     def build(self, source_dict_update, copr_dir, update_callback,
               scm_object_type, scm_object_id, scm_object_url):
@@ -75,7 +72,10 @@ class ScmPackage(object):
             package = self.package
 
         db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
-        if models.Build.query.filter(models.Build.scm_object_url == scm_object_url).first():
+        query = (models.Build.query
+                .filter(models.Build.scm_object_url==scm_object_url)
+                .filter(models.Build.package_id==package.id))
+        if db.session.query(query.exists()).scalar():
             log.info('\t -> Build for {} already exists.'.format(scm_object_url))
             return None
 
@@ -259,7 +259,13 @@ def build_on_fedmsg_loop():
                 log.error('Bad http status {0} from url {1}'.format(r.status_code, raw_commit_url))
 
         for pkg in candidates:
-            log.info('Considering pkg id: {}, source_json: {}'.format(pkg.pkg_id, pkg.source_json_dict))
+            package = '{}/{}(id={})'.format(
+                    pkg.package.copr.full_name,
+                    pkg.package.name,
+                    pkg.package.id
+            )
+            log.info('Considering pkg package: {}, source_json: {}'
+                        .format(package, pkg.source_json_dict))
 
             if (git_compare_urls(pkg.clone_url, event_info.base_clone_url)
                     and (not pkg.committish or event_info.branch_to.endswith(pkg.committish))
