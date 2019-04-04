@@ -23,12 +23,5 @@ def upgrade():
     op.drop_column('user', 'api_token_expiration')
     op.drop_column('user', 'api_token')
 
-
 def downgrade():
-    op.add_column('user', sa.Column('api_token', sa.VARCHAR(length=40), autoincrement=False, nullable=False))
-    op.add_column('user', sa.Column('api_token_expiration', sa.DATE(), autoincrement=False, nullable=False))
-    op.add_column('user', sa.Column('mail', sa.VARCHAR(length=150), autoincrement=False, nullable=False))
-    op.add_column('user', sa.Column('timezone', sa.VARCHAR(length=50), autoincrement=False, nullable=True))
-    op.add_column('user', sa.Column('api_login', sa.VARCHAR(length=40), autoincrement=False, nullable=False))
-    op.add_column('copr', sa.Column('scm_api_auth_json', sa.TEXT(), autoincrement=False, nullable=True))
-    op.add_column('copr', sa.Column('webhook_secret', sa.VARCHAR(length=100), autoincrement=False, nullable=True))
+    raise Exception("revision '{}' contains an irreversible migration".format(revision))
