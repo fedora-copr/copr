@@ -21,6 +21,8 @@ from unittest import mock
 
 class CoprsTestCase(object):
 
+    original_config = coprs.app.config.copy()
+
     @classmethod
     def setup_class(cls):
         config = coprs.app.config
@@ -69,6 +71,7 @@ class CoprsTestCase(object):
             self.db.engine.execute(tbl.delete())
 
         self.rmodel_TSE_coprs_general_patcher.stop()
+        self.app.config = self.original_config.copy()
 
     @property
     def auth_header(self):

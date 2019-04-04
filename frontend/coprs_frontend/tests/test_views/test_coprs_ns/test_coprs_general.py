@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from copr_common.enums import ActionTypeEnum
-from coprs import models
+from coprs import app, models
 
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
@@ -722,14 +722,15 @@ class TestSearch(CoprsTestCase):
 
 
 class TestRepo(CoprsTestCase):
-    @mock.patch.dict("coprs.app.config", {'REPO_NO_SSL': True})
-    @mock.patch.dict("coprs.app.config", {'ENFORCE_PROTOCOL_FOR_BACKEND_URL': "https"})
     def test_repo_renders_http(self, f_users, f_coprs, f_mock_chroots, f_db):
         url = "/coprs/{user}/{copr}/repo/{chroot}/{user}-{copr}-{chroot}.repo".format(
             user = self.u1.username,
             copr = self.c1.name,
             chroot = "{}-{}".format(self.mc1.os_release, self.mc1.os_version),
         )
-        res = self.tc.get(url)
+        app.config["REPO_NO_SSL"] = True
+        app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = "https"
+        with app.app_context():
+            res = self.tc.get(url)
         assert res.status_code == 200
         assert 'baseurl=http://' in res.data.decode('utf-8')
