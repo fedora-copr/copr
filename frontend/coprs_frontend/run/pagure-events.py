@@ -40,17 +40,24 @@ else:
 
 log.info("ENDPOINT = {}".format(ENDPOINT))
 
-TOPICS = {
-    'io.pagure.prod.pagure.git.receive': 'https://pagure.io/',
-    'io.pagure.prod.pagure.pull-request.new': 'https://pagure.io/',
-    'io.pagure.prod.pagure.pull-request.comment.added': 'https://pagure.io/',
-    'org.fedoraproject.prod.pagure.git.receive': 'https://src.fedoraproject.org/',
-    'org.fedoraproject.prod.pagure.pull-request.new': 'https://src.fedoraproject.org/',
-    'org.fedoraproject.prod.pagure.pull-request.comment.added': 'https://src.fedoraproject.org/',
-    'io.pagure.stg.pagure.git.receive': 'https://stg.pagure.io/', # testing only
-    'io.pagure.stg.pagure.pull-request.new': 'https://stg.pagure.io/', # testing only
-    'io.pagure.stg.pagure.pull-request.comment.added': 'https://stg.pagure.io/', # testing only
+pagure_instances = {
+    'https://pagure.io/':             'io.pagure.prod.pagure',
+    'https://src.fedoraproject.org/': 'org.fedoraproject.prod.pagure',
+    'https://stg.pagure.io/':         'io.pagure.stg.pagure', # testing only
 }
+
+topics = [
+    'git.receive',
+    'pull-request.new',
+    'pull-request.rebased',
+    'pull-request.updated',
+    'pull-request.comment.added',
+]
+
+TOPICS = {}
+for url, fedmsg_prefix in pagure_instances.items():
+    for topic in topics:
+        TOPICS['{0}.{1}'.format(fedmsg_prefix, topic)] = url
 
 
 class ScmPackage(object):
@@ -116,7 +123,7 @@ class ScmPackage(object):
         return False
 
 
-def event_info_from_pr_update(data, base_url):
+def event_info_from_pr_comment(data, base_url):
     """
     Message handler for updated pull-request opened in pagure.
     Topic: ``*.pagure.pull-request.comment.added``
@@ -134,23 +141,12 @@ def event_info_from_pr_update(data, base_url):
         log.info('Comment was not a notification, discarding.')
         return False
 
-    return munch.Munch({
-        'object_id': data['msg']['pullrequest']['id'],
-        'object_type': 'pull-request',
-        'base_project_url_path': data['msg']['pullrequest']['project']['url_path'],
-        'base_clone_url_path': data['msg']['pullrequest']['project']['fullname'],
-        'base_clone_url': base_url + data['msg']['pullrequest']['project']['fullname'],
-        'project_url_path': data['msg']['pullrequest']['repo_from']['url_path'],
-        'clone_url_path': data['msg']['pullrequest']['repo_from']['fullname'],
-        'clone_url': base_url + data['msg']['pullrequest']['repo_from']['fullname'],
-        'branch_from': data['msg']['pullrequest']['branch_from'],
-        'branch_to': data['msg']['pullrequest']['branch'],
-        'start_commit': data['msg']['pullrequest']['commit_start'],
-        'end_commit': data['msg']['pullrequest']['commit_stop'],
-    })
+    log.info("We don't handle PR coments for now")
+    # TODO: we could accept e.g. '[copr-test]' here
+    return False
 
 
-def event_info_from_new_pr(data, base_url):
+def event_info_from_pr(data, base_url):
     """
     Message handler for new pull-request opened in pagure.
     Topic: ``*.pagure.pull-request.new``
@@ -233,10 +229,10 @@ def build_on_fedmsg_loop():
             log.error('Unknown topic {} received. Continuing.')
             continue
 
-        if re.match(r'^.*.pull-request.new$', data['topic']):
-            event_info = event_info_from_new_pr(data, base_url)
+        if re.match(r'^.*.pull-request.(new|rebased|updated)$', data['topic']):
+            event_info = event_info_from_pr(data, base_url)
         elif re.match(r'^.*.pull-request.comment.added$', data['topic']):
-            event_info = event_info_from_pr_update(data, base_url)
+            event_info = event_info_from_pr_comment(data, base_url)
         else:
             event_info = event_info_from_push(data, base_url)
 
@@ -277,8 +273,8 @@ def build_on_fedmsg_loop():
                     dirname = pkg.copr.name + ':pr:' + str(event_info.object_id)
                     copr_dir = CoprDirsLogic.get_or_create(pkg.copr, dirname)
                     update_callback = 'pagure_flag_pull_request'
-                    scm_object_url = os.path.join(base_url, event_info.base_project_url_path,
-                                                  'pull-request', str(event_info.object_id))
+                    scm_object_url = os.path.join(base_url, event_info.project_url_path,
+                                                  'c', str(event_info.end_commit))
                 else:
                     copr_dir = pkg.copr.main_dir
                     update_callback = 'pagure_flag_commit'
