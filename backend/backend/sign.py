@@ -37,7 +37,7 @@ def get_pubkey(username, projectname, outfile=None):
     :raises CoprSignNoKeyError: if there are no such user in keyring
     """
     usermail = create_gpg_email(username, projectname)
-    cmd = ["sudo", SIGN_BINARY, "-u", usermail, "-p"]
+    cmd = [SIGN_BINARY, "-u", usermail, "-p"]
 
     try:
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -66,7 +66,7 @@ def get_pubkey(username, projectname, outfile=None):
 
 
 def _sign_one(path, email):
-    cmd = ["sudo", SIGN_BINARY, "-u", email, "-r", path]
+    cmd = [SIGN_BINARY, "-u", email, "-r", path]
 
     try:
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
@@ -168,7 +168,7 @@ def create_user_keys(username, projectname, opts):
 
 def _unsign_one(path):
     # Requires rpm-sign package
-    cmd = ["sudo", "/usr/bin/rpm", "--delsign", path]
+    cmd = ["/usr/bin/rpm", "--delsign", path]
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
     stdout, stderr = handle.communicate()
 

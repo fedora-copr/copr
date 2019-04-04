@@ -58,7 +58,7 @@ class TestSign(object):
 
         result = get_pubkey(self.username, self.projectname)
         assert result == STDOUT
-        assert mc_popen.call_args[0][0] == ['sudo', '/bin/sign', '-u', self.usermail, '-p']
+        assert mc_popen.call_args[0][0] == ['/bin/sign', '-u', self.usermail, '-p']
 
 
     @mock.patch("backend.sign.Popen")
@@ -120,7 +120,7 @@ class TestSign(object):
         result = _sign_one(fake_path, self.usermail)
         assert STDOUT, STDERR == result
 
-        expected_cmd = ['sudo', '/bin/sign', '-u', self.usermail, '-r', fake_path]
+        expected_cmd = ['/bin/sign', '-u', self.usermail, '-r', fake_path]
         assert mc_popen.call_args[0][0] == expected_cmd
 
     @mock.patch("backend.sign.Popen")
