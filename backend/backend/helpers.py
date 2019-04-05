@@ -397,30 +397,25 @@ class RedisPublishHandler(logging.Handler):
         self.who = who
 
     def emit(self, record):
-        def default(obj):
-            if isinstance(obj, Thread):
-                return obj.name # shows Thread-<ID>
-            if isinstance(obj, types.ModuleType):
-                return "module " + obj.__name__
-            # This is better than traceback.
-            return "can't convert " + str(type(obj))
+        # copr specific semantics
+        record.who = self.who
 
-        try:
-            msg = record.__dict__
-            msg["who"] = self.who
-
-            if msg.get("exc_info"):
-                # from celery.contrib import rdb; rdb.set_trace()
-                _, error, tb = msg.get("exc_info")
-                msg["traceback"] = format_tb(error, tb)
-
+        if record.exc_info:
+            _, error, tb = record.exc_info
+            record.msg = format_tb(error, tb)
+        else:
             # For the message arguments, it is better to expand them right now
             # instead of relying on method in json.dumps(..., default=default)
             # and even worse rely on it's reverse action in RedisLogHandler.
-            msg['msg'] = msg['msg'] % msg['args']
-            msg['args'] = ()
+            record.msg = record.msg % record.args
 
-            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg, default=default))
+        # cleanup the hard to json.dumps() stuff
+        record.exc_info = None
+        record.exc_text = None
+        record.args = ()
+
+        try:
+            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(record.__dict__))
         # pylint: disable=W0703
         except Exception as error:
             _, _, ex_tb = sys.exc_info()

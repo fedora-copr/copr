@@ -2,6 +2,7 @@
 
 from munch import Munch
 import json
+import logging
 
 from backend.exceptions import BuilderError
 from backend.helpers import get_redis_logger, get_chroot_arch, \
@@ -41,9 +42,9 @@ class TestHelpers(object):
         for raw in self.channel.listen():
             assert raw.get("type") == "message"
             data = json.loads(raw['data'])
-            assert data.get("traceback")
             assert data.get("who") == "test"
-            assert 'backend.exceptions.BuilderError: foobar\n' in data['traceback']
+            assert data.get("levelno") == logging.ERROR
+            assert 'backend.exceptions.BuilderError: foobar\n' in data['msg']
             break
 
     def test_get_chroot_arch(self):
