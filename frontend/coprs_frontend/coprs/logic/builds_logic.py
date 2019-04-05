@@ -22,7 +22,7 @@ from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, \
-                             UnrepeatableBuildException, RequestCannotBeExecuted
+                             UnrepeatableBuildException, RequestCannotBeExecuted, DuplicateException
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -874,7 +874,7 @@ ORDER BY
                         pkg_name, build.source_type, build.source_json)
                     db.session.add(package)
                     db.session.commit()
-                except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
+                except (IntegrityError, DuplicateException) as e:
                     app.logger.exception(e)
                     db.session.rollback()
                     return
