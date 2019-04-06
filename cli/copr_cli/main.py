@@ -354,6 +354,7 @@ class Commands(object):
             persistent=args.persistent,
             auto_prune=ON_OFF_MAP[args.auto_prune],
             use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
+            delete_after_days=args.delete_after_days,
         )
         print("New project was successfully created.")
 
@@ -374,6 +375,7 @@ class Commands(object):
             auto_prune=ON_OFF_MAP[args.auto_prune],
             use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
             chroots=args.chroots,
+            delete_after_days=args.delete_after_days,
         )
 
     @requires_api_auth
@@ -776,6 +778,8 @@ def setup_parser():
                                This option can only be specified by a COPR admin.")
     parser_create.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
                                help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_create.add_argument("--delete-after-days", default=None, metavar='DAYS',
+                               help="Delete the project after the specfied period of time")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -801,6 +805,10 @@ def setup_parser():
                                This option can only be specified by a COPR admin.")
     parser_modify.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
                                help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_modify.add_argument("--delete-after-days", default=None, metavar='DAYS',
+                               help=("Delete the project after the specfied "
+                                     "period of time, empty or -1 disables, "
+                                     "(default is \"don't change\")"))
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command

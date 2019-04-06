@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from flask_whooshee import Whooshee
 
@@ -80,3 +81,22 @@ class TestCoprsLogic(CoprsTestCase):
         assert data["projectname"] == name
 
 
+    def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_db):
+        query = self.db.session.query(models.Copr)
+
+        # nothing is deleted at the beginning
+        assert len([c for c in query.all() if c.deleted]) == 0
+
+        # one is to be deleted in the future
+        self.c1.delete_after_days = 2
+        # one is already to be deleted
+        self.c2.delete_after = datetime.datetime.now() - datetime.timedelta(days=1)
+
+        # and one is not to be temporary at all (c3)
+
+        CoprsLogic.delete_expired_projects()
+        self.db.session.commit()
+
+        query = self.db.session.query(models.Copr)
+        assert len(query.all()) == 3 # we only set deleted=true
+        assert len([c for c in query.all() if c.deleted]) == 1

@@ -256,6 +256,9 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     scm_repo_url = db.Column(db.Text)
     scm_api_type = db.Column(db.Text)
 
+    # temporary project if non-null
+    delete_after = db.Column(db.DateTime, index=True, nullable=True)
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
@@ -469,6 +472,30 @@ class Copr(db.Model, helpers.Serializer):
 
     def new_webhook_secret(self):
         self.webhook_secret = str(uuid.uuid4())
+
+    @property
+    def delete_after_days(self):
+        if self.delete_after is None:
+            return None
+
+        delta = self.delete_after - datetime.datetime.now()
+        return delta.days if delta.days > 0 else 0
+
+    @delete_after_days.setter
+    def delete_after_days(self, days):
+        if days is None or days == -1:
+            self.delete_after = None
+            return
+
+        delete_after = datetime.datetime.now() + datetime.timedelta(days=days+1)
+        delete_after = delete_after.replace(hour=0, minute=0, second=0, microsecond=0)
+        self.delete_after = delete_after
+
+    @property
+    def delete_after_msg(self):
+        if self.delete_after_days == 0:
+            return "will be deleted ASAP"
+        return "will be deleted after {} days".format(self.delete_after_days)
 
 
 class CoprPermission(db.Model, helpers.Serializer):

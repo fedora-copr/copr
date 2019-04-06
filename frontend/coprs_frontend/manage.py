@@ -40,6 +40,7 @@ commands = {
     "vacuum_graphs": "RemoveGraphsDataCommand",
     "notify_outdated_chroots": "NotifyOutdatedChrootsCommand",
     "delete_outdated_chroots": "DeleteOutdatedChrootsCommand",
+    "clean_expired_projects": "CleanExpiredProjectsCommand",
 }
 
 if os.getuid() == 0:

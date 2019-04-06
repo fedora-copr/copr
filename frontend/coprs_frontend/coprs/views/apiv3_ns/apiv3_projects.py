@@ -125,6 +125,7 @@ def add_project(ownername):
             homepage=form.homepage.data,
             contact=form.contact.data,
             disable_createrepo=form.disable_createrepo.data,
+            delete_after_days=form.delete_after_days.data,
         )
         db.session.commit()
     except (DuplicateException,

@@ -370,6 +370,19 @@ class CoprsLogic(object):
             raise exceptions.InsufficientRightsException(
                 "Only owners may delete their projects.")
 
+    @classmethod
+    def delete_expired_projects(cls):
+        query = (
+            models.Copr.query
+            .filter(models.Copr.delete_after.isnot(None))
+            .filter(models.Copr.delete_after < datetime.datetime.now())
+            .filter(models.Copr.deleted.isnot(True))
+        )
+        for copr in query.all():
+            print("deleting project '{}'".format(copr.full_name))
+            CoprsLogic.delete_unsafe(copr.user, copr)
+
+
 
 class CoprPermissionsLogic(object):
     @classmethod

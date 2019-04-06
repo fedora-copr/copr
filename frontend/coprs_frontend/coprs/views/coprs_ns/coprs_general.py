@@ -153,15 +153,21 @@ def copr_add(username=None, group_name=None):
 @coprs_ns.route("/g/<group_name>/new/", methods=["POST"])
 @login_required
 def copr_new(username=None, group_name=None):
+    return process_copr_new(group_name)
+
+
+def process_copr_new(group_name=None):
+    """
+    Receive information from the user (and group) on how to create its new copr
+    and create it accordingly.
+    """
+    group = None
+    redirect = "coprs/add.html"
     if group_name:
-        return process_group_copr_new(group_name)
-    return process_copr_new(username)
+        group = ComplexLogic.get_group_by_name_safe(group_name)
+        redirect = "coprs/group_add.html"
 
-
-def process_group_copr_new(group_name):
-    group = ComplexLogic.get_group_by_name_safe(group_name)
     form = forms.CoprFormFactory.create_form_cls(group=group)()
-
     if form.validate_on_submit():
         try:
             copr = coprs_logic.CoprsLogic.add(
@@ -181,56 +187,18 @@ def process_group_copr_new(group_name):
                 auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
                 use_bootstrap_container=form.use_bootstrap_container.data,
                 follow_fedora_branching=form.follow_fedora_branching.data,
+                delete_after_days=form.delete_after_days.data,
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
-            return flask.render_template("coprs/group_add.html", form=form, group=group)
-
-        db.session.add(copr)
-        db.session.commit()
-        after_the_project_creation(copr, form)
-
-        return flask.redirect(url_for_copr_details(copr))
-    else:
-        return flask.render_template("coprs/group_add.html", form=form, group=group)
-
-
-def process_copr_new(username):
-    """
-    Receive information from the user on how to create its new copr
-    and create it accordingly.
-    """
-
-    form = forms.CoprFormFactory.create_form_cls()()
-    if form.validate_on_submit():
-        try:
-            copr = coprs_logic.CoprsLogic.add(
-                flask.g.user,
-                name=form.name.data,
-                homepage=form.homepage.data,
-                contact=form.contact.data,
-                repos=form.repos.data.replace("\n", " "),
-                selected_chroots=form.selected_chroots,
-                description=form.description.data,
-                instructions=form.instructions.data,
-                disable_createrepo=form.disable_createrepo.data,
-                build_enable_net=form.build_enable_net.data,
-                unlisted_on_hp=form.unlisted_on_hp.data,
-                persistent=form.persistent.data,
-                auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
-                use_bootstrap_container=form.use_bootstrap_container.data,
-                follow_fedora_branching=form.follow_fedora_branching.data,
-            )
-        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
-            flask.flash(str(e), "error")
-            return flask.render_template("coprs/add.html", form=form)
+            return flask.render_template(redirect, form=form)
 
         db.session.commit()
         after_the_project_creation(copr, form)
 
         return flask.redirect(url_for_copr_details(copr))
     else:
-        return flask.render_template("coprs/add.html", form=form)
+        return flask.render_template(redirect, form=form)
 
 
 def after_the_project_creation(copr, form):
@@ -485,6 +453,7 @@ def process_copr_update(copr, form):
     copr.unlisted_on_hp = form.unlisted_on_hp.data
     copr.use_bootstrap_container = form.use_bootstrap_container.data
     copr.follow_fedora_branching = form.follow_fedora_branching.data
+    copr.delete_after_days = form.delete_after_days.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

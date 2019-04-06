@@ -263,6 +263,13 @@ class CoprFormFactory(object):
 
             instructions = wtforms.TextAreaField("Instructions")
 
+            delete_after_days = wtforms.IntegerField(
+                "Delete after days",
+                validators=[
+                    wtforms.validators.Optional(),
+                    wtforms.validators.NumberRange(min=0, max=60),
+                ])
+
             repos = wtforms.TextAreaField(
                 "External Repositories",
                 validators=[UrlRepoListValidator()],
@@ -984,6 +991,11 @@ class CoprModifyForm(FlaskForm):
     auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    follow_fedora_branching = wtforms.BooleanField(default=True, false_values=FALSE_VALUES)
+    delete_after_days = wtforms.IntegerField(
+        validators=[wtforms.validators.Optional(),
+                    wtforms.validators.NumberRange(min=-1, max=60)],
+        filters=[(lambda x : -1 if x is None else x)])
 
     # Deprecated, use `enable_net` instead
     build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)

@@ -373,7 +373,8 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "instructions": "instruction string", "chroots": ["f20", "f21"],
         "additional_repos": ["repo1", "repo2"],
         "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
-        "use_bootstrap_container": None
+        "use_bootstrap_container": None,
+        "delete_after_days": None,
     }
     assert stdout == "New project was successfully created.\n"
 

@@ -44,8 +44,10 @@
 
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
     {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}
-
-
+    {{ render_field(form.delete_after_days,
+                    class="short-input-field",
+                    placeholder='Optional',
+                    info='Delete the project after the specfied period of time (empty = disabled)') }}
     </div>
   </div>
   <div class="panel panel-default">

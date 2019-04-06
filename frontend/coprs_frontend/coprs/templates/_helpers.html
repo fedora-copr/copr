@@ -1,4 +1,4 @@
-{% macro render_field(field, label=None, class='', info=None) %}
+{% macro render_field(field, label=None, class=None, info=None) %}
   {% if not kwargs['hidden'] %}
 
     <div class="form-group {% if field.errors %} has-error {% endif %} ">
@@ -6,7 +6,7 @@
         {{ label or field.label }}:
       </label>
       <div class="col-sm-10">
-        {{ field(class="form-control", **kwargs)|safe }}
+        {{ field(class="form-control" + (" " + class if class else ""), **kwargs)|safe }}
         <ul class="list-unstyled">
         {% if info %}
           {% for line in (info if info is not string else [info]) %}

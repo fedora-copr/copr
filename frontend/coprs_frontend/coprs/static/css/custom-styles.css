@@ -34,3 +34,7 @@ span.padding {
     width: 5px;
     display: inline-block;
 }
+
+input.short-input-field {
+    width: 10em;
+}

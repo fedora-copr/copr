@@ -138,6 +138,15 @@ used to create SRPM).  For more info, have a look at
 :ref:`custom_source_method`.
 
 
+Temporary projects
+------------------
+
+If you want have your copr project deleted automatically after some time
+(because it is some CI/CD project, some testing stuff, etc.) you can set the
+"delete after days" option in web UI or on command-line:
+``copr-cli create your-project ... --delete-after-days 10``
+
+
 GitHub Webhooks
 ---------------
 
