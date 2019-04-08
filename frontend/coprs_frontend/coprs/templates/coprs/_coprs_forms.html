@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_details_href, copr_url %}
+{% from "_helpers.html" import render_field, render_checkbox_field, render_form_errors, copr_details_href, copr_url %}
 
 {% macro copr_form(form, view, copr = None, username = None, group = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
@@ -21,7 +21,7 @@
 
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">1. Project information</h3>
+      <h3 class="panel-title">{{ counter('instructions') }}. Project information</h3>
     </div>
     <div class="panel-body">
 
@@ -44,15 +44,12 @@
 
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
     {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}
-    {{ render_field(form.delete_after_days,
-                    class="short-input-field",
-                    placeholder='Optional',
-                    info='Delete the project after the specfied period of time (empty = disabled)') }}
     </div>
   </div>
+
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">2. Build options</h3>
+      <h3 class="panel-title">{{ counter('instructions')}}. Build options</h3>
     </div>
     <div class="panel-body">
 
@@ -112,72 +109,14 @@
       </div>
     </div>
 
-
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="textInput-markup">
-        Other Options
-      </label>
-      <div class="col-sm-10">
-        <div class="checkbox">
-          {{ form.disable_createrepo }} Create repositories manually
-          <br>
-          <small class="text-muted pficon pficon-info">
-            Repository meta data is normally refreshed after each build. If you want to do this manually, check the option above.
-          </small>
-        </div>
-        <div class="checkbox">
-          {{ form.build_enable_net }} Enable internet access during builds
-        </div>
-        {% if g.user.admin %}
-        <div class="checkbox">
-          {{ form.auto_prune }} Old builds will be deleted automatically
-          <small class="text-muted pficon pficon-info">
-            Build will be deleted only if there is a newer build (with respect to package version) and it is older than 14 days
-          </small>
-        </div>
-        {% endif %}
-        <div class="checkbox">
-          {{ form.unlisted_on_hp }} Project will not be listed on home page
-        </div>
-        {% if g.user.admin and not copr %} {# the following setting is available only for admins on creating a new project #}
-        <div class="checkbox">
-          {{ form.persistent }} Protect project and its builds against deletion
-          <br>
-          <small class="text-muted pficon pficon-info">
-            Project's builds and the project itself cannot be deleted by any means. This option is set once and for all.
-          </small>
-        </div>
-        {% endif %}
-        {% if g.user.admin and copr %} {# let an admin see the status of the 'Persistent builds' field but do not let him change the preset value #}
-        <div class="checkbox">
-          {{ form.persistent(disabled=True) }} Protect project and its builds against deletion
-          <br/><small class="text-muted pficon pficon-info">
-            This option cannot be altered after a project has been created.
-          </small>
-        </div>
-        {% endif %}
-        <div class="checkbox">
-          {{ form.use_bootstrap_container }} Enable mock's use_bootstrap_container experimental feature
-          <small class="text-muted pficon pficon-info">
-            This will make the build slower but it has an advantage that the dnf _from_ the given chroot will be used to setup the chroot (otherwise host system dnf and rpm is used)
-          </small>
-        </div>
-        <div class="checkbox">
-          {{ form.follow_fedora_branching }} Follow Fedora branching
-          <small class="text-muted pficon pficon-info">
-            When Fedora is branched from rawhide, the respective chroots for the new branch are automatically created for you (as soon as they are available) as rawhide chroot forks.
-          </small>
-        </div>
-      </div>
-    </div>
-
     </div>
   </div>
+
 
   {% if copr is none %}{# we're creating the copr, so display initial builds area #}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">3. (Optional) initial builds </h3>
+        <h3 class="panel-title">{{ counter('instructions') }}. (Optional) initial builds </h3>
     </div>
     <div class="panel-body">
 
@@ -185,6 +124,32 @@
     </div>
   </div>
   {% endif %}
+
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{ counter('instructions') }}. Other options</h3>
+    </div>
+    <div class="panel-body">
+
+    {{ render_checkbox_field(
+        "Booleans", [
+        [form.disable_createrepo],
+        [form.build_enable_net],
+        [form.auto_prune, g.user.admin],
+        [form.unlisted_on_hp],
+        [form.persistent, g.user.admin],
+        [form.use_bootstrap_container],
+        [form.follow_fedora_branching],
+    ])}}
+
+    {{ render_field(form.delete_after_days,
+            class="short-input-field",
+            placeholder='Optional',
+            info='Delete the project after the specfied period of time (empty = disabled)') }}
+
+    </div>
+  </div>
 
     <input class="btn btn-primary" type="submit" value="{% if copr %}Update{% else %}Create{% endif %}">
   </form>

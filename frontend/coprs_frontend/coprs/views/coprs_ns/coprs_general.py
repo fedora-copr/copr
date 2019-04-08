@@ -421,7 +421,7 @@ def copr_integrations_update(copr):
 def render_copr_edit(copr, form, view):
     if not form:
         form = forms.CoprFormFactory.create_form_cls(
-            copr.mock_chroots)(obj=copr)
+            copr.mock_chroots, copr=copr)(obj=copr)
     return flask.render_template(
         "coprs/detail/settings/edit.html",
         copr=copr, form=form, view=view)

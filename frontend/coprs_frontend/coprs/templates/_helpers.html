@@ -30,6 +30,34 @@
   {% endif %}
 {% endmacro %}
 
+{% macro render_checkbox_field(title, items) %}
+<div class="form-group">
+  <label class="col-sm-2 control-label" for="textInput-markup">
+    {{ title }}
+  </label>
+  <div class="col-sm-10">
+    {% for tuple in items %}
+      {% set checkbox = tuple[0] %}
+      {% set show     = tuple[1] if tuple|length > 1 else True %}
+      {% if show %}
+    <div class="checkbox">
+      <label>
+        {{ checkbox }}
+        {{ checkbox.label.text }}
+        {% if checkbox.description %}
+        <br>
+        <small class="text-muted pficon pficon-info">
+          {{ checkbox.description }}
+        </small>
+        {% endif %}
+      </label>
+    </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endmacro %}
+
 {% macro render_pypi_python_versions_field(field) %}
   <div class="form-group {% if field.errors %}has-error{% endif %}">
     <label class="col-sm-2 control-label">
