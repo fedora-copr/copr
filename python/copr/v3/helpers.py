@@ -20,11 +20,11 @@ def config_from_file(path=None):
 
     try:
         exists = raw_config.read(path)
-    except configparser.Error:
-        raise CoprConfigException()
+    except configparser.Error as ex:
+        raise CoprConfigException(str(ex))
 
     if not exists:
-        raise CoprNoConfigException()
+        raise CoprNoConfigException("There is no config file: {}".format(path))
 
     try:
         for field in ["username", "login", "token", "copr_url"]:

@@ -51,6 +51,8 @@ See documentation: man copr-cli.
 Any operation requiring credentials will fail!
 ==================================================
 
+Hint: {1}
+
 """
 
 try:
@@ -64,8 +66,8 @@ class Commands(object):
 
         try:
             self.config = config_from_file(self.config_path)
-        except (CoprNoConfigException, CoprConfigException):
-            sys.stderr.write(no_config_warning.format(self.config_path))
+        except (CoprNoConfigException, CoprConfigException) as ex:
+            sys.stderr.write(no_config_warning.format(self.config_path, ex))
             self.config = {"copr_url": "http://copr.fedoraproject.org", "no_config": True}
 
         self.client = Client(self.config)

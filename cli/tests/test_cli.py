@@ -152,7 +152,7 @@ def test_error_copr_unknown_response(config_from_file, action_status, capsys):
 
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_cancel_build_no_config(config_from_file, capsys):
-    config_from_file.side_effect = copr.v3.CoprNoConfigException()
+    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
 
     with pytest.raises(SystemExit) as err:
         main.main(argv=["cancel", "123400"])
@@ -163,7 +163,7 @@ def test_cancel_build_no_config(config_from_file, capsys):
     assert "Error: Operation requires api authentication" in err
     assert "File '~/.config/copr' is missing or incorrect" in err
 
-    expected_warning = no_config_warning.format("~/.config/copr")
+    expected_warning = no_config_warning.format("~/.config/copr", "Dude, your config is missing")
     assert expected_warning in err
 
 
@@ -191,7 +191,7 @@ def test_list_project(get_list, config_from_file, capsys):
     expected_output = read_res('list_projects_expected.txt')
 
     # no config
-    config_from_file.side_effect = copr.v3.CoprNoConfigException()
+    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
     control_response = [Munch(x) for x in response_data]
     get_list.return_value = control_response
 
@@ -199,7 +199,7 @@ def test_list_project(get_list, config_from_file, capsys):
     out, err = capsys.readouterr()
     assert expected_output in out
 
-    expected_warning = no_config_warning.format("~/.config/copr")
+    expected_warning = no_config_warning.format("~/.config/copr", "Dude, your config is missing")
     assert expected_warning in err
 
 
