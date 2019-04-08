@@ -35,6 +35,9 @@ login = {{ g.user.api_login }}
 username = {{ g.user.name }}
 token = {{ g.user.api_token }}
 copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_frontend}}
+{% if config['ENFORCE_PROTOCOL_FOR_FRONTEND_URL'] == 'http' %}
+encrypted = False
+{% endif %}
 # expiration date: {{ g.user.api_token_expiration }}
 </pre>
 

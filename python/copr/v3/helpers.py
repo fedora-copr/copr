@@ -29,9 +29,15 @@ def config_from_file(path=None):
     try:
         for field in ["username", "login", "token", "copr_url"]:
             config[field] = raw_config["copr-cli"].get(field, None)
+        config["encrypted"] = raw_config["copr-cli"].getboolean("encrypted", True)
 
     except configparser.Error as err:
         raise CoprConfigException("Bad configuration file: {0}".format(err))
+
+    if config["encrypted"] and config["copr_url"].startswith("http://"):
+        raise CoprConfigException("The `copr_url` should not be http, please obtain "
+                                  "an up-to-date configuration from the Copr website")
+
     return config
 
 
