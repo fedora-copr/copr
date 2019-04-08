@@ -1,5 +1,4 @@
 import os
-import six
 import time
 import configparser
 from munch import Munch
@@ -29,10 +28,7 @@ def config_from_file(path=None):
 
     try:
         for field in ["username", "login", "token", "copr_url"]:
-            if six.PY3:
-                config[field] = raw_config["copr-cli"].get(field, None)
-            else:
-                config[field] = raw_config.get("copr-cli", field)
+            config[field] = raw_config["copr-cli"].get(field, None)
 
     except configparser.Error as err:
         raise CoprConfigException("Bad configuration file: {0}".format(err))
