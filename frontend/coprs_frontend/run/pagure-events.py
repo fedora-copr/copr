@@ -130,13 +130,28 @@ def event_info_from_pr_comment(data, base_url):
         return False
 
     last_comment = data['msg']['pullrequest']['comments'][-1]
-    if not last_comment or last_comment['notification'] is False:
-        log.info('Comment was not a notification, discarding.')
+    if not last_comment:
+        log.info('Can not access last comment, discarding.')
         return False
 
-    log.info("We don't handle PR coments for now")
-    # TODO: we could accept e.g. '[copr-test]' here
-    return False
+    if not 'comment' in last_comment or '[copr-build]' not in last_comment['comment']:
+        log.info('The [copr-build] is not present in the message.')
+        return False
+
+    return munch.Munch({
+        'object_id': data['msg']['pullrequest']['id'],
+        'object_type': 'pull-request',
+        'base_project_url_path': data['msg']['pullrequest']['project']['url_path'],
+        'base_clone_url_path': data['msg']['pullrequest']['project']['fullname'],
+        'base_clone_url': base_url + data['msg']['pullrequest']['project']['fullname'],
+        'project_url_path': data['msg']['pullrequest']['repo_from']['url_path'],
+        'clone_url_path': data['msg']['pullrequest']['repo_from']['fullname'],
+        'clone_url': base_url + data['msg']['pullrequest']['repo_from']['fullname'],
+        'branch_from': data['msg']['pullrequest']['branch_from'],
+        'branch_to': data['msg']['pullrequest']['branch'],
+        'start_commit': data['msg']['pullrequest']['commit_start'],
+        'end_commit': data['msg']['pullrequest']['commit_stop'],
+    })
 
 
 def event_info_from_pr(data, base_url):
