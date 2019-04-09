@@ -79,13 +79,6 @@ class ScmPackage(object):
             package = self.package
 
         db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
-        query = (models.Build.query
-                .filter(models.Build.scm_object_url==scm_object_url)
-                .filter(models.Build.package_id==package.id))
-        if db.session.query(query.exists()).scalar():
-            log.info('\t -> Build for {} already exists.'.format(scm_object_url))
-            return None
-
         return BuildsLogic.rebuild_package(
             package, source_dict_update, copr_dir, update_callback,
             scm_object_type, scm_object_id, scm_object_url)
