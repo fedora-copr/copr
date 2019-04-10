@@ -43,6 +43,7 @@ class CounterStatType(object):
 
 
 class PermissionEnum(with_metaclass(EnumType, object)):
+    # The text form is part of APIv3!
     vals = {"nothing": 0, "request": 1, "approved": 2}
 
     @classmethod

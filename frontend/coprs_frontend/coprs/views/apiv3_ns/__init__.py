@@ -6,7 +6,7 @@ import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict
 from coprs import app
-from coprs.exceptions import CoprHttpException, ObjectNotFound
+from coprs.exceptions import CoprHttpException, ObjectNotFound, AccessRestricted
 from coprs.logic.complex_logic import ComplexLogic
 
 
@@ -144,3 +144,18 @@ class Paginator(object):
 
     def to_dict(self):
         return [x.to_dict() for x in self.get()]
+
+def editable_copr(f):
+    @wraps(f)
+    def wrapper(ownername, projectname, **kwargs):
+        copr = get_copr(ownername, projectname)
+        if not flask.g.user.can_edit(copr):
+            raise AccessRestricted(
+                "User '{0}' can not see permissions for project '{1}' "\
+                "(missing admin rights)".format(
+                    flask.g.user.name,
+                    '/'.join([ownername, projectname])
+                )
+            )
+        return f(copr, **kwargs)
+    return wrapper

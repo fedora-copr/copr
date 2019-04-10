@@ -497,6 +497,13 @@ class Copr(db.Model, helpers.Serializer):
             return "will be deleted ASAP"
         return "will be deleted after {} days".format(self.delete_after_days)
 
+    @property
+    def admin_mails(self):
+        mails = [self.user.mail]
+        for perm in self.copr_permissions:
+            if perm.copr_admin == helpers.PermissionEnum('approved'):
+                mails.append(perm.user.mail)
+        return mails
 
 class CoprPermission(db.Model, helpers.Serializer):
     """
@@ -514,6 +521,21 @@ class CoprPermission(db.Model, helpers.Serializer):
     user = db.relationship("User", backref=db.backref("copr_permissions"))
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True)
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
+
+    def set_permission(self, name, value):
+        if name == 'admin':
+            self.copr_admin = value
+        elif name == 'builder':
+            self.copr_builder = value
+        else:
+            raise KeyError("{0} is not a valid copr permission".format(name))
+
+    def get_permission(self, name):
+        if name == 'admin':
+            return 0 if self.copr_admin is None else self.copr_admin
+        if name == 'builder':
+            return 0 if self.copr_builder is None else self.copr_builder
+        raise KeyError("{0} is not a valid copr permission".format(name))
 
 
 class CoprDir(db.Model):

@@ -8,21 +8,37 @@ from coprs import app
 class TestMail(CoprsTestCase):
     def test_permissions_request_message(self, f_users, f_coprs, f_copr_permissions, f_db):
         msg = PermissionRequestMessage(self.c1, self.u2, {"new_builder": 1, "new_admin": 0})
-        assert msg.subject == "[Copr] foocopr: user2 is asking permissions"
-        assert msg.text == ("user2 is asking for these permissions:\n\n"
+        assert msg.subject == "[Copr] user1/foocopr: user2 is requesting permissions change"
+        assert msg.text == ("user2 asked for these changes:\n\n"
                             "Builder: nothing -> request\n"
                             "Admin: nothing -> nothing\n\n"
-                            "Project: foocopr\n"
-                            "Owner: user1")
+                            "Project: user1/foocopr")
+
+        msg = PermissionRequestMessage(self.c1, self.u2, {"old_admin": 1, "new_admin": 0})
+        assert msg.subject == "[Copr] user1/foocopr: user2 is requesting permissions change"
+        assert msg.text == ("user2 asked for these changes:\n\n"
+                            "Admin: request -> nothing\n\n"
+                            "Project: user1/foocopr")
 
     def test_permissions_change_message(self, f_users, f_coprs, f_copr_permissions, f_db):
         msg = PermissionChangeMessage(self.c1, {"old_builder": 0, "old_admin": 2, "new_builder": 2, "new_admin": 0})
-        assert msg.subject == "[Copr] foocopr: Your permissions have changed"
+        assert msg.subject == "[Copr] user1/foocopr: Your permissions have changed"
         assert msg.text == ("Your permissions have changed:\n\n"
                             "Builder: nothing -> approved\n"
                             "Admin: approved -> nothing\n\n"
-                            "Project: foocopr\n"
-                            "Owner: user1")
+                            "Project: user1/foocopr")
+
+        msg = PermissionChangeMessage(self.c1, {"old_builder": 0, "new_builder": 1})
+        assert msg.subject == "[Copr] user1/foocopr: Your permissions have changed"
+        assert msg.text == ("Your permissions have changed:\n\n"
+                            "Builder: nothing -> request\n\n"
+                            "Project: user1/foocopr")
+
+        msg = PermissionChangeMessage(self.c1, {"old_admin": 1, "new_admin": 0})
+        assert msg.subject == "[Copr] user1/foocopr: Your permissions have changed"
+        assert msg.text == ("Your permissions have changed:\n\n"
+                            "Admin: request -> nothing\n\n"
+                            "Project: user1/foocopr")
 
     def test_legal_flag_message(self, f_users, f_coprs, f_db):
         app.config["SERVER_NAME"] = "localhost"

@@ -9,6 +9,9 @@ class Message(object):
     subject = None
     text = None
 
+    def __str__(self):
+        return self.subject + "\n\n" + self.text
+
 
 class PermissionRequestMessage(Message):
     def __init__(self, copr, applicant, permission_dict):
@@ -18,19 +21,24 @@ class PermissionRequestMessage(Message):
         :param models.CoprPermission permission: permission object
         :param dict permission_dict: {"old_builder": int, "old_admin": int, "new_builder": int, "new_admin": int}
         """
-        self.subject = "[Copr] {0}: {1} is asking permissions".format(copr.name, applicant.name)
-        self.text = ("{0} is asking for these permissions:\n\n"
-                     "Builder: {1} -> {2}\n"
-                     "Admin: {3} -> {4}\n\n"
-                     "Project: {5}\n"
-                     "Owner: {6}".format(
-                         applicant.name,
-                         helpers.PermissionEnum(permission_dict.get("old_builder", 0)),
-                         helpers.PermissionEnum(permission_dict.get("new_builder")),
-                         helpers.PermissionEnum(permission_dict.get("old_admin", 0)),
-                         helpers.PermissionEnum(permission_dict.get("new_admin")),
-                         copr.name,
-                         copr.owner_name))
+        self.subject = "[Copr] {0}: {1} is requesting permissions change".format(copr.full_name, applicant.name)
+
+        self.text = "{0} asked for these changes:\n\n".format(applicant.name)
+
+        for perm in ['Builder', 'Admin']:
+            old = permission_dict.get("old_"+perm.lower())
+            new = permission_dict.get("new_"+perm.lower())
+
+            if old != new:
+                if old is None:
+                    old = 0 # previously unset
+                self.text += "{0}: {1} -> {2}\n".format(
+                    perm,
+                    helpers.PermissionEnum(old),
+                    helpers.PermissionEnum(new),
+                )
+
+        self.text += "\nProject: {0}".format(copr.full_name)
 
 
 class PermissionChangeMessage(Message):
@@ -39,18 +47,20 @@ class PermissionChangeMessage(Message):
         :param models.Copr copr:
         :param dict permission_dict: {"old_builder": int, "old_admin": int, "new_builder": int, "new_admin": int}
         """
-        self.subject = "[Copr] {0}: Your permissions have changed".format(copr.name)
-        self.text = (
-            "Your permissions have changed:\n\n"
-            "Builder: {0} -> {1}\n"
-            "Admin: {2} -> {3}\n\n"
-            "Project: {4}\n"
-            "Owner: {5}".format(
-                helpers.PermissionEnum(permission_dict["old_builder"]),
-                helpers.PermissionEnum(permission_dict["new_builder"]),
-                helpers.PermissionEnum(permission_dict["old_admin"]),
-                helpers.PermissionEnum(permission_dict["new_admin"]),
-                copr.name, copr.user.name))
+        self.subject = "[Copr] {0}: Your permissions have changed".format(copr.full_name)
+        self.text = "Your permissions have changed:\n\n"
+
+        for perm in ['Builder', 'Admin']:
+            old = permission_dict.get("old_"+perm.lower())
+            new = permission_dict.get("new_"+perm.lower())
+            if old != new:
+                if old is None:
+                    old = 0 # previously unset
+                self.text += "{0}: {1} -> {2}\n".format(
+                    perm, helpers.PermissionEnum(old),
+                    helpers.PermissionEnum(new))
+
+        self.text += "\nProject: {0}".format(copr.full_name)
 
 
 class LegalFlagMessage(Message):

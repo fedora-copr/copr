@@ -395,6 +395,24 @@ class CoprsTestCase(object):
             copr_builder=helpers.PermissionEnum("request"),
             copr_admin=helpers.PermissionEnum("approved"))
 
+
+    @pytest.fixture
+    def f_copr_more_permissions(self, f_copr_permissions):
+        self.u4 = models.User(
+            username=u"user4",
+            proven=False,
+            mail="baasdfz@bar.bar",
+            api_token='u4xxx',
+            api_login='u4login',
+            api_token_expiration=datetime.date.today() + datetime.timedelta(days=1000))
+
+        # only a builder
+        self.cp4 = models.CoprPermission(
+            copr=self.c3,
+            user=self.u4,
+            copr_builder=helpers.PermissionEnum("approved"),
+            copr_admin=helpers.PermissionEnum("nothing"))
+
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
 
     @pytest.fixture
@@ -482,10 +500,18 @@ class CoprsTestCase(object):
             }
         )
 
+    def api3_auth_headers(self, user):
+        return {"Authorization": self._get_auth_string(user.api_login, user.api_token),
+                "Content-Type": "application/json"}
+
     def post_api3_with_auth(self, url, content, user):
-        headers = {"Authorization": self._get_auth_string(user.api_login, user.api_token),
-                   "Content-Type": "application/json"}
+        headers = self.api3_auth_headers(user)
         return self.tc.post(url, data=json.dumps(content), headers=headers)
+
+    def get_api3_with_auth(self, url, user):
+        headers = self.api3_auth_headers(user)
+        print(headers)
+        return self.tc.get(url, headers=headers)
 
 
 class TransactionDecorator(object):

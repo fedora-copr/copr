@@ -15,7 +15,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
-from coprs.exceptions import MalformedArgumentException
+from coprs.exceptions import MalformedArgumentException, BadRequest
 from coprs.logic import users_logic
 from coprs.whoosheers import CoprWhoosheer
 from coprs.helpers import fix_protocol_for_backend
@@ -448,6 +448,70 @@ class CoprPermissionsLogic(object):
     @classmethod
     def delete(cls, copr_permission):
         db.session.delete(copr_permission)
+
+    @classmethod
+    def validate_permission(cls, user, copr, permission, state):
+        allowed = ['admin', 'builder']
+        if permission not in allowed:
+            raise BadRequest(
+                "invalid permission '{0}', allowed {1}".format(permission,
+                    '|'.join(allowed)))
+
+        allowed = helpers.PermissionEnum.vals.keys()
+        if state not in allowed:
+            raise BadRequest(
+                "invalid '{0}' permission state '{1}', "
+                "use {2}".format(permission, state, '|'.join(allowed)))
+
+        if user.id == copr.user_id:
+            raise BadRequest("user '{0}' is owner of the '{1}' "
+                             "project".format(user.name, copr.full_name))
+
+    @classmethod
+    def set_permissions(cls, request_user, copr, user, permission, state):
+        users_logic.UsersLogic.raise_if_cant_update_copr(
+            request_user, copr,
+            "only owners and admins may update their projects permissions.")
+
+        cls.validate_permission(user, copr, permission, state)
+
+        perm_o = models.CoprPermission(user_id=user.id, copr_id=copr.id)
+        perm_o = db.session.merge(perm_o)
+        old_state = perm_o.get_permission(permission)
+
+        new_state = helpers.PermissionEnum(state)
+        perm_o.set_permission(permission, new_state)
+        db.session.merge(perm_o)
+
+        return (old_state, new_state) if old_state != new_state else None
+
+    @classmethod
+    def request_permission(cls, copr, user, permission, req_bool):
+        approved = helpers.PermissionEnum('approved')
+        state = None
+        if req_bool is True:
+            state = 'request'
+        elif req_bool is False:
+            state = 'nothing'
+        else:
+            raise BadRequest("invalid '{0}' permission request '{1}', "
+                             "expected True or False".format(permission,
+                                 req_bool))
+
+        cls.validate_permission(user, copr, permission, state)
+        perm_o = models.CoprPermission(user_id=user.id, copr_id=copr.id)
+        perm_o = db.session.merge(perm_o)
+        old_state = perm_o.get_permission(permission)
+        if old_state == approved and state == 'request':
+            raise BadRequest("You already are '{0}' in '{1}'".format(
+                                 permission, copr.full_name))
+
+        new_state = helpers.PermissionEnum(state)
+        perm_o.set_permission(permission, new_state)
+
+        if old_state != new_state:
+            return (old_state, new_state)
+        return None
 
 
 class CoprDirsLogic(object):

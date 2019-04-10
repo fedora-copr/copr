@@ -6,7 +6,7 @@
 persistent=no
 
 extension-pkg-whitelist = SQLAlchemy
-ignored-modules = alembic*, sqlalchemy, SQLAlchemy
+ignored-modules = alembic*, sqlalchemy*, SQLAlchemy*
 
 [MESSAGES CONTROL]
 

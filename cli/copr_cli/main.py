@@ -683,6 +683,41 @@ class Commands(object):
             module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
         print("Created module {0}".format(module.nsv))
 
+    def action_permissions_edit(self, args):
+        ownername, projectname = self.parse_name(args.project)
+        if not args.permissions:
+            raise argparse.ArgumentTypeError(
+                "neither --builder nor --admin specified")
+        self.client.project_proxy.set_permissions(ownername, projectname,
+                args.permissions)
+        print("success")
+
+    def action_permissions_list(self, args):
+        ownername, projectname = self.parse_name(args.project)
+        perms = self.client.project_proxy.get_permissions(ownername, projectname)
+        for user in perms['permissions']:
+            print(user + ":")
+            for role, value in perms['permissions'][user].items():
+                print("  {0}: {1}".format(role, value))
+
+    def action_permissions_request(self, args):
+        if not args.permissions:
+            raise argparse.ArgumentTypeError(
+                "neither --builder nor --admin specified")
+        ownername, projectname = self.parse_name(args.project)
+        request = {}
+        for role, value in args.permissions['your user'].items():
+            if value == 'nothing':
+                request[role] = False
+            elif value == 'request':
+                request[role] = True
+            else:
+                raise argparse.ArgumentTypeError(
+                        "--{0} can be 'nothing' or 'request', "
+                        "not '{1}'".format(role, value))
+        self.client.project_proxy.request_permissions(ownername, projectname,
+                                                      request)
+        print("success")
 
 def setup_parser():
     """
@@ -1132,6 +1167,92 @@ def setup_parser():
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
     parser_build_module.set_defaults(func="action_build_module")
 
+
+    #########################################################
+    ###                   Permissions actions             ###
+    #########################################################
+
+    def make_permission_action(role, default_permission, default_username=None):
+        class CustomAction(argparse.Action):
+            def __call__(self, parser, args, argument, option_string=None):
+                permission = self.default_permission
+                username = self.default_username
+                if not username:
+                    # User required, user=permission allowed.
+                    if '=' in argument:
+                        splitted = argument.split('=')
+                        permission = splitted.pop()
+                        username = '='.join(splitted)
+                    else:
+                        username = argument
+                else:
+                    # username predefined (myself)
+                    if argument:
+                        permission = argument
+                if not args.permissions:
+                    args.permissions = {}
+                if not username in args.permissions:
+                    args.permissions[username] = {}
+                if role in args.permissions[username]:
+                    raise argparse.ArgumentError(
+                        self, "requested more than once for {0}".format(username))
+                args.permissions[username][role] = permission
+
+        CustomAction.default_permission = default_permission
+        CustomAction.default_username = default_username
+        return CustomAction
+
+    parser_permissions_edit = subparsers.add_parser(
+            "edit-permissions",
+            help="Edit roles/permissions on a copr project")
+    parser_permissions_edit.add_argument("project",
+            metavar='PROJECT',
+            help="An existing copr project")
+    edit_help = """Set the '{0}' role for USERNAME in PROJECT, VALUE can be one
+            of 'approved|request|nothing' (default=approved)"""
+    parser_permissions_edit.add_argument("--admin",
+            metavar='USERNAME[=VALUE]',
+            dest='permissions',
+            action=make_permission_action('admin', 'approved'),
+            help=edit_help.format('admin'))
+    parser_permissions_edit.add_argument("--builder",
+            metavar='USERNAME[=VALUE]',
+            dest='permissions',
+            action=make_permission_action('builder', 'approved'),
+            help=edit_help.format('builder'))
+    parser_permissions_edit.set_defaults(func='action_permissions_edit')
+
+    # list
+    parser_permissions_list = subparsers.add_parser(
+            "list-permissions",
+            help="Print the copr project roles/permissions")
+    parser_permissions_list.add_argument("project",
+            metavar='PROJECT',
+            help="An existing copr project")
+    parser_permissions_list.set_defaults(func='action_permissions_list')
+
+    # request
+    parser_permissions_request = subparsers.add_parser(
+            "request-permissions",
+            help="Request (or reject) your role in the copr project")
+    parser_permissions_request.add_argument("project",
+            metavar='PROJECT',
+            help="An existing copr project")
+    request_help = """Request/cancel request/remove your '{0}' permissions in
+            PROJECT.  VALUE can be one of 'request|nothing', default=request
+            """
+    parser_permissions_request.add_argument(
+            "--admin", nargs='?',
+            action=make_permission_action('admin', 'request', 'your user'),
+            dest='permissions',
+            help=request_help.format('admin'))
+    parser_permissions_request.add_argument(
+            "--builder", nargs='?',
+            action=make_permission_action('builder', 'request', 'your user'),
+            dest='permissions',
+            help=request_help.format('builder'))
+    parser_permissions_request.set_defaults(func='action_permissions_request')
+
     return parser
 
 
@@ -1190,7 +1311,7 @@ def main(argv=sys.argv[1:]):
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(1)
     except argparse.ArgumentTypeError as e:
-        sys.stderr.write("\nError: {0}".format(e))
+        sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(2)
     except CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))

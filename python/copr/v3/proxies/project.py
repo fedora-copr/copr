@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from . import BaseProxy
-from ..requests import Request, munchify, POST
+from ..requests import Request, munchify, POST, GET, PUT
 
 
 class ProjectProxy(BaseProxy):
@@ -200,3 +200,94 @@ class ProjectProxy(BaseProxy):
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return munchify(response)
+
+    def get_permissions(self, ownername, projectname):
+        """
+        Get project permissions
+
+        :param str ownername: owner of the project
+        :param str projectname: name of the project
+        :return Munch: a dictionary in format
+            ``{username: {permission: state, ... }, ...}`` where ``username``
+            identifies an existing copr user, ``permission`` is one of
+            ``admin|builder`` and state is one of ``nothing|approved|request``.
+        """
+
+        endpoint = "/project/permissions/get/{ownername}/{projectname}/"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        request = Request(
+                endpoint,
+                api_base_url=self.api_base_url,
+                auth=self.auth,
+                method=GET,
+                params=params)
+
+        response = request.send()
+        return munchify(response)
+
+    def set_permissions(self, ownername, projectname, permissions):
+        """
+        Set (or change) permissions for a project
+
+        :param str ownername: owner of the updated project
+        :param str projectname: name of the updated project
+        :param dict permissions: the expected format is
+            ``{username: {permission: state, ...}, ...}``
+            where ``username`` identifies an existing copr user, ``permission``
+            is one of ``builder|admin`` and ``state`` value is one of
+            ``nothing|request|approved``.  It is OK to set only ``bulider`` or
+            only ``admin`` permission; any unspecified ``permission`` is then
+            (a) set to ``nothing`` (if the permission entry is newly created),
+            or (b) kept unchanged (if an existing permission entry is edited).
+            If more than one ``username`` is specified in single
+            ``set_permissions()`` request, the approach is to configure
+            *all-or-nothing* (any error makes the whole operation fail and
+            no-op).
+        """
+
+        endpoint = "/project/permissions/set/{ownername}/{projectname}/"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        request = Request(
+                endpoint,
+                api_base_url=self.api_base_url,
+                auth=self.auth,
+                method=PUT,
+                params=params,
+                data=permissions)
+
+        request.send()
+
+    def request_permissions(self, ownername, projectname, permissions):
+        """
+        Request/cancel request/drop your permissions on project
+
+        :param str ownername: owner of the requested project
+        :param str projectname: name of the requested project
+        :param dict permissions: the desired permissions user wants to have on
+            the requested copr project.  The format is
+            ``{permission: bool, ...}``, where ``permission`` is one of
+            ``builder|admin`` and ``bool`` is
+            (a) ``True`` for *requesting* the role or
+            (b) ``False`` for *dropping* the role (or for *cancelling* of
+            previous request).
+        """
+        endpoint = "/project/permissions/request/{ownername}/{projectname}/"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        request = Request(
+                endpoint,
+                api_base_url=self.api_base_url,
+                auth=self.auth,
+                method=PUT,
+                params=params,
+                data=permissions)
+
+        request.send()

@@ -515,15 +515,10 @@ def copr_permissions_applier_change(copr):
         flask.flash(
             "Successfully updated permissions for project '{0}'."
             .format(copr.name))
-        admin_mails = [copr.user.mail]
-        for perm in copr.copr_permissions:
-            # this 2 means that his status (admin) is approved
-            if perm.copr_admin == 2:
-                admin_mails.append(perm.user.mail)
 
         # sending emails
         if flask.current_app.config.get("SEND_EMAILS", False):
-            for mail in admin_mails:
+            for mail in copr.admin_mails:
                 permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
                                    "new_builder": new_builder, "new_admin": new_admin}
                 msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
