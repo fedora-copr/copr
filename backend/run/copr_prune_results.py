@@ -21,6 +21,7 @@ sys.path.append("/usr/share/copr/")
 from backend.helpers import BackendConfigReader
 from backend.helpers import get_auto_createrepo_status,get_persistent_status,get_auto_prune_status
 from backend.frontend import FrontendClient
+from backend.createrepo import createrepo
 
 DEF_DAYS = 14
 
@@ -161,9 +162,13 @@ class Pruner(object):
                     continue
 
             try:
-                cmd = ['prunerepo', '--verbose', '--days={0}'.format(self.prune_days), '--cleancopr', chroot_path]
+                cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days),
+                       '--cleancopr', '--nocreaterepo', chroot_path]
                 stdout = runcmd(cmd)
                 loginfo(stdout)
+                createrepo(path=chroot_path, front_url=self.opts.frontend_base_url,
+                           username=username, projectname=projectname,
+                           override_acr_flag=True)
             except Exception as err:
                 logexception(err)
                 logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
