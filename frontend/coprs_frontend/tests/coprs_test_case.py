@@ -277,12 +277,7 @@ class CoprsTestCase(object):
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
 
     @pytest.fixture
-    def f_hook_package(self):
-        self.f_users()
-        self.f_coprs()
-        self.f_mock_chroots()
-        self.f_builds()
-
+    def f_hook_package(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.c1.webhook_secret = str(uuid.uuid4())
         self.db.session.add(self.c1)
         self.pHook = models.Package(
@@ -416,8 +411,7 @@ class CoprsTestCase(object):
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
 
     @pytest.fixture
-    def f_actions(self):
-        self.f_db()
+    def f_actions(self, f_db):
         self.delete_action = models.Action(action_type=ActionTypeEnum("delete"),
                                            object_type="copr",
                                            object_id=self.c1.id,
