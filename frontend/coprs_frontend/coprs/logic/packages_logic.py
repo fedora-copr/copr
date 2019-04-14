@@ -179,17 +179,12 @@ WHERE package.copr_dir_id = :copr_dir_id;
         if committish and not ref.endswith(committish):
             return False
 
-        path_match = True
         for commit in commits:
             for file_path in commit['added'] + commit['removed'] + commit['modified']:
-                path_match = False
                 if cls.path_belong_to_package(package, file_path):
-                    path_match = True
-                    break
-        if not path_match:
-            return False
+                    return True
 
-        return True
+        return False
 
     @classmethod
     def path_belong_to_package(cls, package, file_path):
