@@ -180,7 +180,7 @@ class Pruner(object):
 
 def clean_copr(path, days=DEF_DAYS, verbose=True):
     """
-    Remove whole copr build dirs if they no longer contain a srpm/rpm file
+    Remove whole copr build dirs if they no longer contain a RPM file
     """
     loginfo("Cleaning COPR repository...")
     for dir_name in os.listdir(path):
@@ -190,7 +190,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
             continue
         if not os.path.isfile(os.path.join(dir_path, 'build.info')):
             continue
-        if [item for item in os.listdir(dir_path) if item.endswith(".rpm")]:
+        if is_rpm_in_dir(dir_path):
             continue
         if time.time() - os.stat(dir_path).st_mtime <= days * 24 * 3600:
             continue
@@ -214,6 +214,12 @@ def rm_file(path, verbose=True):
         loginfo("Removing: "+path)
     if os.path.exists(path) and os.path.isfile(path):
         os.remove(path)
+
+
+def is_rpm_in_dir(path):
+    files = os.listdir(path)
+    srpm_ex = (".src.rpm", ".nosrc.rpm")
+    return any([f for f in files if f.endswith(".rpm") and not f.endswith(srpm_ex)])
 
 
 def main():
