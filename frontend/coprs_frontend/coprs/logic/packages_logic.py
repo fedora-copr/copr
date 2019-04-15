@@ -180,18 +180,17 @@ WHERE package.copr_dir_id = :copr_dir_id;
             return False
 
         for commit in commits:
-            for file_path in commit['added'] + commit['removed'] + commit['modified']:
-                if cls.path_belong_to_package(package, file_path):
+            subdir = package.source_json_dict.get('subdirectory')
+            sm = helpers.SubdirMatch(subdir)
+            changed = set()
+            for ch in ['added', 'removed', 'modified']:
+                changed |= set(commit.get(ch, []))
+
+            for file_path in changed:
+                if sm.match(file_path):
                     return True
 
         return False
-
-    @classmethod
-    def path_belong_to_package(cls, package, file_path):
-        data = package.source_json_dict
-        norm_file_path = file_path.strip('./')
-        package_subdir = data.get('subdirectory') or ''
-        return norm_file_path.startswith(package_subdir.strip('./'))
 
     @classmethod
     def add(cls, user, copr_dir, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):

@@ -1,10 +1,12 @@
+import os
 from copy import deepcopy
 from unittest import mock
 from flask import Flask
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
-    fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, parse_repo_params
+    fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, \
+    parse_repo_params, pagure_html_diff_changed, SubdirMatch, raw_commit_changes
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -151,3 +153,68 @@ class TestHelpers(CoprsTestCase):
         supported = ["param1", "param2", "param4"]
         expected = {"param1": "foo", "param2": "bar", "param4": "qux"}
         assert parse_repo_params(url, supported_keys=supported) == expected
+
+    def test_subdir_match(self):
+        assert SubdirMatch(None).match("a") == True
+        assert SubdirMatch("").match("a") == True
+        assert SubdirMatch("").match("") == False
+        assert SubdirMatch("a").match("") == False
+        assert SubdirMatch("a").match("a") == False
+        assert SubdirMatch("/a/").match("a") == False
+        assert SubdirMatch("//a/../a/").match("./a/b") == True
+        assert SubdirMatch("//a/../a/").match("a/b") == True
+        assert SubdirMatch("//a/../a/").match("a/b") == True
+        assert SubdirMatch("//a/../a/").match("././a/b") == True
+
+    def test_raw_patch_parse(self):
+        workdir = os.path.dirname(__file__)
+        def changes(filename):
+            full = os.path.join(workdir, filename)
+            with open(full) as f:
+                return raw_commit_changes(f.read())
+
+        assert changes('data/webhooks/raw-01.patch') == set([
+            'frontend/coprs_frontend/coprs/forms.py',
+            'frontend/coprs_frontend/coprs/static/css/custom-styles.css',
+            'frontend/coprs_frontend/coprs/templates/_helpers.html'
+        ])
+
+        assert changes('data/webhooks/raw-02.patch') == set([
+            'frontend/coprs_frontend/coprs/models.py',
+            'frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py',
+        ])
+
+    def test_pagure_html_diff_parser(self):
+        workdir = os.path.dirname(__file__)
+        def changes(filename):
+            full = os.path.join(workdir, filename)
+            with open(full) as f:
+                return pagure_html_diff_changed(f.read())
+
+        assert changes('data/webhooks/diff-01.html') == set([
+            'frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py',
+            'frontend/coprs_frontend/coprs/logic/builds_logic.py',
+            'frontend/coprs_frontend/coprs/logic/modules_logic.py',
+            'frontend/coprs_frontend/coprs/models.py',
+            'frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py'
+        ])
+
+        assert changes('data/webhooks/diff-02.html') == set([
+            'frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py',
+            'frontend/coprs_frontend/coprs/models.py',
+        ])
+
+        assert changes('data/webhooks/diff-03.html') == set([])
+        assert changes('data/webhooks/diff-04.html') == set([
+            '.gitignore',
+            'copr-backend.spec',
+            'sources',
+        ])
+
+        # Check that we don't traceback.
+        assert pagure_html_diff_changed(None) == set([])
+        assert pagure_html_diff_changed(1) == set([])
+        assert pagure_html_diff_changed('<html') == set([])
+        assert pagure_html_diff_changed('<html></html>') == set([])
+        assert pagure_html_diff_changed('some-dust-ajablůňka>isdf/#~<--') == set([])
+        assert pagure_html_diff_changed(b'091213114151deadbeaf') == set([])

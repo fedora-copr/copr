@@ -1,7 +1,9 @@
 import math
 import random
 import string
+import html5_parser
 
+from os.path import normpath
 from six import with_metaclass
 from six.moves.urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import re
@@ -563,3 +565,50 @@ def get_copr_repo_id(copr_dir):
 
     """
     return copr_dir.repo_id
+
+
+class SubdirMatch(object):
+    def __init__(self, subdir):
+        if not subdir:
+            self.subdir = '.'
+        else:
+            self.subdir = normpath(subdir).strip('/')
+
+    def match(self, path):
+        if not path: # shouldn't happen
+            return False
+
+        changed = normpath(path).strip('/')
+        if changed == '.':
+            return False # shouldn't happen!
+
+        if self.subdir == '.':
+            return True
+
+        return changed.startswith(self.subdir + '/')
+
+
+def pagure_html_diff_changed(html_string):
+    parsed = html5_parser.parse(str(html_string))
+    elements = parsed.xpath(
+        "//section[contains(@class, 'commit_diff')]"
+        "//div[contains(@class, 'card-header')]"
+        "//a[contains(@class, 'font-weight-bold')]"
+        "/text()")
+
+    return set([str(x) for x in elements])
+
+
+def raw_commit_changes(text):
+    changes = set()
+    for line in text.split('\n'):
+        match = re.search(r'^(\+\+\+|---) [ab]/(.*)$', line)
+        if match:
+            changes.add(str(match.group(2)))
+        match = re.search(r'^diff --git a/(.*) b/(.*)$', line)
+        if match:
+            changes.add(str(match.group(1)))
+            changes.add(str(match.group(2)))
+            print(changes)
+
+    return changes

@@ -59,6 +59,17 @@ for url, fedmsg_prefix in pagure_instances.items():
     for topic in topics:
         TOPICS['{0}.{1}'.format(fedmsg_prefix, topic)] = url
 
+def get_repeatedly(url):
+    log.info("getting url {}".format(url))
+    for attempt in range(1, 4):
+        r = requests.get(url)
+        if r.status_code == requests.codes.ok:
+            return r.text
+        else:
+            log.error('Bad http status {0} from url {1}, attempt {2}'.format(
+                r.status_code, url, attempt))
+    # pagure down?
+    return ""
 
 class ScmPackage(object):
     def __init__(self, db_row):
@@ -104,13 +115,14 @@ class ScmPackage(object):
         )
         return [ScmPackage(row) for row in rows]
 
-    def is_dir_in_commit(self, raw_commit_text):
-        if not self.subdirectory or not raw_commit_text:
-            return True
 
-        for line in raw_commit_text.split('\n'):
-            match = re.search(r'^(\+\+\+|---) [ab]/(\w*)/?.*$', line)
-            if match and match.group(2).lower() == self.subdirectory.strip('./').lower():
+    def is_dir_in_commit(self, changed_files):
+        if not changed_files:
+            return False
+
+        sm = helpers.SubdirMatch(self.subdirectory)
+        for filename in changed_files:
+            if sm.match(filename):
                 return True
 
         return False
@@ -251,16 +263,26 @@ def build_on_fedmsg_loop():
             continue
 
         candidates = ScmPackage.get_candidates_for_rebuild(event_info.base_clone_url)
-        raw_commit_text = None
+        changed_files = set()
+
         if candidates:
-            # if start_commit != end_commit
-            # then more than one commit and no means to iterate over :(
-            raw_commit_url = base_url + event_info.project_url_path + '/raw/' + event_info.end_commit
-            r = requests.get(raw_commit_url)
-            if r.status_code == requests.codes.ok:
-                raw_commit_text = r.text
-            else:
-                log.error('Bad http status {0} from url {1}'.format(r.status_code, raw_commit_url))
+            raw_commit_url = base_url + event_info.project_url_path + '/raw/' + event_info.start_commit
+            raw_commit_text = get_repeatedly(raw_commit_url)
+            changed_files |= helpers.raw_commit_changes(raw_commit_text)
+
+            if event_info.start_commit != event_info.end_commit:
+                # we want to show changes in start_commit + diff
+                # start_commit..end_commit
+                change_html_url = '{base_url}{project}/c/{start}..{end}'.format(
+                    base_url=base_url,
+                    project=event_info.project_url_path,
+                    start=event_info.start_commit,
+                    end=event_info.end_commit)
+
+                change_html_text = get_repeatedly(change_html_url)
+                changed_files |= helpers.pagure_html_diff_changed(change_html_text)
+
+        log.info("changed files: {}".format(", ".join(changed_files)))
 
         for pkg in candidates:
             package = '{}/{}(id={})'.format(
@@ -273,7 +295,7 @@ def build_on_fedmsg_loop():
 
             if (git_compare_urls(pkg.clone_url, event_info.base_clone_url)
                     and (not pkg.committish or event_info.branch_to.endswith(pkg.committish))
-                    and pkg.is_dir_in_commit(raw_commit_text)):
+                    and pkg.is_dir_in_commit(changed_files)):
 
                 log.info('\t -> accepted.')
 

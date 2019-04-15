@@ -1,0 +1,926 @@
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Diff from 652d9f5 to ab9360b - copr/copr
+ - Pagure.io</title>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon"
+        href="/theme/static/favicon.ico?version=5.5"/>
+    <link href="/theme/static/fedora-bootstrap-1.3.0/fedora-bootstrap.min.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+    <link href="/theme/static/fonts/fonts.css?version=5.5"
+        rel="stylesheet" type="text/css" />
+    <link href="/theme/static/fonts/hack_fonts/css/hack-extended.min.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+    <link href="/theme/static/theme.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+
+    <link href="/static/pagure.css?version=5.5"
+    type="text/css" rel="stylesheet" />
+    <link href="/static/vendor/font-awesome/font-awesome.css?version=5.5"
+    type="text/css" rel="stylesheet" />
+<link href="/static/vendor/emojione/emojione.sprites.css?version=5.5"
+  rel="stylesheet" />
+<link href="/static/vendor/selectize/selectize.bootstrap3.css?version=5.5"
+  rel="stylesheet" />
+<link href="/static/vendor/jquery.atwho/jquery.atwho.css?version=5.5"
+  rel="stylesheet" />
+  </head>
+  <body id="home">
+    
+    <!-- start masthead -->
+    <nav class="navbar navbar-light masthead p-0 navbar-expand">
+      <div class="container">
+        <a href="/" class="navbar-brand">
+        <img height=40px src="/theme/static/pagure-logo.png?version=5.5"
+             alt="pagure Logo" id="pagureLogo"/>
+        </a>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="btn btn-primary" href="/login/?next=https://pagure.io/copr/copr/c/652d9f5..ab9360b">Log In</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- close masthead-->
+
+    <div class="bodycontent">
+
+
+<div class="bg-light border border-bottom pt-3">
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-6">
+        <div class="row">
+        <div class="col-auto pr-0">
+            <h3>
+<i class="fa fa-calendar-o fa-rotate-270 text-muted"></i></h3>
+        </div>
+        <div class="col-auto pl-2">
+            <h3 class="mb-0">
+<a href="/projects/copr/%2A">copr</a>&nbsp;/&nbsp;<a href="/copr/copr"><strong>copr</strong></a>
+            </h3>
+        </div>
+        </div>
+      </div>
+      <div class="col-6 text-right">
+        <div class="btn-group">
+        <div class="btn-group">
+        <a href="#"
+            class="btn btn-sm dropdown-toggle btn-outline-primary"
+            data-toggle="dropdown" id="watch-button">
+          <i class="fa fa-clone fa-fw"></i>
+          <span>Clone</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right">
+          <div class="m-3" style="width:300px;">
+            <div>
+              <h5><strong>Source Code</strong></h5>
+
+              <div class="form-group">
+                <div class="input-group input-group-sm">
+                  <div class="input-group-prepend"><span class="input-group-text">GIT</span></div>
+                  <input class="form-control bg-white" type="text" value="https://pagure.io/copr/copr.git" readonly>
+                </div>
+              </div>
+
+                <div id="giturl-more" class="hidden">
+                  <h5><strong>Documentation</strong></h5>
+                  <div class="form-group">
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-prepend"><span class="input-group-text">GIT</span></div>
+                      <input class="form-control bg-white" type="text" value="https://pagure.io/docs/copr/copr.git" readonly>
+                    </div>
+                  </div>
+
+
+                <hr />
+                <p>
+                  <a href="https://docs.pagure.org/pagure/usage/" target="_blank" rel="noopener noreferrer">
+                    Learn more about these different git repos.
+                  </a>
+                </p>
+              </div>
+              <p class="text-right">
+                <a href="javascript:void(0)" id="giturl-toggle">
+                  Other Git URLs <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-tabs nav-small border-bottom-0">
+  <li class="nav-item mr-2 text-dark">
+    <a class="nav-link active" href="/copr/copr">
+        <i class="fa fa-code fa-fw text-muted"></i>
+        <span class="d-none d-md-inline">Source</span>
+    </a>
+  </li>
+    <li class="nav-item mr-2 text-dark" >
+      <a  class="nav-link" href="/docs/copr/copr/">
+          <i class="fa fa-book fa-fw text-muted"></i>
+          <span class="d-none d-md-inline">Docs</span>
+      </a>
+    </li>
+
+    <li class="nav-item mr-2 text-dark">
+        <a class="nav-link" href="/copr/copr/issues">
+            <i class="fa fa-fw text-muted fa-exclamation-circle"></i>
+            <span class="d-none d-md-inline">Issues&nbsp;</span>
+            <span class="badge badge-secondary py-0 d-none d-md-inline">
+              113
+            </span>
+        </a>
+    </li>
+
+    <li class="nav-item mr-2 text-dark">
+      <a class="nav-link" href="/copr/copr/pull-requests">
+          <i class="fa fa-fw text-muted fa-arrow-circle-down"></i>
+          <span class="d-none d-md-inline">Pull Requests&nbsp;</span>
+          <span class="badge badge-secondary py-0 d-none d-md-inline">
+            10
+          </span>
+      </a>
+    </li>
+
+
+    <li class="nav-item mr-2 text-dark">
+      <a class="nav-link" href="/copr/copr/stats">
+          <i class="fa fa-line-chart fa-fw text-muted"></i>
+          <span class="d-none d-md-inline">Stats</span>
+      </a>
+    </li>
+
+
+</ul>
+  </div>
+</div>
+
+<div class="container pt-5 repo-body-container">
+<div class="row">
+  <div class="col">
+<nav class="nav nav-tabs nav-sidetabs flex-column">
+    <a class=
+        "nav-link nowrap
+"
+        href="/copr/copr">
+        <i class="fa fa-home text-muted fa-fw"></i>&nbsp;<span class="d-none d-md-inline">Overview</span>
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/tree/">
+      <i class="fa fa-file-code-o text-muted fa-fw"></i>&nbsp;Files
+    </a>
+    <a class=
+      "nav-link nowrap
+ active"
+      href="/copr/copr/commits/">
+      <i class="fa fa-list-alt text-muted fa-fw" data-glyph="spreadsheet"></i>&nbsp;Commits
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/branches?branchname=">
+      <i class="fa fa-random text-muted fa-fw"></i>&nbsp;Branches
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/forks">
+      <i class="fa fa-code-fork text-muted fa-fw"></i>&nbsp;Forks
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/releases">
+      <i class="fa fa-tags text-muted fa-fw"></i>&nbsp;Releases
+    </a>
+  </nav>
+  </div>
+  <div class="col-10">
+    <h4 class="font-weight-bold mb-4">
+      <div class="d-flex align-items-center">
+        <div>
+          Commit Diff
+        </div>
+        <div class="ml-auto">
+          <div class="btn btn-outline-secondary border-0 disabled opacity-100 font-weight-bold">
+            5 files changed
+          </div>
+        </div>
+        <div class="btn-group">
+          <span class="font-weight-bold btn btn-sm btn-success disabled opacity-100">+46</span>
+          <span class="font-weight-bold btn btn-sm btn-danger disabled opacity-100">-1</span>
+        </div>
+      </div>
+      <div>
+        <span class="badge-light border border-secondary badge">652d9f5</span>
+        ..
+        <span class="badge-light border border-secondary badge">ab9360b</span>
+      </div>
+    </h4>
+    <div class="list-group mb-5">
+        <div class="list-group-item">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="notblue" href="/copr/copr/c/ab9360b2c800fce766550c1c79a4d2f58bc3847f">
+          <strong>[frontend] respect module buildorder by setting dependencies among batches</strong>
+          </a>
+        <div>
+                <a href='/user/frostyx'><img class="avatar circle" src="https://seccdn.libravatar.org/avatar/50cb2410ced8bea1b63b6c434081bd28f2a7e219ef74884d414e855322707ad0?s=16&d=retro"/></a> <a href='/copr/copr/commits/?author=frostyx%40email.cz' class="notblue">Jakub Kadlčík</a>
+                  <span class="commitdate"
+                  title="2019-03-27 21:53:17 UTC"> &bull;
+                19 days ago</span>&nbsp;&nbsp;
+            </div>
+          </div>
+          <div class="col-xs-auto pr-3 text-right">
+              <div class="btn-group">
+                <a href="/copr/copr/c/ab9360b2c800fce766550c1c79a4d2f58bc3847f"
+                  class="btn btn-outline-primary font-weight-bold ">
+                  <code>ab9360b</code>
+                </a>
+                <a class="btn btn-outline-primary font-weight-bold " href="/copr/copr/tree/ab9360b2c800fce766550c1c79a4d2f58bc3847f"><span class="fa fa-file-code-o fa-fw"></span></a>
+              </div>
+            </div>
+      </div>
+      </div>
+        <div class="list-group-item text-center bg-light" id="show_hidden_commits">
+          <a href="javascript:void(0)">1 more commits...</a>
+        </div>
+        <div class="list-group-item hidden commitline">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="notblue" href="/copr/copr/c/03dd8273d871a812b7d46c88c2994eee60aedbfd">
+          <strong>[frontend] add mechanism to block build batch until other one finishes</strong>
+          </a>
+        <div>
+                <a href='/user/frostyx'><img class="avatar circle" src="https://seccdn.libravatar.org/avatar/50cb2410ced8bea1b63b6c434081bd28f2a7e219ef74884d414e855322707ad0?s=16&d=retro"/></a> <a href='/copr/copr/commits/?author=frostyx%40email.cz' class="notblue">Jakub Kadlčík</a>
+                  <span class="commitdate"
+                  title="2019-03-27 21:49:41 UTC"> &bull;
+                19 days ago</span>&nbsp;&nbsp;
+            </div>
+          </div>
+          <div class="col-xs-auto pr-3 text-right">
+              <div class="btn-group">
+                <a href="/copr/copr/c/03dd8273d871a812b7d46c88c2994eee60aedbfd"
+                  class="btn btn-outline-primary font-weight-bold ">
+                  <code>03dd827</code>
+                </a>
+                <a class="btn btn-outline-primary font-weight-bold " href="/copr/copr/tree/03dd8273d871a812b7d46c88c2994eee60aedbfd"><span class="fa fa-file-code-o fa-fw"></span></a>
+              </div>
+            </div>
+      </div>
+      </div>
+        <div class="list-group-item">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="notblue" href="/copr/copr/c/652d9f5eeb0162141f16f46ebbb1e9be27caaaee">
+          <strong>[frontend] build is not finished when not even SRPM is finished</strong>
+          </a>
+        <div>
+                <a href='/user/frostyx'><img class="avatar circle" src="https://seccdn.libravatar.org/avatar/50cb2410ced8bea1b63b6c434081bd28f2a7e219ef74884d414e855322707ad0?s=16&d=retro"/></a> <a href='/copr/copr/commits/?author=frostyx%40email.cz' class="notblue">Jakub Kadlčík</a>
+                  <span class="commitdate"
+                  title="2019-03-27 21:45:56 UTC"> &bull;
+                19 days ago</span>&nbsp;&nbsp;
+            </div>
+          </div>
+          <div class="col-xs-auto pr-3 text-right">
+              <div class="btn-group">
+                <a href="/copr/copr/c/652d9f5eeb0162141f16f46ebbb1e9be27caaaee"
+                  class="btn btn-outline-primary font-weight-bold ">
+                  <code>652d9f5</code>
+                </a>
+                <a class="btn btn-outline-primary font-weight-bold " href="/copr/copr/tree/652d9f5eeb0162141f16f46ebbb1e9be27caaaee"><span class="fa fa-file-code-o fa-fw"></span></a>
+              </div>
+            </div>
+      </div>
+      </div>
+      </div>
+      <div class="row" id="pr-wrapper">
+        <div class="col-md-12">
+        <div>
+
+          
+
+
+
+
+    <section class="commit_diff">
+      <div class="card mb-3" id="_1">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/3f0f325954784dd36d37d1ebe599f44bd415a60b/f/frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py"
+        title="View file as of 3f0f325">frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-success disabled opacity-100 border-0 font-weight-bold">
+    file added
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+24</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/3f0f325954784dd36d37d1ebe599f44bd415a60b/f/frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py"
+        title="View file as of 3f0f325">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_1">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_1">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-1">
+<td class="cell1"><a id="_1__1" href="#_1__1" data-line-number="1" data-file-number="1"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -0,0 +1,24 @@</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-2">
+<td class="cell1"><a id="_1__2" href="#_1__2" data-line-number="2" data-file-number="1"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ &#34;&#34;&#34;Add blocked_by column for batch</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-3">
+<td class="cell1"><a id="_1__3" href="#_1__3" data-line-number="3" data-file-number="1"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-4">
+<td class="cell1"><a id="_1__4" href="#_1__4" data-line-number="4" data-file-number="1"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Revision ID: 8ae65946df53</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-5">
+<td class="cell1"><a id="_1__5" href="#_1__5" data-line-number="5" data-file-number="1"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Revises: b64659389c54</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-6">
+<td class="cell1"><a id="_1__6" href="#_1__6" data-line-number="6" data-file-number="1"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Create Date: 2019-03-27 18:38:03.758974</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-7">
+<td class="cell1"><a id="_1__7" href="#_1__7" data-line-number="7" data-file-number="1"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-8">
+<td class="cell1"><a id="_1__8" href="#_1__8" data-line-number="8" data-file-number="1"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ &#34;&#34;&#34;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-9">
+<td class="cell1"><a id="_1__9" href="#_1__9" data-line-number="9" data-file-number="1"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-10">
+<td class="cell1"><a id="_1__10" href="#_1__10" data-line-number="10" data-file-number="1"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ # revision identifiers, used by Alembic.</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-11">
+<td class="cell1"><a id="_1__11" href="#_1__11" data-line-number="11" data-file-number="1"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ revision = &#39;8ae65946df53&#39;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-12">
+<td class="cell1"><a id="_1__12" href="#_1__12" data-line-number="12" data-file-number="1"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ down_revision = &#39;b64659389c54&#39;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-13">
+<td class="cell1"><a id="_1__13" href="#_1__13" data-line-number="13" data-file-number="1"></a></td><td class="prc border-right" data-row="13" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-14">
+<td class="cell1"><a id="_1__14" href="#_1__14" data-line-number="14" data-file-number="1"></a></td><td class="prc border-right" data-row="14" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ from alembic import op</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-15">
+<td class="cell1"><a id="_1__15" href="#_1__15" data-line-number="15" data-file-number="1"></a></td><td class="prc border-right" data-row="15" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ import sqlalchemy as sa</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-16">
+<td class="cell1"><a id="_1__16" href="#_1__16" data-line-number="16" data-file-number="1"></a></td><td class="prc border-right" data-row="16" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-17">
+<td class="cell1"><a id="_1__17" href="#_1__17" data-line-number="17" data-file-number="1"></a></td><td class="prc border-right" data-row="17" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-18">
+<td class="cell1"><a id="_1__18" href="#_1__18" data-line-number="18" data-file-number="1"></a></td><td class="prc border-right" data-row="18" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ def upgrade():</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-19">
+<td class="cell1"><a id="_1__19" href="#_1__19" data-line-number="19" data-file-number="1"></a></td><td class="prc border-right" data-row="19" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.add_column(&#39;batch&#39;, sa.Column(&#39;blocked_by_id&#39;, sa.Integer(), nullable=True))</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-20">
+<td class="cell1"><a id="_1__20" href="#_1__20" data-line-number="20" data-file-number="1"></a></td><td class="prc border-right" data-row="20" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.create_foreign_key(&#39;batch_blocked_by_id_fkey&#39;, &#39;batch&#39;, &#39;batch&#39;, [&#39;blocked_by_id&#39;], [&#39;id&#39;])</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-21">
+<td class="cell1"><a id="_1__21" href="#_1__21" data-line-number="21" data-file-number="1"></a></td><td class="prc border-right" data-row="21" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-22">
+<td class="cell1"><a id="_1__22" href="#_1__22" data-line-number="22" data-file-number="1"></a></td><td class="prc border-right" data-row="22" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-23">
+<td class="cell1"><a id="_1__23" href="#_1__23" data-line-number="23" data-file-number="1"></a></td><td class="prc border-right" data-row="23" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ def downgrade():</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-24">
+<td class="cell1"><a id="_1__24" href="#_1__24" data-line-number="24" data-file-number="1"></a></td><td class="prc border-right" data-row="24" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.drop_constraint(&#39;batch_blocked_by_id_fkey&#39;, &#39;batch&#39;, type_=&#39;foreignkey&#39;)</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-25">
+<td class="cell1"><a id="_1__25" href="#_1__25" data-line-number="25" data-file-number="1"></a></td><td class="prc border-right" data-row="25" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.drop_column(&#39;batch&#39;, &#39;blocked_by_id&#39;)</code></pre></td>
+</tr>
+<tr id="c-3f0f325954784dd36d37d1ebe599f44bd415a60b-26">
+<td class="cell1"><a id="_1__26" href="#_1__26" data-line-number="26" data-file-number="1"></a></td><td class="prc border-right" data-row="26" data-filename="frontend/coprs_frontend/alembic/schema/versions/8ae65946df53_add_blocked_by_column_for_batch.py" data-commit="3f0f325954784dd36d37d1ebe599f44bd415a60b" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+    <section class="commit_diff">
+      <div class="card mb-3" id="_2">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/0af668fa94e37fa01f2c986379b59752fce8d1da/f/frontend/coprs_frontend/coprs/logic/builds_logic.py"
+        title="View file as of 0af668f">frontend/coprs_frontend/coprs/logic/builds_logic.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-secondary disabled opacity-100 border-0 font-weight-bold">
+    file modified
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+9</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/0af668fa94e37fa01f2c986379b59752fce8d1da/f/frontend/coprs_frontend/coprs/logic/builds_logic.py"
+        title="View file as of 0af668f">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_2">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_2">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-1">
+<td class="cell1"><a id="_2__1" href="#_2__1" data-line-number="1" data-file-number="2"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -1103,6 +1103,15 @@</code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-2">
+<td class="cell1"><a id="_2__2" href="#_2__2" data-line-number="2" data-file-number="2"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      def filter_by_package_name(cls, query, package_name):</code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-3">
+<td class="cell1"><a id="_2__3" href="#_2__3" data-line-number="3" data-file-number="2"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>          return query.join(models.Package).filter(models.Package.name == package_name)</code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-4">
+<td class="cell1"><a id="_2__4" href="#_2__4" data-line-number="4" data-file-number="2"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-5">
+<td class="cell1"><a id="_2__5" href="#_2__5" data-line-number="5" data-file-number="2"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     @classmethod</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-6">
+<td class="cell1"><a id="_2__6" href="#_2__6" data-line-number="6" data-file-number="2"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     def filter_not_blocked_batches(cls, builds):</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-7">
+<td class="cell1"><a id="_2__7" href="#_2__7" data-line-number="7" data-file-number="2"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+         filtered = []</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-8">
+<td class="cell1"><a id="_2__8" href="#_2__8" data-line-number="8" data-file-number="2"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+         for build in builds:</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-9">
+<td class="cell1"><a id="_2__9" href="#_2__9" data-line-number="9" data-file-number="2"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+             if build.batch and build.batch.blocked_by and not build.batch.blocked_by.finished:</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-10">
+<td class="cell1"><a id="_2__10" href="#_2__10" data-line-number="10" data-file-number="2"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+                 continue</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-11">
+<td class="cell1"><a id="_2__11" href="#_2__11" data-line-number="11" data-file-number="2"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+             filtered.append(build)</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-12">
+<td class="cell1"><a id="_2__12" href="#_2__12" data-line-number="12" data-file-number="2"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+         return filtered</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-13">
+<td class="cell1"><a id="_2__13" href="#_2__13" data-line-number="13" data-file-number="2"></a></td><td class="prc border-right" data-row="13" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-14">
+<td class="cell1"><a id="_2__14" href="#_2__14" data-line-number="14" data-file-number="2"></a></td><td class="prc border-right" data-row="14" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-15">
+<td class="cell1"><a id="_2__15" href="#_2__15" data-line-number="15" data-file-number="2"></a></td><td class="prc border-right" data-row="15" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  class BuildChrootsLogic(object):</code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-16">
+<td class="cell1"><a id="_2__16" href="#_2__16" data-line-number="16" data-file-number="2"></a></td><td class="prc border-right" data-row="16" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      @classmethod</code></pre></td>
+</tr>
+<tr id="c-0af668fa94e37fa01f2c986379b59752fce8d1da-17">
+<td class="cell1"><a id="_2__17" href="#_2__17" data-line-number="17" data-file-number="2"></a></td><td class="prc border-right" data-row="17" data-filename="frontend/coprs_frontend/coprs/logic/builds_logic.py" data-commit="0af668fa94e37fa01f2c986379b59752fce8d1da" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+    <section class="commit_diff">
+      <div class="card mb-3" id="_3">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/e930f4dc37901ea6e9fcf63fb88d1385d767bc1c/f/frontend/coprs_frontend/coprs/logic/modules_logic.py"
+        title="View file as of e930f4d">frontend/coprs_frontend/coprs/logic/modules_logic.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-secondary disabled opacity-100 border-0 font-weight-bold">
+    file modified
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+5</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/e930f4dc37901ea6e9fcf63fb88d1385d767bc1c/f/frontend/coprs_frontend/coprs/logic/modules_logic.py"
+        title="View file as of e930f4d">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_3">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_3">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-1">
+<td class="cell1"><a id="_3__1" href="#_3__1" data-line-number="1" data-file-number="3"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -111,8 +111,10 @@</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-2">
+<td class="cell1"><a id="_3__2" href="#_3__2" data-line-number="2" data-file-number="3"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>          return [batches[number] for number in sorted(batches.keys())]</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-3">
+<td class="cell1"><a id="_3__3" href="#_3__3" data-line-number="3" data-file-number="3"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-4">
+<td class="cell1"><a id="_3__4" href="#_3__4" data-line-number="4" data-file-number="3"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      def add_builds(self, rpms, module):</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-5">
+<td class="cell1"><a id="_3__5" href="#_3__5" data-line-number="5" data-file-number="3"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+         blocked_by_id = None</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-6">
+<td class="cell1"><a id="_3__6" href="#_3__6" data-line-number="6" data-file-number="3"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>          for group in self.get_build_batches(rpms):</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-7">
+<td class="cell1"><a id="_3__7" href="#_3__7" data-line-number="7" data-file-number="3"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>              batch = models.Batch()</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-8">
+<td class="cell1"><a id="_3__8" href="#_3__8" data-line-number="8" data-file-number="3"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+             batch.blocked_by_id = blocked_by_id</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-9">
+<td class="cell1"><a id="_3__9" href="#_3__9" data-line-number="9" data-file-number="3"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>              db.session.add(batch)</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-10">
+<td class="cell1"><a id="_3__10" href="#_3__10" data-line-number="10" data-file-number="3"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>              for pkgname, rpm in group.items():</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-11">
+<td class="cell1"><a id="_3__11" href="#_3__11" data-line-number="11" data-file-number="3"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>                  clone_url = self.get_clone_url(pkgname, rpm)</code></pre></td>
+</tr>
+<tr class="stretch-table-column bg-light"                    id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-12">
+<td class="cell1"><a id="_3__12" href="#_3__12" data-line-number="12" data-file-number="3"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -123,6 +125,9 @@</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-13">
+<td class="cell1"><a id="_3__13" href="#_3__13" data-line-number="13" data-file-number="3"></a></td><td class="prc border-right" data-row="13" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>                  build.module_id = module.id</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-14">
+<td class="cell1"><a id="_3__14" href="#_3__14" data-line-number="14" data-file-number="3"></a></td><td class="prc border-right" data-row="14" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>                  db.session.add(build)</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-15">
+<td class="cell1"><a id="_3__15" href="#_3__15" data-line-number="15" data-file-number="3"></a></td><td class="prc border-right" data-row="15" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-16">
+<td class="cell1"><a id="_3__16" href="#_3__16" data-line-number="16" data-file-number="3"></a></td><td class="prc border-right" data-row="16" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+             # Every batch needs to by blocked by the previous one</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-17">
+<td class="cell1"><a id="_3__17" href="#_3__17" data-line-number="17" data-file-number="3"></a></td><td class="prc border-right" data-row="17" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+             blocked_by_id = batch.id</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-18">
+<td class="cell1"><a id="_3__18" href="#_3__18" data-line-number="18" data-file-number="3"></a></td><td class="prc border-right" data-row="18" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-19">
+<td class="cell1"><a id="_3__19" href="#_3__19" data-line-number="19" data-file-number="3"></a></td><td class="prc border-right" data-row="19" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      def get_clone_url(self, pkgname, rpm):</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-20">
+<td class="cell1"><a id="_3__20" href="#_3__20" data-line-number="20" data-file-number="3"></a></td><td class="prc border-right" data-row="20" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>          if rpm.get_repository():</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-21">
+<td class="cell1"><a id="_3__21" href="#_3__21" data-line-number="21" data-file-number="3"></a></td><td class="prc border-right" data-row="21" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>              return rpm.get_repository()</code></pre></td>
+</tr>
+<tr id="c-e930f4dc37901ea6e9fcf63fb88d1385d767bc1c-22">
+<td class="cell1"><a id="_3__22" href="#_3__22" data-line-number="22" data-file-number="3"></a></td><td class="prc border-right" data-row="22" data-filename="frontend/coprs_frontend/coprs/logic/modules_logic.py" data-commit="e930f4dc37901ea6e9fcf63fb88d1385d767bc1c" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+    <section class="commit_diff">
+      <div class="card mb-3" id="_4">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/20046a1d7efd7826b2acd714e83f55da0b187c42/f/frontend/coprs_frontend/coprs/models.py"
+        title="View file as of 20046a1">frontend/coprs_frontend/coprs/models.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-secondary disabled opacity-100 border-0 font-weight-bold">
+    file modified
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+6</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/20046a1d7efd7826b2acd714e83f55da0b187c42/f/frontend/coprs_frontend/coprs/models.py"
+        title="View file as of 20046a1">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_4">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_4">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-1">
+<td class="cell1"><a id="_4__1" href="#_4__1" data-line-number="1" data-file-number="4"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -1332,6 +1332,12 @@</code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-2">
+<td class="cell1"><a id="_4__2" href="#_4__2" data-line-number="2" data-file-number="4"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-3">
+<td class="cell1"><a id="_4__3" href="#_4__3" data-line-number="3" data-file-number="4"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  class Batch(db.Model):</code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-4">
+<td class="cell1"><a id="_4__4" href="#_4__4" data-line-number="4" data-file-number="4"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      id = db.Column(db.Integer, primary_key=True)</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-5">
+<td class="cell1"><a id="_4__5" href="#_4__5" data-line-number="5" data-file-number="4"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     blocked_by_id = db.Column(db.Integer, db.ForeignKey(&#34;batch.id&#34;), nullable=True)</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-6">
+<td class="cell1"><a id="_4__6" href="#_4__6" data-line-number="6" data-file-number="4"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     blocked_by = db.relationship(&#34;Batch&#34;, remote_side=[id])</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-7">
+<td class="cell1"><a id="_4__7" href="#_4__7" data-line-number="7" data-file-number="4"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-8">
+<td class="cell1"><a id="_4__8" href="#_4__8" data-line-number="8" data-file-number="4"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     @property</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-9">
+<td class="cell1"><a id="_4__9" href="#_4__9" data-line-number="9" data-file-number="4"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     def finished(self):</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-10">
+<td class="cell1"><a id="_4__10" href="#_4__10" data-line-number="10" data-file-number="4"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+         return all([b.finished for b in self.builds])</code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-11">
+<td class="cell1"><a id="_4__11" href="#_4__11" data-line-number="11" data-file-number="4"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-12">
+<td class="cell1"><a id="_4__12" href="#_4__12" data-line-number="12" data-file-number="4"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-13">
+<td class="cell1"><a id="_4__13" href="#_4__13" data-line-number="13" data-file-number="4"></a></td><td class="prc border-right" data-row="13" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  class Module(db.Model, helpers.Serializer):</code></pre></td>
+</tr>
+<tr id="c-20046a1d7efd7826b2acd714e83f55da0b187c42-14">
+<td class="cell1"><a id="_4__14" href="#_4__14" data-line-number="14" data-file-number="4"></a></td><td class="prc border-right" data-row="14" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="20046a1d7efd7826b2acd714e83f55da0b187c42" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+    <section class="commit_diff">
+      <div class="card mb-3" id="_5">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/55a224ab7f82d477b04655c7ea781414ac30cfa2/f/frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py"
+        title="View file as of 55a224a">frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-secondary disabled opacity-100 border-0 font-weight-bold">
+    file modified
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+2</span>
+    <span class="btn btn-danger btn-sm font-weight-bold disabled opacity-100">-1</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/55a224ab7f82d477b04655c7ea781414ac30cfa2/f/frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py"
+        title="View file as of 55a224a">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_5">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_5">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-1">
+<td class="cell1"><a id="_5__1" href="#_5__1" data-line-number="1" data-file-number="5"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -183,8 +183,9 @@</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-2">
+<td class="cell1"><a id="_5__2" href="#_5__2" data-line-number="2" data-file-number="5"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      &#34;&#34;&#34;</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-3">
+<td class="cell1"><a id="_5__3" href="#_5__3" data-line-number="3" data-file-number="5"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      Return the job queue.</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-4">
+<td class="cell1"><a id="_5__4" href="#_5__4" data-line-number="4" data-file-number="5"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      &#34;&#34;&#34;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-5">
+<td class="cell1"><a id="_5__5" href="#_5__5" data-line-number="5" data-file-number="5"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     srpm_tasks = BuildsLogic.filter_not_blocked_batches(BuildsLogic.get_pending_srpm_build_tasks())</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-6">
+<td class="cell1"><a id="_5__6" href="#_5__6" data-line-number="6" data-file-number="5"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      build_records = ([get_build_record(task) for task in BuildsLogic.get_pending_build_tasks()] +</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-danger"                     id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-7">
+<td class="cell1"><a id="_5__7" href="#_5__7" data-line-number="7" data-file-number="5"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-danger"><code>-                      [get_srpm_build_record(task) for task in BuildsLogic.get_pending_srpm_build_tasks()])</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-8">
+<td class="cell1"><a id="_5__8" href="#_5__8" data-line-number="8" data-file-number="5"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+                      [get_srpm_build_record(task) for task in srpm_tasks])</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-9">
+<td class="cell1"><a id="_5__9" href="#_5__9" data-line-number="9" data-file-number="5"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      log.info(&#39;Selected build records: {}&#39;.format(build_records))</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-10">
+<td class="cell1"><a id="_5__10" href="#_5__10" data-line-number="10" data-file-number="5"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      return flask.jsonify(build_records)</code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-11">
+<td class="cell1"><a id="_5__11" href="#_5__11" data-line-number="11" data-file-number="5"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-55a224ab7f82d477b04655c7ea781414ac30cfa2-12">
+<td class="cell1"><a id="_5__12" href="#_5__12" data-line-number="12" data-file-number="5"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/coprs/views/backend_ns/backend_general.py" data-commit="55a224ab7f82d477b04655c7ea781414ac30cfa2" data-tree="5626f9e5ee1762b76aa287fc8fe6bfd4f7d54a92"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+    </div>
+
+        <div class="footer pt-4 text-white">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <div>
+                    <div>Powered by <a href="https://pagure.io/pagure" class="notblue">Pagure</a> 5.5</div>
+                    <div>
+                        <a href="https://docs.pagure.org/pagure/usage/index.html" class="notblue">Documentation</a> &bull;
+                        <a href="https://pagure.io/pagure/new_issue" class="notblue">File an Issue</a> &bull;
+                        <a href="/about">About</a> &bull;
+                        <a href="/ssh_info" class="notblue">SSH Hostkey/Fingerprint</a>
+                    </div>
+                </div>
+                <div class="ml-auto text-right">
+                    <div>&copy; 2014-2018 Red Hat, Inc. and others.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript"
+        src="/static/vendor/jquery/jquery.min.js?version=5.5">
+    </script>
+    <script src="/static/vendor/bootstrap/bootstrap.bundle.min.js?version=5.5"></script>
+
+    <script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip({placement : 'bottom'});
+    </script>
+
+<script type="text/javascript"
+        src="/static/vendor/lazyload/lazyload.min.js?version=5.5">
+    </script>
+<script type="text/javascript">
+window.addEventListener("load", function(event) {
+    lazyload();
+});
+
+</script>
+<script>
+$("#giturl-toggle").on('click', function(event){
+  event.stopPropagation();
+  $("#giturl-more").toggle();
+  $("#giturl-toggle").hide();
+})
+</script>
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+  $('#show_hidden_commits a').click(function(e){
+    $(".commitline.hidden").show();
+    $('#show_hidden_commits').hide();
+  });
+});
+
+</script>
+
+
+
+</body>
+</html>

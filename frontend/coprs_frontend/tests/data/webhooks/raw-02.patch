@@ -1,0 +1,42 @@
+diff --git a/frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py b/frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py
+new file mode 100644
+index 0000000..36426f4
+--- /dev/null
++++ b/frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py
+@@ -0,0 +1,21 @@
++"""add indexes3
++
++Revision ID: code4beaf000_add_indexes3.py
++Revises: deadbeafc0de
++Create Date: 2019-01-16 14:43:00.000000
++
++"""
++# revision identifiers, used by Alembic.
++revision = 'code4beaf000'
++down_revision = 'deadbeafc0de'
++
++from alembic import op
++import sqlalchemy as sa
++
++
++def upgrade():
++    op.create_index('build_canceled_is_background_source_status_id_idx', 'build', ['canceled', 'is_background', 'source_status', 'id'], unique=False)
++
++
++def downgrade():
++    op.drop_index('build_canceled_is_background_source_status_id_idx', table_name='build')
+diff --git a/frontend/coprs_frontend/coprs/models.py b/frontend/coprs_frontend/coprs/models.py
+index 55cba34..e8a9930 100644
+--- a/frontend/coprs_frontend/coprs/models.py
++++ b/frontend/coprs_frontend/coprs/models.py
+@@ -648,7 +648,9 @@ class Build(db.Model, helpers.Serializer):
+ 
+     __table_args__ = (db.Index('build_canceled', "canceled"),
+                       db.Index('build_order', "is_background", "id"),
+-                      db.Index('build_filter', "source_type", "canceled"))
++                      db.Index('build_filter', "source_type", "canceled"),
++                      db.Index('build_canceled_is_background_source_status_id_idx', 'canceled', "is_background", "source_status", "id"),
++                     )
+ 
+     def __init__(self, *args, **kwargs):
+         if kwargs.get('source_type') == helpers.BuildSourceEnum("custom"):

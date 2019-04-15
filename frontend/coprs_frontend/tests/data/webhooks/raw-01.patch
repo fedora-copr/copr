@@ -1,0 +1,156 @@
+diff --git a/frontend/coprs_frontend/coprs/forms.py b/frontend/coprs_frontend/coprs/forms.py
+index f82eb76..1149941 100644
+--- a/frontend/coprs_frontend/coprs/forms.py
++++ b/frontend/coprs_frontend/coprs/forms.py
+@@ -230,7 +230,7 @@ class ValueToPermissionNumberFilter(object):
+ class CoprFormFactory(object):
+ 
+     @staticmethod
+-    def create_form_cls(mock_chroots=None, user=None, group=None):
++    def create_form_cls(mock_chroots=None, user=None, group=None, copr=None):
+         class F(FlaskForm):
+             # also use id here, to be able to find out whether user
+             # is updating a copr if so, we don't want to shout
+@@ -268,7 +268,8 @@ class CoprFormFactory(object):
+                 validators=[
+                     wtforms.validators.Optional(),
+                     wtforms.validators.NumberRange(min=0, max=60),
+-                ])
++                ],
++                render_kw={'disabled': bool(copr and copr.persistent)})
+ 
+             repos = wtforms.TextAreaField(
+                 "External Repositories",
+@@ -282,16 +283,61 @@ class CoprFormFactory(object):
+                     UrlSrpmListValidator()],
+                 filters=[StringListFilter()])
+ 
+-            disable_createrepo = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+-            unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False, false_values=FALSE_VALUES)
+-            persistent = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+-            auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True, false_values=FALSE_VALUES)
+-            use_bootstrap_container = wtforms.BooleanField("Enable use_bootstrap_container mock's feature (experimental)", default=False, false_values=FALSE_VALUES)
+-            follow_fedora_branching = wtforms.BooleanField("If newly branched chroots should be automatically enabled and populated.", default=True, false_values=FALSE_VALUES)
++            disable_createrepo = wtforms.BooleanField(default=False,
++                    label="Create repositories manually",
++                    description="""When Fedora is branched from rawhide, the
++                    respective chroots for the new branch are automatically
++                    created for you (as soon as they are available) as rawhide
++                    chroot forks.""",
++                    false_values=FALSE_VALUES)
++
++            unlisted_on_hp = wtforms.BooleanField(
++                    "Project will not be listed on home page",
++                    default=False,
++                    false_values=FALSE_VALUES)
++
++            persistent = wtforms.BooleanField(
++                    "Protect project and its builds against deletion",
++                    description="""Project's builds and the project itself
++                    cannot be deleted by any means.  This option is set once and
++                    for all (this option can not be changed after project is
++                    created).""",
++                    render_kw={'disabled': bool(copr)},
++                    default=False, false_values=FALSE_VALUES)
++
++            auto_prune = wtforms.BooleanField(
++                    "Old builds will be deleted automatically",
++                    default=True, false_values=FALSE_VALUES,
++                    description="""Build will be deleted only if there is a
++                    newer build (with respect to package version) and it is
++                    older than 14 days""")
++
++            use_bootstrap_container = wtforms.BooleanField(
++                    "Enable mock's use_bootstrap_container experimental feature",
++                    description="""This will make the build slower but it has an
++                    advantage that the dnf _from_ the given chroot will be used
++                    to setup the chroot (otherwise host system dnf and rpm is
++                    used)""",
++                    default=False,
++                    false_values=FALSE_VALUES)
++
++            follow_fedora_branching = wtforms.BooleanField(
++                    "Follow Fedora branching",
++                    description="""When Fedora is branched from rawhide, the
++                    respective chroots for the new branch are automatically
++                    created for you (as soon as they are available) as rawhide
++                    chroot forks.""",
++                    default=True,
++                    false_values=FALSE_VALUES)
+ 
+             # Deprecated, use `enable_net` instead
+-            build_enable_net = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+-            enable_net = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
++            build_enable_net = wtforms.BooleanField(
++                    "Enable internet access during builds",
++                    default=False, false_values=FALSE_VALUES)
++
++            enable_net = wtforms.BooleanField(
++                    "Enable internet access during builds",
++                    default=False, false_values=FALSE_VALUES)
+ 
+             @property
+             def selected_chroots(self):
+@@ -308,6 +354,12 @@ class CoprFormFactory(object):
+                 if not self.validate_mock_chroots_not_empty():
+                     self.errors["chroots"] = ["At least one chroot must be selected"]
+                     return False
++
++                if self.persistent.data and self.delete_after_days.data:
++                    self.delete_after_days.errors.append(
++                        "'delete after' can not be combined with persistent")
++                    return False
++
+                 return True
+ 
+             def validate_mock_chroots_not_empty(self):
+diff --git a/frontend/coprs_frontend/coprs/static/css/custom-styles.css b/frontend/coprs_frontend/coprs/static/css/custom-styles.css
+index 308b43b..b554a7a 100644
+--- a/frontend/coprs_frontend/coprs/static/css/custom-styles.css
++++ b/frontend/coprs_frontend/coprs/static/css/custom-styles.css
+@@ -36,5 +36,5 @@ span.padding {
+ }
+ 
+ input.short-input-field {
+-    width: 10em;
++    width: 6em;
+ }
+diff --git a/frontend/coprs_frontend/coprs/templates/_helpers.html b/frontend/coprs_frontend/coprs/templates/_helpers.html
+index 6a1a85b..17201b6 100644
+--- a/frontend/coprs_frontend/coprs/templates/_helpers.html
++++ b/frontend/coprs_frontend/coprs/templates/_helpers.html
+@@ -30,6 +30,34 @@
+   {% endif %}
+ {% endmacro %}
+ 
++{% macro render_checkbox_field(title, items) %}
++<div class="form-group">
++  <label class="col-sm-2 control-label" for="textInput-markup">
++    {{ title }}
++  </label>
++  <div class="col-sm-10">
++    {% for tuple in items %}
++      {% set checkbox = tuple[0] %}
++      {% set show     = tuple[1] if tuple|length > 1 else True %}
++      {% if show %}
++    <div class="checkbox">
++      <label>
++        {{ checkbox }}
++        {{ checkbox.label.text }}
++        {% if checkbox.description %}
++        <br>
++        <small class="text-muted pficon pficon-info">
++          {{ checkbox.description }}
++        </small>
++        {% endif %}
++      </label>
++    </div>
++      {% endif %}
++    {% endfor %}
++  </div>
++</div>
++{% endmacro %}
++
+ {% macro render_pypi_python_versions_field(field) %}
+   <div class="form-group {% if field.errors %}has-error{% endif %}">
+     <label class="col-sm-2 control-label">

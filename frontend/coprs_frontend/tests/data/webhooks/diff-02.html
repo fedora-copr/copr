@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Diff from d26832fcefed0f151717d6af74a3216f82905f15 to 9f820311d8ac5874a62554bf8f513be502b6eade - copr/copr
+ - Pagure.io</title>
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon"
+        href="/theme/static/favicon.ico?version=5.5"/>
+    <link href="/theme/static/fedora-bootstrap-1.3.0/fedora-bootstrap.min.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+    <link href="/theme/static/fonts/fonts.css?version=5.5"
+        rel="stylesheet" type="text/css" />
+    <link href="/theme/static/fonts/hack_fonts/css/hack-extended.min.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+    <link href="/theme/static/theme.css?version=5.5"
+        type="text/css" rel="stylesheet" />
+
+    <link href="/static/pagure.css?version=5.5"
+    type="text/css" rel="stylesheet" />
+    <link href="/static/vendor/font-awesome/font-awesome.css?version=5.5"
+    type="text/css" rel="stylesheet" />
+<link href="/static/vendor/emojione/emojione.sprites.css?version=5.5"
+  rel="stylesheet" />
+<link href="/static/vendor/selectize/selectize.bootstrap3.css?version=5.5"
+  rel="stylesheet" />
+<link href="/static/vendor/jquery.atwho/jquery.atwho.css?version=5.5"
+  rel="stylesheet" />
+  </head>
+  <body id="home">
+    
+    <!-- start masthead -->
+    <nav class="navbar navbar-light masthead p-0 navbar-expand">
+      <div class="container">
+        <a href="/" class="navbar-brand">
+        <img height=40px src="/theme/static/pagure-logo.png?version=5.5"
+             alt="pagure Logo" id="pagureLogo"/>
+        </a>
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="btn btn-primary" href="/login/?next=https://pagure.io/copr/copr/c/d26832fcefed0f151717d6af74a3216f82905f15..9f820311d8ac5874a62554bf8f513be502b6eade">Log In</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- close masthead-->
+
+    <div class="bodycontent">
+
+
+<div class="bg-light border border-bottom pt-3">
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-6">
+        <div class="row">
+        <div class="col-auto pr-0">
+            <h3>
+<i class="fa fa-calendar-o fa-rotate-270 text-muted"></i></h3>
+        </div>
+        <div class="col-auto pl-2">
+            <h3 class="mb-0">
+<a href="/projects/copr/%2A">copr</a>&nbsp;/&nbsp;<a href="/copr/copr"><strong>copr</strong></a>
+            </h3>
+        </div>
+        </div>
+      </div>
+      <div class="col-6 text-right">
+        <div class="btn-group">
+        <div class="btn-group">
+        <a href="#"
+            class="btn btn-sm dropdown-toggle btn-outline-primary"
+            data-toggle="dropdown" id="watch-button">
+          <i class="fa fa-clone fa-fw"></i>
+          <span>Clone</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right">
+          <div class="m-3" style="width:300px;">
+            <div>
+              <h5><strong>Source Code</strong></h5>
+
+              <div class="form-group">
+                <div class="input-group input-group-sm">
+                  <div class="input-group-prepend"><span class="input-group-text">GIT</span></div>
+                  <input class="form-control bg-white" type="text" value="https://pagure.io/copr/copr.git" readonly>
+                </div>
+              </div>
+
+                <div id="giturl-more" class="hidden">
+                  <h5><strong>Documentation</strong></h5>
+                  <div class="form-group">
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-prepend"><span class="input-group-text">GIT</span></div>
+                      <input class="form-control bg-white" type="text" value="https://pagure.io/docs/copr/copr.git" readonly>
+                    </div>
+                  </div>
+
+
+                <hr />
+                <p>
+                  <a href="https://docs.pagure.org/pagure/usage/" target="_blank" rel="noopener noreferrer">
+                    Learn more about these different git repos.
+                  </a>
+                </p>
+              </div>
+              <p class="text-right">
+                <a href="javascript:void(0)" id="giturl-toggle">
+                  Other Git URLs <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-tabs nav-small border-bottom-0">
+  <li class="nav-item mr-2 text-dark">
+    <a class="nav-link active" href="/copr/copr">
+        <i class="fa fa-code fa-fw text-muted"></i>
+        <span class="d-none d-md-inline">Source</span>
+    </a>
+  </li>
+    <li class="nav-item mr-2 text-dark" >
+      <a  class="nav-link" href="/docs/copr/copr/">
+          <i class="fa fa-book fa-fw text-muted"></i>
+          <span class="d-none d-md-inline">Docs</span>
+      </a>
+    </li>
+
+    <li class="nav-item mr-2 text-dark">
+        <a class="nav-link" href="/copr/copr/issues">
+            <i class="fa fa-fw text-muted fa-exclamation-circle"></i>
+            <span class="d-none d-md-inline">Issues&nbsp;</span>
+            <span class="badge badge-secondary py-0 d-none d-md-inline">
+              113
+            </span>
+        </a>
+    </li>
+
+    <li class="nav-item mr-2 text-dark">
+      <a class="nav-link" href="/copr/copr/pull-requests">
+          <i class="fa fa-fw text-muted fa-arrow-circle-down"></i>
+          <span class="d-none d-md-inline">Pull Requests&nbsp;</span>
+          <span class="badge badge-secondary py-0 d-none d-md-inline">
+            10
+          </span>
+      </a>
+    </li>
+
+
+    <li class="nav-item mr-2 text-dark">
+      <a class="nav-link" href="/copr/copr/stats">
+          <i class="fa fa-line-chart fa-fw text-muted"></i>
+          <span class="d-none d-md-inline">Stats</span>
+      </a>
+    </li>
+
+
+</ul>
+  </div>
+</div>
+
+<div class="container pt-5 repo-body-container">
+<div class="row">
+  <div class="col">
+<nav class="nav nav-tabs nav-sidetabs flex-column">
+    <a class=
+        "nav-link nowrap
+"
+        href="/copr/copr">
+        <i class="fa fa-home text-muted fa-fw"></i>&nbsp;<span class="d-none d-md-inline">Overview</span>
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/tree/">
+      <i class="fa fa-file-code-o text-muted fa-fw"></i>&nbsp;Files
+    </a>
+    <a class=
+      "nav-link nowrap
+ active"
+      href="/copr/copr/commits/">
+      <i class="fa fa-list-alt text-muted fa-fw" data-glyph="spreadsheet"></i>&nbsp;Commits
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/branches?branchname=">
+      <i class="fa fa-random text-muted fa-fw"></i>&nbsp;Branches
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/forks">
+      <i class="fa fa-code-fork text-muted fa-fw"></i>&nbsp;Forks
+    </a>
+    <a class=
+      "nav-link nowrap
+"
+      href="/copr/copr/releases">
+      <i class="fa fa-tags text-muted fa-fw"></i>&nbsp;Releases
+    </a>
+  </nav>
+  </div>
+  <div class="col-10">
+    <h4 class="font-weight-bold mb-4">
+      <div class="d-flex align-items-center">
+        <div>
+          Commit Diff
+        </div>
+        <div class="ml-auto">
+          <div class="btn btn-outline-secondary border-0 disabled opacity-100 font-weight-bold">
+            2 files changed
+          </div>
+        </div>
+        <div class="btn-group">
+          <span class="font-weight-bold btn btn-sm btn-success disabled opacity-100">+24</span>
+          <span class="font-weight-bold btn btn-sm btn-danger disabled opacity-100">-1</span>
+        </div>
+      </div>
+      <div>
+        <span class="badge-light border border-secondary badge">d26832fcefed0f151717d6af74a3216f82905f15</span>
+        ..
+        <span class="badge-light border border-secondary badge">9f820311d8ac5874a62554bf8f513be502b6eade</span>
+      </div>
+    </h4>
+    <div class="list-group mb-5">
+        <div class="list-group-item">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="notblue" href="/copr/copr/c/9f820311d8ac5874a62554bf8f513be502b6eade">
+          <strong>Merge #501 `add index build(canceled, is_background, source_status, id)`</strong>
+          </a>
+        <div>
+                <a href='/user/msuchy'><img class="avatar circle" src="https://seccdn.libravatar.org/avatar/80f85d3d44088d0368f4de6147bfbd40a34bdec53cf53e293cddde526e6ea1a1?s=16&d=retro"/></a> <a href='/copr/copr/commits/?author=msuchy%40redhat.com' class="notblue">Miroslav Suchý</a>
+                  <span class="commitdate"
+                  title="2019-01-29 14:18:06 UTC"> &bull;
+                3 months ago</span>&nbsp;&nbsp;
+            </div>
+          </div>
+          <div class="col-xs-auto pr-3 text-right">
+              <div class="btn-group">
+                <a href="/copr/copr/c/9f820311d8ac5874a62554bf8f513be502b6eade"
+                  class="btn btn-outline-primary font-weight-bold ">
+                  <code>9f82031</code>
+                </a>
+                <a class="btn btn-outline-primary font-weight-bold " href="/copr/copr/tree/9f820311d8ac5874a62554bf8f513be502b6eade"><span class="fa fa-file-code-o fa-fw"></span></a>
+              </div>
+            </div>
+      </div>
+      </div>
+        <div class="list-group-item">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="notblue" href="/copr/copr/c/d26832fcefed0f151717d6af74a3216f82905f15">
+          <strong>[frontend] set webhook_rebuild even in APIv3</strong>
+          </a>
+        <div>
+                <a href='/user/frostyx'><img class="avatar circle" src="https://seccdn.libravatar.org/avatar/50cb2410ced8bea1b63b6c434081bd28f2a7e219ef74884d414e855322707ad0?s=16&d=retro"/></a> <a href='/copr/copr/commits/?author=frostyx%40email.cz' class="notblue">Jakub Kadlčík</a>
+                  <span class="commitdate"
+                  title="2019-01-25 18:46:33 UTC"> &bull;
+                3 months ago</span>&nbsp;&nbsp;
+            </div>
+          </div>
+          <div class="col-xs-auto pr-3 text-right">
+              <div class="btn-group">
+                <a href="/copr/copr/c/d26832fcefed0f151717d6af74a3216f82905f15"
+                  class="btn btn-outline-primary font-weight-bold ">
+                  <code>d26832f</code>
+                </a>
+                <a class="btn btn-outline-primary font-weight-bold " href="/copr/copr/tree/d26832fcefed0f151717d6af74a3216f82905f15"><span class="fa fa-file-code-o fa-fw"></span></a>
+              </div>
+            </div>
+      </div>
+      </div>
+      </div>
+      <div class="row" id="pr-wrapper">
+        <div class="col-md-12">
+        <div>
+
+          
+
+
+
+
+    <section class="commit_diff">
+      <div class="card mb-3" id="_1">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/36426f420c32e25f62080f775bdffc8499186b0a/f/frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py"
+        title="View file as of 36426f4">frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-success disabled opacity-100 border-0 font-weight-bold">
+    file added
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+21</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/36426f420c32e25f62080f775bdffc8499186b0a/f/frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py"
+        title="View file as of 36426f4">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_1">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_1">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-36426f420c32e25f62080f775bdffc8499186b0a-1">
+<td class="cell1"><a id="_1__1" href="#_1__1" data-line-number="1" data-file-number="1"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -0,0 +1,21 @@</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-2">
+<td class="cell1"><a id="_1__2" href="#_1__2" data-line-number="2" data-file-number="1"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ &#34;&#34;&#34;add indexes3</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-3">
+<td class="cell1"><a id="_1__3" href="#_1__3" data-line-number="3" data-file-number="1"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-4">
+<td class="cell1"><a id="_1__4" href="#_1__4" data-line-number="4" data-file-number="1"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Revision ID: code4beaf000_add_indexes3.py</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-5">
+<td class="cell1"><a id="_1__5" href="#_1__5" data-line-number="5" data-file-number="1"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Revises: deadbeafc0de</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-6">
+<td class="cell1"><a id="_1__6" href="#_1__6" data-line-number="6" data-file-number="1"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ Create Date: 2019-01-16 14:43:00.000000</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-7">
+<td class="cell1"><a id="_1__7" href="#_1__7" data-line-number="7" data-file-number="1"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-8">
+<td class="cell1"><a id="_1__8" href="#_1__8" data-line-number="8" data-file-number="1"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ &#34;&#34;&#34;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-9">
+<td class="cell1"><a id="_1__9" href="#_1__9" data-line-number="9" data-file-number="1"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ # revision identifiers, used by Alembic.</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-10">
+<td class="cell1"><a id="_1__10" href="#_1__10" data-line-number="10" data-file-number="1"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ revision = &#39;code4beaf000&#39;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-11">
+<td class="cell1"><a id="_1__11" href="#_1__11" data-line-number="11" data-file-number="1"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ down_revision = &#39;deadbeafc0de&#39;</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-12">
+<td class="cell1"><a id="_1__12" href="#_1__12" data-line-number="12" data-file-number="1"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-13">
+<td class="cell1"><a id="_1__13" href="#_1__13" data-line-number="13" data-file-number="1"></a></td><td class="prc border-right" data-row="13" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ from alembic import op</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-14">
+<td class="cell1"><a id="_1__14" href="#_1__14" data-line-number="14" data-file-number="1"></a></td><td class="prc border-right" data-row="14" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ import sqlalchemy as sa</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-15">
+<td class="cell1"><a id="_1__15" href="#_1__15" data-line-number="15" data-file-number="1"></a></td><td class="prc border-right" data-row="15" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-16">
+<td class="cell1"><a id="_1__16" href="#_1__16" data-line-number="16" data-file-number="1"></a></td><td class="prc border-right" data-row="16" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-17">
+<td class="cell1"><a id="_1__17" href="#_1__17" data-line-number="17" data-file-number="1"></a></td><td class="prc border-right" data-row="17" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ def upgrade():</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-18">
+<td class="cell1"><a id="_1__18" href="#_1__18" data-line-number="18" data-file-number="1"></a></td><td class="prc border-right" data-row="18" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.create_index(&#39;build_canceled_is_background_source_status_id_idx&#39;, &#39;build&#39;, [&#39;canceled&#39;, &#39;is_background&#39;, &#39;source_status&#39;, &#39;id&#39;], unique=False)</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-19">
+<td class="cell1"><a id="_1__19" href="#_1__19" data-line-number="19" data-file-number="1"></a></td><td class="prc border-right" data-row="19" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-20">
+<td class="cell1"><a id="_1__20" href="#_1__20" data-line-number="20" data-file-number="1"></a></td><td class="prc border-right" data-row="20" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ </code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-21">
+<td class="cell1"><a id="_1__21" href="#_1__21" data-line-number="21" data-file-number="1"></a></td><td class="prc border-right" data-row="21" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+ def downgrade():</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-36426f420c32e25f62080f775bdffc8499186b0a-22">
+<td class="cell1"><a id="_1__22" href="#_1__22" data-line-number="22" data-file-number="1"></a></td><td class="prc border-right" data-row="22" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+     op.drop_index(&#39;build_canceled_is_background_source_status_id_idx&#39;, table_name=&#39;build&#39;)</code></pre></td>
+</tr>
+<tr id="c-36426f420c32e25f62080f775bdffc8499186b0a-23">
+<td class="cell1"><a id="_1__23" href="#_1__23" data-line-number="23" data-file-number="1"></a></td><td class="prc border-right" data-row="23" data-filename="frontend/coprs_frontend/alembic/schema/versions/code4beaf000_add_indexes3.py" data-commit="36426f420c32e25f62080f775bdffc8499186b0a" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+    <section class="commit_diff">
+      <div class="card mb-3" id="_2">
+        <div class="card-header">
+          <div class="d-flex align-items-center"><div>
+                        <a class="font-weight-bold ml-2" href="/copr/copr/blob/e8a99302867f9200ac89fe51c70c2c6c264fef87/f/frontend/coprs_frontend/coprs/models.py"
+        title="View file as of e8a9930">frontend/coprs_frontend/coprs/models.py</a>
+
+              </div>
+              <div class="d-flex align-items-center ml-auto">
+                  <div class="btn btn-outline-secondary disabled opacity-100 border-0 font-weight-bold">
+    file modified
+  </div>
+
+                <div class="btn-group">
+    <span class="btn btn-success btn-sm font-weight-bold disabled opacity-100">+3</span>
+    <span class="btn btn-danger btn-sm font-weight-bold disabled opacity-100">-1</span>
+  </div>
+
+                      <a class="btn btn-outline-primary  btn-sm ml-2" href="/copr/copr/blob/e8a99302867f9200ac89fe51c70c2c6c264fef87/f/frontend/coprs_frontend/coprs/models.py"
+        title="View file as of e8a9930">
+        <i class="fa fa-file-code-o fa-fw"></i>
+      </a>
+
+                  <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary diffhighlightcollapse ml-2" data-toggle="collapse" data-target="#diffhighlight_2">
+    <i class="fa fa-fw fa-caret-up"></i>
+  </a>
+
+              </div></div>
+        </div>
+          <div class="card-body p-0 collapse show" id="diffhighlight_2">
+              <div class="highlight">
+<table class="code_table">
+<tr class="stretch-table-column bg-light"                    id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-1">
+<td class="cell1"><a id="_2__1" href="#_2__1" data-line-number="1" data-file-number="2"></a></td><td class="prc border-right" data-row="1" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="text-muted"><code>@@ -648,7 +648,9 @@</code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-2">
+<td class="cell1"><a id="_2__2" href="#_2__2" data-line-number="2" data-file-number="2"></a></td><td class="prc border-right" data-row="2" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-3">
+<td class="cell1"><a id="_2__3" href="#_2__3" data-line-number="3" data-file-number="2"></a></td><td class="prc border-right" data-row="3" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      __table_args__ = (db.Index(&#39;build_canceled&#39;, &#34;canceled&#34;),</code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-4">
+<td class="cell1"><a id="_2__4" href="#_2__4" data-line-number="4" data-file-number="2"></a></td><td class="prc border-right" data-row="4" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>                        db.Index(&#39;build_order&#39;, &#34;is_background&#34;, &#34;id&#34;),</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-danger"                     id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-5">
+<td class="cell1"><a id="_2__5" href="#_2__5" data-line-number="5" data-file-number="2"></a></td><td class="prc border-right" data-row="5" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-danger"><code>-                       db.Index(&#39;build_filter&#39;, &#34;source_type&#34;, &#34;canceled&#34;))</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-6">
+<td class="cell1"><a id="_2__6" href="#_2__6" data-line-number="6" data-file-number="2"></a></td><td class="prc border-right" data-row="6" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+                       db.Index(&#39;build_filter&#39;, &#34;source_type&#34;, &#34;canceled&#34;),</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-7">
+<td class="cell1"><a id="_2__7" href="#_2__7" data-line-number="7" data-file-number="2"></a></td><td class="prc border-right" data-row="7" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+                       db.Index(&#39;build_canceled_is_background_source_status_id_idx&#39;, &#39;canceled&#39;, &#34;is_background&#34;, &#34;source_status&#34;, &#34;id&#34;),</code></pre></td>
+</tr>
+<tr class="stretch-table-column alert-success"                     id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-8">
+<td class="cell1"><a id="_2__8" href="#_2__8" data-line-number="8" data-file-number="2"></a></td><td class="prc border-right" data-row="8" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2 stretch-table-column">                    <pre class="alert-success"><code>+                      )</code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-9">
+<td class="cell1"><a id="_2__9" href="#_2__9" data-line-number="9" data-file-number="2"></a></td><td class="prc border-right" data-row="9" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>  </code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-10">
+<td class="cell1"><a id="_2__10" href="#_2__10" data-line-number="10" data-file-number="2"></a></td><td class="prc border-right" data-row="10" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>      def __init__(self, *args, **kwargs):</code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-11">
+<td class="cell1"><a id="_2__11" href="#_2__11" data-line-number="11" data-file-number="2"></a></td><td class="prc border-right" data-row="11" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+<td class="cell2"><pre><code>          if kwargs.get(&#39;source_type&#39;) == helpers.BuildSourceEnum(&#34;custom&#34;):</code></pre></td>
+</tr>
+<tr id="c-e8a99302867f9200ac89fe51c70c2c6c264fef87-12">
+<td class="cell1"><a id="_2__12" href="#_2__12" data-line-number="12" data-file-number="2"></a></td><td class="prc border-right" data-row="12" data-filename="frontend/coprs_frontend/coprs/models.py" data-commit="e8a99302867f9200ac89fe51c70c2c6c264fef87" data-tree="8a2fb3efc9f05fdc6494d4e75bf4859d49dfb4f9"><p><span class="fa fa-comment prc_img" style="display: none;"alt="Add comment" title="Add comment"></span></p></td>
+
+</table></div>
+          </div>
+
+      </div>
+      </section>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+    </div>
+
+        <div class="footer pt-4 text-white">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <div>
+                    <div>Powered by <a href="https://pagure.io/pagure" class="notblue">Pagure</a> 5.5</div>
+                    <div>
+                        <a href="https://docs.pagure.org/pagure/usage/index.html" class="notblue">Documentation</a> &bull;
+                        <a href="https://pagure.io/pagure/new_issue" class="notblue">File an Issue</a> &bull;
+                        <a href="/about">About</a> &bull;
+                        <a href="/ssh_info" class="notblue">SSH Hostkey/Fingerprint</a>
+                    </div>
+                </div>
+                <div class="ml-auto text-right">
+                    <div>&copy; 2014-2018 Red Hat, Inc. and others.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript"
+        src="/static/vendor/jquery/jquery.min.js?version=5.5">
+    </script>
+    <script src="/static/vendor/bootstrap/bootstrap.bundle.min.js?version=5.5"></script>
+
+    <script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip({placement : 'bottom'});
+    </script>
+
+<script type="text/javascript"
+        src="/static/vendor/lazyload/lazyload.min.js?version=5.5">
+    </script>
+<script type="text/javascript">
+window.addEventListener("load", function(event) {
+    lazyload();
+});
+
+</script>
+<script>
+$("#giturl-toggle").on('click', function(event){
+  event.stopPropagation();
+  $("#giturl-more").toggle();
+  $("#giturl-toggle").hide();
+})
+</script>
+
+<script type="text/javascript">
+
+$(document).ready(function () {
+  $('#show_hidden_commits a').click(function(e){
+    $(".commitline.hidden").show();
+    $('#show_hidden_commits').hide();
+  });
+});
+
+</script>
+
+
+
+</body>
+</html>
