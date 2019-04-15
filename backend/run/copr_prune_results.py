@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import re
 import shutil
 import sys
 import logging
@@ -191,7 +190,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
             continue
         if not os.path.isfile(os.path.join(dir_path, 'build.info')):
             continue
-        if [item for item in os.listdir(dir_path) if re.match(r'.*\.rpm$', item)]:
+        if [item for item in os.listdir(dir_path) if item.endswith(".rpm")]:
             continue
         if time.time() - os.stat(dir_path).st_mtime <= days * 24 * 3600:
             continue
