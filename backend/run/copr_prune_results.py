@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import re
 import shutil
 import sys
 import logging
@@ -162,13 +163,13 @@ class Pruner(object):
                     continue
 
             try:
-                cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days),
-                       '--cleancopr', '--nocreaterepo', chroot_path]
+                cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days), '--nocreaterepo', chroot_path]
                 stdout = runcmd(cmd)
                 loginfo(stdout)
                 createrepo(path=chroot_path, front_url=self.opts.frontend_base_url,
                            username=username, projectname=projectname,
                            override_acr_flag=True)
+                clean_copr(chroot_path, self.prune_days, verbose=True)
             except Exception as err:
                 logexception(err)
                 logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
@@ -176,6 +177,44 @@ class Pruner(object):
             loginfo("Pruning done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
 
         loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
+
+
+def clean_copr(path, days=DEF_DAYS, verbose=True):
+    """
+    Remove whole copr build dirs if they no longer contain a srpm/rpm file
+    """
+    loginfo("Cleaning COPR repository...")
+    for dir_name in os.listdir(path):
+        dir_path = os.path.abspath(os.path.join(path, dir_name))
+
+        if not os.path.isdir(dir_path):
+            continue
+        if not os.path.isfile(os.path.join(dir_path, 'build.info')):
+            continue
+        if [item for item in os.listdir(dir_path) if re.match(r'.*\.rpm$', item)]:
+            continue
+        if time.time() - os.stat(dir_path).st_mtime <= days * 24 * 3600:
+            continue
+
+        if verbose:
+            loginfo('Removing: ' + dir_path)
+        shutil.rmtree(dir_path)
+
+        # also remove the associated log in the main dir
+        build_id = os.path.basename(dir_path).split('-')[0]
+        buildlog_name = 'build-' + build_id + '.log'
+        buildlog_path = os.path.abspath(os.path.join(path, buildlog_name))
+        rm_file(os.path.join(path, buildlog_path))
+
+
+def rm_file(path, verbose=True):
+    """
+    Remove file given its absolute path
+    """
+    if verbose:
+        loginfo("Removing: "+path)
+    if os.path.exists(path) and os.path.isfile(path):
+        os.remove(path)
 
 
 def main():
