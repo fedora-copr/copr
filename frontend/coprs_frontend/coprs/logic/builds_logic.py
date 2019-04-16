@@ -1114,7 +1114,7 @@ ORDER BY
                 models.CoprDir.id,
                 models.Package.id,
                 models.Package.max_builds)
-            .join(models.Build)
+            .join(models.Build, models.Build.copr_dir_id==models.CoprDir.id)
             .join(models.Package)
             .filter(models.Package.max_builds > 0)
             .group_by(
