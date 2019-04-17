@@ -97,7 +97,7 @@ def search_projects(query, **kwargs):
 @api_login_required
 def add_project(ownername):
     data = rename_fields(get_form_compatible_data())
-    form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
+    form = forms.CoprFormFactory.create_form_cls()(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
@@ -141,7 +141,7 @@ def add_project(ownername):
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data())
-    form = forms.CoprModifyForm(data, csrf_enabled=False)
+    form = forms.CoprModifyForm(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
@@ -182,7 +182,7 @@ def fork_project(ownername, projectname):
     data["owner"] = data.get("ownername")
 
     form = forms.CoprForkFormFactory \
-        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(data, csrf_enabled=False)
+        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(data, meta={'csrf': False})
 
     if form.validate_on_submit() and copr:
         try:
@@ -210,7 +210,7 @@ def fork_project(ownername, projectname):
 def delete_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     copr_dict = to_dict(copr)
-    form = forms.APICoprDeleteForm(csrf_enabled=False)
+    form = forms.APICoprDeleteForm(meta={'csrf': False})
 
     if form.validate_on_submit() and copr:
         try:

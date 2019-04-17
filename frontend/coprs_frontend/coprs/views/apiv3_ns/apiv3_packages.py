@@ -114,7 +114,7 @@ def package_reset():
 def package_build():
     copr = get_copr()
     data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
-    form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, meta={'csrf': False})
     try:
         package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
     except IndexError:

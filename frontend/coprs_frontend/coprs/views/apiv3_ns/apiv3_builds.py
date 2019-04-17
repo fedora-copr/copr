@@ -126,7 +126,7 @@ def cancel_build(build_id):
 def create_from_url():
     copr = get_copr()
     data = get_form_compatible_data()
-    form = forms.BuildFormUrlFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build():
         # create separate build for each package
@@ -147,7 +147,7 @@ def create_from_url():
 def create_from_upload():
     copr = get_copr()
     data = get_form_compatible_data()
-    form = forms.BuildFormUploadFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_upload(
@@ -166,7 +166,7 @@ def create_from_upload():
 def create_from_scm():
     copr = get_copr()
     data = rename_fields(get_form_compatible_data())
-    form = forms.BuildFormScmFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormScmFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -190,7 +190,7 @@ def create_from_scm():
 def create_from_pypi():
     copr = get_copr()
     data = MultiDict(json2form.without_empty_fields(json2form.get_input()))
-    form = forms.BuildFormPyPIFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:
@@ -216,7 +216,7 @@ def create_from_pypi():
 def create_from_rubygems():
     copr = get_copr()
     data = get_form_compatible_data()
-    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_rubygems(
@@ -235,7 +235,7 @@ def create_from_rubygems():
 def create_from_custom():
     copr = get_copr()
     data = get_form_compatible_data()
-    form = forms.BuildFormCustomFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormCustomFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_custom(

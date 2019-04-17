@@ -21,7 +21,7 @@ def to_dict(module):
 @file_upload()
 def build_module(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    form = forms.ModuleBuildForm(csrf_enabled=False)
+    form = forms.ModuleBuildForm(meta={'csrf': False})
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
 

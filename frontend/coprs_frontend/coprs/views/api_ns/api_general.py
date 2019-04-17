@@ -126,7 +126,7 @@ def api_new_copr(username):
 
     """
 
-    form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
+    form = forms.CoprFormFactory.create_form_cls()(meta={'csrf': False})
     infos = []
 
     # are there any arguments in POST which our form doesn't know?
@@ -200,7 +200,7 @@ def api_new_copr(username):
 def api_copr_delete(copr):
     """ Deletes selected user's project
     """
-    form = forms.CoprDeleteForm(csrf_enabled=False)
+    form = forms.CoprDeleteForm(meta={'csrf': False})
     httpcode = 200
 
     if form.validate_on_submit() and copr:
@@ -228,7 +228,7 @@ def api_copr_fork(copr):
     """ Fork the project and builds in it
     """
     form = forms.CoprForkFormFactory\
-        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
+        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(meta={'csrf': False})
 
     if form.validate_on_submit() and copr:
         try:
@@ -378,7 +378,7 @@ def new_webhook_secret(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build(copr):
-    form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         # create separate build for each package
@@ -396,7 +396,7 @@ def copr_new_build(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_upload(copr):
-    form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUploadFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_upload(
@@ -413,7 +413,7 @@ def copr_new_build_upload(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_pypi(copr):
-    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(meta={'csrf': False})
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:
@@ -440,7 +440,7 @@ def copr_new_build_tito(copr):
     """
     @deprecated
     """
-    form = forms.BuildFormTitoFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormTitoFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -464,7 +464,7 @@ def copr_new_build_mock(copr):
     """
     @deprecated
     """
-    form = forms.BuildFormMockFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormMockFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -485,7 +485,7 @@ def copr_new_build_mock(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_rubygems(copr):
-    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_rubygems(
@@ -502,7 +502,7 @@ def copr_new_build_rubygems(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_custom(copr):
-    form = forms.BuildFormCustomFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormCustomFactory(copr.active_chroots)(meta={'csrf': False})
     def create_new_build():
         return BuildsLogic.create_new_from_custom(
             flask.g.user,
@@ -521,7 +521,7 @@ def copr_new_build_custom(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_scm(copr):
-    form = forms.BuildFormScmFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormScmFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -546,7 +546,7 @@ def copr_new_build_distgit(copr):
     """
     @deprecated
     """
-    form = forms.BuildFormDistGitFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormDistGitFactory(copr.active_chroots)(meta={'csrf': False})
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -674,7 +674,7 @@ def delete_build(build_id):
 @api_login_required
 @api_req_with_copr
 def copr_modify(copr):
-    form = forms.CoprModifyForm(csrf_enabled=False)
+    form = forms.CoprModifyForm(meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: {0}".format(form.errors))
@@ -729,7 +729,7 @@ def copr_modify(copr):
 @api_req_with_copr
 def copr_modify_chroot(copr, chrootname):
     """Deprecated to copr_edit_chroot"""
-    form = forms.ModifyChrootForm(csrf_enabled=False)
+    form = forms.ModifyChrootForm(meta={'csrf': False})
     # chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
@@ -747,7 +747,7 @@ def copr_modify_chroot(copr, chrootname):
 @api_login_required
 @api_req_with_copr
 def copr_edit_chroot(copr, chrootname):
-    form = forms.ModifyChrootForm(csrf_enabled=False)
+    form = forms.ModifyChrootForm(meta={'csrf': False})
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
@@ -876,7 +876,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
                 value = package.source_json_dict[key]
                 add_function = formdata.setlist if type(value) == list else formdata.add
                 add_function(key, value)
-        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, csrf_enabled=False)
+        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, meta={'csrf': False})
     except UnknownSourceTypeException:
         raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
 
@@ -1017,7 +1017,7 @@ def copr_reset_package(copr, package_name):
 @api_login_required
 @api_req_with_copr
 def copr_build_package(copr, package_name):
-    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(meta={'csrf': False})
 
     try:
         package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
@@ -1044,7 +1044,7 @@ def copr_build_package(copr, package_name):
 @api_login_required
 @api_req_with_copr
 def copr_build_module(copr):
-    form = forms.ModuleBuildForm(csrf_enabled=False)
+    form = forms.ModuleBuildForm(meta={'csrf': False})
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
 

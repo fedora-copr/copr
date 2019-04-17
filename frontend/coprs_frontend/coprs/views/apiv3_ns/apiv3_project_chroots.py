@@ -79,7 +79,7 @@ def get_build_config(ownername, projectname, chrootname):
 def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data())
-    form = forms.ModifyChrootForm(data, csrf_enabled=False)
+    form = forms.ModifyChrootForm(data, meta={'csrf': False})
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
