@@ -391,7 +391,7 @@ class CoprDeleteForm(FlaskForm):
     verify = wtforms.TextField(
         "Confirm deleting by typing 'yes'",
         validators=[
-            wtforms.validators.Required(),
+            wtforms.validators.DataRequired(),
             wtforms.validators.Regexp(
                 r"^yes$",
                 message="Type 'yes' - without the quotes, lowercase.")
