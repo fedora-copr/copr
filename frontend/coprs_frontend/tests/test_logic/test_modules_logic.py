@@ -140,4 +140,4 @@ class TestModulemdGenerator(CoprsTestCase):
         generator = ModulemdGenerator("testmodule", "master", 123, "Some testmodule summary", self.config)
         generator.add_api(["foo", "bar", "baz"])
         generator.add_filter(["foo", "bar"])
-        yaml.load(generator.generate())
+        yaml.load(generator.generate(), Loader=yaml.BaseLoader)
