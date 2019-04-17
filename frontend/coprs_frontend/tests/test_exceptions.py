@@ -1,10 +1,12 @@
 import json
 import pytest
 from tests.coprs_test_case import CoprsTestCase
+from coprs import app
 
 
 class TestExceptionHandling(CoprsTestCase):
     def test_json_only_for_api(self):
+        app.config["SESSION_COOKIE_DOMAIN"] = "localhost.localdomain"
         r1 = self.tc.get("/nonexisting/endpoint/")
         assert r1.status_code == 404
 
