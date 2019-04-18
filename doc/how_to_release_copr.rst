@@ -67,16 +67,20 @@ Test
 Run :ref:`beaker_tests` and check the results.
 
 
-Release python-copr to PyPi
----------------------------
+Release packages to PyPI
+------------------------
 
 Make sure you have `~/.pypirc` correctly set up and run::
 
-    version=<current_pkg_version> /usr/bin/python setup.py sdist --format=gztar upload
+    dnf install twine
+    version=<current_pkg_version> python3 setup.py sdist
+    twine upload dist/<NAME-VERSION>.tar.gz
 
 Substitute `<current_pkg_version>` with the current package version.
 
 If you cannot run that, tell somebody with access to run that (msuchy has access).
+
+This needs to be run for `copr-common`, `python` and `copr-cli`.
 
 .. _build_packages_for_production:
 
