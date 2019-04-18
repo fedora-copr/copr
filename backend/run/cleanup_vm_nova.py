@@ -31,7 +31,7 @@ nova_cloud_vars_path = os.environ.get("NOVA_CLOUD_VARS", "/home/copr/provision/n
 
 def read_config():
     with open(nova_cloud_vars_path) as handle:
-        conf = yaml.load(handle.read())
+        conf = yaml.safe_load(handle.read())
     return conf
 
 
