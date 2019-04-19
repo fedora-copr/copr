@@ -229,8 +229,8 @@ install -d %{buildroot}%{_sysconfdir}/cron.daily
 install -d %{buildroot}/%{_bindir}
 install -d %{buildroot}%{_unitdir}
 
-install -p -m 755 conf/cron.hourly/copr-frontend %{buildroot}%{_sysconfdir}/cron.hourly/copr-frontend
-install -p -m 755 conf/cron.daily/copr-frontend %{buildroot}%{_sysconfdir}/cron.daily/copr-frontend
+install -p -m 755 conf/cron.hourly/copr-frontend* %{buildroot}%{_sysconfdir}/cron.hourly
+install -p -m 755 conf/cron.daily/copr-frontend* %{buildroot}%{_sysconfdir}/cron.daily
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
@@ -327,8 +327,9 @@ usermod -L copr-fe
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
-%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
-%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.daily/copr-frontend
+%config %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
+%config %attr(0755, root, root) %{_sysconfdir}/cron.daily/copr-frontend
+%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend-optional
 %exclude_files flavor
 %exclude_files devel
 

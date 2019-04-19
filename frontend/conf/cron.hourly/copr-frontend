@@ -1,6 +1,8 @@
-#!/usr/bin/sh
+#! /bin/sh
 
-runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend pypi --delta=172800 &> /dev/null' - copr-fe
-runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend rubygems --delta=172800 &> /dev/null' - copr-fe
+# This file contains all the _mandatory_ Copr frontend tasks to be executed
+# hourly.  Don't edit this file manually, it is automatically updated with
+# copr-frontend.rpm.
+
 runuser -c '/usr/share/copr/coprs_frontend/manage.py update_indexes_quick 120 &> /dev/null' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py update_graphs &> /dev/null' - copr-fe
