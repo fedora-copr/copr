@@ -222,6 +222,14 @@ def build_on_fedmsg_loop():
 
     ctx = zmq.Context()
     s = ctx.socket(zmq.SUB)
+
+    # detect server hang/restart (still a chance to loose ~45s events)
+    # for more info see man tcp(7).
+    s.setsockopt(zmq.TCP_KEEPALIVE,       1)  # turn on keep-alive
+    s.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 30)  # start when 30s inactive
+    s.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 5)  # send keep-alive packet each 5s
+    s.setsockopt(zmq.TCP_KEEPALIVE_CNT,   3)  # restart after 3 fails
+
     s.connect(ENDPOINT)
 
     for topic in TOPICS:
