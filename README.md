@@ -13,22 +13,19 @@ Copr ("Community projects") is a service that builds your open-source projects a
 ## Using Copr
 Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
 
-## Status
+## Status (copr builds, documentation)
 
-Fedora Copr builds of:
-
-* copr-backend [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/)
-* copr-keygen [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen)
-* copr-frontend [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-frontend/)
-* python-copr [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr/)
-* copr-rpmbuild [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-rpmbuild/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-rpmbuild/)
-
-Documentation of:
-
-* copr-backend [![Documentation Status](https://readthedocs.org/projects/copr-backend/badge/?version=latest)](http://copr-backend.readthedocs.org/?badge=latest)
-* copr-keygen [![copr-keygen documentation](https://readthedocs.org/projects/copr-keygen/badge/?version=latest)](http://copr-keygen.readthedocs.org/en/latest/?badge=latest)
-* copr-frontend [![Documentation Status](https://readthedocs.org/projects/copr-rest-api/badge/?version=latest)](http://copr-rest-api.readthedocs.org/en/latest/?badge=latest)
-* python-copr [![Documentation Status](https://readthedocs.org/projects/python-copr/badge/?version=latest)](http://python-copr.readthedocs.org/en/latest/?badge=latest)
+package | released | development | docs
+------- | -------- | ----------- | ----
+copr-backend | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-backend/) | [![doc badge](https://readthedocs.org/projects/copr-backend/badge/?version=latest)](http://copr-backend.readthedocs.org/?badge=latest)
+copr-cli | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-cli/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-cli/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-cli/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-cli/) |
+copr-dist-git | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-dist-git/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-dist-git/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-dist-git/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-dist-git/) |
+copr-frontend | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-frontend/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-frontend/) | [![doc badge](https://readthedocs.org/projects/copr-rest-api/badge/?version=latest)](http://copr-rest-api.readthedocs.org/?badge=latest)
+copr-keygen | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-keygen/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-keygen/) | [![doc badge](https://readthedocs.org/projects/copr-keygen/badge/?version=latest)](http://copr-keygen.readthedocs.org/?badge=latest)
+copr-rpmbuild | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-rpmbuild/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-rpmbuild/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-rpmbuild/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/copr-rpmbuild/) |
+python-copr | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/python-copr/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/python-copr/) | [![doc badge](https://readthedocs.org/projects/python-copr/badge/?version=latest)](http://python-copr.readthedocs.org/?badge=latest)
+python-copr-common | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr-common/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr-common/) | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/python-copr-common/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/package/python-copr-common/) |
+[//]: # (Please generate this table by ./build_aux/generate-build-status-table)
 
 ## Local Testing Environment
 You can use [Docker](https://docs.docker.com/) to run your local test environment. You need to install `docker-compose` tool for this to work.

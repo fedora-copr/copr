@@ -1,0 +1,40 @@
+#! /usr/bin/python3
+
+packages = [
+    'copr-backend',
+    'copr-cli',
+    'copr-dist-git',
+    'copr-frontend',
+    'copr-keygen',
+    'copr-rpmbuild',
+    'python-copr',
+    'python-copr-common',
+]
+
+have_docs = [
+    'copr-frontend',
+    'copr-backend',
+    'copr-keygen',
+    'python-copr',
+]
+
+link_pkg =   'https://copr.fedorainfracloud.org/coprs/g/copr/{project}/package/{package}/'
+link_badge = 'https://copr.fedorainfracloud.org/coprs/g/copr/{project}/package/{package}/status_image/last_build.png'
+link_docs =  'http://{package}.readthedocs.org/?badge=latest'
+link_docs_badge = 'https://readthedocs.org/projects/{package}/badge/?version=latest'
+
+for package in packages:
+    item = "[![badge](" + link_badge + ")](" + link_pkg + ")"
+    prod_badge = item.format(package=package, project='copr')
+    dev_badge = item.format(package=package, project='copr-dev')
+
+    docs = ''
+    if package in have_docs:
+        pkgrewrite = package
+        if package == 'copr-frontend':
+            pkgrewrite = 'copr-rest-api'
+
+        item = " [![doc badge](" + link_docs_badge + ")](" + link_docs + ")"
+        docs = item.format(package=pkgrewrite)
+
+    print("{} | {} | {} |{}".format(package, prod_badge, dev_badge, docs))
