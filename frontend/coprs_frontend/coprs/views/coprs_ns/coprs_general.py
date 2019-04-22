@@ -599,8 +599,21 @@ def copr_repositories_post(copr):
         return flask.redirect(url_for_copr_details(copr))
 
     form = forms.CoprChrootExtend()
-    copr_chroot = coprs_logic.CoprChrootsLogic.get_by_name(copr, form.name.data, active_only=False).one()
-    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+    if form.extend.data:
+        delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+        chroot_name = form.extend.data
+        flask.flash("Repository for {} will be preserved for another {} days from now"
+                    .format(chroot_name, app.config["DELETE_EOL_CHROOTS_AFTER"]))
+    elif form.expire.data:
+        delete_after_days = 0
+        chroot_name = form.expire.data
+        flask.flash("Repository for {} is scheduled to be removed."
+                    "If you changed your mind, click 'Extend` to revert your decision."
+                    .format(chroot_name))
+    else:
+        raise ValidationError("Copr chroot needs to be either extended or expired")
+
+    copr_chroot = coprs_logic.CoprChrootsLogic.get_by_name(copr, chroot_name, active_only=False).one()
     delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(days=delete_after_days)
     coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
                                                delete_after=delete_after_timestamp)

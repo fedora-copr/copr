@@ -965,7 +965,8 @@ class ChrootForm(FlaskForm):
 
 
 class CoprChrootExtend(FlaskForm):
-    name = wtforms.StringField("Chroot name", validators=[wtforms.validators.DataRequired])
+    extend = wtforms.StringField("Chroot name")
+    expire = wtforms.StringField("Chroot name")
 
 
 class CoprLegalFlagForm(FlaskForm):

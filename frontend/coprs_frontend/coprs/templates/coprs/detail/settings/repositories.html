@@ -24,15 +24,24 @@
     </p>
     <form action="" method="POST">
         <table class="table table-bordered">
-            <thead><tr><th>Release</th><th>Architecture</th><th>Remaining time</th><th>Extend</th></tr></thead>
+            <thead><tr><th>Release</th><th>Architecture</th><th>Remaining time</th><th>Action</th></tr></thead>
             <tbody>
                 {% for chroot in outdated_chroots %}
                 <tr>
                     <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
                     <td>{{ chroot.mock_chroot.arch }}</td>
-                    <td>{% if chroot.delete_after_days %}{{ chroot.delete_after_days }} days{% else %} Unknown {% endif %}</td>
                     <td>
-                        <button name="name" class="btn btn-default" type="submit" value="{{ chroot.mock_chroot.name }}">Extend</button>
+                        {% if chroot.delete_after_days is none %}
+                            Unknown
+                        {% elif chroot.delete_after_days == 0 %}
+                            To be removed in next cleanup
+                        {% else %}
+                            {{ chroot.delete_after_days }} days
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">Extend</button>
+                        <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}">Expire now</button>
                     </td>
                 </tr>
             </tbody>

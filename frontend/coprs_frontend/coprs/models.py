@@ -1232,7 +1232,8 @@ class CoprChroot(db.Model, helpers.Serializer):
         if not self.delete_after:
             return None
         now = datetime.datetime.now()
-        return (self.delete_after - now).days
+        days = (self.delete_after - now).days
+        return days if days > 0 else 0
 
     def to_dict(self):
         options = {"__columns_only__": [
