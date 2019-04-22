@@ -372,7 +372,8 @@ class Copr(db.Model, helpers.Serializer):
 
     @property
     def outdated_chroots(self):
-        return [chroot for chroot in self.copr_chroots if chroot.delete_after]
+        return sorted([chroot for chroot in self.copr_chroots if chroot.delete_after],
+                      key=lambda ch: ch.name)
 
     @property
     def active_chroots_grouped(self):
