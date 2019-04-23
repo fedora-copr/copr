@@ -330,7 +330,7 @@ class TestProjectResource(CoprsTestCase):
             href,
             method="delete"
         )
-        assert r0.status_code == 204
+        assert r0.status_code == 400
 
     def test_project_delete_fail_unfinished_project_action(
             self, f_users, f_mock_chroots,
