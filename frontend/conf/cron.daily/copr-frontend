@@ -1,4 +1,4 @@
-#! /usr/sh
+#! /bin/sh
 
 # This file contains all the _mandatory_ Copr frontend tasks to be executed
 # daily.  Don't edit this file manually, it is automatically updated with
