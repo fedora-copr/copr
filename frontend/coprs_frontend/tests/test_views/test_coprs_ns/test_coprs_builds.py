@@ -124,9 +124,14 @@ class TestCoprCancelBuild(CoprsTestCase):
 class TestCoprDeleteBuild(CoprsTestCase):
 
     @TransactionDecorator("u1")
-    def test_copr_build_submitter_can_delete_build_old(self, f_users, f_coprs, f_build_few_chroots):
+    def test_copr_build_submitter_can_delete_build_old(self, f_users, f_coprs, f_build_few_chroots, f_db):
         self.db.session.add_all([self.u1, self.c1, self.b_few_chroots])
+        self.b_few_chroots.build_chroots[1].status= StatusEnum("canceled")
         self.db.session.commit()
+
+        expected_chroot_builddirs = {'srpm-builds': self.b_few_chroots.result_dir}
+        for chroot in self.b_few_chroots.build_chroots:
+            expected_chroot_builddirs[chroot.name] = chroot.result_dir
 
         expected_dir = self.b_few_chroots.result_dir
         r = self.test_client.post(
@@ -144,11 +149,6 @@ class TestCoprDeleteBuild(CoprsTestCase):
         assert act.object_type == "build"
         assert data.get('ownername') == "user1"
         assert data.get('projectname') == "foocopr"
-
-        expected_chroot_builddirs = {'srpm-builds': self.b_few_chroots.result_dir}
-        for chroot in self.b_few_chroots.build_chroots:
-            expected_chroot_builddirs[chroot.name] = chroot.result_dir
-
         assert json.loads(act.data)["chroot_builddirs"] == expected_chroot_builddirs
 
     @TransactionDecorator("u1")

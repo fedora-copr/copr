@@ -287,7 +287,7 @@ class CoprsTestCase(object):
             source_type=helpers.BuildSourceEnum('scm'))
 
     @pytest.fixture
-    def f_build_few_chroots(self):
+    def f_build_few_chroots(self, f_mock_chroots_many):
         """
             Requires fixture: f_mock_chroots_many
         """
