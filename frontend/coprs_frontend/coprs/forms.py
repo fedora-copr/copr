@@ -387,7 +387,7 @@ class CoprFormFactory(object):
 
 
 class CoprDeleteForm(FlaskForm):
-    verify = wtforms.TextField(
+    verify = wtforms.StringField(
         "Confirm deleting by typing 'yes'",
         validators=[
             wtforms.validators.DataRequired(),
@@ -948,7 +948,7 @@ class ChrootForm(FlaskForm):
     (adding packages to minimal chroot)
     """
 
-    buildroot_pkgs = wtforms.TextField("Packages")
+    buildroot_pkgs = wtforms.StringField("Packages")
 
     repos = wtforms.TextAreaField('Repos',
                                   validators=[UrlRepoListValidator(),
@@ -957,8 +957,8 @@ class ChrootForm(FlaskForm):
 
     comps = FileField("comps_xml")
 
-    with_opts = wtforms.TextField("With options")
-    without_opts = wtforms.TextField("Without options")
+    with_opts = wtforms.StringField("With options")
+    without_opts = wtforms.StringField("Without options")
 
 
 class CoprChrootExtend(FlaskForm):
@@ -1089,7 +1089,7 @@ class CoprForkFormFactory(object):
 
 
 class ModifyChrootForm(ChrootForm):
-    buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
+    buildroot_pkgs = wtforms.StringField('Additional packages to be always present in minimal buildroot')
     repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
                                   validators=[UrlRepoListValidator(),
                                               wtforms.validators.Optional()],
@@ -1103,7 +1103,7 @@ class AdminPlaygroundForm(FlaskForm):
 
 
 class AdminPlaygroundSearchForm(FlaskForm):
-    project = wtforms.TextField("Project")
+    project = wtforms.StringField("Project")
 
 
 class GroupUniqueNameValidator(object):
