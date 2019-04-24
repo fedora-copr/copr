@@ -73,7 +73,7 @@ def package_name_required(route):
     return decorated_function
 
 
-@webhooks_ns.route("/bitbucket/<copr_id>/<uuid>/", methods=["POST"])
+@webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
 def webhooks_bitbucket_push(copr_id, uuid):
     # For the documentation of the data we receive see:
     # https://confluence.atlassian.com/bitbucket/event-payloads-740262817.html
@@ -111,7 +111,7 @@ def webhooks_bitbucket_push(copr_id, uuid):
     return "OK", 200
 
 
-@webhooks_ns.route("/github/<copr_id>/<uuid>/", methods=["POST"])
+@webhooks_ns.route("/github/<int:copr_id>/<uuid>/", methods=["POST"])
 def webhooks_git_push(copr_id, uuid):
     if flask.request.headers["X-GitHub-Event"] == "ping":
         return "OK", 200
@@ -153,7 +153,7 @@ def webhooks_git_push(copr_id, uuid):
     return "OK", 200
 
 
-@webhooks_ns.route("/gitlab/<copr_id>/<uuid>/", methods=["POST"])
+@webhooks_ns.route("/gitlab/<int:copr_id>/<uuid>/", methods=["POST"])
 def webhooks_gitlab_push(copr_id, uuid):
     # For the documentation of the data we receive see:
     # https://gitlab.com/help/user/project/integrations/webhooks#events
@@ -223,8 +223,8 @@ class HookContentStorage(object):
             shutil.rmtree(self.tmp)
 
 
-@webhooks_ns.route("/custom/<copr_id>/<uuid>/", methods=["POST"])
-@webhooks_ns.route("/custom/<copr_id>/<uuid>/<package_name>/", methods=["POST"])
+@webhooks_ns.route("/custom/<int:copr_id>/<uuid>/", methods=["POST"])
+@webhooks_ns.route("/custom/<int:copr_id>/<uuid>/<package_name>/", methods=["POST"])
 @copr_id_and_uuid_required
 @package_name_required
 @skip_invalid_calls
