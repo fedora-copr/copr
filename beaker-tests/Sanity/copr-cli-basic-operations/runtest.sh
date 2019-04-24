@@ -33,6 +33,9 @@
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
 
+HELLO=https://frostyx.fedorapeople.org/hello-2.8-1.fc23.src.rpm
+EVIL_HELLO=https://frostyx.fedorapeople.org/evilhello-2.8-1.fc28.src.rpm
+
 
 rlJournalStart
     rlPhaseStartSetup
@@ -76,11 +79,11 @@ rlJournalStart
         # build - wrong chroot name and non-existent url (if url was correct, srpm would be currently built for all available chroots)
         rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 4
         # build - OK
-        rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO"
         # build - the same version modified - SKIPPED
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/changed/hello-2.8-1.fc20.src.rpm"
         # build - FAIL  (syntax error in source code)
-        rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm" 4
+        rlRun "copr-cli build ${NAME_PREFIX}Project1 $EVIL_HELLO" 4
         # enable Project1 repo
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project1 $CHROOT"
         # install hello package
@@ -101,7 +104,7 @@ rlJournalStart
         # disable auto_createrepo
         rlRun "copr-cli modify --disable_createrepo true ${NAME_PREFIX}Project2"
         # build 1st package
-        rlRun "copr-cli build ${NAME_PREFIX}Project2 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}Project2 $HELLO"
         # enable Project2 repo
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project2 $CHROOT"
         # try to install - FAIL ( public project metadata not updated)
@@ -122,7 +125,7 @@ rlJournalStart
         ## test build watching and deletion using Project3
         # build 1st package without waiting
         TMP=`mktemp -d`
-        rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm > $TMP/hello_p3.out"
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 $HELLO > $TMP/hello_p3.out"
         rlRun "awk '/Created build/ { print \$3 }' $TMP/hello_p3.out > $TMP/hello_p3.id"
         # initial status should be in progress, e.g. pending/running
         rlRun "xargs copr-cli status < $TMP/hello_p3.id | grep -v succeeded"
@@ -204,8 +207,8 @@ rlJournalStart
         # # non-background build should be imported first
         # # the background build should not be listed until non-background builds are imported
         # OUTPUT=`mktemp`
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --background --nowait"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --nowait > $OUTPUT"
         # rlAssertEquals "Background job should not be listed" `curl $FRONTEND_URL/backend/importing/ |jq 'length'` 1
         # rlAssertEquals "Non-background job should be imported first" \
         #                `curl $FRONTEND_URL/backend/importing/ |jq '.[0].build_id'` \
@@ -214,8 +217,8 @@ rlJournalStart
         # sleep 60
         # # when there are multiple background builds, they should be imported ascendingly by ID
         # OUTPUT=`mktemp`
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait > $OUTPUT"
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --background --nowait > $OUTPUT"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --background --nowait"
         # rlAssertEquals "Both background builds should be listed" `curl $FRONTEND_URL/backend/importing/ |jq 'length'` 2
         # rlAssertEquals "Build with lesser ID should be imported first" \
         #                `curl $FRONTEND_URL/backend/importing/ |jq '.[0].build_id'` \
@@ -225,8 +228,8 @@ rlJournalStart
         # # non-background build should be waiting on the start of the queue
         # OUTPUT=`mktemp`
         # WAITING=`mktemp`
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
-        # rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --background --nowait"
+        # rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO --nowait > $OUTPUT"
         # # wait until the builds are imported
         # while :; do curl --silent $FRONTEND_URL/backend/pending-jobs/ > $WAITING; if cat $WAITING | grep task_id; then break; fi; done
         # cat $WAITING
@@ -386,11 +389,11 @@ rlJournalStart
 
         # test disable_createrepo
         rlRun "copr-cli create --chroot $CHROOT --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
-        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse $HELLO"
         rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoFalse/$CHROOT/devel/repodata/ | grep \"404.*Not Found\"" 0
 
         rlRun "copr-cli create --chroot $CHROOT --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
-        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue $HELLO"
         rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoTrue/$CHROOT/devel/repodata/ | grep -E \"404.*Not Found\"" 1
 
         # test unlisted_on_hp project attribute
@@ -421,7 +424,7 @@ rlJournalStart
         # default fork usage
         OUTPUT=`mktemp`
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project10"
-        rlRun "copr-cli build ${NAME_PREFIX}Project10 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}Project10 $HELLO"
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork > $OUTPUT"
         rlAssertEquals "Forking project" `grep -r 'Forking project' $OUTPUT |wc -l` 1
         rlAssertEquals "Info about backend data" `grep -r 'Please be aware that it may take a few minutes to duplicate backend data.' $OUTPUT |wc -l` 1
@@ -502,7 +505,7 @@ rlJournalStart
 
         # test that results and configs are correctly retrieved from builders after build
         rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot $CHROOT" 0
-        rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs $HELLO"
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/$CHROOT/
         rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
@@ -526,7 +529,7 @@ rlJournalStart
 
         # Bug 1444804 - Logs are not present for failed builds
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot $CHROOT" 0
-        copr-cli build ${NAME_PREFIX}TestBug1444804 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm
+        copr-cli build ${NAME_PREFIX}TestBug1444804 $EVIL_HELLO
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/$CHROOT/
         rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
