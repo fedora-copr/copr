@@ -70,8 +70,8 @@ rlJournalStart
     rlRun 'echo workdir: $WORKDIR'
 
 
-    rlLogInfo "Create the project $PROJECT"
     PROJECT=custom-1-$NAME_VAR
+    rlLogInfo "Create the project $PROJECT"
     rlRun 'copr-cli create "$PROJECT" --chroot fedora-rawhide-x86_64'
 
 
@@ -155,6 +155,7 @@ rlJournalStart
     rlLogInfo "Still should fail, since this build is not triggered by webhook."
     rlRun 'copr watch-build $BUILD_ID' 4
 
+    copr_id=$(curl "$FRONTEND_URL/api_3/project?ownername=$USER&projectname=$PROJECT" | sed -n 's/.*"id": \([0-9]\+\),.*/\1/p')
     trigger_url="$FRONTEND_URL/webhooks/custom/$copr_id/webhook_secret/quick-package/"
     rlRun -s 'curl -I "$trigger_url"' 0 # GET can't work
     rlRun 'check_http_status 405'
