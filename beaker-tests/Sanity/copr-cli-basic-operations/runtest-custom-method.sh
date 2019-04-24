@@ -187,7 +187,7 @@ rlJournalStart
 
 
     rlLogInfo "buildcustom with --builddeps"
-    builddeps='postgresql-devel'
+    builddeps='libarchive-devel'
     rlRun 'cleanup_resultdir'
     rlRun "quick_package_script 'BUILDDEPS=\"$builddeps\" generate_specfile'"
     rlRun -s "copr buildcustom $PROJECT --script script --script-builddeps \"$builddeps\" --nowait"
