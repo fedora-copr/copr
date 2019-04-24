@@ -144,6 +144,7 @@ def handle_400(error):
 @app.errorhandler(CoprHttpException)
 def handle_500(error):
     error_handler = get_error_handler()
+    app.logger.error(error)
     return error_handler.handle_500(error)
 
 
