@@ -57,5 +57,14 @@ class TestBuildModel(CoprsTestCase):
         self.b1.build_chroots[0].status = StatusEnum("failed")
         assert self.b1.finished
 
+    def test_finished_srpms(self, f_users, f_coprs, f_builds, f_db):
+        assert not self.b1.build_chroots
+
+        self.b1.source_status = StatusEnum("running")
+        assert not self.b1.finished
+
         self.b1.source_status = StatusEnum("canceled")
+        assert self.b1.finished
+
+        self.b1.source_status = StatusEnum("failed")
         assert self.b1.finished

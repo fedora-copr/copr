@@ -40,6 +40,9 @@ CHROOT_RPMS_DL_STAT_FMT = "chroot_rpms_dl_stat:hset::{copr_user}@{copr_project_n
 PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project_name}"
 
 
+FINISHED_STATUSES = ["succeeded", "forked", "canceled", "skipped", "failed"]
+
+
 class CounterStatType(object):
     REPO_DL = "repo_dl"
 

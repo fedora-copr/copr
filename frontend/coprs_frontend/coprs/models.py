@@ -1025,8 +1025,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return True
         if not self.build_chroots:
-            # Not even SRPM is finished
-            return False
+            return StatusEnum(self.source_status) in helpers.FINISHED_STATUSES
         return all([chroot.finished for chroot in self.build_chroots])
 
     @property
@@ -1286,7 +1285,7 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def finished(self):
-        return (self.state in ["succeeded", "forked", "canceled", "skipped", "failed"])
+        return self.state in helpers.FINISHED_STATUSES
 
     @property
     def task_id(self):
