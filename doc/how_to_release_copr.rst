@@ -57,7 +57,8 @@ Note: If there is a new version of copr-rpmbuild, run this on backend::
 Call for QA
 -----------
 
-Move MODIFIED+ bugzillas to ON_QA.
+Move `MODIFIED+ <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&product=Copr>`_
+bugzillas to ON_QA.
 
 Ask people to test, verify bugs, and generally help with QA. They will ignore it but you will feel good about giving them a chance.
 
