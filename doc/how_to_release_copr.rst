@@ -77,7 +77,7 @@ Make sure you have `~/.pypirc` correctly set up and run::
     version=<current_pkg_version> python3 setup.py sdist
     twine upload dist/<NAME-VERSION>.tar.gz
 
-Substitute `<current_pkg_version>` with the current package version.
+Substitute `<current_pkg_version>` with the current package version (without release).
 
 If you cannot run that, tell somebody with access to run that (msuchy has access).
 
