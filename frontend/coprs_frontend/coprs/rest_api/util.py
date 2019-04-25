@@ -70,7 +70,7 @@ class MyArg(Argument):
     def handle_validation_error(self, error, bundle_errors):
         # dirty monkey patching, better to switch to webargs
         # bundle errors are ignored
-        data = {u"error": unicode(error)}
+        data = {u"error": str(error)}
         if self.help:
             data["help"] = self.help
         raise MalformedRequest(
