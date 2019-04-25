@@ -76,7 +76,7 @@ BuildRequires: python3-flask-sqlalchemy
 BuildRequires: python3-flask-openid
 BuildRequires: python3-html5-parser
 BuildRequires: python3-lxml
-BuildRequires: python3-wtforms
+BuildRequires: python3-wtforms >= 2.2.1
 BuildRequires: python3-openid-teams
 BuildRequires: python3-pylibravatar
 BuildRequires: python3-flask-wtf
@@ -126,7 +126,7 @@ Requires: python3-markdown
 Requires: python3-netaddr
 Requires: python3-redis
 Requires: python3-pylibravatar
-Requires: python3-wtforms
+Requires: python3-wtforms >= 2.2.1
 Requires: python3-flask-wtf
 Requires: python3-flask-restful
 Requires: python3-marshmallow
