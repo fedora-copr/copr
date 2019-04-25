@@ -44,7 +44,7 @@ Note: if need manually run DB upgrade on frontend::
 
     sudo su - copr-fe
 
-    alembic upgrade head
+    alembic-3 upgrade head
 
 Note: If there is a new version of copr-rpmbuild, run this on backend::
 
