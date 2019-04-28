@@ -27,8 +27,13 @@ distgit_clone_url = git://pkgs.fedoraproject.org
 """
 
 class TestCase(unittest.TestCase):
+    def test_setup(self):
+        # to be defined in child class
+        pass
+
     def setUp(self):
         self.config_path, self.config = self.read_config_data(CONFIG)
+        self.test_setup()
 
     def tearDown(self):
         os.unlink(self.config_path)

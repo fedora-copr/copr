@@ -26,6 +26,10 @@ BuildArch: noarch
 Source0: {{{ git_dir_archive }}}
 
 BuildRequires: %{python}-devel
+BuildRequires: %{python}-distro
+%if 0%{?rhel} == 0 || 0%{?rhel} != 6
+BuildRequires: %{python}-httmock
+%endif
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
 BuildRequires: %{python}-setuptools

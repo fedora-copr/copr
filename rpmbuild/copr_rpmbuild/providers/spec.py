@@ -3,6 +3,10 @@ import logging
 import requests
 from ..helpers import run_cmd
 from .base import Provider
+try:
+    from urllib.parse import urlparse
+except:
+    from urlparse import urlparse
 
 log = logging.getLogger("__main__")
 
@@ -11,10 +15,11 @@ class UrlProvider(Provider):
     def __init__(self, source_json, outdir, config=None):
         super(UrlProvider, self).__init__(source_json, outdir, config)
         self.url = source_json["url"]
+        self.parsed_url = urlparse(self.url)
 
     def save_spec(self):
         response = requests.get(self.url)
-        path = os.path.join(self.workdir, self.url.split("/")[-1])
+        path = os.path.join(self.workdir, self.parsed_url.path.split("/")[-1])
         with open(path, "w") as spec:
             spec.write(response.text)
         return path
@@ -25,7 +30,7 @@ class UrlProvider(Provider):
         return run_cmd(cmd, cwd=self.workdir)
 
     def download_srpm(self):
-        basename = os.path.basename(self.url)
+        basename = os.path.basename(self.parsed_url.path)
         filename = os.path.join(self.outdir, basename)
         response = requests.get(self.url, stream=True)
         if response.status_code != 200:
@@ -38,8 +43,8 @@ class UrlProvider(Provider):
                 f.write(chunk)
 
     def produce_srpm(self):
-        if self.url.endswith(".spec"):
+        if self.parsed_url.path.endswith(".spec"):
             return self.build_srpm_from_spec()
-        if self.url.endswith(".src.rpm"):
+        if self.parsed_url.path.endswith(".src.rpm"):
             return self.download_srpm()
         raise RuntimeError("Url is not a path to .spec nor .src.rpm file")
