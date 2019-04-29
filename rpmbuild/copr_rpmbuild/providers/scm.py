@@ -9,10 +9,8 @@ from jinja2 import Environment, FileSystemLoader
 from ..helpers import run_cmd, CONF_DIRS, get_mock_uniqueext
 from .base import Provider
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
+
 
 log = logging.getLogger("__main__")
 

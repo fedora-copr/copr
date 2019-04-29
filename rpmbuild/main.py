@@ -26,15 +26,7 @@ from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
      SourceType, parse_copr_name, dump_live_log, copr_chroot_to_task_id
 
-try:
-    from urllib.parse import urlparse, urljoin
-except ImportError:
-    from urlparse import urlparse, urljoin
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
+from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)

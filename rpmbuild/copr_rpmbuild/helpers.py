@@ -11,10 +11,7 @@ import datetime
 import pipes
 from threading import Timer
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 log = logging.getLogger("__main__")
 

@@ -3,10 +3,8 @@ import logging
 import requests
 from ..helpers import run_cmd
 from .base import Provider
-try:
-    from urllib.parse import urlparse
-except:
-    from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
+
 
 log = logging.getLogger("__main__")
 
