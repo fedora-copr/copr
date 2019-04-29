@@ -713,10 +713,13 @@ class CoprChrootsLogic(object):
         # delete no more present
         to_remove = []
         for mock_chroot in current_chroots:
-            if mock_chroot not in new_chroots:
-                # can't delete here, it would change current_chroots and break
-                # iteration
-                to_remove.append(mock_chroot)
+            if mock_chroot in new_chroots:
+                continue
+            if not mock_chroot.is_active:
+                continue
+            # can't delete here, it would change current_chroots and break
+            # iteration
+            to_remove.append(mock_chroot)
 
         for mc in to_remove:
             copr.mock_chroots.remove(mc)
