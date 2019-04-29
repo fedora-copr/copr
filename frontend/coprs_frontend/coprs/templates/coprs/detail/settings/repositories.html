@@ -39,7 +39,8 @@
                     </td>
                     <td>
                         <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">Extend</button>
-                        <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}">Expire now</button>
+                        <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
+                            {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now</button>
                     </td>
                 </tr>
             </tbody>
