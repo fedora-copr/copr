@@ -1,0 +1,6 @@
+#! /bin/sh
+
+# Optional Copr frontend tasks to be executed daily.
+
+#runuser -c 'copr-frontend notify_outdated_chroots' - copr-fe
+#runuser -c 'copr-frontend delete_outdated_chroots' - copr-fe
