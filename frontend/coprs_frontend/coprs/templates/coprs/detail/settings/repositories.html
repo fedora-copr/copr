@@ -34,7 +34,8 @@
                         {% if not chroot.delete_after_days %}
                             To be removed in next cleanup
                         {% else %}
-                            {{ chroot.delete_after_days }} days
+                            {% set color = 'danger' if chroot.delete_after_days < 20 else 'secondary' %}
+                            <span class="text-{{ color }}">{{ chroot.delete_after_days }} days</span>
                         {% endif %}
                     </td>
                     <td>
