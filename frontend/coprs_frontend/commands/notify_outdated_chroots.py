@@ -57,8 +57,9 @@ class NotifyOutdatedChrootsCommand(Command):
                 filtered.append(chroot)
                 continue
 
+            # Skip the chroot if was notified in less than `n` days
             now = datetime.datetime.now()
-            if (now - chroot.delete_notify).days >= 14:
+            if (now - chroot.delete_notify).days >= 80:
                 filtered.append(chroot)
 
         return filtered
