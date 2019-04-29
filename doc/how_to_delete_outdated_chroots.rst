@@ -14,6 +14,8 @@ This article explains how to mark a chroot as outdated, how to notify project ow
 outdated and going to be deleted in the future, and lastly how to actually delete them.
 
 
+.. _mark_chroot_as_outdated:
+
 Mark chroot as outdated
 -----------------------
 
@@ -82,3 +84,12 @@ run the command without ``--dry-run`` parameter.
 When deleting the chroot (creating an action to delete the data on the backend), the ``delete_after``
 and ``delete_notify`` columns are set to NULL and therefore ``notify_outdated_chroots``
 and ``delete_outdated_chroots`` commands don't see the chroot anymore.
+
+
+Automatization
+--------------
+
+This whole article is mainly for understanding how notifications and deletion of outdated
+chroots work in order to debug or rework it. The only thing, that Copr administrator needs
+to do manually is :ref:`mark_chroot_as_outdated`, everything else is achieved by a daily
+cron script. See ``/etc/cron.daily/copr-frontend-optional``.
