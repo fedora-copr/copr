@@ -82,6 +82,8 @@ cp -a run/* %{buildroot}%{_bindir}/
 
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 
+mv %{buildroot}%{_bindir}/remove_unused_sources %{buildroot}%{_bindir}/copr-prune-dist-git-sources
+
 # for ghost files
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
