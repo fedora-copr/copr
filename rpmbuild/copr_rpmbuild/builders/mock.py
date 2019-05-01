@@ -72,7 +72,6 @@ class MockBuilder(object):
             "--sources", sources,
             "--configdir", configdir,
             "--resultdir", resultdir,
-            "--define", "%_disable_source_fetch 0",
             "--uniqueext", get_mock_uniqueext(),
             "-r", "child"]
 
