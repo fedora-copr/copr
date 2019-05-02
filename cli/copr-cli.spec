@@ -32,12 +32,14 @@ BuildRequires: util-linux
 Requires:      python3-copr >= 1.89
 Requires:      python3-jinja2
 Requires:      python3-simplejson
+Requires:      python3-humanize
 
 Recommends:    python3-progress
 
 BuildRequires: python3-copr >= 1.89
 BuildRequires: python3-devel
 BuildRequires: python3-jinja2
+BuildRequires: python3-humanize
 BuildRequires: python3-pylint
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
@@ -47,11 +49,13 @@ BuildRequires: python3-munch
 Requires:      python-copr >= 1.89
 Requires:      python-jinja2
 Requires:      python-simplejson
+Requires:      python-humanize
 
 BuildRequires: pytest
 BuildRequires: python-copr >= 1.89
 BuildRequires: python-devel
 BuildRequires: python-jinja2
+BuildRequires: python-humanize
 BuildRequires: python-mock
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
