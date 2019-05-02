@@ -15,6 +15,7 @@ from pygments.lexers.special import TextLexer
 from pygments.util import ClassNotFound
 from pygments.formatters import HtmlFormatter
 
+import humanize
 import os
 import re
 
@@ -152,25 +153,7 @@ def time_ago(time_in, until=None):
     else:
         now = datetime.datetime.now()
     diff = now - datetime.datetime.fromtimestamp(time_in)
-    secdiff = int(diff.total_seconds())
-    if secdiff < 120:
-        # less than 2 minutes
-        return "1 minute"
-    elif secdiff < 7200:
-        # less than 2 hours
-        return str(secdiff // 60) + " minutes"
-    elif secdiff < 172800:
-        # less than 2 days
-        return str(secdiff // 3600) + " hours"
-    elif secdiff < 5184000:
-        # less than 2 months
-        return str(secdiff // 86400) + " days"
-    elif secdiff < 63072000:
-        # less than 2 years
-        return str(secdiff // 2592000) + " months"
-    else:
-        # more than 2 years
-        return str(secdiff // 31536000) + " years"
+    return humanize.naturaldelta(diff)
 
 
 @app.template_filter("markdown")

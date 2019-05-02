@@ -67,6 +67,7 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
+BuildRequires: python3-humanize
 BuildRequires: python3-yaml
 BuildRequires: python3-copr-common > 0.4
 BuildRequires: python3-six
@@ -120,6 +121,7 @@ Requires: python3-flask-sqlalchemy
 Requires: python3-flask-script
 Requires: python3-flask-whooshee
 Requires: python3-html5-parser
+Requires: python3-humanize
 Requires: python3-lxml
 Requires: python3-pytz
 Requires: python3-markdown
