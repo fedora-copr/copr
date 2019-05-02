@@ -56,8 +56,8 @@ Source0:    {{{ git_dir_archive }}}
 
 BuildArch:  noarch
 
-BuildRequires: util-linux
 BuildRequires: systemd
+BuildRequires: util-linux
 
 %if %{with doc}
 BuildRequires: epydoc
@@ -67,92 +67,92 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
-BuildRequires: python3-humanize
-BuildRequires: python3-yaml
+BuildRequires: libmodulemd < 2
+BuildRequires: libmodulemd >= 1.7.0
+BuildRequires: python3-CommonMark
+BuildRequires: python3-blinker
 BuildRequires: python3-copr-common > 0.4
-BuildRequires: python3-six
+BuildRequires: python3-dateutil
+BuildRequires: python3-decorator
 BuildRequires: python3-flask
+BuildRequires: python3-flask-openid
+BuildRequires: python3-flask-restful
 BuildRequires: python3-flask-script
 BuildRequires: python3-flask-sqlalchemy
-BuildRequires: python3-flask-openid
-BuildRequires: python3-html5-parser
-BuildRequires: python3-lxml
-BuildRequires: python3-wtforms >= 2.2.1
-BuildRequires: python3-openid-teams
-BuildRequires: python3-pylibravatar
+BuildRequires: python3-flask-whooshee
 BuildRequires: python3-flask-wtf
-BuildRequires: python3-netaddr
-BuildRequires: python3-redis
-BuildRequires: python3-dateutil
-BuildRequires: python3-pytest
-BuildRequires: python3-decorator
+BuildRequires: python3-gobject
+BuildRequires: python3-html5-parser
+BuildRequires: python3-humanize
+BuildRequires: python3-lxml
 BuildRequires: python3-markdown
-BuildRequires: python3-pytz
-BuildRequires: python3-flask-restful
 BuildRequires: python3-marshmallow >= 2.0.0
+BuildRequires: python3-munch
+BuildRequires: python3-netaddr
+BuildRequires: python3-openid-teams
+BuildRequires: python3-pygments
+BuildRequires: python3-pylibravatar
+BuildRequires: python3-pytest
+BuildRequires: python3-pytz
+BuildRequires: python3-redis
+BuildRequires: python3-requests
+BuildRequires: python3-six
 BuildRequires: python3-sphinx
 BuildRequires: python3-sphinxcontrib-httpdomain
 BuildRequires: python3-whoosh
-BuildRequires: python3-blinker
-BuildRequires: python3-munch
-BuildRequires: python3-CommonMark
-BuildRequires: python3-pygments
-BuildRequires: python3-flask-whooshee
-BuildRequires: python3-gobject
-BuildRequires: libmodulemd < 2
-BuildRequires: libmodulemd >= 1.7.0
-BuildRequires: python3-requests
+BuildRequires: python3-wtforms >= 2.2.1
+BuildRequires: python3-yaml
 BuildRequires: redis
 %endif
 
-Requires: httpd
-Requires: curl
-Requires: redis
 Requires: crontabs
+Requires: curl
+Requires: httpd
+Requires: redis
 
 Requires: %flavor_guard
 
+Requires: (copr-selinux if selinux-policy-targeted)
+Requires: js-html5shiv
+Requires: js-jquery1
+Requires: js-respond
+Requires: libmodulemd < 2
+Requires: libmodulemd >= 1.7.0
+Requires: python3-CommonMark
 Requires: python3-alembic
-Requires: python3-mod_wsgi
+Requires: python3-blinker
+Requires: python3-copr-common > 0.4
 Requires: python3-dateutil
 Requires: python3-flask
-Requires: python3-flask-wtf
-Requires: python3-flask-sqlalchemy
+Requires: python3-flask-openid
+Requires: python3-flask-restful
 Requires: python3-flask-script
+Requires: python3-flask-sqlalchemy
 Requires: python3-flask-whooshee
+Requires: python3-flask-wtf
+Requires: python3-flask-wtf
+Requires: python3-gobject
 Requires: python3-html5-parser
 Requires: python3-humanize
 Requires: python3-lxml
-Requires: python3-pytz
 Requires: python3-markdown
-Requires: python3-netaddr
-Requires: python3-redis
-Requires: python3-pylibravatar
-Requires: python3-wtforms >= 2.2.1
-Requires: python3-flask-wtf
-Requires: python3-flask-restful
 Requires: python3-marshmallow
-Requires: python3-blinker
-Requires: python3-flask-openid
-Requires: python3-openid-teams
-Requires: python3-gobject
-Requires: libmodulemd < 2
-Requires: libmodulemd >= 1.7.0
-Requires: python3-pygments
-Requires: python3-CommonMark
-Requires: python3-psycopg2
-Requires: python3-zmq
+Requires: python3-mod_wsgi
 Requires: python3-munch
+Requires: python3-netaddr
+Requires: python3-openid-teams
+Requires: python3-psycopg2
+Requires: python3-pygments
+Requires: python3-pylibravatar
+Requires: python3-pytz
+Requires: python3-redis
 Requires: python3-requests
-Requires: xstatic-patternfly-common
-Requires: js-jquery1
-Requires: xstatic-jquery-ui-common
+Requires: python3-wtforms >= 2.2.1
+Requires: python3-zmq
 Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
-Requires: js-html5shiv
-Requires: js-respond
-Requires: python3-copr-common > 0.4
-Requires: (copr-selinux if selinux-policy-targeted)
+Requires: xstatic-jquery-ui-common
+Requires: xstatic-patternfly-common
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
