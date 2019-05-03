@@ -73,7 +73,7 @@ def _sign_one(path, email):
         stdout, stderr = handle.communicate()
     except Exception as e:
         err = CoprSignError(
-            msg="Failed to  invoke sign {} by user {} with error {}"
+            msg="Failed to invoke sign {} by user {} with error {}"
             .format(path, email, e, cmd=None, stdout=None, stderr=None))
 
         raise err
