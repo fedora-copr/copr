@@ -1,9 +1,0 @@
-Warning: Permanently added '172.25.87.56' (ECDSA) to the list of known hosts.
-receiving incremental file list
-build.log.gz
-fail
-root.log.gz
-state.log.gz
-
-sent 104 bytes  received 18,350 bytes  36,908.00 bytes/sec
-total size is 18,053  speedup is 0.98
