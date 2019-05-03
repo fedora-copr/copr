@@ -63,7 +63,7 @@ def user_exists(app, mail):
                                 cmd=" ".join(cmd), err=e)
 
     if handle.returncode == 0:
-        # TODO: validate that we really got exactly one line in stdout
+        # TODO: validate that the key is ultimately trusted
         log.debug("user {} has keys in keyring".format(mail))
         ensure_passphrase_exist(app, mail)
         return True
