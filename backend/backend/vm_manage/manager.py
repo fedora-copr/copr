@@ -4,6 +4,8 @@ import json
 import time
 import weakref
 import datetime
+import tabulate
+import humanize
 from io import StringIO
 from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
 
@@ -369,24 +371,66 @@ class VmManager(object):
             "in_use_since",
         }
 
-        buf = StringIO()
-        for group_id in self.vm_groups:
-            bg = self.opts.build_groups[group_id]
-            buf.write("=" * 32)
-            header = "\nVM group #{} {} archs: {}\n===\n".format(group_id, bg["name"], bg["archs"])
-            buf.write(header)
-            vmd_list = self.get_all_vm_in_group(group_id)
-            for vmd in vmd_list:
-                buf.write("\t VM {}, ip: {}\n".format(vmd.vm_name, vmd.vm_ip))
-                for k, v in vmd.to_dict().items():
-                    if k in ["vm_name", "vm_ip", "group"]:
-                        continue
-                    if k in dt_fields:
-                        v = str(datetime.datetime.fromtimestamp(float(v)))
-                    buf.write("\t\t{}: {}\n".format(k, v))
-                buf.write("\n")
+        headers = ['VM Name', 'IP', 'State', 'Health Check', 'User', 'Task info']
 
-            buf.write("\n")
+        def date_to_str(value):
+            if value is None:
+                return 'none'
+            dt = datetime.datetime.fromtimestamp(float(value))
+            return humanize.naturaltime(dt)
+
+        buf = StringIO()
+        header_spacing = ""
+        for group_id in self.vm_groups:
+            buf.write(header_spacing)
+            header_spacing = "\n\n"
+            bg = self.opts.build_groups[group_id]
+            header = "VM group #{} {} archs: {}".format(group_id, bg["name"], bg["archs"])
+            header_len = len(header)
+            buf.write("=" * header_len + "\n")
+            buf.write(header + "\n")
+            buf.write("=" * header_len + "\n\n")
+
+            vmd_list = self.get_all_vm_in_group(group_id)
+            rows = []
+            for vm in vmd_list:
+                row = []
+                row.append(vm.vm_name)
+                row.append(vm.vm_ip)
+                row.append(vm.state)
+                written = ['vm_name', 'vm_ip', 'state']
+                vmd = vm.to_dict()
+
+                row.append("fails: {0}\nlast: {1}".format(
+                    vmd.get('check_fails', 0),
+                    date_to_str(vmd.get('last_health_check', None))
+                ))
+
+                row.append(vmd.get('bound_to_user', ''))
+
+                task_info = ''
+                if vmd.get('task_id', None):
+                    task_info = (
+                        "build: {build_id}\n"
+                        "task: {task_id}\n"
+                        "chroot: {chroot}\n"
+                        "worker: {worker}\n"
+                        "since: {since}"
+                    )
+                    task_info = task_info.format(
+                        build_id=vmd.get('build_id', None),
+                        task_id=vmd.get('task_id', None),
+                        chroot=vmd.get('chroot', None),
+                        since=date_to_str(vmd.get('in_use_since', None)),
+                        worker=vmd.get('used_by_worker', 'unused'),
+                    )
+
+                row.append(task_info)
+                rows.append(row)
+
+            # sort by the first column
+            buf.write(tabulate.tabulate(sorted(rows, key=(lambda x: x[0])), headers, tablefmt='grid'))
+
         return buf.getvalue()
 
     def write_vm_pool_info(self, group, key, value):

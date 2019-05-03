@@ -31,6 +31,7 @@ BuildRequires: python3-copr
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
+BuildRequires: python3-humanize
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-pytest
@@ -40,6 +41,7 @@ BuildRequires: python3-requests
 BuildRequires: python3-retask
 BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
+BuildRequires: python3-tabulate
 
 Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
@@ -62,6 +64,7 @@ Requires:   python3-daemon
 Requires:   python3-dateutil
 Requires:   python3-fedmsg
 Requires:   python3-gobject
+Requires:   python3-humanize
 Requires:   python3-munch
 Requires:   python3-netaddr
 Requires:   python3-novaclient
@@ -70,6 +73,7 @@ Requires:   python3-pytz
 Requires:   python3-requests
 Requires:   python3-retask
 Requires:   python3-setproctitle
+Requires:   python3-tabulate
 Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
