@@ -1,0 +1,8 @@
+#! /bin/sh
+
+# Do a periodic trustdb maintenance.  Use --batch, so the maintenance is done
+# only when needed.  TODO: implement this in python to have --homedir on one
+# place.
+runuser -u copr-signer \
+    /usr/bin/gpg2 -- --homedir /var/lib/copr-keygen/gnupg \
+        --check-trustdb --batch

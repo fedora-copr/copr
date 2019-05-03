@@ -27,6 +27,7 @@ BuildRequires: python3-flask
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 
+Requires:   crontabs
 Requires:   haveged
 Requires:   gnupg2
 Requires:   python3-mod_wsgi
@@ -101,6 +102,7 @@ install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 install -d %{buildroot}%{_localstatedir}/log/copr-keygen
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
+install -d %{buildroot}%{_sysconfdir}/cron.daily
 
 %{__install} -p -m 0755 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
@@ -109,6 +111,8 @@ install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 %{__install} -p -m 0644 configs/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-keygen
 
 %{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
+
+%{__install} -p -m 0755 configs/cron.daily %{buildroot}%{_sysconfdir}/cron.daily/copr-keygen
 
 cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
 
@@ -150,6 +154,8 @@ service httpd condrestart &>/dev/null || :
 %config(noreplace) %{_sysconfdir}/copr-keygen
 
 %{_sysconfdir}/logrotate.d/copr-keygen
+
+%config %attr(0755, root, root) %{_sysconfdir}/cron.daily/*
 
 %dir %{_localstatedir}/log/copr-keygen
 %ghost %{_localstatedir}/log/copr-keygen/main.log
