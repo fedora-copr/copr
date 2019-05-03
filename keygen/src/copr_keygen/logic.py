@@ -7,16 +7,9 @@ import tempfile
 import sys
 
 from .exceptions import GpgErrorException, KeygenServiceBaseException
+from .gpg import gpg_cmd
 
 log = logging.getLogger(__name__)
-
-
-def gpg_cmd(app, *args):
-    return [
-        app.config["GPG_BINARY"],
-        "--no-auto-check-trustdb",
-        "--homedir", app.config["GNUPG_HOMEDIR"],
-    ] + list(args)
 
 
 def get_passphrase_location(app, name_email):
@@ -51,8 +44,7 @@ def user_exists(app, mail):
     :raises: GpgErrorException
 
     """
-    cmd = gpg_cmd(app, "--list-secret-keys", "--with-colons",
-            "<{0}>".format(mail))
+    cmd = gpg_cmd + ["--list-secret-keys", "--with-colons", "<{0}>".format(mail)]
 
     try:
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -127,7 +119,7 @@ def create_new_key(
         raise GpgErrorException(msg="Failed to write tmp file for gen_key",
                                 err=e)
 
-    cmd = gpg_cmd(app, "--batch", "--gen-key", out.name)
+    cmd = gpg_cmd + ["--batch", "--gen-key", out.name]
 
     log.debug("CMD: {}".format(' '.join(map(str, cmd))))
     try:

@@ -1,0 +1,13 @@
+#! /usr/bin/python3
+
+import sys
+import os
+import getpass
+from copr_keygen.gpg import gpg_cmd
+
+if getpass.getuser() != 'copr-signer':
+    sys.stderr.write("run as 'copr-signer' user\n")
+    sys.exit(1)
+
+cmd = gpg_cmd + sys.argv[1:]
+os.execve(cmd[0], cmd, os.environ)

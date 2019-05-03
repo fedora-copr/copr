@@ -105,6 +105,7 @@ install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_sysconfdir}/cron.daily
 
 %{__install} -p -m 0755 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
+%{__install} -p -m 0755 run/gpg-copr %{buildroot}/%{_bindir}/
 
 %{__install} -p -m 0755 run/application.py %{buildroot}%{_datadir}/copr-keygen/
 %{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
@@ -147,6 +148,7 @@ service httpd condrestart &>/dev/null || :
 %{python3_sitelib}/*
 
 %{_bindir}/gpg_copr.sh
+%{_bindir}/gpg-copr
 %config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
 %defattr(600, copr-signer, copr-signer, 700)
