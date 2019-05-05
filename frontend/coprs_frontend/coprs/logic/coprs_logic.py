@@ -629,7 +629,7 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
-                      module_md=None, module_md_name=None, with_opts="", without_opts="",
+                      with_opts="", without_opts="",
                       delete_after=None, delete_notify=None):
         """
         :type user: models.User
@@ -644,14 +644,13 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot,
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
                            with_opts, without_opts, delete_after, delete_notify)
         return chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
-                      module_md=None, module_md_name=None, with_opts="", without_opts="",
-                      delete_after=None, delete_notify=None):
+                      with_opts="", without_opts="", delete_after=None, delete_notify=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -660,12 +659,12 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name,
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name,
                            copr_chroot, with_opts, without_opts, delete_after, delete_notify)
         return copr_chroot
 
     @classmethod
-    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name,
+    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name,
                        copr_chroot, with_opts, without_opts, delete_after, delete_notify):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
@@ -683,11 +682,6 @@ class CoprChrootsLogic(object):
             copr_chroot.update_comps(comps)
             copr_chroot.comps_name = comps_name
             ActionsLogic.send_update_comps(copr_chroot)
-
-        if module_md_name is not None:
-            copr_chroot.update_module_md(module_md)
-            copr_chroot.module_md_name = module_md_name
-            ActionsLogic.send_update_module_md(copr_chroot)
 
         if delete_after is not None:
             copr_chroot.delete_after = delete_after
@@ -733,17 +727,6 @@ class CoprChrootsLogic(object):
         copr_chroot.comps_name = None
         copr_chroot.comps_zlib = None
         ActionsLogic.send_update_comps(copr_chroot)
-        db.session.add(copr_chroot)
-
-    @classmethod
-    def remove_module_md(cls, user, copr_chroot):
-        UsersLogic.raise_if_cant_update_copr(
-            user, copr_chroot.copr,
-            "Only owners and admins may update their projects.")
-
-        copr_chroot.module_md_name = None
-        copr_chroot.module_md_zlib = None
-        ActionsLogic.send_update_module_md(copr_chroot)
         db.session.add(copr_chroot)
 
     @classmethod

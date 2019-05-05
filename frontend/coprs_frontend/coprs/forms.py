@@ -956,8 +956,6 @@ class ChrootForm(FlaskForm):
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
 
-    module_md = FileField("module_md")
-
     comps = FileField("comps_xml")
 
     with_opts = wtforms.TextField("With options")

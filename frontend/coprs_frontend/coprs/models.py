@@ -1161,9 +1161,6 @@ class CoprChroot(db.Model, helpers.Serializer):
     comps_zlib = db.Column(db.LargeBinary(), nullable=True)
     comps_name = db.Column(db.String(127), nullable=True)
 
-    module_md_zlib = db.Column(db.LargeBinary(), nullable=True)
-    module_md_name = db.Column(db.String(127), nullable=True)
-
     with_opts = db.Column(db.Text, default="", server_default="", nullable=False)
     without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
 
@@ -1179,13 +1176,6 @@ class CoprChroot(db.Model, helpers.Serializer):
             data = comps_xml
         self.comps_zlib = zlib.compress(data)
 
-    def update_module_md(self, module_md_yaml):
-        if isinstance(module_md_yaml, str):
-            data = module_md_yaml.encode("utf-8")
-        else:
-            data = module_md_yaml
-        self.module_md_zlib = zlib.compress(data)
-
     @property
     def buildroot_pkgs_list(self):
         return (self.buildroot_pkgs or "").split()
@@ -1200,21 +1190,9 @@ class CoprChroot(db.Model, helpers.Serializer):
             return zlib.decompress(self.comps_zlib).decode("utf-8")
 
     @property
-    def module_md(self):
-        if self.module_md_zlib:
-            return zlib.decompress(self.module_md_zlib).decode("utf-8")
-
-    @property
     def comps_len(self):
         if self.comps_zlib:
             return len(zlib.decompress(self.comps_zlib))
-        else:
-            return 0
-
-    @property
-    def module_md_len(self):
-        if self.module_md_zlib:
-            return len(zlib.decompress(self.module_md_zlib))
         else:
             return 0
 

@@ -170,29 +170,6 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_update_module_md(cls, chroot):
-        """ Schedules update module_md.yaml action
-
-        :type copr_chroot: models.CoprChroot
-        """
-        url_path = helpers.copr_url("coprs_ns.chroot_view_module_md", chroot.copr, chrootname=chroot.name)
-        data_dict = {
-            "ownername": chroot.copr.owner_name,
-            "projectname": chroot.copr.name,
-            "chroot": chroot.name,
-            "module_md_present": chroot.module_md_zlib is not None,
-            "url_path": url_path,
-        }
-
-        action = models.Action(
-            action_type=ActionTypeEnum("update_module_md"),
-            object_type="copr_chroot",
-            data=json.dumps(data_dict),
-            created_on=int(time.time())
-        )
-        db.session.add(action)
-
-    @classmethod
     def send_create_gpg_key(cls, copr):
         """
         :type copr: models.Copr

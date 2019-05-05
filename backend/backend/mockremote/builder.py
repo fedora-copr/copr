@@ -43,23 +43,8 @@ class Builder(object):
             config_file=self.opts.ssh.builder_config
         )
 
-        self.module_dist_tag = self._load_module_dist_tag()
+        self.module_dist_tag = None
         self._build_pid = None
-
-    def _load_module_dist_tag(self):
-        module_md_filepath = os.path.join(self.job.destdir, self.job.chroot, "module_md.yaml")
-        try:
-            mmd = Modulemd.ModuleStream()
-            mmd.import_from_file(module_md_filepath)
-            dist_tag = ".{}+{}+{}".format(mmd.get_name(), (mmd.get_stream() or ''), (str(mmd.get_version()) or '1'))
-        except IOError as e:
-            return None
-        except Exception as e:
-            self.log.exception(str(e))
-            return None
-        else:
-            self.log.info("Loaded {}, dist_tag {}".format(module_md_filepath, dist_tag))
-        return dist_tag
 
     def _run_ssh_cmd(self, cmd):
         """

@@ -220,35 +220,6 @@ class Action(object):
                                    remote_comps_url, local_comps_path)
                 result.result = ActionResult.FAILURE
 
-    def handle_module_md_update(self, result):
-        self.log.debug("Action module_md update")
-
-        ext_data = json.loads(self.data["data"])
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
-        chroot = ext_data["chroot"]
-        url_path = ext_data["url_path"]
-
-        remote_module_md_url = self.opts.frontend_base_url + url_path
-
-        path = self.get_chroot_result_dir(chroot, projectname, ownername)
-        ensure_dir_exists(path, self.log)
-        local_module_md_path = os.path.join(path, "module_md.yaml")
-        result.result = ActionResult.SUCCESS
-        if not ext_data.get("module_md_present", True):
-            silent_remove(local_module_md_path)
-            self.log.info("deleted module_md.yaml for %s/%s/%s from %s ",
-                          ownername, projectname, chroot, remote_module_md_url)
-        else:
-            try:
-                urlretrieve(remote_module_md_url, local_module_md_path)
-                self.log.info("saved module_md.yaml for %s/%s/%s from %s ",
-                              ownername, projectname, chroot, remote_module_md_url)
-            except Exception:
-                self.log.exception("Failed to update module_md from %s at location %s",
-                                   remote_module_md_url, local_module_md_path)
-                result.result = ActionResult.FAILURE
-
     def handle_delete_build(self):
         self.log.info("Action delete build.")
 
@@ -498,9 +469,6 @@ class Action(object):
         elif action_type == ActionType.RAWHIDE_TO_RELEASE:
             self.handle_rawhide_to_release(result)
 
-        elif action_type == ActionType.UPDATE_MODULE_MD:
-            self.handle_module_md_update(result)
-
         elif action_type == ActionType.BUILD_MODULE:
             self.handle_build_module(result)
 
@@ -530,7 +498,7 @@ class ActionType(object):
     GEN_GPG_KEY = 5
     RAWHIDE_TO_RELEASE = 6
     FORK = 7
-    UPDATE_MODULE_MD = 8
+    UPDATE_MODULE_MD = 8  # Deprecated
     BUILD_MODULE = 9
     CANCEL_BUILD = 10
 
