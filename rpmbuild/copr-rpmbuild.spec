@@ -10,6 +10,10 @@
 %global rpm_python      rpm-python
 %endif
 
+%define latest_requires() \
+Requires: %1 \
+%{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
+
 Name:    {{{ git_dir_name }}}
 Version: {{{ git_dir_version }}}
 Summary: Run COPR build tasks
@@ -70,14 +74,41 @@ Provides command capable of running COPR build-tasks.
 Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
 build build-id 12345 for chroot epel-7-x86_64.
 
+
 %package -n copr-builder
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
-Requires: rpkg
-Requires: tito
-Requires: rubygem-gem2rpm
+
+Requires: openssh-clients
 Requires: pyp2rpm
-Requires: python-srpm-macros
+# We need %%pypi_source defined, which is in 3-29+
+Requires: python-srpm-macros >= 3-29
+Requires: rpkg
+Requires: rsync
+Requires: rubygem-gem2rpm
+Requires: scl-utils-build
+Requires: tito
+
+# We want those to be always up-2-date
+%latest_requires ca-certificates
+%latest_requires distribution-gpg-keys
+%latest_requires dnf
+%latest_requires dnf-plugins-core
+%latest_requires mock
+%latest_requires mock-core-configs
+%latest_requires rpm
+
+# TODO: Justify those, or remove!
+Requires: glib2
+Requires: ethtool
+Requires: expect
+Requires: libselinux-python
+Requires: libsemanage-python
+Requires: nosync
+Requires: pyliblzma
+Requires: yum
+Requires: yum-utils
+
 
 %description -n copr-builder
 Provides command capable of running COPR build-tasks.
@@ -86,15 +117,29 @@ build build-id 12345 for chroot epel-7-x86_64.
 
 This package contains all optional modules for building SRPM.
 
+
 %prep
 %setup -q
+
 
 %check
 PYTHON=%{python} ./run_tests.sh
 
+
 %build
 name="%{name}" version="%{version}" summary="%{summary}" %py_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
+
+cat > copr-update-builder <<EOF
+#! /bin/sh
+
+# Update the Copr builder machine, can be called anytime Copr build system
+# decides to do so (please keep the output idempotent).
+
+# install the latest versions of those packages
+dnf update -y %latest_requires_packages
+EOF
+
 
 %install
 install -d %{buildroot}%{_sysconfdir}/copr-rpmbuild
@@ -114,6 +159,9 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 
 name="%{name}" version="%{version}" summary="%{summary}" %py_install
+
+install -p -m 755 copr-update-builder %buildroot%_bindir
+
 
 %files
 %{!?_licensedir:%global license %doc}
@@ -136,6 +184,8 @@ name="%{name}" version="%{version}" summary="%{summary}" %py_install
 
 %files -n copr-builder
 %license LICENSE
+%_bindir/copr-update-builder
+
 
 %changelog
 {{{ git_dir_changelog since_tag=copr-rpmbuild-0.18-1 }}}
