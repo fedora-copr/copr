@@ -59,6 +59,7 @@ Requires: %{python_pfx}-simplejson
 Requires: mock
 Requires: git
 Requires: git-svn
+# for the /bin/unbuffer binary
 Requires: expect
 
 %if 0%{?fedora} || 0%{?rhel} > 7
@@ -79,6 +80,11 @@ build build-id 12345 for chroot epel-7-x86_64.
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
 
+# selinux toolset to allow running ansible against the builder
+Requires: libselinux-python
+Requires: libsemanage-python
+# for mock to allow 'nosync = True'
+Requires: nosync
 Requires: openssh-clients
 Requires: pyp2rpm
 # We need %%pypi_source defined, which is in 3-29+
@@ -88,6 +94,10 @@ Requires: rsync
 Requires: rubygem-gem2rpm
 Requires: scl-utils-build
 Requires: tito
+# yum* to allow mock to build against el* chroots
+Requires: yum
+Requires: yum-utils
+
 
 # We want those to be always up-2-date
 %latest_requires ca-certificates
@@ -97,17 +107,6 @@ Requires: tito
 %latest_requires mock
 %latest_requires mock-core-configs
 %latest_requires rpm
-
-# TODO: Justify those, or remove!
-Requires: glib2
-Requires: ethtool
-Requires: expect
-Requires: libselinux-python
-Requires: libsemanage-python
-Requires: nosync
-Requires: pyliblzma
-Requires: yum
-Requires: yum-utils
 
 
 %description -n copr-builder
