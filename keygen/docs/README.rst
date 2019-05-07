@@ -53,5 +53,5 @@ At **host-sign**
 
 **NB:**
  obs-signd always run as root and doesn't accept alternative
- **GPGHOMEDIR**. To overcome this obstacle we added ``/usr/bin/gpg_copr``
+ **GPGHOMEDIR**. To overcome this obstacle we added ``/usr/bin/gpg_copr.sh``
  Bash script wrapper which calls ``gpg2`` with correct user and homedir
