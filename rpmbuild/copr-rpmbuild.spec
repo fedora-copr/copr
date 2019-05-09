@@ -87,8 +87,13 @@ Requires: dnf-yum
 Requires: dnf-utils
 %endif
 # selinux toolset to allow running ansible against the builder
+%if 0%{?fedora}
+Requires: python3-libselinux
+Requires: python3-libsemanage
+%else
 Requires: libselinux-python
 Requires: libsemanage-python
+%endif
 # for mock to allow 'nosync = True'
 Requires: nosync
 Requires: openssh-clients
