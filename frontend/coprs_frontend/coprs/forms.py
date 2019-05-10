@@ -285,10 +285,9 @@ class CoprFormFactory(object):
 
             disable_createrepo = wtforms.BooleanField(default=False,
                     label="Create repositories manually",
-                    description="""When Fedora is branched from rawhide, the
-                    respective chroots for the new branch are automatically
-                    created for you (as soon as they are available) as rawhide
-                    chroot forks.""",
+                    description="""Repository meta data is normally refreshed
+                    after each build.  If you want to do this manually, turn
+                    this option on.""",
                     false_values=FALSE_VALUES)
 
             unlisted_on_hp = wtforms.BooleanField(
