@@ -20,6 +20,7 @@ def to_dict(project_chroot):
         "additional_packages": project_chroot.buildroot_pkgs_list,
         "with_opts": str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
+        "delete_after_days": project_chroot.delete_after_days,
     }
 
 

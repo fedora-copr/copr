@@ -28,7 +28,7 @@ def main():
 
             # If a project doesn't exist in frontend, it should be removed
             try:
-                project = client.project_proxy.get(ownername=ownername, projectname=projectname)
+                client.project_proxy.get(ownername=ownername, projectname=projectname)
             except CoprNoResultException:
                 print(projectpath)
                 continue
@@ -37,9 +37,22 @@ def main():
             for chroot in os.listdir(projectpath):
                 if chroot in ["srpm-builds", "modules"]:
                     continue
-                if chroot in project.chroot_repos:
+                if not is_outdated_to_be_deleted(get_chroot_safe(client, ownername, projectname, chroot)):
                     continue
                 print(os.path.join(projectpath, chroot))
+
+
+def get_chroot_safe(client, ownername, projectname, chrootname):
+    try:
+        return client.project_chroot_proxy.get(ownername=ownername, projectname=projectname, chrootname=chrootname)
+    except CoprNoResultException:
+        return None
+
+
+def is_outdated_to_be_deleted(chroot):
+    if not chroot:
+        return True
+    return chroot.delete_after_days == 0
 
 
 if __name__ == "__main__":
