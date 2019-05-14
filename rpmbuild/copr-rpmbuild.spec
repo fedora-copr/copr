@@ -10,6 +10,9 @@
 %global rpm_python      rpm-python
 %endif
 
+# do not build debuginfo sub-packages
+%define debug_package %nil
+
 %define latest_requires() \
 Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
@@ -20,7 +23,6 @@ Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 License: GPLv2+
-BuildArch: noarch
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
@@ -94,8 +96,12 @@ Requires: python3-libsemanage
 Requires: libselinux-python
 Requires: libsemanage-python
 %endif
-# for mock to allow 'nosync = True'
+# for mock to allow: config_opts['nosync'] = True
 Requires: nosync
+%ifarch x86_64
+# multilib counterpart to avoid: config_opts['nosync_force'] = True
+Requires: nosync.i686
+%endif
 Requires: openssh-clients
 Requires: pyp2rpm
 # We need %%pypi_source defined, which is in 3-29+
