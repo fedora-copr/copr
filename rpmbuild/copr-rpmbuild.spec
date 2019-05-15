@@ -100,7 +100,7 @@ Requires: libsemanage-python
 Requires: nosync
 %ifarch x86_64
 # multilib counterpart to avoid: config_opts['nosync_force'] = True
-Requires: nosync.i686
+Requires: nosync(x86-32)
 %endif
 Requires: openssh-clients
 Requires: pyp2rpm
