@@ -154,12 +154,12 @@ rlJournalStart
         # Test that it is possible to specify group and project name for the module
         PACKAGES=`mktemp`
         SUFFIX=2
-        PROJECT=@copr/TestModule$DATE$SUFFIX
+        PROJECT=$OWNER/TestModule$DATE$SUFFIX
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
-        wait_for_finished_module "@copr/TestModule$DATE$SUFFIX" 2 600 $PACKAGES
+        wait_for_finished_module "$OWNER/TestModule$DATE$SUFFIX" 2 600 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
 
         # Test that it is possible to build module with package from copr
