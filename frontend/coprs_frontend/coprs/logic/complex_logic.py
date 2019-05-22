@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import datetime
 import time
 import flask
 import sqlalchemy
@@ -9,7 +10,7 @@ from .builds_logic import BuildsLogic
 from copr_common.enums import StatusEnum
 from coprs import models
 from coprs import exceptions
-from coprs.exceptions import ObjectNotFound
+from coprs.exceptions import ObjectNotFound, ActionInProgressException
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.actions_logic import ActionsLogic
 
@@ -24,23 +25,48 @@ class ComplexLogic(object):
     """
 
     @classmethod
-    def delete_copr(cls, copr):
+    def delete_copr(cls, copr, admin_action=False):
         """
         Delete copr and all its builds.
 
         :param copr:
+        :param admin_action: set to True to bypass permission check
         :raises ActionInProgressException:
         :raises InsufficientRightsException:
         """
+
+        if admin_action:
+            user = copr.user
+        else:
+            user = flask.g.user
+
         builds_query = BuildsLogic.get_multiple_by_copr(copr=copr)
 
         if copr.persistent:
             raise exceptions.InsufficientRightsException("This project is protected against deletion.")
 
         for build in builds_query:
-            BuildsLogic.delete_build(flask.g.user, build, send_delete_action=False)
+            BuildsLogic.delete_build(user, build, send_delete_action=False)
 
-        CoprsLogic.delete_unsafe(flask.g.user, copr)
+        CoprsLogic.delete_unsafe(user, copr)
+
+
+    @classmethod
+    def delete_expired_projects(cls):
+        query = (
+            models.Copr.query
+            .filter(models.Copr.delete_after.isnot(None))
+            .filter(models.Copr.delete_after < datetime.datetime.now())
+            .filter(models.Copr.deleted.isnot(True))
+        )
+        for copr in query.all():
+            print("deleting project '{}'".format(copr.full_name))
+            try:
+               cls.delete_copr(copr, admin_action=True)
+            except ActionInProgressException as e:
+                print(e)
+                print("project {} postponed".format(copr.full_name))
+
 
     @classmethod
     def fork_copr(cls, copr, user, dstname, dstgroup=None):

@@ -1,6 +1,8 @@
+import datetime
 import json
 from unittest import mock
 
+from coprs import models, helpers
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic, ProjectForking
@@ -22,6 +24,39 @@ class TestComplexLogic(CoprsTestCase):
         assert data["copr"] == "dstname"
         assert data["builds_map"] == {'fedora-18-x86_64': ['bar', '00000005-hello-world'], 'srpm-builds': ['bar', '00000005']}
 
+
+    def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
+        query = self.db.session.query(models.Copr)
+
+        # nothing is deleted at the beginning
+        assert len([c for c in query.all() if c.deleted]) == 0
+
+        # one is to be deleted in the future
+        self.c1.delete_after_days = 2
+        # one is already to be deleted
+        self.c2.delete_after = datetime.datetime.now() - datetime.timedelta(days=1)
+
+        # and one is not to be temporary at all (c3)
+
+        ComplexLogic.delete_expired_projects()
+        self.db.session.commit()
+
+        query = self.db.session.query(models.Copr)
+        assert len(query.all()) == 3 # we only set deleted=true
+
+        # some builds are not finished, nothing deleted yet
+        assert len([c for c in query.all() if c.deleted]) == 0
+
+        b = self.db.session.query(models.Build).get(3)
+        b.canceled = True
+
+        ComplexLogic.delete_expired_projects()
+        self.db.session.commit()
+        # some builds are not finished, nothing deleted yet
+        assert len([c for c in query.all() if c.deleted]) == 1
+
+        # test that build is deleted as well
+        assert not self.db.session.query(models.Build).get(3)
 
 
 class TestProjectForking(CoprsTestCase):

@@ -1,6 +1,6 @@
 from flask_script import Command
 from coprs import db_session_scope
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.complex_logic import ComplexLogic
 
 
 class CleanExpiredProjectsCommand(Command):
@@ -12,4 +12,4 @@ class CleanExpiredProjectsCommand(Command):
     # pylint: disable=method-hidden
     def run(self):
         with db_session_scope():
-            CoprsLogic.delete_expired_projects()
+            ComplexLogic.delete_expired_projects()
