@@ -191,7 +191,7 @@ rlJournalStart
         rlRun "rpm -q mksh"
         rlRun "dnf -y module remove testmodule:beakertest/default"
         rlRun "dnf -y module disable testmodule"
-
+        rlRun "rm /etc/yum.repos.d/testmodule.repo"
 
         # @TODO Test that enabled module info is correct
         # Feature for enabling module from Copr is not in upstream
