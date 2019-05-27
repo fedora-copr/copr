@@ -118,10 +118,11 @@
                   <dt><h3>Site Navigation</h3></dt>
                   <dd>
                     <ul>
-                      <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li> 
+                      <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
                       <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
                       <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
-                      <li><a href="{{ url_for('user_ns.user_info') }}">GDPR</a></li>
+                      <li> <a href="{{ url_for('user_ns.user_info') }}">GDPR</a> </li>
+                      <li> <a href="{{ url_for('rss_ns.rss') }}">RSS</a> </li>
                     </ul>
                   </dd>
                 </dl>
