@@ -107,7 +107,7 @@ rlJournalStart
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
-        rlAssertEquals "MBS API is now longer available"\
+        rlAssertEquals "MBS API is no longer available"\
                        `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 404
 
         # Test that module builds succeeded
@@ -199,6 +199,11 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        rlRun "copr-cli delete module-testmodule-beakertest-$DATE"
+        rlRun "copr-cli delete module-testmoduleurl-beakertest-$DATE"
+        rlRun "copr-cli delete module-test-macros-module-beakertest-$DATE"
+        rlRun "copr-cli delete $OWNER/TestModule$DATE$SUFFIX"
+        rlRun "copr-cli delete module-coprtestmodule-beakertest-$DATE"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
