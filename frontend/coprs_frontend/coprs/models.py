@@ -306,7 +306,11 @@ class Copr(db.Model, helpers.Serializer):
     forked_from = db.relationship("Copr",
             remote_side=_CoprPublic.id,
             foreign_keys=[_CoprPublic.forked_from_id],
-            backref=db.backref("forks"))
+            backref=db.backref("all_forks"))
+
+    @property
+    def forks(self):
+        return [fork for fork in self.all_forks if not fork.deleted]
 
     @property
     def main_dir(self):
