@@ -12,7 +12,8 @@ Requirements
 ------------
 
 * ssh access to copr-be-dev.cloud.fedoraproject.org
-* an account on https://fedorainfracloud.org.
+* an account on https://fedorainfracloud.org, and
+* OpenStack RC File for that ^^ account for `coprdev` tenant
 
 
 Provide the image
@@ -22,28 +23,43 @@ The first thing you need to figure out is what image should you use and where to
 
 Search for the ``Fedora-Cloud-Base-*`` images of the particular Fedora. You need to have both x86_64 and ppc64le images. Are both of them available? Then you can jump right to the next step. Otherwise, you need to submit them.
 
-The Cloud Base image for x86_64 can be obtained on https://alt.fedoraproject.org/cloud. Pick the one with ``.qcow2`` extension. The ppc64le image can be found on a page with alternative architectures https://alt.fedoraproject.org/alt. Don't mistake PPC64LE for PPC64.
+The Cloud Base image for x86_64 can be obtained on
+https://alt.fedoraproject.org/cloud.  Pick the one with ``.qcow2`` extension.
+The ppc64le image can be found on a page with alternative architectures
+https://alt.fedoraproject.org/alt. Don't mistake PPC64LE for PPC64.
+If neither that url provides the expected cloud image version (yet), there
+should exist at least the "compose" version in
+https://kojipkgs.fedoraproject.org/compose/cloud/, look for
+`latest-Fedora-Cloud-<VERSION>/compose/Cloud/ppc64le/images` directory.
 
-Then click to ``Create Image`` in the registry and fill the fields like this
+Download the image, and upload it to the `fedorainfracloud.org` OpenStack:
 
-* Name - Use the filename
-* Image Location - Provide the full URL to the image
-* Format - QCOW2
-* Architecture - x86_64 or ppc64le
-* Public - Yes, so other people can use it too
-* Protected - Yes, so other people can't delete it
+::
 
-Once it is done, you need to edit this playbook
-
-https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/playbooks/hosts/fed-cloud09.cloud.fedoraproject.org.yml
-
-and add info about the image(s) that you have uploaded. See the task called ``- name: Add the images``. If you don't have a push access, send a patch to someone who has.
+    $ wget <THE_QCOW_IMAGE_URL>
+    .. downloaded Fedora-Cloud-Base-30-1.2.x86_64.qcow2 ..
+    $ source <THE_OPENSTACK_RC_FILE>
+    # hw_rng_model=virtio is needed to guarantee enough entropy on VMs
+    # --public is needed to publish it to everyone
+    # --protected so other openstack users can not delete it
+    $ openstack image create \
+        --file Fedora-Cloud-Base-30-1.2.x86_64.qcow2 \
+        --public \
+        --protected \
+        --disk-format qcow2 \
+        --container-format bare \
+        --property architecture=x86_64 \
+        --property hw_rng_model=virtio \
+        Fedora-Cloud-Base-30-1.2.x86_64
 
 
 Prepare the base image
 ----------------------
 
-Open a ssh connection to copr-be-dev.cloud.fedoraproject.org and edit the ``/home/copr/provision/builderpb_nova.yml`` playbook. There is the following part
+Open a ssh connection to copr-be-dev.cloud.fedoraproject.org and edit the
+``/home/copr/provision/builderpb_nova.yml`` playbook (resp.
+``/home/copr/provision/builderpb_nova_ppc64le.yml`` for ppc64le variant).  There
+is the following part
 
 .. _prepare_base_image:
 
@@ -84,13 +100,16 @@ After running the ``builderpb_nova.yml`` playbook, you will get an IP address of
     [copr@copr-be-dev ~][STG]$ ssh fedora@172.XX.XXX.XXX
     [fedora@172.XX.XXX.XXX ~]$ sudo dnf install python
 
-Also install ``libselinux-python`` package, which is needed as well.
+Open the https://fedorainfracloud.org again and go to the ``Instances``. Make
+sure that your "Current Project" is the project that you expect (``coprdev``).
+There are many instances so how can you be a hundred percent sure which one you
+modified? Use the IP address as an identifier.
 
-::
+Optionally, click on ``More -> Shut Off Instance`` for that instance (sometimes
+it happens that OpenStack doesn't allow us to create snapshot from running
+instance).
 
-    [fedora@172.XX.XXX.XXX ~]$ sudo dnf install libselinux-python
-
-Open the https://fedorainfracloud.org again and go to the ``Instances``. Make sure that your "Current Project" is the project that you expect (``coprdev``). There are many instances so how can you be a hundred percent sure which one you modified? Use the IP address as an identifier. Click on ``Create Snapshot`` for that instance.
+Click on ``More -> Create Snapshot`` for that instance.
 
 Set snapshot name to something like ``copr-builder-x86_64-f27``. It can be a little tricky though. When you are not creating a first snapshot for the particular release, there might be an older snapshot with the same name, because the names don't have to be unique. You need to delete the older one.
 
@@ -103,6 +122,14 @@ Edit the ``builderpb_nova.yml`` playbook as you did in the :ref:`previous sectio
     [copr@copr-be-dev ~][STG]$ ansible-playbook /home/copr/provision/builderpb_nova.yml
 
 Iterate this process until it ends successfully.
+
+Configure also the snapshot image to use emulated "hardware" random generator
+(otherwise with our OpenStack and new guest kernels the boot would take insanely
+long on gathering entropy):
+
+::
+
+    $ openstack image set --property hw_rng_model=virtio <THE_SNAPSHOT_UUID>
 
 
 Finishing up
