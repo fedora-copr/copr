@@ -710,6 +710,7 @@ def generate_repo_file(copr_dirname, name_release, repofile, username=None, grou
 
 
 def render_generate_repo_file(copr_dir, name_release):
+    name_release = app.config["CHROOT_NAME_RELEASE_ALIAS"].get(name_release, name_release)
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
 
     if not mock_chroot:

@@ -81,6 +81,12 @@ class Config(object):
     # When the data in EOL chroots should be deleted (in days)
     DELETE_EOL_CHROOTS_AFTER = 180
 
+    # We may have a (temporary) chroot that doesn't correspond with /etc/os-release
+    # on a client system, e.g. "rhelbeta-8" chroots in Copr which doesn't match to
+    # any real system, instead it is a temporary alias for "epel-8". In such case,
+    # set this to {"epel-8": "rhelbeta-8"}
+    CHROOT_NAME_RELEASE_ALIAS = {}
+
 
 class ProductionConfig(Config):
     DEBUG = False
