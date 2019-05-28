@@ -1141,6 +1141,24 @@ ORDER BY
                     # postpone this one to next day run
                     log.error("Build(id={}) delete failed, unfinished action.".format(build.id))
 
+    @classmethod
+    def delete_orphaned_builds(cls):
+        builds_to_delete = models.Build.query\
+            .join(models.Copr, models.Build.copr_id == models.Copr.id)\
+            .filter(models.Copr.deleted == True)
+
+        counter = 0
+        for build in builds_to_delete:
+            cls.delete_build(build.copr.user, build)
+            counter += 1
+            if counter >= 100:
+                db.session.commit()
+                counter = 0
+
+        if counter > 0:
+            db.session.commit()
+
+
 class BuildChrootsLogic(object):
     @classmethod
     def get_by_build_id_and_name(cls, build_id, name):

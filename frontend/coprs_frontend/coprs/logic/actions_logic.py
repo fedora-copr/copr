@@ -112,9 +112,13 @@ class ActionsLogic(object):
         data_dict = {
             "ownername": build.copr.owner_name,
             "projectname": build.copr_name,
-            "project_dirname": build.copr_dirname,
             "chroot_builddirs": chroot_builddirs,
         }
+
+        if build.copr_dir:
+            data_dict["project_dirname"] = build.copr_dirname
+        else:
+            data_dict["project_dirname"] = build.copr_name
 
         action = models.Action(
             action_type=ActionTypeEnum("delete"),

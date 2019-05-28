@@ -42,6 +42,7 @@ commands = {
     "delete_outdated_chroots": "DeleteOutdatedChrootsCommand",
     "clean_expired_projects": "CleanExpiredProjectsCommand",
     "clean_old_builds": "DeleteOldBuilds",
+    "delete_orphans": "DeleteOrphansCommand",
 }
 
 if os.getuid() == 0:

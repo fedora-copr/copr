@@ -295,3 +295,20 @@ WHERE package.copr_dir_id = :copr_dir_id;
             new_builds.append(new_build)
 
         return new_builds
+
+    @classmethod
+    def delete_orphaned_packages(cls):
+        pkgs_to_delete = models.Package.query\
+            .join(models.Copr, models.Package.copr_id == models.Copr.id)\
+            .filter(models.Copr.deleted == True)
+
+        counter = 0
+        for pkg in pkgs_to_delete:
+            cls.delete_package(pkg.copr.user, pkg)
+            counter += 1
+            if counter >= 100:
+                db.session.commit()
+                counter = 0
+
+        if counter > 0:
+            db.session.commit()
