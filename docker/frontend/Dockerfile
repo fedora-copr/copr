@@ -10,6 +10,7 @@ RUN dnf -y update && \
                    wget \
                    vim \
                    yum \
+                   sudo \
                    supervisor \
                    copr-selinux \
                    python3-alembic \

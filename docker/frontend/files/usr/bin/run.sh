@@ -4,8 +4,8 @@ export LANG=en_US.UTF-8
 
 /usr/bin/supervisord -c /etc/supervisord.conf
 
-cd /usr/share/copr/coprs_frontend/ && python3 ./manage.py create_db --alembic alembic.ini
-python3 /usr/share/copr/coprs_frontend/manage.py create_chroot fedora-{26,27,rawhide}-{i386,x86_64} epel-{6,7}-x86_64 epel-6-i386
+cd /usr/share/copr/coprs_frontend/ && sudo -u copr-fe copr-frontend create_db --alembic alembic.ini
+sudo -u copr-fe copr-frontend create_chroot fedora-{26,27,rawhide}-{i386,x86_64} epel-{6,7}-x86_64 epel-6-i386
 
 
 # selinux: make data dir writeable for httpd
