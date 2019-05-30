@@ -4,6 +4,9 @@ export LANG=en_US.UTF-8
 
 /usr/bin/supervisord -c /etc/supervisord.conf
 
+chown -R copr-fe:copr-fe /var/log/copr-frontend
+chown -R copr-fe:copr-fe /usr/share/copr
+
 cd /usr/share/copr/coprs_frontend/ && sudo -u copr-fe copr-frontend create_db --alembic alembic.ini
 sudo -u copr-fe copr-frontend create_chroot fedora-{26,27,rawhide}-{i386,x86_64} epel-{6,7}-x86_64 epel-6-i386
 
@@ -15,8 +18,6 @@ sudo -u copr-fe copr-frontend create_chroot fedora-{26,27,rawhide}-{i386,x86_64}
 # data under /usr/share/copr/. Discuss this with peers.
 chcon -R -t httpd_sys_rw_content_t /usr/share/copr/data
 
-chown -R copr-fe:copr-fe /var/log/copr-frontend
-chown -R copr-fe:copr-fe /usr/share/copr
 
 
 echo "#########################################################"
