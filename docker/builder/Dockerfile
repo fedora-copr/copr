@@ -47,7 +47,7 @@ RUN rm -rf /tmp/rpkg/* && \
     rpkg --path /copr/rpmbuild spec --outdir /tmp/rpkg && \
     dnf builddep -y /tmp/rpkg/copr-rpmbuild.spec && \
     rpkg --path /copr/rpmbuild local --outdir /tmp/rpkg && \
-    dnf -y install /tmp/rpkg/noarch/copr-rpmbuild*.noarch.rpm
+    dnf -y install /tmp/rpkg/x86_64/copr-rpmbuild*.x86_64.rpm
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
