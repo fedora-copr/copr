@@ -28,7 +28,7 @@ RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
 
 RUN echo "[dist-git]" > /etc/copr/copr-dist-git.conf && \
-    echo "frontend_base_url=http://frontend" >> /etc/copr/copr-dist-git.conf && \
+    echo "frontend_base_url=http://frontend:5000" >> /etc/copr/copr-dist-git.conf && \
     echo "frontend_auth=1234"  >> /etc/copr/copr-dist-git.conf && \
     chmod 644 /etc/copr/copr-dist-git.conf
 
