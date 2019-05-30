@@ -22,9 +22,9 @@ COPY docker/frontend/files/ /
 
 # build and install copr-frontend
 RUN rm -rf /tmp/rpkg && \
-    rpkg --path /copr/frontend srpm --without doc --outdir /tmp/rpkg && \
+    rpkg --path /copr/frontend srpm --without doc --without check --outdir /tmp/rpkg && \
     dnf -y builddep /tmp/rpkg/copr-frontend*.src.rpm && \
-    rpkg --path /copr/frontend local --without doc --outdir /tmp/rpkg && \
+    rpkg --path /copr/frontend local --without doc --without check --outdir /tmp/rpkg && \
     dnf -y install /tmp/rpkg/noarch/copr-frontend*.noarch.rpm
 
 RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
