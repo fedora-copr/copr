@@ -101,8 +101,8 @@ class TestModulemdGenerator(CoprsTestCase):
         generator = ModulemdGenerator()
         generator.add_profiles(profiles)
         assert set(generator.mmd.get_profiles().keys()) == set(profile_names)
-        assert set(generator.mmd.get_profiles()["default"].get_rpms().get()) == {"pkg1", "pkg2"}
-        assert set(generator.mmd.get_profiles()["debug"].get_rpms().get()) == {"pkg3"}
+        assert set(generator.mmd.get_profiles()["default"].peek_rpms().get()) == {"pkg1", "pkg2"}
+        assert set(generator.mmd.get_profiles()["debug"].peek_rpms().get()) == {"pkg3"}
         assert len(generator.mmd.get_profiles()) == 2
 
     def test_add_component(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -114,14 +114,14 @@ class TestModulemdGenerator(CoprsTestCase):
 
         component = generator.mmd.get_rpm_components()[self.b1.package_name]
         assert component.get_buildorder() == 1
-        assert component.get_name() == self.b1.package_name
-        assert component.get_rationale() == "A reason why package is in the module"
+        assert component.peek_name() == self.b1.package_name
+        assert component.peek_rationale() == "A reason why package is in the module"
 
         with mock.patch("coprs.app.config", self.config):
-            assert component.get_repository().startswith("http://distgiturl.org")
-            assert component.get_repository().endswith(".git")
-            assert chroot.dist_git_url.startswith(component.get_repository())
-        assert component.get_ref() == chroot.git_hash
+            assert component.peek_repository().startswith("http://distgiturl.org")
+            assert component.peek_repository().endswith(".git")
+            assert chroot.dist_git_url.startswith(component.peek_repository())
+        assert component.peek_ref() == chroot.git_hash
 
     def test_components(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         packages = [self.p1.name, self.p2.name, self.p3.name]

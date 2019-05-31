@@ -119,7 +119,7 @@ class ModuleBuildFacade(object):
             for pkgname, rpm in group.items():
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
-                                                                     clone_url=clone_url, committish=rpm.get_ref())
+                                                                     clone_url=clone_url, committish=rpm.peek_ref())
                 build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
@@ -129,8 +129,8 @@ class ModuleBuildFacade(object):
             blocked_by_id = batch.id
 
     def get_clone_url(self, pkgname, rpm):
-        if rpm.get_repository():
-            return rpm.get_repository()
+        if rpm.peek_repository():
+            return rpm.peek_repository()
         return self.default_distgit.format(pkgname=pkgname)
 
     @property
