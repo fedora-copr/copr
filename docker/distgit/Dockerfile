@@ -44,4 +44,6 @@ RUN sed -i "s/^cache-size.*//" /etc/cgitrc
 
 RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
 
+RUN rm /etc/httpd/conf.d/ssl.conf
+
 CMD ["/bin/run.sh"]
