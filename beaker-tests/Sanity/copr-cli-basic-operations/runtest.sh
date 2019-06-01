@@ -535,6 +535,7 @@ rlJournalStart
         # test use_bootstrap_container setting
         rlRun "copr-cli create ${NAME_PREFIX}BootstrapProject --use-bootstrap on --chroot $CHROOT"
         rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` true
+        rlRun "copr-cli build ${NAME_PREFIX}BootstrapProject $HELLO"
         rlRun "copr-cli modify ${NAME_PREFIX}BootstrapProject --use-bootstrap off"
         rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` false
 
