@@ -6,7 +6,7 @@ from flask_whooshee import Whooshee
 from copr_common.enums import ActionTypeEnum
 from coprs import app
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
@@ -79,3 +79,27 @@ class TestCoprsLogic(CoprsTestCase):
         data = json.loads(actions[0].data)
         assert data["ownername"] == self.u1.name
         assert data["projectname"] == name
+
+
+class TestCoprChrootsLogic(CoprsTestCase):
+
+    def test_update_from_names(self, f_users, f_coprs, f_mock_chroots, f_db):
+        chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+
+        chroot_names = ["fedora-17-x86_64"]
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+
+    def test_update_from_names_disabled(self, f_users, f_coprs, f_mock_chroots, f_db):
+        # Say, that fedora-17-x86_64 is outdated
+        self.mc2.is_active = False
+
+        # The fedora-17-x86_64 is not a part of the copr edit form,
+        # because it is outdated. See #712, PR#719
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-i386"])
+
+        # However, it should not be removed from the Copr
+        assert [ch.name for ch in self.c2.copr_chroots] == ["fedora-17-x86_64", "fedora-17-i386"]
