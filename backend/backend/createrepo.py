@@ -80,7 +80,6 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
 APPDATA_CMD_TEMPLATE = \
     """/usr/bin/timeout --kill-after=240 180 \
 /usr/bin/appstream-builder \
---max-threads=4 \
 --temp-dir={packages_dir}/tmp \
 --cache-dir={packages_dir}/cache \
 --packages-dir={packages_dir} \
