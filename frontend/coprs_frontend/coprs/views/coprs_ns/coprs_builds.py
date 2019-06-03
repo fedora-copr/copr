@@ -52,10 +52,6 @@ def render_copr_build(build_id, copr):
 @coprs_ns.route("/g/<group_name>/<coprname>/builds/")
 @req_with_copr
 def copr_builds(copr):
-    return render_copr_builds(copr)
-
-
-def render_copr_builds(copr):
     flashes = flask.session.pop('_flashes', [])
     dirname = flask.request.args.get('dirname', '')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
@@ -66,7 +62,6 @@ def render_copr_builds(copr):
                               flashes=flashes)))
 
     flask.session.pop('_flashes', [])
-    app.save_session(flask.session, response)
     return response
 
 ################################ Url builds ################################

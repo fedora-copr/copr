@@ -29,7 +29,6 @@ def copr_packages(copr):
                                  )))
 
     flask.session.pop('_flashes', [])
-    app.save_session(flask.session, response)
     return response
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
