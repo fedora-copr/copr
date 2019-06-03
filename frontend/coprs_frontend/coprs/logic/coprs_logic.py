@@ -4,7 +4,7 @@ import datetime
 
 from sqlalchemy import and_
 from sqlalchemy.sql import func
-from sqlalchemy import asc
+from sqlalchemy import asc, desc
 from sqlalchemy.event import listen
 from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
@@ -187,7 +187,8 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, search_string):
-        query = (models.Copr.query.join(models.User)
+        query = (models.Copr.query.order_by(desc(models.Copr.created_on))
+                 .join(models.User)
                  .filter(models.Copr.deleted == False))
         if "/" in search_string: # copr search by its full name
             if search_string[0] == '@': # searching for @group/project
@@ -303,6 +304,7 @@ class CoprsLogic(object):
     @classmethod
     def exists_for_user(cls, user, coprname, incl_deleted=False):
         existing = (models.Copr.query
+                    .order_by(desc(models.Copr.created_on))
                     .filter(models.Copr.name == coprname)
                     .filter(models.Copr.user_id == user.id))
 
@@ -314,6 +316,7 @@ class CoprsLogic(object):
     @classmethod
     def exists_for_group(cls, group, coprname, incl_deleted=False):
         existing = (models.Copr.query
+                    .order_by(desc(models.Copr.created_on))
                     .filter(models.Copr.name == coprname)
                     .filter(models.Copr.group_id == group.id))
 

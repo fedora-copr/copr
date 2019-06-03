@@ -259,10 +259,6 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # temporary project if non-null
     delete_after = db.Column(db.DateTime, index=True, nullable=True)
 
-    __mapper_args__ = {
-        "order_by": created_on.desc()
-    }
-
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """

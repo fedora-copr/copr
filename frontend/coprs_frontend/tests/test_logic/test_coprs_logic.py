@@ -3,6 +3,8 @@ import datetime
 
 from flask_whooshee import Whooshee
 
+from sqlalchemy import desc
+
 from copr_common.enums import ActionTypeEnum
 from coprs import app
 from coprs.logic.actions_logic import ActionsLogic
@@ -54,7 +56,8 @@ class TestCoprsLogic(CoprsTestCase):
         writer.commit(optimize=True)
 
         query = CoprsLogic.get_multiple_fulltext("prefix")
-        pre_query = models.Copr.query.join(models.User).filter(models.Copr.deleted == False)
+        pre_query = models.Copr.query.order_by(desc(models.Copr.created_on))\
+            .join(models.User).filter(models.Copr.deleted == False)
 
         query = pre_query.whooshee_search(self.prefix, whoosheer=CoprWhoosheer) # needs flask-whooshee-0.2.0
 

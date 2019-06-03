@@ -3,6 +3,7 @@ import json
 
 import pytest
 import sqlalchemy
+from sqlalchemy import desc
 
 from coprs.logic.coprs_logic import CoprsLogic
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -53,7 +54,8 @@ class TestCreateCopr(CoprsTestCase):
         response = json.loads(r.data.decode("utf-8"))
         assert "New project was successfully created" in response["message"]
 
-        copr = self.models.Copr.query.filter(self.models.Copr.name == self.copr_name).one()
+        copr = self.models.Copr.query.order_by(desc(self.models.Copr.created_on))\
+            .filter(self.models.Copr.name == self.copr_name).one()
         assert copr.name == self.copr_name
         assert [self.mc1.name] == [c.name for c in copr.active_chroots]
         assert copr.repos == ''
@@ -85,7 +87,8 @@ class TestCreateCopr(CoprsTestCase):
         response = json.loads(r.data.decode("utf-8"))
         assert "New project was successfully created" in response["message"]
 
-        copr = self.models.Copr.query.filter(self.models.Copr.name == self.copr_name).one()
+        copr = self.models.Copr.query.order_by(desc(self.models.Copr.created_on))\
+            .filter(self.models.Copr.name == self.copr_name).one()
         assert copr.name == self.copr_name
         assert [self.mc1.name] == [c.name for c in copr.active_chroots]
         assert copr.repos == self.repos

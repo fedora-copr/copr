@@ -4,6 +4,8 @@ import pytest
 
 from unittest import mock
 
+from sqlalchemy import desc
+
 from copr_common.enums import ActionTypeEnum
 from coprs import app, models
 
@@ -81,8 +83,9 @@ class TestCoprNew(CoprsTestCase):
                   "arches": ["i386"]},
             follow_redirects=True)
 
-        assert self.models.Copr.query.filter(
-            self.models.Copr.name == "foo").first()
+        assert self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.name == "foo").first()
         assert self.success_string.encode("utf-8") in r.data
 
         # make sure no initial build was submitted
@@ -93,8 +96,9 @@ class TestCoprNew(CoprsTestCase):
                                               f_mock_chroots, f_db):
 
         self.db.session.add(self.c1)
-        foocoprs = len(self.models.Copr.query.filter(
-            self.models.Copr.name == self.c1.name).all())
+        foocoprs = len(self.models.Copr.query
+                       .order_by(desc(models.Copr.created_on))
+                       .filter(self.models.Copr.name == self.c1.name).all())
         assert foocoprs > 0
 
         r = self.test_client.post(
@@ -105,16 +109,18 @@ class TestCoprNew(CoprsTestCase):
 
         self.db.session.add(self.c1)
 
-        assert len(self.models.Copr.query.filter(
-            self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
+        assert len(self.models.Copr.query
+                   .order_by(desc(models.Copr.created_on))
+                   .filter(self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
         assert self.success_string.encode("utf-8") in r.data
 
     @TransactionDecorator("u1")
     def test_copr_new_exists_for_this_user(self, f_users, f_coprs,
                                            f_mock_chroots, f_db):
         self.db.session.add(self.c1)
-        foocoprs = len(self.models.Copr.query.filter(
-            self.models.Copr.name == self.c1.name).all())
+        foocoprs = len(self.models.Copr.query
+                       .order_by(desc(models.Copr.created_on))
+                       .filter(self.models.Copr.name == self.c1.name).all())
         assert foocoprs > 0
 
         r = self.test_client.post(
@@ -124,8 +130,9 @@ class TestCoprNew(CoprsTestCase):
             follow_redirects=True)
 
         self.db.session.add(self.c1)
-        assert len(self.models.Copr.query.filter(
-            self.models.Copr.name == self.c1.name).all()) == foocoprs
+        assert len(self.models.Copr.query
+                   .order_by(desc(models.Copr.created_on))
+                   .filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
         assert b"You already have project named" in r.data
 
     @TransactionDecorator("u1")
@@ -139,8 +146,9 @@ class TestCoprNew(CoprsTestCase):
                                         },
                                   follow_redirects=True)
 
-        copr = self.models.Copr.query.filter(
-            self.models.Copr.name == "foo").first()
+        copr = self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.name == "foo").first()
         assert copr
         assert self.success_string.encode("utf-8") in r.data
 
@@ -161,8 +169,9 @@ class TestCoprNew(CoprsTestCase):
                                         },
                                   follow_redirects=True)
 
-        copr = self.models.Copr.query.filter(
-            self.models.Copr.name == "foo").first()
+        copr = self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.name == "foo").first()
         assert copr
         assert self.success_string.encode("utf-8") in r.data
 
@@ -191,8 +200,9 @@ class TestCoprNew(CoprsTestCase):
 
         self.c1 = self.db.session.merge(self.c1)
         self.u1 = self.db.session.merge(self.u1)
-        assert len(self.models.Copr.query.filter(self.models.Copr.name ==
-                                                 self.c1.name)
+        assert len(self.models.Copr.query
+                   .order_by(desc(models.Copr.created_on))
+                   .filter(self.models.Copr.name == self.c1.name)
                    .filter(self.models.Copr.user == self.u1)
                    .all()) == 2
         assert self.success_string.encode("utf-8") in r.data
@@ -581,8 +591,9 @@ class TestCoprDelete(CoprsTestCase):
         assert b"Project has been deleted successfully" in r.data
         self.db.session.add(self.c1)
         assert self.models.Action.query.first().id == self.c1.id
-        assert self.models.Copr.query.filter(
-            self.models.Copr.id == self.c1.id).first().deleted
+        assert self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.id == self.c1.id).first().deleted
 
     @TransactionDecorator("u1")
     def test_copr_delete_does_not_delete_if_verify_filled_wrongly(
@@ -596,8 +607,9 @@ class TestCoprDelete(CoprsTestCase):
 
         assert b"Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
-        assert self.models.Copr.query.filter(
-            self.models.Copr.id == self.c1.id).first()
+        assert self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.id == self.c1.id).first()
 
     @TransactionDecorator("u2")
     def test_non_user_cant_delete(self, f_users, f_coprs, f_db):
@@ -609,8 +621,9 @@ class TestCoprDelete(CoprsTestCase):
         self.c1 = self.db.session.merge(self.c1)
         assert b"Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
-        assert self.models.Copr.query.filter(
-            self.models.Copr.id == self.c1.id).first()
+        assert self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.id == self.c1.id).first()
 
 
 class TestCoprRepoGeneration(CoprsTestCase):
