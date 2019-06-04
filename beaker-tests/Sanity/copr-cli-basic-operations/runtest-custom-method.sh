@@ -6,16 +6,10 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
+source "$HERE/helpers"
 
 export RESULTDIR=`mktemp -d`
 
-parse_build_id()
-{
-   local id
-   id=$(grep 'Created builds:' "$rlRun_LOG" | sed 's/.* //')
-   test -n "$id" || return 1
-   export BUILD_ID=$id
-}
 
 cleanup_resultdir ()
 (

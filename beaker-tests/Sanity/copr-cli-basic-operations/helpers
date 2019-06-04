@@ -1,0 +1,12 @@
+#!/bin/sh
+
+HELLO=https://frostyx.fedorapeople.org/hello-2.8-1.fc23.src.rpm
+EVIL_HELLO=https://frostyx.fedorapeople.org/evilhello-2.8-1.fc28.src.rpm
+
+parse_build_id()
+{
+   local id
+   id=$(grep 'Created builds:' "$rlRun_LOG" | sed 's/.* //')
+   test -n "$id" || return 1
+   export BUILD_ID=$id
+}

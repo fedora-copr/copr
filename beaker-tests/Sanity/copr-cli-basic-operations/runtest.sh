@@ -32,9 +32,7 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
-
-HELLO=https://frostyx.fedorapeople.org/hello-2.8-1.fc23.src.rpm
-EVIL_HELLO=https://frostyx.fedorapeople.org/evilhello-2.8-1.fc28.src.rpm
+source "$HERE/helpers"
 
 
 rlJournalStart
