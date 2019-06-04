@@ -198,7 +198,7 @@ def process_copr_new(group_name=None):
 
         return flask.redirect(url_for_copr_details(copr))
     else:
-        return flask.render_template(redirect, form=form)
+        return flask.render_template(redirect, form=form, group=group)
 
 
 def after_the_project_creation(copr, form):
