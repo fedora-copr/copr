@@ -26,13 +26,8 @@ class Builder(object):
         self.log = logger
 
         # BACKEND/BUILDER API
-
-        if self.opts.builder_deprecated:
-            self.builddir = "/var/lib/copr-builder"
-            self.livelog_name = os.path.join(self.builddir, 'live-log')
-        else:
-            self.builddir = "/var/lib/copr-rpmbuild"
-            self.livelog_name = os.path.join(self.builddir, 'main.log')
+        self.builddir = "/var/lib/copr-rpmbuild"
+        self.livelog_name = os.path.join(self.builddir, 'main.log')
 
         self.resultdir = os.path.join(self.builddir, 'results')
         self.pidfile = os.path.join(self.builddir, 'pid')
@@ -97,35 +92,9 @@ class Builder(object):
         return self._build_pid
 
     def _copr_builder_cmd(self):
-        if not self.opts.builder_deprecated:
-            return 'copr-rpmbuild --verbose --drop-resultdir '\
-                   '--build-id {build_id} --chroot {chroot} --detached'.format(
-                       build_id=self.job.build_id, chroot=self.job.chroot)
-
-        template = 'copr-builder --config {config} --copr {copr} ' \
-                 + '--package {package} --revision {revision} ' \
-                 + '--host-resolv {net} --timeout {timeout} ' \
-                 + '--chroot {chroot} --detached '
-
-        if self.module_dist_tag:
-            template += '--define {0} '.format(
-                pipes.quote('dist ' + self.module_dist_tag))
-
-        # Repo name like <user/group>/<copr>/<package>
-        git_repo_path = self.job.git_repo.split('/')
-
-        copr = '{0}/{1}'.format(git_repo_path[0], git_repo_path[1])
-        package = git_repo_path[2]
-
-        return template.format(
-            config=self.opts.standalone_builder_config,
-            copr=copr,
-            package=package,
-            revision=self.job.git_hash,
-            net="True" if self.job.enable_net else "False",
-            chroot=self.job.chroot,
-            timeout=self.timeout,
-        )
+        return 'copr-rpmbuild --verbose --drop-resultdir '\
+               '--build-id {build_id} --chroot {chroot} --detached'.format(
+                   build_id=self.job.build_id, chroot=self.job.chroot)
 
     def attach_to_build(self):
         if not self.build_pid:
