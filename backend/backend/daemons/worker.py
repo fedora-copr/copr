@@ -207,6 +207,7 @@ class Worker(multiprocessing.Process):
                         mr.check()
                         mr.build_pkg()
 
+                    mr.compress_live_log(job)
                     mr.check_build_success() # raises if build didn't succeed
                     mr.download_results()
 

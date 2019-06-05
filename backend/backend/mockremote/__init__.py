@@ -17,6 +17,7 @@
 import fcntl
 import logging
 import os
+import subprocess
 
 from munch import Munch
 import time
@@ -272,6 +273,21 @@ class MockRemote(object):
         except BuilderError as error:
             self.log.error(str(error))
             raise MockRemoteError("Builder error during job {}.".format(self.job))
+
+    def compress_live_log(self, job):
+        log_basename = "builder-live.log"
+        src = os.path.join(job.results_dir, log_basename)
+        
+        self.log.info("Compressing {} by gzip".format(src))
+        if subprocess.call(["gzip", src]) not in [0, 2]:
+            self.log.error("Unable to compress file {}".format(src))
+            return
+
+        try:
+            with open(src, "w") as f_src:
+                f_src.write("{} was moved to {}.gz\n".format(log_basename, log_basename))
+        except Exception as e:
+            self.log.exception(e)
 
     def reattach_to_pkg_build(self):
         """
