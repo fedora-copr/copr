@@ -9,6 +9,7 @@ from ..helpers import locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext, G
 
 log = logging.getLogger("__main__")
 
+MOCK_CALL = ['unbuffer', 'mock']
 
 class MockBuilder(object):
     def __init__(self, task, sourcedir, resultdir, config):
@@ -34,10 +35,13 @@ class MockBuilder(object):
 
         spec = locate_spec(self.sourcedir)
         shutil.copy(spec, self.resultdir)
-        self.produce_srpm(spec, self.sourcedir, configdir, self.resultdir)
+        try:
+            self.produce_srpm(spec, self.sourcedir, configdir, self.resultdir)
 
-        srpm = locate_srpm(self.resultdir)
-        self.produce_rpm(srpm, configdir, self.resultdir)
+            srpm = locate_srpm(self.resultdir)
+            self.produce_rpm(srpm, configdir, self.resultdir)
+        finally:
+            self.clean_cache(configdir)
 
     def prepare_configs(self, configdir):
         site_config_path = os.path.join(configdir, "site-defaults.cfg")
@@ -65,8 +69,7 @@ class MockBuilder(object):
                                repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
 
     def produce_srpm(self, spec, sources, configdir, resultdir):
-        cmd = [
-            "unbuffer", "/usr/bin/mock",
+        cmd = MOCK_CALL + [
             "--buildsrpm",
             "--spec", spec,
             "--sources", sources,
@@ -94,9 +97,18 @@ class MockBuilder(object):
         if process.returncode != 0:
             raise RuntimeError("Build failed")
 
+    @classmethod
+    def clean_cache(cls, configdir):
+        """ Do best effort /var/mock/cache cleanup. """
+        cmd = MOCK_CALL + [
+            "--configdir", configdir,
+            "-r", "child",
+            "--scrub", "cache",
+        ]
+        subprocess.call(cmd) # ignore failure here, if any
 
     def produce_rpm(self, srpm, configdir, resultdir):
-        cmd = ["unbuffer", "/usr/bin/mock",
+        cmd = MOCK_CALL + [
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,

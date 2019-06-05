@@ -87,7 +87,7 @@ class TestMockBuilder(unittest.TestCase):
         process = mock.MagicMock(returncode=0)
         popen_mock.return_value = process
         builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
-        assert_cmd = ['unbuffer', '/usr/bin/mock',
+        assert_cmd = ['unbuffer', 'mock',
                       '--rebuild', '/path/to/pkg.src.rpm',
                       '--configdir', '/path/to/configs',
                       '--resultdir', '/path/to/results',
