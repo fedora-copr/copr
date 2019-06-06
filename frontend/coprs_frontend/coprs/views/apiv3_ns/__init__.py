@@ -117,7 +117,6 @@ class Paginator(object):
     LIMIT = None
     OFFSET = 0
     ORDER = "id"
-    ORDER_TYPE = "ASC"
 
     def __init__(self, query, model, limit=None, offset=None, order=None, order_type=None, **kwargs):
         self.query = query
@@ -125,15 +124,26 @@ class Paginator(object):
         self.limit = limit or self.LIMIT
         self.offset = offset or self.OFFSET
         self.order = order or self.ORDER
-        self.order_type = order_type or self.ORDER_TYPE
+        self.order_type = order_type
+        if not self.order_type:
+            # desc/asc unspecified, use some guessed defaults
+            if self.order == 'id':
+                self.order_type = 'DESC'
+            if self.order == 'name':
+                self.order_type = 'ASC'
+
 
     def get(self):
         if not hasattr(self.model, self.order):
             raise CoprHttpException("Can order by: {}".format(self.order))
-        order_col = self.order
-        order_fun = sqlalchemy.desc if self.order_type == "DESC" else sqlalchemy.asc
-        return self.query.order_by(None).limit(None).offset(None)\
-            .order_by(order_fun(order_col)).limit(self.limit).offset(self.offset)
+
+        order_fun = (lambda x: x)
+        if self.order_type == 'ASC':
+            order_fun = sqlalchemy.asc
+        elif self.order_type == 'DESC':
+            order_fun = sqlalchemy.desc
+
+        return self.query.order_by(order_fun(self.order)).limit(self.limit).offset(self.offset)
 
     @property
     def meta(self):
