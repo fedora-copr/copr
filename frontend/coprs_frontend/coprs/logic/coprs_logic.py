@@ -368,11 +368,14 @@ class CoprsLogic(object):
         Raise InsufficientRightsException if given copr cant be deleted
         by given user. Return None otherwise.
         """
-        if user.admin or user == copr.user:
+        if user.admin:
             return
 
         if copr.group:
             return UsersLogic.raise_if_not_in_group(user, copr.group)
+
+        if user == copr.user:
+            return
 
         raise exceptions.InsufficientRightsException(
             "Only owners may delete their projects.")

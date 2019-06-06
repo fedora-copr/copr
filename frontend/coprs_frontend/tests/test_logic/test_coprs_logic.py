@@ -1,5 +1,6 @@
 import json
 import datetime
+import pytest
 
 from flask_whooshee import Whooshee
 
@@ -9,10 +10,12 @@ from copr_common.enums import ActionTypeEnum
 from coprs import app
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
+from coprs.logic.users_logic import UsersLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
 from tests.coprs_test_case import CoprsTestCase
+from coprs.exceptions import InsufficientRightsException
 
 
 class TestCoprsLogic(CoprsTestCase):
@@ -69,6 +72,30 @@ class TestCoprsLogic(CoprsTestCase):
         expected = u1_count + u2_count
 
         assert obtained == expected
+
+    def test_raise_if_cant_delete(self, f_users, f_fas_groups, f_coprs):
+        # Project owner should be able to delete his project
+        CoprsLogic.raise_if_cant_delete(self.u2, self.c2)
+
+        # Admin should be able to delete everything
+        CoprsLogic.raise_if_cant_delete(self.u1, self.c2)
+
+        # A user can't remove someone else's project
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_cant_delete(self.u2, self.c1)
+
+        # Group member should be able to remove group project
+        self.u2.openid_groups = {"fas_groups": ["somegroup"]}
+        self.u3.openid_groups = {"fas_groups": ["somegroup"]}
+
+        self.c2.group = UsersLogic.get_group_by_fas_name_or_create("somegroup")
+        CoprsLogic.raise_if_cant_delete(self.u3, self.c2)
+
+        # Once a member is kicked from a group, he can't delete
+        # a project even though he originally created it
+        self.u2.openid_groups = {"fas_groups": []}
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_cant_delete(self.u2, self.c2)
 
     def test_copr_logic_add_sends_create_gpg_key_action(self, f_users, f_mock_chroots, f_db):
         name = u"project_1"
