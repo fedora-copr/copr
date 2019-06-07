@@ -82,6 +82,9 @@ def get_parser():
     base_parser.add_argument("--build-id", type=str, help="COPR build ID")
     base_parser.add_argument("--copr", type=str, help="copr for which to build, e.g. @group/project")
 
+    base_parser.add_argument("--task-url", help="Full URL to a json task definition")
+    base_parser.add_argument("--task-file", help="Path to a local json file with task definition")
+
     subparsers = base_parser.add_subparsers(title="submodes", dest="submode")
     scm_parser = subparsers.add_parser("scm", parents=[shared_parser],
                                        help="Build from an SCM repository.")
@@ -188,10 +191,16 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
         'source_json': {}
     }
 
-    if build_config_url_path:
-        task.update(
-            get_vanilla_build_config(
-                build_config_url_path, config))
+    if args.task_file:
+        task.update(read_task_from_file(args.task_file))
+    elif args.task_url:
+        task.update(get_vanilla_build_config(args.task_url))
+    elif build_config_url_path:
+        url = urljoin(config.get("main", "frontend_url"), build_config_url_path)
+        task.update(get_vanilla_build_config(url))
+
+    if task.get("source_json"):
+        task["source_json"] = json.loads(task["source_json"])
 
     if args.chroot:
         task['chroot'] = args.chroot
@@ -314,22 +323,26 @@ def dump_configs(args, config):
         log.info("Wrote: "+config_path)
 
 
-def get_vanilla_build_config(build_config_url_path, config):
+def get_vanilla_build_config(url):
     try:
-        url = urljoin(config.get("main", "frontend_url"), build_config_url_path)
         response = requests.get(url)
         build_config = response.json()
-
         if not build_config:
             raise RuntimeError("No valid build_config at {0}".format(url))
+        return build_config
 
-        if build_config.get("source_json"):
-            build_config["source_json"] = json.loads(build_config["source_json"])
     except JSONDecodeError:
         raise RuntimeError("No valid build_config at {0}".format(url))
 
 
-    return build_config
+def read_task_from_file(path):
+    try:
+        with open(path, "r") as f:
+            return json.loads(f.read())
+    except OSError as ex:
+        raise RuntimeError(ex)
+    except json.decoder.JSONDecodeError:
+        raise RuntimeError("No valid build_config at {0}".format(path))
 
 
 if __name__ == "__main__":
