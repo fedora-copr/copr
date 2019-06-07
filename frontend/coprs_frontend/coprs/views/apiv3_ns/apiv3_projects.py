@@ -72,6 +72,7 @@ def get_project_list(ownername=None, **kwargs):
         query = CoprsLogic.filter_by_group_name(query, group_name)
     else:
         query = CoprsLogic.get_multiple_owned_by_username(ownername)
+        query = CoprsLogic.filter_without_group_projects(query)
 
     # @TODO ordering doesn't work correctly - try order by models.Copr.name DESC
     paginator = Paginator(query, models.Copr, **kwargs)
