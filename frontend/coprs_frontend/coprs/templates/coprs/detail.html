@@ -57,7 +57,7 @@
     {{ nav_element("modules", "Modules", "fa fa-rocket",  copr_url('coprs_ns.copr_modules', copr)) }}
     {{ nav_element("monitor", "Monitor", "fa fa-desktop", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
-    {% if g.user and (not copr.group or g.user.can_build_in(copr) or g.user.permissions_for_copr(copr)) %}
+    {% if g.user %}
       {% set settings_view = 'coprs_ns.copr_edit' if g.user and g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
       {{ nav_element("settings", "Settings", "pficon pficon-settings",  copr_url(settings_view, copr)) }}
     {% endif %}

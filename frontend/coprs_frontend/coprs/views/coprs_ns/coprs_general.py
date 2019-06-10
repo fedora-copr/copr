@@ -313,6 +313,7 @@ def render_copr_detail(copr):
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions/")
+@coprs_ns.route("/g/<group_name>/<coprname>/permissions/")
 @req_with_copr
 def copr_permissions(copr):
     permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(copr).all()
@@ -490,6 +491,7 @@ def copr_update(copr):
 
 @coprs_ns.route("/<username>/<coprname>/permissions_applier_change/",
                 methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/permissions_applier_change/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_permissions_applier_change(copr):
@@ -524,12 +526,11 @@ def copr_permissions_applier_change(copr):
                 msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
                 send_mail(mail, msg, )
 
-    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                        username=copr.user.name,
-                                        coprname=copr.name))
+    return flask.redirect(helpers.copr_url("coprs_ns.copr_detail", copr))
 
 
 @coprs_ns.route("/<username>/<coprname>/update_permissions/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/update_permissions/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_update_permissions(copr):
