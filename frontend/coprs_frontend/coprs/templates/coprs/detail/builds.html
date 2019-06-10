@@ -19,6 +19,9 @@
   <a class="btn btn-primary button-new pull-right" style="margin-left:5px" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">
     <span class="pficon pficon-add-circle-o"></span> New Build
   </a>
+{% endif %}
+
+{% if g.user and g.user.can_edit(copr) %}
   {% if builds %}
     {{ copr_delete_builds(copr, class="pull-right button-build-action") }}
   {% endif %}
