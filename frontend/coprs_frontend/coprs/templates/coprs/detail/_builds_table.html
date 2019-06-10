@@ -13,7 +13,10 @@
         <th>Submitted</th>
         <th>Build Time</th>
         <th>Status</th>
+
+        {% if g.user and g.user.can_build_in(copr) %}
         <th data-orderable="false"><a href="#" onclick="$('tr.build-row :checkbox').prop('checked', $('tr.build-row :checkbox').length != $('tr.build-row :checkbox:checked').length); return false;">Mark all</a></th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -48,9 +51,12 @@
         <td>
           {{ build_state(build) }}
         </td>
+
+        {% if g.user and g.user.can_build_in(copr) %}
         <td>
           <input type="checkbox" name="build_ids" value="{{ build.id }}"></input>
         </td>
+        {% endif %}
       </tr>
     {% endfor %}
     </tbody>
