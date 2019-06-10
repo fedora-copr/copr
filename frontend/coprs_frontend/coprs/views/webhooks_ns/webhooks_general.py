@@ -92,6 +92,11 @@ def webhooks_bitbucket_push(copr_id, uuid):
         commits = []
         ref_type = payload['push']['changes'][0]['new']['type']
         ref = payload['push']['changes'][0]['new']['name']
+        try:
+            actor = payload['actor']['links']['html']['href']
+        except KeyError:
+            actor = None
+
         if ref_type == 'tag':
             committish = ref
         else:
@@ -104,7 +109,8 @@ def webhooks_bitbucket_push(copr_id, uuid):
     )
 
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish})
+        BuildsLogic.rebuild_package(package, {'committish': committish},
+                                    submitted_by=actor)
 
     db.session.commit()
 
@@ -139,6 +145,10 @@ def webhooks_git_push(copr_id, uuid):
 
         ref_type = payload.get('ref_type', '')
         ref = payload.get('ref', '')
+        try:
+            sender = payload['sender']['url']
+        except KeyError:
+            sender = None
     except KeyError:
         return "Bad Request", 400
 
@@ -146,7 +156,8 @@ def webhooks_git_push(copr_id, uuid):
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish})
+        BuildsLogic.rebuild_package(package, {'committish': committish},
+                                    submitted_by=sender)
 
     db.session.commit()
 
@@ -182,6 +193,12 @@ def webhooks_gitlab_push(copr_id, uuid):
         else:
             ref_type = None
             ref = payload.get('ref', '')
+
+        try:
+            submitter = 'gitlab.com:{}'.format(str(payload["user_username"]))
+        except KeyError:
+            submitter = None
+
     except KeyError:
         return "Bad Request", 400
 
@@ -189,7 +206,8 @@ def webhooks_gitlab_push(copr_id, uuid):
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish})
+        BuildsLogic.rebuild_package(package, {'committish': committish},
+                                    submitted_by=submitter)
 
     db.session.commit()
 
