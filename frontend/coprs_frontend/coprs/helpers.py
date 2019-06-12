@@ -550,26 +550,6 @@ def get_parsed_git_url(url):
     return urlparse(url)
 
 
-def get_copr_repo_id(copr_dir):
-    """
-    We cannot really switch to the new
-    copr:{hostname}:{owner}:{project} format yet, because it is implemented in
-    dnf-plugins-core-3.x which is only on F29+
-
-    Since the F29+ plugin is able to work with both old and new formats, we can
-    safely stay with the old one until F28 is still supported. Once it goes EOL,
-    we can migrate to the new format.
-
-    New format is:
-
-        return "copr:{0}:{1}:{2}".format(app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
-                                         copr_dir.copr.owner_name.replace("@", "group_"),
-                                         copr_dir.name)
-
-    """
-    return copr_dir.repo_id
-
-
 class SubdirMatch(object):
     def __init__(self, subdir):
         if not subdir:

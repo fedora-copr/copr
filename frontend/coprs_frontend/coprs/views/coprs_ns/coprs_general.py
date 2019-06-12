@@ -717,7 +717,9 @@ def render_generate_repo_file(copr_dir, name_release):
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
-    repo_id = helpers.get_copr_repo_id(copr_dir)
+    repo_id = "copr:{0}:{1}:{2}".format(app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
+                                        copr_dir.copr.owner_name.replace("@", "group_"),
+                                        copr_dir.name)
     url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urljoin(url, "pubkey.gpg")
