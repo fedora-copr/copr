@@ -85,34 +85,10 @@ def get_parser():
     base_parser.add_argument("--task-url", help="Full URL to a json task definition")
     base_parser.add_argument("--task-file", help="Path to a local json file with task definition")
 
-    subparsers = base_parser.add_subparsers(title="submodes", dest="submode")
-    scm_parser = subparsers.add_parser("scm", parents=[shared_parser],
-                                       help="Build from an SCM repository.")
-
-    scm_parser.add_argument("--clone-url", required=True,
-                            help="clone url to a project versioned by Git or SVN, required")
-    scm_parser.add_argument("--commit", dest="committish", default="",
-                            help="branch name, tag name, or git hash to be built")
-    scm_parser.add_argument("--subdir", dest="subdirectory", default="",
-                            help="relative path from the repo root to the package content")
-    scm_parser.add_argument("--spec", default="",
-                            help="relative path from the subdirectory to the .spec file")
-    scm_parser.add_argument("--type", dest="type", choices=["git", "svn"], default="git",
-                            help="Specify versioning tool. Default is 'git'.")
-    scm_parser.add_argument("--method", dest="srpm_build_method", default="rpkg",
-                            choices=["rpkg", "tito", "tito_test", "make_srpm"],
-                            help="Srpm build method. Default is 'rpkg'.")
-
-    subparsers.add_parser("default") # python 2.7 hack
-
     return base_parser
 
 
 def main():
-    # hack for 2.7;  optional sub-parsers are supported since python 3.4?
-    if 'scm' not in sys.argv:
-        sys.argv.append('default')
-
     parser = get_parser()
     args = parser.parse_args()
     config = read_config(args.config)
@@ -207,17 +183,6 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
 
     if args.copr:
         task['task_id'] = copr_chroot_to_task_id(args.copr, args.chroot)
-
-    if args.submode == 'scm':
-        task['source_type'] = SourceType.SCM
-        task['source_json'].update({
-            'clone_url': args.clone_url,
-            'committish': args.committish,
-            'subdirectory': args.subdirectory,
-            'spec': args.spec,
-            'type': args.type,
-            'srpm_build_method': args.srpm_build_method,
-        })
 
     return task
 
