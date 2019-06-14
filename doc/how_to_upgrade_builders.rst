@@ -3,7 +3,8 @@
 How to upgrade builders
 =======================
 
-This article explains how to upgrade the Copr builders in OpenStack to a newer Fedora once it is released.
+This article explains how to upgrade the Copr builders in OpenStack (ppc64le,
+x86_64) and libvirt (aarch64) to a newer Fedora once it is released.
 
 Keep amending this page if you find something not matching reality or expectations.
 
@@ -11,28 +12,47 @@ Keep amending this page if you find something not matching reality or expectatio
 Requirements
 ------------
 
-* ssh access to copr-be-dev.cloud.fedoraproject.org
-* an account on https://fedorainfracloud.org, and
-* OpenStack RC File for that ^^ account for `coprdev` tenant
+* ssh access to `staging backend box`_
+* an account on `Fedora Infra OpenStack`_, ..
+* downloaded OpenStack RC File (go to OpenStack dasboard -- Access & Security --
+  API Access -- Download OpenStack RC File) ..
+* and ``python3-openstackclient`` package installed
+* ssh access to the main aarch64 hypervisor
+  ``copr@virthost-aarch64-os01.fedorainfracloud.org``
 
 
-Provide the image
------------------
+Find source images
+------------------
 
-The first thing you need to figure out is what image should you use and where to get it. Luckily there is an image registry on https://fedorainfracloud.org/dashboard/project/images/. By default you see only the project images, to see all of them, click on the ``Public`` button.
+The first thing you need to figure out is what image should you use and where to
+get it.
 
-Search for the ``Fedora-Cloud-Base-*`` images of the particular Fedora. You need to have both x86_64 and ppc64le images. Are both of them available? Then you can jump right to the next step. Otherwise, you need to submit them.
+The Cloud Base image for x86_64 can be obtained on `Fedora Cloud page`_.  Pick
+the one with ``.qcow2`` extension.  The ppc64le and aarch64 images can be found
+on the `Alternate Architectures page`_.  Don't confuse PPC64LE with PPC64.
 
-The Cloud Base image for x86_64 can be obtained on
-https://alt.fedoraproject.org/cloud.  Pick the one with ``.qcow2`` extension.
-The ppc64le image can be found on a page with alternative architectures
-https://alt.fedoraproject.org/alt. Don't mistake PPC64LE for PPC64.
 If neither that url provides the expected cloud image version (yet), there
-should exist at least the "compose" version in
-https://kojipkgs.fedoraproject.org/compose/cloud/, look for
-`latest-Fedora-Cloud-<VERSION>/compose/Cloud/ppc64le/images` directory.
+should exist at least a "compose" version in `Koji compose directory listing`_,
+look for ``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images``
+directory.
 
-Download the image, and upload it to the `fedorainfracloud.org` OpenStack:
+
+Prepare OpenStack source images
+-------------------------------
+
+(x86_64 and ppc64le architectures)
+
+For OpenStack, there is an image registry on `OpenStack images dashboard`_.  By
+default you see only the project images; to see all of them, click on the
+``Public`` button.
+
+Search for the ``Fedora-Cloud-Base-*`` images of the particular Fedora.  Are
+both x86_64 and ppc64le images available?  Then you can jump right to the next
+section.
+
+Download the image, and upload it to the infra OpenStack.  Be careful to keep
+sane ``Fedora-Cloud-Base*`` naming, and to make it public, so others can later
+use it as well:
 
 ::
 
@@ -52,11 +72,14 @@ Download the image, and upload it to the `fedorainfracloud.org` OpenStack:
         --property hw_rng_model=virtio \
         Fedora-Cloud-Base-30-1.2.x86_64
 
+Note also the ``--property hw_rng_model=virtio`` option which guarantees that
+the VMs won't wait indefinitely for random seed.
 
-Prepare the base image
-----------------------
 
-Open a ssh connection to copr-be-dev.cloud.fedoraproject.org and edit the
+Prepare VM for snapshot
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Open a ssh connection to ``copr-be-dev.cloud.fedoraproject.org`` and edit the
 ``/home/copr/provision/builderpb_nova.yml`` playbook (resp.
 ``/home/copr/provision/builderpb_nova_ppc64le.yml`` for ppc64le variant).  There
 is the following part
@@ -87,23 +110,27 @@ Update the image name to the one that in the first step you decided to use. Now,
     su copr
     ansible-playbook /home/copr/provision/builderpb_nova.yml
 
-It will most likely fail because of missing python package on the host (i.e. in the image). It needs to be there because the Ansible modules are written in python. Continue to next section to see how to solve this problem.
+It can likely fail (for various reasons, missing packages, changes in Fedora,
+etc.).  Continue to next paragraph to see how to solve this problem.
 
-
-Creating a snapshot
--------------------
-
-After running the ``builderpb_nova.yml`` playbook, you will get an IP address of a spawned builder. You can ssh into that builder, make changes and then create a snapshot (i.e. image) from that builder. To fix the previous issue with missing python package, run
+After running the ``builderpb_nova.yml`` playbook, you will get an IP address of
+a spawned builder.  You can ssh into that builder, make changes and then create
+a snapshot (i.e. image) from that builder.  To fix the previous issue with
+missing python package, run
 
 ::
 
     [copr@copr-be-dev ~][STG]$ ssh fedora@172.XX.XXX.XXX
     [fedora@172.XX.XXX.XXX ~]$ sudo dnf install python
 
-Open the https://fedorainfracloud.org again and go to the ``Instances``. Make
-sure that your "Current Project" is the project that you expect (``coprdev``).
-There are many instances so how can you be a hundred percent sure which one you
-modified? Use the IP address as an identifier.
+
+Creating a snapshot
+^^^^^^^^^^^^^^^^^^^
+
+Open the `OpenStack instances dashboard`_.  Make sure that your "Current
+Project" is the project that you expect (``coprdev``).  There are many instances
+so how can you be a hundred percent sure which one you modified?  Use the IP
+address as an identifier.
 
 Optionally, click on ``More -> Shut Off Instance`` for that instance (sometimes
 it happens that OpenStack doesn't allow us to create snapshot from running
@@ -115,14 +142,6 @@ Set snapshot name to something like ``copr-builder-x86_64-f27``. It can be a lit
 
 In addition, make sure to make the snapshot Public, so we can use it also for production servers and Protected, so other people can't delete it.
 
-Edit the ``builderpb_nova.yml`` playbook as you did in the :ref:`previous section <image_name>` and set the new image name. Now run the playbook again
-
-::
-
-    [copr@copr-be-dev ~][STG]$ ansible-playbook /home/copr/provision/builderpb_nova.yml
-
-Iterate this process until it ends successfully.
-
 Configure also the snapshot image to use emulated "hardware" random generator
 (otherwise with our OpenStack and new guest kernels the boot would take insanely
 long on gathering entropy):
@@ -132,8 +151,18 @@ long on gathering entropy):
     $ openstack image set --property hw_rng_model=virtio <THE_SNAPSHOT_UUID>
 
 
-Finishing up
-------------
+Edit the ``builderpb_nova.yml`` playbook as you did in the :ref:`previous section <image_name>` and set the new image name. Now run the playbook again
+
+::
+
+    [copr@copr-be-dev ~][STG]$ ansible-playbook /home/copr/provision/builderpb_nova.yml
+
+Iterate this process until it ends successfully.
+
+
+
+Finishing up OpenStack images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder.
 We learned how to do that in the previous section. Then set the :ref:`prepare_base_image <prepare_base_image>`
@@ -151,10 +180,138 @@ Throw away the builders that the backend is currently using and let it load new 
 Try to build some packages and you are done.
 
 
+Prepare libvirt source images
+-----------------------------
+
+(aarch64 architecture only)
+
+We can not prepare the image locally (on x86 laptops), so we have to create it
+on some remote aarch64 box.  Since we have two aarch64 hypervisors for Copr now,
+so we'll work with one of them.  But since the aarch64 hypervisors are
+configured so they are using all the availalbe resources (namely disks), we have
+to have some VMs shut down first to have some space (note the ``_dev`` keyword,
+we are not deleting production builders in this step):
+
+::
+
+    $ ssh root@copr-be-dev.cloud.fedoraproject.org
+    # set 'aarch64_01_dev.max' option to 0 to disable spawner on hypervisor 1
+
+    [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
+
+    # and terminate all already running resources there;  if there are some
+    # STARTING instances, please wait till they are not UP
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
+    138 - aarch64_01_dev_00000138_20190613_051611 pool=aarch64_01_dev tags=aarch64 status=UP
+    140 - aarch64_01_dev_00000140_20190613_051613 pool=aarch64_01_dev tags=aarch64 status=UP
+
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-delete 138 140
+
+    # check that all are deleted (no output)
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
+
+Now start the work on the aarch64 box:
+
+::
+
+    $ ssh copr@virthost-aarch64-os01.fedorainfracloud.org
+
+    # just in case you wanted to call /bin/virsh directly in this session
+    [copr@virthost-aarch64-os01 ~][PROD]$ export VIRSH_DEFAULT_CONNECT_URI=qemu:///system
+
+Download the image, and prepare it for upload
+
+::
+
+    [copr@virthost-aarch64-os01 ~][PROD]$ wget --directory-prefix=/tmp \
+        https://mirrors.nic.cz/fedora/linux/releases/30/Cloud/aarch64/images/Fedora-Cloud-Base-30-1.2.aarch64.qcow2
+
+    [copr@virthost-aarch64-os01 ~][PROD]$ cd ~/vm-manage
+
+    # prepare the image, it takes ~15 minutes
+    [copr@virthost-aarch64-os01 ~][PROD]$ ./prepare-disk /tmp/Fedora-Cloud-Base-30-1.2.aarch64.qcow2
+    ...
+    + cp /tmp/Fedora-Cloud-Base-30-1.2.aarch64.qcow2 /tmp/newdisk.qcow2
+    ...
+
+Upload the image to libvirt instances:
+
+::
+
+    [copr@virthost-aarch64-os01 vm-manage][PROD]$ ./upload-disk /tmp/newdisk.qcow2
+    ...
+    + virsh ... vol-upload copr-builder-20190614_123554 ... /tmp/newdisk.qcow2
+    ...
+    uploaded images copr-builder-20190614_123554
+
+Test that the image spawns correctly:
+
+::
+
+    $ ssh root@copr-be-dev.cloud.fedoraproject.org
+    Last login: Fri Jun 14 12:16:48 2019 from 77.92.220.242
+
+    # temporarily use different image, set the option:
+    # img_volume = 'copr-builder-20190614_123554'
+    [root@copr-be-dev ~][PROD]# vim /var/lib/resallocserver/resalloc_provision/vm-aarch64-new
+
+    # re-enable spawner, set 'aarch64_01_dev.max' option to 2
+    [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
+
+    # wait a minute for newly spawned VMs
+    [root@copr-be-dev ~][STG]# su - resalloc
+    Last login: Fri Jun 14 12:43:16 UTC 2019 on pts/0
+
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list
+    141 - aarch64_02_dev_00000141_20190613_051613 pool=aarch64_02_dev tags=aarch64 status=UP
+    139 - aarch64_02_dev_00000139_20190613_051611 pool=aarch64_02_dev tags=aarch64 status=UP
+    144 - aarch64_01_dev_00000144_20190614_124441 pool=aarch64_01_dev tags= status=STARTING
+    145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags= status=STARTING
+
+    [resalloc@copr-be-dev ~][STG]$ tail -f /var/log/resallocserver/hooks/000145_alloc
+    ...
+    DEBUG:root: -> exit_status=0, time=233.029s
+    DEBUG:root:cleaning up workdir
+    38.145.48.106
+
+
+If the log doesn't look good, you'll have to start over again (perhaps fix
+spawner playbooks, or the ``prepare-disk`` script).  But if you see the VM IP
+address, you are mostly done:
+
+::
+
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
+    145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
+
+Reset the temporary image back to ``img_volume=copr-builder``:
+
+::
+
+    [resalloc@copr-be-dev ~][STG]$ exit
+    [root@copr-be-dev ~][PROD]# vim /var/lib/resallocserver/resalloc_provision/vm-aarch64-new
+
+Swap the image-names in hypervisors:
+
+::
+
+    $ ssh copr@virthost-aarch64-os01.fedorainfracloud.org
+    [copr@virthost-aarch64-os01 ~][PROD]$ cd ~/vm-manage
+
+    [copr@virthost-aarch64-os01 ~][PROD]$ ./promote-disk copr-builder-20190614_123554
+    ...
+    copr-builder == copr-builder-20190614_123554 now
+
+Done.  You can still kill all VMs by ``resalloc-maint resource-delete ...``, but
+if you are not in hurry - old VMs will slowly get terminated - and all the new
+VMs will be started from the freshly updated ``copr-builder`` image.
+
+
 Production
 ----------
 
-There is a substantially less work for production instance. You just need to edit this playbook
+There is a substantially less work for production instance. You just need to
+edit this playbook (and only for x86_64 and ppc64le images)
 
 https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/copr/backend/files/provision/builderpb_nova.yml
 
@@ -162,9 +319,17 @@ and update the `image_name` variable to the name of our new snapshot (e.g. copr-
 Then you need to commit the change and push it to the repository. If you don't have a write permission for it, then
 ask someone who does.
 
-Once the change is pushed, you need to re-provision the backend instance or ask someone to do it.
-
+Once the change is pushed, you need to re-provision the backend instance or ask someone to do it:
 
 ::
 
     rbac-playbook groups/copr-backend.yml -t provision_config
+
+
+.. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
+.. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
+.. _`Fedora Cloud page`: https://alt.fedoraproject.org/cloud
+.. _`Alternate Architectures page`:  https://alt.fedoraproject.org/alt
+.. _`Koji compose directory listing`: https://kojipkgs.fedoraproject.org/compose/cloud/
+.. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
+.. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
