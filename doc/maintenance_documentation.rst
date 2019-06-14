@@ -5,10 +5,13 @@ Maintenance Documentation
 
 This section contains information about maintenance topics. You may also be interested in :ref:`user_documentation` and :ref:`developer_documentation`.
 
-* :ref:`how_to_release_copr` -- how to release Copr
+.. toctree::
+   :caption: Table of Contents
+   :maxdepth: 1
 
-* :ref:`how_to_upgrade_builders` -- how to upgrade openstack builders
-
-* :ref:`how_to_manage_chroots` -- how to manage active chroots
-
-* :ref:`how_to_delete_outdated_chroots` -- sending notifications and removing data from outdated chroots
+   How to release copr RPM packages <how_to_release_copr>
+   how_to_upgrade_builders
+   How to manage active chroots <how_to_manage_chroots>
+   Sending notifications and removing data from outdated chroots <how_to_delete_outdated_chroots>
+   sanity_tests
+   seeddb
