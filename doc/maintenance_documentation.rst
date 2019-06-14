@@ -1,7 +1,7 @@
 .. _maintenance_documentation:
 
 Maintenance Documentation
-=======================
+=========================
 
 This section contains information about maintenance topics. You may also be interested in :ref:`user_documentation` and :ref:`developer_documentation`.
 
