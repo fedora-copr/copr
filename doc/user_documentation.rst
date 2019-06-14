@@ -75,13 +75,13 @@ The last optional thing to configure (except for common build configuration opti
 **rpkg**: The default choice and the most versatile one. Apart from building packages from any Git or SVN repository,
 it also supports building directly from any `DistGit <https://clime.github.io/2017/05/20/DistGit-1.0.html>`_ repository.
 Note that **rpkg** (as well as **tito**) is not only a tool to generate SRPMs but, in fact, it is also a full-fledged package manager
-that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-util>`_.
+that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-util>`__.
 
 **tito**: is a robust RPM package manager with lots of features and if your project is managed with Tito, this is the tool you want to pick for SRPM generation (which is
 one of the many package manager's features). When this option is selected, the latest package GIT tag will be used to build an SRPM. Note that this utility has currently
 no support for specifying an alternative .spec file, which means the **Spec Field** is simply ignored when this option is used and .spec file will be always auto-located.
 Note that the basic difference between this tool and **rpkg** is that the target repository needs to be initialized with ``tito init`` first before this tool can be used
-to build SRPMs from it. You can read more `here <https://github.com/dgoodwin/tito>`_.
+to build SRPMs from it. You can read more `here <https://github.com/dgoodwin/tito>`__.
 
 **tito test**: With this option selected, again the `tito <https://github.com/dgoodwin/tito>`_ utility will be used to build an SRPM but this time, the **Committish**
 value specified above (or HEAD of the master branch if no **Committish** is specified) will be used to build an SRPM. This corresponds to using ``--test`` switch for
@@ -204,11 +204,11 @@ Links
 
 * For building package from git:
 
-1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`_ and `another about Tito+Git annex <http://m0dlx.com/blog/Reproducible_builds_on_Copr_with_tito_and_git_annex.html>`_) 
+1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`__ and `another about Tito+Git annex <http://m0dlx.com/blog/Reproducible_builds_on_Copr_with_tito_and_git_annex.html>`_)
 
-2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`_)
+2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`__)
 
-* `Jenkins plugin <https://wiki.jenkins-ci.org/display/JENKINS/Copr+Plugin>`_ (`blog post <http://michal-srb.blogspot.cz/2014/04/jenkins-plugin-for-building-rpms-in-copr.html>`_)
+* `Jenkins plugin <https://wiki.jenkins-ci.org/display/JENKINS/Copr+Plugin>`_ (`blog post <http://michal-srb.blogspot.cz/2014/04/jenkins-plugin-for-building-rpms-in-copr.html>`__)
 
 Multilib
 --------
@@ -428,9 +428,9 @@ Yes, it can. See :ref:`scm_ref` source type.
 
 If you want to know more about tools to generate srpm from a Git repo, see:
 
-1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`_)
+1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`__)
 
-2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`_)
+2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`__)
 
 .. _`How do I get notifications about finished builds?`:
 
