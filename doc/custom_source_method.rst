@@ -1,3 +1,5 @@
+:orphan:
+
 .. _custom_source_method:
 
 Custom source method

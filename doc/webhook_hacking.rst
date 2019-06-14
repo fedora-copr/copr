@@ -1,3 +1,5 @@
+:orphan:
+
 .. _webhook_hacking:
 
 COPR auto-rebuilds with custom Git repositories

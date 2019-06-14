@@ -1,3 +1,5 @@
+:orphan:
+
 .. _screenshots_tutorial:
 
 Screenshots tutorial

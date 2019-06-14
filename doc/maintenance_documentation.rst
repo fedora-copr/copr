@@ -14,4 +14,5 @@ This section contains information about maintenance topics. You may also be inte
    How to manage active chroots <how_to_manage_chroots>
    Sending notifications and removing data from outdated chroots <how_to_delete_outdated_chroots>
    sanity_tests
+   beaker_tests
    seeddb

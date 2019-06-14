@@ -1,3 +1,5 @@
+:orphan:
+
 .. _copr_outdated_chroots_removal_policy:
 
 Outdated chroots removal policy

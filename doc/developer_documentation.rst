@@ -16,19 +16,16 @@ Copr comes in several pieces. You can browse the source here:
 Working with the code
 ---------------------
 
-* :ref:`how_to_install` How to Install - Copr is intended as service. You most likely do not want to set up your own instance. But if you really want to, Copr set up is documented here.
+.. toctree::
+   :maxdepth: 1
 
-* :ref:`contribute` How to Contribute - Do you want to help us? Start here.
-
-* :ref:`git_guide` Git Guide -- how to work with Git, the source control of choice for Copr
-
-* :ref:`patch_process` -- how to go about creating a new patch and submitting it to the mailing list
-
-* :ref:`building_package` -- how to build Copr itself
-
-* `Database schema <http://miroslav.suchy.cz/copr/coprdb/>`_
-
-* `Documentation of python code <http://miroslav.suchy.cz/copr/python-doc/>`_ - most up-to-date documentation are in copr-frontend-doc and copr-backend-doc packages.
+   How to install Copr as build service <how_to_install>
+   Contribution, do you want to help us? <contribute>
+   How to work with Git (the version control system for Copr project) <git_guide>
+   Do you prefer sending patches? <patch_process>
+   Building Copr packages (backend, frontend, ...) <building_package>
+   Database schema <http://miroslav.suchy.cz/copr/coprdb/>
+   Documentation of python code (or check copr-frontend-doc.rpm and copr-backend-doc.rpm) <http://miroslav.suchy.cz/copr/python-doc/>
 
 History
 -------

@@ -1,3 +1,5 @@
+:orphan:
+
 .. _SrcRpmUpload:
 
 Upload of src.rpm

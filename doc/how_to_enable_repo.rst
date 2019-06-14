@@ -1,3 +1,5 @@
+:orphan:
+
 .. _how_to_enable_repo:
 
 How to enable repo

@@ -26,6 +26,10 @@ Tutorial
 
 See :ref:`screenshots_tutorial` for interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_
 
+
+How to enable copr repository?
+------------------------------
+
 :ref:`how_to_enable_repo`
 
 Build Source Types
