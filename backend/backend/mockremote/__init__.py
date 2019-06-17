@@ -201,6 +201,9 @@ class MockRemote(object):
         self.log.info("Sign done")
 
     def do_createrepo(self):
+        if self.job.chroot == 'srpm-builds':
+            return
+
         base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
         self.log.info("Createrepo:: owner:  {}; project: {}; "
