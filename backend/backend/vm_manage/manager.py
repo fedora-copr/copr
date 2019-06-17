@@ -379,7 +379,7 @@ class VmManager(object):
             "in_use_since",
         }
 
-        headers = ['VM Name', 'IP', 'State', 'Health Check', 'User', 'Task info']
+        headers = ['VM Name', 'IP', 'State', 'Health Check', 'Bound to', 'Task info']
 
         def date_to_str(value):
             if value is None:
@@ -406,7 +406,6 @@ class VmManager(object):
                 row.append(vm.vm_name)
                 row.append(vm.vm_ip)
                 row.append(vm.state)
-                written = ['vm_name', 'vm_ip', 'state']
                 vmd = vm.to_dict()
 
                 row.append("fails: {0}\nlast: {1}".format(
@@ -414,7 +413,18 @@ class VmManager(object):
                     date_to_str(vmd.get('last_health_check', None))
                 ))
 
-                row.append(vmd.get('bound_to_user', ''))
+                bound_lines = []
+                user = vmd.get('bound_to_user', '')
+                sandbox = vmd.get('sandbox', '')
+                builds_count = vmd.get('builds_count', '')
+                if user:
+                    bound_lines.append('user: {0}'.format(user))
+                if sandbox:
+                    bound_lines.append('sandbox: {0}'.format(sandbox))
+                if builds_count:
+                    bound_lines.append('builds_count: {0}'.format(builds_count))
+
+                row.append('\n'.join(bound_lines))
 
                 task_info = ''
                 if vmd.get('task_id', None):
