@@ -1,0 +1,74 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import render_form_errors %}
+{% block title %}Customize pinned projects{% endblock %}
+{% block header %}Customize pinned projects{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+    </li>
+    <li>
+      {% if owner.at_name is defined %}
+        <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=owner.name) }}">{{ owner.at_name }}</a>
+      {% else %}
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=owner.name) }}">{{ owner.name }}</a>
+      {% endif %}
+    </li>
+    <li class="active">
+        Customize pinned projects
+    </li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:22px;margin-top:22px">Pinned projects</h1>
+
+{% if form %}
+  {{ render_form_errors(form=form) }}
+{% endif %}
+
+<form action="" method="POST">
+  <div class="panel panel-default">
+
+    <div class="panel-heading">
+      Customize pinned projects for
+      {{ owner.at_name if owner.at_name is defined else owner.name }}
+    </div>
+
+    <div class="panel-body">
+      <p>
+        Configure up to four pinned projects, that you are particularly proud of or recognized for. They will be displayed
+        on the top of your user/group page the exact order. It is possible to select your personal projects, group
+        projects and even someone else's projects, that you have permissions for.
+      </p>
+    </div>
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Slot</th>
+          <th>Project</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for i in range(0, config.PINNED_PROJECTS_LIMIT) %}
+        <tr>
+          <td>#{{ i + 1 }}</td>
+          <td>
+            <select name="copr_ids" class="input">
+              <option value="">Nothing</option>
+              {% for copr in coprs %}
+                {% set selected = 'selected' if copr.id == selected[i] else '' %}
+                <option value="{{ copr.id }}" {{ selected }}>{{ copr.full_name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <input class="btn btn-primary pull-right" type="submit" name="submit" value="Submit">
+  </div>
+</form>
+{% endblock %}

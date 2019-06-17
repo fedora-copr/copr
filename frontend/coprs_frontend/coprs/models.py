@@ -195,6 +195,22 @@ class User(db.Model, helpers.Serializer):
             return ""
 
 
+class PinnedCoprs(db.Model, helpers.Serializer):
+    """
+    Representation of User or Group <-> Copr relation
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id"), nullable=True, index=True)
+    position = db.Column(db.Integer, nullable=False)
+
+    copr = db.relationship("Copr")
+    user = db.relationship("User")
+    group = db.relationship("Group")
+
+
 class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     Represents public part of a single copr (personal repo with builds, mock

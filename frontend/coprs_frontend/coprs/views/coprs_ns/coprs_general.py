@@ -28,7 +28,7 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
@@ -77,6 +77,7 @@ def coprs_show(page=1):
 
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
+                                 pinned=[],
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  users_builds=users_builds,
@@ -91,12 +92,13 @@ def coprs_by_user(username=None, page=1):
         return page_not_found(
             "User {0} does not exist.".format(username))
 
+    pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_user_id(user.id)] if page == 1 else []
     query = CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.filter_without_ids(query, [copr.id for copr in pinned])
     query = CoprsLogic.filter_without_group_projects(query)
     query = CoprsLogic.set_query_order(query, desc=True)
 
     paginator = helpers.Paginator(query, query.count(), page)
-
     coprs = paginator.sliced_query
 
     # flask.g.user is none when no user is logged - showing builds from everyone
@@ -107,6 +109,7 @@ def coprs_by_user(username=None, page=1):
     return flask.render_template("coprs/show/user.html",
                                  user=user,
                                  coprs=coprs,
+                                 pinned=pinned,
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  users_builds=users_builds,
@@ -132,6 +135,7 @@ def coprs_fulltext_search(page=1):
     coprs = paginator.sliced_query
     return render_template("coprs/show/fulltext.html",
                             coprs=coprs,
+                            pinned=[],
                             paginator=paginator,
                             fulltext=fulltext,
                             tasks_info=ComplexLogic.get_queue_sizes(),

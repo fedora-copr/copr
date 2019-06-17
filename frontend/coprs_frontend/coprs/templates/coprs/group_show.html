@@ -14,8 +14,8 @@
     {% endblock %}
     <div class="panel panel-default">
       <div class="list-group">
-      {% for copr in coprs %}
-        {{ render_project_box(copr) }}
+      {% for copr in pinned + coprs %}
+        {{ render_project_box(copr, pinned = copr in pinned) }}
       {% else %}
         <p>No projects...</p>
       {% endfor %}

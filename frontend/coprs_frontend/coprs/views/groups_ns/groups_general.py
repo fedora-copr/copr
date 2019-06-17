@@ -7,12 +7,13 @@ from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
 from coprs.logic import builds_logic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs import app
 
 from ... import db
 from ..misc import login_required
+from ..user_ns import user_general
 
 from . import groups_ns
 
@@ -60,10 +61,11 @@ def activate_group(fas_group):
 @groups_ns.route("/g/<group_name>/coprs/<int:page>")
 def list_projects_by_group(group_name, page=1):
     group = ComplexLogic.get_group_by_name_safe(group_name)
+
+    pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_group_id(group.id)] if page == 1 else []
     query = CoprsLogic.get_multiple_by_group_id(group.id)
-
+    query = CoprsLogic.filter_without_ids(query, [copr.id for copr in pinned])
     paginator = Paginator(query, query.count(), page)
-
     coprs = paginator.sliced_query
 
     data = builds_logic.BuildsLogic.get_small_graph_data('30min')
@@ -72,6 +74,7 @@ def list_projects_by_group(group_name, page=1):
         "coprs/show/group.html",
         user=flask.g.user,
         coprs=coprs,
+        pinned=pinned,
         paginator=paginator,
         tasks_info=ComplexLogic.get_queue_sizes(),
         group=group,

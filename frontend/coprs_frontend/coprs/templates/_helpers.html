@@ -686,7 +686,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 {% endmacro %}
 
 
-{% macro render_project_box(copr) %}
+{% macro render_project_box(copr, pinned=False) %}
+<!--copr-project-->
 <a href="{{ copr_details_href(copr) }}" class="list-group-item">
   <div>
     <h3 class="list-group-item-heading" style="display: inline;">
@@ -696,6 +697,13 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     <small> (temporary project, {{ copr.delete_after_msg }})</small>
     {% endif %}
   </div>
+
+  {% if pinned %}
+  <span class="pull-right" title="Pinned project">
+    <i class="fa fa-thumb-tack fa-lg" aria-hidden="true"></i>
+  </span>
+  {% endif %}
+
   <span class="list-group-item-text">
       {{ copr.description|markdown|remove_anchor|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}
       <ul class="list-inline text-muted">

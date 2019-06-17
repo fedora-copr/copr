@@ -27,10 +27,16 @@
 
 {% block projects_header %}
 {% if g.user and g.user.can_build_in_group(group) %}
-<a href="{{url_for('coprs_ns.copr_add', group_name=group.name) }}" class="btn button-new pull-right btn-primary">
-  <span class="pficon pficon-add-circle-o"></span>
-    New Group Project
-</a>
+<div class="btn-group pull-right" role="group" aria-label="Basic example">
+  <a href="{{url_for('coprs_ns.copr_add', group_name=group.name) }}" class="btn button-new btn-primary">
+    <span class="pficon pficon-add-circle-o"></span>
+      New Group Project
+  </a>
+
+  <a href="{{ url_for('user_ns.pinned_projects', group_name=group.name) }}" class="btn button-new btn-secondary">
+    <span class="pficon pficon-edit"></span> Customize pinned
+  </a>
+</div>
 {% endif %}
 
 <h2 class="page-title">Projects in @{{group.name}} Group</h2>

@@ -43,9 +43,16 @@
 
 {% block projects_header %}
 {% if g.user == user %}
-<a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
-  <span class="pficon pficon-add-circle-o"></span> New Project
-</a>
+<div class="btn-group pull-right" role="group" aria-label="Basic example">
+
+  <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new btn-primary">
+    <span class="pficon pficon-add-circle-o"></span> New Project
+  </a>
+
+  <a href="{{ url_for('user_ns.pinned_projects') }}" class="btn button-new btn-secondary">
+    <span class="pficon pficon-edit"></span> Customize pinned
+  </a>
+</div>
 {% endif %}
 
 <h2 class="page-title">{{user.name|capitalize}}'s Projects</h2>

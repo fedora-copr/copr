@@ -87,6 +87,9 @@ class Config(object):
     # set this to {"epel-8": "rhelbeta-8"}
     CHROOT_NAME_RELEASE_ALIAS = {}
 
+    # How many pinned projects a user or group can have
+    PINNED_PROJECTS_LIMIT = 4
+
 
 class ProductionConfig(Config):
     DEBUG = False

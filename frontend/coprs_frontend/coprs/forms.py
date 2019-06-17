@@ -14,6 +14,7 @@ except ImportError:
     from flask_wtf import Form as FlaskForm
 
 from coprs import constants
+from coprs import app
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
@@ -1097,6 +1098,27 @@ class ModifyChrootForm(ChrootForm):
     comps = None
     upload_comps = FileField("Upload comps.xml")
     delete_comps = wtforms.BooleanField("Delete comps.xml", false_values=FALSE_VALUES)
+
+
+class PinnedCoprsForm(FlaskForm):
+    copr_ids = wtforms.SelectMultipleField(wtforms.IntegerField("Pinned Copr ID"))
+
+    def validate(self):
+        if any([i and not i.isnumeric() for i in self.copr_ids.data]):
+            self.errors["coprs"] = ["Unexpected value selected"]
+            return False
+
+        limit = app.config["PINNED_PROJECTS_LIMIT"]
+        if len(self.copr_ids.data) > limit:
+            self.errors["coprs"] = ["Too many pinned projects. Limit is {}!".format(limit)]
+            return False
+
+        if len(list(filter(None, self.copr_ids.data))) != len(set(filter(None, self.copr_ids.data))):
+            self.errors["coprs"] = ["You can pin a particular project only once"]
+            return False
+
+        return True
+
 
 class AdminPlaygroundForm(FlaskForm):
     playground = wtforms.BooleanField("Playground", false_values=FALSE_VALUES)

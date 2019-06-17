@@ -349,6 +349,18 @@ def copr_url(view, copr, **kwargs):
     return url_for(view, username=copr.user.name, coprname=copr.name, **kwargs)
 
 
+def owner_url(owner):
+    """
+    For a given `owner` object, which may be either `models.User` or `models.Group`,
+    return an URL to its _profile_ page.
+    """
+    # We can't check whether owner is instance of `models.Group` because once
+    # we include models from helpers, we get circular imports
+    if hasattr(owner, "at_name"):
+        return url_for("groups_ns.list_projects_by_group", group_name=owner.name)
+    return url_for("coprs_ns.coprs_by_user", username=owner.username)
+
+
 def url_for_copr_view(view, group_view, copr, **kwargs):
     if copr.is_a_group_project:
         return url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs)

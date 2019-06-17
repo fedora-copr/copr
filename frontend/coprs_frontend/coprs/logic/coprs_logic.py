@@ -136,8 +136,8 @@ class CoprsLogic(object):
 
     # user_relation="owned", username=username, with_mock_chroots=False
     @classmethod
-    def get_multiple_owned_by_username(cls, username):
-        query = cls.get_multiple()
+    def get_multiple_owned_by_username(cls, username, include_unlisted_on_hp=True):
+        query = cls.get_multiple(include_unlisted_on_hp=include_unlisted_on_hp)
         return query.filter(models.User.username == username)
 
     @classmethod
@@ -157,6 +157,10 @@ class CoprsLogic(object):
     @classmethod
     def filter_without_group_projects(cls, query):
         return query.filter(models.Copr.group_id.is_(None))
+
+    @classmethod
+    def filter_without_ids(cls, query, ids):
+        return query.filter(models.Copr.id.notin_(ids))
 
     @classmethod
     def join_builds(cls, query):
@@ -874,3 +878,42 @@ class MockChrootsLogic(object):
                 chroots[chroot.name] = chroot.is_active
 
         return chroots
+
+
+class PinnedCoprsLogic(object):
+
+    @classmethod
+    def get_all(cls):
+        return db.session.query(models.PinnedCoprs).order_by(models.PinnedCoprs.position)
+
+    @classmethod
+    def get_by_id(cls, pin_id):
+        return cls.get_all().filter(models.PinnedCoprs.id == pin_id)
+
+    @classmethod
+    def get_by_owner(cls, owner):
+        if isinstance(owner, models.Group):
+            return cls.get_by_group_id(owner.id)
+        return cls.get_by_user_id(owner.id)
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        return cls.get_all().filter(models.PinnedCoprs.user_id == user_id)
+
+    @classmethod
+    def get_by_group_id(cls, group_id):
+        return cls.get_all().filter(models.PinnedCoprs.group_id == group_id)
+
+    @classmethod
+    def add(cls, owner, copr_id, position):
+        kwargs = dict(copr_id=copr_id, position=position)
+        kwargs["group_id" if isinstance(owner, models.Group) else "user_id"] = owner.id
+        pin = models.PinnedCoprs(**kwargs)
+        db.session.add(pin)
+
+    @classmethod
+    def delete_by_owner(cls, owner):
+        query = db.session.query(models.PinnedCoprs)
+        if isinstance(owner, models.Group):
+            return query.filter(models.PinnedCoprs.group_id == owner.id).delete()
+        return query.filter(models.PinnedCoprs.user_id == owner.id).delete()
