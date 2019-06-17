@@ -243,8 +243,11 @@ class VmManager(object):
                 available_vms += clean_list
 
             for vmd in available_vms:
-                if vmd.get_field(self.rc, "check_fails") != "0":
+                check_fails = vmd.get_field(self.rc, "check_fails")
+                if check_fails and check_fails != "0":
                     self.log.debug("VM %s has check fails, skip acquire", vmd.vm_name)
+                    continue
+
                 vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
                 if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
                                                   args=[ownername, pid, time.time(),
