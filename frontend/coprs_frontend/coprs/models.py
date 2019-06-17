@@ -13,6 +13,8 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
+from flask import url_for
+
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, FailTypeEnum, ModuleStatusEnum, StatusEnum
 from coprs import constants
 from coprs import db
@@ -832,6 +834,9 @@ class Build(db.Model, helpers.Serializer):
     # method to call on build state change
     update_callback = db.Column(db.Text)
 
+    # used by webhook builds; e.g. github.com:praiskup, or pagure.io:jdoe
+    submitted_by = db.Column(db.Text)
+
     @property
     def user_name(self):
         return self.user.name
@@ -1061,6 +1066,26 @@ class Build(db.Model, helpers.Serializer):
             result["chroots"] = {b.name: b.state for b in self.build_chroots}
 
         return result
+
+    @property
+    def submitter(self):
+        """
+        Return tuple (submitter_string, submitter_link), while the
+        submitter_link may be empty if we are not able to detect it
+        wisely.
+        """
+        if self.user:
+            user = self.user.name
+            return (user, url_for('coprs_ns.coprs_by_user', username=user))
+
+        if self.submitted_by:
+            links = ['http://', 'https://']
+            if any([self.submitted_by.startswith(x) for x in links]):
+                return (self.submitted_by, self.submitted_by)
+
+            return (self.submitted_by, None)
+
+        return (None, None)
 
 
 class DistGitBranch(db.Model, helpers.Serializer):

@@ -106,9 +106,11 @@
           </dd>
           <dt> Built by: </dt>
           <dd>
-            <a href="{{ url_for('coprs_ns.coprs_by_user', username=build.user.name) }}">
-              {{ build.user.name }}
-            </a>
+            {% if build.submitter[1] %}
+            <a href="{{ build.submitter[1] }}">{{ build.submitter[0] }}</a>
+            {% else %}
+            {{ build.submitter[0] or "unknown user" }}
+            {% endif %}
           </dd>
         </dl>
       </div>

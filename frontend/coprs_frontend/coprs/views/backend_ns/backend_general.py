@@ -100,7 +100,7 @@ def get_build_record(task):
             "project_owner": task.build.copr.owner_name,
             "project_name": task.build.copr_name,
             "project_dirname": task.build.copr_dirname,
-            "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
+            "submitter": task.build.submitter[0],
             "chroot": task.mock_chroot.name,
             "repos": task.build.repos,
             "memory_reqs": task.build.memory_reqs,
@@ -144,6 +144,7 @@ def get_srpm_build_record(task):
             "project_owner": task.copr.owner_name,
             "project_name": task.copr_name,
             "project_dirname": task.copr_dirname,
+            "submitter": task.submitter[0],
             "source_type": task.source_type,
             "source_json": task.source_json,
             "chroot": chroot,

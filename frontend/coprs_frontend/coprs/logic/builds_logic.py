@@ -763,7 +763,8 @@ ORDER BY
 
     @classmethod
     def rebuild_package(cls, package, source_dict_update={}, copr_dir=None, update_callback=None,
-                        scm_object_type=None, scm_object_id=None, scm_object_url=None):
+                        scm_object_type=None, scm_object_id=None,
+                        scm_object_url=None, submitted_by=None):
 
         source_dict = package.source_json_dict
         source_dict.update(source_dict_update)
@@ -789,6 +790,7 @@ ORDER BY
             scm_object_type=scm_object_type,
             scm_object_id=scm_object_id,
             scm_object_url=scm_object_url,
+            submitted_by=submitted_by,
         )
         db.session.add(build)
 
