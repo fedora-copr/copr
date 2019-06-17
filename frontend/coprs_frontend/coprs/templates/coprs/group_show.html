@@ -2,7 +2,7 @@
 {% block title %}Project List{% endblock %}
 {% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination, copr_details_href, copr_name, user_projects_panel %}
-{% from "_helpers.html" import recent_builds_panel, task_queue_panel, friendly_os_name %}
+{% from "_helpers.html" import recent_builds_panel, task_queue_panel, friendly_os_name, render_project_box %}
 {%block main_menu_projects %}active{% endblock %}
 {% block body %}
 <div class="row">
@@ -15,27 +15,7 @@
     <div class="panel panel-default">
       <div class="list-group">
       {% for copr in coprs %}
-        <!--copr-project-->
-        <a href="{{ copr_details_href(copr) }}" class="list-group-item">
-          <h3 class="list-group-item-heading">
-            {{ copr_name(copr) }}
-          </h3>
-          <span class="list-group-item-text">
-            {{ copr.description|markdown|remove_anchor|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}
-            <ul class="list-inline text-muted">
-            {% for os in copr.active_chroots_grouped %}
-              <li>
-                <strong>{{ friendly_os_name(os[0].split()[0], os[0].split()[1]) }}:</strong>
-                <small>
-                {% for arch in os[1] %}
-                  {{arch}}{% if not loop.last %}, {% endif %}
-                {%endfor%}
-                </small>
-              </li>
-            {% endfor %}
-            </ul>
-          </span>
-        </a>
+        {{ render_project_box(copr) }}
       {% else %}
         <p>No projects...</p>
       {% endfor %}
