@@ -82,7 +82,7 @@ class ScmPackage(object):
         self.copr = self.package.copr
 
     def build(self, source_dict_update, copr_dir, update_callback,
-              scm_object_type, scm_object_id, scm_object_url):
+              scm_object_type, scm_object_id, scm_object_url, agent_url):
 
         if self.package.copr_dir.name != copr_dir.name:
             package = PackagesLogic.get_or_create(copr_dir, self.package.name, self.package)
@@ -92,7 +92,7 @@ class ScmPackage(object):
         db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
         return BuildsLogic.rebuild_package(
             package, source_dict_update, copr_dir, update_callback,
-            scm_object_type, scm_object_id, scm_object_url)
+            scm_object_type, scm_object_id, scm_object_url, submitted_by=agent_url)
 
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
@@ -163,6 +163,7 @@ def event_info_from_pr_comment(data, base_url):
         'branch_to': data['msg']['pullrequest']['branch'],
         'start_commit': data['msg']['pullrequest']['commit_start'],
         'end_commit': data['msg']['pullrequest']['commit_stop'],
+        'agent': data['msg']['agent'],
     })
 
 
@@ -184,6 +185,7 @@ def event_info_from_pr(data, base_url):
         'branch_to': data['msg']['pullrequest']['branch'],
         'start_commit': data['msg']['pullrequest']['commit_start'],
         'end_commit': data['msg']['pullrequest']['commit_stop'],
+        'agent': data['msg']['agent'],
     })
 
 
@@ -205,6 +207,7 @@ def event_info_from_push(data, base_url):
         'branch_to': data['msg']['branch'],
         'start_commit': data['msg']['start_commit'],
         'end_commit': data['msg']['end_commit'],
+        'agent': data['msg']['agent'],
     })
 
 
@@ -334,7 +337,8 @@ def build_on_fedmsg_loop():
                         update_callback,
                         event_info.object_type,
                         event_info.object_id,
-                        scm_object_url
+                        scm_object_url,
+                        "{}user/{}".format(base_url, event_info.agent),
                     )
                     if build:
                         log.info('\t -> {}'.format(build.to_dict()))
