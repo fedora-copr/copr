@@ -1,8 +1,9 @@
 {% extends "coprs/show.html" %}
 {% block title %}Project List{% endblock %}
 {% block header %}Project List{% endblock %}
-{% block show_top %}
 
+
+{% block show_top %}
 {% if not g.user and not fulltext%}
 <br>
 <div class="panel panel-default">
@@ -11,7 +12,10 @@
   </div>
 </div>
 {% endif %}
+{% endblock %}
 
+
+{% block projects_header %}
 {% if g.user %}
 <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span> New Project

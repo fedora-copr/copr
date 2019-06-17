@@ -12,8 +12,9 @@
   </li>
 </ol>
 {% endblock %}
-{% block show_top %}
 
+
+{% block show_top %}
 <div id="profile">
   <h1>@{{group.name}} Group</h1>
   <p>
@@ -21,7 +22,10 @@
     <a href="https://admin.fedoraproject.org/accounts/group/members/{{ group.fas_name }}" title="{{ group.fas_name }}'s Members" target="_blank">View Members</a>
   </h>
 </div>
+{% endblock %}
 
+
+{% block projects_header %}
 {% if g.user and g.user.can_build_in_group(group) %}
 <a href="{{url_for('coprs_ns.copr_add', group_name=group.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span>

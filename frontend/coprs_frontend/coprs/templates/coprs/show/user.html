@@ -12,8 +12,9 @@
   </li>
 </ol>
 {% endblock %}
-{% block show_top %}
 
+
+{% block show_top %}
 <div id="profile">
   <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">
   <h1>{{user.name|capitalize}}'s Profile</h1>
@@ -37,7 +38,10 @@
       {% include "user_meta.html" %}
   </p>
 </div>
+{% endblock %}
 
+
+{% block projects_header %}
 {% if g.user == user %}
 <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span> New Project
