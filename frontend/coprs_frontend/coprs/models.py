@@ -1087,6 +1087,21 @@ class Build(db.Model, helpers.Serializer):
 
         return (None, None)
 
+    @property
+    def sandbox(self):
+        """
+        Return a string unique to project + submitter.  At this level copr
+        backend later applies builder user-VM separation policy (VMs are only
+        re-used for builds which have the same build.sandbox value)
+        """
+        submitter, _ = self.submitter
+        if not submitter:
+            # If we don't know build submitter, use "random" value and keep the
+            # build separated from any other.
+            submitter = uuid.uuid4()
+
+        return '{0}--{1}'.format(self.copr.full_name, submitter)
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """

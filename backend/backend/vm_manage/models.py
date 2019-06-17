@@ -15,6 +15,7 @@ class VmDescriptor(object):
         self.bound_to_user = None
         self.used_by_worker = None
         self.task_id = None
+        self.sandbox = None
 
     @property
     def vm_key(self):

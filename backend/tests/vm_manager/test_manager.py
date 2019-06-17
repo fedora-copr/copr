@@ -35,6 +35,9 @@ def mc_time():
 GID1 = 0
 GID2 = 1
 
+# some sandbox string, for tests where we don't care about its value
+SANDBOX = 'sandbox'
+
 class TestManager(object):
 
     def setup_method(self, method):
@@ -130,28 +133,28 @@ class TestManager(object):
         # undefined both last_health_check and server_start_timestamp
         mc_time.time.return_value = 0.1
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm([GID1], self.ownername, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
 
         # only server start timestamp is defined
         mc_time.time.return_value = 1
         self.vmm.mark_server_start()
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm([GID1], self.ownername, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
 
         # only last_health_check defined
         self.rc.delete(KEY_SERVER_INFO)
         vmd.store_field(self.rc, "last_health_check", 0)
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm([GID1], self.ownername, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
 
         # both defined but last_health_check < server_start_time
         self.vmm.mark_server_start()
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm([GID1], self.ownername, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
 
         # and finally last_health_check > server_start_time
         vmd.store_field(self.rc, "last_health_check", 2)
-        vmd_res = self.vmm.acquire_vm([GID1], self.ownername, 42)
+        vmd_res = self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
         assert vmd.vm_name == vmd_res.vm_name
 
     def test_acquire_vm_extra_kwargs(self, mc_time):
@@ -166,7 +169,8 @@ class TestManager(object):
             "build_id": "20",
             "chroot": "fedora-20-x86_64"
         }
-        vmd_got = self.vmm.acquire_vm([GID1], self.ownername, self.pid, **kwargs)
+        vmd_got = self.vmm.acquire_vm([GID1], self.ownername, self.pid,
+                                      SANDBOX, **kwargs)
         for k, v in kwargs.items():
             assert vmd_got.get_field(self.rc, k) == v
 
@@ -177,9 +181,28 @@ class TestManager(object):
         vmd.store_field(self.rc, "state", VmStates.READY)
         vmd.store_field(self.rc, "last_health_check", 2)
         vmd.store_field(self.vmm.rc, "bound_to_user", "foo")
+        vmd.store_field(self.vmm.rc, "sandbox", SANDBOX)
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
-        vm = self.vmm.acquire_vm(groups=[GID1], ownername="foo", pid=self.pid)
+            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername,
+                    pid=self.pid, sandbox=SANDBOX)
+        vm = self.vmm.acquire_vm(groups=[GID1], ownername="foo", pid=self.pid,
+                                 sandbox=SANDBOX)
+        assert vm.vm_name == self.vm_name
+
+    def test_different_sandbox_cannot_acquire_vm(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
+        vmd.store_field(self.rc, "state", VmStates.READY)
+        vmd.store_field(self.rc, "last_health_check", 2)
+        vmd.store_field(self.vmm.rc, "bound_to_user", "foo")
+        vmd.store_field(self.vmm.rc, "sandbox", "sandboxA")
+
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(groups=[GID1], ownername="foo",
+                    pid=self.pid, sandbox="sandboxB")
+        vm = self.vmm.acquire_vm(groups=[GID1], ownername="foo", pid=self.pid,
+                                 sandbox="sandboxA")
         assert vm.vm_name == self.vm_name
 
     def test_acquire_vm(self, mc_time):
@@ -199,16 +222,22 @@ class TestManager(object):
         vmd2.store_field(self.rc, "last_health_check", 2)
 
         vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.ownername)
+        vmd_alt.store_field(self.vmm.rc, "sandbox", SANDBOX)
 
-        vmd_got_first = self.vmm.acquire_vm([GID1, GID2], ownername=self.ownername, pid=self.pid)
+        vmd_got_first = self.vmm.acquire_vm([GID1, GID2],
+                ownername=self.ownername, pid=self.pid, sandbox=SANDBOX)
         assert vmd_got_first.vm_name == "vm_alt"
-        vmd_got_second = self.vmm.acquire_vm([GID1, GID2], ownername=self.ownername, pid=self.pid)
+
+        vmd_got_second = self.vmm.acquire_vm([GID1, GID2],
+                ownername=self.ownername, pid=self.pid, sandbox=SANDBOX)
         assert vmd_got_second.vm_name == self.vm_name
 
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername,
+                    pid=self.pid, sandbox=SANDBOX)
 
-        vmd_got_third = self.vmm.acquire_vm(groups=[GID1, GID2], ownername=self.ownername, pid=self.pid)
+        vmd_got_third = self.vmm.acquire_vm(groups=[GID1, GID2],
+                ownername=self.ownername, pid=self.pid, sandbox=SANDBOX)
         assert vmd_got_third.vm_name == self.vm2_name
 
     def test_acquire_vm_per_user_limit(self, mc_time):
@@ -224,10 +253,10 @@ class TestManager(object):
             vmd_list.append(vmd)
 
         for idx in range(max_vm_per_user):
-            self.vmm.acquire_vm([GID1], self.ownername, idx)
+            self.vmm.acquire_vm([GID1], self.ownername, idx, SANDBOX)
 
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm([GID1], self.ownername, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42, SANDBOX)
 
     def test_acquire_only_ready_state(self, mc_time):
         mc_time.time.return_value = 0
@@ -240,7 +269,8 @@ class TestManager(object):
                       VmStates.TERMINATING, VmStates.CHECK_HEALTH_FAILED]:
             vmd_main.store_field(self.rc, "state", state)
             with pytest.raises(NoVmAvailable):
-                self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+                self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername,
+                                    pid=self.pid, sandbox=SANDBOX)
 
     def test_acquire_and_release_vm(self, mc_time):
         mc_time.time.return_value = 0
@@ -252,17 +282,24 @@ class TestManager(object):
         vmd_main.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.ownername)
+        vmd_alt.store_field(self.vmm.rc, "sandbox", SANDBOX)
         vmd_main.store_field(self.rc, "last_health_check", 2)
         vmd_alt.store_field(self.rc, "last_health_check", 2)
 
-        vmd_got_first = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        vmd_got_first = self.vmm.acquire_vm(
+            groups=[GID1], ownername=self.ownername, pid=self.pid,
+            sandbox=SANDBOX)
         assert vmd_got_first.vm_name == "vm_alt"
 
         self.vmm.release_vm("vm_alt")
-        vmd_got_again = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        vmd_got_again = self.vmm.acquire_vm(
+            groups=[GID1], ownername=self.ownername, pid=self.pid,
+            sandbox=SANDBOX)
         assert vmd_got_again.vm_name == "vm_alt"
 
-        vmd_got_another = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        vmd_got_another = self.vmm.acquire_vm(
+            groups=[GID1], ownername=self.ownername, pid=self.pid,
+            sandbox=SANDBOX)
         assert vmd_got_another.vm_name == self.vm_name
 
     def test_release_only_in_use(self):

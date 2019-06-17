@@ -37,6 +37,7 @@ end
 # ARGV[4]: task_id
 # ARGV[5]: build_id
 # ARGV[6]: chroot
+# ARGV[7]: sandbox
 acquire_vm_lua = """
 local old_state = redis.call("HGET", KEYS[1], "state")
 if old_state ~= "ready"  then
@@ -47,7 +48,8 @@ else
     if last_health_check and server_restart_time and last_health_check > server_restart_time  then
         redis.call("HMSET", KEYS[1], "state", "in_use", "bound_to_user", ARGV[1],
                    "used_by_worker", ARGV[2], "in_use_since", ARGV[3],
-                   "task_id",  ARGV[4], "build_id", ARGV[5], "chroot", ARGV[6])
+                   "task_id",  ARGV[4], "build_id", ARGV[5], "chroot", ARGV[6],
+                   "sandbox", ARGV[7])
         return "OK"
     else
         return nil
@@ -211,12 +213,16 @@ class VmManager(object):
         vmd_list = self.get_all_vm_in_group(group)
         return [vmd for vmd in vmd_list if vmd.bound_to_user is not None]
 
-    def acquire_vm(self, groups, ownername, pid, task_id="None", build_id="None", chroot="None"):
+    def acquire_vm(self, groups, ownername, sandbox, pid, task_id="None", build_id="None", chroot="None"):
         """
         Try to acquire VM from pool.
 
         :param list groups: builder group ids where the build can be launched as defined in config
-        :param ownername: job owner, prefer to reuse an existing VM which was used by that same user before
+        :param ownername: the owner name (user or group) this build is going
+                to be accounted to, at this moment there's max limit for
+                concurrent jobs accounted to a single owner
+        :param sandbox: sandbox ID required by the build; we prefer to reuse
+                existing VMs previously used for the same sandbox
         :param pid: worker process id
 
         :rtype: VmDescriptor
@@ -224,16 +230,18 @@ class VmManager(object):
         """
         for group in groups:
             ready_vmd_list = self.get_ready_vms(group)
-            # trying to find VM used by this user
-            dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == ownername]
+            # trying to find VM used by the same owner for the same sandbox
+            dirtied = [vmd for vmd in ready_vmd_list
+                       if vmd.sandbox == sandbox and
+                          vmd.bound_to_user == ownername]
 
             user_can_acquire_more_vm = self.can_user_acquire_more_vm(ownername, group)
-            if not dirtied_by_user and not user_can_acquire_more_vm:
+            if not dirtied and not user_can_acquire_more_vm:
                 self.log.debug("User %s already acquired too much VMs in group %s",
                                ownername, group)
                 continue
 
-            available_vms = dirtied_by_user
+            available_vms = dirtied
             if user_can_acquire_more_vm:
                 clean_list = [vmd for vmd in ready_vmd_list if vmd.bound_to_user is None]
                 available_vms += clean_list
@@ -244,7 +252,8 @@ class VmManager(object):
                 vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
                 if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
                                                   args=[ownername, pid, time.time(),
-                                                        task_id, build_id, chroot]) == "OK":
+                                                        task_id, build_id,
+                                                        chroot, sandbox]) == "OK":
                     self.log.info("Acquired VM :%s %s for pid: %s", vmd.vm_name, vmd.vm_ip, pid)
                     return vmd
 

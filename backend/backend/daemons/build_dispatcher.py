@@ -173,8 +173,10 @@ class BuildDispatcher(multiprocessing.Process):
                 try:
                     vm_group_ids = self.get_vm_group_ids(job.arch)
                     self.log.info("Picking VM from groups %s for job %s", vm_group_ids, job)
-                    vm = self.vm_manager.acquire_vm(vm_group_ids, job.project_owner, self.next_worker_id,
-                                                    job.task_id, job.build_id, job.chroot)
+                    vm = self.vm_manager.acquire_vm(
+                        vm_group_ids, job.project_owner, job.sandbox,
+                        self.next_worker_id, job.task_id, job.build_id,
+                        job.chroot)
                 except NoVmAvailable as error:
                     self.log.info("No available resources for task %s (Reason: %s). Deferring job.",
                                   job.task_id, error)
