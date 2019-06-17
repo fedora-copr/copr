@@ -209,10 +209,6 @@ class VmManager(object):
         vmd_list = self.get_all_vm_in_group(group)
         return [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
 
-    def get_dirty_vms(self, group):
-        vmd_list = self.get_all_vm_in_group(group)
-        return [vmd for vmd in vmd_list if vmd.bound_to_user is not None]
-
     def acquire_vm(self, groups, ownername, sandbox, pid, task_id="None", build_id="None", chroot="None"):
         """
         Try to acquire VM from pool.
