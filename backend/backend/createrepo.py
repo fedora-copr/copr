@@ -118,6 +118,13 @@ def add_appdata(path, username, projectname, lock=None):
     # We need to have a possibility to disable an appstream builder for some projects
     # because it doesn't properly scale up for a large ammount of packages
     parent_dir = os.path.dirname(os.path.normpath(path))
+
+    # We don't generate appstream metadata for anything else than the main
+    # directory.  If we reconsidered this in future, we would have to check the
+    # file ../../<main_dir>/.disable-appstream for existance.
+    if ":" in os.path.basename(parent_dir):
+        return out
+
     assert parent_dir.endswith(os.path.join(username, projectname))
     if os.path.exists(os.path.join(parent_dir, ".disable-appstream")):
         return out
