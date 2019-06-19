@@ -3,6 +3,7 @@ from unittest import mock
 
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.modules_logic import ModuleBuildFacade, ModulemdGenerator
+from coprs.logic.coprs_logic import CoprChrootsLogic
 
 import gi
 gi.require_version('Modulemd', '1.0')
@@ -68,6 +69,26 @@ class TestModuleBuildFacade(CoprsTestCase):
         b1, b2, b3 = self.m1.builds
         assert b1.batch != b2.batch == b3.batch
         assert b2.batch.blocked_by == b1.batch
+
+    def test_platform_chroots(self, f_users, f_coprs, f_mock_chroots_many, f_builds, f_modules, f_db):
+        fedora_chroots = [chroot.name for chroot in self.c1.mock_chroots if chroot.name.startswith("fedora")]
+
+        # Test excluding platform chroots
+        CoprChrootsLogic.update_from_names(self.u1, self.c1, fedora_chroots)
+        generator = ModulemdGenerator(name="testmodule", stream="master", version=123, summary="some summary")
+        generator.mmd.set_buildrequires({"platform": "-f22"})
+        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
+        assert {chroot.name for chroot in self.c1.active_chroots} == set(fedora_chroots)
+        assert ("fedora-22-i386" not in facade.platform_chroots) and ("fedora-22-x86_64" in fedora_chroots)
+        assert ("fedora-22-x86_64" not in facade.platform_chroots) and ("fedora-22-x86_64" in fedora_chroots)
+
+        # Test setting platform chroots from scratch
+        CoprChrootsLogic.update_from_names(self.u1, self.c1, fedora_chroots)
+        generator = ModulemdGenerator(name="testmodule", stream="master", version=123, summary="some summary")
+        generator.mmd.set_buildrequires({"platform": "f22"})
+        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
+        assert {chroot.name for chroot in self.c1.active_chroots} == set(fedora_chroots)
+        assert set(facade.platform_chroots) == {"fedora-22-i386", "fedora-22-x86_64"}
 
 
 class TestModulemdGenerator(CoprsTestCase):

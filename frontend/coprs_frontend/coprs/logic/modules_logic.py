@@ -94,6 +94,9 @@ class ModuleBuildFacade(object):
 
     def submit_build(self):
         module = ModulesLogic.add(self.user, self.copr, ModulesLogic.from_modulemd(self.modulemd))
+        if not self.platform_chroots:
+            raise ValidationError("Module platform is {} which doesn't match to any chroots enabled in {} project"
+                                  .format(self.platform, self.copr.full_name))
         self.add_builds(self.modulemd.get_rpm_components(), module)
         return module
 
@@ -110,6 +113,51 @@ class ModuleBuildFacade(object):
             batches[rpm.get_buildorder()][pkgname] = rpm
         return [batches[number] for number in sorted(batches.keys())]
 
+    @property
+    def platform(self):
+        platform = self.modulemd.get_buildrequires().get("platform", [])
+        return platform if isinstance(platform, list) else [platform]
+
+    @property
+    def platform_chroots(self):
+        """
+        Return a list of chroot names based on buildrequired platform and enabled chroots for the project.
+        Example: Copr chroots are ["fedora-22-x86-64", "fedora-23-x86_64"] and modulemd specifies "f23" as a platform,
+                 then `platform_chroots` are ["fedora-23-x86_64"]
+                 Alternatively, the result will be same for "-f22" platform
+        :return: list of strings
+        """
+
+        # Just to be sure, that all chroot abbreviations from platform are in expected format, e.g. f28 or -f30
+        for abbrev in self.platform:
+            if not abbrev.startswith(("f", "-f")):
+                raise ValidationError("This URL doesn't point to a .yaml file")
+
+        chroot_archs = {}
+        for chroot in self.copr.active_chroots:
+            chroot_archs.setdefault(chroot.name_release, []).append(chroot.arch)
+
+        def abbrev2chroots(abbrev):
+            name_release = abbrev.replace("-", "").replace("f", "fedora-")
+            return ["{}-{}".format(name_release, arch) for arch in chroot_archs.get(name_release, [])]
+
+        # Either we want to exclude chroots from all those enabled in the project
+        if any([abbrev.startswith("-") for abbrev in self.platform]):
+            chroots = {chroot.name for chroot in self.copr.active_chroots}
+            for abbrev in self.platform:
+                chroots -= set(abbrev2chroots(abbrev))
+            return list(chroots)
+
+        # Or specify the chroots list from scratch
+        else:
+            chroots = []
+            for abbrev in self.platform:
+                if abbrev.startswith("-"):
+                    # This shouldn't happen
+                    continue
+                chroots.extend(abbrev2chroots(abbrev))
+            return chroots
+
     def add_builds(self, rpms, module):
         blocked_by_id = None
         for group in self.get_build_batches(rpms):
@@ -119,7 +167,8 @@ class ModuleBuildFacade(object):
             for pkgname, rpm in group.items():
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
-                                                                     clone_url=clone_url, committish=rpm.peek_ref())
+                                                                     clone_url=clone_url, committish=rpm.peek_ref(),
+                                                                     chroot_names=self.platform_chroots)
                 build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
