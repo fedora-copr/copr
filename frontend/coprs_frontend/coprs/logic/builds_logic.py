@@ -1009,9 +1009,9 @@ ORDER BY
             'uid': str(build.id),
         }
 
-        log.info('Sending data to Pagure API: %s', pprint.pformat(data))
+        log.debug('Sending data to Pagure API: %s', pprint.pformat(data))
         response = requests.post(api_url, data=data, headers=headers)
-        log.info('Pagure API response: %s', response.text)
+        log.debug('Pagure API response: %s', response.text)
 
     @classmethod
     def cancel_build(cls, user, build):
