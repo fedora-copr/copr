@@ -993,11 +993,22 @@ class Build(db.Model, helpers.Serializer):
             # from the "importing" state.
             # Anyways, return something meaningful here so we can debug
             # properly if such situation happens.
+            app.logger.error("Build %s has source_status succeeded, but "
+                             "no build_chroots", self.id)
             return StatusEnum("waiting")
 
-        for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked", "waiting"]:
+        for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked"]:
             if StatusEnum(state) in self.chroot_states:
                 return StatusEnum(state)
+
+        if StatusEnum("waiting") in self.chroot_states:
+            # We should atomically flip
+            # a) build.source_status: "importing" -> "succeeded" and
+            # b) biuld_chroot.status: "waiting" -> "pending"
+            # so at this point nothing really should be in "waiting" state.
+            app.logger.error("Build chroots pending, even though build %s"
+                             " has succeeded source_status", self.id)
+            return StatusEnum("pending")
 
         return None
 
