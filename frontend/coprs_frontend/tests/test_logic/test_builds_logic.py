@@ -96,7 +96,7 @@ class TestBuildsLogic(CoprsTestCase):
     def test_build_queue_1(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.db.session.commit()
         data = BuildsLogic.get_build_importing_queue().all()
-        assert len(data) == 3
+        assert len(data) == 2
 
     def test_build_queue_2(self, f_users, f_coprs, f_mock_chroots, f_db):
         self.db.session.commit()
@@ -226,7 +226,9 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()
 
-    def test_mark_as_failed(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+    def test_mark_as_failed(self, f_users, f_coprs, f_mock_chroots, f_builds):
+        self.b1.source_status = StatusEnum("succeeded")
+        self.db.session.commit()
         BuildsLogic.mark_as_failed(self.b1.id)
         BuildsLogic.mark_as_failed(self.b3.id)
 

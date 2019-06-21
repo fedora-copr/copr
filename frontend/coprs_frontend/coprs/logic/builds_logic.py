@@ -1069,6 +1069,8 @@ ORDER BY
         chroots = filter(lambda x: x.status != StatusEnum("succeeded"), build.build_chroots)
         for chroot in chroots:
             chroot.status = StatusEnum("failed")
+        if build.source_status != StatusEnum("succeeded"):
+            build.source_status = StatusEnum("failed")
         cls.process_update_callback(build)
         return build
 

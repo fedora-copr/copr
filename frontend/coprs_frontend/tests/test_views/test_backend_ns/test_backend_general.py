@@ -130,6 +130,16 @@ class TestUpdateBuilds(CoprsTestCase):
   ]
 }"""
 
+    import_data1 = """
+{
+  "build_id": 2,
+  "branch_commits": {
+    "f28": "4dc32823233c0ef1aacc6f345b674d4f40a026b8"
+  },
+  "reponame": "test/foo"
+}
+"""
+
     def test_updating_requires_password(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.post("/backend/update/",
                          content_type="application/json",
@@ -161,6 +171,13 @@ class TestUpdateBuilds(CoprsTestCase):
 
         self.db.session.add_all([self.b1, self.b2])
         self.db.session.commit()
+
+        # test that import hook works
+        r = self.tc.post("/backend/import-completed/",
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=self.import_data1)
+        assert r.status_code == 200
 
         r = self.tc.post("/backend/update/",
                          content_type="application/json",
