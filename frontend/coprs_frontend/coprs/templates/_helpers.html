@@ -165,11 +165,7 @@
     {{ build_state_text("canceled") }}
   {% else %}
     {% if build.status is not none %}
-      {% if build.status|state_from_num == "waiting" %}
-        {{ build_state_text(build.source_status|state_from_num) }}
-      {% else %}
-        {{ build_state_text(build.status|state_from_num) }}
-      {% endif %}
+      {{ build_state_text(build.status|state_from_num) }}
     {% elif build.source_status %}
       {{ build_state_text(build.source_status|state_from_num) }}
     {% else %}

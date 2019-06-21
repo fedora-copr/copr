@@ -951,7 +951,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def chroot_states(self):
-        return map(lambda chroot: chroot.status, self.build_chroots)
+        return list(map(lambda chroot: chroot.status, self.build_chroots))
 
     def get_chroots_by_status(self, statuses=None):
         """
@@ -984,6 +984,16 @@ class Build(db.Model, helpers.Serializer):
         use_src_statuses = ["starting", "pending", "running", "importing", "failed"]
         if self.source_status in [StatusEnum(s) for s in use_src_statuses]:
             return self.source_status
+
+        if not self.chroot_states:
+            # There were some builds in DB which had source_status equal
+            # to 'succeeded', while they had no biuld_chroots created.
+            # The original source of this inconsistency isn't known
+            # because we only ever flip source_status to "succeded" directly
+            # from the "importing" state.
+            # Anyways, return something meaningful here so we can debug
+            # properly if such situation happens.
+            return StatusEnum("waiting")
 
         for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked", "waiting"]:
             if StatusEnum(state) in self.chroot_states:
