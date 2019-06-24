@@ -23,7 +23,7 @@ USER=`copr-cli whoami`
 # Some tests might want to install built packages
 # Therefore, these packages need to be built for the same fedora version
 # as this script is going to be run from
-FEDORA_VERSION=28
+FEDORA_VERSION=30
 CHROOT="fedora-$FEDORA_VERSION-x86_64"
 
 

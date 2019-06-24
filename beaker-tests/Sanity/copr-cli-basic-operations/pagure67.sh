@@ -56,7 +56,7 @@ rlJournalStart
 
     rlPhaseStartTest
         # Test for https://pagure.io/copr/copr/issue/67
-        rlRun "copr-cli create ${NAME_PREFIX}TestBugPagure67 --chroot fedora-28-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBugPagure67 --chroot $CHROOT" 0
         # The issue #67 specifically concerns the *-package-tito commands,
         # but since they were deprecated and even removed from the code,
         # we are going to use its successor for this test

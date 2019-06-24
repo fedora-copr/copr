@@ -1,5 +1,5 @@
-FROM fedora:28
-MAINTAINER clime@redhat.com
+FROM fedora:30
+MAINTAINER copr-devel@lists.fedorahosted.org
 
 ENV container docker
 RUN dnf -y update
@@ -19,6 +19,10 @@ RUN dnf -y install htop wget net-tools iputils vim mlocate git sudo openssh-serv
 
 # Sanity tests
 RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
+
+# Hack, beakerlib is not installable on F30, bug 1719226
+RUN sed -i 's/$releasever/29/g' /etc/yum.repos.d/beaker-client-Fedora.repo
+
 RUN dnf -y install rhts-test-env beakerlib
 
 RUN echo "LANG=en_US.UTF-8" >> /etc/locale
@@ -29,4 +33,4 @@ RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 RUN echo 'root:passwd' | chpasswd
 RUN echo 'export LANG=en_US.UTF-8' >> /root/.bashrc
 
-CMD ["/usr/sbin/init"]
+CMD ["/usr/bin/sleep", "infinity"]
