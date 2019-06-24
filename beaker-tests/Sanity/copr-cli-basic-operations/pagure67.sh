@@ -32,7 +32,7 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
-
+srouce "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
@@ -60,11 +60,11 @@ rlJournalStart
         # The issue #67 specifically concerns the *-package-tito commands,
         # but since they were deprecated and even removed from the code,
         # we are going to use its successor for this test
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --webhook-rebuild on --commit foo --subdir bar"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url $COPR_HELLO_GIT --method tito_test --webhook-rebuild on --commit foo --subdir bar"
         OUTPUT=`mktemp`
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
         rlAssertEquals "" `cat $OUTPUT | jq '.auto_rebuild'` "true"
-        rlRun "copr-cli edit-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url http://github.com/clime/example.git --method tito_test --commit foo --subdir bar"
+        rlRun "copr-cli edit-package-scm ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --clone-url $COPR_HELLO_GIT --method tito_test --commit foo --subdir bar"
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
         rlAssertEquals "" `cat $OUTPUT | jq '.auto_rebuild'` "true"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBugPagure67"

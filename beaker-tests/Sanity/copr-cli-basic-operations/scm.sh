@@ -32,6 +32,7 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
+source "$HERE/helpers"
 
 
 rlJournalStart
@@ -41,14 +42,14 @@ rlJournalStart
     rlPhaseStartTest
         rlRun "copr create ${NAME_PREFIX}BuildScm --enable-net on --chroot $CHROOT" 0
         rlRun "copr buildscm --clone-url https://src.fedoraproject.org/rpms/rpkg-util.git ${NAME_PREFIX}BuildScm" 0
-        rlRun "copr buildscm --clone-url https://github.com/clime/example.git --method make_srpm ${NAME_PREFIX}BuildScm" 0
-        rlRun "copr buildscm --clone-url https://github.com/clime/example.git --method tito ${NAME_PREFIX}BuildScm" 0
+        rlRun "copr buildscm --clone-url "$COPR_HELLO_GIT" --method make_srpm ${NAME_PREFIX}BuildScm" 0
+        rlRun "copr buildscm --clone-url "$COPR_HELLO_GIT" --method tito ${NAME_PREFIX}BuildScm" 0
         rlRun "copr buildscm --clone-url https://github.com/clime/example2.git --subdir subpkg --spec example.spec --method tito_test ${NAME_PREFIX}BuildScm" 0
         rlRun "copr buildscm --clone-url https://src.fedoraproject.org/forks/mgahagan/rpms/passwd.git --commit 9ac07e38c9351fb1c4e724e68deaeac6b6b1ab4 ${NAME_PREFIX}BuildScm" 0
 
         rlRun "copr create ${NAME_PREFIX}PackageScm --enable-net on --chroot $CHROOT" 0
-        rlRun "copr add-package-scm --name example --clone-url https://github.com/clime/example.git --method tito ${NAME_PREFIX}PackageScm" 0
-        rlRun "copr edit-package-scm --name example --clone-url https://github.com/clime/example.git --method rpkg ${NAME_PREFIX}PackageScm" 0
+        rlRun "copr add-package-scm --name example --clone-url $COPR_HELLO_GIT --method tito ${NAME_PREFIX}PackageScm" 0
+        rlRun "copr edit-package-scm --name example --clone-url $COPR_HELLO_GIT --method rpkg ${NAME_PREFIX}PackageScm" 0
         rlRun "copr build-package --name example ${NAME_PREFIX}PackageScm" 0
 
         rlRun "copr-cli delete ${NAME_PREFIX}BuildScm"

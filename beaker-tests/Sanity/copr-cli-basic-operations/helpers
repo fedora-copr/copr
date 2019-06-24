@@ -2,6 +2,7 @@
 
 HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/hello-2.8-1.src.rpm
 EVIL_HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/evilhello-2.8-2.src.rpm
+COPR_HELLO_GIT=https://pagure.io/copr/copr-hello.git
 
 parse_build_id()
 {

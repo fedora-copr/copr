@@ -285,13 +285,13 @@ rlJournalStart
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
 
         ## Package reseting
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url $COPR_HELLO_GIT"
 
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
         cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_dict.clone_url == \"$COPR_HELLO_GIT\"" `cat $SOURCE_DICT | jq '.clone_url'` "\"$COPR_HELLO_GIT\""
 
         # _do_ reset
         rlRun "copr-cli reset-package ${NAME_PREFIX}Project4 --name test_package_reset"
@@ -306,7 +306,7 @@ rlJournalStart
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
         ## Package deletion
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete > /dev/null"
 
         ## Package listing
@@ -320,7 +320,7 @@ rlJournalStart
 
         ## Test package listing attributes
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project5"
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project5 --name example --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project5 --name example --clone-url $COPR_HELLO_GIT"
 
         BUILDS=`mktemp`
         LATEST_BUILD=`mktemp`
@@ -338,10 +338,10 @@ rlJournalStart
 
         TMP=`mktemp -d`
         # run the build and wait
-        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/succeeded_example_build_id"
+        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/succeeded_example_build_id"
 
         # this build should fail
-        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
+        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
 
         # run the tests after build
         rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
@@ -368,7 +368,7 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project6"
 
         # create a package
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url $COPR_HELLO_GIT"
 
         # build the package
         rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
@@ -404,7 +404,7 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url http://github.com/clime/example.git" # insert package to the copr
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url $COPR_HELLO_GIT" # insert package to the copr
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
@@ -471,7 +471,7 @@ rlJournalStart
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
         # TODO: Remove this.
         rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python3 <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
@@ -481,7 +481,7 @@ rlJournalStart
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         TMP=`mktemp -d`
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteGroupBuild_example_build_id.txt"
         BUILD_ID=`cat $TMP/TestDeleteGroupBuild_example_build_id.txt`
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
@@ -507,15 +507,15 @@ rlJournalStart
 
         # Bug 1370704 - Internal Server Error (too many values to unpack)
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot $CHROOT" 0
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot $CHROOT" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url https://github.com/clime/example.git" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url $COPR_HELLO_GIT" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url $COPR_HELLO_GIT" 0
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/$CHROOT" 0
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/$CHROOT" 0
 
@@ -542,8 +542,8 @@ rlJournalStart
 
         ## test building in copr dirs
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}CoprDirTest"
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url http://github.com/clime/example.git" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT" 0
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
