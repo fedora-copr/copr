@@ -1,7 +1,7 @@
 #!/bin/sh
 
-HELLO=https://frostyx.fedorapeople.org/hello-2.8-1.fc23.src.rpm
-EVIL_HELLO=https://frostyx.fedorapeople.org/evilhello-2.8-1.fc28.src.rpm
+HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/hello-2.8-1.src.rpm
+EVIL_HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/evilhello-2.8-2.src.rpm
 
 parse_build_id()
 {
