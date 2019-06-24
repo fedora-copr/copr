@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 import_lock = multiprocessing.Lock()
 
 def my_upload_fabric(opts):
-    def my_upload(repo_dir, reponame, abs_filename, filehash):
+    def my_upload(repo_dir, reponame, abs_filename, filehash, offline=False):
         """
         This is a replacement function for uploading sources.
         Rpkg uses upload.cgi for uploading which doesn't make sense
