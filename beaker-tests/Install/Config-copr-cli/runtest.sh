@@ -45,6 +45,13 @@ rlJournalStart
         rlRun "dnf install -y python3-copr copr-cli"
         rlRun "dnf upgrade python3-copr copr-cli"
 
+        cat > /etc/dnf/plugins/copr.d/tested-copr.conf <<EOF
+[tested-copr]
+hostname = copr-fe-dev.cloud.fedoraproject.org
+protocol = https
+port = 443
+EOF
+
         rlAssertRpm copr-cli
     rlPhaseEnd
 
@@ -53,5 +60,11 @@ rlJournalEnd
 
 echo "A manual work is required!"
 echo "Please obtain your personal API config from"
-echo "https://copr-fe-dev.cloud.fedoraproject.org/api/"
+echo "https://YOUR_COPR_HOST/api/"
 echo "and paste it to the ~/.config/copr"
+echo
+echo "Create /etc/dnf/plugins/copr.d/tested-copr.conf with contents:"
+echo [tested-copr]
+echo hostname = YOUR_COPR_HOST
+echo protocol = https
+echo port = 443

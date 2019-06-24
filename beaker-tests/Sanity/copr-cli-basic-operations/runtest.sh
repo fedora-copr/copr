@@ -47,11 +47,6 @@ rlJournalStart
         rlRun "copr-cli list"
         # and install... things
         yum -y install dnf dnf-plugins-core
-        # use the dev instance
-        sed -i "s+http://copr.fedoraproject.org+$FRONTEND_URL+g" \
-        /usr/lib/python3.6/site-packages/dnf-plugins/copr.py
-        sed -i "s+https://copr.fedoraproject.org+$FRONTEND_URL+g" \
-        /usr/lib/python3.6/site-packages/dnf-plugins/copr.py
         dnf -y install jq
     rlPhaseEnd
 
@@ -78,12 +73,10 @@ rlJournalStart
         rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 4
         # build - OK
         rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO"
-        # build - the same version modified - SKIPPED
-        rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/changed/hello-2.8-1.fc20.src.rpm"
         # build - FAIL  (syntax error in source code)
         rlRun "copr-cli build ${NAME_PREFIX}Project1 $EVIL_HELLO" 4
         # enable Project1 repo
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project1 $CHROOT"
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project1 $CHROOT"
         # install hello package
         rlRun "dnf install -y hello"
         # and check whether it's installed
@@ -98,17 +91,17 @@ rlJournalStart
         # remove hello
         rlRun "dnf remove hello -y"
         # disable Project1 repo
-        rlRun "yes | dnf copr disable $NAME_PREFIX\"Project1\""
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/$NAME_PREFIX\"Project1\""
         # disable auto_createrepo
         rlRun "copr-cli modify --disable_createrepo true ${NAME_PREFIX}Project2"
         # build 1st package
         rlRun "copr-cli build ${NAME_PREFIX}Project2 $HELLO"
         # enable Project2 repo
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project2 $CHROOT"
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project2 $CHROOT"
         # try to install - FAIL ( public project metadata not updated)
         rlRun "dnf install -y hello" 1
         # build 2nd package ( requires 1st package for the build)
-        rlRun "copr-cli build ${NAME_PREFIX}Project2 https://frostyx.fedorapeople.org/hello_beaker_test_2-0.0.1-1.fc22.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}Project2 https://pagure.io/copr/copr-test-sources/raw/master/f/hello_beaker_test_2-0.0.1-1.src.rpm"
         # try to install - FAIL ( public project metadata not updated)
         rlRun "dnf install -y hello_beaker_test_2" 1
         # re-enabling metadata generation
@@ -437,18 +430,19 @@ rlJournalStart
         sleep 60
 
         # use package from forked project
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork $CHROOT"
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10Fork $CHROOT"
         rlRun "dnf install -y hello"
 
         # check repo properties
-        REPOFILE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10Fork.repo |sed 's/\/TEST/-TEST/g')
+        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_URL//*\/\//}:group_copr:${NAME_VAR}
+        REPOFILE=${REPOFILE_BASE}Project10Fork.repo
         rlAssertEquals "Baseurl should point to fork project" `grep -r "^baseurl=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
         rlAssertEquals "GPG pubkey should point to fork project" `grep -r "^gpgkey=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
 
         # check whether pubkey.gpg exists
         rlRun "curl -f $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g')"
 
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 $CHROOT"
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10 $CHROOT"
         REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
         TMP=`mktemp -d`
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
@@ -457,7 +451,7 @@ rlJournalStart
 
         # clean
         rlRun "dnf remove -y hello"
-        rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project10Fork"
 
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
@@ -486,7 +480,7 @@ rlJournalStart
         BUILD_ID=`cat $TMP/TestDeleteGroupBuild_example_build_id.txt`
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
-        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory (ideally with results) is present on backend"
+        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory, ideally with results, is present on backend"
         cd - && rm -r $MYTMPDIR
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet

@@ -63,19 +63,21 @@ rlJournalStart
         sleep 60
 
         # use package from forked project
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork $CHROOT"
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10Fork $CHROOT"
         rlRun "dnf install -y example"
 
         # check repo properties
-        REPOFILE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10Fork.repo |sed 's/\/TEST/-TEST/g')
+        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_URL//*\/\//}:group_copr:${NAME_VAR}
+        REPOFILE=${REPOFILE_BASE}Project10Fork.repo
+        rlAssertExists "$REPOFILE"
         rlAssertEquals "Baseurl should point to fork project" `grep -r "^baseurl=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
         rlAssertEquals "GPG pubkey should point to fork project" `grep -r "^gpgkey=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
 
         # check whether pubkey.gpg exists
         rlRun "curl -f $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g')"
 
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 $CHROOT"
-        REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
+        rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10 $CHROOT"
+        REPOFILE_SOURCE=${REPOFILE_BASE}Project10.repo
         TMP=`mktemp -d`
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_fork.gpg"
@@ -83,7 +85,8 @@ rlJournalStart
 
         # clean
         rlRun "dnf remove -y example"
-        rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project10Fork"
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project10"
 
     rlPhaseEnd
 
