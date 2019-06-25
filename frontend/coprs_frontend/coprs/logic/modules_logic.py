@@ -141,22 +141,21 @@ class ModuleBuildFacade(object):
             name_release = abbrev.replace("-", "").replace("f", "fedora-")
             return ["{}-{}".format(name_release, arch) for arch in chroot_archs.get(name_release, [])]
 
-        # Either we want to exclude chroots from all those enabled in the project
-        if any([abbrev.startswith("-") for abbrev in self.platform]):
-            chroots = {chroot.name for chroot in self.copr.active_chroots}
-            for abbrev in self.platform:
-                chroots -= set(abbrev2chroots(abbrev))
-            return list(chroots)
+        exclude_chroots = set()
+        select_chroots = set()
+        for abbrev in self.platform:
+            abbrev_chroots = abbrev2chroots(abbrev)
+            if not abbrev_chroots:
+                raise ValidationError("Module platform stream {} doesn't match to any enabled chroots in the {} project"
+                                      .format(abbrev, self.copr.full_name))
+            (exclude_chroots if abbrev.startswith("-") else select_chroots).update(abbrev_chroots)
 
-        # Or specify the chroots list from scratch
-        else:
-            chroots = []
-            for abbrev in self.platform:
-                if abbrev.startswith("-"):
-                    # This shouldn't happen
-                    continue
-                chroots.extend(abbrev2chroots(abbrev))
-            return chroots
+        chroots = {chroot.name for chroot in self.copr.active_chroots}
+        chroots -= exclude_chroots
+        if select_chroots:
+            chroots &= select_chroots
+        return chroots
+
 
     def add_builds(self, rpms, module):
         blocked_by_id = None
