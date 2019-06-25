@@ -448,7 +448,7 @@ rlJournalStart
         rlRun "curl -f $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g')"
 
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10 $CHROOT"
-        REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
+        REPOFILE_SOURCE=${REPOFILE_BASE}Project10.repo
         TMP=`mktemp -d`
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_fork.gpg"
