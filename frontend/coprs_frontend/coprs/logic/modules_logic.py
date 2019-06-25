@@ -130,8 +130,8 @@ class ModuleBuildFacade(object):
 
         # Just to be sure, that all chroot abbreviations from platform are in expected format, e.g. f28 or -f30
         for abbrev in self.platform:
-            if not abbrev.startswith(("f", "-f")):
-                raise ValidationError("This URL doesn't point to a .yaml file")
+            if not (abbrev.startswith(("f", "-f")) and abbrev.lstrip("-f").isnumeric()):
+                raise ValidationError("Unexpected platform '{}', it should be e.g. f28 or -f30".format(abbrev))
 
         chroot_archs = {}
         for chroot in self.copr.active_chroots:
