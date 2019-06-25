@@ -112,6 +112,7 @@ rlJournalStart
         rlRun "dnf install -y --refresh hello_beaker_test_2"
         # clean
         rlRun "dnf remove -y hello_beaker_test_2"
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project2"
 
         ## test build watching and deletion using Project3
         # build 1st package without waiting
@@ -451,6 +452,7 @@ rlJournalStart
 
         # clean
         rlRun "dnf remove -y hello"
+        rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project10"
         rlRun "yes | dnf copr remove $DNF_COPR_ID/${NAME_PREFIX}Project10Fork"
 
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
