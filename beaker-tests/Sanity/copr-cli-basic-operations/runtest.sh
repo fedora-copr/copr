@@ -334,8 +334,12 @@ rlJournalStart
         # run the build and wait
         rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/succeeded_example_build_id"
 
-        # this build should fail
-        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
+        # This build should fail (but still we have to be able to create source
+        # RPM from git, so no artificial commit hashes here).  The commit hash
+        # 3b4bbd3b8fb7e220946171915e4f31db4542ab4e contains sources _before_ we
+        # added gcc to BuildRequires;  so on F30+ this build fails since there's
+        # no gcc compiler.
+        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT --commit 3b4bbd3b8fb7e220946171915e4f31db4542ab4e ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
 
         # run the tests after build
         rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
