@@ -96,7 +96,7 @@ rlJournalStart
 
         # Test yaml submit
         PROJECT=module-testmodule-beakertest-$DATE
-        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        copr-cli create $PROJECT --chroot $CHROOT --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/testmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
@@ -118,7 +118,7 @@ rlJournalStart
 
         # Test URL submit
         PROJECT=module-testmoduleurl-beakertest-$DATE
-        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        copr-cli create $PROJECT --chroot $CHROOT --chroot fedora-rawhide-i386
         rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/f28/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 3 600 $PACKAGES
@@ -130,7 +130,7 @@ rlJournalStart
 
         # Test that user-defined macros are in the buildroot
         PROJECT=module-test-macros-module-beakertest-$DATE
-        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        copr-cli create $PROJECT --chroot $CHROOT --chroot fedora-rawhide-i386
         yes | cp $HERE/files/test-macros-module.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/test-macros-module.yaml
@@ -144,7 +144,7 @@ rlJournalStart
         TMP=`mktemp -d`
         MACROS=`mktemp`
         copr-cli download-build --dest $TMP $ID
-        rpm -qp --queryformat '%{DESCRIPTION}' $TMP/fedora-rawhide-x86_64/test-macros-1.0-*src.rpm |grep MACRO > $MACROS
+        rpm -qp --queryformat '%{DESCRIPTION}' $TMP/$CHROOT/test-macros-1.0-*src.rpm |grep MACRO > $MACROS
 
         # @FIXME There is a known regression - user macros from modulemd are
         # not used in the buildroot.
@@ -157,7 +157,7 @@ rlJournalStart
         PACKAGES=`mktemp`
         SUFFIX=2
         PROJECT=$OWNER/TestModule$DATE$SUFFIX
-        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        copr-cli create $PROJECT --chroot $CHROOT --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
@@ -167,7 +167,7 @@ rlJournalStart
 
         # Test that it is possible to build module with package from copr
         PROJECT=module-coprtestmodule-beakertest-$DATE
-        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        copr-cli create $PROJECT --chroot $CHROOT --chroot fedora-rawhide-i386
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/coprtestmodule.yaml
@@ -187,7 +187,7 @@ rlJournalStart
         # Test that module can be enabled with dnf
         # Module repository should be allowed via DNF, but the code isn't merged yet
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
-        rlRun "curl $FRONTEND_URL/coprs/$USER/module-testmodule-beakertest-$DATE/module_repo/fedora-rawhide/testmodule-beakertest-$DATE.repo > /etc/yum.repos.d/testmodule.repo"
+        rlRun "curl $FRONTEND_URL/coprs/$USER/module-testmodule-beakertest-$DATE/module_repo/fedora-$FEDORA_VERSION/testmodule-beakertest-$DATE.repo > /etc/yum.repos.d/testmodule.repo"
 
         rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep $DATE |grep -v "Copr modules repo" |wc -l` 1
         rlRun "dnf module enable testmodule:beakertest"
