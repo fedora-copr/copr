@@ -10,9 +10,9 @@ data:
         module: [ MIT ]
     dependencies:
         buildrequires:
-            platform: master
+            platform: $PLATFORM
         requires:
-            platform: master
+            platform: $PLATFORM
     references:
         community: https://fedoraproject.org/wiki/Modularity
         documentation: https://fedoraproject.org/wiki/Fedora_Packaging_Guidelines_for_Modules

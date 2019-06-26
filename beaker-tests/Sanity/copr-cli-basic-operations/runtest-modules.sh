@@ -99,6 +99,7 @@ rlJournalStart
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/testmodule.yaml
+        sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
 
         # Test module duplicity
@@ -132,6 +133,7 @@ rlJournalStart
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/test-macros-module.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
+        sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/test-macros-module.yaml
         copr-cli build-module --yaml /tmp/test-macros-module.yaml $PROJECT
         PACKAGES=`mktemp`
         wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 600 $PACKAGES
@@ -158,6 +160,7 @@ rlJournalStart
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
+        sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
         wait_for_finished_module "$OWNER/TestModule$DATE$SUFFIX" 2 600 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
@@ -167,6 +170,7 @@ rlJournalStart
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$OWNER/$USER/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml $PROJECT"

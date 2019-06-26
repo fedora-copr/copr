@@ -25,6 +25,7 @@ USER=`copr-cli whoami`
 # as this script is going to be run from
 FEDORA_VERSION=30
 CHROOT="fedora-$FEDORA_VERSION-x86_64"
+BRANCH="f$FEDORA_VERSION"
 
 
 # Useful paths
