@@ -59,7 +59,7 @@ class TestCoprAddBuild(CoprsTestCase):
                                                          f_coprs,
                                                          f_copr_permissions,
                                                          f_db):
-
+        self.u1.admin = False
         self.db.session.add_all([self.u1, self.c1])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
@@ -111,6 +111,7 @@ class TestCoprCancelBuild(CoprsTestCase):
         for bc in self.b1_bc:
             bc.status = StatusEnum("pending")
             bc.ended_on = None
+        self.u1.admin = False
         self.db.session.add_all(self.b1_bc)
         self.db.session.add_all([self.u1, self.c1, self.b1])
         self.test_client.post("/coprs/{0}/{1}/cancel_build/{2}/"
@@ -280,7 +281,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
                                                           f_coprs,
                                                           f_mock_chroots,
                                                           f_builds, f_db):
-
+        self.u1.admin = False
         self.db.session.add_all([self.u1, self.c1, self.b1])
         r = self.test_client.post(
             "/coprs/{0}/{1}/repeat_build/{2}/"

@@ -115,21 +115,21 @@ class User(db.Model, helpers.Serializer):
         """
         Determine if this user can build in the given copr.
         """
-        can_build = False
+        if copr.user.admin:
+            return True
         if copr.user_id == self.id:
-            can_build = True
+            return True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_builder ==
                 helpers.PermissionEnum("approved")):
-
-            can_build = True
+            return True
 
         # a bit dirty code, here we access flask.session object
         if copr.group is not None and \
                 copr.group.fas_name in self.user_teams:
             return True
 
-        return can_build
+        return False
 
     @property
     def user_teams(self):

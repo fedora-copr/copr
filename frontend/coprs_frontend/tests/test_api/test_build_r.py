@@ -210,6 +210,7 @@ class TestBuildResource(CoprsTestCase):
             "srpm_url": "http://example.com/mypkg.src.rpm",
             "chroots": chroot_name_list
         }
+        self.u1.admin = False
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
             "/api_2/builds",
@@ -255,6 +256,7 @@ class TestBuildResource(CoprsTestCase):
         }
         login = self.u2.api_login
         token = self.u2.api_token
+        self.u1.admin = False
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
             "/api_2/builds",
@@ -458,6 +460,8 @@ class TestBuildResource(CoprsTestCase):
             bc.status = StatusEnum("pending")
             bc.ended_on = None
 
+        self.u1.admin = False
+        
         self.db.session.add_all(self.b1_bc)
         self.db.session.add(self.b1)
 
