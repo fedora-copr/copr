@@ -60,6 +60,10 @@ Load the openstack settings::
 
     source ~/Downloads/persistent-openrc.sh
 
+@TODO detach volume via command if possible::
+
+    @TODO openstack server ...
+
 Backup the old instance by renaming it::
 
     openstack server set --name <old_name>_backup "<id>"
