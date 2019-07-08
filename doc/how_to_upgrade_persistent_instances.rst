@@ -71,8 +71,25 @@ and for production, see
 
 https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-machines
 
+.. note:: Please note that the playbook may stuck longer than expected while waiting for a new
+          instance to boot. See `Initial boot hangs waiting for entropy`_.
+
+
+Troubleshooting
+---------------
+
+Initial boot hangs waiting for entropy
+......................................
+
+Because of a known infrastructure issue `Fedora infrastructure issue #7966`_ initial boot
+of an instance in OpenStack hangs and waits for entropy. It seems that it can't be fixed
+properly, so we need to workaround by going to `OpenStack instances dashboard`_, opening
+the instance details, switching to the ``Console`` tab and typing random characters in it.
+It resumes the booting process.
+
 
 
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
 .. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
 .. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
+.. _`Fedora infrastructure issue #7966`: https://pagure.io/fedora-infrastructure/issue/7966
