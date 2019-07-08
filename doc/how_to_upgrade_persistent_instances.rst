@@ -48,16 +48,29 @@ And configure it to use the new image::
 That is all, that needs to be changed in the ansible repository. Commit and push it.
 
 
-Terminate the instance
-----------------------
+Backup the old instance
+-----------------------
 
-This is the scary part when the current running and working instance is terminated.
-Make sure, that you have enough time, there is no going back.
+This part is done via ``openstack`` client on your computer. First, download a RC
+file for the ``persistent`` tenant. Open `Fedora Infra OpenStack`_ dashboard, switch
+to the ``Access & Security`` section, then ``API Access`` and click on
+``Download OpenStack RC File``.
 
+Load the openstack settings::
+
+    source ~/Downloads/persistent-openrc.sh
+
+Backup the old instance by renaming it::
+
+    openstack server set --name <old_name>_backup "<id>"
+    # e.g.
+    openstack server set --name copr-dist-git-dev_backup "85260b5b-7f61-4398-8d05-xxxxxxxxxxxx"
+
+Finally, shutdown the instance to avoid storage inconsistency and other possible problems.
 Open the `OpenStack instances dashboard`_ and switch the current project to ``persistent``
-and find the instance, that you want to terminate. Make sure, it is the right one! Don't
+and find the instance, that you want to shutdown. Make sure, it is the right one! Don't
 mistake e.g. production instance with dev. Then look at the ``Actions`` column and click
-``More`` button. In the dropdown menu, there is a button ``Terminate instance``, use it.
+``More`` button. In the dropdown menu, there is a button ``Shut Off Instance``, use it.
 
 
 Provision new instance from scratch
@@ -73,6 +86,18 @@ https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-ma
 
 .. note:: Please note that the playbook may stuck longer than expected while waiting for a new
           instance to boot. See `Initial boot hangs waiting for entropy`_.
+
+
+Terminate the old instance
+--------------------------
+
+Once the new instance is successfully provisioned and working as expected, terminate the
+old backup instance.
+
+Open the `OpenStack instances dashboard`_ and switch the current project to ``persistent``
+and find the instance, that you want to terminate. Make sure, it is the right one! Don't
+mistake e.g. production instance with dev. Then look at the ``Actions`` column and click
+``More`` button. In the dropdown menu, there is a button ``Terminate instance``, use it.
 
 
 Troubleshooting
