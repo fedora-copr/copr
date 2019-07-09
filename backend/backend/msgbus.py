@@ -2,9 +2,12 @@
 Message buses abstraction.
 """
 
+import os
 import logging
 import copy
 import json
+
+from copr_messaging import schema
 
 from .constants import BuildStatus
 
@@ -28,11 +31,117 @@ class _LogAdapter(logging.LoggerAdapter):
         return "[BUS '{0}'] {1}".format(self.extra['bus_id'], msg), kwargs
 
 
+def message_from_worker_job(style, topic, job, who, ip, pid):
+    """
+    Compat wrapper generating message object for messages defined before we
+    switched to fedora-messaging jsonschema-aware model.  This can be removed
+    once we can exepect that people are using copr-messaging module (and thus
+    we can change message format without affecting the API).
+    """
+    if style == 'v1':
+        content = {
+            'user': job.submitter,
+            'copr': job.project_name,
+            'owner': job.project_owner,
+            'pkg': job.package_name,
+            'build': job.build_id,
+            'chroot': job.chroot,
+            'version': job.package_version,
+            'status': job.status,
+        }
+        content.update({'ip': ip, 'who': who, 'pid': pid})
+
+        message_types = {
+            'build.start': {
+                'what': "build start: user:{user} copr:{copr}" \
+                        " pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
+                'class': schema.BuildChrootStartedV1,
+            },
+            'chroot.start': {
+                'what': "chroot start: chroot:{chroot} user:{user}" \
+                        " copr:{copr} pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
+                'class': schema.BuildChrootEndedV1,
+            },
+            'build.end': {
+                'what': "build end: user:{user} copr:{copr} build:{build}" \
+                        " pkg:{pkg} version:{version} ip:{ip} pid:{pid} status:{status}",
+                'class': schema.BuildChrootStartedV1DontUse,
+            },
+        }
+
+        content['what'] = message_types[topic]['what'].format(**content)
+        message = message_types[topic]['class'](body=content)
+        return message
+
+    elif style == 'v1stomp':
+        und = '(undefined)'
+        content = {
+            'user':        getattr(job, 'submitter', und),
+            'copr':        getattr(job, 'project_name', und),
+            'owner':       getattr(job, 'project_owner', und),
+            'pkg':         getattr(job, 'package_name', und),
+            'build':       getattr(job, 'build_id', und),
+            'chroot':      getattr(job, 'chroot', und),
+            'version':     getattr(job, 'package_version', und),
+            'status':      getattr(job, 'status', und),
+        }
+
+        content['str_status'] = BuildStatus.string(content['status'])
+        content.update({'ip': ip, 'who': who, 'pid': pid})
+
+        msg_format = {
+            'build.start': {
+                'keys': {
+                    'build': '{build}',
+                    'owner': '{owner}',
+                    'copr': '{copr}',
+                    'submitter': '{user}',
+                    'package': '{pkg}-{version}',
+                    'chroot': '{chroot}',
+                    'builder': '{ip}',
+                    'status': '{str_status}',
+                    'status_int': '{status}',
+                },
+                'class': schema.BuildChrootStartedV1Stomp,
+            },
+            'build.end': {
+                'keys': {
+                    'build': '{build}',
+                    'owner': '{owner}',
+                    'copr': '{copr}',
+                    'submitter': '{user}',
+                    'package': '{pkg}-{version}',
+                    'chroot': '{chroot}',
+                    'builder': '{ip}',
+                    'status': '{str_status}',
+                    'status_int': '{status}',
+                },
+                'class': schema.BuildChrootEndedV1Stomp,
+            },
+            'chroot.start': {
+                'keys': {
+                    'chroot': "{chroot}",
+                },
+                'class': schema.BuildChrootStartedV1StompDontUse,
+            },
+        }
+
+        body = {}
+        for key in msg_format[topic]['keys']:
+            body[key] = msg_format[topic]['keys'][key].format(**content)
+
+        return msg_format[topic]['class'](body=body)
+
+    raise NotImplementedError
+
+
 class MsgBus(object):
     """
     An "abstract" message bus class, don't instantiate!
     """
     messages = {}
+
+    style = 'v1'
 
     def __init__(self, opts, log=None):
         self.opts = opts
@@ -49,59 +158,32 @@ class MsgBus(object):
         if hasattr(self.opts, 'messages'):
             self.messages.update(self.opts.messages)
 
-
-    def _send(self, topic, body, headers):
+    def _send_message(self, message):
+        """
+        Send message from fedora_messaging.message.Message (or subclass) object.
+        The object is already validated.
+        """
         raise NotImplementedError
 
-
-    def send(self, topic, body, headers=None):
+    def send_message(self, message):
         """
-        Send (dict) message over _send() method.
+        Validate and send message from fedora_messaging.message.Message (or
+        subclass) object.
         """
-        out_headers = copy.deepcopy(self.opts.headers)
-        if headers:
-            out_headers.update(copy.deepcopy(headers))
         try:
-            self._send(topic, body, out_headers)
+            message.validate()
+            self._send_message(message)
         # pylint: disable=W0703
-        except Exception as _:
+        except Exception:
             self.log.exception("Failed to publish message.")
 
-
-    def announce_job(self, topic, job, **kwargs):
+    def announce_job(self, msg_type, job, who, ip, pid):
         """
-        Announce everywhere that a build process started now.
+        Compat thing to be removed;  future types of messages (v2+) should be
+        constructed at caller side, not in this class.
         """
-        if not topic in self.messages:
-            return
-
-
-        und = '(undefined)'
-        content = {
-            'user':        getattr(job, 'submitter', und),
-            'copr':        getattr(job, 'project_name', und),
-            'owner':       getattr(job, 'project_owner', und),
-            'pkg':         getattr(job, 'package_name', und),
-            'build':       getattr(job, 'build_id', und),
-            'chroot':      getattr(job, 'chroot', und),
-            'version':     getattr(job, 'package_version', und),
-            'status':      getattr(job, 'status', und),
-        }
-
-        content['str_status'] = BuildStatus.string(content['status'])
-        content.update(kwargs)
-
-        msg = {}
-        try:
-            for key in self.messages[topic]:
-                msg[key] = self.messages[topic][key].format(**content)
-        # pylint: disable=W0703
-        except Exception as _:
-            self.log.exception("Failed to format '{0}' announcement."
-                               .format(topic))
-            return
-
-        self.send(topic, msg)
+        msg = message_from_worker_job(self.style, msg_type, job, who, ip, pid)
+        self.send_message(msg)
 
 
 class StompListener(StompConnectionListener):
@@ -122,6 +204,8 @@ class MsgBusStomp(MsgBus):
     configured 'messages' attribute in every message bus configuration, no
     default messages here!
     """
+
+    style = 'v1stomp'
 
     def connect(self):
         """
@@ -185,11 +269,22 @@ class MsgBusStomp(MsgBus):
         self.connect()
 
 
-    def _send(self, topic, body, headers):
-        send_headers = copy.deepcopy(headers)
+    def _send_message(self, message):
+        topic = message.topic
+        body = message.body
+        send_headers = {}
         send_headers['topic'] = topic
+
+        destination = '{0}.{1}'.format(self.opts.destination, topic)
+
+        # backward compat (before we mistakenly sent everything to the same
+        # destination), drop once every consumer moved to copr-messaging module
+        # and thus we can expect them to consume fixed messages too.
+        if self.style == 'v1stomp':
+            destination = self.opts.destination
+
         self.conn.send(body=json.dumps(body), headers=send_headers,
-                       destination=self.opts.destination,
+                       destination=destination,
                        content_type='application/json')
 
 
@@ -197,21 +292,6 @@ class MsgBusFedmsg(MsgBus):
     """
     Connect to fedmsg and send messages over it.
     """
-    messages = {
-        'build.start': {
-            'what': "build start: user:{user} copr:{copr}" \
-                    " pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
-        },
-        'chroot.start': {
-            'what': "chroot start: chroot:{chroot} user:{user}" \
-                    " copr:{copr} pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
-        },
-        'build.end': {
-            'what': "build end: user:{user} copr:{copr} build:{build}" \
-                    " pkg:{pkg} version:{version} ip:{ip} pid:{pid} status:{status}",
-        },
-    }
-
     def __init__(self, log=None):
         # Hack to not require opts argument for now.
         opts = type('', (), {})
@@ -221,27 +301,19 @@ class MsgBusFedmsg(MsgBus):
 
         fedmsg.init(name='relay_inbound', cert_prefix='copr', active=True)
 
-    def announce_job(self, topic, job, **kwargs):
-        """
-        Announce everywhere that a build process started now.
-        """
-        content = {
-            'user': job.submitter,
-            'copr': job.project_name,
-            'owner': job.project_owner,
-            'pkg': job.package_name,
-            'build': job.build_id,
-            'chroot': job.chroot,
-            'version': job.package_version,
-            'status': job.status,
-        }
-        content.update(kwargs)
+    def _send_message(self, message):
+        fedmsg.publish(modname='copr', topic=message.topic, msg=message.body)
 
-        if topic in self.messages:
-            for key in self.messages[topic]:
-                content[key] = self.messages[topic][key].format(**content)
 
-        self.send(topic, content)
+class MsgBusFedoraMessaging(MsgBus):
+    """
+    Connect to fedora-messaging AMQP bus and send messages over it.
+    """
+    def __init__(self, opts, log=None):
+        super(MsgBusFedoraMessaging, self).__init__(opts, log)
+        # note this is not thread safe, only one bus of this type!
+        os.environ['FEDORA_MESSAGING_CONF'] = opts.toml_config
 
-    def _send(self, topic, content, headers):
-        fedmsg.publish(modname='copr', topic=topic, msg=content)
+    def _send_message(self, message):
+        from fedora_messaging import api
+        api.publish(message)

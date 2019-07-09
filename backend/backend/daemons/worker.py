@@ -13,7 +13,11 @@ from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_logger, \
     local_file_logger, run_cmd, pkg_name_evr
 
-from ..msgbus import MsgBusStomp, MsgBusFedmsg
+from ..msgbus import (
+        MsgBusStomp,
+        MsgBusFedmsg,
+        MsgBusFedoraMessaging,
+)
 from ..sshcmd import SSHConnectionError
 
 
@@ -127,7 +131,10 @@ class Worker(multiprocessing.Process):
 
     def init_buses(self):
         for bus_config in self.opts.msg_buses:
-            self.msg_buses.append(MsgBusStomp(bus_config, self.log))
+            if bus_config.bus_type == 'stomp':
+                self.msg_buses.append(MsgBusStomp(bus_config, self.log))
+            elif bus_config.bus_type == 'fedora-messaging':
+                self.msg_buses.append(MsgBusFedoraMessaging(bus_config, self.log))
 
         if self.opts.fedmsg_enabled:
             self.msg_buses.append(MsgBusFedmsg(self.log))

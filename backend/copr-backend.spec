@@ -31,6 +31,7 @@ BuildRequires: python3-copr
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
+BuildRequires: python3-fedora-messaging
 BuildRequires: python3-humanize
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
@@ -63,6 +64,7 @@ Requires:   python3-copr-common > 0.4
 Requires:   python3-daemon
 Requires:   python3-dateutil
 Requires:   python3-fedmsg
+Requires:   python3-fedora-messaging
 Requires:   python3-gobject
 Requires:   python3-humanize
 Requires:   python3-munch
