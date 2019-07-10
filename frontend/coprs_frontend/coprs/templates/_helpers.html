@@ -632,3 +632,59 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   });
   </script>
 {% endmacro %}
+
+{% macro status_info(type, tasks) %}
+  <table class="datatable table table-striped table-bordered">
+      <thead>
+        <tr>
+          {% if type == 'pending' %}
+            <th>Pending</th>
+          {% else %}
+            <th>Running</th>
+          {% endif %}
+          <th>Project</th>
+          <th>Build</th>
+          <th>Package Name</th>
+          <th>Package Version</th>
+          <th>Chroot</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            {% if type == 'pending' %}
+              <td data-order="{{ task.build.submitted_on }}">
+                {% if task.state == "starting" %}
+                  <span class="build-starting">starting</span>
+                {% else %}
+                  {{ task.build.submitted_on | time_ago }}
+                {% endif %}
+              </td>
+              <td data-order="{{ task.build.copr }}"><a href="{{ copr_details_href(task.build.copr) }}">
+                  {{ copr_name(task.build.copr) }}
+                </a>
+              </td>
+              <td data-order="{{ task.build_id }}"><a href="{{ build_href(task.build) }}">
+                {{ task.build_id }}
+                </a>
+              </td>
+            {% else %}
+              <td data-order="{{ task.started_on }}">{{ task.started_on | time_ago }}</td>
+              <td data-order="{{ task.build.copr }}"><a href="{{ copr_details_href(task.build.copr) }}">
+                  {{ copr_name(task.build.copr) }}
+                </a>
+              </td>
+              <td data-order="{{ task.build_id }}"><a href="{{ build_href(task.build) }}">
+                  {{ task.build_id }}
+                </a>
+              </td>
+            {% endif %}
+            
+            <td data-order="{{ task.build.package.name }}">{{ task.build.package.name }} </td>
+            <td data-order="{{ task.build.pkg_version }}">{{ task.build.pkg_version }} </td>
+            <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endmacro %}

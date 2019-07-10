@@ -1,5 +1,5 @@
 {% extends "status.html" %}
-{% from "_helpers.html" import build_href, copr_name, copr_details_href, initialize_datatables %}
+{% from "_helpers.html" import build_href, copr_name, copr_details_href, initialize_datatables, status_info %}
 {% block pending_selected %}active{% endblock %}
 {%block status_breadcrumb %}
 <li class="active">
@@ -20,41 +20,7 @@
 	(+{{ bg_tasks_cnt }} others with lower priority)
 </h2>
 
-<table class="datatable table table-striped table-bordered">
-  <thead>
-    <tr>
-      <th>Pending</th>
-      <th>Project</th>
-      <th>Build</th>
-      <th>Package Name</th>
-      <th>Package Version</th>
-      <th>Chroot</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for task in tasks %}
-      <tr>
-        <td data-order="{{ task.build.submitted_on }}">
-        {% if task.state == "starting" %}
-          <span class="build-starting">starting</span>
-        {% else %}
-          {{ task.build.submitted_on | time_ago }}
-        {% endif %}
-        </td>
-        <td data-order="{{ task.build.copr }}"><a href="{{ copr_details_href(task.build.copr) }}">
-          {{ copr_name(task.build.copr) }}
-        </a>
-        </td>
-        <td data-order="{{ task.build_id }}"><a href="{{ build_href(task.build) }}">
-          {{ task.build_id }}
-        </a></td>
-        <td data-order="{{ task.build.package.name }}">{{ task.build.package.name }} </td>
-        <td data-order="{{ task.build.pkg_version }}">{{ task.build.pkg_version }} </td>
-        <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{{ status_info(type="pending", tasks=tasks) }}
 
 {{ initialize_datatables(order="desc") }}
 {% endblock %}
