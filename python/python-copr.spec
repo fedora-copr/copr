@@ -113,7 +113,6 @@ BuildRequires: python3-docutils
 BuildRequires: python3-mock
 BuildRequires: python3-munch
 BuildRequires: python3-marshmallow
-BuildRequires: python3-pylint
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests

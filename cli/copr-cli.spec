@@ -40,7 +40,6 @@ BuildRequires: python3-copr >= 1.89
 BuildRequires: python3-devel
 BuildRequires: python3-jinja2
 BuildRequires: python3-humanize
-BuildRequires: python3-pylint
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
