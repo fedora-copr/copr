@@ -70,6 +70,10 @@ Backup the old instance by renaming it::
     # e.g.
     openstack server set --name copr-dist-git-dev_backup "85260b5b-7f61-4398-8d05-xxxxxxxxxxxx"
 
+
+.. note:: You might need to backup also letsencrypt certificates.
+          See `Letsencrypt renewal limits`_.
+
 Finally, shutdown the instance to avoid storage inconsistency and other possible problems.
 Open the `OpenStack instances dashboard`_ and switch the current project to ``persistent``
 and find the instance, that you want to shutdown. Make sure, it is the right one! Don't
@@ -115,6 +119,55 @@ of an instance in OpenStack hangs and waits for entropy. It seems that it can't 
 properly, so we need to workaround by going to `OpenStack instances dashboard`_, opening
 the instance details, switching to the ``Console`` tab and typing random characters in it.
 It resumes the booting process.
+
+
+Letsencrypt renewal limits
+..........................
+
+Currently we renew our letsencrypt certificates on daily basis through ``certbot-renew.timer``
+service. However, letsencrypt website provides at maximum five certificates a week (think of
+a week as a 7 day floating window, instead of a calendar week) per a domain. As a consequence
+it may happen, that our new instance won't be able to obtain a certificate for two days,
+with no way to bypass it. Don't let this happen on production instances!
+
+There are two possible options how to deal with this situation at the moment. Either disable
+``certbot-renew.timer`` at least two days ahead of upgrading an instance or backup its
+current certificates and copy them to the upgraded instance::
+
+    [root@copr-be-dev ~][STG]# tar zcvf /tmp/copr-be-dev-letsencrypt.tar.gz /etc/letsencrypt
+    $ scp root@copr-be-dev.cloud.fedoraproject.org:/tmp/copr-be-dev-letsencrypt.tar.gz /tmp/
+
+Once a new instance is provisioned and unable to obtain certificates from the letsencrypt
+site, copy them from backup::
+
+    $ scp /tmp/copr-be-dev-letsencrypt.tar.gz root@copr-be-dev.cloud.fedoraproject.org:/tmp
+    [root@copr-be-dev ~][STG]# tar zxvf /tmp/copr-be-dev-letsencrypt.tar.gz -C /
+
+Remove the backup from your computer, it contains secret files::
+
+    $ rm /tmp/copr-be-dev-letsencrypt.tar.gz
+
+
+Private IP addresses
+....................
+
+The most of the communication within Copr stack happens on public interfaces via hostnames
+with one exception. Communication between ``backend`` and ``keygen`` is done on private
+network behind firewall through IP addresses that change when spawning a fresh instance.
+
+After updating a ``copr-keygen`` (or dev) instance, change its IP address in
+``inventory/group_vars/copr_dev``::
+
+    keygen_host: "172.XX.XX.XX"
+
+Whereas after updating a ``copr-backend`` (or dev) instance change the configuration in
+``inventory/group_vars/copr_keygen`` (or dev) and update the iptable rules::
+
+    custom_rules: [ ... ]
+
+Please note there are two addresses that needs to be updated, both are backend's.
+
+
 
 
 
