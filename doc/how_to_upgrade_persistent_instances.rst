@@ -74,11 +74,10 @@ Backup the old instance by renaming it::
 .. note:: You might need to backup also letsencrypt certificates.
           See `Letsencrypt renewal limits`_.
 
-Finally, shutdown the instance to avoid storage inconsistency and other possible problems.
-Open the `OpenStack instances dashboard`_ and switch the current project to ``persistent``
-and find the instance, that you want to shutdown. Make sure, it is the right one! Don't
-mistake e.g. production instance with dev. Then look at the ``Actions`` column and click
-``More`` button. In the dropdown menu, there is a button ``Shut Off Instance``, use it.
+Finally, shutdown the instance to avoid storage inconsistency and other possible problems::
+
+    $ ssh root@<old_name>.fedorainfracloud.org
+    [root@copr-dist-git-dev ~][STG]# shutdown -h now
 
 
 Provision new instance from scratch
