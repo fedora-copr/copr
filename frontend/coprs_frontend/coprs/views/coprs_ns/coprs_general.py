@@ -153,10 +153,6 @@ def copr_add(username=None, group_name=None):
 @coprs_ns.route("/g/<group_name>/new/", methods=["POST"])
 @login_required
 def copr_new(username=None, group_name=None):
-    return process_copr_new(group_name)
-
-
-def process_copr_new(group_name=None):
     """
     Receive information from the user (and group) on how to create its new copr
     and create it accordingly.
@@ -189,16 +185,14 @@ def process_copr_new(group_name=None):
                 follow_fedora_branching=form.follow_fedora_branching.data,
                 delete_after_days=form.delete_after_days.data,
             )
+
+            db.session.commit()
+            after_the_project_creation(copr, form)
+            return flask.redirect(url_for_copr_details(copr))
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
-            return flask.render_template(redirect, form=form)
 
-        db.session.commit()
-        after_the_project_creation(copr, form)
-
-        return flask.redirect(url_for_copr_details(copr))
-    else:
-        return flask.render_template(redirect, form=form, group=group)
+    return flask.render_template(redirect, form=form, group=group)
 
 
 def after_the_project_creation(copr, form):
