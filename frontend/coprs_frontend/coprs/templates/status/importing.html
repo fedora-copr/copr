@@ -1,5 +1,5 @@
 {% extends "status.html" %}
-{% from "_helpers.html" import build_href, copr_name, copr_details_href, initialize_datatables %}
+{% from "_helpers.html" import build_href, copr_name, copr_details_href, initialize_datatables, status_info %}
 {% block importing_selected %}active{% endblock %}
 {%block status_breadcrumb %}
 <li class="active">
@@ -20,35 +20,7 @@
     (+ {{ bg_tasks_cnt }} others with lower priority)
 </h2>
 
-<table class="datatable table table-striped table-bordered">
-  <thead>
-      <tr>
-        <th>Waiting</th>
-        <th>Project</th>
-        <th>Build</th>
-        <th>Package Name</th>
-        <th>Package Version</th>
-        <th>Chroot</th>
-      </tr>
-  </thead>
-  <tbody>
-    {% for task in tasks %}
-      <tr>
-        <td data-order="{{ task.submitted_on }}">{{ task.submitted_on | time_ago }}</td>
-        <td data-order="{{ task.copr }}"><a href="{{ copr_details_href(task.copr) }}">
-          {{ copr_name(task.copr) }}
-        </a>
-        </td>
-        <td data-order="{{ task.id }}"><a href="{{ build_href(task) }}">
-          {{ task.id }}
-        </a></td>
-        <td data-order="{{ task.package.name }}">{{ task.build.package.name }} </td>
-        <td data-order="{{ task.pkg_version }}">{{ task.build.pkg_version }} </td>
-        <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{{ status_info(type="importing", tasks=tasks) }}
 
 {{ initialize_datatables(order="desc") }}
 {% endblock %}
