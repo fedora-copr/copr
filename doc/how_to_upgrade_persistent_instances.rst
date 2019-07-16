@@ -101,6 +101,15 @@ https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-ma
           instance to boot. See `Initial boot hangs waiting for entropy`_.
 
 
+Get it working
+--------------
+
+The playbook from previous section will most likely **not** succeed. At this point
+you need to debug and fix the issues from running it. If required, adjust the playbook
+and re-run it again and again. Most likely you will also need to attach a volume to it
+in the `OpenStack instances dashboard`_.
+
+
 Terminate the old instance
 --------------------------
 
