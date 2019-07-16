@@ -51,7 +51,7 @@ That is all, that needs to be changed in the ansible repository. Commit and push
 Backup the old instance
 -----------------------
 
-This part is done via ``openstack`` client on your computer. First, download a RC
+This part is done via ``openstack`` client on your computer. First, download an RC
 file for the ``persistent`` tenant. Open `Fedora Infra OpenStack`_ dashboard, switch
 to the ``Access & Security`` section, then ``API Access`` and click on
 ``Download OpenStack RC File``.
@@ -80,7 +80,7 @@ Backup the old instance by renaming it::
           See `Terminate resalloc resources`_.
 
 
-Finally, shutdown the instance to avoid storage inconsistency and other possible problems::
+Finally, shut down the instance to avoid storage inconsistency and other possible problems::
 
     $ ssh root@<old_name>.fedorainfracloud.org
     [root@copr-dist-git-dev ~][STG]# shutdown -h now
@@ -97,14 +97,14 @@ and for production, see
 
 https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-machines
 
-.. note:: Please note that the playbook may stuck longer than expected while waiting for a new
+.. note:: Please note that the playbook may be stuck longer than expected while waiting for a new
           instance to boot. See `Initial boot hangs waiting for entropy`_.
 
 
 Get it working
 --------------
 
-The playbook from previous section will most likely **not** succeed. At this point
+The playbook from the previous section will most likely **not** succeed. At this point,
 you need to debug and fix the issues from running it. If required, adjust the playbook
 and re-run it again and again. Most likely you will also need to attach a volume to it
 in the `OpenStack instances dashboard`_.
@@ -130,7 +130,7 @@ Initial boot hangs waiting for entropy
 
 Because of a known infrastructure issue `Fedora infrastructure issue #7966`_ initial boot
 of an instance in OpenStack hangs and waits for entropy. It seems that it can't be fixed
-properly, so we need to workaround by going to `OpenStack instances dashboard`_, opening
+properly, so we need to work around by going to `OpenStack instances dashboard`_, opening
 the instance details, switching to the ``Console`` tab and typing random characters in it.
 It resumes the booting process.
 
@@ -138,13 +138,13 @@ It resumes the booting process.
 Letsencrypt renewal limits
 ..........................
 
-Currently we renew our letsencrypt certificates on daily basis through ``certbot-renew.timer``
-service. However, letsencrypt website provides at maximum five certificates a week (think of
-a week as a 7 day floating window, instead of a calendar week) per a domain. As a consequence
+Currently, we renew our Let's Encrypt certificates on a daily basis through ``certbot-renew.timer``
+service. However, Let's Encrypt website provides at maximum five certificates a week (think of
+a week as a 7-day floating window, instead of a calendar week) per a domain. As a consequence,
 it may happen, that our new instance won't be able to obtain a certificate for two days,
 with no way to bypass it. Don't let this happen on production instances!
 
-There are two possible options how to deal with this situation at the moment. Either disable
+There are two possible options for dealing with this situation at the moment. Either disable
 ``certbot-renew.timer`` at least two days ahead of upgrading an instance or backup its
 current certificates and copy them to the upgraded instance::
 
@@ -165,9 +165,9 @@ Remove the backup from your computer, it contains secret files::
 Private IP addresses
 ....................
 
-The most of the communication within Copr stack happens on public interfaces via hostnames
-with one exception. Communication between ``backend`` and ``keygen`` is done on private
-network behind firewall through IP addresses that change when spawning a fresh instance.
+Most of the communication within Copr stack happens on public interfaces via hostnames
+with one exception. Communication between ``backend`` and ``keygen`` is done on a private
+network behind a firewall through IP addresses that change when spawning a fresh instance.
 
 After updating a ``copr-keygen`` (or dev) instance, change its IP address in
 ``inventory/group_vars/copr_dev``::
@@ -175,11 +175,11 @@ After updating a ``copr-keygen`` (or dev) instance, change its IP address in
     keygen_host: "172.XX.XX.XX"
 
 Whereas after updating a ``copr-backend`` (or dev) instance change the configuration in
-``inventory/group_vars/copr_keygen`` (or dev) and update the iptable rules::
+``inventory/group_vars/copr_keygen`` (or dev) and update the iptables rules::
 
     custom_rules: [ ... ]
 
-Please note there are two addresses that needs to be updated, both are backend's.
+Please note two addresses needs to be updated, both are backend's.
 
 
 Terminate resalloc resources
