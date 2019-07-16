@@ -76,6 +76,10 @@ Backup the old instance by renaming it::
 .. note:: You might need to backup also letsencrypt certificates.
           See `Letsencrypt renewal limits`_.
 
+.. note:: You should terminate existing resalloc resources.
+          See `Terminate resalloc resources`_.
+
+
 Finally, shutdown the instance to avoid storage inconsistency and other possible problems::
 
     $ ssh root@<old_name>.fedorainfracloud.org
@@ -167,6 +171,22 @@ Whereas after updating a ``copr-backend`` (or dev) instance change the configura
     custom_rules: [ ... ]
 
 Please note there are two addresses that needs to be updated, both are backend's.
+
+
+Terminate resalloc resources
+............................
+
+It is easier to close all resalloc tickets otherwise there will be dangling VMs
+preventing the backend from starting new ones.
+
+Edit the ``/etc/resallocserver/pools.yaml`` file and in all section, set::
+
+    max: 0
+
+Then delete all current resources::
+
+    su - resalloc
+    resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
 
 
 
