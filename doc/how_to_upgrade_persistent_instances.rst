@@ -109,6 +109,9 @@ you need to debug and fix the issues from running it. If required, adjust the pl
 and re-run it again and again. Most likely you will also need to attach a volume to it
 in the `OpenStack instances dashboard`_.
 
+.. note:: Copr backend requires an outdated version of python3-novaclient.
+          See `Downgrade python novaclient`_.
+
 
 Terminate the old instance
 --------------------------
@@ -198,6 +201,20 @@ Then delete all current resources::
     resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
 
 
+Downgrade python novaclient
+...........................
+
+Backend is dependent on ``python3-novaclient`` in prehistoric version ``3.3.1``. This
+version is no longer supported and the spec file needed to be customized to build and
+install only python3 package. Also, the epoch has been bumped so it doesn't get replaced
+with a newer version. Please install this package from Copr project (even on production
+instance)::
+
+    dnf copr enable @copr/novaclient
+    dnf install python3-novaclient-2:3.3.1
+
+.. note:: Please do not automatize this step in the playbook, so it forces us to deal
+          with the situation properly.
 
 
 
