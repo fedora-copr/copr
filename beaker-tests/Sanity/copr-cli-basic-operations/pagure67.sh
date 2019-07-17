@@ -32,7 +32,7 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
-srouce "$HERE/helpers"
+source "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
