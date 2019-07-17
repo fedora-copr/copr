@@ -17,6 +17,8 @@ BuildRequires:  tk-devel
 BuildRequires:  lua-devel
 BuildRequires:  python2-devel
 
+BuildRequires:  gcc-c++
+
 
 %description
 Vera++ is a programmable tool for verification, analysis and transformation of
