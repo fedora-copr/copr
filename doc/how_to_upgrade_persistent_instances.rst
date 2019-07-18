@@ -73,11 +73,11 @@ Backup the old instance by renaming it::
     openstack server set --name copr-dist-git-dev_backup "85260b5b-7f61-4398-8d05-xxxxxxxxxxxx"
 
 
-.. note:: You might need to backup also letsencrypt certificates.
-          See `Letsencrypt renewal limits`_.
+.. warning:: You might need to backup also letsencrypt certificates.
+             See `Letsencrypt renewal limits`_.
 
-.. note:: You should terminate existing resalloc resources.
-          See `Terminate resalloc resources`_.
+.. warning:: You should terminate existing resalloc resources.
+             See `Terminate resalloc resources`_.
 
 
 Finally, shut down the instance to avoid storage inconsistency and other possible problems::
