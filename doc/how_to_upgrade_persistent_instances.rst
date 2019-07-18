@@ -60,12 +60,6 @@ Load the openstack settings::
 
     source ~/Downloads/persistent-openrc.sh
 
-Detach volume from the old instance::
-
-    openstack server remove volume "<instance_id>" "<volume_id>"
-    # e.g.
-    openstack server remove volume "52d97d72-5915-45c0-b223-xxxxxxxxxxxx" "9e2b4c55-9ec3-4508-af46-xxxxxxxxxxxx"
-
 Backup the old instance by renaming it::
 
     openstack server set --name <old_name>_backup "<id>"
@@ -79,11 +73,16 @@ Backup the old instance by renaming it::
 .. warning:: backend - You should terminate existing resalloc resources.
              See `Terminate resalloc resources`_.
 
-
 Finally, shut down the instance to avoid storage inconsistency and other possible problems::
 
     $ ssh root@<old_name>.fedorainfracloud.org
     [root@copr-dist-git-dev ~][STG]# shutdown -h now
+
+Once the instance is halted, detach volume from the old instance::
+
+    openstack server remove volume "<instance_id>" "<volume_id>"
+    # e.g.
+    openstack server remove volume "52d97d72-5915-45c0-b223-xxxxxxxxxxxx" "9e2b4c55-9ec3-4508-af46-xxxxxxxxxxxx"
 
 
 Provision new instance from scratch
