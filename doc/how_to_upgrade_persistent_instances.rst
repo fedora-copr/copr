@@ -183,6 +183,9 @@ Whereas after updating a ``copr-backend`` (or dev) instance change the configura
 
 Please note two addresses needs to be updated, both are backend's.
 
+Run provision playbooks for ``copr-backend`` and ``copr-keygen`` to propagate the changes
+to the respective instances.
+
 
 Terminate resalloc resources
 ............................
