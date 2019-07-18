@@ -76,7 +76,7 @@ Backup the old instance by renaming it::
 .. warning:: You might need to backup also letsencrypt certificates.
              See `Letsencrypt renewal limits`_.
 
-.. warning:: You should terminate existing resalloc resources.
+.. warning:: backend - You should terminate existing resalloc resources.
              See `Terminate resalloc resources`_.
 
 
@@ -109,7 +109,7 @@ you need to debug and fix the issues from running it. If required, adjust the pl
 and re-run it again and again. Most likely you will also need to attach a volume to it
 in the `OpenStack instances dashboard`_.
 
-.. note:: Copr backend requires an outdated version of python3-novaclient.
+.. note:: backend - Copr backend requires an outdated version of python3-novaclient.
           See `Downgrade python novaclient`_.
 
 
