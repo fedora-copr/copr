@@ -127,6 +127,15 @@ mistake e.g. production instance with dev. Then look at the ``Actions`` column a
 ``More`` button. In the dropdown menu, there is a button ``Terminate instance``, use it.
 
 
+Final steps
+-----------
+
+Don't forget to announce on `fedora devel`_ and `copr devel`_ mailing lists and also on
+``#fedora-buildsys`` that everything should be working again.
+
+Close the infrastructure ticket.
+
+
 Troubleshooting
 ---------------
 
@@ -246,3 +255,5 @@ And rebuild indexes::
 .. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
 .. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
 .. _`Fedora infrastructure issue #7966`: https://pagure.io/fedora-infrastructure/issue/7966
+.. _`fedora devel`: https://lists.fedorahosted.org/archives/list/devel@lists.fedoraproject.org/
+.. _`copr devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
