@@ -108,6 +108,9 @@ you need to debug and fix the issues from running it. If required, adjust the pl
 and re-run it again and again. Most likely you will also need to attach a volume to it
 in the `OpenStack instances dashboard`_.
 
+.. note:: frontend - It will most likely be necessary to manualy upgrade the database.
+          See `Upgrade the database`_.
+
 .. note:: backend - Copr backend requires an outdated version of python3-novaclient.
           See `Downgrade python novaclient`_.
 
@@ -217,6 +220,25 @@ instance)::
 
 .. note:: Please do not automatize this step in the playbook, so it forces us to deal
           with the situation properly.
+
+
+Upgrade the database
+....................
+
+When upgrading to a distribution that provides a new major version of PostgreSQL server,
+there is a manual intervention required.
+
+Upgrade the database::
+
+    [root@copr-fe-dev ~][STG]# dnf install postgresql-upgrade
+    [root@copr-fe-dev ~][STG]# postgresql-setup --upgrade
+
+
+And rebuild indexes::
+
+    [root@copr-fe-dev ~][STG]# su postgres
+    bash-5.0$ cd
+    bash-5.0$ reindexdb --all
 
 
 
