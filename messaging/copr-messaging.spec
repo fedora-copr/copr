@@ -33,6 +33,7 @@ BuildRequires: python3-copr-common
 BuildRequires: python3-devel
 BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pytest
+BuildRequires: python3-sphinx
 
 %description %_description
 
@@ -40,6 +41,7 @@ BuildRequires: python3-pytest
 %package -n python3-%name
 Summary: %summary
 Provides: %name = %version
+%{?python_provide:%python_provide python3-%{name}}
 
 Requires: python3-copr-common
 Requires: python3-fedora-messaging
@@ -53,6 +55,8 @@ Requires: python3-fedora-messaging
 
 %build
 %py3_build
+PYTHONPATH=${PWD} sphinx-build-3 docs html
+rm -rf html/.{doctrees,buildinfo}
 
 
 %install
@@ -64,6 +68,8 @@ Requires: python3-fedora-messaging
 
 
 %files -n python3-%name
+%license LICENSE
+%doc README.md html
 %python3_sitelib/copr_messaging
 %python3_sitelib/copr_messaging*egg-info
 
