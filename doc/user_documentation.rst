@@ -327,6 +327,8 @@ There are several tutorials:
 
 .. _`Can I build for different versions of Fedora?`:
 
+.. rubric:: Can I build for different versions of Fedora? :ref:`¶ <Can I build for different versions of Fedora?>`
+
 Yes. Just hit the "Edit" tab in your project and select several chroots, e.g. "fedora-19-x86_64" and "fedora-18-x86_64". After doing so, when you submit the src.rpm, your package will be built for both of those selected versions of Fedora. 
 
 You can build for EPEL as well. 
