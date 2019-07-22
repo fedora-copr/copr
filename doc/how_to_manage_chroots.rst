@@ -81,6 +81,7 @@ After running such command, no data are going to be removed. All repositories fo
 disabled and users can't build new packages in it anymore.
 
 When it is done, `send an information email to a mailing list <#mailing-lists>`_.
+See the :ref:`the disable chroots template <disable_chroots_template>`.
 
 
 Mailing lists

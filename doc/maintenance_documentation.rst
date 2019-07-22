@@ -17,3 +17,4 @@ This section contains information about maintenance topics. You may also be inte
    sanity_tests
    beaker_tests
    seeddb
+   email_templates
