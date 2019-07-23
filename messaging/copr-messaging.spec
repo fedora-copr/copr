@@ -48,6 +48,13 @@ Requires: python3-fedora-messaging
 
 %description -n python3-%name %_description
 
+%package -n python3-%name-doc
+Summary: Code documentation for copr messaging
+
+%description -n python3-%name-doc %_description
+
+This package contains documentation for copr-messaging.
+
 
 %prep
 %setup -q
@@ -69,9 +76,13 @@ rm -rf html/.{doctrees,buildinfo}
 
 %files -n python3-%name
 %license LICENSE
-%doc README.md html
+%doc README.md
 %python3_sitelib/copr_messaging
 %python3_sitelib/copr_messaging*egg-info
+
+%files -n python3-%name-doc
+%license LICENSE
+%doc html
 
 
 %changelog
