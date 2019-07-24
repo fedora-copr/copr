@@ -14,8 +14,6 @@ for package in $(get_all_packages); do
     echo "##############################"
     echo "Building $(basename $package):"
     echo "##############################"
-    pushd $package >/dev/null
-    rpkg build $PROJECT
-    popd >/dev/null
+    copr build "$package" "$PROJECT"
     echo
 done

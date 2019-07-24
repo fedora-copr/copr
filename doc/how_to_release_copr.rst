@@ -16,13 +16,19 @@ Run::
 
 and walk the directories of packages listed. In each directory, call::
 
-    rpkg tag
-    rpkg push
+    tito tag
+
+push them::
+
+    git push --follow-tags origin
+
+and upload tarballs to _`Copr release directory`.
+
 
 Build packages
 --------------
 
-Build all packages::
+Build all packages in copr, in ``@copr/copr`` project::
 
     releng/build-packages @copr/copr
 
@@ -82,14 +88,14 @@ Release packages to PyPI
 Make sure you have `~/.pypirc` correctly set up and run::
 
     dnf install twine
-    version=<current_pkg_version> python3 setup.py sdist
+    python3 setup.py sdist
     twine upload dist/<NAME-VERSION>.tar.gz
 
-Substitute `<current_pkg_version>` with the current package version (without release).
+If you cannot run that, tell somebody with access to run that (msuchy, praiskup,
+jkadlcik).
 
-If you cannot run that, tell somebody with access to run that (msuchy has access).
-
-This needs to be run for `copr-common`, `python` and `copr-cli`.
+This needs to be run for `copr-common`, `python`, `copr-cli` and
+`copr-messaging`.
 
 .. _build_packages_for_production:
 
@@ -98,51 +104,26 @@ Build packages for production
 
 Make sure that ``releng/releasers.ini`` has up to date list of branches.
 
-Make sure you are co-maintainer of those packages in Fedora.
+Make sure you are co-maintainer of those packages in Fedora::
 
-Run::
+    copr-backend
+    copr-cli
+    copr-dist-git
+    copr-frontend
+    copr-keygen
+    copr-messaging
+    copr-mocks
+    copr-rpmbuild
+    copr-selinux
+    python-copr
+    python-copr-common
 
-    rm -r /tmp/rpkg
+For each package do::
 
-    git checkout <latest-python-tag>
-    rpkg --path python srpm --outdir /tmp/rpkg
-    releng/fedora-release git-all /tmp/rpkg/python-copr*.src.rpm
-
-    git checkout <latest-cli-tag>
-    rpkg --path cli srpm --outdir /tmp/rpkg
-    releng/fedora-release git-all /tmp/rpkg/copr-cli*.src.rpm
-
-    git checkout <latest-frontend-tag>
-    rpkg --path frontend srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-frontend*.src.rpm
-
-    git checkout <latest-backend-tag>
-    rpkg --path backend srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-backend*.src.rpm
-
-    git checkout <latest-distgit-tag>
-    rpkg --path dist-git srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-dist-git*.src.rpm
-
-    git checkout <latest-keygen-tag>
-    rpkg --path keygen srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-keygen*.src.rpm
-
-    git checkout <latest-selinux-tag>
-    rpkg --path selinux srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-selinux*.src.rpm
-
-    git checkout <latest-prunerepo-tag>
-    rpkg --path prunerepo srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/prunerepo*.src.rpm
-
-    git checkout <latest-common-tag>
-    rpkg --path common srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/python-copr-common*.src.rpm
-
-    git checkout <latest-srpm-tag>
-    rpkg --path rpmbuild srpm --outdir /tmp/rpkg
-    releng/fedora-release git /tmp/rpkg/copr-rpmbuild*.src.rpm
+    cd <package subdir>
+    tito build --srpm
+    tito release fedora-git-servers # for server packages, or
+    tito release fedora-git-client # for server packages (includes epel)
 
 And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
 Not even every fedora infra member can to this, ping clime or ask on ``#fedora-admin``.
@@ -160,11 +141,13 @@ Generate `Copr project documentation <https://docs.pagure.org/copr.copr/>`_
 
 Generate package specific documentation by going to:
 
-* https://readthedocs.org/projects/copr-rest-api/
-
 * https://readthedocs.org/projects/copr-backend/
 
 * https://readthedocs.org/projects/copr-keygen/
+
+* https://readthedocs.org/projects/copr-messaging/
+
+* https://readthedocs.org/projects/copr-rest-api/
 
 * https://readthedocs.org/projects/python-copr/
 
@@ -247,3 +230,5 @@ to CLOSED/CURRENTRELEASE with comment like 'New Copr has been released.'
 
 
 Fix this document to make it easy for the release nanny of the next release to use it.
+
+.. _`Copr release directory`: https://releases.pagure.org/copr/copr
