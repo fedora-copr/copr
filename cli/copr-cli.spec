@@ -6,19 +6,14 @@
 %global with_python2 1
 %endif
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version lead=1 }}}
+Name:       copr-cli
+Version:    1.79
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/cli
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    %pypi_source
 
 BuildArch:  noarch
 
@@ -115,7 +110,90 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-cli-1.68-1 }}}
+* Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.79-1
+- add CLI for permissions
+- new --max-builds option
+- rename repos 'url' attribute to 'baseurl'
+- generate mock rootdir on client side
+- pass a repo priority to dnf config
+- Revert "[cli] fix copr mock-config"
+- support temporary projects
+- print helpful hints for config parsing errors
+- fix tests broken by PR#547
+- fix copr-cli downloading parent directory for cancelled builds
+
+* Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 1.78-1
+- Don't catch exceptions inside action
+- Fix storing the custom script parameters
+- Properly rewrite download-build to use APIv3
+- Do not require to set PyPI packagename when it is already set
+- When serializing munch omit the proxy object
+- Fix the APIv1 call in the aciton_new_webhook_secret function
+
+* Tue Jan 15 2019 Miroslav Suchý <msuchy@redhat.com> 1.77-1
+- fix side_effect function arguments
+- fix assert_called_with params
+
+* Thu Jan 10 2019 Miroslav Suchý <msuchy@redhat.com> 1.76-1
+- rewrite description of copr dirs feature. Use "tag" instead of "suffix".
+- explain copr_dir feature in man pages for build subcommand
+- improve naming of copr_dir in copr-cli interface to copr_repo
+- add support for copr dir to copr-cli
+- we also buildrequire python-copr with APIv3 support
+- add missing dependency on python-simplejson
+- depend on munch because of tests
+- have numbered string fields because of epel6
+- fix copr mock-config
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 1.75-1
+- 1639590 - print name of package when it is deleted
+- set variables for each build
+- print friendlier error when trying to upload a nonexisting file
+- put backend the deprecation warnings
+- better errors with --config
+- print just 'repos' to avoid yum/dnf confusion
+- depend on python-copr-1.89
+- print additional repos and blank line between projects
+- rewrite unit tests to work with APIv3
+- update resource properties
+- fix the order of arguments
+- json_dumps is not supposed to print anything
+- return proper status code
+- cast disable_createrepo to bool
+- write to stderr instead of printing
+- if ownername is not specified, use the one from config
+- remove deprecated tito and mock actions
+- rewrite copr-cli to use APIv3
+- use git_dir_archive instead of git_dir_pack
+- pg#251 Make it possible for user to select pyp2rpm template
+
+* Thu Aug 30 2018 clime <clime@redhat.com> 1.74-1
+- python-progress is not present in EL6
+
+* Fri Aug 24 2018 clime <clime@redhat.com> 1.73-1
+- pg#370 copr-cli new-webhook-secret fails
+- fix input under python2
+
+* Thu Aug 23 2018 clime <clime@redhat.com> 1.72-1
+- generate new webhook secret functionality in copr-cli
+- packaging: Python 2/3, RHEL/Fedora fixes
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 1.71-1
+- %%{python_sitelib} → %%{python2_sitelib}
+
+* Fri May 18 2018 clime <clime@redhat.com> 1.70-1
+- deprecate mock-config command
+
+* Mon Apr 30 2018 Dominik Turecek <dturecek@redhat.com> 1.69-1
+fix non-passing unittests under f28+
+
+* Thu Apr 26 2018 Dominik Turecek <dturecek@redhat.com> 1.68-1
+- simplify bar.finish logic
+- rpkg deployment into COPR - containers + releng continuation
+- #280 cli upload to nonexisting project makes terminal cursor disappear
+- #220 copr-cli doesn't display build progress in non-interactive terminal
+- add download-build --dest description to man page
+- add `copr delete-build` build into man pages
 
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.67-1
 - remove Group tag
@@ -782,5 +860,3 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 * Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
 - new package built with tito
-
-
