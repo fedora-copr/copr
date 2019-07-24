@@ -40,19 +40,14 @@
    end
 }
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version lead=1 }}}
+Name:       copr-frontend
+Version:    1.150
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/frontend
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildArch:  noarch
 
@@ -361,7 +356,267 @@ usermod -L copr-fe
 
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-frontend-1.130-1 }}}
+* Tue May 21 2019 Pavel Raiskup <praiskup@redhat.com> 1.150-1
+- fix the script for prolonged outdated chroots
+- add RHEL 8 (rhelbeta) chroot logo
+- correctly describe "Create repositories manually"
+- remove unused module_md_name and module_md_zlib columns
+- sort package (build)requires
+- use humanize in time_ago(); fix #724
+- automatize outdated chroots notifications and deletion
+- notify outdated chroots with 80 days interval
+- don't unselect inactive chroots in project edit; fix #712
+- print soon-to-remove outdated chroots in red; see #593
+- cron: call 'clean_expired_projects' correctly
+- traceback when forked_from project deleted
+- disable "expire now" button when chroot is already expired
+- NameError: name 'unicode' is not defined
+- require wtforms version with render_kw
+
+* Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.149-1
+- fix finished status for SRPM builds, hopefully last time
+- log handled 500 errors
+- fix a failing test
+- expect the correct status code for project deletion failure
+- webhook triggers expect int:copr_id
+- fix shebang in daily cron job
+- remove a redundant condition for outdated chroots
+- allow user to remove outdated chroot; fix #624
+- sort outdated chroots by name; fix #593
+- pagure-events: send keep-alive tcp packets
+- replace cron configuration automatically
+- respect module buildorder by setting dependencies among batches
+- add mechanism to block build batch until other one finishes
+- build is not finished when not even SRPM is finished
+- fix WTForms deprecation warning
+- fix Flask invalid cookie warning
+- fix YAMLLoadWarning deprecation warning
+- fix FlaskWTForms deprecation warning
+- pagure-events: each commit in push/PR should trigger build
+- webhooks: each commit in push should trigger build
+- make clean_old_builds query join() explicit
+- link to correct API documentation
+- fixup test fixtures for Rawhide
+- add CLI for permissions
+- new --max-builds option
+- move "Other options" to separate panel
+- support temporary projects
+- print friendly error on http when https is enforced
+- Merge #647 `[frontend] make 'alembic revision --autogenerate' pylint-clean`
+- *_private migration is irreversible
+- don't ignore constraints when moving data to *_private
+- simplify *_private tables
+- de-duplicate *_private ids
+- add CoprPrivate to join
+- fix migration sequence by putting private table migrations on top
+- remove private columns from user and copr
+- private tables for user and copr
+- make 'alembic revision --autogenerate' pylint-clean
+- pagure-events: accept [copr-build] key in PR message
+- pagure-events: allow duplicate builds
+- better parse Pagure's PR messages
+- fix Pagure-triggered Package builds
+- linter for alembic revisions
+- repaired import in builds_logic Closes #644
+- increase the build timeout limit because of chromium
+- reset config changes after each test method
+- UI: say "SRPM log" instead of "Import log"
+- disallow root to execute ./manage.py
+- don't display url to dist-git logs for non-admin users
+- fix batch build delete in group projects; see #575
+- fix exception when multiple sources are generating graph data
+- support ?priority=x for non copr:// repo
+- Redis.setex swapped arguments in v3+
+- go to builds page after submitting a custom method build
+- fix module builds table
+- test real-world module buildorder, see #599
+- enforce https for outdated chroots emails
+- pass queue_sizes also to the graph page
+- display badges in task queue tabs, see #552
+-[python] avoid 'collections.abc' warnings
+
+* Fri Mar 15 2019 Jakub Kadlčík <frostyx@email.cz> 1.148-1
+- [frontend] add missing spaces
+- [frontend] set reply-to header to our emails
+- [frontend] sort chroots in email by project name
+- [frontend] don't get chroots from deleted projects
+- [frontend][python] handle timeout errors
+- [frontend] return the correct status for SRPM fail (fix #513)
+- Added rss feed from all copr's projects to /rss/
+- [frontend] show packages with no builds as 'not built yet'
+- [cli][frontend] fix copr-cli downloading parent directory for cancelled builds
+- [frontend][backend] make copr_prune_results skip already pruned outdated
+chroots
+
+* Mon Mar 11 2019 Jakub Kadlčík <frostyx@email.cz> 1.147-1
+- [frontend] don't forget to commit in 'manage.py alter_chroot'
+- [frontend] new 'db_session_scope' idiom
+- [frontend] remove leftover old_status after PR#562
+- [frontend] rework error handlers to fix #531
+- [frontend] remove migration-report page
+- [frontend] remove old_status column from package table
+- [frontend] mention Copr in mail subject
+- [frontend][backend] require libmodulemd in at least 1.7.0
+- [frontend] build batch deletion by xhr
+
+* Thu Feb 14 2019 Jakub Kadlčík <frostyx@email.cz> 1.146-1
+- [frontend] require copr-common greater than 0.4 version
+
+* Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 1.145-1
+- Don't let dev instance notify all users
+- Don't allow to send notification for empty chroots
+- Move splitFilename function to the copr-common package
+- Fix storing the custom script parameters
+- Set webhook_rebuild even in APIv3
+- Set the disable_createrepo when creating the project via APIv3
+- Stick with the old repo_id format until F28 is supported
+- Add index build(canceled, is_background, source_status, id)
+- Couple of bugfixes for wrong variables and properties
+
+* Tue Jan 15 2019 Miroslav Suchý <msuchy@redhat.com> 1.144-1
+- add db indexes
+
+* Mon Jan 14 2019 Miroslav Suchý <msuchy@redhat.com> 1.143-1
+- add build_copr_id index and build_chroot(status, started_on)
+- fix path to bash
+- removing executable bit from api_general.py
+
+* Fri Jan 11 2019 Miroslav Suchý <msuchy@redhat.com> 1.142-1
+- remove data from outdated chroots
+- fix modulemd import on F29
+
+* Thu Jan 10 2019 Miroslav Suchý <msuchy@redhat.com> 1.141-1
+- order builds already by SQL
+- add support for copr dir to copr-cli
+- Show markdown code for status badge
+- add pending action count
+- add get_admins command to manage.py
+- notifications for outdated chroots
+- show project forks
+- don't include port in repofile ID
+- Remove spaces around slash in owner/project header
+- Make pagure-events service load-balanceable
+- Fix `copr-cli mock-config` after switching to APIv3 by preprocessing repos on
+frontend
+- add data migration to remove build.results column
+- add try-except block to rollback session properly if an error ocurrs
+- move inline style to css
+- let mock rootdir generation on clients
+- rename repos 'url' attribute to 'baseurl'
+- provide repo_id in project chroot build config
+- refactor repo_id property
+- dont remove additional_repos list
+- add possibility to query all projects (RhBug: 1130166)
+- don't show empty copr dirs (see #447)
+- warn maintainer when working in foreign project
+- Allow per-package chroot-blacklisting by wildcard patterns
+- add possibility to notify just selected users
+- send only one email per user
+- preprocess repo URLs on frontend
+- move 'Build only for' down into 'Default Build Source'
+- list chroots the package is built for
+- render "Generic form"
+- drop "downloading" state
+- allow blacklisting packages from chroots
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 1.140-1
+- /usr/bin/env python3 -> /usr/bin/python3
+- fix SELinux
+- use cached data for small graph of usage
+- add quick_enable.html flavor template
+- sync style-overwrite.css with generate_colorscheme
+- new config REPO_NO_SSL
+- split style-overwrite.css into two parts
+- change repo ID format
+- Start using a code from copr_common
+- refactor mailing code
+- use git_dir_archive instead of git_dir_pack
+- 1628399 - che/llvm and che/mesa do not show up when searching
+  for the search terms
+- migrate from deprecated python3-modulemd to libmodulemd
+- do not allow other users to edit your packages
+- fix operation of alembic-3 commands (e.g. alembic-3 history)
+- pg#251 Make it possible for user to select pyp2rpm template
+- don't hardcode OpenID provider (#374)
+- 1622513 - require python3-requests
+- pg#251 Make it possible for user to select pyp2rpm template
+- change repo ID format to copr:<hub>:<user>:<project>
+
+* Fri Aug 24 2018 clime <clime@redhat.com> 1.139-1
+- add proper access check for integrations page
+
+* Thu Aug 23 2018 clime <clime@redhat.com> 1.138-1
+- fix bug that project non-owner can generate new webhook secret
+
+* Thu Aug 23 2018 clime <clime@redhat.com> 1.137-1
+- generate new webhook secret functionality in copr-cli
+- fix forking not to duplicate information that should not be
+duplicated
+- apiv3: construct dict with project data before deleting it
+- don't set source_build_method for unset packages
+- Change of the default setting of follow_fedora_branching
+- #349 Do not fork package auto-rebuild information
+- fix rawhide_to_release after b15e4504c
+- packaging: Python 2/3, RHEL/Fedora fixes
+- fix custom package webhooks
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 1.136-1
+- None task protection
+- apiv3
+- pagure integration
+- manual byte-code compilation
+
+* Fri Jul 20 2018 clime <clime@redhat.com> 1.135-1
+- fix tests under ppc64le
+
+* Fri Jul 20 2018 clime <clime@redhat.com> 1.134-1
+- fix #320 copr frontend check: remove arch specific condition
+- drop initscripts Require
+- fix #322 frontend: scriptlet stderr pollution
+- contact_us column added into footer
+- graphs optimizied
+- note contact info for GDPR data dump
+- remove logstash configuration from .spec
+
+* Tue Jun 19 2018 clime <clime@redhat.com> 1.133-1
+- separate version of the copr-frontend-flavor provide
+- ignore errors on "condrestart" foreign services
+- rename user_info flavor template file to user_meta
+- GDPR compliance
+- drop 'passwd' dependency
+
+* Fri May 18 2018 clime <clime@redhat.com> 1.132-1
+- add --with/--without rpmbuild options for build chroot
+- use "$releasever" in repo base URL for opensuse-leap and mageia chroots
+- openSUSE chroot support
+- fix #291 forks are incomplete
+- fix rpm download counters for group projects
+- #290 auto-rebuilds are being spawned on commits to some other projects
+- preparation for opensuse-leap-15.0-x86_64
+
+* Mon Apr 30 2018 clime <clime@redhat.com> 1.131-1
+- fix build on pagure commit script to listen only to pagure fedmsgs
+- use rsplit for chroot splitting to get os, version, arch triplet
+
+* Thu Apr 26 2018 Dominik Turecek <dturecek@redhat.com> 1.130-1
+- add pending tasks to graphs
+- rpkg deployment into COPR - containers + releng continuation
+- fix flash messages not disappearing after page reload
+- change flash messages for deleted/cancelled builds
+- remove dangling symlinks after 00b6073
+- unbundle static files
+- some javascript assets are not placed under component folder
+- remove redundatant stuff in complex tests
+- remove unneeded basenames
+- fix #269, #273, #221 and #268
+- fix  #275 web-ui: last build name shows "None"
+- api /build_status/ to not require login
+- add status_icon for build_id
+- change login welcome message to success message
+- redirect to builds table after rebuild
+- custom method: move the script filter into form
+- fix graphics issues after adding xstatic-patternfly-common
+- give project names more space
 
 * Wed Feb 28 2018 clime <clime@redhat.com> 1.129-1
 - several tweaks for graphs of utilization
