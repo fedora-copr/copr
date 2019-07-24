@@ -4,7 +4,7 @@ import re
 import os
 import codecs
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 long_description = """Copr is designed to be a lightweight buildsystem that allows contributors
 to create packages, put them in repositories, and make it easy for users
@@ -29,7 +29,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name='copr',
-    version=os.getenv('version'),
+    version="1.94",
     description=__description__,
     long_description=long_description,
     author=__author__,
@@ -46,7 +46,7 @@ setup(
         "Development Status :: 3 - Alpha",
     ],
     install_requires=requires,
-    packages=['copr', 'copr.client', 'copr.client_v2', 'copr.v3', 'copr.v3.proxies', 'copr.test'],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
 )
