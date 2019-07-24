@@ -17,19 +17,14 @@
 Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
-Name:    {{{ git_dir_name }}}
-Version: {{{ git_dir_version }}}
+Name:    copr-rpmbuild
+Version: 0.29
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 License: GPLv2+
 
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/rpmbuild
-# rpkg spec --sources
-Source0: {{{ git_dir_archive }}}
+Source0: https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
@@ -207,7 +202,83 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-rpmbuild-0.18-1 }}}
+* Fri Jun 07 2019 Pavel Raiskup <praiskup@redhat.com> 0.29-1
+- clean /var/cache/mock automatically
+
+* Mon May 27 2019 Pavel Raiskup <praiskup@redhat.com> 0.28-1
+- don't use --private-users=pick
+
+* Mon May 20 2019 Pavel Raiskup <praiskup@redhat.com> 0.27-1
+- enforce use_host_resolv
+- require even nosync.i686
+
+* Tue May 14 2019 Pavel Raiskup <praiskup@redhat.com> 0.26-1
+- [rpmbuild] ansible_python_interpreter: /usr/bin/python3
+- [rpmbuild] install dnf-utils instead of yum-utils on Fedora
+- [rpmbuild] builder: document some of the requires
+- [rpmbuild] builder: merge dependencies from playbooks
+- [rpmbuild] don't define %%_disable_source_fetch
+- [rpmbuild] use six.moves.urllib.parse
+- [rpmbuild] download srpm/spec if url contains query string
+
+* Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 0.25-1
+- remove dependency on python3-configparser
+
+* Thu Jan 10 2019 Miroslav Suchý <msuchy@redhat.com> 0.24-1
+- create copr-rpmbuild-all subpackage
+- Fix `copr-cli mock-config` after switching to APIv3 by preprocessing repos on
+frontend
+- add python-srpm-macros
+- print nice error when suggested package is not installed
+- tito and rpkg should be required only by copr-builder
+- create copr-builder
+- let mock rootdir generation on clients
+- rename repos 'url' attribute to 'baseurl'
+- provide repo_id in project chroot build config
+- Allow per-package chroot-blacklisting by wildcard patterns
+- preprocess repo URLs on frontend
+- revert back Suggests
+- drop "downloading" state
+- allow blacklisting packages from chroots
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 0.23-1
+- /usr/bin/env python3 -> /usr/bin/python3
+- nicer live logs
+
+* Tue Sep 18 2018 clime <clime@redhat.com> 0.22-1
+- make spec_template for pypi in build config optional
+- EPEL6 fixes
+- EPEL7 fixes
+- Merge #393 `use git_dir_archive instead of git_dir_pack`
+- handle non-existent chroot for given build-id
+- fix requests exception
+- add support for copr://
+- generate some sane mock root param when --copr arg is used
+- add --copr arg to build/dump-configs against copr+chroot build defs
+- pg#251 Make it possible for user to select pyp2rpm template
+- --dump-configs option
+
+* Wed Aug 29 2018 clime <clime@redhat.com> 0.21-1
+- [rpmbuild] add possibility to supply rpkg.conf in top-level scm dir
+- packaging: Python 2/3, RHEL/Fedora fixes
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 0.20-1
+- for py3 use unittest.mock, otherwise mock from python2-mock
+- avoid subprocess.communicate(timeout=..)
+- BlockingIOError, IOError -> OSError
+- hack for optional argparse subparser
+- fix shebang for epel7
+- use fcntl.lockf (works with python 2.7, too)
+- make copr-rpmbuild installable/buildable on el7
+
+* Fri May 18 2018 clime <clime@redhat.com> 0.19-1
+- add --with/--without rpmbuild options for build chroot
+
+* Thu Apr 26 2018 Dominik Turecek <dturecek@redhat.com> 0.18-1
+- rpkg deployment into COPR - containers + releng continuation
+- updates for latest upstream rpkg
+- update rpkg.conf.j2 to the latest rpkg version
+- s|/bin/env|/usr/bin/env| in shebang
 
 * Fri Feb 23 2018 clime <clime@redhat.com> 0.17-1
 - remove unused requires and rename rpm-python3 to python3-rpm
