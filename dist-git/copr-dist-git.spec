@@ -1,16 +1,11 @@
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version }}}
+Name:       copr-dist-git
+Version:    0.46
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/dist-git
-# rpkg sources --spec
-Source0:    {{{ git_dir_archive }}}
+Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildArch:  noarch
 
@@ -124,7 +119,33 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
-{{{ git_changelog since_tag=copr-dist-git-0.41-1 }}}
+* Fri Jul 12 2019 Pavel Raiskup <praiskup@redhat.com> 0.46-1
+- add offline argument to upload method, to fix RPM import
+- add script to clear lookaside cache of old sources
+
+* Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 0.45-1
+- remove old logs from cron
+
+* Thu Jan 10 2019 Miroslav Suchý <msuchy@redhat.com> 0.44-1
+- add python3-copr Recommends:
+- one-shot script script to remove data for already deleted coprs
+- allow blacklisting packages from chroots
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 0.43-1
+- fix SELinux
+- use FailTypeEnum from copr_common
+- use EnumType from copr_common
+- use git_dir_archive instead of git_dir_pack
+- fix `cgit_pkg_list` script
+- use git_dir_archive instead of git_dir_pack
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 0.42-1
+- manual byte-code compilation
+- for py3 use unittest.mock, otherwise mock from python2-mock
+
+* Fri May 18 2018 clime <clime@redhat.com> 0.41-1
+- switch to python3
+- rpkg deployment into COPR - containers + releng continuation
 
 * Fri Feb 23 2018 clime <clime@redhat.com> 0.40-1
 - remove Group tag
