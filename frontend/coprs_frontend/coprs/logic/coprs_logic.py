@@ -628,6 +628,8 @@ class CoprChrootsLogic(object):
             db.session.add(
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
+        ActionsLogic.send_createrepo(copr)
+
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="",
@@ -700,10 +702,15 @@ class CoprChrootsLogic(object):
         current_chroots = copr.mock_chroots
         new_chroots = cls.mock_chroots_from_names(names)
         # add non-existing
+        run_createrepo = False
         for mock_chroot in new_chroots:
             if mock_chroot not in current_chroots:
                 db.session.add(
                     models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
+                run_createrepo = True
+
+        if run_createrepo:
+            ActionsLogic.send_createrepo(copr)
 
         # delete no more present
         to_remove = []

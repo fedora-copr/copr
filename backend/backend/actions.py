@@ -83,6 +83,11 @@ class Action(object):
 
                 path = self.get_chroot_result_dir(chroot, project_dirname, ownername)
                 try:
+                    os.makedirs(path)
+                except FileExistsError:
+                    pass
+
+                try:
                     createrepo(path=path, front_url=self.front_url,
                                username=ownername, projectname=projectname,
                                override_acr_flag=True)
