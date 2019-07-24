@@ -2,19 +2,14 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version lead=1 }}}
+Name:       copr-backend
+Version:    1.123
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/backend
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -221,7 +216,80 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-backend-1.115-1 }}}
+* Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.123-1
+- clean data for failed builds; fix #619
+- replace runnecessary regex with str.endswith
+- move clean_copr from prunerepo to our codebase
+- cleanup_vm_nova.py: use yaml.safe_load
+- don't rely on createrepo from prunerepo
+- simplify logging through redis
+- run sign command without sudo to fix #636
+- encode 'msg' in LogRecord sooner
+- fix charset warnings on redis-py v3
+- fix default arguments in redis scripts
+- don't prunerepo too old directories
+- LogHandler: don't drop exc_info from LogRecord
+- use the correct data for rawhide_to_release createrepo
+- make copr_prune_results skip already pruned outdated chroots
+- require libmodulemd in at least 1.7.0
+- remove dependency on python3-configparser
+
+* Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 1.122-1
+- Add requires python3-novaclient
+- Set the architecture for which the module has been built
+- Generate module artifacts in the correct format
+- Compress the modules.yaml file
+
+* Fri Jan 11 2019 Miroslav Suchý <msuchy@redhat.com> 1.121-1
+- remove data from outdated chroots
+
+* Thu Jan 10 2019 Miroslav Suchý <msuchy@redhat.com> 1.120-1
+- update list of copr services
+- Use oslo_concurrency for craeterepo locking
+- use run_cmd() in pkg_name_evr()
+- drop "downloading" state
+- allow blacklisting packages from chroots
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 1.119-1
+- optimize copr_log_hitcounter.py for speed a bit
+- move selinux rules to copr-selinux
+- fix traceback for non-serializable log message
+- fix tracebacks in copr-backend-log
+- more robust run_tests.sh
+- remove unused imports
+- py3 compat for msgbus support
+- use git_dir_archive instead of git_dir_pack
+- migrate from deprecated python3-modulemd to libmodulemd
+- doc: remove warning that _static directory does not exists
+- doc: the undeline need to be at least as long as the title
+
+* Thu Aug 23 2018 clime <clime@redhat.com> 1.118-1
+- fix logging exception
+- send proper arguments for rawhide_to_release
+- packaging: Python 2/3, RHEL/Fedora fixes
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 1.117-1
+- None task protection
+- pagure integration
+- use manual .pyc file generation
+- remove unused imports, ad. pr#327
+- resolving pylint warnings
+- for py3 use unittest.mock
+- fix msgbus ContentType to application/json
+
+* Fri May 18 2018 clime <clime@redhat.com> 1.116-1
+- fix #291 forks are incomplete
+- log more information about incoming actions
+- preparation for opensuse-leap-15.0-x86_64
+
+* Thu Apr 26 2018 Dominik Turecek <dturecek@redhat.com> 1.115-1
+- rpkg deployment into COPR - containers + releng continuation
+- fix pagure bugs #269, #273, #221 and #268
+- cleanup in test_helpers, one test added
+- change order of args in StrictRedis call
+- add comment about expected usage of the copr_log_hitcounter script
+- try to send hit data to frontend several times from
+copr_log_hitcounter
 
 * Mon Feb 26 2018 clime <clime@redhat.com> 1.114-1
 - add possibility for copr_log_hitcounter to ignore multiple subnets
