@@ -9,19 +9,14 @@
 # https://github.com/fedora-selinux/selinux-policy-macros/pull/4
 %global selinuxvariants targeted
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version lead=1 }}}
+Name:       copr-selinux
+Version:    1.53
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/selinux
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -111,7 +106,23 @@ done
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-selinux-1.49-1 }}}
+* Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 1.53-1
+- Add more rules for keygen (follow-up to 4f689743)
+
+* Tue Jan 15 2019 Miroslav Suchý <msuchy@redhat.com> 1.52-1
+- allow signd to write to socket
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 1.51-1
+- do the relabel in %%posttrans
+- use git_dir_archive instead of git_dir_pack
+- allow frontend's apache to ioctl uploaded tarballs
+- packaging: Python 2/3, RHEL/Fedora fixes
+
+* Tue Aug 07 2018 clime <clime@redhat.com> 1.50-1
+- fix distro condition for policycoreutils-python
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 1.49-1
+- rpkg deployment into COPR
 
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.48-1
 - remove Group tag
