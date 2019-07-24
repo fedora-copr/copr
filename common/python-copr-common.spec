@@ -1,5 +1,4 @@
-{{{ export srcname=copr-common }}}
-%global srcname {{{ printf "$srcname" }}}
+%global srcname copr-common
 
 %if 0%{?rhel} && 0%{?rhel} <= 6
 %{!?_licensedir:%global license %%doc}
@@ -14,19 +13,14 @@
 %global with_python2 1
 %endif
 
-Name:       {{{ git_name name="python-$srcname" }}}
-Version:    {{{ git_version }}}
+Name:       python-copr-common
+Version:    0.5
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/common
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    %pypi_source
 
 BuildArch: noarch
 
@@ -68,7 +62,7 @@ Summary: %{summary}
 
 
 %prep
-%setup -q
+%setup -q -n %srcname-%version
 
 
 %build
@@ -106,7 +100,19 @@ version=%version %py2_install
 
 
 %changelog
-{{{ git_changelog since_tag="python-$srcname-0.3-1" }}}
+* Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 0.5-1
+- Add splitFilename function
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 0.4-1
+- sync common.BuildSourceEnum with helpers.BuildSourceEnum
+- use git_dir_archive instead of git_dir_pack
+- packaging: Python 2/3, RHEL/Fedora fixes
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 0.3-1
+- %%{python_sitelib} → %%{python2_sitelib}
+- fix git packing for python-copr, copr-common
+- fix reading spec file values from setup.py
+- rpkg deployment into COPR
 
 * Thu Mar 22 2018 Dominik Turecek <dturecek@redhat.com> 0.2-1
 - [common] fix spec file
