@@ -29,7 +29,6 @@ __description__ = "A schema and tooling for Copr fedora-messaging"
 __author__ = "Copr team"
 __author_email__ = "copr-devel@lists.fedorahosted.org"
 __url__ = "https://pagure.io/copr/copr"
-__version__ = "0.0"
 
 __requires__ = [
     'fedora-messaging',
@@ -38,7 +37,7 @@ __requires__ = [
 
 setup(
     name=__name__,
-    version=__version__,
+    version="0.1",
     description=__description__,
     long_description=README,
     url=__url__,
@@ -52,9 +51,7 @@ setup(
     maintainer="Copr Team",
     maintainer_email=__author_email__,
     keywords="fedora",
-    packages=find_packages(
-        exclude=("copr_messaging.tests",
-                 "copr_messaging.tests.*")),
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=["fedora_messaging"],

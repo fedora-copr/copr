@@ -6,19 +6,15 @@ https://fedora-messaging.readthedocs.io/en/latest/messages.html#schema \
 Package also provides several convenience methods for working with \
 copr messages.
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version }}}
+Name:       copr-messaging
+Version:    0.1
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/fedora-messaging
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+
+Source0:    %pypi_source
 
 BuildArch:  noarch
 
@@ -86,4 +82,5 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
-{{{ git_dir_changelog }}}
+* Wed Jul 17 2019 Pavel Raiskup <praiskup@redhat.com> 0.1-1
+- copr_messaging: new package for working with copr messages
