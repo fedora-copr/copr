@@ -18,7 +18,6 @@ requires = [
 
 
 __name__ = 'copr-keygen'
-__version__ = 0.01
 __description__ = description
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
@@ -27,7 +26,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name=__name__,
-    version=__version__,
+    version="1.75",
     description=__description__,
     author=__author__,
     author_email=__author_email__,

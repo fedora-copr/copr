@@ -1,18 +1,13 @@
 %global with_test 1
 
-Name:       {{{ git_dir_name }}}
-Version:    {{{ git_dir_version lead=1 }}}
+Name:       copr-keygen
+Version:    1.75
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by:
-# git clone https://pagure.io/copr/copr.git
-# git checkout {{{ cached_git_name_version }}}
-# cd copr/keygen
-# rpkg spec --sources
-Source0:    {{{ git_dir_archive }}}
+Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: util-linux
@@ -168,7 +163,22 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
-{{{ git_dir_changelog since_tag=copr-keygen-1.72-1 }}}
+* Tue May 07 2019 Pavel Raiskup <praiskup@redhat.com> 1.75-1
+- make sure key generation is not blocked by trustdb operation
+- add daily cron job to do trustdb maintenance
+- define gpg2 arguments on one place
+
+* Fri Oct 19 2018 Miroslav Suchý <msuchy@redhat.com> 1.74-1
+- fix SELinux
+- use git_dir_archive instead of git_dir_pack
+
+* Mon Aug 06 2018 clime <clime@redhat.com> 1.73-1
+- manual byte-code compilation
+- better "condrestart" foreign services
+
+* Fri May 18 2018 clime <clime@redhat.com> 1.72-1
+- fix gnupg2 requirement
+- rpkg deployment into COPR - containers + releng continuation
 
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.71-1
 - remove Group tag
@@ -807,5 +817,3 @@ service httpd condrestart &>/dev/null || :
 
 * Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
 - new package built with tito
-
-
