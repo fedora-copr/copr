@@ -11,8 +11,8 @@ License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 
 # Source is created by:
-# git clone %url && cd copr
-# tito build --tgz --tag %name-%version-%release
+# git clone %%url && cd copr
+# tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
 
 BuildArch:  noarch
@@ -151,9 +151,6 @@ install -d %{buildroot}%{_sysconfdir}/logstash.d
 install -d %{buildroot}%{_datadir}/logstash/patterns/
 cp -a conf/logstash/lighttpd.pattern %{buildroot}%{_datadir}/logstash/patterns/lighttpd.pattern
 
-
-#doc
-# cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
