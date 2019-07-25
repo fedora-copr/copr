@@ -49,7 +49,7 @@ RUN echo 'root:passwd' | chpasswd && \
 RUN cd /copr/rpmbuild && \
     dnf builddep -y *spec && \
     tito build --rpm --test --rpmbuild-options='--without=check' && \
-    dnf -y install /tmp/tito/x86_64/copr-rpmbuild*.x86_64.rpm && \
+    dnf -y install /tmp/tito/x86_64/copr-{rpmbuild,builder}*.x86_64.rpm --allowerasing && \
     dnf clean all
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
