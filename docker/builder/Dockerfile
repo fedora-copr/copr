@@ -1,5 +1,5 @@
-FROM fedora:28
-MAINTAINER jkadlcik@redhat.com
+FROM fedora:30
+MAINTAINER copr-devel@lists.fedorahosted.org
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
@@ -13,7 +13,7 @@ RUN dnf -y update && \
 # builder packages
                    openssh-server \
                    packagedb-cli \
-                   fedora-cert \
+                   fedora-packager \
                    mock \
                    mock-lvm \
                    createrepo \

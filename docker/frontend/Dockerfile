@@ -1,11 +1,12 @@
-FROM fedora:28
-MAINTAINER jkadlcik@redhat.com
+FROM fedora:30
+MAINTAINER copr-devel@lists.fedorahosted.org
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
+                   make \
                    which \
                    wget \
                    vim \

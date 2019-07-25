@@ -1,5 +1,5 @@
-FROM fedora:26
-MAINTAINER clime@redhat.com
+FROM fedora:30
+MAINTAINER copr-devel@lists.fedorahosted.org
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
@@ -19,7 +19,7 @@ RUN dnf -y update && \
                    nginx \
 # builder packages
                    packagedb-cli \
-                   fedora-cert \
+                   fedora-packager \
                    mock \
                    mock-lvm \
                    createrepo \
@@ -36,7 +36,7 @@ RUN dnf -y update && \
                    ethtool \
 # packages for copr-keygen
                    uwsgi \
-                   uwsgi-plugin-python \
+                   uwsgi-plugin-python3 \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package
