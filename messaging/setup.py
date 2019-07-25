@@ -37,7 +37,7 @@ __requires__ = [
 
 setup(
     name=__name__,
-    version="0.2",
+    version="0.3",
     description=__description__,
     long_description=README,
     url=__url__,
