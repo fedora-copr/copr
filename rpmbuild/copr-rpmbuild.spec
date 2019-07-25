@@ -24,7 +24,10 @@ Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 License: GPLv2+
 
-Source0: https://releases.pagure.org/copr/copr/%name-%version.tar.gz
+# Source is created by:
+# git clone %url && cd copr
+# tito build --tgz --tag %name-%version-%release
+Source0:    %name-%version.tar.gz
 
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro

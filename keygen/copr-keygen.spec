@@ -7,7 +7,11 @@ Summary:    Part of Copr build system. Aux service that generate keys for signd
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-Source0:    https://releases.pagure.org/copr/copr/%name-%version.tar.gz
+
+# Source is created by:
+# git clone %url && cd copr
+# tito build --tgz --tag %name-%version-%release
+Source0:    %name-%version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: util-linux

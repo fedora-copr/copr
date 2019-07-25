@@ -21,7 +21,11 @@ Summary:    Python interface for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-Source0:    %pypi_source
+
+# Source is created by:
+# git clone %url && cd copr
+# tito build --tgz --tag %name-%version-%release
+Source0:    %name-%version.tar.gz
 
 BuildArch:  noarch
 
