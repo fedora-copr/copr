@@ -44,6 +44,7 @@ rlJournalStart
         rlRun "dnf config-manager --set-enabled fedora --save"
         rlRun "dnf install -y python3-copr copr-cli"
         rlRun "dnf upgrade python3-copr copr-cli"
+        rlRun "dnf install rpm-build"
 
         cat > /etc/dnf/plugins/copr.d/tested-copr.conf <<EOF
 [tested-copr]
