@@ -227,8 +227,9 @@ class ActionsLogic(object):
         :type modulemd: str content of module yaml file
         """
 
+        mock_chroots = set.intersection(*[set(b.chroots) for b in module.builds])
         data = {
-            "chroots": [c.name for c in copr.active_chroots],
+            "chroots": [ch.name for ch in mock_chroots],
             "builds": [b.id for b in module.builds],
         }
 
