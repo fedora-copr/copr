@@ -3,6 +3,10 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
+# TERM is to make the tito work in container, rhbz#1733043
+ENV TERM=linux \
+    LANG=en_US.UTF-8
+
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
@@ -24,7 +28,7 @@ RUN dnf -y update && \
                    rng-tools \
 # for unbuffer package
                    expect \
-                   rpkg && \
+                   tito && \
     dnf clean all
 
 # needed to be able to ping
@@ -78,21 +82,21 @@ RUN usermod -a -G mock copr
 # copy your copr sources to the docker image
 COPY . /copr
 
-# build copr-backend from sources
-RUN rpkg --path /copr/backend spec --outdir /tmp/rpkg && \
-    dnf -y builddep /tmp/rpkg/copr-backend.spec --allowerasing && \
-    export LANG=en_US.UTF-8 && \
-    rpkg --path /copr/backend local --outdir /tmp/rpkg && \
-# upgrade the already pre-installed package if possible
-    dnf -y upgrade /tmp/rpkg/noarch/copr-backend*.noarch.rpm || true
 
-# build copr-keygen from sources
-RUN rpkg --path /copr/keygen spec --outdir /tmp/rpkg && \
-    dnf -y builddep /tmp/rpkg/copr-keygen.spec --allowerasing && \
-    export LANG=en_US.UTF-8 && \
-    rpkg --path /copr/keygen local --outdir /tmp/rpkg && \
-# upgrade the already pre-installed package if possible
-    dnf -y upgrade /tmp/rpkg/noarch/copr-keygen*.noarch.rpm || true
+RUN dnf -y builddep /copr/backend/*.spec --allowerasing && \
+    dnf -y builddep /copr/keygen/*.spec --allowerasing && \
+    dnf clean all
+
+# build packages from sources
+RUN cd /copr/backend && \
+    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    cd ../keygen && \
+    tito build --rpm --test --rpmbuild-options='--without=check'
+
+# upgrade the already pre-installed packages if possible
+RUN dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm \
+                   /tmp/tito/noarch/copr-backend*.noarch.rpm ; \
+    dnf clean all
 
 # copy filesystem setup and setup ownership and permissions
 COPY docker/backend/files/ /

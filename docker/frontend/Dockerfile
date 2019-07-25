@@ -1,6 +1,9 @@
 FROM fedora:30
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+# TERM is to make the tito work in container, rhbz#1733043
+ENV TERM=linux
+
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
@@ -17,17 +20,17 @@ RUN dnf -y update && \
                    python3-alembic \
                    postgresql-server \
                    redis \
-                   rpkg
+                   tito
 
 COPY . /copr
 COPY docker/frontend/files/ /
 
 # build and install copr-frontend
-RUN rm -rf /tmp/rpkg && \
-    rpkg --path /copr/frontend srpm --without doc --without check --outdir /tmp/rpkg && \
-    dnf -y builddep /tmp/rpkg/copr-frontend*.src.rpm && \
-    rpkg --path /copr/frontend local --without doc --without check --outdir /tmp/rpkg && \
-    dnf -y install /tmp/rpkg/noarch/copr-frontend*.noarch.rpm
+RUN cd /copr/frontend && \
+    dnf builddep -y *spec && \
+    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    ( dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm || true ) && \
+    dnf clean all
 
 RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
 

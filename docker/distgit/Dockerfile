@@ -1,6 +1,9 @@
 FROM fedora:30
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+# TERM is to make the tito work in container, rhbz#1733043
+ENV TERM=linux
+
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
@@ -12,17 +15,17 @@ RUN dnf -y update && \
                    supervisor \
                    copr-selinux \
                    cgit \
-                   python2-rpkg \
-                   rpkg
+                   python3-rpkg \
+                   tito
 
 COPY . /copr
 COPY docker/distgit/files/ /
 
-RUN rm -rf /tmp/rpkg/* && \
-    rpkg --path /copr/dist-git spec --outdir /tmp/rpkg && \
-    dnf builddep -y /tmp/rpkg/copr-dist-git.spec && \
-    rpkg --path /copr/dist-git local --outdir /tmp/rpkg && \
-    dnf -y install /tmp/rpkg/noarch/copr-dist-git*.noarch.rpm
+RUN cd /copr/dist-git && \
+    dnf builddep -y *spec && \
+    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    ( dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || true ) && \
+    dnf clean all
 
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git

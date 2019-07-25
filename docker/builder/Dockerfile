@@ -1,6 +1,9 @@
 FROM fedora:30
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+# TERM is to make the tito work in container, rhbz#1733043
+ENV TERM=linux
+
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
@@ -28,7 +31,7 @@ RUN dnf -y update && \
                    ca-certificates \
                    scl-utils-build \
                    ethtool \
-                   rpkg
+                   tito
 
 COPY . /copr
 COPY docker/builder/files/ /
@@ -43,11 +46,11 @@ RUN echo 'root:passwd' | chpasswd && \
     touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && \
     cat /root/.ssh/id_backend.pub >> /root/.ssh/authorized_keys
 
-RUN rm -rf /tmp/rpkg/* && \
-    rpkg --path /copr/rpmbuild spec --outdir /tmp/rpkg && \
-    dnf builddep -y /tmp/rpkg/copr-rpmbuild.spec && \
-    rpkg --path /copr/rpmbuild local --outdir /tmp/rpkg && \
-    dnf -y install /tmp/rpkg/x86_64/copr-rpmbuild*.x86_64.rpm
+RUN cd /copr/rpmbuild && \
+    dnf builddep -y *spec && \
+    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    dnf -y install /tmp/tito/x86_64/copr-rpmbuild*.x86_64.rpm && \
+    dnf clean all
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
