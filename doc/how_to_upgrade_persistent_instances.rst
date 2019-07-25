@@ -70,8 +70,10 @@ Backup the old instance by renaming it::
 .. warning:: You might need to backup also letsencrypt certificates.
              See `Letsencrypt renewal limits`_.
 
-.. warning:: backend - You should terminate existing resalloc resources.
+.. warning:: backend - You have to terminate existing resalloc resources.
              See `Terminate resalloc resources`_.
+
+.. warning:: backend - `Terminate OpenStack VMs`_.
 
 Finally, shut down the instance to avoid storage inconsistency and other possible problems::
 
@@ -213,6 +215,20 @@ Then delete all current resources::
 
     su - resalloc
     resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
+
+
+Terminate OpenStack VMs
+.......................
+
+Make sure you terminate all the OpenStack located builders allocated by
+``copr-backend.service``::
+
+    # systemctl stop copr-backend # ensure that new are not allocated anymore
+    # su - copr
+    $ redis-cli # drop the DB
+    127.0.0.1:6379> FLUSHALL
+    ^D
+    $ cleanup_vm_nova.py # clean all VMs not in DB
 
 
 Downgrade python novaclient
