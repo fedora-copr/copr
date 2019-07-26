@@ -125,7 +125,6 @@ def add_appdata(path, username, projectname, lock=None):
     if ":" in os.path.basename(parent_dir):
         return out
 
-    assert parent_dir.endswith(os.path.join(username, projectname))
     if os.path.exists(os.path.join(parent_dir, ".disable-appstream")):
         return out
 
