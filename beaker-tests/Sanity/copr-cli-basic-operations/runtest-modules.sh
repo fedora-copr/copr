@@ -191,7 +191,7 @@ rlJournalStart
 
         rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep -v "Copr modules repo" |wc -l` 1
         rlAssertEquals "Module should be available in the correct version" `dnf module info testmodule:beakertest |grep Version |grep $DATE |wc -l` 1
-        rlRun "dnf module enable testmodule:beakertest"
+        rlRun "dnf -y module enable testmodule:beakertest"
         rlRun "dnf -y module install testmodule/default"
         rlRun "rpm -q mksh"
         rlRun "dnf -y module remove testmodule:beakertest/default"
