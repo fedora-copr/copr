@@ -189,7 +189,8 @@ rlJournalStart
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
         rlRun "curl $FRONTEND_URL/coprs/$USER/module-testmodule-beakertest-$DATE/module_repo/fedora-$FEDORA_VERSION/testmodule-beakertest-$DATE.repo > /etc/yum.repos.d/testmodule.repo"
 
-        rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep $DATE |grep -v "Copr modules repo" |wc -l` 1
+        rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep -v "Copr modules repo" |wc -l` 1
+        rlAssertEquals "Module should be available in the correct version" `dnf module info testmodule:beakertest |grep Version |grep $DATE |wc -l` 1
         rlRun "dnf module enable testmodule:beakertest"
         rlRun "dnf -y module install testmodule/default"
         rlRun "rpm -q mksh"
