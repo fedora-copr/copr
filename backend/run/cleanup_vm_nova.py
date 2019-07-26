@@ -25,6 +25,16 @@ except ImportError:
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log_format = logging.Formatter('[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s')
+hfile = logging.FileHandler('/var/log/copr-backend/cleanup_vms.log')
+hfile.setLevel(logging.INFO)
+hstderr = logging.StreamHandler()
+hfile.setFormatter(log_format)
+log.addHandler(hfile)
+log.addHandler(hstderr)
+
 
 nova_cloud_vars_path = os.environ.get("NOVA_CLOUD_VARS", "/home/copr/provision/nova_cloud_vars.yml")
 
@@ -61,7 +71,6 @@ class Cleaner(object):
     def terminate(srv):
         try:
             srv.delete()
-            log.info("delete invoked for: {}".format(srv))
         except Exception as err:
             log.exception("failed to request VM termination: {}".format(err))
 
@@ -69,23 +78,27 @@ class Cleaner(object):
     def old_enough(srv):
         dt_created = dt_parse(srv.created)
         delta = (utc_now() - dt_created).total_seconds()
-        # log.info("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
-        return delta > 60 * 5  # 5 minutes
+        if delta > 60 * 5: # 5 minutes
+            log.debug("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
+            return True
+        return False
 
     def check_one(self, srv_id, vms_names):
         srv = self.nt.servers.get(srv_id)
-        log.info("checking vm: {}".format(srv))
+        log.debug("checking vm '{}'".format(srv.name))
         srv.get()
         if srv.status.lower().strip() == "error":
-            log.info("server {} got into the error state, terminating".format(srv))
+            log.info("vm '{}' got into the error state, terminating".format(srv.name))
             self.terminate(srv)
         elif self.old_enough(srv) and srv.human_id.lower() not in vms_names:
-            log.info("server {} not placed in our db, terminating".format(srv))
+            log.info("vm '{}' not placed in our db, terminating".format(srv.name))
             self.terminate(srv)
 
     def main(self):
         """
-        Terminate erred VM's and VM's with uptime > 10 minutes and which doesn't have associated process
+        Terminate
+        - errored VM's and
+        - VM's with uptime > 5 minutes and which don't have entry in redis DB
         """
         start = time.time()
         log.info("Cleanup start")
@@ -103,15 +116,7 @@ class Cleaner(object):
 
         log.info("cleanup consumed: {} seconds".format(time.time() - start))
 
+
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename="/var/log/copr-backend/cleanup_vms.log",
-        # filename="/tmp/cleanup_vms.log",
-        # stream=sys.stdout,
-        format='[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s',
-        level=logging.INFO)
-
-    log = logging.getLogger(__name__)
-
     cleaner = Cleaner(read_config())
     cleaner.main()
