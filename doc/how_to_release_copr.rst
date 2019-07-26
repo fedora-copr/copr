@@ -22,7 +22,7 @@ push them::
 
     git push --follow-tags origin
 
-and upload tarballs to _`Copr release directory`.
+and upload tarballs to `Copr release directory`_.
 
 
 Build packages
