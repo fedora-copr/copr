@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.79
+Version:    1.80
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,10 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.80-1
+- drop pylint from BR
+- use humanize instead of format_size(); fix issue#724
+
 * Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.79-1
 - add CLI for permissions
 - new --max-builds option
