@@ -1561,9 +1561,15 @@ class Module(db.Model, helpers.Serializer):
         """
         Return numeric representation of status of this build
         """
-        if any(b for b in self.builds if b.status == StatusEnum("failed")):
-            return ModuleStatusEnum("failed")
-        return self.action.result if self.action else ModuleStatusEnum("pending")
+        if self.action:
+            return { BackendResultEnum("success"): ModuleStatusEnum("succeeded"),
+                     BackendResultEnum("failure"): ModuleStatusEnum("failed"),
+                     BackendResultEnum("waiting"): ModuleStatusEnum("waiting"),
+                   }[self.action.result]
+        build_statuses = [b.status for b in self.builds]
+        for state in ["canceled", "running", "starting", "pending", "failed", "succeeded"]:
+            if ModuleStatusEnum(state) in build_statuses:
+                return ModuleStatusEnum(state)
 
     @property
     def state(self):

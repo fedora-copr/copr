@@ -55,8 +55,10 @@ class StatusEnum(with_metaclass(EnumType, object)):
     }
 
 
-class ModuleStatusEnum(with_metaclass(EnumType, object)):
-    vals = {"pending": 0, "succeeded": 1, "failed": 2}
+class ModuleStatusEnum(StatusEnum):
+    vals = {k: v for k, v in StatusEnum.vals.items()
+            if k in ["canceled", "running", "starting", "pending",
+                      "failed", "succeeded", "waiting", "unknown"]}
 
 
 class BuildSourceEnum(with_metaclass(EnumType, object)):
