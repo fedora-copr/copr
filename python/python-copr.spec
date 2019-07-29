@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.94
+Version:    1.95
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -217,6 +217,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.95-1
+- drop pylint from BR
+
 * Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.94-1
 - add CLI for permissions
 - support temporary projects
