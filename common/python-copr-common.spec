@@ -66,7 +66,7 @@ Summary: %{summary}
 
 
 %prep
-%setup -q -n %srcname-%version
+%setup -q
 
 
 %build

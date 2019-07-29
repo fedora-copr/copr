@@ -152,7 +152,7 @@ developers only.
 
 
 %prep
-%setup -q -n %srcname-%version
+%setup -q
 
 %if %{with python3}
 rm -rf %{py3dir}
