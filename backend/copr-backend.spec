@@ -27,10 +27,10 @@ BuildRequires: python3-setuptools
 BuildRequires: python3-requests
 
 BuildRequires: python3-copr
+BuildRequires: python3-copr-messaging
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
-BuildRequires: python3-fedora-messaging
 BuildRequires: python3-humanize
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
