@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.123
+Version:    1.124
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -217,6 +217,21 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.124-1
+- run createrepo immediately, don't wait for build (issue#833)
+- compress backend-live.log by calling gzip (issue#86)
+- use copr-messaging module for validating outgoing messages
+- don't run appstream-builder for PR dirs
+- don't run createrepo for srpm directories
+- skip VMs with failing live-check in scheduler
+- sandbox builds per user/submitter/project
+- drop unused compat code for droped /bin/copr-builder
+- do not call appstream builder with --max-threads (issue#717)
+- added copr_print_results_to_delete.py script, should help
+  us with removal of orphaned resources on backend storage (issue#712)
+- allow disabling appstream builder per project (issue#738)
+- tabular output from copr_get_vm_info.py
+
 * Wed Apr 24 2019 Jakub Kadlčík <frostyx@email.cz> 1.123-1
 - clean data for failed builds; fix #619
 - replace runnecessary regex with str.endswith
