@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.95
+Version:    1.96
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -217,6 +217,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.96-1
+- use plain %%setup to fix FTBFS
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.95-1
 - drop pylint from BR
 
