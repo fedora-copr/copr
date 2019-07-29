@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.29
+Version: 0.30
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -205,6 +205,10 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 0.30-1
+- drop SCM parameters from copr-rpmbuild
+- implement --task-file and --task-url parameters (issue#517)
+
 * Fri Jun 07 2019 Pavel Raiskup <praiskup@redhat.com> 0.29-1
 - clean /var/cache/mock automatically
 
