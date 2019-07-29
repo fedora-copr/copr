@@ -3,7 +3,7 @@
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_describe_failure.html" import describe_failure %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
-{% from "_helpers.html" import chroot_to_os_logo, build_state_text, build_state, copr_name %}
+{% from "_helpers.html" import chroot_to_os_logo, build_state_text, build_state, copr_name, module_state %}
 {% block title %}Module {{ module.id }} in {{ copr_name(copr) }}{% endblock %}
 
 {% set selected_tab = "modules" %}
@@ -36,6 +36,9 @@
       </div>
       <div class="panel-body">
         <dl class="dl-horizontal">
+          <dt>Status:</dt>
+          <dd>{{ module_state(module) }} - {{ module.state | build_state_description }} </dd>
+
           <dt>Name:</dt>
           <dd>{{ module.name }}</dd>
 
