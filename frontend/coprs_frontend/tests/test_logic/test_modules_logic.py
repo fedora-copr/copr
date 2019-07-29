@@ -4,10 +4,47 @@ from unittest import mock
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.modules_logic import ModuleBuildFacade, ModulemdGenerator
 from coprs.logic.coprs_logic import CoprChrootsLogic
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, ModuleStatusEnum, StatusEnum
+from coprs import models, db
 
 import gi
 gi.require_version('Modulemd', '1.0')
 from gi.repository import Modulemd
+
+
+class TestModulesLogic(CoprsTestCase):
+    def test_state(self, f_users, f_coprs, f_mock_chroots, f_builds, f_modules, f_db):
+        self.b1.build_chroots[0].status = StatusEnum("pending")
+        self.b3.build_chroots[0].status = StatusEnum("succeeded")
+        self.b3.build_chroots[1].status = StatusEnum("succeeded")
+        self.b3.source_status = StatusEnum("succeeded")
+
+        # even though b3 is succeeded, b1 is still pending
+        self.m1.builds = [self.b1, self.b3]
+        assert self.m1.status == ModuleStatusEnum("pending")
+
+        # now what if b1 succeeds
+        self.b1.build_chroots[0].status = StatusEnum("succeeded")
+        assert self.m1.status == ModuleStatusEnum("succeeded")
+
+        # let's say that b3 failed
+        self.b3.build_chroots[0].status = StatusEnum("failed")
+        assert self.m1.status == ModuleStatusEnum("failed")
+
+
+        # once the action exists, it dictates the status
+        self.b3.build_chroots[0].status = StatusEnum("succeeded")
+        action = models.Action(
+            action_type=ActionTypeEnum("build_module"),
+            object_type="module",
+            object_id=self.m1.id,
+        )
+        db.session.add(action)
+        assert self.m1.status == ModuleStatusEnum("waiting")
+
+        # the backend proceeds the action
+        action.result = BackendResultEnum("success")
+        assert self.m1.status == ModuleStatusEnum("succeeded")
 
 
 class TestModuleBuildFacade(CoprsTestCase):
