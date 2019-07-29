@@ -1,0 +1,13 @@
+#! /usr/bin/expect
+
+set bash_prompt {\$ $}
+set env(PS1) {$ }
+
+spawn bash --norc
+
+foreach arg $argv {
+    expect -re $bash_prompt {send -- "$arg\r"}
+}
+
+interact
+puts "exiting subshell"
