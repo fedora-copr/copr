@@ -41,7 +41,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.150
+Version:    1.151
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -360,6 +360,33 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.151-1
+- run createrepo immediately, don't wait for first build (issue#833)
+- added pinned-projects feature (issue#495)
+- fix/customize sorting in running/pending/importing tab (issue#808)
+- removed (so far broken) group avatar from group projects (issue#806)
+- added helper for daily db dumps (pr#783)
+- better working with build statuses internally (issue#668)
+- modular builds now respect the module platform (issue#606)
+- sandbox builds not only per user, but also per submitter and project
+- better submitter identification for webhook builds
+- repo ID in `dnf copr enable` repo files contain frontend hostname
+- hide "delete all builds" checkboxes for logged-out visitors (issue#577)
+- nicer API error output for ActionInProgressException
+- allow individuals to ask permissions for group projects (issue#778)
+- api pagination ordering fix (rhbz#1717506)
+- api /project/list now doesn't include group projects
+- disallow ex-members to build in projects (issue#848)
+- don't traceback when "add-group" form contains errors (issue#847)
+- allow group admins to delete all projects in the group (issue#779)
+- fix a lot of deprecation warning during build
+- really delete builds in temporary projects, no only the DB entry
+- show only forks in web-UI that are not yet deleted
+- added link to RSS feed into site navigation
+- admin: add command to delete orphaned builds and packages
+- admin: us to create temporary aliases for chroots
+- admin: allow copr admins to edit Package entries
+
 * Tue May 21 2019 Pavel Raiskup <praiskup@redhat.com> 1.150-1
 - fix the script for prolonged outdated chroots
 - add RHEL 8 (rhelbeta) chroot logo
