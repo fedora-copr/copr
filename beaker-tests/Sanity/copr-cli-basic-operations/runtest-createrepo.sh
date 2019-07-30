@@ -30,11 +30,11 @@ rlJournalStart
         rlRun "dnf --disablerepo='*' \
             --enablerepo='copr:${URL}:group_copr:${NAME_VAR}Createrepo' \
             list available 2>&1 | grep 'Failed to synchronize'" 1
-
-        rlRun "copr-cli delete ${NAME_PREFIX}Createrepo"
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        rlRun "copr-cli delete ${NAME_PREFIX}Createrepo"
+        rlRun "dnf -y copr remove ${URL}/${NAME_PREFIX}Createrepo"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
