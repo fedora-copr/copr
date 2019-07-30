@@ -121,6 +121,8 @@ Requires: yum-utils
 %if 0%{?fedora}
 %latest_requires dnf
 %latest_requires dnf-plugins-core
+%latest_requires libdnf
+%latest_requires librepo
 %endif
 %latest_requires mock
 %latest_requires mock-core-configs
