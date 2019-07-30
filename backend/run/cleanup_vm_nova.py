@@ -3,6 +3,7 @@
 
 import os
 import sys
+import getpass
 import time
 import logging
 import argparse
@@ -131,6 +132,11 @@ class Cleaner(object):
           redis DB
         - when --kill-also-unused, we also terminate ready VMs
         """
+
+        if getpass.getuser() != 'copr':
+            log.error("This script needs to be executed as copr user")
+            sys.exit(1)
+
         start = time.time()
         log.info("Cleanup start")
 
