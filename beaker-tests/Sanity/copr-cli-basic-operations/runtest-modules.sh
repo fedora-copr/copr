@@ -87,7 +87,6 @@ rlJournalStart
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
         sed -i "s+https://copr.fedoraproject.org+$FRONTEND_URL+g" \
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
-        dnf -y install jq
     rlPhaseEnd
 
     rlPhaseStartTest

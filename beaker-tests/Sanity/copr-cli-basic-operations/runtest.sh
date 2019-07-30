@@ -47,7 +47,6 @@ rlJournalStart
         rlRun "copr-cli list"
         # and install... things
         yum -y install dnf dnf-plugins-core
-        dnf -y install jq
     rlPhaseEnd
 
     rlPhaseStartTest
