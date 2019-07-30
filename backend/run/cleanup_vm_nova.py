@@ -13,6 +13,9 @@ from dateutil.parser import parse as dt_parse
 import yaml
 from novaclient.client import Client
 
+# don't kill younger VMs than this (minutes)
+SPAWN_TIMEOUT = 10
+
 sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader
@@ -78,7 +81,7 @@ class Cleaner(object):
     def old_enough(srv):
         dt_created = dt_parse(srv.created)
         delta = (utc_now() - dt_created).total_seconds()
-        if delta > 60 * 5: # 5 minutes
+        if delta > 60 * SPAWN_TIMEOUT:
             log.debug("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
             return True
         return False
@@ -98,7 +101,8 @@ class Cleaner(object):
         """
         Terminate
         - errored VM's and
-        - VM's with uptime > 5 minutes and which don't have entry in redis DB
+        - VM's with uptime > SPAWN_TIMEOUT minutes and which don't have entry in
+          redis DB
         """
         start = time.time()
         log.info("Cleanup start")
