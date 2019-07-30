@@ -32,5 +32,6 @@ RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 
 RUN echo 'root:passwd' | chpasswd
 RUN echo 'export LANG=en_US.UTF-8' >> /root/.bashrc
+RUN echo 'set -g history-limit 40960' > /root/.tmux.conf
 
 CMD ["/usr/bin/sleep", "infinity"]
