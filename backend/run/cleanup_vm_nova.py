@@ -74,27 +74,28 @@ class Cleaner(object):
     def terminate(srv):
         try:
             srv.delete()
-        except Exception as err:
-            log.exception("failed to request VM termination: {}".format(err))
+        except Exception:
+            log.exception("failed to request VM termination")
 
     @staticmethod
     def old_enough(srv):
         dt_created = dt_parse(srv.created)
         delta = (utc_now() - dt_created).total_seconds()
         if delta > 60 * SPAWN_TIMEOUT:
-            log.debug("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
+            log.debug("Server '%s', created: %s, now: %s, delta: %s",
+                      srv.name, dt_created, utc_now(), delta)
             return True
         return False
 
     def check_one(self, srv_id, vms_names):
         srv = self.nt.servers.get(srv_id)
-        log.debug("checking vm '{}'".format(srv.name))
+        log.debug("checking vm '%s'", srv.name)
         srv.get()
         if srv.status.lower().strip() == "error":
-            log.info("vm '{}' got into the error state, terminating".format(srv.name))
+            log.info("vm '%s' got into the error state, terminating", srv.name)
             self.terminate(srv)
         elif self.old_enough(srv) and srv.human_id.lower() not in vms_names:
-            log.info("vm '{}' not placed in our db, terminating".format(srv.name))
+            log.info("vm '%s' not placed in our db, terminating", srv.name)
             self.terminate(srv)
 
     def main(self):
@@ -118,7 +119,7 @@ class Cleaner(object):
                 except Exception as exc:
                     log.exception(exc)
 
-        log.info("cleanup consumed: {} seconds".format(time.time() - start))
+        log.info("cleanup consumed: %s seconds", time.time() - start)
 
 
 if __name__ == "__main__":
