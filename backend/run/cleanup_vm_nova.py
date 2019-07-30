@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import logging
+import argparse
 
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -23,6 +24,7 @@ from backend.helpers import utc_now
 
 try:
     from backend.vm_manage.manager import VmManager
+    from backend.vm_manage import VmStates
 except ImportError:
     VmManager = None
 
@@ -42,6 +44,18 @@ log.addHandler(hstderr)
 nova_cloud_vars_path = os.environ.get("NOVA_CLOUD_VARS", "/home/copr/provision/nova_cloud_vars.yml")
 
 
+def get_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Delete all errored or copr-managed VMs from relevant "
+                    "OpenStack tenant",
+    )
+
+    parser.add_argument('--kill-also-unused', action='store_true',
+                        help='Delete also tracked, but unused VMs',
+                        default=False)
+    return parser
+
+
 def read_config():
     with open(nova_cloud_vars_path) as handle:
         conf = yaml.safe_load(handle.read())
@@ -56,12 +70,15 @@ def get_client(conf):
     return Client('2', username, password, tenant_name, auth_url)
 
 
-def get_managed_vms_names():
-    result = []
+def get_managed_vms():
+    result = {}
     if VmManager:
         opts = BackendConfigReader().read()
         vmm = VmManager(opts, log)
-        result.extend(vmd.vm_name.lower() for vmd in vmm.get_all_vm())
+        for vmd in vmm.get_all_vm():
+            result[vmd.vm_name.lower()] = {
+                'unused': vmd.state == VmStates.READY,
+            }
     return result
 
 
@@ -87,32 +104,44 @@ class Cleaner(object):
             return True
         return False
 
-    def check_one(self, srv_id, vms_names):
+    def check_one(self, srv_id, managed_vms, opts):
         srv = self.nt.servers.get(srv_id)
         log.debug("checking vm '%s'", srv.name)
         srv.get()
+
+        managed = managed_vms.get(srv.human_id.lower())
+
         if srv.status.lower().strip() == "error":
             log.info("vm '%s' got into the error state, terminating", srv.name)
             self.terminate(srv)
-        elif self.old_enough(srv) and srv.human_id.lower() not in vms_names:
-            log.info("vm '%s' not placed in our db, terminating", srv.name)
+        elif not managed:
+            if self.old_enough(srv): # give the spawner some time
+                log.info("vm '%s' not placed in our db, terminating", srv.name)
+                self.terminate(srv)
+        elif opts.kill_also_unused and managed['unused']:
+            log.info("terminating unused vm %s", srv.name)
             self.terminate(srv)
 
-    def main(self):
+
+    def main(self, opts):
         """
         Terminate
         - errored VM's and
         - VM's with uptime > SPAWN_TIMEOUT minutes and which don't have entry in
           redis DB
+        - when --kill-also-unused, we also terminate ready VMs
         """
         start = time.time()
         log.info("Cleanup start")
 
         self.nt = get_client(self.conf)
         srv_list = self.nt.servers.list(detailed=False)
-        vms_names = get_managed_vms_names()
+        managed_vms = get_managed_vms()
         with ThreadPoolExecutor(max_workers=20) as executor:
-            future_check = {executor.submit(self.check_one, srv.id, vms_names): srv.id for srv in srv_list}
+            future_check = {
+                executor.submit(self.check_one, srv.id, managed_vms, opts):
+                srv.id for srv in srv_list
+            }
             for future in as_completed(future_check):
                 try:
                     future.result()
@@ -124,4 +153,4 @@ class Cleaner(object):
 
 if __name__ == "__main__":
     cleaner = Cleaner(read_config())
-    cleaner.main()
+    cleaner.main(get_arg_parser().parse_args())
