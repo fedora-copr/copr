@@ -32,6 +32,7 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
+source "$HERE/helpers"
 
 
 function wait_for_finished_module()
@@ -203,11 +204,11 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete module-testmodule-beakertest-$DATE"
-        rlRun "copr-cli delete module-testmoduleurl-beakertest-$DATE"
-        rlRun "copr-cli delete module-test-macros-module-beakertest-$DATE"
-        rlRun "copr-cli delete $OWNER/TestModule$DATE$SUFFIX"
-        rlRun "copr-cli delete module-coprtestmodule-beakertest-$DATE"
+        cleanProject "module-testmodule-beakertest-$DATE"
+        cleanProject "module-testmoduleurl-beakertest-$DATE"
+        cleanProject "module-test-macros-module-beakertest-$DATE"
+        cleanProject "$OWNER/TestModule$DATE$SUFFIX"
+        cleanProject "module-coprtestmodule-beakertest-$DATE"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd

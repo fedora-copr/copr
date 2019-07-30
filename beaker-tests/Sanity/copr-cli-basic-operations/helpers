@@ -13,3 +13,29 @@ parse_build_id()
    test -n "$id" || return 1
    export BUILD_ID=$id
 }
+
+quote_args()
+{
+    quote_args_result=
+    __qa_space=
+    for __qa_arg; do
+        quote_args_result+=$__qa_space$(printf %q "$__qa_arg")
+        __qa_space=' '
+    done
+}
+
+cleanAction()
+{
+    quote_args "$@"
+
+    if $COPR_CLEANUP; then
+        rlRun "$quote_args_result"
+    else
+        rlLogInfo "Cleanup disabled, run manually: $quote_args_result"
+    fi
+}
+
+cleanProject()
+{
+    cleanAction copr-cli delete "$1"
+}

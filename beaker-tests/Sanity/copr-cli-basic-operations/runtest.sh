@@ -544,52 +544,51 @@ rlJournalStart
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT" 0
         rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT" 0
 
-        ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
-        # delete the projects
-        rlRun "copr-cli delete ${NAME_PREFIX}Project1"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project2"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project3"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project4"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project5"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project6"
-        rlRun "copr-cli delete ${NAME_PREFIX}DisableCreaterepoFalse"
-        rlRun "copr-cli delete ${NAME_PREFIX}DisableCreaterepoTrue"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project7"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project8"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project9"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project10"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project11"
-        rlRun "copr-cli delete ${NAME_PREFIX}Project12"
-        rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1370704"
-        rlRun "copr-cli delete ${NAME_PREFIX}ProjectDistGitBuilds"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
-        rlRun "copr-cli delete ${NAME_PREFIX}ModifyProjectChroots"
-        rlRun "copr-cli delete ${NAME_PREFIX}EditChrootProject"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteGroupBuild"
-        rlRun "copr-cli delete ${NAME_PREFIX}MockConfig"
-        rlRun "copr-cli delete ${NAME_PREFIX}MockConfigParent"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1444804"
-        rlRun "copr-cli delete ${NAME_PREFIX}BootstrapProject"
-        rlRun "copr-cli delete ${NAME_PREFIX}CoprDirTest"
-
-        # and make sure we haven't left any mess
-        rlRun "copr-cli list | grep $NAME_PREFIX" 1
-        ### left after this section: hello installed
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rm $TMP/TestDeleteGroupBuild_example_build_id.txt
-        rm $TMP/failed_example_build_id
-        rm $TMP/hello_p3.id
-        rm $TMP/hello_p3.out
-        rm $TMP/pubkey_fork.gpg
-        rm $TMP/pubkey_source.gpg
-        rm $TMP/succeeded_example_build_id
+        cleanProject "${NAME_PREFIX}Project1"
+        cleanProject "${NAME_PREFIX}Project2"
+        cleanProject "${NAME_PREFIX}Project3"
+        cleanProject "${NAME_PREFIX}Project4"
+        cleanProject "${NAME_PREFIX}Project5"
+        cleanProject "${NAME_PREFIX}Project6"
+        cleanProject "${NAME_PREFIX}DisableCreaterepoFalse"
+        cleanProject "${NAME_PREFIX}DisableCreaterepoTrue"
+        cleanProject "${NAME_PREFIX}Project7"
+        cleanProject "${NAME_PREFIX}Project8"
+        cleanProject "${NAME_PREFIX}Project9"
+        cleanProject "${NAME_PREFIX}Project10"
+        cleanProject "${NAME_PREFIX}Project10Fork"
+        cleanProject "${NAME_PREFIX}Project11"
+        cleanProject "${NAME_PREFIX}Project12"
+        cleanProject "${NAME_PREFIX}DownloadMockCfgs"
+        cleanProject "${NAME_PREFIX}TestBug1370704"
+        cleanProject "${NAME_PREFIX}ProjectDistGitBuilds"
+        cleanProject "${NAME_PREFIX}TestBug1393361-1"
+        cleanProject "${NAME_PREFIX}TestBug1393361-2"
+        cleanProject "${NAME_PREFIX}ModifyProjectChroots"
+        cleanProject "${NAME_PREFIX}EditChrootProject"
+        cleanProject "${NAME_PREFIX}TestDeleteGroupBuild"
+        cleanProject "${NAME_PREFIX}MockConfig"
+        cleanProject "${NAME_PREFIX}MockConfigParent"
+        cleanProject "${NAME_PREFIX}TestBug1444804"
+        cleanProject "${NAME_PREFIX}BootstrapProject"
+        cleanProject "${NAME_PREFIX}CoprDirTest"
+
+        # and make sure we haven't left any mess
+        rlRun "copr-cli list | grep $NAME_PREFIX" 1
+
+        ### left after this section: hello installed
+        cleanAction rm "$TMP"/TestDeleteGroupBuild_example_build_id.txt
+        cleanAction rm "$TMP"/failed_example_build_id
+        cleanAction rm "$TMP"/hello_p3.id
+        cleanAction rm "$TMP"/hello_p3.out
+        cleanAction rm "$TMP"/pubkey_fork.gpg
+        cleanAction rm "$TMP"/pubkey_source.gpg
+        cleanAction rm "$TMP"/succeeded_example_build_id
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
