@@ -12,6 +12,7 @@ from coprs.forms import PinnedCoprsForm
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, PinnedCoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.complex_logic import ComplexLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
@@ -167,3 +168,12 @@ class TestPinnedCoprsLogic(CoprsTestCase):
             form.copr_ids.data = ["1", "1"]
             assert not form.validate()
             assert "only once" in form.errors["coprs"][0]
+
+    def test_delete_project_that_is_pinned(self, f_users, f_coprs, f_db):
+        pc1 = models.PinnedCoprs(id=1, copr_id=self.c2.id, user_id=self.u2.id, position=1)
+        pc2 = models.PinnedCoprs(id=2, copr_id=self.c3.id, user_id=self.u2.id, position=2)
+        self.db.session.add_all([pc1, pc2])
+
+        ComplexLogic.delete_copr(self.c2, admin_action=True)
+        assert set(CoprsLogic.get_multiple_by_username(self.u2.name)) == {self.c3}
+        assert set(PinnedCoprsLogic.get_by_owner(self.u2)) == {pc2}

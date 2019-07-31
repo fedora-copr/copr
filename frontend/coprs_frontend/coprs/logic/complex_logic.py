@@ -16,7 +16,7 @@ from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
-from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic
+from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic, PinnedCoprsLogic
 
 
 class ComplexLogic(object):
@@ -48,6 +48,7 @@ class ComplexLogic(object):
         for build in builds_query:
             BuildsLogic.delete_build(user, build, send_delete_action=False)
 
+        PinnedCoprsLogic.delete_by_copr(copr)
         CoprsLogic.delete_unsafe(user, copr)
 
 

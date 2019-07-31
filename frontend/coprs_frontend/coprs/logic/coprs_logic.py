@@ -924,3 +924,9 @@ class PinnedCoprsLogic(object):
         if isinstance(owner, models.Group):
             return query.filter(models.PinnedCoprs.group_id == owner.id).delete()
         return query.filter(models.PinnedCoprs.user_id == owner.id).delete()
+
+    @classmethod
+    def delete_by_copr(cls, copr):
+        return (db.session.query(models.PinnedCoprs)
+                .filter(models.PinnedCoprs.copr_id == copr.id)
+                .delete())
