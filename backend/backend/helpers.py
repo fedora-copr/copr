@@ -278,6 +278,9 @@ class BackendConfigReader(object):
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 
+        opts.build_deleting_without_createrepo = _get_conf(
+                cp, "backend", "build_deleting_without_createrepo", "")
+
         # ssh options
         opts.ssh = Munch()
         opts.ssh.builder_config = _get_conf(

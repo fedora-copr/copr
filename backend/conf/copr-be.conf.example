@@ -85,6 +85,10 @@ prune_days=14
 #redis_port=6379
 #redis_db=0
 
+# Don't run createrepo after build delete action in those (space separate list)
+# projects.  Notify users before adding them here.
+#build_deleting_without_createrepo=user1/projectFoo @python/python3.8
+
 [builder]
 # default is 1800
 timeout=3600

@@ -255,6 +255,12 @@ class Action(object):
             result_base_url = "/".join(
                 [self.results_root_url, ownername, project_dirname, chroot])
 
+            project = "{}/{}".format(ownername, project_dirname)
+            if  project in self.opts.build_deleting_without_createrepo.split():
+                self.log.warning("createrepo takes too long in %s, skipped",
+                                 project)
+                return
+
             try:
                 createrepo(
                     path=chroot_path,
