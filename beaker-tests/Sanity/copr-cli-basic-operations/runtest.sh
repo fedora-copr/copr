@@ -47,6 +47,7 @@ rlJournalStart
         rlRun "copr-cli list"
         # and install... things
         yum -y install dnf dnf-plugins-core
+        TMP=`mktemp -d`
     rlPhaseEnd
 
     rlPhaseStartTest
@@ -115,7 +116,6 @@ rlJournalStart
 
         ## test build watching and deletion using Project3
         # build 1st package without waiting
-        TMP=`mktemp -d`
         rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 $HELLO > $TMP/hello_p3.out"
         rlRun "awk '/Created build/ { print \$3 }' $TMP/hello_p3.out > $TMP/hello_p3.id"
         # initial status should be in progress, e.g. pending/running
@@ -448,7 +448,6 @@ rlJournalStart
 
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10 $CHROOT"
         REPOFILE_SOURCE=${REPOFILE_BASE}Project10.repo
-        TMP=`mktemp -d`
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_source.gpg"
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O $TMP/pubkey_fork.gpg"
         rlRun "diff $TMP/pubkey_source.gpg $TMP/pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
@@ -581,14 +580,7 @@ rlJournalStart
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
 
-        ### left after this section: hello installed
-        cleanAction rm "$TMP"/TestDeleteGroupBuild_example_build_id.txt
-        cleanAction rm "$TMP"/failed_example_build_id
-        cleanAction rm "$TMP"/hello_p3.id
-        cleanAction rm "$TMP"/hello_p3.out
-        cleanAction rm "$TMP"/pubkey_fork.gpg
-        cleanAction rm "$TMP"/pubkey_source.gpg
-        cleanAction rm "$TMP"/succeeded_example_build_id
+        cleanAction rm -rf "$TMP"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
