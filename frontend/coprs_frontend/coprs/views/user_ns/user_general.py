@@ -37,7 +37,8 @@ def user_info_download():
 @user_ns.route("/delete")
 @login_required
 def delete_data():
-    UsersLogic.delete_user_data(flask.g.user.username)
+    UsersLogic.delete_user_data(flask.g.user)
+    db.session.commit()
     flask.flash("Your data were successfully deleted.")
     return render_user_info(flask.g.user)
 

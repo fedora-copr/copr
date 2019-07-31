@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from coprs import exceptions
 from flask import url_for
 
@@ -108,19 +109,17 @@ class UsersLogic(object):
             return False
 
     @classmethod
-    def delete_user_data(cls, fas_name):
-        query = update(User).where(User.username==fas_name).\
-            values(
-                timezone=None,
-                proven=False,
-                admin=False,
-                proxy=False,
-                api_login='',
-                api_token='',
-                api_token_expiration='1970-01-01',
-                openid_groups=None
-            )
-        db.engine.connect().execute(query)
+    def delete_user_data(cls, user):
+        null = {"timezone": None,
+                "proven": False,
+                "admin": False,
+                "proxy": False,
+                "api_login": "",
+                "api_token": "",
+                "api_token_expiration": date(1970, 1, 1),
+                "openid_groups": None}
+        for k, v in null.items():
+            setattr(user, k, v)
 
 
 class UserDataDumper(object):

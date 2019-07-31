@@ -1,7 +1,7 @@
 import json
 from coprs import app
-from coprs.logic.users_logic import UserDataDumper
-from tests.coprs_test_case import CoprsTestCase
+from coprs.logic.users_logic import UserDataDumper, UsersLogic
+from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 app.config["SERVER_NAME"] = "localhost"
@@ -55,3 +55,20 @@ class TestUserDataDumper(CoprsTestCase):
             data = json.loads(output)
             assert "username" in data
             assert "projects" in data
+
+
+class TestUserDelete(CoprsTestCase):
+
+    def test_delete_user_data(self, f_users, f_fas_groups, f_coprs, f_db):
+        UsersLogic.delete_user_data(self.u1)
+        self.db.session.commit()
+        user = UsersLogic.get(self.u1.username).one()
+        assert not user.admin
+        assert not user.api_login
+
+    @TransactionDecorator("u1")
+    def test_delete_data_view(self, f_users, f_fas_groups, f_coprs, f_db):
+        r = self.tc.get("/user/delete")
+        user = UsersLogic.get(self.u1.username).one()
+        assert not user.admin
+        assert not user.api_login
