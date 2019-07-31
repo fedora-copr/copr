@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.30
+Version: 0.31
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -207,6 +207,9 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Jul 31 2019 Pavel Raiskup <praiskup@redhat.com> 0.31-1
+- rpmbuild: make sure librepo/libdnf is always up2date
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 0.30-1
 - drop SCM parameters from copr-rpmbuild
 - implement --task-file and --task-url parameters (issue#517)
