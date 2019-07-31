@@ -6,6 +6,7 @@ packages = [
     'copr-dist-git',
     'copr-frontend',
     'copr-keygen',
+    'copr-messaging',
     'copr-rpmbuild',
     'python-copr',
     'python-copr-common',
