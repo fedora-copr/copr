@@ -1302,9 +1302,10 @@ class BuildChroot(db.Model, helpers.Serializer):
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey("mock_chroot.id"),
                                primary_key=True)
     mock_chroot = db.relationship("MockChroot", backref=db.backref("builds"))
-    build_id = db.Column(db.Integer, db.ForeignKey("build.id"),
+    build_id = db.Column(db.Integer, db.ForeignKey("build.id", ondelete="CASCADE"),
                          primary_key=True)
-    build = db.relationship("Build", backref=db.backref("build_chroots"))
+    build = db.relationship("Build", backref=db.backref("build_chroots", cascade="all, delete-orphan",
+                                                        passive_deletes=True))
     git_hash = db.Column(db.String(40))
     status = db.Column(db.Integer, default=StatusEnum("waiting"))
 
