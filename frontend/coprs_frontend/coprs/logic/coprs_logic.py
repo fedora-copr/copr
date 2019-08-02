@@ -5,7 +5,7 @@ import datetime
 from sqlalchemy import and_
 from sqlalchemy.sql import func
 from sqlalchemy import asc, desc
-from sqlalchemy.event import listen
+from sqlalchemy.event import listens_for
 from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
@@ -552,6 +552,7 @@ class CoprDirsLogic(object):
             db.session.delete(copr_dir)
 
 
+@listens_for(models.Copr.auto_createrepo, 'set')
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     """ Emit createrepo action when auto_createrepo re-enabled"""
     if old_value_acr == NEVER_SET:
@@ -560,10 +561,6 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     if not old_value_acr and value_acr:
         #  re-enabled
         ActionsLogic.send_createrepo(target_copr)
-
-
-listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,
-       active_history=True, retval=False)
 
 
 class BranchesLogic(object):
