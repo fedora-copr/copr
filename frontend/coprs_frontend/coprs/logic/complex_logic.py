@@ -19,6 +19,13 @@ from coprs.models import User, Copr
 from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic, PinnedCoprsLogic
 
 
+@sqlalchemy.event.listens_for(models.Copr.deleted, "set")
+def unpin_projects_on_delete(copr, deleted, oldvalue, event):
+    if not deleted:
+        return
+    PinnedCoprsLogic.delete_by_copr(copr)
+
+
 class ComplexLogic(object):
     """
     Used for manipulation which affects multiply models
@@ -48,7 +55,6 @@ class ComplexLogic(object):
         for build in builds_query:
             BuildsLogic.delete_build(user, build, send_delete_action=False)
 
-        PinnedCoprsLogic.delete_by_copr(copr)
         CoprsLogic.delete_unsafe(user, copr)
 
 
