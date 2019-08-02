@@ -67,6 +67,7 @@
             {% else %}
                 {{ build.min_started_on|localized_time("UTC") }}
             {% endif %}
+            ({{ build.min_started_on|time_ago }} ago)
           </dd>
           <dt> Finished: </dt>
           <dd>
@@ -75,6 +76,7 @@
             {% else %}
                 {{ build.max_ended_on|localized_time("UTC") }}
             {% endif %}
+            ({{ build.max_ended_on|time_ago }} ago)
           </dd>
           <dt> Build time: </dt>
           <dd>
