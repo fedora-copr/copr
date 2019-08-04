@@ -330,10 +330,11 @@ usermod -L copr-fe
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
-%config %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
-%config %attr(0755, root, root) %{_sysconfdir}/cron.daily/copr-frontend
-%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend-optional
-%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.daily/copr-frontend-optional
+%defattr(-, root, root, -)
+%config %{_sysconfdir}/cron.hourly/copr-frontend
+%config %{_sysconfdir}/cron.daily/copr-frontend
+%config(noreplace) %{_sysconfdir}/cron.hourly/copr-frontend-optional
+%config(noreplace) %{_sysconfdir}/cron.daily/copr-frontend-optional
 %{_libexecdir}/copr_dump_db.sh
 %exclude_files flavor
 %exclude_files devel
