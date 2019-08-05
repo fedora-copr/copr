@@ -60,12 +60,12 @@ def message_from_worker_job(style, topic, job, who, ip, pid):
             'chroot.start': {
                 'what': "chroot start: chroot:{chroot} user:{user}" \
                         " copr:{copr} pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
-                'class': schema.BuildChrootEndedV1,
+                'class': schema.BuildChrootStartedV1DontUse,
             },
             'build.end': {
                 'what': "build end: user:{user} copr:{copr} build:{build}" \
                         " pkg:{pkg} version:{version} ip:{ip} pid:{pid} status:{status}",
-                'class': schema.BuildChrootStartedV1DontUse,
+                'class': schema.BuildChrootEndedV1,
             },
         }
 
