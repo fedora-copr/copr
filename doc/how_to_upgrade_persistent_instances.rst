@@ -67,9 +67,6 @@ Backup the old instance by renaming it::
     openstack server set --name copr-dist-git-dev_backup "85260b5b-7f61-4398-8d05-xxxxxxxxxxxx"
 
 
-.. warning:: You might need to backup also letsencrypt certificates.
-             See `Letsencrypt renewal limits`_.
-
 .. warning:: backend - You have to terminate existing resalloc resources.
              See `Terminate resalloc resources`_.
 
@@ -149,33 +146,6 @@ of an instance in OpenStack hangs and waits for entropy. It seems that it can't 
 properly, so we need to work around by going to `OpenStack instances dashboard`_, opening
 the instance details, switching to the ``Console`` tab and typing random characters in it.
 It resumes the booting process.
-
-
-Letsencrypt renewal limits
-..........................
-
-Currently, we renew our Let's Encrypt certificates on a daily basis through ``certbot-renew.timer``
-service. However, Let's Encrypt website provides at maximum five certificates a week (think of
-a week as a 7-day floating window, instead of a calendar week) per a domain. As a consequence,
-it may happen, that our new instance won't be able to obtain a certificate for two days,
-with no way to bypass it. Don't let this happen on production instances!
-
-There are two possible options for dealing with this situation at the moment. Either disable
-``certbot-renew.timer`` at least two days ahead of upgrading an instance or backup its
-current certificates and copy them to the upgraded instance::
-
-    [root@copr-be-dev ~][STG]# tar zcvf /tmp/copr-be-dev-letsencrypt.tar.gz /etc/letsencrypt
-    $ scp root@copr-be-dev.cloud.fedoraproject.org:/tmp/copr-be-dev-letsencrypt.tar.gz /tmp/
-
-Once a new instance is provisioned and unable to obtain certificates from the letsencrypt
-site, copy them from backup::
-
-    $ scp /tmp/copr-be-dev-letsencrypt.tar.gz root@copr-be-dev.cloud.fedoraproject.org:/tmp
-    [root@copr-be-dev ~][STG]# tar zxvf /tmp/copr-be-dev-letsencrypt.tar.gz -C /
-
-Remove the backup from your computer, it contains secret files::
-
-    $ rm /tmp/copr-be-dev-letsencrypt.tar.gz
 
 
 Private IP addresses
