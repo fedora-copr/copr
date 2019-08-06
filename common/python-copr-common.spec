@@ -15,7 +15,7 @@
 
 Name:       python-copr-common
 Version:    0.5
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
@@ -104,6 +104,9 @@ version=%version %py2_install
 
 
 %changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Mon Feb 11 2019 Jakub Kadlčík <frostyx@email.cz> 0.5-1
 - Add splitFilename function
 
