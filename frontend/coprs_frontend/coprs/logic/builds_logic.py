@@ -1055,9 +1055,6 @@ ORDER BY
         if send_delete_action:
             ActionsLogic.send_delete_build(build)
 
-        for build_chroot in build.build_chroots:
-            db.session.delete(build_chroot)
-
         db.session.delete(build)
 
     @classmethod
