@@ -561,7 +561,7 @@ class CoprDir(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     name = db.Column(db.Text, index=True)
-    main = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
+    main = db.Column(db.Boolean, index=True, default=False, server_default="0", nullable=False)
 
     ownername = db.Column(db.Text, index=True, nullable=False)
 

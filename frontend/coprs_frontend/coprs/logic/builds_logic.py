@@ -1238,6 +1238,7 @@ class BuildsMonitorLogic(object):
 	  AND build_chroot.build_id = max_build_ids_for_a_chroot.max_build_id_for_chroot
 	JOIN mock_chroot
 	  ON mock_chroot.id = max_build_ids_for_a_chroot.mock_chroot_id
+	JOIN copr_dir ON build.copr_dir_id=copr_dir.id WHERE copr_dir.main IS TRUE
 	ORDER BY package.name ASC, package.id ASC, mock_chroot.os_release ASC, mock_chroot.os_version ASC, mock_chroot.arch ASC
 	""".format(copr_id=copr.id)
         rows = db.session.execute(query)
