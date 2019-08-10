@@ -104,10 +104,14 @@ Requires: python2-six >= 1.9.0
 
 %description -n python2-copr %_description
 %endif
+# with python2
 
 %if %{with python3}
 %package -n python3-copr
 Summary:        Python interface for Copr
+
+# for recent fedoras the requires are generated dynamicaly
+%if 0%{?fedora} && 0%{?fedora} < 31 || 0%{?rhel} && 0%{?rhel} <= 8
 
 BuildRequires: python3-devel
 BuildRequires: python3-docutils
@@ -127,8 +131,19 @@ Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-setuptools
 Requires: python3-six
+%endif
 
 %{?python_provide:%python_provide python3-copr}
+
+%if 0%{?fedora} > 30
+BuildRequires: pyproject-rpm-macros
+BuildRequires: python3-sphinx
+BuildRequires: python3-pytest
+BuildRequires: python3-mock
+
+%generate_buildrequires
+%pyproject_buildrequires -r
+%endif
 
 %description -n python3-copr
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -138,6 +153,7 @@ This package contains python interface to access Copr service. Mostly useful
 for developers only.
 
 %endif
+# with python3
 
 
 %package -n python-copr-doc
@@ -158,6 +174,7 @@ developers only.
 rm -rf %{py3dir}
 cp -a . %{py3dir}
 %endif
+# with python3
 
 %build
 %if %{with python3}
@@ -204,6 +221,7 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc README.rst
 %{python3_sitelib}/*
 %endif
+# with python3
 
 %if %{with python2}
 %files -n python2-copr
@@ -211,6 +229,7 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc README.rst
 %{python2_sitelib}/*
 %endif
+# with python2
 
 %files -n python-copr-doc
 %license LICENSE
