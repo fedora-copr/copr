@@ -664,7 +664,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
             {% else %}
               <td data-order="{{ build_chroot.started_on }}">{{ build_chroot.started_on | time_ago }}</td>
             {% endif %}
-              <td data-order="{{ build_chroot.copr }}">
+              <td data-order="{{ copr_name(build_chroot.copr) }}">
                 <a href="{{ copr_details_href(build_chroot.copr) }}">
                   {{ copr_name(build_chroot.copr) }}
                 </a>
