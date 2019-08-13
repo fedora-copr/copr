@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.80
+Version:    1.81
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
+* Tue Aug 13 2019 Pavel Raiskup <praiskup@redhat.com> 1.81-1
+- cli: pypi package needs to depend on 'humanize'
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.80-1
 - drop pylint from BR
 - use humanize instead of format_size(); fix issue#724
