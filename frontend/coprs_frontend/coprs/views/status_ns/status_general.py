@@ -15,20 +15,20 @@ def inject_common_blueprint_variables():
 @status_ns.route("/")
 @status_ns.route("/pending/")
 def pending():
-    tasks = builds_logic.BuildsLogic.get_pending_build_tasks(background=False).limit(300).all()
+    tasks = builds_logic.BuildsLogic.get_pending_build_tasks(background=False).all()
     bg_tasks_cnt = builds_logic.BuildsLogic.get_pending_build_tasks(background=True).count()
     return render_status("pending", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
 @status_ns.route("/running/")
 def running():
-    tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).limit(300).all()
+    tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).all()
     return render_status("running", tasks=tasks)
 
 
 @status_ns.route("/importing/")
 def importing():
-    tasks = builds_logic.BuildsLogic.get_build_importing_queue(background=False).limit(300).all()
+    tasks = builds_logic.BuildsLogic.get_build_importing_queue(background=False).all()
     bg_tasks_cnt = builds_logic.BuildsLogic.get_build_importing_queue(background=True).count()
     return render_status("importing", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
