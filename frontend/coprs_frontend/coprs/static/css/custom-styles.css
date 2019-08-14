@@ -38,3 +38,13 @@ span.padding {
 input.short-input-field {
     width: 6em;
 }
+
+.table_footer {
+	padding: 7px 0 0 0;
+	background: #f5f5f5;
+	margin: 0;
+	min-width: 54rem;
+	border-left: 1px #d1d1d1 solid;
+	border-right: 1px #d1d1d1 solid;
+	border-bottom: 1px #d1d1d1 solid;
+} 

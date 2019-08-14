@@ -627,7 +627,20 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   // Initialize Datatables
   $(document).ready(function() {
     $('.datatable').dataTable({
-      "order": [[ 0, "{{ order }}" ]]
+      "order": [[ 0, '{{ order }}' ]],
+      "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, 'All']], 
+      dom:
+        "<'dataTables_header'<'dataTables_filter'f><'dataTables_info'i>>" +
+			  "<'row'<'col-sm-12'tr>>" +
+        "<'row table_footer'<'col-sm-6 dataTables_length'l><'col-sm-6 dataTables_info'p>>" 
+    });
+
+    $('[name="DataTables_Table_0_length"]').change(function() {
+      if (this.value == -1) {
+        $("#DataTables_Table_0_paginate").hide();
+      } else {
+        $("#DataTables_Table_0_paginate").show();
+      }
     });
   });
   </script>
