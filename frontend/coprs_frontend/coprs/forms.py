@@ -1042,7 +1042,7 @@ class CoprModifyForm(FlaskForm):
     chroots = wtforms.TextAreaField('Chroots',
                                     validators=[wtforms.validators.Optional(), ChrootsValidator()])
 
-    repos = wtforms.TextAreaField('Repos',
+    repos = wtforms.TextAreaField('External Repositories',
                                   validators=[UrlRepoListValidator(),
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
