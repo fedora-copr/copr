@@ -19,6 +19,7 @@ Requirements
 * and ``python3-openstackclient`` package installed
 * ssh access to the main aarch64 hypervisor
   ``copr@virthost-aarch64-os01.fedorainfracloud.org``
+* ssh access to ``batcave01.phx2.fedoraproject.org``, and sudo access there
 
 
 Find source images
@@ -79,103 +80,64 @@ the VMs won't wait indefinitely for random seed.
 Prepare VM for snapshot
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Open a ssh connection to ``copr-be-dev.cloud.fedoraproject.org`` and edit the
-``/home/copr/provision/builderpb_nova.yml`` playbook (resp.
-``/home/copr/provision/builderpb_nova_ppc64le.yml`` for ppc64le variant).  There
-is the following part
+Open a ssh connection to ``copr-be-dev.cloud.fedoraproject.org`` and run::
 
-.. _prepare_base_image:
+    # su - copr
+    $ copr-builder-image-prepare-os.sh x86_64 # or ppc64le
+    ... snip ...
+    TASK [disable offloading] *****************************************************
+    Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
+    changed: [172.25.150.72]
+    ... snip ....
 
-::
+It can fail (for various reasons, missing packages, changes in Fedora, etc.).
+But after running the script, you will get an IP address of a spawned builder.
+You can ssh into that builder, make changes and try to debug.  Then, knowing
+where the problem is - fix the following playbook files::
 
-    vars:
-      # pass this options if you need to create new base image from snapshot
-      prepare_base_image: False
+    /home/copr/provision/provision_builder_tasks.yml
+    /home/copr/provision/builderpb_nova.yml
+    /home/copr/provision/builderpb_nova_ppc64le.yml
 
-Set the ``prepare_base_image`` variable to ``True``. In the same file, there is also a section that looks like this
+Repeat the fixing of playbooks till the script finishes properly::
 
-.. _image_name:
+    $ copr-builder-image-prepare-os.sh x86_64
+    ... see the output instructions ...
+    TASK [disable offloading] *****************************************************
+    Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
+    changed: [172.25.150.72]
+    ... snip ....
+    Request to stop server Copr_builder_20901443 has been accepted.
+    Please go to https://fedorainfracloud.org/ page, log-in and find the instance
 
-::
+        Copr_builder_20901443
 
-    vars:
-      ...
-      image_name: "Fedora-Cloud-Base-26_Beta-1.4.x86_64"
+    Check that it is in SHUTOFF state.  Create a snapshot from that instance, name
+    it "copr-builder-x86_64-f30-20190814_133128".  Once snapshot is saved, run:
 
-Update the image name to the one that in the first step you decided to use. Now, run the playbook as the ``copr`` user and see what happens. It is also a good idea to temporarily stop the ``copr-backend``.
+        $ copr-builder-image-fixup-snapshot-os.sh copr-builder-x86_64-f30-20190814_133128
 
-::
+    And continue with
+    https://docs.pagure.org/copr.copr/how_to_upgrade_builders.html#how-to-upgrade-builders
 
-    systemctl stop copr-backend
-    su copr
-    ansible-playbook /home/copr/provision/builderpb_nova.yml
-
-It can likely fail (for various reasons, missing packages, changes in Fedora,
-etc.).  Continue to next paragraph to see how to solve this problem.
-
-After running the ``builderpb_nova.yml`` playbook, you will get an IP address of
-a spawned builder.  You can ssh into that builder, make changes and then create
-a snapshot (i.e. image) from that builder.  To fix the previous issue with
-missing python package, run
-
-::
-
-    [copr@copr-be-dev ~][STG]$ ssh fedora@172.XX.XXX.XXX
-    [fedora@172.XX.XXX.XXX ~]$ sudo dnf install python
-
-
-Creating a snapshot
-^^^^^^^^^^^^^^^^^^^
-
-Open the `OpenStack instances dashboard`_.  Make sure that your "Current
-Project" is the project that you expect (``coprdev``).  There are many instances
-so how can you be a hundred percent sure which one you modified?  Use the IP
-address as an identifier.
-
-Optionally, click on ``More -> Shut Off Instance`` for that instance (sometimes
-it happens that OpenStack doesn't allow us to create snapshot from running
-instance).
-
-Click on ``More -> Create Snapshot`` for that instance.
-
-Set snapshot name to something like ``copr-builder-x86_64-f27``. It can be a little tricky though. When you are not creating a first snapshot for the particular release, there might be an older snapshot with the same name, because the names don't have to be unique. You need to delete the older one.
-
-In addition, make sure to make the snapshot Public, so we can use it also for production servers and Protected, so other people can't delete it.
-
-Configure also the snapshot image to use emulated "hardware" random generator
-(otherwise with our OpenStack and new guest kernels the boot would take insanely
-long on gathering entropy):
-
-::
-
-    $ openstack image set --property hw_rng_model=virtio <THE_SNAPSHOT_UUID>
-
-
-Edit the ``builderpb_nova.yml`` playbook as you did in the :ref:`previous section <image_name>` and set the new image name. Now run the playbook again
-
-::
-
-    [copr@copr-be-dev ~][STG]$ ansible-playbook /home/copr/provision/builderpb_nova.yml
-
-Iterate this process until it ends successfully.
-
+Once done, continue with the manual steps from the instructions on the
+command-line output (create image snapshot and run the
+``copr-builder-image-fixup-snapshot-os.sh`` script).   Those manual steps could be done
+automatically, but `Fedora Infra OpenStack`_ refuses snapshot API requests for
+some reason.
 
 
 Finishing up OpenStack images
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder.
-We learned how to do that in the previous section. Then set the :ref:`prepare_base_image <prepare_base_image>`
-back to ``False``.
+Since you have a new image name(s) which can be used on builders, you can
+configure ``copr_builder_images`` option in
+``/home/copr/provision/nova_cloud_vars.yml`` variable file.  Since now, the
+**development** backend should spawn from new image.  You can try to kill all
+the old builders, and check the spawner log what is happening::
 
-Throw away the builders that the backend is currently using and let it load new ones from the new image.
-
-::
-
-    [copr@copr-be-dev ~][STG]$ redis-cli
-    127.0.0.1:6379> FLUSHALL
-    [copr@copr-be-dev ~][STG]$ /home/copr/cleanup_vm_nova.py
-    [copr@copr-be-dev ~][STG]$ copr-backend-service start
+    [copr@copr-be-dev ~][STG]$ cleanup_vm_nova.py --kill-also-unused
+    [copr@copr-be-dev ~][STG]$  tail -f /var/log/copr-backend/spawner.log
 
 Try to build some packages and you are done.
 
@@ -186,21 +148,22 @@ Prepare libvirt source images
 (aarch64 architecture only)
 
 We can not prepare the image locally (on x86 laptops), so we have to create it
-on some remote aarch64 box.  Since we have two aarch64 hypervisors for Copr now,
-so we'll work with one of them.  But since the aarch64 hypervisors are
-configured so they are using all the availalbe resources (namely disks), we have
-to have some VMs shut down first to have some space (note the ``_dev`` keyword,
-we are not deleting production builders in this step):
+on some remote aarch64 box.  We have currently two aarch64 hypervisors available
+for Copr project purposes, and we'll use one of them.
 
-::
+The problem is that both the aarch64 hypervisors are configured so they are
+using all the availalbe resources (namely storage), we have to kill some
+pre-existing VMs first to have some space (note the ``_dev`` keyword, we are not
+deleting production builders in this step!)::
 
     $ ssh root@copr-be-dev.cloud.fedoraproject.org
-    # set 'aarch64_01_dev.max' option to 0 to disable spawner on hypervisor 1
 
+    # set 'aarch64_01_dev.max' option to 0 to disable spawner on hypervisor 1
     [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
 
     # and terminate all already running resources there;  if there are some
     # STARTING instances, please wait till they are not UP
+    [root@copr-be-dev ~][STG]# su - resalloc
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
     138 - aarch64_01_dev_00000138_20190613_051611 pool=aarch64_01_dev tags=aarch64 status=UP
     140 - aarch64_01_dev_00000140_20190613_051613 pool=aarch64_01_dev tags=aarch64 status=UP
@@ -210,7 +173,7 @@ we are not deleting production builders in this step):
     # check that all are deleted (no output)
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
 
-Now start the work on the aarch64 box:
+Now begin the work on the aarch64 box:
 
 ::
 
@@ -234,9 +197,8 @@ Download the image, and prepare it for upload
     + cp /tmp/Fedora-Cloud-Base-30-1.2.aarch64.qcow2 /tmp/newdisk.qcow2
     ...
 
-Upload the image to libvirt instances:
-
-::
+This can fail, if so, please fix the script, and re-run.  Once done, upload the
+image to libvirt instances (both hypervisors)::
 
     [copr@virthost-aarch64-os01 vm-manage][PROD]$ ./upload-disk /tmp/newdisk.qcow2
     ...
@@ -244,15 +206,12 @@ Upload the image to libvirt instances:
     ...
     uploaded images copr-builder-20190614_123554
 
-Test that the image spawns correctly:
-
-::
+Test that the image spawns correctly::
 
     $ ssh root@copr-be-dev.cloud.fedoraproject.org
     Last login: Fri Jun 14 12:16:48 2019 from 77.92.220.242
 
-    # temporarily use different image, set the option:
-    # img_volume = 'copr-builder-20190614_123554'
+    # use a different image, set the "img_volume = 'copr-builder-20190614_123554'"
     [root@copr-be-dev ~][PROD]# vim /var/lib/resallocserver/resalloc_provision/vm-aarch64-new
 
     # re-enable spawner, set 'aarch64_01_dev.max' option to 2
@@ -277,54 +236,44 @@ Test that the image spawns correctly:
 
 If the log doesn't look good, you'll have to start over again (perhaps fix
 spawner playbooks, or the ``prepare-disk`` script).  But if you see the VM IP
-address, you are mostly done:
-
-::
+address, you are mostly done::
 
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
     145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
 
-Reset the temporary image back to ``img_volume=copr-builder``:
 
-::
+Testing
+-------
 
-    [resalloc@copr-be-dev ~][STG]$ exit
-    [root@copr-be-dev ~][PROD]# vim /var/lib/resallocserver/resalloc_provision/vm-aarch64-new
+If the images for all supported architectures are updated (according to previous
+sections), the `staging copr instance`_ is basically ready for testing.  Update
+the `Ansible git repo`_ for all the changes in playbooks above, and also update
+the ``copr_builder_images`` option in ``inventory/group_vars/copr_back_dev`` so
+it points to correct image names.  Once the changes are pushed upstream, you
+should re-provision the backend configuration from batcave::
 
-Swap the image-names in hypervisors:
+    $ ssh batcave01.phx2.fedoraproject.org
+    $ sudo rbac-playbook \
+        -l copr-be-dev.cloud.fedoraproject.org groups/copr-backend.yml \
+        -t provision_config
 
-::
-
-    $ ssh copr@virthost-aarch64-os01.fedorainfracloud.org
-    [copr@virthost-aarch64-os01 ~][PROD]$ cd ~/vm-manage
-
-    [copr@virthost-aarch64-os01 ~][PROD]$ ./promote-disk copr-builder-20190614_123554
-    ...
-    copr-builder == copr-builder-20190614_123554 now
-
-Done.  You can still kill all VMs by ``resalloc-maint resource-delete ...``, but
-if you are not in hurry - old VMs will slowly get terminated - and all the new
-VMs will be started from the freshly updated ``copr-builder`` image.
+You might well want to stop here for now, and try to test for a week or so that
+the devel instance behaves sanely.  If not, consider running
+:ref:`sanity_tests` (or at least try to build several packages there).
 
 
 Production
 ----------
 
 There is a substantially less work for production instance. You just need to
-edit this playbook (and only for x86_64 and ppc64le images)
+equivalently update the production configuration file
+``./inventory/group_vars/copr_back``, so the ``copr_builder_images`` config
+points to the same image names as development instance does.  And re-run
+playbook from batcave::
 
-https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/copr/backend/files/provision/builderpb_nova.yml
-
-and update the `image_name` variable to the name of our new snapshot (e.g. copr-builder-x86_64-f27).
-Then you need to commit the change and push it to the repository. If you don't have a write permission for it, then
-ask someone who does.
-
-Once the change is pushed, you need to re-provision the backend instance or ask someone to do it:
-
-::
-
-    rbac-playbook groups/copr-backend.yml -t provision_config
-
+    $ sudo rbac-playbook \
+        -l copr-be.cloud.fedoraproject.org groups/copr-backend.yml \
+        -t provision_config
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
@@ -333,3 +282,5 @@ Once the change is pushed, you need to re-provision the backend instance or ask 
 .. _`Koji compose directory listing`: https://kojipkgs.fedoraproject.org/compose/cloud/
 .. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
 .. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
+.. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
+.. _`staging copr instance`: https://copr-fe-dev.cloud.fedoraproject.org
