@@ -8,20 +8,30 @@ services:
     command: /bin/run.sh
     depends_on:
       - redis
+      - backend_httpd
     stdin_open: true
     tty: true
     privileged: true
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
-    ports:
-      - "5002:5002"
     volumes:
       - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
 
   redis:
     image: centos/redis-32-centos7
     hostname: redis
+
+  backend_httpd:
+    build:
+      context: .
+      dockerfile: docker/backend_httpd/Dockerfile
+    hostname: backend_httpd
+    ports:
+      - "5002:5002"
+    volumes:
+      - results:/var/lib/copr/public_html/results
 
   builder:
     build:
@@ -79,3 +89,6 @@ services:
       - "5001:80"
     volumes:
       - .:/opt/copr:z
+
+volumes:
+  results:
