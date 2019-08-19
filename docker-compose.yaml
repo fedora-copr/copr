@@ -6,6 +6,8 @@ services:
       dockerfile: docker/backend/Dockerfile
     hostname: backend
     command: /bin/run.sh
+    depends_on:
+      - redis
     stdin_open: true
     tty: true
     privileged: true
@@ -16,6 +18,10 @@ services:
       - "5002:5002"
     volumes:
       - .:/opt/copr:z
+
+  redis:
+    image: centos/redis-32-centos7
+    hostname: redis
 
   builder:
     build:
@@ -40,6 +46,7 @@ services:
     command: /bin/run.sh
     depends_on:
       - database
+      - redis
     links:
       - database
     stdin_open: true
