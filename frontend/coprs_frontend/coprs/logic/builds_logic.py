@@ -1044,7 +1044,7 @@ ORDER BY
                 chroot.ended_on = time.time()
 
     @classmethod
-    def delete_build(cls, user, build, send_delete_action=True):
+    def check_build_to_delete(cls, user, build):
         """
         :type user: models.User
         :type build: models.Build
@@ -1058,10 +1058,38 @@ ORDER BY
                 "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
 
+    @classmethod
+    def delete_build(cls, user, build, send_delete_action=True):
+        """
+        :type user: models.User
+        :type build: models.Build
+        """
+        cls.check_build_to_delete(user, build)
+
         if send_delete_action:
             ActionsLogic.send_delete_build(build)
 
         db.session.delete(build)
+
+    @classmethod
+    def delete_multiple_builds(cls, user, builds):
+        """
+        :type user: models.User
+        :type builds: list of models.Build
+        """
+        to_delete = []
+        for build in builds:
+            cls.check_build_to_delete(user, build)
+            to_delete.append(build)
+
+        if to_delete:
+            ActionsLogic.send_delete_multiple_builds(to_delete)
+
+        for build in to_delete:
+            for build_chroot in build.build_chroots:
+                db.session.delete(build_chroot)
+
+            db.session.delete(build)
 
     @classmethod
     def mark_as_failed(cls, build_id):

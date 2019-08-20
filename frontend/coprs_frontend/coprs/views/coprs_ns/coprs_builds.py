@@ -476,12 +476,12 @@ def copr_delete_build(username, coprname, build_id):
 def copr_delete_builds(copr):
     build_ids = flask.request.form.getlist("build_ids[]")
 
+    to_delete = []
     for build_id in build_ids:
         build = ComplexLogic.get_build_safe(build_id)
-        try:
-            builds_logic.BuildsLogic.delete_build(flask.g.user, build)
-        except (InsufficientRightsException, ActionInProgressException) as e:
-            flask.flash(str(e), "error")
+        to_delete.append(build)
+
+    builds_logic.BuildsLogic.delete_multiple_builds(flask.g.user, to_delete)
 
     db.session.commit()
     build_ids_str = ", ".join(build_ids).strip(", ")

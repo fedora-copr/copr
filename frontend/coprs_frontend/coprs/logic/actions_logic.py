@@ -99,32 +99,70 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_delete_build(cls, build):
+    def get_chroot_builddirs(cls, build):
         """
-        Schedules build delete action
-        :type build: models.Build
+        Creates a dictionary of chroot builddirs for build delete action
+        :type build: models.build
         """
         chroot_builddirs = {'srpm-builds': build.result_dir}
 
         for build_chroot in build.build_chroots:
             chroot_builddirs[build_chroot.name] = build_chroot.result_dir
 
-        data_dict = {
+        return chroot_builddirs
+
+    @classmethod
+    def get_build_delete_data(cls, build):
+        """
+        Creates data needed for build delete action
+        :type build: models.build
+        """
+        data = {
             "ownername": build.copr.owner_name,
             "projectname": build.copr_name,
-            "chroot_builddirs": chroot_builddirs,
         }
 
         if build.copr_dir:
-            data_dict["project_dirname"] = build.copr_dirname
+            data["project_dirname"] = build.copr_dirname
         else:
-            data_dict["project_dirname"] = build.copr_name
+            data["project_dirname"] = build.copr_name
+
+        return data
+
+    @classmethod
+    def send_delete_build(cls, build):
+        """
+        Schedules build delete action
+        :type build: models.Build
+        """
+        data = cls.get_build_delete_data(build)
+        data["chroot_builddirs"] = cls.get_chroot_builddirs(build)
 
         action = models.Action(
             action_type=ActionTypeEnum("delete"),
             object_type="build",
             object_id=build.id,
-            data=json.dumps(data_dict),
+            data=json.dumps(data),
+            created_on=int(time.time())
+        )
+        db.session.add(action)
+
+    @classmethod
+    def send_delete_multiple_builds(cls, builds):
+        """
+        Schedules builds delete action for builds belonging to the same project
+        :type build: list of models.Build
+        """
+        data = cls.get_build_delete_data(builds[0])
+        data["builds"] = []
+        for build in builds:
+            chroot_builddirs = cls.get_chroot_builddirs(build)
+            data["builds"].append(chroot_builddirs)
+
+        action = models.Action(
+            action_type=ActionTypeEnum("delete"),
+            object_type="builds",
+            data=json.dumps(data),
             created_on=int(time.time())
         )
         db.session.add(action)

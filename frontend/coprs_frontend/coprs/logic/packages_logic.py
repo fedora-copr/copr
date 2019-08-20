@@ -227,9 +227,11 @@ WHERE package.copr_dir_id = :copr_dir_id;
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete package `{}`.".format(package.id))
 
+        to_delete = []
         for build in package.builds:
-            builds_logic.BuildsLogic.delete_build(user, build)
+            to_delete.append(build)
 
+        builds_logic.BuildsLogic.delete_multiple_builds(user, to_delete)
         db.session.delete(package)
 
 

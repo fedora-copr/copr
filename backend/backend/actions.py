@@ -225,15 +225,36 @@ class Action(object):
                                    remote_comps_url, local_comps_path)
                 result.result = ActionResult.FAILURE
 
-    def handle_delete_build(self):
-        self.log.info("Action delete build.")
+    def run_createrepo(self, ownername, projectname, project_dirname, chroots):
+        for chroot in chroots:
+            chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
+            self.log.debug("Running createrepo on %s", chroot_path)
+            result_base_url = "/".join(
+                [self.results_root_url, ownername, project_dirname, chroot])
 
-        ext_data = json.loads(self.data["data"])
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
-        project_dirname = ext_data["project_dirname"]
-        chroot_builddirs = ext_data["chroot_builddirs"]
+            project = "{}/{}".format(ownername, project_dirname)
+            if  project in self.opts.build_deleting_without_createrepo.split():
+                self.log.warning("createrepo takes too long in %s, skipped",
+                                 project)
+                return
 
+            try:
+                os.makedirs(chroot_path)
+            except FileExistsError:
+                pass
+
+            try:
+                createrepo(
+                    path=chroot_path,
+                    front_url=self.front_url, base_url=result_base_url,
+                    username=ownername, projectname=projectname)
+            except CoprRequestException:
+                # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
+                self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
+            except CreateRepoError:
+                self.log.exception("Error making local repo: %s", full_path)
+
+    def delete_build(self, ownername, project_dirname, chroot_builddirs):
         self.log.info("Going to delete: %s", chroot_builddirs)
 
         for chroot, builddir in chroot_builddirs.items():
@@ -251,26 +272,35 @@ class Action(object):
             self.log.debug("builddir to be deleted %s", builddir_path)
             shutil.rmtree(builddir_path)
 
-            self.log.debug("Running createrepo on %s", chroot_path)
-            result_base_url = "/".join(
-                [self.results_root_url, ownername, project_dirname, chroot])
+    def handle_delete_build(self):
+        self.log.info("Action delete build.")
+        ext_data = json.loads(self.data["data"])
 
-            project = "{}/{}".format(ownername, project_dirname)
-            if  project in self.opts.build_deleting_without_createrepo.split():
-                self.log.warning("createrepo takes too long in %s, skipped",
-                                 project)
-                return
+        ownername = ext_data["ownername"]
+        projectname = ext_data["projectname"]
+        project_dirname = ext_data["project_dirname"]
+        chroot_builddirs = ext_data["chroot_builddirs"]
+        chroots = list(chroot_builddirs.keys())
 
-            try:
-                createrepo(
-                    path=chroot_path,
-                    front_url=self.front_url, base_url=result_base_url,
-                    username=ownername, projectname=projectname)
-            except CoprRequestException:
-                # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
-                self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
-            except CreateRepoError:
-                self.log.exception("Error making local repo: %s", full_path)
+        self.delete_build(ownername, project_dirname, chroot_builddirs)
+        self.run_createrepo(ownername, projectname, project_dirname, chroots)
+
+    def handle_delete_multiple_builds(self):
+        self.log.debug("Action delete multiple builds.")
+        ext_data = json.loads(self.data["data"])
+
+        ownername = ext_data["ownername"]
+        projectname = ext_data["projectname"]
+        project_dirname = ext_data["project_dirname"]
+
+        chroots = []
+        for chroot_builddirs in ext_data["builds"]:
+            self.delete_build(ownername, project_dirname, chroot_builddirs)
+            for chroot in chroot_builddirs.keys():
+                if chroot not in chroots:
+                    chroots.append(chroot)
+
+        self.run_createrepo(ownername, projectname, project_dirname, chroots)
 
     def handle_delete_chroot(self):
         self.log.info("Action delete project chroot.")
@@ -457,6 +487,8 @@ class Action(object):
                 self.handle_delete_project(result)
             elif self.data["object_type"] == "build":
                 self.handle_delete_build()
+            elif self.data["object_type"] == "builds":
+                self.handle_delete_multiple_builds()
             elif self.data["object_type"] == "chroot":
                 self.handle_delete_chroot()
 

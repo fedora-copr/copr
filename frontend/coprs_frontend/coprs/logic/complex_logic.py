@@ -53,6 +53,8 @@ class ComplexLogic(object):
             raise exceptions.InsufficientRightsException("This project is protected against deletion.")
 
         for build in builds_query:
+            # Don't send delete action for each build, rather send an action to delete
+            # a whole project as a part of CoprsLogic.delete_unsafe() method.
             BuildsLogic.delete_build(user, build, send_delete_action=False)
 
         CoprsLogic.delete_unsafe(user, copr)
