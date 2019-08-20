@@ -36,11 +36,11 @@ class Importer(object):
             # get the data
             r = get(self.get_url)
             # take the first task
-            builds = filter(lambda x: x["build_id"] not in exclude, r.json())
+            builds = list(filter(lambda x: x["build_id"] not in exclude, r.json()))
             if not builds:
                 log.debug("No new tasks to process.")
 
-            return [ImportTask.from_dict(build) for build in builds]
+            return [ImportTask.from_dict(build) for build in builds[:limit]]
         except Exception as e:
             log.exception("Failed acquire new packages for import:" + str(e))
 
