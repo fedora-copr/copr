@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_name, owner_url, initialize_datatables %}
+{% from "_helpers.html" import copr_name, copr_owner_url, initialize_datatables %}
 
 {% block title %}Forks of {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "forks" %}
@@ -27,7 +27,7 @@
   {% for fork in copr.forks %}
     <tr class="fork-row" >
       <td class="col-md-3" data-order="{{ fork.owner_name }}">
-        <b><a href="{{ owner_url(fork) }}">{{ fork.owner_name }}</a></b>
+        <b><a href="{{ copr_owner_url(fork) }}">{{ fork.owner_name }}</a></b>
       </td>
       <td>
         <b><a href="{{ copr_url('coprs_ns.copr_detail', fork) }}">{{ fork.name }}</a></b>

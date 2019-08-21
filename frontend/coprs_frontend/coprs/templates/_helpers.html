@@ -242,6 +242,24 @@
 {% endmacro %}
 
 
+{%- macro owner_url(view, owner) %}
+  {#- Given the owner object (user or group) generate proper URL for view
+
+  Note that if you wan't to use this method for routes which _accept_ "coprname"
+  argument, you wan't to use `copr_url` below.
+
+  Usage:
+    owner_url('coprs_ns.foo', groupX)
+    owner_url('coprs_ns.foo', user1, arg1='bar', arg2='baz')
+  #}
+  {%- if owner.at_name %}
+    {{- url_for(view, group_name=owner.name, **kwargs)|fix_url_https_frontend }}
+  {%- else %}
+    {{- url_for(view, username=owner.name, **kwargs)|fix_url_https_frontend }}
+  {%- endif %}
+{% endmacro %}
+
+
 {%- macro copr_url(view, copr) %}
   {#- Examine given copr and generate proper URL for the `view`
 
@@ -250,17 +268,13 @@
 
   Usage:
     copr_url('coprs_ns.foo', copr)
-    copr_url('coprs_ns.foo', copr, arg1='bar', arg2='baz)
+    copr_url('coprs_ns.foo', copr, arg1='bar', arg2='baz')
   #}
-  {%- if not copr.is_a_group_project %}
-    {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
-  {%- else %}
-    {{- url_for(view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
-  {%- endif %}
+  {{- owner_url(view, copr.owner, coprname=copr.name, **kwargs) }}
 {%- endmacro %}
 
 
-{%- macro owner_url(copr) %}
+{%- macro copr_owner_url(copr) %}
   {% if copr.is_a_group_project %}
     {{- url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}
   {% else %}
@@ -432,23 +446,12 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 
 
 {% macro repo_file_href(copr, repo) %}
-  {% if copr.is_a_group_project: %}
-  {{- url_for('coprs_ns.generate_repo_file',
-      group_name=copr.group.name,
-      copr_dirname=copr.main_dir.name,
-      name_release=repo.name_release,
-      repofile=repo.repo_file,
-      _external=True
-    )|fix_url_https_frontend -}}
-  {% else %}
-  {{- url_for('coprs_ns.generate_repo_file',
-      username=copr.user.name,
-      copr_dirname=copr.main_dir.name,
-      name_release=repo.name_release,
-      repofile=repo.repo_file,
-      _external=True
-    )|fix_url_https_frontend -}}
-  {% endif %}
+  {{- owner_url('coprs_ns.generate_repo_file',
+                copr.owner,
+                copr_dirname=copr.main_dir.name,
+                name_release=repo.name_release,
+                repofile=repo.repo_file,
+                _external=True) -}}
 {% endmacro %}
 
 
