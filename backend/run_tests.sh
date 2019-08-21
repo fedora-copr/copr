@@ -34,7 +34,7 @@ done
 # tests/mockremote/test_mockremote.py that are currently failing due to complete code rewrite
 # TODO: prune tests (case-by-case) that are no longer relevant. We mostly rely on
 # integration & regression tests now.
-TESTS="tests/test_createrepo.py tests/test_frontend.py tests/test_helpers.py tests/test_sign.py tests/vm_manager/test_manager.py"
+TESTS="tests/test_createrepo.py tests/test_frontend.py tests/test_helpers.py tests/test_sign.py tests/vm_manager/test_manager.py tests/test_action.py"
 
 if [[ -n $@ ]]; then
 	TESTS=$@
