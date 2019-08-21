@@ -197,6 +197,86 @@ class TestCoprDeleteBuild(CoprsTestCase):
 
         assert b is not None
 
+    @TransactionDecorator("u1")
+    def test_copr_delete_multiple_builds_sends_single_action(self, f_users,
+                                                             f_coprs,
+                                                             f_mock_chroots,
+                                                             f_builds):
+        for bc in self.b2_bc:
+            bc.status = StatusEnum("canceled")
+        self.db.session.add_all(self.b2_bc)
+        self.db.session.add_all([self.b1, self.b2])
+        self.db.session.commit()
+
+        b_id1 = self.b1.id
+        b_id2 = self.b2.id
+        url = "/coprs/{0}/{1}/delete_builds/".format(self.u1.name, self.c1.name)
+
+        r = self.test_client.post(
+            url, data={"build_ids[]": [b_id1, b_id2]}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b1 = (
+            self.models.Build.query
+            .filter(self.models.Build.id == b_id1)
+            .first()
+        )
+        b2 = (
+            self.models.Build.query
+            .filter(self.models.Build.id == b_id2)
+            .first()
+        )
+
+        assert b1 is None
+        assert b2 is None
+
+        act = self.models.Action.query.first()
+        data = json.loads(act.data)
+        assert act.object_type == "builds"
+        assert data.get('ownername') == "user1"
+        assert data.get('projectname') == "foocopr"
+        assert data.get('builds') == 2 * [{'fedora-18-x86_64': 'bar',
+                                           'srpm-builds': 'bar'}]
+
+    @TransactionDecorator("u1")
+    def test_copr_delete_package_sends_single_action(self, f_users,
+                                                     f_coprs, f_mock_chroots,
+                                                     f_builds):
+        for bc in self.b2_bc:
+            bc.status = StatusEnum("canceled")
+        self.db.session.add_all(self.b2_bc)
+        self.db.session.add_all([self.b1, self.b2, self.p1])
+        self.db.session.commit()
+
+        b_id1 = self.b1.id
+        b_id2 = self.b2.id
+        p_id = self.p1.id
+        url = "/coprs/{0}/{1}/package/{2}/delete".format(self.u1.name, self.c1.name, p_id)
+
+        r = self.test_client.post(
+            url, data={}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b1 = (
+            self.models.Build.query
+            .filter(self.models.Build.id == b_id1)
+            .first()
+        )
+        b2 = (
+            self.models.Build.query
+            .filter(self.models.Build.id == b_id2)
+            .first()
+        )
+
+        assert b1 is None
+        assert b2 is None
+
+        act = self.models.Action.query.first()
+        data = json.loads(act.data)
+        assert act.object_type == "builds"
+        assert data.get('ownername') == "user1"
+        assert data.get('projectname') == "foocopr"
+
 
 class TestCoprRepeatBuild(CoprsTestCase):
     @TransactionDecorator("u1")

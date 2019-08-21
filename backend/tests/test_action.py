@@ -48,6 +48,8 @@ class TestAction(object):
             results_baseurl=RESULTS_ROOT_URL,
 
             do_sign=True,
+
+            build_deleting_without_createrepo="",
         )
 
     def teardown_method(self, method):
@@ -528,6 +530,61 @@ class TestAction(object):
         # shouldn't touch chroot dirs
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
+
+    @mock.patch("backend.actions.createrepo")
+    def test_delete_multiple_builds_succeeded(self, mc_createrepo, mc_time):
+        mc_time.time.return_value = self.test_time
+        mc_front_cb = MagicMock()
+
+        tmp_dir = self.make_temp_dir()
+
+        chroot_dir = os.path.join(tmp_dir, "foo", "bar", "fedora-20")
+        os.makedirs(chroot_dir)
+        pkg_build_1_dir = os.path.join(chroot_dir, "01-foo")
+        pkg_build_2_dir = os.path.join(chroot_dir, "02-foo")
+        pkg_build_3_dir = os.path.join(chroot_dir, "03-foo")
+        os.mkdir(pkg_build_1_dir)
+        os.mkdir(pkg_build_2_dir)
+        os.mkdir(pkg_build_3_dir)
+
+        ext_data = json.dumps({
+            "ownername": "foo",
+            "projectname": "bar",
+            "project_dirname": "bar",
+            "builds": [
+                {"fedora-20": "01-foo"},
+                {"fedora-20": "02-foo"},
+            ]
+        })
+
+        self.opts.destdir = tmp_dir
+        test_action = Action(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "builds",
+                "id": 7,
+                "data": ext_data,
+            },
+            frontend_client=mc_front_cb,
+        )
+
+        assert os.path.exists(pkg_build_1_dir)
+        assert os.path.exists(pkg_build_2_dir)
+        test_action.run()
+        assert not os.path.exists(pkg_build_1_dir)
+        assert not os.path.exists(pkg_build_2_dir)
+        assert os.path.exists(chroot_dir)
+        assert os.path.exists(pkg_build_3_dir)
+
+        create_repo_expected_call = mock.call(
+            username=u'foo',
+            projectname=u'bar',
+            base_url=u'http://example.com/results/foo/bar/fedora-20',
+            path='{}/foo/bar/fedora-20'.format(self.tmp_dir_name),
+            front_url=None
+        )
+        assert mc_createrepo.call_args == create_repo_expected_call
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.createrepo")
