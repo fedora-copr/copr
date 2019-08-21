@@ -353,6 +353,19 @@ def req_with_copr(f):
     return wrapper
 
 
+def req_with_copr_dir(f):
+    @wraps(f)
+    def wrapper(**kwargs):
+        if "group_name" in kwargs:
+            ownername = '@' + kwargs.pop("group_name")
+        else:
+            ownername = kwargs.pop("username")
+        copr_dirname = kwargs.pop("copr_dirname")
+        copr_dir = ComplexLogic.get_copr_dir_safe(ownername, copr_dirname)
+        return f(copr_dir, **kwargs)
+    return wrapper
+
+
 def send_build_icon(build):
     if not build:
         return send_file("static/status_images/unknown.png",

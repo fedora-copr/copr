@@ -36,7 +36,8 @@ from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, Pe
 
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr, generic_error
+from coprs.views.misc import (login_required, page_not_found, req_with_copr,
+                              generic_error, req_with_copr_dir)
 
 from coprs.views.coprs_ns import coprs_ns
 
@@ -702,12 +703,10 @@ def process_legal_flag(copr):
 @coprs_ns.route("/<username>/<copr_dirname>/repo/<name_release>/<repofile>")
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/<repofile>")
-def generate_repo_file(copr_dirname, name_release, repofile, username=None, group_name=None):
+@req_with_copr_dir
+def generate_repo_file(copr_dir, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
-
-    ownername = username if username else ('@'+group_name)
-    copr_dir = ComplexLogic.get_copr_dir_safe(ownername, copr_dirname)
     return render_generate_repo_file(copr_dir, name_release)
 
 
