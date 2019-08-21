@@ -60,7 +60,7 @@ class ProjectProxy(BaseProxy):
     def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False, devel_mode=False,
-            delete_after_days=None):
+            delete_after_days=None, multilib=False):
         """
         Create a project
 
@@ -100,6 +100,7 @@ class ProjectProxy(BaseProxy):
             "use_bootstrap_container": use_bootstrap_container,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
+            "multilib": multilib,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
@@ -109,7 +110,7 @@ class ProjectProxy(BaseProxy):
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
-             delete_after_days=None):
+             delete_after_days=None, multilib=None):
         """
         Edit a project
 
@@ -147,6 +148,7 @@ class ProjectProxy(BaseProxy):
             "use_bootstrap_container": use_bootstrap_container,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
+            "multilib": multilib,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)

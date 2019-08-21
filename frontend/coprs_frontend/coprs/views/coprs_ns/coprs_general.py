@@ -189,6 +189,7 @@ def copr_new(username=None, group_name=None):
                 use_bootstrap_container=form.use_bootstrap_container.data,
                 follow_fedora_branching=form.follow_fedora_branching.data,
                 delete_after_days=form.delete_after_days.data,
+                multilib=form.multilib.data,
             )
 
             db.session.commit()
@@ -297,6 +298,18 @@ def render_copr_detail(copr):
         else:
             repos_info[chroot.name_release]["arch_list"].append(chroot.arch)
             repos_info[chroot.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
+
+    if copr.multilib:
+        for name_release in repos_info:
+            arches = repos_info[name_release]['arch_list']
+            arch_repos = {}
+            for ch64, ch32 in models.MockChroot.multilib_pairs.items():
+                if set([ch64, ch32]).issubset(set(arches)):
+                    arch_repos[ch64] = ch32
+
+            repos_info[name_release]['arch_repos'] = arch_repos
+
+
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
     builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
 
@@ -457,6 +470,7 @@ def process_copr_update(copr, form):
     copr.use_bootstrap_container = form.use_bootstrap_container.data
     copr.follow_fedora_branching = form.follow_fedora_branching.data
     copr.delete_after_days = form.delete_after_days.data
+    copr.multilib = form.multilib.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:
@@ -707,25 +721,54 @@ def process_legal_flag(copr):
 def generate_repo_file(copr_dir, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
-    return render_generate_repo_file(copr_dir, name_release)
+
+    arch = flask.request.args.get('arch')
+    return render_generate_repo_file(copr_dir, name_release, arch)
 
 
-def render_generate_repo_file(copr_dir, name_release):
+def render_repo_template(copr_dir, mock_chroot, arch=None):
+    repo_id = "copr:{0}:{1}:{2}{3}".format(
+        app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
+        copr_dir.copr.owner_name.replace("@", "group_"),
+        copr_dir.name,
+        ":ml" if arch else ""
+    )
+    url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
+    repo_url = generate_repo_url(mock_chroot, url, arch)
+    pubkey_url = urljoin(url, "pubkey.gpg")
+    return flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir,
+                                 url=repo_url, pubkey_url=pubkey_url,
+                                 repo_id=repo_id) + "\n"
+
+
+def render_generate_repo_file(copr_dir, name_release, arch=None):
     name_release = app.config["CHROOT_NAME_RELEASE_ALIAS"].get(name_release, name_release)
-    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
+    copr = copr_dir.copr
+
+    # if the arch isn't specified, find the fist one starting with name_release
+    searched_chroot = name_release if not arch else name_release + "-" + arch
+
+    mock_chroot = None
+    for mc in copr.active_chroots:
+        if not mc.name.startswith(searched_chroot):
+            continue
+        mock_chroot = mc
 
     if not mock_chroot:
-        raise ObjectNotFound("Chroot {} does not exist".format(name_release))
+        raise ObjectNotFound("Chroot {} does not exist in {}".format(
+            searched_chroot, copr.full_name))
 
-    repo_id = "copr:{0}:{1}:{2}".format(app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
-                                        copr_dir.copr.owner_name.replace("@", "group_"),
-                                        copr_dir.name)
-    url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
-    repo_url = generate_repo_url(mock_chroot, url)
-    pubkey_url = urljoin(url, "pubkey.gpg")
-    response = flask.make_response(
-        flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir, url=repo_url, pubkey_url=pubkey_url,
-                              repo_id=repo_id))
+    # normal, arch agnostic repofile
+    response_content = render_repo_template(copr_dir, mock_chroot)
+
+    # append multilib counterpart repo only upon explicit request (ach != None),
+    # and only if the chroot actually is multilib capable
+    copr = copr_dir.copr
+    if arch and copr.multilib and mock_chroot in copr.active_multilib_chroots:
+        response_content += "\n" + render_repo_template(copr_dir, mock_chroot, 'i386')
+
+    response = flask.make_response(response_content)
+
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
         "filename={0}.repo".format(copr_dir.repo_name)

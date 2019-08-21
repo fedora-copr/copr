@@ -330,6 +330,15 @@ class CoprFormFactory(object):
                     default=True,
                     false_values=FALSE_VALUES)
 
+            multilib = wtforms.BooleanField(
+                    "Multilib support",
+                    description="""When users enable this copr repository on
+                    64bit variant of multilib capable architecture (e.g.
+                    x86_64), they will be able to install 32bit variants of the
+                    packages (e.g. i386 for x86_64 arch)""",
+                    default=False,
+                    false_values=FALSE_VALUES)
+
             # Deprecated, use `enable_net` instead
             build_enable_net = wtforms.BooleanField(
                     "Enable internet access during builds",
@@ -1061,6 +1070,7 @@ class CoprModifyForm(FlaskForm):
     # Deprecated, use `enable_net` instead
     build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    multilib = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
 
 
 class CoprForkFormFactory(object):

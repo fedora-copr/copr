@@ -69,6 +69,12 @@ class TestHelpers(CoprsTestCase):
             dict(args=(m3, https_url),
                  expected="https://example.com/path/rhel7-7.1-$basearch/")])
 
+        test_sets.extend([
+            dict(args=(m3, http_url, 'i386'),
+                 expected="http://example.com/path/rhel7-7.1-i386/"),
+            dict(args=(m3, https_url, 'ppc64le'),
+                 expected="https://example.com/path/rhel7-7.1-ppc64le/")])
+
         app.config["USE_HTTPS_FOR_RESULTS"] = True
         for test_set in test_sets:
             result = generate_repo_url(*test_set["args"])

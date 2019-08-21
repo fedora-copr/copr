@@ -64,6 +64,13 @@
             <a class="btn btn-default btn-margin" href="{{ repo_file_href(copr, repo) }}">
               <span class="pficon pficon-save"></span> {{ friendly_os_name(repo.os_release, repo.os_version) }}
             </a>
+            {% if repo.arch_repos %}
+              {% for arch in repo.arch_repos %}
+                <a class="btn btn-default btn-margin" href="{{ repo_file_href(copr, repo, arch) }}">
+                    <span class="pficon pficon-save"></span> multilib {{ arch }}+{{ repo.arch_repos[arch] }}
+                </a>
+              {% endfor %}
+            {% endif %}
             <small class="text-muted"> ({{ repo.dl_stat }} downloads) </small>
           </td>
         </tr>

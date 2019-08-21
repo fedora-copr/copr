@@ -375,6 +375,37 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
         "use_bootstrap_container": None,
         "delete_after_days": None,
+        "multilib": False,
+    }
+    assert stdout == "New project was successfully created.\n"
+
+@mock.patch('copr.v3.proxies.project.ProjectProxy.add')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
+    main.main(argv=[
+        "create", "foo",
+        '--multilib', 'on',
+        "--chroot", "fedora-rawhide-x86_64",
+        "--chroot", "fedora-rawhide-i386",
+        "--instructions", "instruction string",
+        "--repo", "repo1", "--repo", "repo2",
+        "--initial-pkgs", "pkg1",
+    ])
+    stdout, stderr = capsys.readouterr()
+
+    project_proxy_add.assert_called_once()
+    args, kwargs = project_proxy_add.call_args
+    assert kwargs == {
+        "auto_prune": True,
+        "ownername": None, "persistent": False, "projectname": "foo",
+        "description": None,
+        "instructions": "instruction string",
+        "chroots": ["fedora-rawhide-x86_64", "fedora-rawhide-i386"],
+        "additional_repos": ["repo1", "repo2"],
+        "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
+        "use_bootstrap_container": None,
+        "delete_after_days": None,
+        "multilib": True,
     }
     assert stdout == "New project was successfully created.\n"
 

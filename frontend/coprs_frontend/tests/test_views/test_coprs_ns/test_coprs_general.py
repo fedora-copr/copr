@@ -1,6 +1,7 @@
 import json
 import flask
 import pytest
+import re
 
 from unittest import mock
 
@@ -12,7 +13,8 @@ from coprs import app, models
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
-from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
+from tests.coprs_test_case import (CoprsTestCase, TransactionDecorator,
+    new_app_context)
 
 
 class TestMonitor(CoprsTestCase):
@@ -695,6 +697,72 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert r.status_code == 200
         assert b"baseurl=https://" in r.data
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
+
+    @new_app_context
+    def test_repofile_multilib(self, f_users, f_coprs, f_mock_chroots,
+                               f_mock_chroots_many, f_custom_builds, f_db):
+
+        r_non_ml_chroot = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo&arch=x86_64".format(
+                self.u1.name, self.c1.name))
+
+        for f_version in range(19, 24):
+            for arch in ['x86_64', 'i386']:
+                # with disabled multilib there's no change between fedora repos,
+                # no matter what the version or architecture is
+                r_ml_chroot = self.tc.get(
+                    "/coprs/{0}/{1}/repo/fedora-{2}/some.repo&arch={3}".format(
+                        self.u1.name, self.c1.name, f_version, arch))
+                assert r_ml_chroot.data == r_non_ml_chroot.data
+
+        self.c1.multilib = True
+        self.db.session.commit()
+
+        # The project is now multilib, but f18 chroot doesn't have i386
+        # countepart in c1
+
+        r_non_ml_chroot = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
+                self.u1.name, self.c1.name))
+
+        r_ml_first_chroot = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-19/some.repo?arch=x86_64".format(
+                self.u1.name, self.c1.name))
+
+        for f_version in range(19, 24):
+            # All the Fedora 19..23 chroots have both i386 and x86_64 enabled in
+            # c1, so all the repofiles need to be the same.
+            r_ml_chroot = self.tc.get(
+                "/coprs/{0}/{1}/repo/fedora-{2}/some.repo?arch=x86_64".format(
+                    self.u1.name, self.c1.name, f_version))
+            assert r_ml_chroot.data == r_ml_first_chroot.data
+            assert r_ml_chroot.data != r_non_ml_chroot.data
+
+        def parse_repofile(string):
+            lines = string.split('\n')
+            repoids = [x.strip('[]') for x in lines if re.match(r'^\[.*\]$', x)]
+            baseurls = [x.split('=')[1] for x in lines if re.match(r'^baseurl=.*', x)]
+            gpgkeys = [x.split('=')[1] for x in lines if re.match(r'^gpgkey=.*', x)]
+            return repoids, baseurls, gpgkeys
+
+        non_ml_repofile = r_non_ml_chroot.data.decode('utf-8')
+        ml_repofile = r_ml_first_chroot.data.decode('utf-8')
+
+        repoids, baseurls, gpgkeys = parse_repofile(non_ml_repofile)
+        assert len(repoids) == len(baseurls) == len(gpgkeys) == 1
+
+        normal_gpgkey = gpgkeys[0]
+        normal_repoid = repoids[0]
+        normal_baseurl = baseurls[0]
+
+        repoids, baseurls, gpgkeys = parse_repofile(ml_repofile)
+        assert len(repoids) == len(baseurls) == len(gpgkeys) == 2
+
+        assert normal_repoid == repoids[0]
+        assert normal_repoid + ':ml' == repoids[1]
+        assert gpgkeys[0] == gpgkeys[1] == normal_gpgkey
+        assert normal_baseurl == baseurls[0]
+        assert normal_baseurl.rsplit('-', 1)[0] == baseurls[1].rsplit('-', 1)[0]
 
 
 class TestSearch(CoprsTestCase):

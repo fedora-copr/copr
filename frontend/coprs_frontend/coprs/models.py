@@ -274,6 +274,8 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # temporary project if non-null
     delete_after = db.Column(db.DateTime, index=True, nullable=True)
 
+    multilib = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """
@@ -370,6 +372,28 @@ class Copr(db.Model, helpers.Serializer):
         Return list of active mock_chroots of this copr
         """
         return filter(lambda x: x.is_active, self.mock_chroots)
+
+    @property
+    def active_multilib_chroots(self):
+        """
+        Return list of active mock_chroots which have the 32bit multilib
+        counterpart.
+        """
+        chroot_names = [chroot.name for chroot in self.active_chroots]
+
+        found_chroots = []
+        for chroot in self.active_chroots:
+            if chroot.arch not in MockChroot.multilib_pairs:
+                continue
+
+            counterpart = "{}-{}-{}".format(chroot.os_release,
+                                            chroot.os_version,
+                                            MockChroot.multilib_pairs[chroot.arch])
+            if counterpart in chroot_names:
+                found_chroots.append(chroot)
+
+        return found_chroots
+
 
     @property
     def active_copr_chroots(self):
@@ -1184,6 +1208,10 @@ class MockChroot(db.Model, helpers.Serializer):
     final_prunerepo_done = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
     comment = db.Column(db.Text, nullable=True)
+
+    multilib_pairs = {
+        'x86_64': 'i386',
+    }
 
     @classmethod
     def latest_fedora_branched_chroot(cls, arch='x86_64'):

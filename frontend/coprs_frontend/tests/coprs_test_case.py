@@ -560,3 +560,22 @@ class TransactionDecorator(object):
                     session["openid"] = username
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)
+
+
+def new_app_context(fn):
+    """
+    This is decorator function.  Use this anytime you need to run more than one
+    'self.tc.{get,post,..}()' requests in one test, or when you see something
+    like this in your test error output:
+        E   sqlalchemy.orm.exc.DetachedInstanceError: Instance <..>
+            is not bound to a Session; attribute refresh operation cannot
+            proceed (Background on this error at: http://sqlalche.me/e/bhk3)
+    For more info see
+    https://stackoverflow.com/questions/19395697/sqlalchemy-session-not-getting-removed-properly-in-flask-testing
+    """
+    @wraps(fn)
+    def wrapper(fn, fn_self, *args):
+        with coprs.app.app_context():
+            return fn(fn_self, *args)
+
+    return decorator.decorator(wrapper, fn)

@@ -189,7 +189,7 @@ def parse_package_name(pkg):
     return pkg
 
 
-def generate_repo_url(mock_chroot, url):
+def generate_repo_url(mock_chroot, url, arch=None):
     """ Generates url with build results for .repo file.
     No checks if copr or mock_chroot exists.
     """
@@ -208,7 +208,7 @@ def generate_repo_url(mock_chroot, url):
 
     url = posixpath.join(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
-                                   os_version, "$basearch"))
+                                   os_version, arch or '$basearch'))
 
     return url
 
