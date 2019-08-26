@@ -7,6 +7,7 @@ import time
 import requests
 
 from sqlalchemy.sql import text
+from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy import func, desc
@@ -282,7 +283,12 @@ class BuildsLogic(object):
 
     @classmethod
     def get_pending_build_tasks(cls, background=None):
-        query = (models.BuildChroot.query.join(models.Build)
+        query = (models.BuildChroot.query
+                    .outerjoin(models.Build)
+                    .outerjoin(models.CoprDir)
+                    .outerjoin(models.Package, models.Package.id == models.Build.package_id)
+                    .options(joinedload('build').joinedload('copr_dir'),
+                             joinedload('build').joinedload('package'))
                 .filter(models.Build.canceled == false())
                 .filter(or_(
                     models.BuildChroot.status == StatusEnum("pending"),

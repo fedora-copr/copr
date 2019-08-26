@@ -91,7 +91,6 @@ def get_build_record(task):
     if not task:
         return None
 
-    build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
     build_record = None
     try:
         build_record = {
@@ -115,11 +114,6 @@ def get_build_record(task):
             "fetch_sources_only": True,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
-            "repos": build_config.get("repos"),
-            "buildroot_pkgs": build_config.get("additional_packages"),
-            "use_bootstrap_container": build_config.get("use_bootstrap_container"),
-            "with_opts": build_config.get("with_opts"),
-            "without_opts": build_config.get("without_opts"),
         }
 
     except Exception as err:
