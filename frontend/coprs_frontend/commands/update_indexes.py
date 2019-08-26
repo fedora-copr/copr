@@ -1,7 +1,7 @@
 from flask_script import Command
 from flask_whooshee import Whooshee
 from coprs import app
-from coprs.whoosheers import CoprWhoosheer
+from coprs.whoosheers import CoprWhoosheer, WhoosheeStamp
 from coprs.logic import coprs_logic
 
 
@@ -26,3 +26,5 @@ class UpdateIndexesCommand(Command):
         for copr in coprs_logic.CoprsLogic.get_all():
             CoprWhoosheer.insert_copr(writer, copr)
         writer.commit(optimize=True)
+
+        WhoosheeStamp.store()

@@ -29,11 +29,14 @@ commands = {
     "add_user": "AddUserCommand",
     "dump_user": "DumpUserCommand",
 
+    # Whooshee indexes
+    "update_indexes": "UpdateIndexesCommand",
+    "update_indexes_quick": "UpdateIndexesQuickCommand",
+    "update_indexes_required": "UpdateIndexesRequiredCommand",
+
     # Other
     "get_admins": "GetAdminsCommand",
     "fail_build": "FailBuildCommand",
-    "update_indexes": "UpdateIndexesCommand",
-    "update_indexes_quick": "UpdateIndexesQuickCommand",
     "rawhide_to_release": "RawhideToReleaseCommand",
     "backend_rawhide_to_release": "BackendRawhideToReleaseCommand",
     "update_graphs": "UpdateGraphsDataCommand",

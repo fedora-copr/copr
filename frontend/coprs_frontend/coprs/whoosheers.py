@@ -1,8 +1,11 @@
+import os
 import whoosh
 import time
 
+from subprocess import Popen, PIPE
 from flask_whooshee import AbstractWhoosheer
 
+from coprs import app
 from coprs import models
 from coprs import whooshee
 from coprs import db
@@ -110,3 +113,38 @@ class CoprWhoosheer(AbstractWhoosheer):
                     WHERE copr.id = {1}
                     """.format(int(time.time()), copr_id)
                 )
+
+
+class WhoosheeStamp(object):
+    """
+    When a whooshee package is updated, it is often needed to rebuild
+    indexes. This class manages a stamp file containing whooshee packages
+    versions and decides whether they are still up-to-date or not.
+    """
+
+    PATH = os.path.join(app.config["WHOOSHEE_DIR"], "whooshee-version")
+
+    @classmethod
+    def current(cls):
+        packages = ["python3-flask-whooshee", "python3-whoosh"]
+        cmd = ["rpm", "-q", "--qf", "%{NAME}-%{VERSION}\n"] + packages
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = process.communicate()
+        return out.decode("utf-8").rstrip()
+
+    @classmethod
+    def store(cls):
+        with open(cls.PATH, "w") as f:
+            f.write(cls.current())
+
+    @classmethod
+    def read(cls):
+        try:
+            with open(cls.PATH, "r") as f:
+                return f.read().rstrip()
+        except OSError:
+            return None
+
+    @classmethod
+    def is_valid(cls):
+        return cls.read() == cls.current()
