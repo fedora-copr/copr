@@ -87,6 +87,7 @@ class ComplexLogic(object):
             raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
+        srpm_builds_src,srpm_builds_dst, chroots_src, chroots_dst = ([] for i in range(4))
         for package in copr.main_dir.packages:
             fpackage = forking.fork_package(package, fcopr)
             build = package.last_build(successful=True)
@@ -96,11 +97,15 @@ class ComplexLogic(object):
             fbuild = forking.fork_build(build, fcopr, fpackage)
 
             if build.result_dir:
-                builds_map['srpm-builds'] = (build.result_dir, fbuild.result_dir)
+                srpm_builds_src.append(build.result_dir)
+                srpm_builds_dst.append(fbuild.result_dir)
 
             for chroot, fchroot in zip(build.build_chroots, fbuild.build_chroots):
                 if chroot.result_dir:
-                    builds_map[chroot.name] = (chroot.result_dir, fchroot.result_dir)
+                    chroots_src.append(chroot.result_dir)
+                    chroots_dst.append(fchroot.result_dir)
+                builds_map['srpm-builds'] = dict(zip(srpm_builds_src, srpm_builds_dst))
+                builds_map[chroot.name] = dict(zip(chroots_src, chroots_dst))
 
         db.session.commit()
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)

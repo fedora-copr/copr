@@ -23,8 +23,21 @@ class TestComplexLogic(CoprsTestCase):
                 data = json.loads(actions[0].data)
                 assert data["user"] == self.u2.name
                 assert data["copr"] == "dstname"
-                assert data["builds_map"] == {'fedora-18-x86_64': ['bar', '00000005-hello-world'], 'srpm-builds': ['bar', '00000005']}
+                assert data["builds_map"] == {'srpm-builds': {'bar': '00000005'},'fedora-18-x86_64': {'bar': '00000005-hello-world'}}
 
+    @mock.patch("flask.g")
+    def test_fork_copr_projects_with_more_builds(self, mc_flask_g, f_users, f_fork_prepare, f_db):
+        mc_flask_g.user.name = self.u2.name
+        fc2, created = ComplexLogic.fork_copr(self.c2, self.u2, u"dstname")
+        self.db.session.commit()
+        actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
+        assert len(actions) == 1
+        data = json.loads(actions[0].data)
+        assert data["user"] == self.u2.name
+        assert data["copr"] == "dstname"
+        assert data["builds_map"] == {'srpm-builds': {'00000008-whatsupthere-world': '00000009', '00000005-hello-world': '00000010'},
+                   'fedora-17-x86_64': {'8-whatsupthere-world': '00000009-whatsupthere-world', '5-hello-world': '00000010-hello-world'},
+                   'fedora-17-i386': {'8-whatsupthere-world': '00000009-whatsupthere-world', '5-hello-world': '00000010-hello-world'}}
 
     def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
         query = self.db.session.query(models.Copr)

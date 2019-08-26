@@ -132,32 +132,38 @@ class Action(object):
 
             chroot_paths = set()
             for chroot, src_dst_dir in builds_map.items():
-                src_dir, dst_dir = src_dst_dir[0], src_dst_dir[1]
-                if not chroot or not src_dir or not dst_dir:
+
+                if not chroot or not src_dst_dir:
                     continue
 
-                old_chroot_path = os.path.join(old_path, chroot)
-                new_chroot_path = os.path.join(new_path, chroot)
-                chroot_paths.add(new_chroot_path)
+                for old_dir_name, new_dir_name in src_dst_dir.items():
+                    src_dir, dst_dir = old_dir_name, new_dir_name
 
-                src_path = os.path.join(old_chroot_path, src_dir)
-                dst_path = os.path.join(new_chroot_path, dst_dir)
+                    if not src_dir or not dst_dir:
+                        continue
 
-                if not os.path.exists(dst_path):
-                    os.makedirs(dst_path)
+                    old_chroot_path = os.path.join(old_path, chroot)
+                    new_chroot_path = os.path.join(new_path, chroot)
+                    chroot_paths.add(new_chroot_path)
 
-                try:
-                    copy_tree(src_path, dst_path)
-                except DistutilsFileError as e:
-                    self.log.error(str(e))
-                    continue
+                    src_path = os.path.join(old_chroot_path, src_dir)
+                    dst_path = os.path.join(new_chroot_path, dst_dir)
 
-                # Drop old signatures coming from original repo and re-sign.
-                unsign_rpms_in_dir(dst_path, opts=self.opts, log=self.log)
-                if sign:
-                    sign_rpms_in_dir(data["user"], data["copr"], dst_path, opts=self.opts, log=self.log)
+                    if not os.path.exists(dst_path):
+                        os.makedirs(dst_path)
 
-                self.log.info("Forked build %s as %s", src_path, dst_path)
+                    try:
+                        copy_tree(src_path, dst_path)
+                    except DistutilsFileError as e:
+                        self.log.error(str(e))
+                        continue
+
+                    # Drop old signatures coming from original repo and re-sign.
+                    unsign_rpms_in_dir(dst_path, opts=self.opts, log=self.log)
+                    if sign:
+                        sign_rpms_in_dir(data["user"], data["copr"], dst_path, opts=self.opts, log=self.log)
+
+                    self.log.info("Forked build %s as %s", src_path, dst_path)
 
             for chroot_path in chroot_paths:
                 createrepo(path=chroot_path, front_url=self.front_url,

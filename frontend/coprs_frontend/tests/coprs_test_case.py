@@ -282,6 +282,53 @@ class CoprsTestCase(object):
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
 
     @pytest.fixture
+    def f_fork_prepare(self, f_coprs, f_mock_chroots, f_builds):
+
+        self.p4 = models.Package(
+            copr=self.c2, copr_dir=self.c2_dir, name="hello-world", source_type=0)
+        self.b5 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p4,
+            user=self.u1, submitted_on=50, srpm_url="http://somesrpm",
+            source_status=StatusEnum("succeeded"), result_dir='00000005-hello-world')
+        self.b6 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p4,
+            user=self.u1, submitted_on=10, srpm_url="http://somesrpm",
+            source_status=StatusEnum("failed"), result_dir='00000006-hello-world',
+            source_json='{}')
+        self.b7 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p2,
+            user=self.u1, submitted_on=10, srpm_url="http://somesrpm",
+            source_status=StatusEnum("succeeded"), result_dir='00000007-whatsupthere-world')
+        self.b8 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p2,
+            user=self.u1, submitted_on=100, srpm_url="http://somesrpm",
+            source_status=StatusEnum("succeeded"), result_dir='00000008-whatsupthere-world')
+
+        self.basic_builds = [self.b5, self.b6, self.b7, self.b8]
+        self.b5_bc = []
+        self.b6_bc = []
+        self.b7_bc = []
+        self.b8_bc = []
+        self.db.session.flush()
+
+        for build, build_chroots in zip(
+                [self.b5, self.b6, self.b7, self.b8],
+                [self.b5_bc, self.b6_bc, self.b7_bc, self.b8_bc]):
+
+            status = StatusEnum("succeeded")
+            for chroot in build.copr.active_chroots:
+                buildchroot = models.BuildChroot(
+                    build=build,
+                    mock_chroot=chroot,
+                    status=status,
+                    git_hash="12345",
+                    result_dir="{}-{}".format(build.id, build.package.name),
+                )
+                build_chroots.append(buildchroot)
+                self.db.session.add(buildchroot)
+        self.db.session.add_all([self.b5, self.b6, self.b7, self.b8])
+
+    @pytest.fixture
     def f_hook_package(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.c1.webhook_secret = str(uuid.uuid4())
         self.db.session.add(self.c1)

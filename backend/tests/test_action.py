@@ -16,6 +16,8 @@ from backend.actions import Action, ActionType, ActionResult
 from backend.exceptions import CreateRepoError, CoprKeygenRequestError
 from requests import RequestException
 
+import os
+
 RESULTS_ROOT_URL = "http://example.com/results"
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -43,13 +45,14 @@ class TestAction(object):
             redis_db=9,
             redis_port=7777,
 
-            destdir=None,
+            destdir="/var/lib/copr/public_html/results/",
             frontend_base_url=None,
             results_baseurl=RESULTS_ROOT_URL,
 
-            do_sign=True,
+            do_sign=False,
 
             build_deleting_without_createrepo="",
+            keygen_host="example.com"
         )
 
     def teardown_method(self, method):
@@ -97,6 +100,61 @@ class TestAction(object):
         assert not mc_front_cb.called
 
         self.dummy = str(test_action)
+
+    @mock.patch("backend.actions.copy_tree")
+    @mock.patch("backend.actions.os.path.exists")
+    @mock.patch("backend.actions.unsign_rpms_in_dir")
+    @mock.patch("backend.actions.createrepo")
+    def test_action_handle_forks(self, mc_createrepo, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
+        mc_time.time.return_value = self.test_time
+        mc_front_cb = MagicMock()
+        mc_exists = True
+        test_action = Action(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.FORK,
+                "id": 1,
+                "object_type": "copr",
+                "data": json.dumps(
+                    {
+                       'builds_map':
+                        {
+                            'srpm-builds': {
+                                '00000002': '00000009', '00000005': '00000010'},
+                            'fedora-17-x86_64': {
+                                '00000002-pkg1': '00000009-pkg1', '00000005-pkg2': '00000010-pkg2'},
+                            'fedora-17-i386': {
+                                '00000002-pkg1': '00000009-pkg1', '00000005-pkg2': '00000010-pkg2'}
+                        },
+                        "user": "thrnciar",
+                        "copr": "source-copr"
+                    }),
+                "old_value": "thrnciar/source-copr",
+                "new_value": "thrnciar/destination-copr",
+            },
+            frontend_client=mc_front_cb,
+        )
+        test_action.run()
+        calls = mc_copy_tree.call_args_list
+        assert len(calls) == 6
+        assert calls[0][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/srpm-builds/00000002",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/srpm-builds/00000009")
+        assert calls[1][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/srpm-builds/00000005",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/srpm-builds/00000010")
+        assert calls[2][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-x86_64/00000002-pkg1",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-x86_64/00000009-pkg1")
+        assert calls[3][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-x86_64/00000005-pkg2",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-x86_64/00000010-pkg2")
+        assert calls[4][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-i386/00000002-pkg1",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-i386/00000009-pkg1")
+        assert calls[5][0] == (
+            "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-i386/00000005-pkg2",
+            "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-i386/00000010-pkg2")
 
     @unittest.skip("Fixme, test doesn't work.")
     def test_action_run_rename(self, mc_time):
