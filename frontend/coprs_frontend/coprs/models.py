@@ -905,7 +905,9 @@ class Build(db.Model, helpers.Serializer):
     @property
     def import_log_url_backend(self):
         parts = ["results", self.copr.owner_name, self.copr_dirname,
-                 "srpm-builds", self.id_fixed_width, "builder-live.log"]
+                 "srpm-builds", self.id_fixed_width,
+                 "builder-live.log" if self.source_status == StatusEnum("running")
+                                    else "builder-live.log.gz"]
         path = os.path.normpath(os.path.join(*parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
 
