@@ -145,8 +145,12 @@ class BuildDispatcher(multiprocessing.Process):
         self.log.info("Build dispatching started.")
         self.update_process_title()
 
+        first_backend_loop = True
+
         while True:
             self.clean_finished_workers()
+
+            skip_jobs_cache = {}
 
             for job in self.load_jobs():
                 # first check if we do not have
@@ -156,16 +160,28 @@ class BuildDispatcher(multiprocessing.Process):
                                      job.task_id)
                     continue
 
-                # now search db builder records for the job and
-                # if we found it, spawn a worker to reattach
-                vm = self.vm_manager.get_vm_by_task_id(job.task_id)
-                if vm and vm.state == 'in_use':
-                    self.log.info("Reattaching to VM: "+str(vm))
-                    worker = self.start_worker(vm, job, reattach=True)
-                    worker.mark_running(job)
-                    vm.store_field(self.vm_manager.rc, "used_by_worker", worker.worker_id)
-                    self.log.info("Reattached new worker %s for job %s",
-                                  worker.worker_id, worker.job.task_id)
+                if first_backend_loop:
+                    # Server was restarted.  Some builds might be running on
+                    # background on builders;  so search db builder records for
+                    # the job and if we found it, spawn a worker to reattach.
+                    vm = self.vm_manager.get_vm_by_task_id(job.task_id)
+                    if vm and vm.state == 'in_use':
+                        self.log.info("Reattaching to VM: "+str(vm))
+                        worker = self.start_worker(vm, job, reattach=True)
+                        worker.mark_running(job)
+                        vm.store_field(self.vm_manager.rc, "used_by_worker", worker.worker_id)
+                        self.log.info("Reattached new worker %s for job %s",
+                                      worker.worker_id, worker.job.task_id)
+                        continue
+
+                cache_entry = '{owner}-{arch}-{sandbox}'.format(
+                    owner=job.project_owner,
+                    arch=job.arch or "noarch",
+                    sandbox=job.sandbox,
+                )
+
+                if cache_entry in skip_jobs_cache:
+                    self.log.info("Skipped job %s, cached", job)
                     continue
 
                 # ... and if the task is new to us,
@@ -178,6 +194,7 @@ class BuildDispatcher(multiprocessing.Process):
                         self.next_worker_id, job.task_id, job.build_id,
                         job.chroot)
                 except NoVmAvailable as error:
+                    skip_jobs_cache[cache_entry] = True
                     self.log.info("No available resources for task %s (Reason: %s). Deferring job.",
                                   job.task_id, error)
                     continue
@@ -192,4 +209,5 @@ class BuildDispatcher(multiprocessing.Process):
                 self.log.info("Started new worker %s for job %s",
                               worker.worker_id, worker.job.task_id)
 
+            first_backend_loop = False
             time.sleep(self.opts.sleeptime)
