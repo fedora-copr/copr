@@ -9,6 +9,7 @@ import datetime
 import time
 import six
 import simplejson
+import requests
 from collections import defaultdict
 
 import logging
@@ -136,8 +137,10 @@ class Commands(object):
                 for build_id in watched:
                     if build_id in done:
                         continue
-
-                    build_details = self.client.build_proxy.get(build_id=build_id)
+                    try:
+                        build_details = self.client.build_proxy.get(build_id=build_id)
+                    except requests.ConnectionError as e:
+                        raise CoprRequestException(e)
                     now = datetime.datetime.now()
                     if prevstatus[build_id] != build_details.state:
                         prevstatus[build_id] = build_details.state
