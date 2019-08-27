@@ -1,6 +1,7 @@
 [Unit]
 Description=Copr Backend service
 After=syslog.target network.target auditd.service
+Wants=logrotate.service
 
 [Service]
 Type=simple

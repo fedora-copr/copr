@@ -3,6 +3,7 @@ Description=Copr Backend service, Log Handler component
 After=syslog.target network.target auditd.service
 Before=copr-backend.service copr-backend-vmm.service
 PartOf=copr-backend.service
+Wants=logrotate.service
 
 [Service]
 Type=simple

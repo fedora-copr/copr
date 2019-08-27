@@ -1,6 +1,7 @@
 [Unit]
 Description=GPG Sign Daemon
 After=syslog.target
+Wants=logrotate.service
 
 [Service]
 Type=forking
