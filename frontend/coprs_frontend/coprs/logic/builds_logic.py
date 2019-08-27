@@ -7,6 +7,7 @@ import time
 import requests
 
 from sqlalchemy.sql import text
+from sqlalchemy.sql.expression import not_
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -65,24 +66,35 @@ class BuildsLogic(object):
         return result
 
     @classmethod
-    def get_recent_tasks(cls, user=None, limit=None):
-        if not limit:
-            limit = 100
+    def get_recent_tasks(cls, user=None, limit=100, period_days=2):
+        query_args = (
+            models.BuildChroot.build_id,
+            func.max(models.BuildChroot.ended_on).label('max_ended_on'),
+            models.Build.submitted_on,
+        )
+        group_by_args = (
+            models.BuildChroot.build_id,
+            models.Build.submitted_on,
+        )
 
-        query = models.Build.query
-        if user is not None:
-            query = query.filter(models.Build.user_id == user.id)
 
-        query = query.join(
-            models.BuildChroot.query
-                .filter(models.BuildChroot.ended_on.isnot(None))
-                .order_by(models.BuildChroot.ended_on.desc())
-                .subquery()
-        ).order_by(models.Build.id.desc())
+        if user:
+            query_args += (models.Build.user_id,)
+            group_by_args += (models.Build.user_id,)
 
-        # Workaround - otherwise it could take less records than `limit` even though there are more of them.
-        query = query.limit(limit if limit > 100 else 100)
-        return list(query.all()[:4])
+        subquery = (db.session.query(*query_args)
+            .join(models.Build)
+            .group_by(*group_by_args)
+            .having(func.count() == func.count(models.BuildChroot.ended_on))
+            .having(models.Build.submitted_on > time.time() - 3600*24*period_days)
+        )
+        if user:
+            subquery = subquery.having(models.Build.user_id == user.id)
+
+        subquery = subquery.order_by(desc('max_ended_on')).limit(limit).subquery()
+
+        query = models.Build.query.join(subquery, subquery.c.build_id == models.Build.id)
+        return list(query.all())
 
     @classmethod
     def get_running_tasks_by_time(cls, start, end):

@@ -8,7 +8,7 @@
 {%endblock%}
 {% block status_body %}
 
-<h2> My Projects </h2>
+<h2> Builds in my projects, last {{ period_days }} days</h2>
 
 <table class="table table-striped table-bordered">
   <thead>
@@ -22,7 +22,7 @@
     </tr>
   </thead>
   <tbody>
-  {% for build in user_builds %}
+  {% for build in builds %}
     <tr>
       <td>
         <a href="{{ build_href(build) }}"><b>{{ build.id }}</b></a>
