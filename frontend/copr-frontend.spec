@@ -41,7 +41,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.151
+Version:    1.152
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -361,6 +361,22 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Aug 28 2019 Dominik Turecek <dturecek@redhat.com> 1.152-1
+- fix public dump for login to work after re-import (issue#912)
+- optimize frontpage and fix recent builds page (issue#937)
+- batch delete builds into a single action (issue#688)
+- optimize /backend/pending-jobs/ json rendering
+- monitor page should not show builds from PR (issue#839)
+- unify "repos" field description for chroot/project
+- add support for length of pending/running tables (issue#709)
+- fix traceback on build delete (issue#822)
+- remove records limit for running/pending/importing stats pages (issue#893)
+- fix error with sorting pending/running table by project name (issue#901)
+- fix GDPR user data deletion (issues#889,#890)
+- adding better time representation for build detail (issue#860)
+- un-pin projects when deleting them (issue#895)
+- fix module state and show it on the module detail page (issue#607)
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.151-1
 - run createrepo immediately, don't wait for first build (issue#833)
 - added pinned-projects feature (issue#495)
