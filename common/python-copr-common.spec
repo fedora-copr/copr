@@ -14,8 +14,8 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.5
-Release:    2%{?dist}
+Version:    0.6
+Release:    1%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
@@ -104,6 +104,9 @@ version=%version %py2_install
 
 
 %changelog
+* Wed Aug 28 2019 Pavel Raiskup <praiskup@redhat.com> 0.6-1
+- enhanced ModuleStatusEnum (issue#607)
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 0.5-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
