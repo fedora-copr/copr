@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.124
+Version:    1.125
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Aug 28 2019 Dominik Turecek <dturecek@redhat.com> 1.125-1
+- minimize redis traffic for looping over pending-jobs (issue#902)
+- batch delete builds into a single action (issue#688)
+- admin opt-out createrepo after build-deleting
+- fix wrong message validation class
+- refine cleanup_vm_nova.py
+- depend on copr-messaging
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.124-1
 - run createrepo immediately, don't wait for build (issue#833)
 - compress backend-live.log by calling gzip (issue#86)
