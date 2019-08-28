@@ -30,13 +30,20 @@ class CreateChrootCommand(ChrootCommand):
     "Creates a mock chroot in DB"
 
     def __init__(self):
-        self.option_list += Option(
-            "--dist-git-branch",
-            "-b",
-            dest="branch",
-            help="Branch name for this set of new chroots"),
+        self.option_list += (
+            Option(
+                "--dist-git-branch",
+                "-b",
+                dest="branch",
+                help="Branch name for this set of new chroots"),
+            Option(
+                "--deactivated",
+                action="store_true",
+                help="Activate the chroot later, manually by `alter_chroot`"
+            ),
+        )
 
-    def run(self, chroot_names, branch=None):
+    def run(self, chroot_names, branch=None, deactivated=False):
         for chroot_name in chroot_names:
             if not branch:
                 branch = chroot_to_branch(chroot_name)
@@ -44,6 +51,7 @@ class CreateChrootCommand(ChrootCommand):
             try:
                 chroot = coprs_logic.MockChrootsLogic.add(chroot_name)
                 chroot.distgit_branch = branch_object
+                chroot.is_active = not deactivated
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)

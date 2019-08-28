@@ -23,6 +23,7 @@ commands = {
     "alter_chroot": "AlterChrootCommand",
     "display_chroots": "DisplayChrootsCommand",
     "drop_chroot": "DropChrootCommand",
+    "branch_fedora": "BranchFedoraCommand",
 
     # User commands
     "alter_user": "AlterUserCommand",
