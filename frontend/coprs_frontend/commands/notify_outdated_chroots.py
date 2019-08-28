@@ -74,7 +74,7 @@ class NotifyOutdatedChrootsCommand(Command):
 class Notifier(object):
     def notify(self, user, chroots):
         msg = OutdatedChrootMessage(chroots)
-        send_mail(user.mail, msg)
+        send_mail([user.mail], msg)
 
     def store_timestamp(self, chroots):
         for chroot in chroots:

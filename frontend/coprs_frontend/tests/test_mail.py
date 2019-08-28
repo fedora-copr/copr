@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from coprs.mail import PermissionRequestMessage, PermissionChangeMessage, LegalFlagMessage, OutdatedChrootMessage
+from coprs.mail import PermissionRequestMessage, PermissionChangeMessage, LegalFlagMessage, OutdatedChrootMessage, filter_whitelisted_recipients
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
 
@@ -84,3 +84,16 @@ class TestMail(CoprsTestCase):
         with pytest.raises(AttributeError) as ex:
             OutdatedChrootMessage(copr_chroots=[])
         assert "No outdated chroots" in str(ex)
+
+    def test_filter_recipients(self):
+        app.config["WHITELIST_EMAILS"] = ["test@redhat.com"]
+        recipient = filter_whitelisted_recipients(["test@redhat.com", "user@redhat.com"])
+        assert recipient == ["test@redhat.com"]
+
+        app.config["WHITELIST_EMAILS"] = ["test@redhat.com", "user@redhat.com"]
+        recipient = filter_whitelisted_recipients(["test@redhat.com", "user@redhat.com"])
+        assert recipient == ["test@redhat.com", "user@redhat.com"]
+
+        app.config["WHITELIST_EMAILS"] = []
+        recipient = filter_whitelisted_recipients(["test@redhat.com", "user@redhat.com"])
+        assert recipient == ["test@redhat.com", "user@redhat.com"]

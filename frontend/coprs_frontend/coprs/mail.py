@@ -1,6 +1,6 @@
 import flask
 import platform
-import smtplib
+from smtplib import SMTP
 from email.mime.text import MIMEText
 from coprs import app, helpers
 
@@ -114,9 +114,21 @@ class OutdatedChrootMessage(Message):
                 "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days, url))
 
 
-def send_mail(recipient, message, sender=None, reply_to=None):
+def filter_whitelisted_recipients(recipients):
     """
-    :param str/list recipient: One recipient email as a string or multiple emails in a list
+    Filters e-mail recipients if the white list of recipients in conf is not empty.
+    :param recipients: list of recipients
+    :return: list of recipients who should receive an e-mail
+    """
+    if not app.config["WHITELIST_EMAILS"]:
+        return recipients
+
+    return [r for r in recipients if r in app.config["WHITELIST_EMAILS"]]
+
+
+def send_mail(recipients, message, sender=None, reply_to=None):
+    """
+    :param list recipients: List of email recipients
     :param Message message:
     :param str sender: Email of a sender
     :return:
@@ -124,8 +136,10 @@ def send_mail(recipient, message, sender=None, reply_to=None):
     msg = MIMEText(message.text)
     msg["Subject"] = message.subject
     msg["From"] = sender or "root@{0}".format(platform.node())
-    msg["To"] = ", ".join(recipient) if type(recipient) == list else recipient
+    msg["To"] = ", ".join(recipients)
     msg.add_header("reply-to", reply_to or app.config["REPLY_TO"])
-    s = smtplib.SMTP("localhost")
-    s.sendmail("root@{0}".format(platform.node()), recipient, msg.as_string())
-    s.quit()
+    recipients = filter_whitelisted_recipients(recipients)
+    if not recipients:
+        return
+    with SMTP("localhost") as smtp:
+        smtp.sendmail("root@{0}".format(platform.node()), recipients, msg.as_string())

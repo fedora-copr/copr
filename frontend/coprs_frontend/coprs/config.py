@@ -93,6 +93,8 @@ class Config(object):
     ENABLE_DISCUSSION = False
     DISCOURSE_URL = ''
 
+    WHITELIST_EMAILS = []
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

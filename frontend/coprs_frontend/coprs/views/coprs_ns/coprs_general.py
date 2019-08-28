@@ -522,7 +522,7 @@ def copr_permissions_applier_change(copr):
                 permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
                                    "new_builder": new_builder, "new_admin": new_admin}
                 msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
-                send_mail(mail, msg, )
+                send_mail([mail], msg)
 
     return flask.redirect(helpers.copr_url("coprs_ns.copr_detail", copr))
 

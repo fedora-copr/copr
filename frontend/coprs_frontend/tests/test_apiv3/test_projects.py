@@ -213,8 +213,8 @@ class TestApiV3Permissions(CoprsTestCase):
         emails = ['user1@spam.foo', 'user2@spam.foo']
         calls = send_mail.call_args_list
         assert len(calls) == 2
-        assert calls[0][0][0] == "user2@spam.foo"
-        assert calls[1][0][0] == "user1@foo.bar"
+        assert calls[0][0][0] == ["user2@spam.foo"]
+        assert calls[1][0][0] == ["user1@foo.bar"]
         assert str(calls[0][0][1]) == msg
         assert str(calls[1][0][1]) == msg
 

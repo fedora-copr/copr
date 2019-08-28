@@ -67,7 +67,7 @@ def set_permissions(copr):
     # send emails only if transaction succeeded
     for task in messages:
         if flask.current_app.config.get("SEND_EMAILS", False):
-            send_mail(task['address'], task['message'])
+            send_mail([task['address']], task['message'])
 
     return flask.jsonify({'updated': list(updated.keys())})
 
@@ -96,6 +96,6 @@ def request_permissions(ownername, projectname):
         msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
         for address in copr.admin_mails:
             if flask.current_app.config.get("SEND_EMAILS", False):
-                send_mail(address, msg)
+                send_mail([address], msg)
 
     return flask.jsonify({'updated': bool(permission_dict)})
