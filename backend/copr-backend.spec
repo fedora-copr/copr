@@ -17,6 +17,8 @@ Source0:    %name-%version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
+BuildRequires: libmodulemd < 2
+BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: libxslt
 BuildRequires: redis
 BuildRequires: systemd
@@ -31,6 +33,7 @@ BuildRequires: python3-copr-messaging
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
+BuildRequires: python3-gobject
 BuildRequires: python3-humanize
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
