@@ -2,7 +2,7 @@ import datetime
 import json
 from unittest import mock
 
-from coprs import models, helpers
+from coprs import models, helpers, app
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic, ProjectForking
@@ -11,18 +11,19 @@ from tests.coprs_test_case import CoprsTestCase
 
 class TestComplexLogic(CoprsTestCase):
 
-    @mock.patch("flask.g")
-    def test_fork_copr_sends_actions(self, mc_flask_g, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        mc_flask_g.user.name = self.u2.name
-        fc1, created = ComplexLogic.fork_copr(self.c1, self.u2, u"dstname")
-        self.db.session.commit()
+    def test_fork_copr_sends_actions(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        with app.app_context():
+            with mock.patch('flask.g') as mc_flask_g:
+                mc_flask_g.user.name = self.u2.name
+                fc1, created = ComplexLogic.fork_copr(self.c1, self.u2, u"dstname")
+                self.db.session.commit()
 
-        actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
-        assert len(actions) == 1
-        data = json.loads(actions[0].data)
-        assert data["user"] == self.u2.name
-        assert data["copr"] == "dstname"
-        assert data["builds_map"] == {'fedora-18-x86_64': ['bar', '00000005-hello-world'], 'srpm-builds': ['bar', '00000005']}
+                actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
+                assert len(actions) == 1
+                data = json.loads(actions[0].data)
+                assert data["user"] == self.u2.name
+                assert data["copr"] == "dstname"
+                assert data["builds_map"] == {'fedora-18-x86_64': ['bar', '00000005-hello-world'], 'srpm-builds': ['bar', '00000005']}
 
 
     def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
@@ -98,16 +99,17 @@ class TestProjectForking(CoprsTestCase):
         assert fp1.id != self.p1.id
         assert fp1.name == self.p1.name
 
-    @mock.patch("flask.g")
-    def test_fork_copr(self, mc_flask_g, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        mc_flask_g.user.name = self.u2.name
-        forking = ProjectForking(self.u1)
-        fc1 = forking.fork_copr(self.c1, "new-name")
+    def test_fork_copr(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        with app.app_context():
+            with mock.patch('flask.g') as mc_flask_g:
+                mc_flask_g.user.name = self.u2.name
+                forking = ProjectForking(self.u1)
+                fc1 = forking.fork_copr(self.c1, "new-name")
 
-        assert fc1.id != self.c1.id
-        assert fc1.name == "new-name"
-        assert fc1.forked_from_id == self.c1.id
-        assert fc1.mock_chroots == self.c1.mock_chroots
+                assert fc1.id != self.c1.id
+                assert fc1.name == "new-name"
+                assert fc1.forked_from_id == self.c1.id
+                assert fc1.mock_chroots == self.c1.mock_chroots
 
 
 class FooModel(object):
