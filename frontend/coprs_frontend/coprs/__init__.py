@@ -89,7 +89,7 @@ from coprs.views.webhooks_ns import webhooks_general
 from coprs.views.rss_ns import rss_ns
 from coprs.views.rss_ns import rss_general
 
-from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException
+from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException, MalformedArgumentException
 from .context_processors import include_banner, inject_fedmenu, counter_processor
 
 setup_log()
@@ -135,6 +135,7 @@ def handle_403(error):
 
 @app.errorhandler(400)
 @app.errorhandler(BadRequest)
+@app.errorhandler(MalformedArgumentException)
 def handle_400(error):
     error_handler = get_error_handler()
     return error_handler.handle_400(error)

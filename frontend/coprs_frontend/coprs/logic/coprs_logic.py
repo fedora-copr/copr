@@ -855,8 +855,7 @@ class MockChrootsLogic(object):
             valid = True
 
         if not valid:
-            raise MalformedArgumentException(
-                "Chroot name is not valid")
+            raise MalformedArgumentException("Chroot identification is not valid")
 
         if noarch and len(split_name) == 2:
             split_name.append(None)
