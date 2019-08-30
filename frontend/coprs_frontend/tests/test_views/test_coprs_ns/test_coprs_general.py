@@ -261,8 +261,8 @@ class TestCoprDetail(CoprsTestCase):
     @TransactionDecorator("u1")
     def test_copr_detail_doesnt_allow_non_submitter_to_cancel_build(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-
-        self.db.session.add_all([self.u2, self.c2])
+        self.u1.admin = False
+        self.db.session.add_all([self.u1, self.u2, self.c2])
         r = self.test_client.get(
             "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
         assert b"/cancel_build/" not in r.data

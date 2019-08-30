@@ -115,7 +115,7 @@ class User(db.Model, helpers.Serializer):
         """
         Determine if this user can build in the given copr.
         """
-        if copr.user.admin:
+        if self.admin:
             return True
         if copr.group:
             if self.can_build_in_group(copr.group):

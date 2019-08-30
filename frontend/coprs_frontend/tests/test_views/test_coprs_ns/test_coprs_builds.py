@@ -46,13 +46,27 @@ class TestCoprAddBuild(CoprsTestCase):
     def test_copr_not_yet_allowed_user_cant_add_build(self, f_users, f_coprs,
                                                       f_copr_permissions, f_db):
 
-        self.db.session.add_all([self.u2, self.c3])
+        self.u1.admin = False
+        self.db.session.add_all([self.u1, self.u2, self.c3])
+
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u2.name, self.c3.name),
                               data={"pkgs": "http://example.com/testing.src.rpm"},
                               follow_redirects=True)
 
         assert not self.models.Build.query.first()
+
+    @TransactionDecorator("u2")
+    def test_copr_user_cant_add_build_to_admin_project(self, f_users, f_coprs,
+                                                       f_copr_permissions, f_db):
+        """ test for issue#970 """
+        self.db.session.add_all([self.u1, self.c1])
+        self.test_client.post("/coprs/{0}/{1}/new_build/"
+                              .format(self.u1.name, self.c1.name),
+                              data={"pkgs": "http://example.com/testing.src.rpm"},
+                              follow_redirects=True)
+        assert not self.models.Build.query.first()
+
 
     @TransactionDecorator("u3")
     def test_copr_user_without_permission_cant_add_build(self, f_users,
