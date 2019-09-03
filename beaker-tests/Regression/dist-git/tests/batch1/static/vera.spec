@@ -6,6 +6,7 @@ Summary:        A programmable tool for verification, analysis and transformatio
 License:        Boost
 %global commit0 cf13c413f641b5816a4fc9cd4b2fb248c81bf2bd
 URL:            https://github.com/verateam/%{name}
+
 Source0:        https://github.com/verateam/%{name}/archive/%{commit0}.tar.gz
 
 BuildRequires:  cmake
@@ -16,6 +17,8 @@ BuildRequires:  tk-devel
 BuildRequires:  lua-devel
 BuildRequires:  python2-devel
 
+BuildRequires:  gcc-c++
+
 
 %description
 Vera++ is a programmable tool for verification, analysis and transformation of
@@ -25,6 +28,8 @@ collections - the scripts are actually performing the requested tasks.
 
 %prep
 %autosetup -n %{name}-%{commit0}
+
+sed -i 's|URL http://${SOURCEFORGE}/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2|URL http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2|' src/boost.cmake
 
 %build
 %cmake .

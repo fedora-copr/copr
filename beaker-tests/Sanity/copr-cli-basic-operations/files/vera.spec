@@ -29,6 +29,8 @@ collections - the scripts are actually performing the requested tasks.
 %prep
 %autosetup -n %{name}-%{commit0}
 
+sed -i 's|URL http://${SOURCEFORGE}/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2|URL http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2|' src/boost.cmake
+
 %build
 %cmake .
 make %{?_smp_mflags}
