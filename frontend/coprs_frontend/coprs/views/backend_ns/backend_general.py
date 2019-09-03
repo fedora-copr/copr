@@ -87,7 +87,7 @@ def dist_git_upload_completed():
     return flask.jsonify({"updated": True})
 
 
-def get_build_record(task):
+def get_build_record(task, short=False):
     if not task:
         return None
 
@@ -115,6 +115,15 @@ def get_build_record(task):
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
         }
+        if short:
+            return build_record
+
+        build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
+        build_record["repos"] = build_config.get("repos")
+        build_record["buildroot_pkgs"] = build_config.get("additional_packages")
+        build_record["use_bootstrap_container"] = build_config.get("use_bootstrap_container")
+        build_record["with_opts"] = build_config.get("with_opts")
+        build_record["without_opts"] = build_config.get("without_opts")
 
     except Exception as err:
         app.logger.exception(err)
@@ -183,7 +192,7 @@ def pending_jobs():
     srpm_tasks = [build for build in BuildsLogic.get_pending_srpm_build_tasks() if not build.blocked]
     build_records = (
         [get_srpm_build_record(task) for task in srpm_tasks] +
-        [get_build_record(task) for task in BuildsLogic.get_pending_build_tasks()]
+        [get_build_record(task, short=True) for task in BuildsLogic.get_pending_build_tasks()]
     )
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
