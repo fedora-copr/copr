@@ -166,13 +166,14 @@
         <dt>SRPM build log:</dt>
           {% if build.source_status | state_from_num in ['pending', 'starting']  %}
             <dd> Build has not started yet </dd>
-          {% endif %}
+          {% else %}
           {% for url in build.get_import_log_urls(g.user.admin) %}
             <dd>
               <a href="{{ url }}">{{ url | basename }}</a>
                 {{ "," if not loop.last }}
             </dd>
           {% endfor %}
+          {% endif %}
         <dt> Built Packages:</dt>
         {% if build.built_packages %}
           {% for pkg in build.built_packages.split("\n"): %}
