@@ -123,7 +123,7 @@ For each package do::
     cd <package subdir>
     tito build --srpm
     tito release fedora-git # for server packages, or
-    tito release fedora-git-client # for server packages (includes epel)
+    tito release fedora-git-clients # for server packages (includes epel)
 
 And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
 Not even every fedora infra member can to this, ping clime or ask on ``#fedora-admin``.
