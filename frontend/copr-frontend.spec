@@ -41,7 +41,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.152
+Version:    1.153
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -361,6 +361,13 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Sep 04 2019 Dominik Turecek <dturecek@redhat.com> 1.153-1
+- admin permission check in 'can_build_in()' (issue#970)
+- better link to builder-live.log (issue#941)
+- hide unlisted projects from homepage in RSS
+- build srpm first
+- fixes traceback with invalid chroot name (issue#810)
+
 * Wed Aug 28 2019 Dominik Turecek <dturecek@redhat.com> 1.152-1
 - fix public dump for login to work after re-import (issue#912)
 - optimize frontpage and fix recent builds page (issue#937)
