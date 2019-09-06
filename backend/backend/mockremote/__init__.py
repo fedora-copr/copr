@@ -277,17 +277,21 @@ class MockRemote(object):
     def compress_live_log(self, job):
         log_basename = "builder-live.log"
         src = os.path.join(job.results_dir, log_basename)
-        
+
+        # For automatic redirect from log to log.gz, consider configuring
+        # lighttpd like:
+        #     url.rewrite-if-not-file = ("^/(.*)/builder-live.log$" => "/$1/redirect-live.log")
+        #     url.redirect("^/(.*)/redirect-live.log$" => "/$1/builder-live.log.gz")
+        # or apache by:
+        #     <Files builder-live.log>
+        #     RewriteEngine on
+        #     RewriteCond %{REQUEST_FILENAME} !-f
+        #     RewriteRule ^(.*)$ %{REQUEST_URI}.gz [R]
+        #     </files>
         self.log.info("Compressing {} by gzip".format(src))
         if subprocess.call(["gzip", src]) not in [0, 2]:
             self.log.error("Unable to compress file {}".format(src))
             return
-
-        try:
-            with open(src, "w") as f_src:
-                f_src.write("{} was moved to {}.gz\n".format(log_basename, log_basename))
-        except Exception as e:
-            self.log.exception(e)
 
     def reattach_to_pkg_build(self):
         """

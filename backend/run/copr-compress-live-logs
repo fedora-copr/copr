@@ -1,0 +1,23 @@
+#! /bin/sh
+
+# Traverse the given directory and try to find files named 'builder-live.log'
+# and gzip them (or remove, if the corresponding gzipped file already exists).
+
+die() { echo "$0: FATAL: $*" ; exit 1 ; }
+
+test "$#" -lt 1 && die "<dir> argument expected"
+
+dir=$1
+
+test -d "$dir" || die "'$dir' is not a directory"
+
+# make sure we use -mtime to not hit logs for actually running builds
+find "$dir" -name builder-live.log -mtime 7 -type f | \
+while read -r uncompressed; do
+    compressed="$uncompressed.gz"
+    if test -f "$compressed"; then
+        rm -f "$uncompressed"
+    else
+        gzip "$uncompressed"
+    fi
+done
