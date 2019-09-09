@@ -10,6 +10,7 @@ ENV TERM=linux \
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
+                   make \
                    wget \
                    net-tools \
                    iputils \
