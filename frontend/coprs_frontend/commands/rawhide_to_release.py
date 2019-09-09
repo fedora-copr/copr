@@ -1,8 +1,11 @@
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
+
 from flask_script import Command, Option
 from copr_common.enums import StatusEnum
 from coprs import db
 from coprs import models
-from coprs.logic import coprs_logic, actions_logic, builds_logic
+from coprs.logic import coprs_logic, actions_logic, builds_logic, packages_logic
 
 
 class RawhideToReleaseCommand(Command):
@@ -25,10 +28,17 @@ class RawhideToReleaseCommand(Command):
             print("    {}".format(rawhide_chroot))
             return
 
-        for copr in coprs_logic.CoprsLogic.get_all():
-            if not self.has_rawhide(copr) or not copr.follow_fedora_branching:
-                continue
+        coprs_query = (
+            coprs_logic.CoprsLogic.get_all()
+            .join(models.CoprChroot)
+            .filter(models.Copr.follow_fedora_branching == True)
+            .filter(models.CoprChroot.mock_chroot == mock_rawhide_chroot)
+            .options(joinedload('copr_chroots').joinedload('mock_chroot'))
+        )
 
+        for copr in coprs_query:
+            print("Handling builds in copr '{}', chroot '{}'".format(
+                copr.full_name, mock_rawhide_chroot.name))
             self.turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
             data = {"projectname": copr.name,
@@ -37,34 +47,61 @@ class RawhideToReleaseCommand(Command):
                     "dest_chroot": dest_chroot,
                     "builds": []}
 
-            for build in builds_logic.BuildsLogic.get_multiple_by_copr(copr):
-                # rbc means rawhide_build_chroot (we needed short variable)
-                rbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, rawhide_chroot).first()
-                dbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, dest_chroot).first()
+            latest_pkg_builds_in_rawhide = (
+                db.session.query(
+                    func.max(models.Build.id),
+                )
+                .join(models.BuildChroot)
+                .join(models.Package)
+                .filter(models.BuildChroot.mock_chroot_id == mock_rawhide_chroot.id)
+                .filter(models.BuildChroot.status == StatusEnum("succeeded"))
+                .filter(models.Package.copr_dir == copr.main_dir)
+                .group_by(models.Package.name)
+            )
 
-                if not rbc or rbc.status != StatusEnum("succeeded"):
+            fork_builds = (
+                db.session.query(models.Build)
+                .options(joinedload('build_chroots').joinedload('mock_chroot'))
+                .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide.subquery()))
+            ).all()
+
+
+            # no builds to fork in this copr
+            if not len(fork_builds):
+                continue
+
+            for build in fork_builds:
+                if mock_chroot in build.chroots:
+                    # forked chroot already exists, from previous run?
                     continue
 
-                data["builds"].append(rbc.result_dir)
+                # rbc means rawhide_build_chroot (we needed short variable)
+                rbc = None
+                for rbc in build.build_chroots:
+                    if rbc.mock_chroot == mock_rawhide_chroot:
+                        break
 
-                if rbc and not dbc:
-                    dest_build_chroot = models.BuildChroot(**rbc.to_dict())
-                    dest_build_chroot.mock_chroot_id = mock_chroot.id
-                    dest_build_chroot.mock_chroot = mock_chroot
-                    dest_build_chroot.status = StatusEnum("forked")
-                    db.session.add(dest_build_chroot)
+                dest_build_chroot = models.BuildChroot(**rbc.to_dict())
+                dest_build_chroot.mock_chroot_id = mock_chroot.id
+                dest_build_chroot.mock_chroot = mock_chroot
+                dest_build_chroot.status = StatusEnum("forked")
+                db.session.add(dest_build_chroot)
+
+                data['builds'].append(build.result_dir)
 
             if len(data["builds"]):
                 actions_logic.ActionsLogic.send_rawhide_to_release(data)
 
-        db.session.commit()
+            db.session.commit()
 
     def turn_on_the_chroot_for_copr(self, copr, rawhide_name, mock_chroot):
-        rawhide_chroot = coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, rawhide_name)
-        dest_chroot = coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, mock_chroot.name)
-
-        if not rawhide_chroot or dest_chroot:
-            return
+        rawhide_chroot = None
+        for chroot in copr.copr_chroots:
+            if chroot.name == rawhide_name:
+                rawhide_chroot = chroot
+            if chroot.name == mock_chroot.name:
+                # already created
+                return
 
         create_kwargs = {
             "buildroot_pkgs": rawhide_chroot.buildroot_pkgs,
@@ -72,8 +109,3 @@ class RawhideToReleaseCommand(Command):
             "comps_name": rawhide_chroot.comps_name,
         }
         coprs_logic.CoprChrootsLogic.create_chroot(copr.user, copr, mock_chroot, **create_kwargs)
-
-    def has_rawhide(self, copr):
-        return any(filter(lambda ch: ch.os_version == "rawhide", copr.mock_chroots))
-
-
