@@ -911,6 +911,14 @@ class Build(db.Model, helpers.Serializer):
         path = os.path.normpath(os.path.join(*parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
 
+    def backend_live_log(self, chroot):
+        parts = ["results", self.copr.owner_name, self.copr_dirname,
+                 chroot.name, self.id_fixed_width + "-" + self.package.name,
+                 "builder-live.log" if chroot.status == StatusEnum("running")
+                                    else "builder-live.log.gz"]
+        path = os.path.normpath(os.path.join(*parts))
+        return urljoin(app.config["BACKEND_BASE_URL"], path)
+
     @property
     def source_json_dict(self):
         if not self.source_json:
