@@ -90,5 +90,28 @@ services:
     volumes:
       - .:/opt/copr:z
 
+  keygen-signd:
+    build:
+      context: .
+      dockerfile: docker/keygen-signd/Dockerfile
+    hostname: keygen-signd
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - copr-keygen:/var/lib/copr-keygen
+
+  keygen-httpd:
+    build:
+      context: .
+      dockerfile: docker/keygen-httpd/Dockerfile
+    hostname: keygen-httpd
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - copr-keygen:/var/lib/copr-keygen
+
 volumes:
   results:
+  copr-keygen:

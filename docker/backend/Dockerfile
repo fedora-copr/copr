@@ -21,9 +21,6 @@ RUN dnf -y update && \
                    supervisor \
                    psmisc \
                    nginx \
-# packages for copr-keygen
-                   uwsgi \
-                   uwsgi-plugin-python3 \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package
@@ -52,22 +49,6 @@ RUN useradd copr && \
     cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown copr:copr -R /home/copr
 
-# setup user for web access
-RUN useradd -r apache
-
-# preinstall copr-keygen and its builddeps to utilize most of Docker cache
-RUN cd `mktemp -d` && dnf -y download --source copr-keygen && \
-    dnf -y builddep *.src.rpm --allowerasing && \
-    dnf -y install copr-keygen && \
-    dnf clean all
-
-# system setup for copr-keygen
-RUN mkdir /var/log/uwsgi /var/run/uwsgi && \
-    chown apache:apache /var/log/uwsgi && \
-    chmod 775 /var/log/uwsgi && \
-    chown apache:apache /var/run/uwsgi && \
-    chmod 775 /var/run/uwsgi && \
-    usermod copr-signer -G apache
 
 # preinstall backend and its builddeps to utilize most of Docker cache
 RUN cd `mktemp -d` && \
@@ -84,18 +65,14 @@ COPY . /copr
 
 
 RUN dnf -y builddep /copr/backend/*.spec --allowerasing && \
-    dnf -y builddep /copr/keygen/*.spec --allowerasing && \
     dnf clean all
 
 # build packages from sources
 RUN cd /copr/backend && \
-    tito build --rpm --test --rpmbuild-options='--without=check' && \
-    cd ../keygen && \
     tito build --rpm --test --rpmbuild-options='--without=check'
 
 # upgrade the already pre-installed packages if possible
-RUN dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm \
-                   /tmp/tito/noarch/copr-backend*.noarch.rpm ; \
+RUN dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm ; \
     dnf clean all
 
 # copy filesystem setup and setup ownership and permissions
@@ -103,15 +80,9 @@ COPY docker/backend/files/ /
 RUN chmod 700 /root && \
     chmod 400 /root/.ssh/id_rsa && \
     chmod 700 /home/copr && \
-    chown copr:copr /home/copr && \
-    chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
-# fix permissions on /var/log/copr-keygen/main.log which is
-# owned by root after copr-keygen installation tests are run
-#    chown copr-signer:copr-signer /var/log/copr-keygen/main.log
+    chown copr:copr /home/copr
 
 # fix permissions for .ssh
 RUN chmod 700 /root/.ssh
-
-RUN echo '127.0.0.1 keygen' >> /etc/hosts
 
 CMD ["/bin/run.sh"]
