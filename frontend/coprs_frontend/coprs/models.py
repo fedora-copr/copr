@@ -1183,6 +1183,8 @@ class MockChroot(db.Model, helpers.Serializer):
     # will skip all projects using this chroot
     final_prunerepo_done = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
+    comment = db.Column(db.Text, nullable=True)
+
     @classmethod
     def latest_fedora_branched_chroot(cls, arch='x86_64'):
         return (cls.query

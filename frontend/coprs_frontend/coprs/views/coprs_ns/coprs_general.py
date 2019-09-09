@@ -28,7 +28,7 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
-from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
@@ -421,9 +421,12 @@ def render_copr_edit(copr, form, view):
     if not form:
         form = forms.CoprFormFactory.create_form_cls(
             copr.mock_chroots, copr=copr)(obj=copr)
+    comments = {}
+    for chroot in MockChrootsLogic.get_multiple(active_only=True):
+        comments[chroot.name] = chroot.comment
     return flask.render_template(
         "coprs/detail/settings/edit.html",
-        copr=copr, form=form, view=view)
+        copr=copr, form=form, view=view, comments=comments)
 
 
 @coprs_ns.route("/<username>/<coprname>/edit/")
