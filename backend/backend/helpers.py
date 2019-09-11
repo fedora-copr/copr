@@ -396,14 +396,13 @@ class RedisPublishHandler(logging.Handler):
         # copr specific semantics
         record.who = self.who
 
+        # For the message arguments, it is better to expand them right now
+        # instead of relying on method in json.dumps(..., default=default)
+        # and even worse rely on it's reverse action in RedisLogHandler.
+        record.msg = record.msg % record.args
         if record.exc_info:
             _, error, tb = record.exc_info
-            record.msg = format_tb(error, tb)
-        else:
-            # For the message arguments, it is better to expand them right now
-            # instead of relying on method in json.dumps(..., default=default)
-            # and even worse rely on it's reverse action in RedisLogHandler.
-            record.msg = record.msg % record.args
+            record.msg += "\n" + format_tb(error, tb)
 
         # cleanup the hard to json.dumps() stuff
         record.exc_info = None
