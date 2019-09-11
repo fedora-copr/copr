@@ -1,0 +1,2 @@
+copr-common
+fedora-messaging

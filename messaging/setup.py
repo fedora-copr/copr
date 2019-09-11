@@ -30,10 +30,9 @@ __author__ = "Copr team"
 __author_email__ = "copr-devel@lists.fedorahosted.org"
 __url__ = "https://pagure.io/copr/copr"
 
-__requires__ = [
-    'fedora-messaging',
-    'copr-common',
-]
+
+with open(os.path.join(here, "requirements.txt")) as f:
+    __requires__ = f.read().split("\n")[:-1]
 
 setup(
     name=__name__,
@@ -54,7 +53,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["fedora_messaging"],
+    install_requires=__requires__,
     test_suite="copr_messaging.tests",
     entry_points={
         "fedora.messages": [
