@@ -56,8 +56,11 @@ class Builder(object):
         return out, err
 
     def check_build_success(self):
+        """
+        Check if the build succeeded.  If yes, return True.
+        """
         successfile = os.path.join(self.resultdir, "success")
-        self._run_ssh_cmd("/usr/bin/test -f {0}".format(successfile))
+        return self.conn.run("/usr/bin/test -f {0}".format(successfile)) == 0
 
     def run_async_build(self):
         cmd = self._copr_builder_cmd()

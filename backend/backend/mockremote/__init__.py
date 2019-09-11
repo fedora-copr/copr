@@ -306,9 +306,10 @@ class MockRemote(object):
             raise MockRemoteError("Builder error during job {}.".format(self.job))
 
     def check_build_success(self):
-        try:
-            self.builder.check_build_success()
-        except BuilderError as error:
+        """
+        Raise MockRemoteError if builder claims that the build failed.
+        """
+        if not self.builder.check_build_success():
             raise MockRemoteError("Build {} failed".format(self.job))
 
     def download_results(self):
