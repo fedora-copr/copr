@@ -412,7 +412,7 @@ Yes, we did. See `Copr and integration with Koji <http://miroslav.suchy.cz/blog/
 
 Yes, you can. Enable email/irc/android notifications at `Fedora notifications service <https://apps.fedoraproject.org/notifications/>`_.
 
-See this `example on how to process fedmsg notifications <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
+See blog post `how to consume copr messages from bus <https://pavel.raiskup.cz/blog/copr-messsaging.html>`_.
 
 .. _`What does Copr mean?`:
 
@@ -437,12 +437,6 @@ If you want to know more about tools to generate srpm from a Git repo, see:
 1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`__)
 
 2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`__)
-
-.. _`How do I get notifications about finished builds?`:
-
-.. rubric:: How do I get notifications about finished builds? :ref:`¶ <How do I get notifications about finished builds?>`
-
-See this `blog post <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
 
 .. _`Why doesn't Copr download my updated package?`:
 
