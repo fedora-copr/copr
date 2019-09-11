@@ -213,9 +213,10 @@ class Worker(multiprocessing.Process):
 
                 except MockRemoteError as e:
                     # record and break
-                    self.log.exception(
-                        "Error during the build, host=%s, build_id=%s, chroot=%s",
-                        self.vm.vm_ip, job.build_id, job.chroot)
+                    self.log.error(
+                        "Error during the build, host=%s, build_id=%s, "
+                        "chroot=%s, error='%s'",
+                        self.vm.vm_ip, job.build_id, job.chroot, str(e))
                     failed = True
                     mr.download_results()
 
