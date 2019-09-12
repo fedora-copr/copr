@@ -74,7 +74,7 @@
               </a>
             {% endif %}
             {% if comments[chrootname] %}
-              <small class="text-muted"> {{ comments[chrootname] }} </small>
+              <small class="text-muted"> {{ comments[chrootname]|safe }} </small>
             {% endif %}
           </label>
         </div>
