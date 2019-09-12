@@ -63,10 +63,10 @@ Requires:   openssh-clients
 Requires:   prunerepo
 Requires:   python3-copr
 Requires:   python3-copr-common > 0.4
+Requires:   python3-copr-messaging
 Requires:   python3-daemon
 Requires:   python3-dateutil
 Requires:   python3-fedmsg
-Requires:   python3-fedora-messaging
 Requires:   python3-gobject
 Requires:   python3-humanize
 Requires:   python3-munch
