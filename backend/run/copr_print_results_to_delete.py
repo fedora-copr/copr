@@ -19,27 +19,30 @@ def main():
     for ownername in os.listdir(config.destdir):
         ownerpath = os.path.join(config.destdir, ownername)
 
-        for projectname in os.listdir(ownerpath):
-            projectpath = os.path.join(ownerpath, projectname)
+        try:
+            for projectname in os.listdir(ownerpath):
+                projectpath = os.path.join(ownerpath, projectname)
 
-            # It may be a good idea, to not DoS attack the frontend
-            # Set whatever number of seconds is necessary
-            time.sleep(0)
+                # It may be a good idea, to not DoS attack the frontend
+                # Set whatever number of seconds is necessary
+                time.sleep(0)
 
-            # If a project doesn't exist in frontend, it should be removed
-            try:
-                client.project_proxy.get(ownername=ownername, projectname=projectname)
-            except CoprNoResultException:
-                print(projectpath)
-                continue
-
-            # If a chroot is not enabled in the project, it should be removed
-            for chroot in os.listdir(projectpath):
-                if chroot in ["srpm-builds", "modules"]:
+                # If a project doesn't exist in frontend, it should be removed
+                try:
+                    client.project_proxy.get(ownername=ownername, projectname=projectname)
+                except CoprNoResultException:
+                    print(projectpath)
                     continue
-                if not is_outdated_to_be_deleted(get_chroot_safe(client, ownername, projectname, chroot)):
-                    continue
-                print(os.path.join(projectpath, chroot))
+
+                # If a chroot is not enabled in the project, it should be removed
+                for chroot in os.listdir(projectpath):
+                    if chroot in ["srpm-builds", "modules"]:
+                        continue
+                    if not is_outdated_to_be_deleted(get_chroot_safe(client, ownername, projectname, chroot)):
+                        continue
+                    print(os.path.join(projectpath, chroot))
+        except NotADirectoryError as ex:
+            print(str(ex))
 
 
 def get_chroot_safe(client, ownername, projectname, chrootname):
