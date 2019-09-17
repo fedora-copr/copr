@@ -23,6 +23,11 @@ def main():
             for projectname in os.listdir(ownerpath):
                 projectpath = os.path.join(ownerpath, projectname)
 
+                # I don't know how to determine whether a PR dir can be deleted or not
+                # just ommit the logic for the time being.
+                if ":pr:" in projectname:
+                    continue
+
                 # It may be a good idea, to not DoS attack the frontend
                 # Set whatever number of seconds is necessary
                 time.sleep(0)
