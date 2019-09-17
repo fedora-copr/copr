@@ -36,7 +36,7 @@ def main():
 
                 # If a chroot is not enabled in the project, it should be removed
                 for chroot in os.listdir(projectpath):
-                    if chroot in ["srpm-builds", "modules"]:
+                    if chroot in ["srpm-builds", "modules", "repodata", "pubkey.gpg"]:
                         continue
                     if not is_outdated_to_be_deleted(get_chroot_safe(client, ownername, projectname, chroot)):
                         continue
