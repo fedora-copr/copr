@@ -473,7 +473,7 @@ rlJournalStart
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python3 <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
-        sleep 11 # default sleeptime + 1
+        sleep 30
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files

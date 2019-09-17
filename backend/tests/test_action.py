@@ -87,17 +87,14 @@ class TestAction(object):
 
     def test_action_run_legal_flag(self, mc_time):
         mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
         test_action = Action(
             opts=self.opts,
             action={
                 "action_type": ActionType.LEGAL_FLAG,
                 "id": 1
             },
-            frontend_client=mc_front_cb,
         )
         test_action.run()
-        assert not mc_front_cb.called
 
         self.dummy = str(test_action)
 
@@ -107,7 +104,6 @@ class TestAction(object):
     @mock.patch("backend.actions.createrepo")
     def test_action_handle_forks(self, mc_createrepo, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
         mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
         mc_exists = True
         test_action = Action(
             opts=self.opts,
@@ -132,7 +128,6 @@ class TestAction(object):
                 "old_value": "thrnciar/source-copr",
                 "new_value": "thrnciar/destination-copr",
             },
-            frontend_client=mc_front_cb,
         )
         test_action.run()
         calls = mc_copy_tree.call_args_list
@@ -592,7 +587,6 @@ class TestAction(object):
     @mock.patch("backend.actions.createrepo")
     def test_delete_multiple_builds_succeeded(self, mc_createrepo, mc_time):
         mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
 
         tmp_dir = self.make_temp_dir()
 
@@ -624,7 +618,6 @@ class TestAction(object):
                 "id": 7,
                 "data": ext_data,
             },
-            frontend_client=mc_front_cb,
         )
 
         assert os.path.exists(pkg_build_1_dir)

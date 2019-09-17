@@ -7,8 +7,8 @@ from requests import get, RequestException
 
 from backend.frontend import FrontendClient
 
-from ..actions import Action
-from ..helpers import get_redis_logger
+from ..actions import ActionWorkerManager, ActionQueueTask
+from ..helpers import get_redis_logger, get_redis_connection
 
 
 class ActionDispatcher(multiprocessing.Process):
@@ -23,7 +23,6 @@ class ActionDispatcher(multiprocessing.Process):
 
         self.opts = opts
         self.log = get_redis_logger(self.opts, "backend.action_dispatcher", "action_dispatcher")
-        self.frontend_client = FrontendClient(self.opts, self.log)
 
     def update_process_title(self, msg=None):
         proc_title = "Action dispatcher"
@@ -31,30 +30,23 @@ class ActionDispatcher(multiprocessing.Process):
             proc_title += " - " + msg
         setproctitle(proc_title)
 
-    def load_action(self):
+    def get_frontend_actions(self):
         """
-        Retrieve an action task from frontend.
+        Get unfiltered list of actions from frontend, both running and pending.
         """
-        self.log.info("Waiting for an action task from frontend...")
-        get_action_init_time = time.time()
 
-        action_task = None
-        while not action_task:
-            self.update_process_title("Waiting for an action task from frontend for {}s"
-                                      .format(int(time.time() - get_action_init_time)))
-            try:
-                r = get("{0}/backend/pending-action/".format(self.opts.frontend_base_url),
-                        auth=("user", self.opts.frontend_auth))
-                action_task = r.json()
-            except (RequestException, ValueError) as error:
-                self.log.exception("Retrieving an action task from %s failed with error: %s",
-                                   self.opts.frontend_base_url, error)
-            finally:
-                if not action_task:
-                    time.sleep(self.opts.sleeptime)
+        try:
+            url = "{0}/backend/pending-actions/".format(self.opts.frontend_base_url)
+            request = get(url, auth=("user", self.opts.frontend_auth))
+            raw_actions = request.json()
+        except (RequestException, ValueError) as error:
+            self.log.exception(
+                "Retrieving an action tasks failed with error: %s",
+                error)
+            return []
 
-        self.log.info("Got new action_task %s of type %s", action_task['id'], action_task['action_type'])
-        return Action(self.opts, action_task, frontend_client=self.frontend_client)
+        return [ActionQueueTask(action['id']) for action in raw_actions]
+
 
     def run(self):
         """
@@ -63,13 +55,24 @@ class ActionDispatcher(multiprocessing.Process):
         self.log.info("Action dispatching started.")
         self.update_process_title()
 
+        redis = get_redis_connection(self.opts)
+        worker_manager = ActionWorkerManager(
+            redis_connection=redis,
+            log=self.log,
+            max_workers=self.opts.actions_max_workers)
+        worker_manager.frontend_client = FrontendClient(self.opts, self.log)
+
+        timeout = self.opts.sleeptime
+
         while True:
-            action = self.load_action()
-            try:
-                action.run()
-            except Exception as e: # dirty
-                self.log.exception(str(e))
-            msg = "Started new action {} of type {}"\
-                  .format(action.data["id"], action.data["action_type"])
-            self.update_process_title(msg)
-            self.log.info(msg)
+            self.log.info("getting actions from frontend")
+            start = time.time()
+            for task in self.get_frontend_actions():
+                worker_manager.add_task(task)
+
+            # Execute the actions.
+            worker_manager.run(timeout=timeout)
+
+            sleep_more = timeout - (time.time() - start)
+            if sleep_more > 0:
+                time.sleep(sleep_more)

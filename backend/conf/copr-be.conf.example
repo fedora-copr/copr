@@ -55,6 +55,10 @@ destdir=/var/lib/copr/public_html/results
 # default is 10
 sleeptime=30
 
+# How many workers (background processes) can Backend spawn for handling actions
+# concurrently.
+#actions_max_workers=8
+
 # exit on worker failure
 # default is false
 #exit_on_worker=false

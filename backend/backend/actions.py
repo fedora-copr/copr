@@ -5,6 +5,7 @@ import shutil
 import time
 import traceback
 import base64
+import subprocess
 
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
@@ -23,6 +24,7 @@ from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
 from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug, format_filename
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
+from backend.worker_manager import WorkerManager
 
 from .vm_manage.manager import VmManager
 
@@ -46,17 +48,16 @@ class Action(object):
 
     """
     # TODO: get more form opts, decrease number of parameters
-    def __init__(self, opts, action, frontend_client):
+    def __init__(self, opts, action, log=None):
 
         self.opts = opts
-        self.frontend_client = frontend_client
         self.data = action
 
         self.destdir = self.opts.destdir
         self.front_url = self.opts.frontend_base_url
         self.results_root_url = self.opts.results_baseurl
 
-        self.log = get_redis_logger(self.opts, "backend.actions", "actions")
+        self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
     def __str__(self):
         return "<Action: {}>".format(self.data)
@@ -483,6 +484,7 @@ class Action(object):
         """ Handle action (other then builds) - like rename or delete of project """
         self.log.info("Executing: %s", str(self))
 
+        # TODO: we don't need Munch() here, drop it
         result = Munch()
         result.id = self.data["id"]
 
@@ -525,16 +527,7 @@ class Action(object):
             self.handle_cancel_build(result)
 
         self.log.info("Action result: %s", result)
-
-        if "result" in result:
-            if result.result == ActionResult.SUCCESS and \
-                    not getattr(result, "job_ended_on", None):
-                result.job_ended_on = time.time()
-
-            try:
-                self.frontend_client.update({"actions": [result]})
-            except RequestException as e:
-                self.log.exception(e)
+        return result
 
 
 # TODO: sync with ActionTypeEnum from common
@@ -556,3 +549,56 @@ class ActionResult(object):
     WAITING = 0
     SUCCESS = 1
     FAILURE = 2
+
+
+class ActionQueueTask():
+    def __init__(self, id):
+        self.id = id
+    def __repr__(self):
+        return str(self.id)
+
+
+class ActionWorkerManager(WorkerManager):
+    frontend_client = None
+    worker_prefix = 'action_worker'
+
+    def start_task(self, worker_id, task):
+        command = [
+            'copr-backend-process-action',
+            '--daemon',
+            '--task-id', repr(task),
+            '--worker-id', worker_id,
+        ]
+        # TODO: mark as started on FE, and let user know in UI
+        subprocess.check_call(command)
+
+    def has_worker_ended(self, worker_id, task_info):
+        return 'status' in task_info
+
+    def finish_task(self, worker_id, task_info):
+        task_id = self.get_task_id_from_worker_id(worker_id)
+
+        result = Munch()
+        result.id = int(task_id)
+        result.result = int(task_info['status'])
+        result.job_ended_on = time.time()
+
+        try:
+            self.frontend_client.update({"actions": [result]})
+        except RequestException:
+            self.log.exception("can't post to frontend, retrying indefinitely")
+            return False
+        return True
+
+    def is_worker_alive(self, worker_id, task_info):
+        if not 'PID' in task_info:
+            return False
+        pid = int(task_info['PID'])
+        try:
+            # Send signal=0 to the process to check whether it still exists.
+            # This is just no-op if the signal was successfully delivered to
+            # existing process, otherwise exception is raised.
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True

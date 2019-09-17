@@ -1,7 +1,7 @@
 import json
 
 from copr_common.enums import BackendResultEnum, StatusEnum
-from tests.coprs_test_case import CoprsTestCase
+from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.builds_logic import BuildsLogic
 
 
@@ -223,6 +223,50 @@ class TestWaitingActions(CoprsTestCase):
         self.db.session.commit()
         r = self.tc.get("/backend/pending-action/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) != None
+
+    @new_app_context
+    def test_pending_actions_list(self, f_users, f_coprs, f_actions, f_db):
+        r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
+        actions = json.loads(r.data.decode("utf-8"))
+        assert actions == [{'id': 1}, {'id': 2}]
+
+        self.delete_action.result = BackendResultEnum("success")
+        self.db.session.add(self.delete_action)
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
+        actions = json.loads(r.data.decode("utf-8"))
+        assert len(actions) == 1
+
+    @new_app_context
+    def test_get_action_succeeded(self, f_users, f_coprs, f_actions, f_db):
+        r = self.tc.get("/backend/action/1/",
+                        headers=self.auth_header)
+        data = json.loads(r.data.decode('utf-8'))
+
+        # make one succeeded
+        self.delete_action.result = BackendResultEnum("success")
+        self.db.session.add(self.delete_action)
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/action/1/",
+                        headers=self.auth_header)
+        data_success = json.loads(r.data.decode('utf-8'))
+        assert data != data_success
+        data_success.update({'result': 0})
+        assert data == data_success
+
+        # make one failed
+        self.delete_action.result = BackendResultEnum("failure")
+        self.db.session.add(self.delete_action)
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/action/1/",
+                        headers=self.auth_header)
+        data_fail = json.loads(r.data.decode('utf-8'))
+        assert data != data_fail
+        data.update({'result': 2})
+        assert data == data_fail
 
 
 class TestUpdateActions(CoprsTestCase):

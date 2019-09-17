@@ -176,6 +176,21 @@ def pending_action():
     return flask.jsonify(action_record)
 
 
+@backend_ns.route("/pending-actions/")
+def pending_actions():
+    'get the list of actions backand should take care of'
+    actions = actions_logic.ActionsLogic.get_waiting()
+    data = [{'id': action.id} for action in actions]
+    return flask.jsonify(data)
+
+
+@backend_ns.route("/action/<int:action_id>/")
+def get_action(action_id):
+    action = actions_logic.ActionsLogic.get(action_id).one()
+    action_record = action.to_dict()
+    return flask.jsonify(action_record)
+
+
 @backend_ns.route("/pending-action-count/")
 def pending_action_count():
     """

@@ -1,7 +1,8 @@
 import json
 import time
-from requests import post, RequestException
+from requests import post, get, RequestException
 
+RETRY_TIMEOUT = 5
 
 class FrontendClient(object):
     """
@@ -37,6 +38,27 @@ class FrontendClient(object):
             self.msg = "Post request failed: {0}".format(e)
             raise
         return response
+
+    def get_reliably(self, url_path):
+        """
+        Get the URL response from frontend, try indefinitely till the server
+        gives us answer.
+        """
+        url = "{}/{}/".format(self.frontend_url, url_path)
+        auth = ("user", self.frontend_auth)
+
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                response = get(url, auth=auth)
+            except RequestException as ex:
+                self.msg = "Get request {} failed: {}".format(attempt, ex)
+                time.sleep(RETRY_TIMEOUT)
+                continue
+
+            return response
+
 
     def _post_to_frontend_repeatedly(self, data, url_path, max_repeats=10):
         """
