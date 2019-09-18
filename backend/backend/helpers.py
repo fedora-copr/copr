@@ -393,6 +393,10 @@ class RedisPublishHandler(logging.Handler):
         # copr specific semantics
         record.who = self.who
 
+        # First argument to 'log.exception()' should be 'str' type.  If it is
+        # not, we need to convert it before using '%' operator below.
+        record.msg = str(record.msg)
+
         # For the message arguments, it is better to expand them right now
         # instead of relying on method in json.dumps(..., default=default)
         # and even worse rely on it's reverse action in RedisLogHandler.
