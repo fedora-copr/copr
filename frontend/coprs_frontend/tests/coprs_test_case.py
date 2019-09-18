@@ -621,8 +621,8 @@ def new_app_context(fn):
     https://stackoverflow.com/questions/19395697/sqlalchemy-session-not-getting-removed-properly-in-flask-testing
     """
     @wraps(fn)
-    def wrapper(fn, fn_self, *args):
+    def wrapper(fn, fn_self, *args, **kwargs):
         with coprs.app.app_context():
-            return fn(fn_self, *args)
+            return fn(fn_self, *args, **kwargs)
 
     return decorator.decorator(wrapper, fn)

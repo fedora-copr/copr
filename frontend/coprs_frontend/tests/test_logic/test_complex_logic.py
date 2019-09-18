@@ -6,7 +6,7 @@ from coprs import models, helpers, app
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic, ProjectForking
-from tests.coprs_test_case import CoprsTestCase
+from tests.coprs_test_case import CoprsTestCase, new_app_context
 
 
 class TestComplexLogic(CoprsTestCase):
@@ -25,6 +25,7 @@ class TestComplexLogic(CoprsTestCase):
                 assert data["copr"] == "dstname"
                 assert data["builds_map"] == {'srpm-builds': {'bar': '00000005'},'fedora-18-x86_64': {'bar': '00000005-hello-world'}}
 
+    @new_app_context
     @mock.patch("flask.g")
     def test_fork_copr_projects_with_more_builds(self, mc_flask_g, f_users, f_fork_prepare, f_db):
         mc_flask_g.user.name = self.u2.name
