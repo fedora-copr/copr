@@ -204,6 +204,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        cleanProject "custom-1-$NAME_VAR"
     rlPhaseEnd
 
 rlJournalPrintText
