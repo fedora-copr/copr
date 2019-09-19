@@ -8,6 +8,7 @@ import sqlalchemy
 from .. import db
 from .builds_logic import BuildsLogic
 from copr_common.enums import StatusEnum
+from coprs import helpers
 from coprs import models
 from coprs import exceptions
 from coprs.exceptions import ObjectNotFound, ActionInProgressException
@@ -235,7 +236,11 @@ class ComplexLogic(object):
         for group in user.user_groups:
             coprs.extend(CoprsLogic.get_multiple_by_group_id(group.id).all())
 
-        return coprs
+        coprs += [perm.copr for perm in user.copr_permissions if
+                  perm.get_permission("admin") == helpers.PermissionEnum("approved") or
+                  perm.get_permission("builder") == helpers.PermissionEnum("approved")]
+
+        return set(coprs)
 
 
 class ProjectForking(object):
