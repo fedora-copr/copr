@@ -20,13 +20,14 @@ log = logging.getLogger(__name__)
 
 
 sys.path.append("/usr/share/copr/")
-from backend.helpers import BackendConfigReader, create_file_logger
+from backend.helpers import (BackendConfigReader, create_file_logger,
+                             uses_devel_repo)
 from backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
 from backend.exceptions import CoprSignNoKeyError
 from backend.createrepo import createrepo
 
 
-def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opts):
+def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opts, devel):
     success = True
 
     logger = create_file_logger("run.check_signed_rpms_in_pkg_dir",
@@ -39,10 +40,10 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opt
                              project, chroot])
         createrepo(
             path=chroot_dir,
-            front_url=opts.frontend_base_url,
             base_url=base_url,
             username=user,
             projectname=project,
+            devel=devel,
         )
 
     except Exception as err:
@@ -53,7 +54,7 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opt
     return success
 
 
-def check_signed_rpms(project_dir, user, project, opts):
+def check_signed_rpms(project_dir, user, project, opts, devel):
     """
     Ensure that all rpm files are signed
     """
@@ -77,7 +78,9 @@ def check_signed_rpms(project_dir, user, project, opts):
 
             log.debug(">> Stepping into package: {}".format(mb_pkg_path))
 
-            if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project, chroot, chroot_path, opts):
+            if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project,
+                                                chroot, chroot_path, opts,
+                                                devel):
                 success = False
 
     return success
@@ -140,9 +143,18 @@ def main():
                 failed = True
                 continue
 
+            try:
+                devel = uses_devel_repo(opts.frontend_base_url,
+                                        user_name, project_name)
+            except:
+                log.exception("Can't get ACR flag for {}/{}, mark as failed, skipping")
+                failed = True
+                continue
+
             project_dir = os.path.join(user_dir, project_name)
             pubkey_path = os.path.join(project_dir, "pubkey.gpg")
-            if not check_signed_rpms(project_dir, user_name, project_name, opts):
+            if not check_signed_rpms(project_dir, user_name, project_name, opts,
+                                     devel):
                 failed = False
 
             if not check_pubkey(pubkey_path, user_name, project_name, opts):

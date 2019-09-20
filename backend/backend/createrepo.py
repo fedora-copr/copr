@@ -10,7 +10,6 @@ from oslo_concurrency import lockutils
 # opts = BackendConfigReader().read()
 # log = get_redis_logger(opts, "createrepo", "actions")
 
-from .helpers import get_auto_createrepo_status
 from .exceptions import CreateRepoError
 
 
@@ -163,29 +162,26 @@ def add_modules(path):
     return ""
 
 
-def createrepo(path, front_url, username, projectname,
-               override_acr_flag=False, base_url=None):
+def createrepo(path, username, projectname, devel=False, base_url=None):
     """
-        Creates repo depending on the project setting "auto_createrepo".
-        When enabled creates `repodata` at the provided path, otherwise
+    Creates repodata.  Depending on the "auto_createrepo" parameter it either
+    creates the repodata directory in `path`, or in `path/devel`.
 
     :param path: directory with rpms
-    :param front_url: url to the copr frontend
     :param username: copr project owner username
     :param projectname: copr project name
+    :param devel: create the repository in 'devel' subdirectory
     :param base_url: base_url to access rpms independently of repomd location
-    :param Multiprocessing.Lock lock:  [optional] global copr-backend lock
 
     :return: tuple(returncode, stdout, stderr) produced by `createrepo_c`
     """
     # TODO: add means of logging
-
-    base_url = base_url or ""
-
-    acr_flag = get_auto_createrepo_status(front_url, username, projectname)
-    if override_acr_flag or acr_flag:
+    if not devel:
         out_cr = createrepo_unsafe(path)
         out_ad = add_appdata(path, username, projectname)
         out_md = add_modules(path)
         return "\n".join([out_cr, out_ad, out_md])
+
+    # Automatic createrepo disabled.  Even so, we still need to createrepo in
+    # special "devel" directory so we can later build packages against it.
     return createrepo_unsafe(path, base_url=base_url, dest_dir="devel")

@@ -19,7 +19,7 @@ from copr.exceptions import CoprRequestException
 sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader
-from backend.helpers import get_auto_createrepo_status,get_persistent_status,get_auto_prune_status
+from backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status
 from backend.frontend import FrontendClient
 from backend.createrepo import createrepo
 
@@ -114,7 +114,7 @@ class Pruner(object):
         loginfo("projectname = {}".format(projectname))
 
         try:
-            if not get_auto_createrepo_status(self.opts.frontend_base_url, username, projectname):
+            if uses_devel_repo(self.opts.frontend_base_url, username, projectname):
                 loginfo("Skipped {}/{} since auto createrepo option is disabled"
                           .format(username, projectdir))
                 return
@@ -165,9 +165,8 @@ class Pruner(object):
                 cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days), '--nocreaterepo', chroot_path]
                 stdout = runcmd(cmd)
                 loginfo(stdout)
-                createrepo(path=chroot_path, front_url=self.opts.frontend_base_url,
-                           username=username, projectname=projectname,
-                           override_acr_flag=True)
+                createrepo(path=chroot_path, username=username,
+                           projectname=projectname)
                 clean_copr(chroot_path, self.prune_days, verbose=True)
             except Exception as err:
                 logexception(err)

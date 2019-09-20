@@ -585,8 +585,12 @@ class TestAction(object):
         assert os.path.exists(chroot_21_path)
 
     @mock.patch("backend.actions.createrepo")
-    def test_delete_multiple_builds_succeeded(self, mc_createrepo, mc_time):
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_multiple_builds_succeeded(self, mc_build_devel,
+                                              mc_createrepo, mc_time):
+
         mc_time.time.return_value = self.test_time
+        mc_build_devel.return_value = False
 
         tmp_dir = self.make_temp_dir()
 
@@ -633,7 +637,7 @@ class TestAction(object):
             projectname=u'bar',
             base_url=u'http://example.com/results/foo/bar/fedora-20',
             path='{}/foo/bar/fedora-20'.format(self.tmp_dir_name),
-            front_url=None
+            devel=False,
         )
         assert mc_createrepo.call_args == create_repo_expected_call
 

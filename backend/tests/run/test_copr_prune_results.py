@@ -30,7 +30,7 @@ def mc_bcr():
 
 @pytest.yield_fixture
 def mc_build_devel():
-    with mock.patch('{}.build_to_devel_repo'.format(MODULE_REF)) as handle:
+    with mock.patch('{}.uses_devel_repo'.format(MODULE_REF)) as handle:
         yield handle
 
 @pytest.yield_fixture

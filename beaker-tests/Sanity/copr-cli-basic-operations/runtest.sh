@@ -376,15 +376,6 @@ rlJournalStart
         # build the package
         rlRun "copr-cli build-package --name test_package_pypi ${NAME_PREFIX}Project6 -r $CHROOT"
 
-        # test disable_createrepo
-        rlRun "copr-cli create --chroot $CHROOT --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
-        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse $HELLO"
-        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoFalse/$CHROOT/devel/repodata/ | grep \"404.*Not Found\"" 0
-
-        rlRun "copr-cli create --chroot $CHROOT --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
-        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue $HELLO"
-        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoTrue/$CHROOT/devel/repodata/ | grep -E \"404.*Not Found\"" 1
-
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot $CHROOT ${NAME_PREFIX}Project7"
         rlRun "curl $FRONTEND_URL --silent | grep Project7" 1 # project won't be present on hp
@@ -554,8 +545,6 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}Project4"
         cleanProject "${NAME_PREFIX}Project5"
         cleanProject "${NAME_PREFIX}Project6"
-        cleanProject "${NAME_PREFIX}DisableCreaterepoFalse"
-        cleanProject "${NAME_PREFIX}DisableCreaterepoTrue"
         cleanProject "${NAME_PREFIX}Project7"
         cleanProject "${NAME_PREFIX}Project8"
         cleanProject "${NAME_PREFIX}Project9"

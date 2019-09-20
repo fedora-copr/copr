@@ -25,6 +25,7 @@ import time
 from ..constants import DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
 from ..exceptions import MockRemoteError, BuilderError, CreateRepoError
+from ..helpers import uses_devel_repo
 
 
 # TODO: replace sign & createrepo with dependency injection
@@ -205,20 +206,25 @@ class MockRemote(object):
         if self.job.chroot == 'srpm-builds':
             return
 
-        base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
-                             self.job.project_name, self.job.chroot])
+        project_owner = self.job.project_owner
+        project_name = self.job.project_name
+
+        base_url = "/".join([self.opts.results_baseurl, project_owner,
+                             project_name, self.job.chroot])
         self.log.info("Createrepo:: owner:  {}; project: {}; "
                       "front url: {}; path: {}; base_url: {}"
-                      .format(self.job.project_owner, self.job.project_name,
+                      .format(project_owner, project_name,
                               self.opts.frontend_base_url, self.chroot_dir, base_url))
 
+        devel = uses_devel_repo(self.opts.frontend_base_url,
+                                project_owner, project_name)
         try:
             createrepo(
                 path=self.chroot_dir,
-                front_url=self.opts.frontend_base_url,
                 base_url=base_url,
-                username=self.job.project_owner,
-                projectname=self.job.project_name,
+                username=project_owner,
+                projectname=project_name,
+                devel=devel,
             )
         except CreateRepoError:
             self.log.exception("Error making local repo: {}".format(self.chroot_dir))

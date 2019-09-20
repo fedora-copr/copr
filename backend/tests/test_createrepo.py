@@ -20,15 +20,13 @@ def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe
     mc_create_unsafe.return_value = ""
     mc_add_appdata.return_value = ""
 
-    createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar")
+    createrepo(path="/tmp/", username="foo", projectname="bar")
     mc_create_unsafe.reset_mock()
 
     mc_client.return_value.get_project_details.return_value = MagicMock(
         data={"detail": {"auto_createrepo": True}})
 
-    createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar")
+    createrepo(path="/tmp/", username="foo", projectname="bar")
 
     mc_create_unsafe.reset_mock()
 
@@ -39,8 +37,7 @@ def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": False}})
 
     base_url = "http://example.com/repo/"
-    createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar", base_url=base_url)
+    createrepo(path="/tmp/", username="foo", projectname="bar", base_url=base_url, devel=True)
 
     assert mc_create_unsafe.call_args == mock.call('/tmp/', dest_dir='devel', base_url=base_url)
 

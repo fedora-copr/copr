@@ -22,7 +22,9 @@ from copr_common.rpm import splitFilename
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug, format_filename
+from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
+                      get_chroot_arch, cmd_debug, format_filename,
+                      uses_devel_repo)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 from backend.worker_manager import WorkerManager
 
@@ -84,14 +86,14 @@ class Action(object):
 
                 path = self.get_chroot_result_dir(chroot, project_dirname, ownername)
                 try:
+                    self.log.info("Empty repo so far, creating the directory")
                     os.makedirs(path)
                 except FileExistsError:
                     pass
 
                 try:
-                    createrepo(path=path, front_url=self.front_url,
-                               username=ownername, projectname=projectname,
-                               override_acr_flag=True)
+                    createrepo(path=path, username=ownername,
+                               projectname=projectname)
                     done_count += 1
                 except CoprRequestException as err:
                     # fixme: dirty hack to catch case when createrepo invoked upon deleted project
@@ -167,9 +169,8 @@ class Action(object):
                     self.log.info("Forked build %s as %s", src_path, dst_path)
 
             for chroot_path in chroot_paths:
-                createrepo(path=chroot_path, front_url=self.front_url,
-                           username=data["user"], projectname=data["copr"],
-                           override_acr_flag=True)
+                createrepo(path=chroot_path, username=data["user"],
+                           projectname=data["copr"])
 
             result.result = ActionResult.SUCCESS
             result.ended_on = time.time()
@@ -233,6 +234,9 @@ class Action(object):
                 result.result = ActionResult.FAILURE
 
     def run_createrepo(self, ownername, projectname, project_dirname, chroots):
+        devel = uses_devel_repo(self.front_url, ownername,
+                                projectname)
+
         for chroot in chroots:
             chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
             self.log.debug("Running createrepo on %s", chroot_path)
@@ -251,10 +255,9 @@ class Action(object):
                 pass
 
             try:
-                createrepo(
-                    path=chroot_path,
-                    front_url=self.front_url, base_url=result_base_url,
-                    username=ownername, projectname=projectname)
+                createrepo(path=chroot_path, base_url=result_base_url,
+                           username=ownername, projectname=projectname,
+                           devel=devel)
             except CoprRequestException:
                 # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
                 self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
@@ -365,9 +368,8 @@ class Action(object):
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
-            createrepo(path=chrootdir, front_url=self.front_url,
-                       username=data["ownername"], projectname=data["projectname"],
-                       override_acr_flag=True)
+            createrepo(path=chrootdir, username=data["ownername"],
+                       projectname=data["projectname"])
         except:
             result.result = ActionResult.FAILURE
 
@@ -471,9 +473,8 @@ class Action(object):
                     mmd.set_rpm_artifacts(artifacts)
                     self.log.info("Module artifacts: %s", mmd.get_rpm_artifacts())
                     Modulemd.dump([mmd], os.path.join(destdir, "modules.yaml"))
-                    createrepo(path=destdir, front_url=self.front_url,
-                               username=ownername, projectname=projectname,
-                               override_acr_flag=True)
+                    createrepo(path=destdir, username=ownername,
+                               projectname=projectname)
 
             result.result = ActionResult.SUCCESS
         except Exception as e:

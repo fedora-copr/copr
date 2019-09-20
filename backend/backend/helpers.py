@@ -298,13 +298,13 @@ class BackendConfigReader(object):
         return opts
 
 
-def get_auto_createrepo_status(front_url, username, projectname):
+def uses_devel_repo(front_url, username, projectname):
     client = CoprClient(copr_url=front_url)
     result = client.get_project_details(projectname, username)
 
     if "auto_createrepo" in result.data["detail"]:
-        return bool(result.data["detail"]["auto_createrepo"])
-    return True
+        return not bool(result.data["detail"]["auto_createrepo"])
+    return False
 
 
 def get_persistent_status(front_url, username, projectname):
