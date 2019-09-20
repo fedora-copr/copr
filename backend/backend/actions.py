@@ -258,7 +258,7 @@ class Action(object):
                 # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
                 self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
             except CreateRepoError:
-                self.log.exception("Error making local repo: %s", full_path)
+                self.log.exception("Error making local repo: %s", chroot_path)
 
     def delete_build(self, ownername, project_dirname, chroot_builddirs):
         self.log.info("Going to delete: %s", chroot_builddirs)
