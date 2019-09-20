@@ -15,7 +15,7 @@ fi
 
 # Owner and project
 OWNER="@copr"
-NAME_VAR="TEST$(date +%s)" # names should be unique
+NAME_VAR="TEST$(date +%s.%N)" # names should be unique
 NAME_PREFIX="$OWNER/$NAME_VAR"
 USER=`copr-cli whoami`
 
