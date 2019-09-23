@@ -214,9 +214,6 @@ class BackendConfigReader(object):
                 "terminate_playbook": _get_conf(
                     cp, "backend", "group{0}_terminate_playbook".format(group_id),
                     default="/srv/copr-work/provision/terminatepb-PC.yml"),
-                "max_workers": _get_conf(
-                    cp, "backend", "group{0}_max_workers".format(group_id),
-                    default=32, mode="int"),
                 "max_vm_total": _get_conf(
                     cp, "backend", "group{}_max_vm_total".format(group_id),
                     # default=16, mode="int"),
