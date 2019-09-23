@@ -3,9 +3,11 @@
 import multiprocessing
 
 from munch import Munch
-from requests import RequestException
+from requests import RequestException, Response
 
-from backend.frontend import FrontendClient
+from backend.frontend import (FrontendClient, FrontendClientRetryError,
+                              SLEEP_INCREMENT_TIME)
+from backend.exceptions import FrontendClientException
 
 from unittest import mock
 from unittest.mock import MagicMock
@@ -43,54 +45,92 @@ class TestFrontendClient(object):
         self.chroot_name = "fedora-20-x86_64"
 
     @pytest.fixture
-    def mask_post_to_fe(self):
-        self.ptf = MagicMock()
-        self.fc._post_to_frontend = self.ptf
+    def mask_frontend_request(self):
+        self.f_r = MagicMock()
+        self.fc._frontend_request = self.f_r
 
     def test_post_to_frontend(self, post_req):
         post_req.return_value.status_code = 200
-        self.fc._post_to_frontend(self.data, self.url_path)
+        self.fc._frontend_request(self.url_path, self.data)
 
         assert post_req.called
 
     def test_post_to_frontend_not_200(self, post_req):
         post_req.return_value.status_code = 501
-        with pytest.raises(RequestException):
-            self.fc._post_to_frontend(self.data, self.url_path)
+        with pytest.raises(FrontendClientRetryError):
+            self.fc._frontend_request(self.url_path, self.data)
 
         assert post_req.called
 
     def test_post_to_frontend_post_error(self, post_req):
         post_req.side_effect = RequestException()
-        with pytest.raises(RequestException):
-            self.fc._post_to_frontend(self.data, self.url_path)
+        with pytest.raises(FrontendClientRetryError):
+            self.fc._frontend_request(self.url_path, self.data)
 
         assert post_req.called
 
-    def test_post_to_frontend_repeated_first_try_ok(self, mask_post_to_fe, mc_time):
+    def test_post_to_frontend_repeated_first_try_ok(self, mask_frontend_request, mc_time):
         response = "ok\n"
-        self.ptf.return_value = response
+        self.f_r.return_value = response
+        mc_time.time.return_value = 0
 
         assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
         assert not mc_time.sleep.called
 
-    def test_post_to_frontend_repeated_second_try_ok(self, mask_post_to_fe, mc_time):
+    def test_post_to_frontend_repeated_second_try_ok(self, mask_frontend_request, mc_time):
         response = "ok\n"
-        self.ptf.side_effect = [
-            RequestException(),
+        self.f_r.side_effect = [
+            FrontendClientRetryError(),
             response,
         ]
-
+        mc_time.time.return_value = 0
         assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
         assert mc_time.sleep.called
 
-    def test_post_to_frontend_repeated_all_attempts_failed(self, mask_post_to_fe, mc_time):
-        self.ptf.side_effect = RequestException()
+    def test_post_to_frontend_err_400(self, post_req, mc_time):
+        response = Response()
+        response.status_code = 404
+        response.reason = 'NOT FOUND'
 
-        with pytest.raises(RequestException):
-            self.fc._post_to_frontend_repeatedly(self.data, self.url_path)
+        post_req.side_effect = [
+            FrontendClientRetryError(),
+            response,
+        ]
 
+        mc_time.time.return_value = 0
+        with pytest.raises(FrontendClientException):
+            assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
         assert mc_time.sleep.called
+
+    @mock.patch('backend.frontend.BACKEND_TIMEOUT', 100)
+    def test_post_to_frontend_repeated_all_attempts_failed(self,
+            mask_frontend_request, caplog, mc_time):
+        mc_time.time.side_effect = [0, 0, 5, 5+10, 5+10+15, 5+10+15+20, 1000]
+        self.f_r.side_effect = FrontendClientRetryError()
+        with pytest.raises(FrontendClientException):
+            self.fc._post_to_frontend_repeatedly(self.data, self.url_path)
+        assert mc_time.sleep.call_args_list == [mock.call(x) for x in [5, 10, 15, 20, 25]]
+        assert len(caplog.records) == 5
+
+    def test_post_to_frontend_repeated_indefinitely(self,
+            mask_frontend_request, caplog, mc_time):
+        mc_time.time.return_value = 1
+        self.fc.try_indefinitely = True
+        self.f_r.side_effect = [FrontendClientRetryError() for _ in range(100)] \
+                             + [FrontendClientException()] # e.g. 501 eventually
+        with pytest.raises(FrontendClientException):
+            self.fc._post_to_frontend_repeatedly(self.data, self.url_path)
+        assert mc_time.sleep.called
+        assert len(caplog.records) == 100
+
+    def test_reschedule_300(self, mask_frontend_request, post_req):
+        response = Response()
+        response.status_code = 302
+        response.reason = 'whatever'
+        post_req.side_effect = response
+        with pytest.raises(FrontendClientException) as ex:
+            self.fc.reschedule_all_running()
+        assert 'Failed to reschedule builds' in str(ex)
 
     def test_update(self):
         ptfr = MagicMock()
@@ -110,7 +150,7 @@ class TestFrontendClient(object):
         ptfr = MagicMock()
         self.fc._post_to_frontend_repeatedly = ptfr
 
-        with pytest.raises(RequestException):
+        with pytest.raises(FrontendClientException):
             self.fc.starting_build(self.data)
 
     def test_starting_build_err_2(self):
@@ -118,7 +158,7 @@ class TestFrontendClient(object):
         self.fc._post_to_frontend_repeatedly = ptfr
         ptfr.return_value.json.return_value = {}
 
-        with pytest.raises(RequestException):
+        with pytest.raises(FrontendClientException):
             self.fc.starting_build(self.data)
 
     def test_reschedule_build(self):

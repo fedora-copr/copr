@@ -3,12 +3,24 @@ import time
 import logging
 from requests import post, get, RequestException
 
-RETRY_TIMEOUT = 5
+from backend.exceptions import FrontendClientException
+
+# prolong the sleep time before asking frontend again
+SLEEP_INCREMENT_TIME = 5
+# reasonable timeout for requests that block backend daemon
+BACKEND_TIMEOUT = 2*60
+
+class FrontendClientRetryError(Exception):
+    pass
+
 
 class FrontendClient(object):
     """
     Object to send data back to fronted
     """
+
+    # do we block the main daemon process?
+    try_indefinitely = False
 
     def __init__(self, opts, logger=None):
         super(FrontendClient, self).__init__()
@@ -26,27 +38,34 @@ class FrontendClient(object):
             self.logger.addHandler(logging.NullHandler())
         return self.logger
 
-
-    def _post_to_frontend(self, data, url_path):
-        """
-        Make a request to the frontend
-        """
-
+    def _frontend_request(self, url_path, data=None, authenticate=True):
         headers = {"content-type": "application/json"}
         url = "{}/{}/".format(self.frontend_url, url_path)
-        auth = ("user", self.frontend_auth)
-
-        self.msg = None
+        auth = ("user", self.frontend_auth) if authenticate else None
 
         try:
-            response = post(url, data=json.dumps(data), auth=auth, headers=headers)
-            if response.status_code >= 400:
-                self.msg = "Failed to submit to frontend: {0}: {1}".format(
-                    response.status_code, response.text)
-                raise RequestException(self.msg)
-        except RequestException as e:
-            self.msg = "Post request failed: {0}".format(e)
-            raise
+            # TODO: no data => use get()
+            response = post(url, data=json.dumps(data), auth=auth,
+                            headers=headers)
+        except RequestException as ex:
+            raise FrontendClientRetryError(
+                "Requests error on {}: {}".format(url, str(ex)))
+
+        if response.status_code >= 500:
+            # Server error.  Hopefully this is only temporary problem, we wan't
+            # to re-try, and wait till the server works again.
+            raise FrontendClientRetryError(
+                "Request server error on {}: {} {}".format(
+                    url, response.status_code, response.reason))
+
+        if response.status_code >= 400:
+            # Client error.  The mistake is on our side, it doesn't make sense
+            # to continue with retries.
+            raise FrontendClientException(
+                "Request client error on {}: {} {}".format(
+                    url, response.status_code, response.reason))
+
+        # TODO: Success, but tighten the redirects etc.
         return response
 
     def get_reliably(self, url_path):
@@ -70,18 +89,29 @@ class FrontendClient(object):
             return response
 
 
-    def _post_to_frontend_repeatedly(self, data, url_path, max_repeats=10):
+    def _post_to_frontend_repeatedly(self, data, url_path):
         """
-        Make a request max_repeats-time to the frontend
+        Repeat the request until it succeeds, or timeout is reached.
         """
-        for i in range(max_repeats):
+        sleep = SLEEP_INCREMENT_TIME
+        start = time.time()
+        stop = start + BACKEND_TIMEOUT
+
+        i = 0
+        while True:
+            i += 1
+            if not self.try_indefinitely and time.time() > stop:
+                raise FrontendClientException(
+                    "Attempt to talk to frontend timeouted "
+                    "(we gave it {} attempts)".format(i))
+
             try:
-                return self._post_to_frontend(data, url_path)
-            except RequestException:
-                self.log.warning("failed to post data to frontend, attempt #{0}".format(i))
-                time.sleep(5)
-        else:
-            raise RequestException("Failed to post to frontend for {} times".format(max_repeats))
+                return self._frontend_request(url_path, data=data)
+            except FrontendClientRetryError as ex:
+                self.log.warning("Retry request #%s on %s: %s", i, url_path,
+                                 str(ex))
+                time.sleep(sleep)
+                sleep += SLEEP_INCREMENT_TIME
 
     def update(self, data):
         """
@@ -97,7 +127,7 @@ class FrontendClient(object):
         """
         response = self._post_to_frontend_repeatedly(data, "starting_build")
         if "can_start" not in response.json():
-            raise RequestException("Bad respond from the frontend")
+            raise FrontendClientException("Bad response from the frontend")
         return response.json()["can_start"]
 
     def reschedule_build(self, build_id, task_id, chroot_name):
@@ -107,7 +137,7 @@ class FrontendClient(object):
         data = {"build_id": build_id, "task_id": task_id, "chroot": chroot_name}
         self._post_to_frontend_repeatedly(data, "reschedule_build_chroot")
 
-    def reschedule_all_running(self, attempts):
-        response = self._post_to_frontend_repeatedly({}, "reschedule_all_running", attempts)
+    def reschedule_all_running(self):
+        response = self._post_to_frontend_repeatedly({}, "reschedule_all_running")
         if response.status_code != 200:
-            raise RequestException("Failed to reschedule all running jobs")
+            raise FrontendClientException("Failed to reschedule builds")

@@ -11,7 +11,8 @@ from requests import get, RequestException
 from backend.frontend import FrontendClient
 
 from ..helpers import get_redis_logger
-from ..exceptions import DispatchBuildError, NoVmAvailable
+from ..exceptions import (DispatchBuildError, NoVmAvailable,
+                          FrontendClientException)
 from ..job import BuildJob
 from ..vm_manage.manager import VmManager
 from ..constants import BuildStatus
@@ -107,7 +108,7 @@ class BuildDispatcher(multiprocessing.Process):
             job.started_on = time.time()
             job.status = BuildStatus.STARTING
             can_build_start = self.frontend_client.starting_build(job.to_dict())
-        except (RequestException, ValueError) as error:
+        except (FrontendClientException, ValueError) as error:
             self.log.exception("Communication with Frontend to confirm build start failed with error: %s", error)
             return False
 

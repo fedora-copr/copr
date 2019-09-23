@@ -6,10 +6,9 @@ import sys
 
 import lockfile
 from daemon import DaemonContext
-from requests import RequestException
 from backend.frontend import FrontendClient
 
-from ..exceptions import CoprBackendError
+from ..exceptions import CoprBackendError, FrontendClientException
 from ..helpers import BackendConfigReader, get_redis_logger
 
 
@@ -50,8 +49,8 @@ class CoprBackend(object):
 
         try:
             self.log.info("Rescheduling old unfinished builds")
-            self.frontend_client.reschedule_all_running(120) # 10 minutes
-        except RequestException as err:
+            self.frontend_client.reschedule_all_running()
+        except FrontendClientException as err:
             self.log.exception(err)
             raise CoprBackendError(err)
 

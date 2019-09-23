@@ -586,7 +586,7 @@ class ActionWorkerManager(WorkerManager):
 
         try:
             self.frontend_client.update({"actions": [result]})
-        except RequestException:
+        except FrontendClientException:
             self.log.exception("can't post to frontend, retrying indefinitely")
             return False
         return True

@@ -138,3 +138,7 @@ class CreateRepoError(CmdError):
 
 class DispatchBuildError(CoprBackendError):
     pass
+
+
+class FrontendClientException(Exception):
+    pass

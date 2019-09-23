@@ -358,6 +358,7 @@ class Worker(multiprocessing.Process):
     def run(self):
         self.log.info("Starting worker")
         self.init_buses()
+        self.frontend_client.try_indefinitely = True
 
         try:
             self.do_job(self.job)
