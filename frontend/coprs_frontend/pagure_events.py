@@ -2,13 +2,13 @@
 
 import json
 import pprint
-import zmq
 import sys
 import os
 import logging
 import requests
 import re
 import munch
+import subprocess
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -25,39 +25,18 @@ from urllib.parse import urlparse
 
 SCM_SOURCE_TYPE = helpers.BuildSourceEnum("scm")
 
-logging.basicConfig(
-    filename='{0}/pagure-events.log'.format(app.config.get('LOG_DIR')),
-    format='[%(asctime)s][%(levelname)6s]: %(message)s',
-    level=logging.DEBUG)
-
 log = logging.getLogger(__name__)
-log.addHandler(logging.StreamHandler(sys.stdout))
-
 if os.getenv('PAGURE_EVENTS_TESTONLY'):
     ENDPOINT = 'tcp://stg.pagure.io:9940'
 else:
     ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
 
+log.setLevel(logging.DEBUG)
 log.info("ENDPOINT = {}".format(ENDPOINT))
 
-pagure_instances = {
-    'https://pagure.io/':             'io.pagure.prod.pagure',
-    'https://src.fedoraproject.org/': 'org.fedoraproject.prod.pagure',
-    'https://stg.pagure.io/':         'io.pagure.stg.pagure', # testing only
-}
-
-topics = [
-    'git.receive',
-    'pull-request.new',
-    'pull-request.rebased',
-    'pull-request.updated',
-    'pull-request.comment.added',
-]
-
 TOPICS = {}
-for url, fedmsg_prefix in pagure_instances.items():
-    for topic in topics:
-        TOPICS['{0}.{1}'.format(fedmsg_prefix, topic)] = url
+for topic, url in app.config["PAGURE_EVENTS"].items():
+    TOPICS['{0}'.format(topic)] = url
 
 def get_repeatedly(url):
     log.info("getting url {}".format(url))
@@ -219,46 +198,22 @@ def git_compare_urls(url1, url2):
     return (o1.netloc == o2.netloc and o1.path == o2.path)
 
 
-def build_on_fedmsg_loop():
-    log.debug("Setting up poller...")
-    pp = pprint.PrettyPrinter(width=120)
+class build_on_fedmsg_loop():
 
-    ctx = zmq.Context()
-    s = ctx.socket(zmq.SUB)
-
-    # detect server hang/restart (still a chance to loose ~45s events)
-    # for more info see man tcp(7).
-    s.setsockopt(zmq.TCP_KEEPALIVE,       1)  # turn on keep-alive
-    s.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 30)  # start when 30s inactive
-    s.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 5)  # send keep-alive packet each 5s
-    s.setsockopt(zmq.TCP_KEEPALIVE_CNT,   3)  # restart after 3 fails
-
-    s.connect(ENDPOINT)
-
-    for topic in TOPICS:
-        s.setsockopt_string(zmq.SUBSCRIBE, topic)
-
-    poller = zmq.Poller()
-    poller.register(s, zmq.POLLIN)
-
-    while True:
-        log.debug('Polling...')
-        evts = poller.poll(10000)
-        if not evts:
-            continue
-
-        log.debug('Receiving...')
-        _, msg_bytes = s.recv_multipart()
-        msg = msg_bytes.decode('utf-8')
+    def __call__(self, message):
+        pp = pprint.PrettyPrinter(width=120)
 
         log.debug('Parsing...')
-        data = json.loads(msg)
+        data = {
+            'topic': message.topic,
+            'msg': message.body
+        }
 
         log.info('Got topic: {}'.format(data['topic']))
         base_url = TOPICS.get(data['topic'])
         if not base_url:
             log.error('Unknown topic {} received. Continuing.')
-            continue
+            return
 
         if re.match(r'^.*.pull-request.(new|rebased|updated)$', data['topic']):
             event_info = event_info_from_pr(data, base_url)
@@ -271,7 +226,7 @@ def build_on_fedmsg_loop():
 
         if not event_info:
             log.info('Received event was discarded. Continuing.')
-            continue
+            return
 
         candidates = ScmPackage.get_candidates_for_rebuild(event_info.base_clone_url)
         changed_files = set()
@@ -349,13 +304,3 @@ def build_on_fedmsg_loop():
                     db.session.commit()
             else:
                 log.info('\t -> skipping.')
-
-
-if __name__ == '__main__':
-    while True:
-        try:
-            build_on_fedmsg_loop()
-        except KeyboardInterrupt:
-            sys.exit(1)
-        except:
-            log.exception('Error in fedmsg loop. Restarting it.')

@@ -66,6 +66,7 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
+BuildRequires: fedora-messaging
 BuildRequires: libmodulemd < 2
 BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: python3-CommonMark
@@ -112,6 +113,7 @@ Requires: redis
 Requires: %flavor_guard
 
 Requires: (copr-selinux if selinux-policy-targeted)
+Requires: fedora-messaging
 Requires: js-html5shiv
 Requires: js-jquery1
 Requires: js-respond
@@ -238,8 +240,6 @@ install -p -m 755 coprs_frontend/run/copr_dump_db.sh %{buildroot}%{_libexecdir}
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
 
-cp -a pagure-events.service %{buildroot}%{_unitdir}/
-
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
@@ -287,16 +287,16 @@ usermod -L copr-fe
 
 %post
 /bin/systemctl condrestart httpd.service || :
-%systemd_post pagure-events.service
+%systemd_post fm-consumer@copr_messaging.service
 
 
 %preun
-%systemd_preun pagure-events.service
+%systemd_preun fm-consumer@copr_messaging.service
 
 
 %postun
 /bin/systemctl condrestart httpd.service || :
-%systemd_postun_with_restart pagure-events.service
+%systemd_postun_with_restart fm-consumer@copr_messaging.service
 
 
 %files
@@ -309,8 +309,6 @@ usermod -L copr-fe
 %{_bindir}/copr-frontend
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
-
-%{_unitdir}/pagure-events.service
 
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_sharedstatedir}/copr/data
