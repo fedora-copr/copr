@@ -1,5 +1,6 @@
 import json
 import time
+import logging
 from requests import post, get, RequestException
 
 RETRY_TIMEOUT = 5
@@ -15,7 +16,16 @@ class FrontendClient(object):
         self.frontend_auth = opts.frontend_auth
 
         self.msg = None
-        self.log = logger
+        self.logger = logger
+
+    @property
+    def log(self):
+        'return configured logger object, or no-op logger'
+        if not self.logger:
+            self.logger = logging.getLogger(__name__)
+            self.logger.addHandler(logging.NullHandler())
+        return self.logger
+
 
     def _post_to_frontend(self, data, url_path):
         """
@@ -66,10 +76,9 @@ class FrontendClient(object):
         """
         for i in range(max_repeats):
             try:
-                if i and self.log:
-                    self.log.warning("failed to post data to frontend, repeat #{0}".format(i))
                 return self._post_to_frontend(data, url_path)
             except RequestException:
+                self.log.warning("failed to post data to frontend, attempt #{0}".format(i))
                 time.sleep(5)
         else:
             raise RequestException("Failed to post to frontend for {} times".format(max_repeats))
