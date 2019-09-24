@@ -55,7 +55,7 @@ def handle_task(opts, args, log):
         redis.hset(args.worker_id, 'started', 1)
         redis.hset(args.worker_id, 'PID', os.getpid())
 
-    resp = frontend_client.get_reliably('action/{}'.format(task_id))
+    resp = frontend_client.get('action/{}'.format(task_id))
     if resp.status_code != 200:
         log.error("failed to download task, apache code %s", resp.status_code)
         sys.exit(1)

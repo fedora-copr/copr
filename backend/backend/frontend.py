@@ -1,7 +1,7 @@
 import json
 import time
 import logging
-from requests import post, get, RequestException
+from requests import get, post, put, RequestException
 
 from backend.exceptions import FrontendClientException
 
@@ -38,15 +38,24 @@ class FrontendClient(object):
             self.logger.addHandler(logging.NullHandler())
         return self.logger
 
-    def _frontend_request(self, url_path, data=None, authenticate=True):
+    def _frontend_request(self, url_path, data=None, authenticate=True,
+                          method='post'):
         headers = {"content-type": "application/json"}
         url = "{}/{}/".format(self.frontend_url, url_path)
         auth = ("user", self.frontend_auth) if authenticate else None
 
         try:
-            # TODO: no data => use get()
-            response = post(url, data=json.dumps(data), auth=auth,
-                            headers=headers)
+            kwargs = {
+                'auth': auth,
+                'headers': headers,
+            }
+            method = method.lower()
+            if method in ['post', 'put']:
+                kwargs['data'] = json.dumps(data)
+                method = post if method == 'post' else put
+            else:
+                method = get
+            response = method(url, **kwargs)
         except RequestException as ex:
             raise FrontendClientRetryError(
                 "Requests error on {}: {}".format(url, str(ex)))
@@ -68,28 +77,8 @@ class FrontendClient(object):
         # TODO: Success, but tighten the redirects etc.
         return response
 
-    def get_reliably(self, url_path):
-        """
-        Get the URL response from frontend, try indefinitely till the server
-        gives us answer.
-        """
-        url = "{}/{}/".format(self.frontend_url, url_path)
-        auth = ("user", self.frontend_auth)
-
-        attempt = 0
-        while True:
-            attempt += 1
-            try:
-                response = get(url, auth=auth)
-            except RequestException as ex:
-                self.msg = "Get request {} failed: {}".format(attempt, ex)
-                time.sleep(RETRY_TIMEOUT)
-                continue
-
-            return response
-
-
-    def _post_to_frontend_repeatedly(self, data, url_path):
+    def _frontend_request_repeatedly(self, url_path, method='post', data=None,
+                                     authenticate=True):
         """
         Repeat the request until it succeeds, or timeout is reached.
         """
@@ -106,12 +95,34 @@ class FrontendClient(object):
                     "(we gave it {} attempts)".format(i))
 
             try:
-                return self._frontend_request(url_path, data=data)
+                return self._frontend_request(url_path, data=data,
+                                              authenticate=authenticate,
+                                              method=method)
             except FrontendClientRetryError as ex:
                 self.log.warning("Retry request #%s on %s: %s", i, url_path,
                                  str(ex))
                 time.sleep(sleep)
                 sleep += SLEEP_INCREMENT_TIME
+
+
+    def _post_to_frontend_repeatedly(self, data, url_path):
+        """
+        Repeat the request until it succeeds, or timeout is reached.
+        """
+        return self._frontend_request_repeatedly(url_path, data=data)
+
+    def get(self, url_path):
+        'Issue relentless GET request to Frontend'
+        return self._frontend_request_repeatedly(url_path, method='get')
+
+    def post(self, url_path, data):
+        'Issue relentless POST request to Frontend'
+        return self._frontend_request_repeatedly(url_path, data=data)
+
+    def put(self, url_path, data):
+        'Issue relentless POST request to Frontend'
+        return self._frontend_request_repeatedly(url_path, data=data,
+                                                 method='put')
 
     def update(self, data):
         """

@@ -18,6 +18,12 @@ def post_req():
     with mock.patch("backend.frontend.post") as obj:
         yield obj
 
+@pytest.fixture(scope='function', params=['get', 'post', 'put'])
+def f_request_method(request):
+    'mock the requests.{get,post,put} method'
+    with mock.patch("backend.frontend.{}".format(request.param)) as ctx:
+        yield (request.param, ctx)
+
 
 @pytest.yield_fixture
 def mc_time():
@@ -49,11 +55,23 @@ class TestFrontendClient(object):
         self.f_r = MagicMock()
         self.fc._frontend_request = self.f_r
 
-    def test_post_to_frontend(self, post_req):
-        post_req.return_value.status_code = 200
-        self.fc._frontend_request(self.url_path, self.data)
+    def test_post_to_frontend(self, f_request_method):
+        name, method = f_request_method
+        method.return_value.status_code = 200
+        self.fc._frontend_request(self.url_path, self.data, method=name)
+        assert method.called
 
-        assert post_req.called
+    def test_post_to_frontend_wrappers(self, f_request_method):
+        name, method = f_request_method
+        method.return_value.status_code = 200
+
+        call = getattr(self.fc, name)
+        if name == 'get':
+            call(self.url_path)
+        else:
+            call(self.url_path, self.data)
+
+        assert method.called
 
     def test_post_to_frontend_not_200(self, post_req):
         post_req.return_value.status_code = 501
@@ -77,14 +95,21 @@ class TestFrontendClient(object):
         assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
         assert not mc_time.sleep.called
 
-    def test_post_to_frontend_repeated_second_try_ok(self, mask_frontend_request, mc_time):
+    def test_post_to_frontend_repeated_second_try_ok(self, f_request_method,
+            mask_frontend_request, mc_time):
+        method_name, method = f_request_method
+
         response = "ok\n"
         self.f_r.side_effect = [
             FrontendClientRetryError(),
             response,
         ]
         mc_time.time.return_value = 0
-        assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
+        assert self.fc._frontend_request_repeatedly(
+            self.url_path,
+            data=self.data,
+            method=method_name
+        ) == response
         assert mc_time.sleep.called
 
     def test_post_to_frontend_err_400(self, post_req, mc_time):

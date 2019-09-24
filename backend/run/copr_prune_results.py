@@ -79,7 +79,7 @@ class Pruner(object):
             self.mtime_optimization = not cmdline_opts.no_mtime_optimization
 
     def run(self):
-        response = self.frontend_client._post_to_frontend_repeatedly("", "chroots-prunerepo-status")
+        response = self.frontend_client.get("chroots-prunerepo-status")
         self.chroots = json.loads(response.content)
 
         results_dir = self.opts.destdir
@@ -102,7 +102,7 @@ class Pruner(object):
         for chroot, active in self.chroots.items():
             if not active:
                 chroots_to_prune.append(chroot)
-        self.frontend_client._post_to_frontend_repeatedly(chroots_to_prune, "final-prunerepo-done")
+        self.frontend_client.post(chroots_to_prune, "final-prunerepo-done")
 
         loginfo("--------------------------------------------")
         loginfo("Pruning finished")

@@ -6,7 +6,6 @@ import multiprocessing
 from collections import defaultdict
 
 from setproctitle import setproctitle
-from requests import get, RequestException
 
 from backend.frontend import FrontendClient
 
@@ -81,10 +80,8 @@ class BuildDispatcher(multiprocessing.Process):
             self.update_process_title("Waiting for jobs from frontend for {} s"
                                       .format(int(time.time() - get_task_init_time)))
             try:
-                tasks = get("{0}/backend/pending-jobs/".format(self.opts.frontend_base_url),
-                            auth=("user", self.opts.frontend_auth)).json()
-
-            except (RequestException, ValueError) as error:
+                tasks = self.frontend_client.get('pending-jobs').json()
+            except (FrontendClientException, ValueError) as error:
                 self.log.exception("Retrieving build jobs from %s failed with error: %s",
                                    self.opts.frontend_base_url, error)
             finally:

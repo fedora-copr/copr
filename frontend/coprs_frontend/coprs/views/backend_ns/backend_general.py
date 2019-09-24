@@ -369,7 +369,7 @@ def reschedule_build_chroot():
 
     return flask.jsonify(response)
 
-@backend_ns.route("/chroots-prunerepo-status/", methods=["POST", "PUT"])
+@backend_ns.route("/chroots-prunerepo-status/")
 def chroots_prunerepo_status():
     return flask.jsonify(MockChrootsLogic.chroots_prunerepo_status())
 

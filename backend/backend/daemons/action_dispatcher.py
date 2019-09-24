@@ -3,9 +3,9 @@
 import time
 import multiprocessing
 from setproctitle import setproctitle
-from requests import get, RequestException
 
 from backend.frontend import FrontendClient
+from backend.exceptions import FrontendClientException
 
 from ..actions import ActionWorkerManager, ActionQueueTask
 from ..helpers import get_redis_logger, get_redis_connection
@@ -23,6 +23,7 @@ class ActionDispatcher(multiprocessing.Process):
 
         self.opts = opts
         self.log = get_redis_logger(self.opts, "backend.action_dispatcher", "action_dispatcher")
+        self.frontend_client = FrontendClient(self.opts, self.log)
 
     def update_process_title(self, msg=None):
         proc_title = "Action dispatcher"
@@ -36,10 +37,8 @@ class ActionDispatcher(multiprocessing.Process):
         """
 
         try:
-            url = "{0}/backend/pending-actions/".format(self.opts.frontend_base_url)
-            request = get(url, auth=("user", self.opts.frontend_auth))
-            raw_actions = request.json()
-        except (RequestException, ValueError) as error:
+            raw_actions = self.frontend_client.get('pending-actions').json()
+        except (FrontendClientException, ValueError) as error:
             self.log.exception(
                 "Retrieving an action tasks failed with error: %s",
                 error)
