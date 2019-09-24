@@ -20,7 +20,7 @@ class TestEntities(object):
 
     # pylint: disable=W0613
     def setup_method(self, method):
-        self.entity = FooEntity.from_dict({"foo": "baz", "bar": 123, "non_existing_attribute": None})
+        self.entity = FooEntity.from_dict({"foo": "baz", "bar": 123})
 
     def test_from_dict(self):
         assert self.entity.foo == "baz"

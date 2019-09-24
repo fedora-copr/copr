@@ -15,6 +15,12 @@ from ..util import UnicodeMixin
 from .entities import Link, ProjectEntity, ProjectChrootEntity, BuildEntity, MockChrootEntity, BuildTaskEntity
 from .schemas import EmptySchema, BuildSchema, ProjectSchema, ProjectChrootSchema, MockChrootSchema, BuildTaskSchema
 
+try:
+    _ = ProjectSchema(strict=True)
+    kwargs = {"strict": True}
+except TypeError:
+    kwargs = {}
+
 
 class EntityFieldDescriptor(object):
     """
@@ -79,7 +85,7 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     :type response: ResponseWrapper or None
     :type links: (dict of (str, Link)) or None
     """
-    _schema = EmptySchema(strict=True)
+    _schema = EmptySchema(**kwargs)
 
     # todo:  this methods only serialize fields which can be modified by the user
     # think about an approach to override `load_only=True` fields in
@@ -141,7 +147,7 @@ class Build(IndividualResource):
     :type entity: BuildEntity
     :type handle: copr.client_v2.handlers.BuildHandle
     """
-    _schema = BuildSchema(strict=True)
+    _schema = BuildSchema(**kwargs)
     _entity_methods = ["is_finished"]
 
     def __init__(self, entity, handle, **kwargs):
@@ -192,7 +198,7 @@ class BuildTask(IndividualResource):
     :type entity: BuildTaskEntity
     :type handle: copr.client_v2.handlers.BuildTaskHandle
     """
-    _schema = BuildTaskSchema(strict=True)
+    _schema = BuildTaskSchema(**kwargs)
 
     def __init__(self, entity, handle, **kwargs):
         super(BuildTask, self).__init__(entity=entity, handle=handle, **kwargs)
@@ -220,7 +226,7 @@ class Project(IndividualResource):
     :type entity: ProjectEntity
     :type handle: copr.client_v2.handlers.ProjectHandle
     """
-    _schema = ProjectSchema(strict=True)
+    _schema = ProjectSchema(**kwargs)
 
     def __init__(self, entity, handle, **kwargs):
         super(Project, self).__init__(entity=entity, handle=handle, **kwargs)
@@ -328,7 +334,7 @@ class ProjectChroot(IndividualResource):
     :type handle: copr.client_v2.handlers.ProjectChrootHandle
     """
 
-    _schema = ProjectChrootSchema(strict=True)
+    _schema = ProjectChrootSchema(**kwargs)
 
     def __init__(self, entity, handle, project, **kwargs):
         super(ProjectChroot, self).__init__(entity=entity, handle=handle, **kwargs)
@@ -364,7 +370,7 @@ class MockChroot(IndividualResource):
     :type handle: copr.client_v2.handlers.MockChrootHandle
     """
 
-    _schema = MockChrootSchema(strict=True)
+    _schema = MockChrootSchema(**kwargs)
 
     def __init__(self, entity, handle, **kwargs):
         super(MockChroot, self).__init__(

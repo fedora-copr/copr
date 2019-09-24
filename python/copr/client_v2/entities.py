@@ -4,6 +4,12 @@ from ..util import UnicodeMixin
 from .schemas import ProjectSchema, EmptySchema, ProjectChrootSchema, BuildSchema, BuildTaskSchema, MockChrootSchema, \
     ProjectCreateSchema
 
+try:
+    _ = ProjectSchema(strict=True)
+    kwargs = {"strict": True}
+except TypeError:
+    kwargs = {}
+
 
 class Link(UnicodeMixin):
     def __init__(self, role, href):
@@ -30,32 +36,37 @@ class Entity(UnicodeMixin):
             setattr(self, field, kwargs.get(field))
 
     def to_dict(self):
-        return self._schema.dump(self).data
+        output = self._schema.dump(self)
+        output = getattr(output, "data", output)
+        return output
 
     def to_json(self):
-        return self._schema.dumps(self).data
+        output = self._schema.dumps(self)
+        output = getattr(output, "data", output)
+        return output
 
     @classmethod
     def from_dict(cls, raw_dict):
         parsed = cls._schema.load(raw_dict)
-        return cls(**parsed.data)
+        parsed = getattr(parsed, "data", parsed)
+        return cls(**parsed)
 
 
 class ProjectEntity(Entity):
-    _schema = ProjectSchema(strict=True)
+    _schema = ProjectSchema(**kwargs)
 
     def __unicode__(self):
         return "<Project #{0}: {1}/{2}>".format(self.id, self.owner, self.name)
 
 
 class ProjectCreateEntity(Entity):
-    _schema = ProjectCreateSchema(strict=True)
+    _schema = ProjectCreateSchema(**kwargs)
 
     def __unicode__(self):
         return "<New project {0}/{1}>".format(self.owner, self.name)
 
 class ProjectChrootEntity(Entity):
-    _schema = ProjectChrootSchema(strict=True)
+    _schema = ProjectChrootSchema(**kwargs)
 
     def __unicode__(self):
         return "<Project chroot: {0}, additional " \
@@ -64,7 +75,7 @@ class ProjectChrootEntity(Entity):
 
 
 class BuildEntity(Entity):
-    _schema = BuildSchema(strict=True)
+    _schema = BuildSchema(**kwargs)
 
     def __unicode__(self):
         return "<Build #{0} state: {1}>".format(self.id, self.state)
@@ -83,7 +94,7 @@ class BuildEntity(Entity):
 
 
 class BuildTaskEntity(Entity):
-    _schema = BuildTaskSchema(strict=True)
+    _schema = BuildTaskSchema(**kwargs)
 
     def __unicode__(self):
         return "<Build task #{0}-{1}, state: {2}>".format(
@@ -92,7 +103,7 @@ class BuildTaskEntity(Entity):
 
 
 class MockChrootEntity(Entity):
-    _schema = MockChrootSchema(strict=True)
+    _schema = MockChrootSchema(**kwargs)
 
     def __unicode__(self):
         return "<Mock chroot: {0} is active: {1}>".format(

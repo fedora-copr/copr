@@ -125,7 +125,7 @@ class TestProjectHandle(TestHandleBase):
     project_list_1 = """
 {"_links": {"self": {"href": "/api_2/projects?limit=2"}},
 "projects": [{"project": {"group": "copr", "name": "copr", "disable_createrepo": false, "repos": [],
-"description": "Lightweight buildsystem -", "is_a_group_project": true, "contact": null, "owner": "msuchy",
+"description": "Lightweight buildsystem -", "contact": null, "owner": "msuchy",
 "build_enable_net": false, "homepage": null, "id": 1,
 "instructions": "See https://pagure.io/copr/copr for more details."},
 "_links": {"self": {"href": "/api_2/projects/1"},
@@ -134,7 +134,7 @@ class TestProjectHandle(TestHandleBase):
 "builds": {"href": "/api_2/builds?project_id=1"}}},
 {"project": {"name": "abrt", "disable_createrepo": false, "repos": [],
 "description": "Experimental ABRT ",
-"is_a_group_project": false, "contact": null, "owner": "jfilak",
+"contact": null, "owner": "jfilak",
 "build_enable_net": true, "homepage": null, "id": 9,
 "instructions": "git branches- libreport : rhel6_upstream_ureport - abrt : rhel6_auto_reporting"},
 "_links": {"self": {"href": "/api_2/projects/9"}, "chroots": {"href": "/api_2/projects/9/chroots"},
