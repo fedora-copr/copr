@@ -13,6 +13,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ERDFILE         = _static/db-erd.png
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
@@ -41,7 +42,13 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 
-html:
+$(ERDFILE): ../frontend/coprs_frontend/coprs/models.py
+	export PYTHONPATH=`pwd`/../frontend/coprs_frontend/; \
+	export COPR_CONFIG=`pwd`/../frontend/coprs_frontend/config/copr_unit_test.conf; \
+	python3 -c "from eralchemy import render_er; from coprs import db; \
+		render_er(db.metadata, '$@')"
+
+html: $(ERDFILE)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

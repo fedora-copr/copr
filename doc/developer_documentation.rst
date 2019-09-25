@@ -24,7 +24,7 @@ Working with the code
    How to work with Git (the version control system for Copr project) <git_guide>
    Do you prefer sending patches? <patch_process>
    Building Copr packages (backend, frontend, ...) <building_package>
-   Database schema <http://miroslav.suchy.cz/copr/coprdb/>
+   Database schema <database_erd>
    Documentation of python code (or check copr-frontend-doc.rpm and copr-backend-doc.rpm) <http://miroslav.suchy.cz/copr/python-doc/>
 
 History
