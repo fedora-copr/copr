@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.96
+Version:    1.97
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -217,6 +217,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Thu Sep 26 2019 Pavel Raiskup <praiskup@redhat.com> 1.97-1
+- python: fix API for marshmallow 3+ (#934)
+- frontend, cli, python: support multilib projects (#1)
+
 * Mon Jul 29 2019 Pavel Raiskup <praiskup@redhat.com> 1.96-1
 - use plain %%setup to fix FTBFS
 
