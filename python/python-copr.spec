@@ -103,7 +103,7 @@ Requires: python2-six >= 1.9.0
 %{?python_provide:%python_provide python2-copr}
 
 %description -n python2-copr %_description
-%endif # with python2
+%endif
 
 %if %{with python3}
 %package -n python3-copr
@@ -137,7 +137,7 @@ and submit new builds and COPR will create yum repository from latest builds.
 This package contains python interface to access Copr service. Mostly useful
 for developers only.
 
-%endif # with python3
+%endif
 
 
 %package -n python-copr-doc
@@ -157,7 +157,7 @@ developers only.
 %if %{with python3}
 rm -rf %{py3dir}
 cp -a . %{py3dir}
-%endif # with python3
+%endif
 
 %build
 %if %{with python3}
@@ -203,14 +203,14 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %license LICENSE
 %doc README.rst
 %{python3_sitelib}/*
-%endif # with python3
+%endif
 
 %if %{with python2}
 %files -n python2-copr
 %license LICENSE
 %doc README.rst
 %{python2_sitelib}/*
-%endif # with python2
+%endif
 
 %files -n python-copr-doc
 %license LICENSE

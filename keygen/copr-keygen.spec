@@ -75,7 +75,7 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains document for copr-keygen service.
 
-%endif # ?fedora
+%endif
 
 
 %prep
