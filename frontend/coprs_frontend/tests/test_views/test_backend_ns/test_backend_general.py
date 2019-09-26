@@ -166,6 +166,19 @@ class TestUpdateBuilds(CoprsTestCase):
         assert updated.status == 1
         assert updated.chroots_ended_on == {'fedora-18-x86_64': 1490866440}
 
+    def test_update_state_from_dict(self, f_users, f_fork_prepare):
+        upd_dict = {'build_id': 6, 'chroot': 'srpm-builds',
+                    'destdir': '/var/lib/copr/public_html/results', 'enable_net': False, 'ended_on': 1569919634,
+                    'id': 6, 'source_type': 0, 'status': 0, 'submitter': 'user1', 'task_id': '6', 'timeout': 3600}
+        BuildsLogic.update_state_from_dict(self.b6, upd_dict)
+        updated = self.models.Build.query.filter(self.models.Build.id == 6).one()
+        assert upd_dict['ended_on'] == updated.started_on
+
+        upd_dict['started_on'] = 1569919624
+        BuildsLogic.update_state_from_dict(self.b6, upd_dict)
+        updated = self.models.Build.query.filter(self.models.Build.id == 6).one()
+        assert upd_dict['started_on'] == updated.started_on
+
     def test_update_more_existent_and_non_existent_builds(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 

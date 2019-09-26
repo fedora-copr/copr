@@ -935,6 +935,7 @@ ORDER BY
                 for ch in build.build_chroots:
                     ch.status = new_status
                     ch.ended_on = upd_dict.get("ended_on") or time.time()
+                    ch.started_on = upd_dict.get("started_on", ch.ended_on)
                     db.session.add(ch)
 
             if new_status == StatusEnum("failed"):
