@@ -228,8 +228,8 @@
                 {{ chroot.started_on|time_ago(chroot.ended_on) }}
               </td>
               <td>
-                {% if chroot.finished or chroot.state == "running" %}
-                    <a href="{{ build.backend_live_log(chroot) }}">{{ build_state_text(chroot.state) }}</a>
+                {% if chroot.live_log_link %}
+                    <a href="{{ chroot.live_log_link }}">{{ build_state_text(chroot.state) }}</a>
                 {% else %}
                   {{ build_state_text(chroot.state) }}
                 {% endif %}
