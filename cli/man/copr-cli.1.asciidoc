@@ -752,7 +752,7 @@ Normally, the exit code is 0 when everything goes well. But if not, we could get
 API KEY
 -------
 
-Visit the page https://copr.fedoraproject.org/api/ to obtain an API token.
+Visit the page https://copr.fedorainfracloud.org/api/ to obtain an API token.
 This token must be saved in the file `~/.config/copr` in the following
 format:
 
