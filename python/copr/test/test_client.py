@@ -76,3 +76,18 @@ def test_get_build_status(mock_request):
     assert test_resp.project == "atomic-next"
     assert test_resp.built_pkgs == [u'golang-github-stretchr-objx-devel 0']
     assert test_resp.submitted_on == 1408031345
+
+
+@mock.patch('requests.request')
+def test_get_build_config(mock_request):
+    mock_client = CoprClient.create_from_file_config(config_location)
+    mock_request.return_value = make_mock_response("build_config.200.json")
+    test_resp = mock_client.get_build_config("project", "chroot")
+    assert 'additional_packages' in test_resp.data
+    expected_args = ["additional_packages", "additional_repos", "chroot",
+                     "enable_net", "repos", "use_bootstrap_container",
+                     "with_opts", "without_opts"]
+    for arg in expected_args:
+        assert arg in test_resp.data
+        test_resp.data.pop(arg)
+    assert not test_resp.data.keys()

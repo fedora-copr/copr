@@ -4,11 +4,11 @@ import json
 import pytest
 from munch import Munch
 
-import six
 import copr
 from copr.exceptions import CoprUnknownResponseException, CoprBuildException
 from copr_cli.main import no_config_warning
 
+from cli_tests_lib import mock, MagicMock, config as mock_config
 
 def exit_wrap(value):
     if type(value) == int:
@@ -17,13 +17,6 @@ def exit_wrap(value):
         return value.code
 
 
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
-#
 # import logging
 #
 # logging.basicConfig(
@@ -36,15 +29,6 @@ else:
 # log.info("Logger initiated")
 
 from copr_cli import main
-
-
-mock_config = {
-    "username": None,
-    "copr_url": "http://copr/",
-    "login": "",
-    "token": "",
-}
-
 
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_parse_name(config_from_file):

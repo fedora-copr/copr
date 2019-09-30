@@ -11,17 +11,20 @@ template_string = """\
 include('/etc/mock/{{chroot}}.cfg')
 
 config_opts['root'] = '{{ rootdir }}'
+{%- if additional_packages %}
 config_opts['chroot_additional_packages'] = '
 {%- for pkg in additional_packages -%}
 {%- if loop.last -%}
 {{ pkg }}
 {%- else -%}
-{{ pkg }} {% endif -%}
-{%- endfor -%}'
+{{ pkg }} {% endif %}
+{%- endfor %}'
+{%- endif %}
+{%- if repos %}
 
-{% if repos %}
 config_opts['yum.conf'] += \"\"\"
-{% for repo in repos %}
+{%- for repo in repos %}
+
 [{{ repo.id }}]
 name="{{ repo.name }}"
 baseurl={{ repo.baseurl }}
@@ -34,9 +37,9 @@ skip_if_unavailable=1
 metadata_expire=0
 cost=1
 best=1
-{% endfor %}
+{%- endfor %}
 \"\"\"
-{% endif %}
+{%- endif %}
 """
 
 class MockProfile(object):
@@ -46,6 +49,3 @@ class MockProfile(object):
     def __str__(self):
         template = Environment().from_string(template_string)
         return template.render(self.data)
-
-
-

@@ -1,0 +1,13 @@
+{
+    "additional_packages": [],
+    "additional_repos": ["copr://praiskup/ping"],
+    "chroot": "fedora-rawhide-x86_64",
+    "enable_net": false,
+    "repos": [{
+        "baseurl": "https://copr-be-dev.cloud.fedoraproject.org/results/praiskup/ping/fedora-rawhide-x86_64/",
+        "id": "copr_base",
+        "name": "Copr repository" }],
+    "use_bootstrap_container": false,
+    "with_opts": [],
+    "without_opts": []
+}

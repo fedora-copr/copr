@@ -428,7 +428,7 @@ class Commands(object):
         """
         ownername, projectname = self.parse_name(args.project)
         build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
-        build_config.rootdir = "{}-{}_{}".format(ownername.replace("@", "group_"), projectname, args.chroot)
+        build_config.rootdir = "{0}-{1}_{2}".format(ownername.replace("@", "group_"), projectname, args.chroot)
         print(MockProfile(build_config))
 
 
