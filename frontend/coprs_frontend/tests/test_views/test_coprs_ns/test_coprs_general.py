@@ -815,3 +815,43 @@ class TestRepo(CoprsTestCase):
             res = self.tc.get(url)
         assert res.status_code == 200
         assert 'baseurl=http://' in res.data.decode('utf-8')
+
+    def test_chroot_alias(self, f_users, f_coprs, f_mock_chroots, f_db):
+        # Test a chroot alias feature on a real-world example (RhBug: 1756632)
+
+        mc_kwargs = dict(os_version="8", arch="x86_64", is_active=True,
+                         distgit_branch=models.DistGitBranch(name="bar"))
+        mc_epel = models.MockChroot(os_release="epel", **mc_kwargs)
+        mc_rhelbeta = models.MockChroot(os_release="rhelbeta", **mc_kwargs)
+
+        cc_epel = models.CoprChroot(mock_chroot=mc_epel)
+        cc_rhelbeta = models.CoprChroot(mock_chroot=mc_rhelbeta)
+
+        self.c1.copr_chroots = [cc_epel, cc_rhelbeta]
+        self.db.session.commit()
+
+        app.config["BACKEND_BASE_URL"] = "https://foo"
+        with app.app_context():
+            kwargs = dict(user = self.u1.username, copr = self.c1.name)
+            url = "/coprs/{user}/{copr}/repo/{chroot}/"
+
+            # Both chroots enabled, without alias
+            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+            assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
+            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+
+            # Both chroots enabled, alias defined
+            app.config["CHROOT_NAME_RELEASE_ALIAS"] = {"epel-8": "rhelbeta-8"}
+            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+            assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
+            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+
+            # Only one chroot enabled, alias defined
+            self.c1.copr_chroots = [cc_rhelbeta]
+            self.db.session.commit()
+            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r1.data.decode("utf-8")
+            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")

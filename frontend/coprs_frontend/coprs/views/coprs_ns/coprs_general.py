@@ -742,8 +742,11 @@ def render_repo_template(copr_dir, mock_chroot, arch=None):
 
 
 def render_generate_repo_file(copr_dir, name_release, arch=None):
-    name_release = app.config["CHROOT_NAME_RELEASE_ALIAS"].get(name_release, name_release)
     copr = copr_dir.copr
+
+    # redirect the aliased chroot only if it is not enabled yet
+    if not any([ch.name.startswith(name_release) for ch in copr.active_chroots]):
+        name_release = app.config["CHROOT_NAME_RELEASE_ALIAS"].get(name_release, name_release)
 
     # if the arch isn't specified, find the fist one starting with name_release
     searched_chroot = name_release if not arch else name_release + "-" + arch
