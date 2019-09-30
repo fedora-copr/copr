@@ -6,12 +6,12 @@ from flask_restful import Resource
 from ...logic.coprs_logic import MockChrootsLogic
 
 from ..schemas import MockChrootSchema
-from ..util import get_one_safe, get_request_parser, arg_bool
+from ..util import get_one_safe, get_request_parser, arg_bool, mm_serialize_one
 
 
 def render_mock_chroot(chroot):
     return {
-        "chroot": MockChrootSchema().dump(chroot)[0],
+        "chroot": mm_serialize_one(MockChrootSchema, chroot),
         "_links": {
             "self": {"href": url_for(".mockchrootr", name=chroot.name)},
         },

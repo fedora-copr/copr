@@ -79,7 +79,7 @@ class BuildListR(Resource):
         """
         :return: if of the created build or raise Exception
         """
-        build_params = mm_deserialize(BuildCreateFromUrlSchema(), req.data.decode("utf-8")).data
+        build_params = mm_deserialize(BuildCreateFromUrlSchema(), req.data.decode("utf-8"))
         project = get_project_safe(build_params["project_id"])
 
         chroot_names = build_params.pop("chroots")
@@ -117,7 +117,7 @@ class BuildListR(Resource):
             raise MalformedRequest("Missing srpm file in the request")
         srpm_handle = req.files["srpm"]
 
-        build_params = mm_deserialize(BuildCreateSchema(), metadata).data
+        build_params = mm_deserialize(BuildCreateSchema(), metadata)
         project_id = build_params["project_id"]
 
         project = get_project_safe(project_id)
@@ -207,7 +207,7 @@ class BuildR(Resource):
     @rest_api_auth_required
     def put(self, build_id):
         build = get_build_safe(build_id)
-        build_dict = mm_deserialize(BuildSchema(), flask.request.data.decode("utf-8")).data
+        build_dict = mm_deserialize(BuildSchema(), flask.request.data.decode("utf-8"))
         try:
             if not build.canceled and build_dict["state"] == "canceled":
                 BuildsLogic.cancel_build(flask.g.user, build)

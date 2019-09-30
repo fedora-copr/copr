@@ -1,9 +1,39 @@
 # coding: utf-8
 
 from collections.abc import Iterable
-from marshmallow import Schema, fields, ValidationError, validate
+from marshmallow import Schema as _Schema, fields, ValidationError, validate
 from six import string_types
 
+
+loads_kwargs = {}
+try:
+    from marshmallow.utils import EXCLUDE
+    loads_kwargs = {"unknown": EXCLUDE}
+except ImportError:
+    pass
+
+
+class Schema(_Schema):
+    # In marshmallow v3+ there's no data/errors attributes as it was
+    # in v2.  So we need to have compat wrapper.
+
+    def wrap_function(self, name, *args, **kwargs):
+        super_object = super(Schema, self)
+        super_result = getattr(super_object, name)(*args, **kwargs)
+        if hasattr(super_result, 'data') and hasattr(super_result, 'errors'):
+            # old marshmallow
+            if super_result.errors:
+                raise ValidationError(super_result.errors)
+            return super_result.data
+        else:
+            return super_result
+
+    def dump(self, *args, **kwargs):
+        return self.wrap_function('dump', *args, **kwargs)
+
+    def loads(self, *args, **kwargs):
+        kwargs.update(loads_kwargs)
+        return self.wrap_function('loads', *args, **kwargs)
 
 def validate_any(fn_list):
     """
@@ -28,12 +58,12 @@ def validate_any(fn_list):
 
 
 class SpaceSeparatedList(fields.Field):
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return []
         return value.split()
 
-    def _deserialize(self, value, attr=None, data=None):
+    def _deserialize(self, value, attr=None, data=None, **kwargs):
         if value is None:
             return ""
         elif not isinstance(value, Iterable) or isinstance(value, string_types):
@@ -50,7 +80,7 @@ class BuiltPackages(fields.Field):
     { name: "pkg", version: "pkg version" }
     we implement only the serialization, since field is read-only
     """
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return []
         result = []

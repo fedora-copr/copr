@@ -5,6 +5,7 @@ import sqlalchemy.orm.exc
 
 from flask_restful.reqparse import Argument, RequestParser
 
+from marshmallow.exceptions import ValidationError
 from .exceptions import ObjectNotFoundError, MalformedRequest
 from .schemas import AllowedMethodSchema
 
@@ -18,7 +19,8 @@ class AllowedMethod(object):
 
 
 def render_allowed_method(method, doc, require_auth=True, params=None):
-    return AllowedMethodSchema().dump(AllowedMethod(method, doc, require_auth, params))[0]
+    method = AllowedMethod(method, doc, require_auth, params)
+    return mm_serialize_one(AllowedMethodSchema, method)
 
 
 def get_one_safe(query, msg=None, data=None):
@@ -44,26 +46,18 @@ def json_loads_safe(raw, data_on_error=None):
 
 def mm_deserialize(schema, json_string):
     try:
-        result = schema.loads(json_string)
-    except ValueError as err:
+        return schema.loads(json_string)
+    except (ValueError, ValidationError) as err:
         raise MalformedRequest(
             msg="Failed to parse request: {}".format(err),
             data={"request_string": json_string}
         )
 
-    if result.errors:
-        raise MalformedRequest(
-            msg="Failed to parse request: Validation Error",
-            data={
-                "validation_errors": result.errors
-            }
-        )
-
-    return result
-
-
 def mm_serialize_one(schema, obj):
-    return schema().dump(obj)[0]
+    try:
+        return schema().dump(obj)
+    except ValidationError as err:
+        raise MalformedRequest("Failed to parse request")
 
 
 class MyArg(Argument):

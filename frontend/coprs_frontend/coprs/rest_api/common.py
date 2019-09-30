@@ -37,7 +37,7 @@ def render_build(build, self_params=None):
     if self_params is None:
         self_params = {}
     return {
-        "build": BuildSchema().dump(build)[0],
+        "build": mm_serialize_one(BuildSchema, build),
         "_links": {
             "self": {"href": url_for(".buildr", build_id=build.id, **self_params)},
             "project": {"href": url_for(".projectr", project_id=build.copr_id)},

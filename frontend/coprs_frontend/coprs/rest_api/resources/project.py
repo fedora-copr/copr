@@ -29,9 +29,7 @@ class ProjectListR(Resource):
         Creates new copr
         """
         user = flask.g.user
-        result = mm_deserialize(ProjectCreateSchema(), flask.request.data.decode("utf-8"))
-
-        req = result.data
+        req = mm_deserialize(ProjectCreateSchema(), flask.request.data.decode("utf-8"))
         name = req.pop("name")
 
         selected_chroots = req.pop("chroots", None)
@@ -158,8 +156,7 @@ class ProjectR(Resource):
         """
         project = get_project_safe(project_id)
 
-        project_dict = mm_deserialize(ProjectSchema(), flask.request.data.decode("utf-8")).data
-        # pprint(project_dict)
+        project_dict = mm_deserialize(ProjectSchema(), flask.request.data.decode("utf-8"))
 
         for k, v in project_dict.items():
             setattr(project, k, v)

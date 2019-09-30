@@ -42,10 +42,8 @@ class ProjectChrootListR(Resource):
     def post(cls, project_id):
         project = get_project_safe(project_id)
 
-        chroot_data = mm_deserialize(CoprChrootCreateSchema(),
-                                     flask.request.data.decode("utf-8"))
-
-        req = chroot_data.data
+        req = mm_deserialize(CoprChrootCreateSchema(),
+                             flask.request.data.decode("utf-8"))
         name = req.pop("name")
 
         try:
@@ -111,7 +109,7 @@ class ProjectChrootR(Resource):
             updated_chroot = CoprChrootsLogic.update_chroot(
                 user=flask.g.user,
                 copr_chroot=chroot,
-                **chroot_data.data
+                **chroot_data
             )
         except InsufficientRightsException as err:
             raise AccessForbidden("Failed to update copr chroot: {}".format(err))
