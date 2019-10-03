@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.125
+Version:    1.126
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,16 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.126-1
+- more reliable communication with frontend (#1021)
+- only ask for auto_createrepo once per project
+- parallel handling of actions (#1007)
+- don't provide builder-live.log once the build ended, and
+  add 'copr-compress-live-logs' helper (#985)
+- less exceptions in logs
+- project forking fixes
+- depend on copr-messaging, not fedora-messaging
+- fixes for copr_print_results_to_delete.py script
 * Wed Aug 28 2019 Dominik Turecek <dturecek@redhat.com> 1.125-1
 - minimize redis traffic for looping over pending-jobs (issue#902)
 - batch delete builds into a single action (issue#688)
