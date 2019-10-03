@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.126
+Version:    1.127
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.127-1
+- fix testsuite for slow Koji builders
+
 * Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.126-1
 - more reliable communication with frontend (#1021)
 - only ask for auto_createrepo once per project
