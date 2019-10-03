@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.97
+Version:    1.98
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -236,6 +236,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.98-1
+- enable dynamic buildrequires on F31+
+- drop comments after %%endif
+
 * Thu Sep 26 2019 Pavel Raiskup <praiskup@redhat.com> 1.97-1
 - python: fix API for marshmallow 3+ (#934)
 - frontend, cli, python: support multilib projects (#1)
