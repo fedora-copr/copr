@@ -12,7 +12,7 @@ Tag untagged packages that have changes in them
 
 Run::
 
-    releng/show-untagged-commits
+    tito report --untagged-commits
 
 and walk the directories of packages listed. In each directory, call::
 
@@ -22,15 +22,16 @@ push them::
 
     git push --follow-tags origin
 
-and upload tarballs to `Copr release directory`_.
-
 
 Build packages
 --------------
 
-Build all packages in copr, in ``@copr/copr`` project::
+Build all the updated packages into ``@copr/copr`` copr project::
 
-    releng/build-packages @copr/copr
+    copr build-package @copr/copr --name python-copr
+    copr build-package @copr/copr --name copr-frontend
+    ...
+
 
 Upgrade -dev machines
 ---------------------
@@ -117,12 +118,39 @@ Make sure you are co-maintainer of those packages in Fedora::
 For each package do::
 
     cd <package subdir>
-    tito build --srpm
-    tito release fedora-git # for server packages, or
-    tito release fedora-git-clients # for server packages (includes epel)
+    # run this for python-copr and copr-cli
+    tito release fedora-git-clients
+    # run this for copr-messaging package
+    tito release fedora-git-messaging
+    # run this for other (server) packages (copr-frontend, copr-backend, ...)
+    tito release fedora-git
 
 And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
 Not even every fedora infra member can to this, ping clime or ask on ``#fedora-admin``.
+
+
+Submit Bodhi updates
+--------------------
+
+Create updates in `Bodhi <https://bodhi.fedoraproject.org/>`_ for
+:ref:`every package built in Koji <build_packages_for_production>`.
+
+It is useful to do updates in batches, e.g. to group several packages into one
+update.  You can do this by ``fedpkg update``, with the following template::
+
+    [ copr-backend-1.127-1.fc31, copr-frontend-1.154-1.fc31]
+    type=enhancement
+    notes=copr-frontend
+
+        - change 1 in frontend
+        - change 2 in frontend
+
+        copr-backend
+
+        - change 1 in backend
+        - change 2 in backend
+
+It is often good idea to put new (filtered) ``%changelogs`` entries there.
 
 
 Generate documentation
@@ -202,11 +230,6 @@ Run post-release beaker test::
     [root@test-env ~]$ ./runtest-production.sh
 
 or just run some build and check if it succeeds.
-
-Submit Bodhi updates
---------------------
-
-Create updates in `Bodhi <https://bodhi.fedoraproject.org/>`_ for :ref:`every package built in Koji <build_packages_for_production>`.
 
 Announce the release
 --------------------
