@@ -230,6 +230,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - project forking fixes
 - depend on copr-messaging, not fedora-messaging
 - fixes for copr_print_results_to_delete.py script
+
 * Wed Aug 28 2019 Dominik Turecek <dturecek@redhat.com> 1.125-1
 - minimize redis traffic for looping over pending-jobs (issue#902)
 - batch delete builds into a single action (issue#688)
