@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.3
+Version:    0.4
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -85,6 +85,10 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 0.4-1
+- rename 'stomp_consumer' module to 'stomp'
+- fix macros in comments
+
 * Thu Jul 25 2019 Pavel Raiskup <praiskup@redhat.com> 0.3-1
 - mention how to create Source0 tarball
 
