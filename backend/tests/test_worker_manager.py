@@ -194,7 +194,7 @@ class TestWorkerManager(object):
         assert self.w0 not in keys
 
     def test_all_passed(self, caplog):
-        self.worker_manager.run(timeout=10)
+        self.worker_manager.run(timeout=100)
         for i in range(0, 10):
             assert ('root', 20, 'Starting worker {}{}'.format(self.wprefix, i)) in caplog.record_tuples
             assert ('root', 20, 'Finished worker {}{}'.format(self.wprefix, i)) in caplog.record_tuples
@@ -256,7 +256,14 @@ class TestWorkerManager(object):
         # timeout for liveness check not yet left
         self.worker_manager.run(timeout=0.0001)
         params = self.redis.hgetall(self.w0)
-        assert 'checked' not in params
+        if 'checked' in params:
+            # slow builder, the delay between previous two run() calls were so
+            # long so the second one managed to even check whether the worker is
+            # alive.  So if that happened, the delay needs to be larger than
+            # deadcheck at least.
+            checked = float(params['checked'])
+            started = float(params['allocated'])
+            assert started + self.worker_manager.worker_timeout_deadcheck <= checked
 
         # time for check..
         time.sleep(1.5)
