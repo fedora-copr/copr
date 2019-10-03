@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.81
+Version:    1.82
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -120,6 +120,12 @@ ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
 
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.82-1
+- manpage: update API token url
+- support multilib projects
+- fix traceback when lost connection during copr-cli build
+- adding cheat for copr
+
 * Tue Aug 13 2019 Pavel Raiskup <praiskup@redhat.com> 1.81-1
 - cli: pypi package needs to depend on 'humanize'
 
