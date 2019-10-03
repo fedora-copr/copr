@@ -41,7 +41,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.153
+Version:    1.154
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -361,6 +361,20 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.154-1
+- api compat fixes for marshmallow 3+
+- more reliable BE->FE communication (#1021)
+- allow rhelbeta-X/epel-X chroot co-existence (#1035)
+- new url routes for parallel handling of actions by backend (#1007)
+- user can pin all projects he can build in (#1016)
+- project forking fixes
+- fix slow rawhide_to_release command (#989)
+- support multilib projects (#938)
+- status chroot build icon now links to live log (#990)
+- admin: dump whooshee version when updating indexes (#946)
+- admin: ability to documment chroot (#853)
+- admin: add manage.py branch_fedora command (#955)
+
 * Wed Sep 04 2019 Dominik Turecek <dturecek@redhat.com> 1.153-1
 - admin permission check in 'can_build_in()' (issue#970)
 - better link to builder-live.log (issue#941)
