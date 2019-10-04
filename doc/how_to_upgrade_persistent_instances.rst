@@ -170,6 +170,7 @@ Please note two addresses needs to be updated, both are backend's.
 Run provision playbooks for ``copr-backend`` and ``copr-keygen`` to propagate the changes
 to the respective instances.
 
+.. _`terminate_resalloc_vms`:
 
 Terminate resalloc resources
 ............................
@@ -187,6 +188,8 @@ Then delete all current resources::
     resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
 
 
+.. _`terminate_os_vms`:
+
 Terminate OpenStack VMs
 .......................
 
@@ -195,10 +198,12 @@ Make sure you terminate all the OpenStack located builders allocated by
 
     # systemctl stop copr-backend # ensure that new are not allocated anymore
     # su - copr
-    $ redis-cli # drop the DB
-    127.0.0.1:6379> FLUSHALL
-    ^D
-    $ cleanup_vm_nova.py # clean all VMs not in DB
+
+    # drop the builders from DB
+    $ redis-cli --scan --pattern 'copr:backend:vm_instance:hset::Copr_builder_*' | xargs redis-cli del
+
+    # shutdown all the VMs which are not in DB
+    $ cleanup_vm_nova.py
 
 
 Downgrade python novaclient
