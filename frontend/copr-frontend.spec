@@ -108,6 +108,7 @@ BuildRequires: redis
 Requires: crontabs
 Requires: curl
 Requires: httpd
+Recommends: logrotate
 Requires: redis
 
 Requires: %flavor_guard

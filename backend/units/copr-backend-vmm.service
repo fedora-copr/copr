@@ -3,7 +3,7 @@ Description=Copr Backend service, Virtual Machine Management component
 After=syslog.target network.target auditd.service
 Before=copr-backend.service
 PartOf=copr-backend.service
-Wants=logrotate.service
+Wants=logrotate.timer
 
 [Service]
 Type=simple

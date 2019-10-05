@@ -56,7 +56,7 @@ Requires:   libappstream-glib-builder
 Requires:   libmodulemd < 2
 Requires:   libmodulemd >= 1.7.0
 Requires:   lighttpd
-Requires:   logrotate
+Recommends: logrotate
 Requires:   mock
 Requires:   obs-signd
 Requires:   openssh-clients

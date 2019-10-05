@@ -2,7 +2,7 @@
 Description=copr aux service to import srpm into dist-git
 Requires=dist-git.socket
 After=dist-git.socket
-Wants=logrotate.service
+Wants=logrotate.timer
 
 [Service]
 User=copr-dist-git

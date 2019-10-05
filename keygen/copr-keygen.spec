@@ -34,7 +34,7 @@ Requires:   httpd
 Requires:   obs-signd
 Requires:   passwd
 
-Requires:   logrotate
+Recommends: logrotate
 Requires:   python3-setuptools
 Requires:   python3-six
 Requires:   python3-flask

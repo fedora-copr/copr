@@ -22,6 +22,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-copr-common
 
+Recommends: logrotate
 Requires: systemd
 Requires: httpd
 Requires: dist-git

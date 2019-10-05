@@ -2,6 +2,7 @@
 Description=Copr Backend service
 After=syslog.target network.target auditd.service
 Requires=copr-backend-vmm.service copr-backend-log.service copr-backend-build.service copr-backend-action.service
+Wants=logrotate.timer
 
 [Service]
 Type=oneshot
