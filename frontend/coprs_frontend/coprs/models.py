@@ -1403,6 +1403,9 @@ class BuildChroot(db.Model, helpers.Serializer):
         if not (self.finished or self.state == "running"):
             return None
 
+        if not self.result_dir_url:
+            return None
+
         return os.path.join(self.result_dir_url,
                             "builder-live.log" if self.state == 'running' else "builder-live.log.gz")
 
