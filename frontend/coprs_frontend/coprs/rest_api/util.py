@@ -57,7 +57,10 @@ def mm_serialize_one(schema, obj):
     try:
         return schema().dump(obj)
     except ValidationError as err:
-        raise MalformedRequest("Failed to parse request")
+        # This isn't correct behavior, but we used to ignore ValidationError
+        # before (e.g rhbz#1758559) and there's no desire to fix APIv2 when
+        # there's APIv3.
+        pass
 
 
 class MyArg(Argument):
