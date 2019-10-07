@@ -28,7 +28,7 @@ COPY docker/frontend/files/ /
 # build and install copr-frontend
 RUN cd /copr/frontend && \
     dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    tito build --rpm --test --rpmbuild-options='--nocheck' && \
     ( dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm || true ) && \
     dnf clean all
 

@@ -48,7 +48,7 @@ RUN echo 'root:passwd' | chpasswd && \
 
 RUN cd /copr/rpmbuild && \
     dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    tito build --rpm --test --rpmbuild-options='--nocheck' && \
     dnf -y install /tmp/tito/x86_64/copr-{rpmbuild,builder}*.x86_64.rpm --allowerasing && \
     dnf clean all
 

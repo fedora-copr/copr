@@ -70,7 +70,7 @@ RUN dnf -y builddep /copr/backend/*.spec --allowerasing && \
 
 # build packages from sources
 RUN cd /copr/backend && \
-    tito build --rpm --test --rpmbuild-options='--without=check'
+    tito build --rpm --test --rpmbuild-options='--nocheck'
 
 # upgrade the already pre-installed packages if possible
 RUN dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm ; \

@@ -23,7 +23,7 @@ COPY docker/distgit/files/ /
 
 RUN cd /copr/dist-git && \
     dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--without=check' && \
+    tito build --rpm --test --rpmbuild-options='--nocheck' && \
     ( dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || true ) && \
     dnf clean all
 
