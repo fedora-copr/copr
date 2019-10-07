@@ -154,8 +154,8 @@ class BuildDispatcher(multiprocessing.Process):
                 # first check if we do not have
                 # worker already running for the job
                 if any([job.task_id == w.job.task_id for w in self.workers]):
-                    self.log.warning("Skipping already running task '%s'",
-                                     job.task_id)
+                    self.log.debug("Skipping already running task '%s'",
+                                   job.task_id)
                     continue
 
                 if first_backend_loop:
@@ -179,22 +179,22 @@ class BuildDispatcher(multiprocessing.Process):
                 )
 
                 if cache_entry in skip_jobs_cache:
-                    self.log.info("Skipped job %s, cached", job)
+                    self.log.debug("Skipped job %s, cached", job)
                     continue
 
                 # ... and if the task is new to us,
                 # allocate new vm and run full build
                 try:
                     vm_group_ids = self.get_vm_group_ids(job.arch)
-                    self.log.info("Picking VM from groups %s for job %s", vm_group_ids, job)
+                    self.log.debug("Picking VM from groups %s for job %s", vm_group_ids, job)
                     vm = self.vm_manager.acquire_vm(
                         vm_group_ids, job.project_owner, job.sandbox,
                         self.next_worker_id, job.task_id, job.build_id,
                         job.chroot)
                 except NoVmAvailable as error:
                     skip_jobs_cache[cache_entry] = True
-                    self.log.info("No available resources for task %s (Reason: %s). Deferring job.",
-                                  job.task_id, error)
+                    self.log.debug("No available resources for task %s (Reason: %s). Deferring job.",
+                                   job.task_id, error)
                     continue
                 else:
                     self.log.info("VM %s for job %s successfully acquired", vm.vm_name, job.task_id)
