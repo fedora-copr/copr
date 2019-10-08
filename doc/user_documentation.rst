@@ -451,8 +451,12 @@ You should press Ctrl+Shift+R to invalidate your cache and reload page
 .. rubric:: How can I create new group? :ref:`¶ <How can I create new group?>`
 
 Groups membership is handled by `FAS <https://admin.fedoraproject.org/accounts/>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://pagure.io/fedora-infrastructure/new_issue>`_.
+You have to log out and then log in again to Copr so Copr can read your new
+settings.
 
-Note that you have to log out and then log in again to Copr so Copr can read your new settings.
+Once copr knows the FAS groups you belong to, you still need to activate the
+group.  Go to `my groups <https://copr.fedorainfracloud.org/groups/list/my>`_
+page and click on the ``Activate this group`` button.
 
 .. _`I see some strange error about /devel/repodata/ in logs.`:
 
