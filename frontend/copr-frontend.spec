@@ -41,7 +41,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.154
+Version:    1.155
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -361,6 +361,10 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Oct 08 2019 Pavel Raiskup <praiskup@redhat.com> 1.155-1
+- frontend: api_2: ignore validation problems mm_serialize_one
+- frontend: fix one more traceback in builder-live.log link
+
 * Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.154-1
 - api compat fixes for marshmallow 3+
 - more reliable BE->FE communication (#1021)
