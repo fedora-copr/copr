@@ -11,6 +11,8 @@ Environment="PYTHONPATH=/usr/share/copr/"
 User=copr
 Group=copr
 ExecStart=/usr/bin/copr_run_action_dispatcher.py
+# we don't want to kill background action processors (daemoncontext)
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
