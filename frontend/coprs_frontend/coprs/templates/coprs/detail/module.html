@@ -132,32 +132,18 @@
           </div>
         {% else %}
         <p>
-          To start using modules, you need to have DNF with modularity support. This is available out of the box
-          on the <a href="https://getfedora.org/en/server/prerelease/">Fedora Modular Server</a>, but on regular releases you need to install such DNF from Copr.
+          To start using modules, you need to have DNF with modularity support
+          (the <code>dnf module</code> command, should work on Fedora and
+          RHEL&nbsp;8+).  See the "Module Command" section in
+          <code>man dnf</code>.
         </p>
-        <div class="highlight autumn">
-          <pre>dnf copr enable mhatina/dnf-modularity-stable
-dnf upgrade dnf</pre>
-        </div>
-
-        <p>Now to install the built module, please run following commands as root:</p>
-        <div class="highlight autumn">
-          <pre><span class="c1"># Add module repofile to your system</span>
-dnf copr enable {{ module.copr.full_name }}
-
-<span class="c1"># Install the module</span>
-dnf module enable {{ module.name}}:{{ module.stream }}
-dnf module install {{ module.name }}/default</pre>
-
-        </div>
-
-        <p>For <code>dnf module</code> documentation, see the "Module Command" section in <code>man dnf</code>.
-
-        <hr>
-        Repofiles:
+        <p>
+          Please install related repo file into <code>/usr/yum.repos.d/</code>
+          directory on your system: <br />
         {% for chroot in unique_chroots  %}
           <a href="{{ copr_url('coprs_ns.generate_module_repo_file', copr, name_release=chroot.name_release, module_nsv=module.nsv) }}" class="btn btn-default"><span class="pficon pficon-save"></span> {{ chroot.name_release }}</a>
         {% endfor %}
+        </p>
 
         {% endif %}
       </div>
