@@ -60,7 +60,7 @@ def mm_serialize_one(schema, obj):
         # This isn't correct behavior, but we used to ignore ValidationError
         # before (e.g rhbz#1758559) and there's no desire to fix APIv2 when
         # there's APIv3.
-        pass
+        return err.valid_data
 
 
 class MyArg(Argument):

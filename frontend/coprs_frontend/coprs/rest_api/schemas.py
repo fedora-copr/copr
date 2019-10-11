@@ -22,9 +22,12 @@ class Schema(_Schema):
         super_result = getattr(super_object, name)(*args, **kwargs)
         if hasattr(super_result, 'data') and hasattr(super_result, 'errors'):
             # old marshmallow
+            data = super_result.data
             if super_result.errors:
-                raise ValidationError(super_result.errors)
-            return super_result.data
+                exception = ValidationError(super_result.errors)
+                exception.valid_data = data
+                raise exception
+            return data
         else:
             return super_result
 

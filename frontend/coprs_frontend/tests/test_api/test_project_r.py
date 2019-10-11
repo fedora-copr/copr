@@ -265,6 +265,22 @@ class TestProjectResource(CoprsTestCase):
             assert obj["project"]["id"] == p_id
             assert obj["_links"]["self"]["href"] == href
 
+    def test_project_get_one_with_validation_error(self, f_users,
+                                                   f_mock_chroots, f_coprs,
+                                                   f_db):
+        self.c1.homepage = ""
+        p_id = self.c1.id
+        self.db.session.add(self.c1)
+        self.db.session.commit()
+
+        href = "/api_2/projects/{}".format(p_id)
+        r = self.tc.get(href)
+        assert r.status_code == 200
+        obj = json.loads(r.data.decode("utf-8"))
+
+        assert obj["project"]["id"] == p_id
+        assert obj["_links"]["self"]["href"] == href
+
     def test_project_get_one_with_chroots(self, f_users, f_mock_chroots, f_coprs, f_db):
 
         p_id_list = [p.id for p in self.basic_coprs_list]
