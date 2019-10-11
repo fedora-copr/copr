@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.127
+Version:    1.128
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Oct 11 2019 Pavel Raiskup <praiskup@redhat.com> 1.128-1
+- restart copr-backend sub-services on failure
+- don't kill action processors by 'systemctl restart'
+- lower the log traffic in build_dispatcher.log
+
 * Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.127-1
 - fix testsuite for slow Koji builders
 
