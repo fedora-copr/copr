@@ -14,6 +14,8 @@ config_opts['rpmbuild_networking'] = False
 config_opts['use_host_resolv'] = False
 {% endif %}
 
+config_opts['macros']['%copr_username'] = '{{ copr_username }}'
+config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'
 config_opts['use_bootstrap_container'] = {{ 'True' if use_bootstrap_container else 'False' }}
 
 {% if use_bootstrap_container %}

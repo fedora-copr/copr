@@ -68,7 +68,8 @@ class TestMockBuilder(unittest.TestCase):
         # This is how mock itself does it
         def include(*args, **kwargs):
             pass
-        config_opts = {"yum.conf": []}
+
+        config_opts = {"macros": {"%copr_username": "@copr", "%copr_projectname": "copr-dev"}, "yum.conf": []}
         cfg = re.sub(r'include\((.*)\)', r'include(\g<1>, config_opts, True)', cfg)
         code = compile(cfg, "/tmp/foobar", 'exec')
         exec(code)
@@ -77,6 +78,8 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["chroot_additional_packages"], "pkg1 pkg2 pkg3")
         self.assertEqual(config_opts["rpmbuild_networking"], True)
         self.assertEqual(config_opts["use_bootstrap_container"], False)
+        self.assertEqual(config_opts["macros"]["%copr_username"], "@copr")
+        self.assertEqual(config_opts["macros"]["%copr_projectname"], "copr-dev")
         self.assertEqual(config_opts["yum.conf"], [])
 
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")

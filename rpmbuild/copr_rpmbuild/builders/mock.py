@@ -27,6 +27,8 @@ class MockBuilder(object):
         self.resultdir = resultdir
         self.config = config
         self.logfile = self.config.get("main", "logfile")
+        self.copr_username = task.get("project_owner")
+        self.copr_projectname = task.get("project_name")
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -66,7 +68,8 @@ class MockBuilder(object):
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
-                               repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
+                               repos=self.repos, pkg_manager_conf=self.pkg_manager_conf,
+                               copr_username=self.copr_username, copr_projectname=self.copr_projectname)
 
     def produce_srpm(self, spec, sources, configdir, resultdir):
         cmd = MOCK_CALL + [
