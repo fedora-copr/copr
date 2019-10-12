@@ -425,7 +425,9 @@ class RedisPublishHandler(logging.Handler):
 
 def get_redis_logger(opts, name, who):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    level = getattr(opts, 'log_level', 'debug')
+    level = getattr(logging, level.upper(), logging.DEBUG)
+    logger.setLevel(level)
 
     if not logger.handlers:
         rc = get_redis_connection(opts)
