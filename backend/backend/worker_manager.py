@@ -65,7 +65,7 @@ class WorkerManager():
             Fill float value in seconds.
     """
     worker_prefix = 'worker' # make sure this is unique in each class
-    worker_timeout_start = 10
+    worker_timeout_start = 30
     worker_timeout_deadcheck = 60
 
     def __init__(self, redis_connection=None, max_workers=8, log=None):
@@ -200,7 +200,17 @@ class WorkerManager():
 
         for worker_id in self.worker_ids():
             info = self.redis.hgetall(worker_id)
-            allocated = float(info.get('allocated'))
+
+            allocated = info.get('allocated', None)
+            if not allocated:
+                # In worker manager, we _always_ add 'allocated' tag when we
+                # start worker.  So this may only happen when worker is
+                # orphaned for some reason (we gave up with him), and it still
+                # touches the database on background.
+                self.redis.delete(worker_id)
+                continue
+
+            allocated = float(allocated)
 
             if self.has_worker_ended(worker_id, info):
                 # finished worker

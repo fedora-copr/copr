@@ -40,6 +40,22 @@ def get_arg_parser():
     return parser
 
 
+def identify(worker_id, redis, log):
+    redis.hset(worker_id, 'started', 1)
+    redis.hset(worker_id, 'PID', os.getpid())
+
+    data = redis.hgetall(worker_id)
+    if not 'allocated' in data:
+        log.error("too slow box, manager thinks we are dead")
+        redis.delete(worker_id)
+        return False
+
+    # There's still small race on a very slow box (TOCTOU in manager, the db
+    # entry can be deleted after our check above ^^).  But we don't risk
+    # anything else than concurrent run of multiple workers in such case.
+    return True
+
+
 def handle_task(opts, args, log):
     "Handle the task, executed on background in DaemonContext"
 
@@ -50,10 +66,9 @@ def handle_task(opts, args, log):
 
     log.info("Handling action %s", task_id)
 
-    if args.worker_id:
-        # Identify ourselves.
-        redis.hset(args.worker_id, 'started', 1)
-        redis.hset(args.worker_id, 'PID', os.getpid())
+    if args.worker_id and not identify(args.worker_id, redis, log):
+        log.error("can not identify myself")
+        sys.exit(1)
 
     resp = frontend_client.get('action/{}'.format(task_id))
     if resp.status_code != 200:
