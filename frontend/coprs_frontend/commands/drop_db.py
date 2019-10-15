@@ -1,12 +1,11 @@
-from flask_script import Command
 from coprs import db
+import click
 
 
-class DropDBCommand(Command):
+"""
+Delete DB
+"""
 
-    """
-    Delete DB
-    """
-
-    def run(self):
-        db.drop_all()
+@click.command()
+def drop_db():
+    db.drop_all()

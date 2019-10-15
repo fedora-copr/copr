@@ -7,17 +7,15 @@ import pipes
 import importlib
 import click
 import commands.test
+import commands.create_sqlite_file
+import commands.create_db
+import commands.drop_db
 
 from flask_script import Manager
 from coprs import app
 
 
 commands_old = {
-    # Database commands
-    "create_sqlite_file": "CreateSqliteFileCommand",
-    "create_db": "CreateDBCommand",
-    "drop_db": "DropDBCommand",
-
     # Chroot commands
     "create_chroot": "CreateChrootCommand",
     "alter_chroot": "AlterChrootCommand",
@@ -63,12 +61,16 @@ for cmdname, clsname in commands_old.items():
     manager.add_command(cmdname, cls())
 
 app.cli.add_command(commands.test.test, "test")
+app.cli.add_command(commands.create_sqlite_file.create_sqlite_file_command, "create_sqlite_file")
+app.cli.add_command(commands.create_db.create_db, "create_db")
+app.cli.add_command(commands.drop_db.drop_db, "drop_db")
 
 if __name__ == "__main__":
     # This is just temporary while migrating to flask script,
     # values in arrays are already migrated parameters.
     # Else part will be removed once migration is complete.
-    if sys.argv[1] in ['test']:
-        app.cli()
+    if sys.argv[1] in ['test', 'create_sqlite_file', 'create_db', 'drop_db']:
+        with app.app_context():
+            app.cli()
     else:
         manager.run()
