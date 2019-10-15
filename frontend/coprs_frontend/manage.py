@@ -5,14 +5,14 @@ import os
 import sys
 import pipes
 import importlib
+import click
+import commands.test
+
 from flask_script import Manager
 from coprs import app
 
 
-commands = {
-    # General commands
-    "test": "TestCommand",
-
+commands_old = {
     # Database commands
     "create_sqlite_file": "CreateSqliteFileCommand",
     "create_db": "CreateDBCommand",
@@ -57,11 +57,18 @@ if os.getuid() == 0:
     sys.exit(1)
 
 manager = Manager(app)
-for cmdname, clsname in commands.items():
+for cmdname, clsname in commands_old.items():
     module = importlib.import_module("commands.{0}".format(cmdname))
     cls = getattr(module, clsname)
     manager.add_command(cmdname, cls())
 
+app.cli.add_command(commands.test.test, "test")
 
 if __name__ == "__main__":
-    manager.run()
+    # This is just temporary while migrating to flask script,
+    # values in arrays are already migrated parameters.
+    # Else part will be removed once migration is complete.
+    if sys.argv[1] in ['test']:
+        app.cli()
+    else:
+        manager.run()
