@@ -31,7 +31,7 @@ def check_health(opts, vm_name, vm_ip):
 
     err_msg = None
     try:
-        conn = SSHConnection(opts.build_user or "root", vm_ip)
+        conn = SSHConnection(opts.build_user or "root", vm_ip, config_file=opts.ssh.builder_config)
         rc, stdout, _ = conn.run_expensive("echo hello")
         if rc != 0 or stdout != "hello\n":
             err_msg = "Unexpected check output"
