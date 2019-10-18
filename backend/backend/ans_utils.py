@@ -25,10 +25,10 @@ def run_ansible_playbook_cli(args, comment, log):
 
     command = "{} -v {}".format(ansible_playbook_bin, args)
     try:
-        log.info("{}: begin: {}".format(comment, command))
+        log.info("%s: begin: %s", comment, command)
         result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, encoding="utf-8")
     except CalledProcessError as e:
-        log.info("CalledProcessError: {}".format(e.output))
+        log.info("CalledProcessError: %s", e.output)
         raise
 
     log.debug(comment + ": end")
