@@ -35,7 +35,7 @@ RUN dnf -y update && \
 
 COPY . /copr
 COPY docker/builder/files/ /
-COPY docker/backend/files/root/.ssh/id_rsa.pub /root/.ssh/id_backend.pub
+COPY docker/backend/files/home/copr/.ssh/id_rsa.pub /root/.ssh/id_backend.pub
 
 # needed to run sshd
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q

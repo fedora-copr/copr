@@ -79,11 +79,16 @@ RUN dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm ; \
 # copy filesystem setup and setup ownership and permissions
 COPY docker/backend/files/ /
 RUN chmod 700 /root && \
-    chmod 400 /root/.ssh/id_rsa && \
     chmod 700 /home/copr && \
-    chown copr:copr /home/copr
+    chmod 400 /home/copr/.ssh/id_rsa && \
+    chmod 600 /home/copr/.ssh/id_rsa.pub && \
+    chown -R copr:copr /home/copr
 
-# fix permissions for .ssh
-RUN chmod 700 /root/.ssh
+# copr user needs permissions for /bin/sign
+RUN gpasswd -a copr obsrun
+
+# copr user needs permissions to create lock files
+RUN chmod o+w /var/lock
+
 
 CMD ["/bin/run.sh"]
