@@ -114,6 +114,7 @@ def get_build_record(task, short=False):
             "fetch_sources_only": True,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
+            "uses_devel_repo": task.build.copr.devel_mode,
         }
         if short:
             return build_record

@@ -208,6 +208,7 @@ class MockRemote(object):
 
         project_owner = self.job.project_owner
         project_name = self.job.project_name
+        devel = self.job.uses_devel_repo
 
         base_url = "/".join([self.opts.results_baseurl, project_owner,
                              project_name, self.job.chroot])
@@ -215,9 +216,6 @@ class MockRemote(object):
                       "front url: {}; path: {}; base_url: {}"
                       .format(project_owner, project_name,
                               self.opts.frontend_base_url, self.chroot_dir, base_url))
-
-        devel = uses_devel_repo(self.opts.frontend_base_url,
-                                project_owner, project_name)
         try:
             createrepo(
                 path=self.chroot_dir,
