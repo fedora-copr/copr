@@ -1,42 +1,36 @@
-from flask_script import Command, Option
+import click
 from coprs.logic import coprs_logic
 
-from commands.create_chroot import CreateChrootCommand
-from commands.rawhide_to_release import RawhideToReleaseCommand
+from commands.create_chroot import create_chroot
+from commands.rawhide_to_release import rawhide_to_release
 
 
-class BranchFedoraCommand(Command):
+@click.command()
+@click.argument(
+    "fedora_version",
+    type=int
+)
+@click.option(
+    "--dist-git-branch", "-b", "branch",
+    help="Branch name for this set of new chroots"
+)
+def branch_fedora(fedora_version, branch=None):
     """
     Branch fedora-rawhide-* chroots to fedora-N* and execute rawhide_to_release
     on them
     """
+    rawhide_chroots = coprs_logic.MockChrootsLogic.get_from_name(
+        "fedora-rawhide",
+        active_only=True,
+        noarch=True).all()
 
-    option_list = [
-        Option("fedora_version",
-               help="The version of Fedora to branch Rawhide into, e.g. 32",
-               type=int),
-        Option(
-            "--dist-git-branch",
-            "-b",
-            dest="branch",
-            help="Branch name for this set of new chroots"),
-    ]
+    chroot_pairs = {
+        'fedora-{}-{}'.format(fedora_version, rch.arch):
+        'fedora-rawhide-{}'.format(rch.arch)
+        for rch in rawhide_chroots
+    }
 
-    def run(self, fedora_version, branch=None):
-        rawhide_chroots = coprs_logic.MockChrootsLogic.get_from_name(
-            "fedora-rawhide",
-            active_only=True,
-            noarch=True).all()
+    create_chroot(chroot_pairs.keys(), branch, True)
 
-        chroot_pairs = {
-            'fedora-{}-{}'.format(fedora_version, rch.arch):
-            'fedora-rawhide-{}'.format(rch.arch)
-            for rch in rawhide_chroots
-        }
-
-        c_cmd = CreateChrootCommand()
-        c_cmd.run(chroot_pairs.keys(), branch, True)
-
-        r2r_cmd = RawhideToReleaseCommand()
-        for new_chroot, rawhide_chroot in chroot_pairs.items():
-            r2r_cmd.run(rawhide_chroot, new_chroot)
+    for new_chroot, rawhide_chroot in chroot_pairs.items():
+        rawhide_to_release(rawhide_chroot, new_chroot)

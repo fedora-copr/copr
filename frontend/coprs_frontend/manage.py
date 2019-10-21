@@ -10,20 +10,20 @@ import commands.test
 import commands.create_sqlite_file
 import commands.create_db
 import commands.drop_db
+import commands.create_chroot
+import commands.alter_chroot
+import commands.display_chroots
+import commands.drop_chroot
+import commands.branch_fedora
+import commands.comment_chroot
+
+import commands.rawhide_to_release
 
 from flask_script import Manager
 from coprs import app
 
 
 commands_old = {
-    # Chroot commands
-    "create_chroot": "CreateChrootCommand",
-    "alter_chroot": "AlterChrootCommand",
-    "display_chroots": "DisplayChrootsCommand",
-    "drop_chroot": "DropChrootCommand",
-    "branch_fedora": "BranchFedoraCommand",
-    "comment_chroot": "CommentChrootCommand",
-
     # User commands
     "alter_user": "AlterUserCommand",
     "add_user": "AddUserCommand",
@@ -37,8 +37,6 @@ commands_old = {
     # Other
     "get_admins": "GetAdminsCommand",
     "fail_build": "FailBuildCommand",
-    "rawhide_to_release": "RawhideToReleaseCommand",
-    "backend_rawhide_to_release": "BackendRawhideToReleaseCommand",
     "update_graphs": "UpdateGraphsDataCommand",
     "vacuum_graphs": "RemoveGraphsDataCommand",
     "notify_outdated_chroots": "NotifyOutdatedChrootsCommand",
@@ -60,17 +58,40 @@ for cmdname, clsname in commands_old.items():
     cls = getattr(module, clsname)
     manager.add_command(cmdname, cls())
 
-app.cli.add_command(commands.test.test, "test")
-app.cli.add_command(commands.create_sqlite_file.create_sqlite_file_command, "create_sqlite_file")
-app.cli.add_command(commands.create_db.create_db, "create_db")
-app.cli.add_command(commands.drop_db.drop_db, "drop_db")
+    # General commands
+    app.cli.add_command(commands.test.test, "test")
+
+    # Database commands
+    app.cli.add_command(commands.create_sqlite_file.create_sqlite_file_command, "create_sqlite_file")
+    app.cli.add_command(commands.create_db.create_db, "create_db")
+    app.cli.add_command(commands.drop_db.drop_db, "drop_db")
+
+    # Chroot commands
+    app.cli.add_command(commands.create_chroot.create_chroot_command, "create_chroot")
+    app.cli.add_command(commands.alter_chroot.alter_chroot, "alter_chroot")
+    app.cli.add_command(commands.display_chroots.display_chroots, "display_chroots")
+    app.cli.add_command(commands.drop_chroot.drop_chroot, "drop_chroot")
+    app.cli.add_command(commands.branch_fedora.branch_fedora, "branch_fedora")
+    app.cli.add_command(commands.comment_chroot.comment_chroot, "comment_chroot")
+
+    # User commands
+    #TODO
+
+    # Whooshee indexes
+    #TODO
+
+    # Other
+    #TODO
+    app.cli.add_command(commands.rawhide_to_release.rawhide_to_release, "rawhide_to_release")
 
 if __name__ == "__main__":
     # This is just temporary while migrating to flask script,
     # values in arrays are already migrated parameters.
     # Else part will be removed once migration is complete.
-    if sys.argv[1] in ['test', 'create_sqlite_file', 'create_db', 'drop_db']:
-        with app.app_context():
-            app.cli()
+    if sys.argv[1] in [
+        'test', 'create_sqlite_file', 'create_db', 'drop_db',
+        'create_chroot', 'alter_chroot', 'display_chroots', 'drop_chroot',
+        'branch_fedora', 'comment_chroot', 'rawhide_to_release']:
+        app.cli()
     else:
         manager.run()
