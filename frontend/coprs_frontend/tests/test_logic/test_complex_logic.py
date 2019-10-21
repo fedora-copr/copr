@@ -36,9 +36,15 @@ class TestComplexLogic(CoprsTestCase):
         data = json.loads(actions[0].data)
         assert data["user"] == self.u2.name
         assert data["copr"] == "dstname"
-        assert data["builds_map"] == {'srpm-builds': {'00000008-whatsupthere-world': '00000009', '00000005-hello-world': '00000010'},
-                   'fedora-17-x86_64': {'8-whatsupthere-world': '00000009-whatsupthere-world', '5-hello-world': '00000010-hello-world'},
-                   'fedora-17-i386': {'8-whatsupthere-world': '00000009-whatsupthere-world', '5-hello-world': '00000010-hello-world'}}
+        assert data["builds_map"] == {
+            'srpm-builds': {'00000008-whatsupthere-world': '00000012', '00000006-hello-world': '00000013',
+                            '00000010-new-package': '00000014', '00000011-new-package': '00000015'},
+            'fedora-17-x86_64': {'8-whatsupthere-world': '00000012-whatsupthere-world',
+                                 '6-hello-world': '00000013-hello-world',
+                                 '10-new-package': '00000014-new-package'},
+            'fedora-17-i386': {'8-whatsupthere-world': '00000012-whatsupthere-world',
+                               '6-hello-world': '00000013-hello-world',
+                               '11-new-package': '00000015-new-package'}}
 
     def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
         query = self.db.session.query(models.Copr)
@@ -93,7 +99,7 @@ class TestProjectForking(CoprsTestCase):
 
     def test_fork_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         forking = ProjectForking(self.u1)
-        fb1 = forking.fork_build(self.b1, self.c2, self.p2)
+        fb1 = forking.fork_build(self.b1, self.c2, self.p2, self.b1.build_chroots)
 
         assert fb1.id != self.b1.id
         assert fb1.state == 'forked'

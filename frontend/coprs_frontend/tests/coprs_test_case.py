@@ -328,6 +328,49 @@ class CoprsTestCase(object):
                 self.db.session.add(buildchroot)
         self.db.session.add_all([self.b5, self.b6, self.b7, self.b8])
 
+        self.p5 = models.Package(
+            copr=self.c2, copr_dir=self.c2_dir, name="new-package", source_type=0)
+        self.b9 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p5,
+            user=self.u1, submitted_on=100, srpm_url="http://somesrpm",
+            source_status=StatusEnum("succeeded"), result_dir='00000009-new-package')
+        self.b10 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p5,
+            user=self.u1, submitted_on=100, srpm_url="http://somesrpm",
+            source_status=StatusEnum("failed"), result_dir='00000010-new-package')
+        self.b11 = models.Build(
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p5,
+            user=self.u1, submitted_on=100, srpm_url="http://somesrpm",
+            source_status=StatusEnum("failed"), result_dir='00000011-new-package')
+
+        self.b9_bc = []
+        self.b10_bc = []
+        self.b11_bc = []
+        self.db.session.flush()
+
+        bc_status = {self.b9: {self.mc2: StatusEnum("succeeded"),
+                               self.mc3: StatusEnum("succeeded")},
+                     self.b10: {self.mc2: StatusEnum("forked"),
+                                self.mc3: StatusEnum("failed")},
+                     self.b11: {self.mc2: StatusEnum("failed"),
+                                self.mc3: StatusEnum("succeeded")}}
+
+        for build, build_chroots in zip(
+                [self.b9, self.b10, self.b11],
+                [self.b9_bc, self.b10_bc, self.b11_bc]):
+
+            for chroot in build.copr.active_chroots:
+                buildchroot = models.BuildChroot(
+                    build=build,
+                    mock_chroot=chroot,
+                    status=bc_status[build][chroot],
+                    git_hash="12345",
+                    result_dir="{}-{}".format(build.id, build.package.name),
+                )
+                build_chroots.append(buildchroot)
+                self.db.session.add(buildchroot)
+        self.db.session.add_all([self.b9, self.b10, self.b11])
+
     @pytest.fixture
     def f_hook_package(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.c1.webhook_secret = str(uuid.uuid4())

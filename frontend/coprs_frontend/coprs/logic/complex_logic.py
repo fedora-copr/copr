@@ -88,25 +88,32 @@ class ComplexLogic(object):
             raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
-        srpm_builds_src,srpm_builds_dst, chroots_src, chroots_dst = ([] for i in range(4))
+        srpm_builds_src = []
+        srpm_builds_dst = []
+
         for package in copr.main_dir.packages:
             fpackage = forking.fork_package(package, fcopr)
-            build = package.last_build(successful=True)
-            if not build:
+
+            builds = PackagesLogic.last_successful_build_chroots(package)
+            if not builds:
                 continue
 
-            fbuild = forking.fork_build(build, fcopr, fpackage)
+            for build, build_chroots in builds.items():
+                fbuild = forking.fork_build(build, fcopr, fpackage, build_chroots)
 
-            if build.result_dir:
-                srpm_builds_src.append(build.result_dir)
-                srpm_builds_dst.append(fbuild.result_dir)
+                if build.result_dir:
+                    srpm_builds_src.append(build.result_dir)
+                    srpm_builds_dst.append(fbuild.result_dir)
 
-            for chroot, fchroot in zip(build.build_chroots, fbuild.build_chroots):
-                if chroot.result_dir:
-                    chroots_src.append(chroot.result_dir)
-                    chroots_dst.append(fchroot.result_dir)
-                builds_map['srpm-builds'] = dict(zip(srpm_builds_src, srpm_builds_dst))
-                builds_map[chroot.name] = dict(zip(chroots_src, chroots_dst))
+                for chroot, fchroot in zip(build_chroots, fbuild.build_chroots):
+                    if not chroot.result_dir:
+                        continue
+                    if chroot.name not in builds_map:
+                        builds_map[chroot.name] = {chroot.result_dir: fchroot.result_dir}
+                    else:
+                        builds_map[chroot.name][chroot.result_dir] = fchroot.result_dir
+
+        builds_map['srpm-builds'] = dict(zip(srpm_builds_src, srpm_builds_dst))
 
         db.session.commit()
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
@@ -294,7 +301,7 @@ class ProjectForking(object):
             db.session.add(fpackage)
         return fpackage
 
-    def fork_build(self, build, fcopr, fpackage):
+    def fork_build(self, build, fcopr, fpackage, build_chroots):
         fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "copr_dir_id", "package_id", "result_dir"])
         fbuild.copr = fcopr
         fbuild.package = fpackage
@@ -303,7 +310,7 @@ class ProjectForking(object):
         db.session.flush()
 
         fbuild.result_dir = '{:08}'.format(fbuild.id)
-        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id", "result_dir"]) for c in build.build_chroots]
+        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id", "result_dir"]) for c in build_chroots]
         for chroot in fbuild.build_chroots:
             chroot.result_dir = '{:08}-{}'.format(fbuild.id, fpackage.name)
             chroot.status = StatusEnum("forked")

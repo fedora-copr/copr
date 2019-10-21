@@ -12,6 +12,7 @@ from coprs import helpers
 
 from coprs.logic import users_logic
 from coprs.logic import builds_logic
+from copr_common.enums import StatusEnum
 
 log = app.logger
 
@@ -314,3 +315,21 @@ WHERE package.copr_dir_id = :copr_dir_id;
 
         if counter > 0:
             db.session.commit()
+
+    @classmethod
+    def last_successful_build_chroots(cls, package):
+        builds = {}
+        for chroot in package.chroots:
+            for build in reversed(package.builds):
+                try:
+                    build_chroot = build.chroots_dict_by_name[chroot.name]
+                except KeyError:
+                    continue
+                if build_chroot.status not in [StatusEnum("succeeded"), StatusEnum("forked")]:
+                    continue
+                if build not in builds:
+                    builds[build] = [build_chroot]
+                else:
+                    builds[build].append(build_chroot)
+                break
+        return builds
