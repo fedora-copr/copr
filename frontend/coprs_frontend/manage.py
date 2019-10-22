@@ -16,6 +16,12 @@ import commands.display_chroots
 import commands.drop_chroot
 import commands.branch_fedora
 import commands.comment_chroot
+import commands.alter_user
+import commands.add_user
+import commands.dump_user
+import commands.update_indexes
+import commands.update_indexes_quick
+import commands.update_indexes_required
 
 import commands.rawhide_to_release
 
@@ -24,16 +30,6 @@ from coprs import app
 
 
 commands_old = {
-    # User commands
-    "alter_user": "AlterUserCommand",
-    "add_user": "AddUserCommand",
-    "dump_user": "DumpUserCommand",
-
-    # Whooshee indexes
-    "update_indexes": "UpdateIndexesCommand",
-    "update_indexes_quick": "UpdateIndexesQuickCommand",
-    "update_indexes_required": "UpdateIndexesRequiredCommand",
-
     # Other
     "get_admins": "GetAdminsCommand",
     "fail_build": "FailBuildCommand",
@@ -75,10 +71,15 @@ for cmdname, clsname in commands_old.items():
     app.cli.add_command(commands.comment_chroot.comment_chroot, "comment_chroot")
 
     # User commands
-    #TODO
+    app.cli.add_command(commands.alter_user.alter_user, "alter_user")
+    app.cli.add_command(commands.add_user.add_user, "add_user")
+    app.cli.add_command(commands.dump_user.dump_user, "dump_user")
 
     # Whooshee indexes
-    #TODO
+    app.cli.add_command(commands.update_indexes.update_indexes, "update_indexes")
+    app.cli.add_command(commands.update_indexes_quick.update_indexes_quick, "update_indexes_quick")
+    app.cli.add_command(commands.update_indexes_required.update_indexes_required, "update_indexes_required")
+
 
     # Other
     #TODO
@@ -91,7 +92,9 @@ if __name__ == "__main__":
     if sys.argv[1] in [
         'test', 'create_sqlite_file', 'create_db', 'drop_db',
         'create_chroot', 'alter_chroot', 'display_chroots', 'drop_chroot',
-        'branch_fedora', 'comment_chroot', 'rawhide_to_release']:
+        'branch_fedora', 'comment_chroot', 'rawhide_to_release',
+	    'alter_user', 'add_user', 'dump_user', 'update_indexes',
+	    'update_indexes_quick', 'update_indexes_required']:
         app.cli()
     else:
         manager.run()
