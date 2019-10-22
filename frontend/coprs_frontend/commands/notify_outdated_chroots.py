@@ -1,74 +1,77 @@
 import sys
 import datetime
-from flask_script import Command, Option
+import click
 from coprs import db, app
 from coprs.logic import coprs_logic
 from coprs.mail import send_mail, OutdatedChrootMessage
 
 
-class NotifyOutdatedChrootsCommand(Command):
+@click.command()
+@click.option(
+    "--dry-run/--no-dry-run",
+    default=False,
+    help="Do not actually notify the people, but rather print information on stdout"
+)
+@click.option(
+    "--email", "-e", "email_filter",
+    help="Notify only "
+)
+@click.option(
+    "--all/--not-all",
+    default=False,
+    help="Notify all (even the recently notified) relevant people"
+)
+def notify_outdated_chroots(dry_run, email_filter, all):
     """
     Notify all admins of projects with builds in outdated chroots about upcoming deletion.
     """
-    option_list = [
-        Option("--dry-run", action="store_true",
-               help="Do not actually notify the people, but rather print information on stdout"),
-        Option("-e", "--email", action="append", dest="email_filter",
-               help="Notify only "),
-        Option("-a", "--all", action="store_true",
-               help="Notify all (even the recently notified) relevant people"),
-    ]
 
-    def run(self, dry_run, email_filter, all):
-        self.email_filter = email_filter
-        self.all = all
+    if not dry_run:
+        dev_instance_warning(email_filter)
 
-        if not dry_run:
-            self.dev_instance_warning()
+    notifier = DryRunNotifier() if dry_run else Notifier()
+    outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
+    for user, chroots in get_user_chroots_map(outdated, email_filter).items():
+        chroots = filter_chroots([chroot for chroot in chroots], all)
+        if not chroots:
+            continue
+        chroots.sort(key=lambda x: x.copr.full_name)
+        notifier.notify(user, chroots)
+        notifier.store_timestamp(chroots)
 
-        notifier = DryRunNotifier() if dry_run else Notifier()
-        outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
-        for user, chroots in self.get_user_chroots_map(outdated).items():
-            chroots = self.filter_chroots([chroot for chroot in chroots])
-            if not chroots:
+def get_user_chroots_map(chroots, email_filter):
+    user_chroot_map = {}
+    for chroot in chroots:
+        for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(chroot.copr):
+            if email_filter and admin.mail not in email_filter:
                 continue
-            chroots.sort(key=lambda x: x.copr.full_name)
-            notifier.notify(user, chroots)
-            notifier.store_timestamp(chroots)
+            if admin not in user_chroot_map:
+                user_chroot_map[admin] = []
+            user_chroot_map[admin].append(chroot)
+    return user_chroot_map
 
-    def get_user_chroots_map(self, chroots):
-        user_chroot_map = {}
-        for chroot in chroots:
-            for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(chroot.copr):
-                if self.email_filter and admin.mail not in self.email_filter:
-                    continue
-                if admin not in user_chroot_map:
-                    user_chroot_map[admin] = []
-                user_chroot_map[admin].append(chroot)
-        return user_chroot_map
+def filter_chroots(chroots, all):
+    if all:
+        return chroots
 
-    def filter_chroots(self, chroots):
-        if self.all:
-            return chroots
+    filtered = []
+    for chroot in chroots:
+        if not chroot.delete_notify:
+            filtered.append(chroot)
+            continue
 
-        filtered = []
-        for chroot in chroots:
-            if not chroot.delete_notify:
-                filtered.append(chroot)
-                continue
+        # Skip the chroot if was notified in less than `n` days
+        now = datetime.datetime.now()
+        if (now - chroot.delete_notify).days >= 80:
+            filtered.append(chroot)
 
-            # Skip the chroot if was notified in less than `n` days
-            now = datetime.datetime.now()
-            if (now - chroot.delete_notify).days >= 80:
-                filtered.append(chroot)
+    return filtered
 
-        return filtered
-
-    def dev_instance_warning(self):
-        if app.config["ENV"] != "production" and not self.email_filter:
-            sys.stderr.write("I will not let you send emails to all Copr users from the dev instance!\n")
-            sys.stderr.write("Please use this command with -e myself@foo.bar\n")
-            sys.exit(1)
+def dev_instance_warning(email_filter):
+    if app.config["ENV"] != "production" and not email_filter:
+        sys.stderr.write("I will not let you send emails to all Copr users from the dev instance!\n")
+        sys.stderr.write("Please use this command with -e myself@foo.bar\n")
+        sys.exit(1)
 
 
 class Notifier(object):

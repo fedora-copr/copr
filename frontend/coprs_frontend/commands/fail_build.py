@@ -1,23 +1,21 @@
 import sqlalchemy
-from flask_script import Command, Option
+import click
 from coprs import db
 from coprs.logic import builds_logic
 
 
-class FailBuildCommand(Command):
-
+@click.command()
+@click.argument("build_id", type=int)
+def fail_build(build_id):
     """
     Marks build as failed on all its non-finished chroots
     """
 
-    option_list = [Option("build_id")]
+    try:
+        builds_logic.BuildsLogic.mark_as_failed(build_id)
+        print("Marking non-finished chroots of build {} as failed".format(build_id))
+        db.session.commit()
 
-    def run(self, build_id, **kwargs):
-        try:
-            builds_logic.BuildsLogic.mark_as_failed(build_id)
-            print("Marking non-finished chroots of build {} as failed".format(build_id))
-            db.session.commit()
-
-        except (sqlalchemy.exc.DataError, sqlalchemy.orm.exc.NoResultFound) as e:
-            print("Error: No such build {}".format(build_id))
-            return 1
+    except (sqlalchemy.exc.DataError, sqlalchemy.orm.exc.NoResultFound) as e:
+        print("Error: No such build {}".format(build_id))
+        return 1

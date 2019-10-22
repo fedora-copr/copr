@@ -1,9 +1,7 @@
-from flask_script import Command
+import click
 from coprs import models
 
-
-class GetAdminsCommand(Command):
-
-    def run(self, **kwargs):
-        for u in models.User.query.filter(models.User.admin == True).all():
-            print(u.username)
+@click.command()
+def get_admins():
+    for u in models.User.query.filter(models.User.admin == True).all():
+        print(u.username)
