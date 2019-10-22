@@ -20,6 +20,7 @@ RUN dnf -y update && \
                    python3-alembic \
                    postgresql-server \
                    redis \
+                   mock-core-configs \
                    tito
 
 COPY . /copr

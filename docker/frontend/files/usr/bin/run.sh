@@ -8,8 +8,8 @@ chown -R copr-fe:copr-fe /var/log/copr-frontend
 chown -R copr-fe:copr-fe /usr/share/copr
 
 cd /usr/share/copr/coprs_frontend/ && sudo -u copr-fe copr-frontend create_db --alembic alembic.ini
-sudo -u copr-fe copr-frontend create_chroot fedora-{26,27,rawhide}-{i386,x86_64} epel-{6,7}-x86_64 epel-6-i386
-
+sudo -u copr-fe copr-frontend create_chroot \
+    $(ls /etc/mock/{fedora,epel}-*-{i386,x86_64}.cfg |xargs -I{} -n1 basename {} .cfg)
 
 # selinux: make data dir writeable for httpd
 # TODO: probly correct solution is to uncomment first four lines in
