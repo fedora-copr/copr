@@ -521,6 +521,8 @@ ORDER BY
                                srpm_url=source_build.srpm_url, copr_dirname=source_build.copr_dir.name, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
+        build.resubmitted_from_id = source_build.id
+
         return build
 
     @classmethod

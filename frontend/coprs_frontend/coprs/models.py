@@ -874,6 +874,11 @@ class Build(db.Model, helpers.Serializer):
     # used by webhook builds; e.g. github.com:praiskup, or pagure.io:jdoe
     submitted_by = db.Column(db.Text)
 
+    # if a build was resubmitted from another build, this column will contain the original build id
+    # the original build id is not here as a foreign key because the original build can be deleted so we can lost
+    # the info that the build was resubmitted
+    resubmitted_from_id = db.Column(db.Integer)
+
     @property
     def user_name(self):
         return self.user.name
@@ -1158,6 +1163,14 @@ class Build(db.Model, helpers.Serializer):
             submitter = uuid.uuid4()
 
         return '{0}--{1}'.format(self.copr.full_name, submitter)
+
+    @property
+    def resubmitted_from(self):
+        return Build.query.filter(Build.id == self.resubmitted_from_id).first()
+
+    @property
+    def source_is_uploaded(self):
+        return self.source_type == helpers.BuildSourceEnum('upload')
 
 
 class DistGitBranch(db.Model, helpers.Serializer):

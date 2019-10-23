@@ -164,16 +164,26 @@
         <dl class="dl-horizontal">
         {{ describe_failure(build) }}
         <dt>SRPM build log:</dt>
-          {% if build.source_status | state_from_num in ['pending', 'starting']  %}
-            <dd> Build has not started yet </dd>
-          {% else %}
-          {% for url in build.get_import_log_urls(g.user.admin) %}
-            <dd>
-              <a href="{{ url }}">{{ url | basename }}</a>
-                {{ "," if not loop.last }}
+        {% if build.source_status | state_from_num in ['pending', 'starting'] %}
+          <dd> Build has not started yet</dd>
+        {% else %}
+          {% if build.resubmitted_from and build.source_is_uploaded %}
+            <dd>Build resubmitted from build
+              {% if build.resubmitted_from %}
+                <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.resubmitted_from.id) }}">#{{ build.resubmitted_from.id }}</a>
+              {% else %}
+                #{{ build.resubmitted_from_id }}
+              {% endif %}
             </dd>
-          {% endfor %}
+          {% else %}
+            {% for url in build.get_import_log_urls(g.user.admin) %}
+              <dd>
+                <a href="{{ url }}">{{ url | basename }}</a>
+                {{ "," if not loop.last }}
+              </dd>
+            {% endfor %}
           {% endif %}
+        {% endif %}
         <dt> Built Packages:</dt>
         {% if build.built_packages %}
           {% for pkg in build.built_packages.split("\n"): %}
