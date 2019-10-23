@@ -20,7 +20,7 @@
 
 {% if build.copr != copr %}
 <h2 class="build-detail"> Build {{ build.id }} doesn't belong to this project. </h2>
-<p> You can go to <a href="{{url_for("coprs_ns.copr_build", username = build.copr.user.name, coprname = build.copr.name, build_id = build.id)}}">{{ copr_name(build.copr) }}/build/{{build.id}} </a>to see this build. </p>
+<p> You can go to <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.id) }}"> {{ copr_name(build.copr) }}/build/{{build.id}} </a>to see this build. </p>
 {% else %}
 
 {% if g.user and g.user.can_build_in(copr) and build.finished and not build.persistent %}
