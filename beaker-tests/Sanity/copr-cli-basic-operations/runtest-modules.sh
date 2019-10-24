@@ -113,7 +113,7 @@ rlJournalStart
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 600 $PACKAGES
+        wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 1000 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
 
         # Test URL submit
