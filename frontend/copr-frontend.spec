@@ -1,5 +1,7 @@
 %bcond_without check
+%if 0%{?fedora} < 32
 %bcond_without doc
+%endif
 
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
