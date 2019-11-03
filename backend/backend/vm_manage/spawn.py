@@ -29,7 +29,7 @@ def get_vm_name_from_log(ansible_output):
         raise CoprSpawnFailError("No vm_name in the playbook output")
     return match.group(1)
 
-def spawn_instance(spawn_playbook, log):
+def spawn_instance(spawn_playbook, log, timeout=None):
     """
     Spawn new VM, executing the following steps:
 
@@ -49,7 +49,7 @@ def spawn_instance(spawn_playbook, log):
 
     spawn_args = "-c ssh {}".format(spawn_playbook)
     try:
-        result = run_ansible_playbook_cli(spawn_args, comment="spawning instance", log=log)
+        result = run_ansible_playbook_cli(spawn_args, comment="spawning instance", log=log, timeout=timeout)
     except Exception as err:
         raise CoprSpawnFailError(str(err.__dict__))
 
@@ -78,7 +78,8 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
 
     try:
         log.debug("Going to spawn")
-        spawn_result = spawn_instance(spawn_playbook, log)
+        timeout = opts.build_groups[int(group)].get("playbook_timeout")
+        spawn_result = spawn_instance(spawn_playbook, log, timeout=timeout)
         log.debug("Spawn finished")
     except CoprSpawnFailError as err:
         log.info("Spawning a builder with pb: %s", err.msg)

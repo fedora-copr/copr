@@ -242,6 +242,9 @@ class BackendConfigReader(object):
                 "vm_terminating_timeout": _get_conf(
                     cp, "backend", "group{}_vm_terminating_timeout".format(group_id),
                     default=600, mode="int"),
+                "playbook_timeout": _get_conf(
+                    cp, "backend", "group{}_playbook_timeout".format(group_id),
+                    default=None, mode="int"),
             }
             opts.build_groups.append(group)
 
