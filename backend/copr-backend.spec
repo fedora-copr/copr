@@ -50,7 +50,6 @@ Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
 Requires:   createrepo_c
 Requires:   crontabs
-Requires:   euca2ools
 Requires:   gawk
 Requires:   libappstream-glib-builder
 Requires:   libmodulemd < 2
