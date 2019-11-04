@@ -8,7 +8,7 @@ Create the sqlite DB file (not the tables).
 Used for alembic, "create_db" does this automatically.
 """
 
-def create_sqlite_file():
+def create_sqlite_file_function():
     if flask.current_app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
         # strip sqlite:///
         datadir_name = os.path.dirname(
@@ -17,5 +17,5 @@ def create_sqlite_file():
             os.makedirs(datadir_name)
 
 @click.command()
-def create_sqlite_file_command():
+def create_sqlite_file():
     return create_sqlite_file()

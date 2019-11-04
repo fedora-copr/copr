@@ -21,7 +21,7 @@ def print_doesnt_exist(chroot_name):
     print("{0} - chroot doesn\"t exist.".format(chroot_name))
 
 
-def create_chroot(chroot_names, branch=None, activated=True):
+def create_chroot_function(chroot_names, branch=None, activated=True):
     """Creates a mock chroot in DB"""
     for chroot_name in chroot_names:
         if not branch:
@@ -53,6 +53,6 @@ def create_chroot(chroot_names, branch=None, activated=True):
     help="Activate the chroot later, manually by `alter_chroot`",
     default=True
 )
-def create_chroot_command(chroot_names, branch=None, activated=True):
+def create_chroot(chroot_names, branch=None, activated=True):
     """Creates a mock chroot in DB"""
-    return create_chroot(chroot_names, branch, activated)
+    return create_chroot_function(chroot_names, branch, activated)

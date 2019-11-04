@@ -1,6 +1,6 @@
 from coprs import db
 from coprs.logic import builds_logic
-from commands.create_sqlite_file import create_sqlite_file
+from commands.create_sqlite_file import create_sqlite_file_function
 import click
 
 
@@ -14,7 +14,7 @@ Create the DB schema
     required=True
 )
 def create_db(alembic_ini):
-    create_sqlite_file()
+    create_sqlite_file_function()
     db.create_all()
     # load the Alembic configuration and generate the
     # version table, "stamping" it with the most recent rev:

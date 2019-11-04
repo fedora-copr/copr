@@ -43,44 +43,50 @@ if os.getuid() == 0:
             ' '.join([pipes.quote(arg) for arg in sys.argv])))
     sys.exit(1)
 
-# General commands
-app.cli.add_command(commands.runserver.runserver, "runserver")
-app.cli.add_command(commands.test.test, "test")
+commands_list =	[
+    # General commands
+    "runserver",
+    "test",
 
-# Database commands
-app.cli.add_command(commands.create_sqlite_file.create_sqlite_file_command, "create_sqlite_file")
-app.cli.add_command(commands.create_db.create_db, "create_db")
-app.cli.add_command(commands.drop_db.drop_db, "drop_db")
+    # Database commands
+    "create_sqlite_file",
+    "create_db",
+    "drop_db",
 
-# Chroot commands
-app.cli.add_command(commands.create_chroot.create_chroot_command, "create_chroot")
-app.cli.add_command(commands.alter_chroot.alter_chroot, "alter_chroot")
-app.cli.add_command(commands.display_chroots.display_chroots, "display_chroots")
-app.cli.add_command(commands.drop_chroot.drop_chroot, "drop_chroot")
-app.cli.add_command(commands.branch_fedora.branch_fedora, "branch_fedora")
-app.cli.add_command(commands.comment_chroot.comment_chroot, "comment_chroot")
+    # Chroot commands
+    "create_chroot",
+    "alter_chroot",
+    "display_chroots",
+    "drop_chroot",
+    "branch_fedora",
+    "comment_chroot",
 
-# User commands
-app.cli.add_command(commands.alter_user.alter_user, "alter_user")
-app.cli.add_command(commands.add_user.add_user, "add_user")
-app.cli.add_command(commands.dump_user.dump_user, "dump_user")
+    # User commands
+    "alter_user",
+    "add_user",
+    "dump_user",
 
-# Whooshee indexes
-app.cli.add_command(commands.update_indexes.update_indexes, "update_indexes")
-app.cli.add_command(commands.update_indexes_quick.update_indexes_quick, "update_indexes_quick")
-app.cli.add_command(commands.update_indexes_required.update_indexes_required, "update_indexes_required")
+    # Whooshee indexes
+    "update_indexes",
+    "update_indexes_quick",
+    "update_indexes_required",
 
-# Other
-app.cli.add_command(commands.get_admins.get_admins, "get_admins")
-app.cli.add_command(commands.fail_build.fail_build, "fail_build")
-app.cli.add_command(commands.rawhide_to_release.rawhide_to_release, "rawhide_to_release")
-app.cli.add_command(commands.update_graphs.update_graphs, "update_graphs")
-app.cli.add_command(commands.vacuum_graphs.vacuum_graphs, "vacuum_graphs")
-app.cli.add_command(commands.notify_outdated_chroots.notify_outdated_chroots, "notify_outdated_chroots")
-app.cli.add_command(commands.delete_outdated_chroots.delete_outdated_chroots, "delete_outdated_chroots")
-app.cli.add_command(commands.clean_expired_projects.clean_expired_projects, "clean_expired_projects")
-app.cli.add_command(commands.clean_old_builds.clean_old_builds, "clean_old_builds")
-app.cli.add_command(commands.delete_orphans.delete_orphans, "delete_orphans")
+    # Other
+    "get_admins",
+    "fail_build",
+    "rawhide_to_release",
+    "update_graphs",
+    "vacuum_graphs",
+    "notify_outdated_chroots",
+    "delete_outdated_chroots",
+    "clean_expired_projects",
+    "clean_old_builds",
+    "delete_orphans",
+]
+
+for command in commands_list:
+    command_func = getattr(getattr(commands, command), command)
+    app.cli.add_command(command_func)
 
 if __name__ == "__main__":
     app.cli()
