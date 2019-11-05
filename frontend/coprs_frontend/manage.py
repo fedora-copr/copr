@@ -6,6 +6,7 @@ import sys
 import pipes
 import importlib
 import click
+import commands.runserver
 import commands.test
 import commands.create_sqlite_file
 import commands.create_db
@@ -43,6 +44,7 @@ if os.getuid() == 0:
     sys.exit(1)
 
 # General commands
+app.cli.add_command(commands.runserver.runserver, "runserver")
 app.cli.add_command(commands.test.test, "test")
 
 # Database commands
