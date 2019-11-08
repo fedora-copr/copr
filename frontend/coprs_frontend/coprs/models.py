@@ -275,6 +275,7 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     delete_after = db.Column(db.DateTime, index=True, nullable=True)
 
     multilib = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+    module_hotfixes = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
 
 class _CoprPrivate(db.Model, helpers.Serializer):

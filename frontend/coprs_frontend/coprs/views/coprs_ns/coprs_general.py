@@ -471,6 +471,7 @@ def process_copr_update(copr, form):
     copr.follow_fedora_branching = form.follow_fedora_branching.data
     copr.delete_after_days = form.delete_after_days.data
     copr.multilib = form.multilib.data
+    copr.module_hotfixes = form.module_hotfixes.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

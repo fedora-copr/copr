@@ -444,6 +444,18 @@ def generate_repo_name(repo_url):
     return repo_url
 
 
+def is_copr_repo(repo_url):
+    return copr_repo_fullname(repo_url) is not None
+
+
+def copr_repo_fullname(repo_url):
+    parsed_url = urlparse(repo_url)
+    query = parse_qs(parsed_url.query)
+    if parsed_url.scheme != "copr":
+        return None
+    return parsed_url.netloc + parsed_url.path
+
+
 def pre_process_repo_url(chroot, repo_url):
     """
     Expands variables and sanitize repo url to be used for mock config

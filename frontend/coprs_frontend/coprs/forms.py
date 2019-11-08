@@ -348,6 +348,13 @@ class CoprFormFactory(object):
                     "Enable internet access during builds",
                     default=False, false_values=FALSE_VALUES)
 
+            module_hotfixes = wtforms.BooleanField(
+                    "This repository contains module hotfixes",
+                    description="""This will make packages from this project
+                    available on along with packages from the active module
+                    streams.""",
+                    default=False, false_values=FALSE_VALUES)
+
             @property
             def selected_chroots(self):
                 selected = []

@@ -8,3 +8,6 @@ gpgkey={{ pubkey_url | fix_url_https_backend  }}
 repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
+{% if copr_dir.copr.module_hotfixes %}
+module_hotfixes=1
+{% endif %}

@@ -150,6 +150,11 @@ class ComplexLogic(object):
         return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
 
     @staticmethod
+    def get_copr_by_repo_safe(repo_url):
+        owner, copr = helpers.copr_repo_fullname(repo_url).split("/")
+        return ComplexLogic.get_copr_by_owner_safe(owner, copr)
+
+    @staticmethod
     def get_copr_dir_safe(ownername, copr_dirname, **kwargs):
         try:
             return CoprDirsLogic.get_by_ownername(ownername, copr_dirname).one()
@@ -345,6 +350,9 @@ class BuildConfigLogic(object):
             "name": "Copr repository",
         }]
 
+        if copr.module_hotfixes:
+            repos[0]["module_hotfixes"] = True
+
         if not copr.auto_createrepo:
             repos.append({
                 "id": "copr_base_devel",
@@ -376,6 +384,11 @@ class BuildConfigLogic(object):
                 "baseurl": helpers.pre_process_repo_url(chroot_id, repo),
                 "name": "Additional repo " + helpers.generate_repo_name(repo),
             }
+
+            copr = ComplexLogic.get_copr_by_repo_safe(repo)
+            if copr and copr.module_hotfixes:
+                params["module_hotfixes"] = True
+
             repo_view.update(params)
             repos.append(repo_view)
         return repos

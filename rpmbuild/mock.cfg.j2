@@ -36,9 +36,15 @@ skip_if_unavailable=0
 metadata_expire=0
 cost=1
 best=1
+
 {%- if "priority" in repo %}
 priority={{ repo["priority"] }}
 {%- endif %}
+
+{%- if "module_hotfixes" in repo %}
+module_hotfixes={{ repo["module_hotfixes"] }}
+{% endif -%}
+
 {% endfor %}
 """
 {% endif %}
