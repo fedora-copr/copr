@@ -8,7 +8,7 @@ from coprs import models
 from coprs import exceptions
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.coprs_logic import MockChrootsLogic
 from coprs.exceptions import MalformedArgumentException
@@ -119,7 +119,7 @@ def get_build_record(task, short=False):
         if short:
             return build_record
 
-        build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
+        build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
         build_record["repos"] = build_config.get("repos")
         build_record["buildroot_pkgs"] = build_config.get("additional_packages")
         build_record["use_bootstrap_container"] = build_config.get("use_bootstrap_container")

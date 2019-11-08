@@ -16,10 +16,10 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.helpers import fix_protocol_for_backend, generate_build_config
+from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
@@ -1077,7 +1077,7 @@ def copr_build_config(copr, chroot):
     """
     output = {
         "output": "ok",
-        "build_config": generate_build_config(copr, chroot),
+        "build_config": BuildConfigLogic.generate_build_config(copr, chroot),
     }
 
     if not output['build_config']:

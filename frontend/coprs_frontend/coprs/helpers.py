@@ -488,65 +488,6 @@ def parse_repo_params(repo, supported_keys=None):
     return params
 
 
-def generate_build_config(copr, chroot_id):
-    """ Return dict with proper build config contents """
-    chroot = None
-    for i in copr.copr_chroots:
-        if i.mock_chroot.name == chroot_id:
-            chroot = i
-    if not chroot:
-        return {}
-
-    packages = "" if not chroot.buildroot_pkgs else chroot.buildroot_pkgs
-
-    repos = [{
-        "id": "copr_base",
-        "baseurl": copr.repo_url + "/{}/".format(chroot_id),
-        "name": "Copr repository",
-    }]
-
-    if not copr.auto_createrepo:
-        repos.append({
-            "id": "copr_base_devel",
-            "baseurl": copr.repo_url + "/{}/devel/".format(chroot_id),
-            "name": "Copr buildroot",
-        })
-
-    def get_additional_repo_views(repos_list):
-        repos = []
-        for repo in repos_list:
-            params = parse_repo_params(repo)
-            repo_view = {
-                "id": generate_repo_name(repo),
-                "baseurl": pre_process_repo_url(chroot_id, repo),
-                "name": "Additional repo " + generate_repo_name(repo),
-            }
-            repo_view.update(params)
-            repos.append(repo_view)
-        return repos
-
-    repos.extend(get_additional_repo_views(copr.repos_list))
-    repos.extend(get_additional_repo_views(chroot.repos_list))
-
-    return {
-        'project_id': copr.repo_id,
-        'additional_packages': packages.split(),
-        'repos': repos,
-        'chroot': chroot_id,
-        'use_bootstrap_container': copr.use_bootstrap_container,
-        'with_opts': chroot.with_opts.split(),
-        'without_opts': chroot.without_opts.split(),
-    }
-
-
-def generate_additional_repos(copr_chroot):
-    base_repo = "copr://{}".format(copr_chroot.copr.full_name)
-    repos = [base_repo] + copr_chroot.repos_list + copr_chroot.copr.repos_list
-    if not copr_chroot.copr.auto_createrepo:
-        repos.append("copr://{}/devel".format(copr_chroot.copr.full_name))
-    return repos
-
-
 def trim_git_url(url):
     if not url:
         return None
