@@ -32,6 +32,6 @@ sudo tar -xf /vagrant/frontend-files.tar -C /
 echo "*:*:coprdb:copr-fe:coprpass" > ~/.pgpass
 chmod 600 ~/.pgpass
 psql -U copr-fe coprdb < /setup-user.sql
-sudo copr-frontend create_chroot fedora-24-x86_64
+sudo copr-frontend create-chroot fedora-24-x86_64
 ' frontend
 rm $COPRROOTDIR/frontend-files.tar

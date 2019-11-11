@@ -14,11 +14,11 @@ Chroots can be easily managed with these few commands.
 
 ::
 
-    copr-frontend create_chroot <name>
-    copr-frontend alter_chroot --action activate <name>
-    copr-frontend alter_chroot --action deactivate <name>
-    copr-frontend branch_fedora <new-branched-version>
-    copr-frontend rawhide_to_release <rawhide-chroot> <newly-created-chroot>
+    copr-frontend create-chroot <name>
+    copr-frontend alter-chroot --action activate <name>
+    copr-frontend alter-chroot --action deactivate <name>
+    copr-frontend branch-fedora <new-branched-version>
+    copr-frontend rawhide-to-release <rawhide-chroot> <newly-created-chroot>
 
 However, `enablement process upon Fedora branching <#branching-process>`_ and also
 `chroot deactivation when Fedora reaches it's EOL phase <#eol-deactivation-process>`_, are not that simple.
@@ -36,20 +36,20 @@ chroot.
 So **immediately** after Fedora branching (for exmaple to version **31**), you
 want to do this (the command takes a very long time, be prepared)::
 
-    copr-frontend branch_fedora 31
+    copr-frontend branch-fedora 31
 
 This command creates ``fedora-31-*`` chroots from corresponding
 ``fedora-rawhide-*`` chroots, and it also copies (duplicates/forks) latest
 successful rawhide package builds into the new chroots.  This can be done
 manually for each architecture by::
 
-    copr-frontend create_chroot fedora-31-x86_64 --deactivated
-    copr-frontend rawhide_to_release fedora-rawhide-x86_64 fedora-31-x86_64
+    copr-frontend create-chroot fedora-31-x86_64 --deactivated
+    copr-frontend rawhide-to-release fedora-rawhide-x86_64 fedora-31-x86_64
 
 From the manual steps you can see that the new chroots are **deactivated** at
 the beginning.
 
-It's important to do ``rawhide_to_release`` as soon as possible, because right
+It's important to do ``rawhide-to-release`` as soon as possible, because right
 after branching action - Fedora Rawhide starts to live it's own separate life -
 and the builds in Rawhide become more and more incompatible with the branched
 Fedora.  So - if we copied the packages later - the branched chroot in copr
@@ -67,11 +67,11 @@ and in which version of the :code:`mock-core-configs` package they were added. I
 on builders, you should keep the chroots deactivated for now and continue later.
 
 But the sooner we can enable the new chroots, the better -- all the builds that
-happened in the time window between ``rawhide_to_release`` and chroot enablement
+happened in the time window between ``rawhide-to-release`` and chroot enablement
 will be missed in the branched chroot later (users will have to rebuild them
 manually).  So as soon as it is possible, do::
 
-    copr-frontend alter_chroot --action activate \
+    copr-frontend alter-chroot --action activate \
         fedora-31-x86_64 fedora-31-i386 fedora-31-ppc64le fedora-31-aarch64
 
 When everything is done, `send an information email to a mailing list <#mailing-lists>`_.
@@ -88,7 +88,7 @@ comfortably deal with it. It can be done like this
 
 ::
 
-    copr-frontend alter_chroot --action eol fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
+    copr-frontend alter-chroot --action eol fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
 
 After running such command, no data are going to be removed. All repositories for the chroot are preserved. It is just
 disabled and users can't build new packages in it anymore.

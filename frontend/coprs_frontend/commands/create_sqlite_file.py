@@ -5,7 +5,7 @@ import click
 
 """
 Create the sqlite DB file (not the tables).
-Used for alembic, "create_db" does this automatically.
+Used for alembic, "create-db" does this automatically.
 """
 
 def create_sqlite_file_function():

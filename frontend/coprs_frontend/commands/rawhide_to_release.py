@@ -22,7 +22,7 @@ def rawhide_to_release(rawhide_chroot, dest_chroot):
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
     if not mock_chroot:
         print("Given chroot does not exist. Please run:")
-        print("    sudo python3 manage.py create_chroot {}".format(dest_chroot))
+        print("    sudo python3 manage.py create-chroot {}".format(dest_chroot))
         return
 
     mock_rawhide_chroot = coprs_logic.MockChrootsLogic.get_from_name(rawhide_chroot).first()

@@ -69,9 +69,9 @@ Frontend:
 - cd /usr/share/copr/coprs_frontend
 - configure DB first - see DB section below
 # for develop setup do:
-COPR_CONFIG=/etc/copr/copr_devel.conf ./manage.py create_db --alembic alembic.ini
+COPR_CONFIG=/etc/copr/copr_devel.conf ./manage.py create-db --alembic alembic.ini
 # for production setup do:
-./manage.py create_db  --alembic alembic.ini
+./manage.py create-db  --alembic alembic.ini
 
 - for developing you can run:
   ./manage.py runserver -t <FQDN>
@@ -80,7 +80,7 @@ COPR_CONFIG=/etc/copr/copr_devel.conf ./manage.py create_db --alembic alembic.in
 - for production is used ProductionConfig from coprs_frontend/coprs/config.py
 
 - Add chroots. E.g:
- su - copr-fe -c './manage.py create_chroot fedora-18-x86_64 fedora-18-i386'
+ su - copr-fe -c './manage.py create-chroot fedora-18-x86_64 fedora-18-i386'
 
 
 DB config
@@ -97,7 +97,7 @@ SQLite
 This will use sqlite db file in /var/lib/copr/data/copr.db (manage.py will create that file)
 - Note that you have to either create db as copr-fe user or you have to run:
   chown copr-fe:copr-fe /var/lib/copr/data/copr.db
-  after you run "./manage.py create_db --alembic alembic.ini"
+  after you run "./manage.py create-db --alembic alembic.ini"
 
 PostgreSQL
 ~~~~~~~~~~
@@ -128,7 +128,7 @@ PGPASSWORD=coprpass psql -a -U copr-fe coprdb
 PGPASSWORD=coprpass psql -a -h localhost -U copr-fe coprdb
 
 Then run:
-  "./manage.py create_db --alembic alembic.ini"
+  "./manage.py create-db --alembic alembic.ini"
 
 Upgrade
 =======
@@ -141,7 +141,7 @@ Make yourself admin
 
 Run:
   cd /usr/share/copr/coprs_frontend/
-  ./manage.py alter_user --admin msuchy
+  ./manage.py alter-user --admin msuchy
 
 Then navigate to:
   http://your.copr.fqdn/admin
@@ -151,11 +151,11 @@ Add new chroot
 
 First create new chroots:
 
-    python manage.py create_chroot fedora-24-i386 fedora-24-x86_64
+    python manage.py create-chroot fedora-24-i386 fedora-24-x86_64
 
 And then copy data from rawhide into them:
 
-    python manage.py rawhide_to_release fedora-rawhide-i386 fedora-24-i386
+    python manage.py rawhide-to-release fedora-rawhide-i386 fedora-24-i386
     # similarly for fedora-24-x86_64
 
 DEBUGGING

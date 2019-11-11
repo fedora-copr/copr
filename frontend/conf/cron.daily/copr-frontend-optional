@@ -2,6 +2,6 @@
 
 # Optional Copr frontend tasks to be executed daily.
 
-#runuser -c 'copr-frontend notify_outdated_chroots' - copr-fe
-#runuser -c 'copr-frontend delete_outdated_chroots' - copr-fe
+#runuser -c 'copr-frontend notify-outdated-chroots' - copr-fe
+#runuser -c 'copr-frontend delete-outdated-chroots' - copr-fe
 #/usr/libexec/copr_dump_db.sh /var/lib/copr/data/db_dumps/

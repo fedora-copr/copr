@@ -905,7 +905,7 @@ def copr_forks(copr):
 
 @coprs_ns.route("/update_search_index/", methods=["POST"])
 def copr_update_search_index():
-    subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update_indexes_quick', '1'])
+    subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update-indexes-quick', '1'])
     return "OK"
 
 

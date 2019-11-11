@@ -24,7 +24,7 @@ To briefly summarize it, first, it is required to mark a chroot as EOL (aka outd
 
 ::
 
-    copr-frontend alter_chroot --action eol fedora-25-x86_64
+    copr-frontend alter-chroot --action eol fedora-25-x86_64
 
 It doesn't matter whether the chroot is currently activated or deactivated, using ``--action eol``
 always deactivates it. More importantly, for every related ``CoprChroot`` it generates a ``delete_after`` timestamp
@@ -40,24 +40,24 @@ project owners are going to be notified, but rather all project admins.
 
 ::
 
-    copr-frontend notify_outdated_chroots --dry-run
+    copr-frontend notify-outdated-chroots --dry-run
 
 When working on a non-production instance and wanting to really send the emails, filter the recipients to just yourself
 or team members. Any *real* users shouldn't be contacted from devel instances!
 
 ::
 
-    copr-frontend notify_outdated_chroots --dry-run -e myself@redhat.com
+    copr-frontend notify-outdated-chroots --dry-run -e myself@redhat.com
 
 If this command prints that it would notify just the expected people (which were specified with the ``-e`` parameter),
 then it is safe to run it without ``--dry-run`` parameter.
 
 ::
 
-    copr-frontend notify_outdated_chroots -e myself@redhat.com
+    copr-frontend notify-outdated-chroots -e myself@redhat.com
 
 
-When the notification about a particular copr chroot is sent and then the ``notify_outdated_chroots`` command
+When the notification about a particular copr chroot is sent and then the ``notify-outdated-chroots`` command
 is executed again, it will not send the notification for the second time. It is designed to be daily executed via Cron
 and it needs to avoid spamming the people over and over again. Therefore when a notification is sent, a timestamp when
 to send a next one is stored to the ``delete_notify`` column. In a case that this logic needs to be suppressed,
@@ -72,18 +72,18 @@ all the chroots for which this applies, use this command.
 
 ::
 
-    copr-frontend delete_outdated_chroots --dry-run
+    copr-frontend delete-outdated-chroots --dry-run
 
 To really delete them (i.e. creating an action which will delete the chroot directory on the backend),
 run the command without ``--dry-run`` parameter.
 
 ::
 
-    copr-frontend delete_outdated_chroots
+    copr-frontend delete-outdated-chroots
 
 When deleting the chroot (creating an action to delete the data on the backend), the ``delete_after``
-and ``delete_notify`` columns are set to NULL and therefore ``notify_outdated_chroots``
-and ``delete_outdated_chroots`` commands don't see the chroot anymore.
+and ``delete_notify`` columns are set to NULL and therefore ``notify-outdated-chroots``
+and ``delete-outdated-chroots`` commands don't see the chroot anymore.
 
 
 Automatization

@@ -4,4 +4,4 @@
 # Read more: http://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/gdpr_sar.html
 # Playbook: https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/playbooks/manual/gdpr/sar.yml
 # Usage: SAR_USERNAME=someusername copr-gdpr-sar.sh
-copr-frontend dump_user $SAR_USERNAME
+copr-frontend dump-user $SAR_USERNAME

@@ -16,7 +16,7 @@ from commands.rawhide_to_release import rawhide_to_release
 )
 def branch_fedora(fedora_version, branch=None):
     """
-    Branch fedora-rawhide-* chroots to fedora-N* and execute rawhide_to_release
+    Branch fedora-rawhide-* chroots to fedora-N* and execute rawhide-to-release
     on them
     """
     rawhide_chroots = coprs_logic.MockChrootsLogic.get_from_name(

@@ -4,6 +4,6 @@
 # daily.  Don't edit this file manually, it is automatically updated with
 # copr-frontend.rpm.
 
-runuser -c '/usr/share/copr/coprs_frontend/manage.py vacuum_graphs' - copr-fe
-runuser -c '/usr/share/copr/coprs_frontend/manage.py clean_expired_projects' - copr-fe
-runuser -c '/usr/share/copr/coprs_frontend/manage.py clean_old_builds' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py vacuum-graphs' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-expired-projects' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-old-builds' - copr-fe

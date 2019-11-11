@@ -50,7 +50,7 @@ def create_chroot_function(chroot_names, branch=None, activated=True):
 )
 @click.option(
     "--activated/--deactivated",
-    help="Activate the chroot later, manually by `alter_chroot`",
+    help="Activate the chroot later, manually by `alter-chroot`",
     default=True
 )
 def create_chroot(chroot_names, branch=None, activated=True):
