@@ -31,6 +31,9 @@ baseurl={{ repo.baseurl }}
 {%- if repo.priority %}
 priority={{ repo.priority }}
 {%- endif %}
+{%- if repo.module_hotfixes %}
+module_hotfixes={{ repo.module_hotfixes }}
+{%- endif %}
 gpgcheck=0
 enabled=1
 skip_if_unavailable=1
