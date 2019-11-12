@@ -1,8 +1,8 @@
 import click
 from coprs.logic import coprs_logic
 
-from commands.create_chroot import create_chroot
-from commands.rawhide_to_release import rawhide_to_release
+from commands.create_chroot import create_chroot_function
+from commands.rawhide_to_release import rawhide_to_release_function
 
 
 @click.command()
@@ -30,7 +30,7 @@ def branch_fedora(fedora_version, branch=None):
         for rch in rawhide_chroots
     }
 
-    create_chroot(chroot_pairs.keys(), branch, True)
+    create_chroot_function(chroot_pairs.keys(), branch, True)
 
     for new_chroot, rawhide_chroot in chroot_pairs.items():
-        rawhide_to_release(rawhide_chroot, new_chroot)
+        rawhide_to_release_function(rawhide_chroot, new_chroot)

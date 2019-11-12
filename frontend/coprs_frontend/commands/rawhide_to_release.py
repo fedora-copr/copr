@@ -22,6 +22,9 @@ def rawhide_to_release(rawhide_chroot, dest_chroot):
     """
     Branching
     """
+    return rawhide_to_release_function(rawhide_chroot, dest_chroot)
+
+def rawhide_to_release_function(rawhide_chroot, dest_chroot):
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
     if not mock_chroot:
         print("Given chroot does not exist. Please run:")
