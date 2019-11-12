@@ -1078,6 +1078,7 @@ class CoprModifyForm(FlaskForm):
     build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     multilib = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    module_hotfixes = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
 
 
 class CoprForkFormFactory(object):

@@ -29,6 +29,7 @@ def to_dict(copr):
         "additional_repos": copr.repos_list,
         "enable_net": copr.build_enable_net,
         "use_bootstrap_container": copr.use_bootstrap_container,
+        "module_hotfixes": copr.module_hotfixes,
     }
 
 
@@ -128,6 +129,7 @@ def add_project(ownername):
             disable_createrepo=form.disable_createrepo.data,
             delete_after_days=form.delete_after_days.data,
             multilib=form.multilib.data,
+            module_hotfixes=form.module_hotfixes.data,
         )
         db.session.commit()
     except (DuplicateException,

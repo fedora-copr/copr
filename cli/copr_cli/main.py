@@ -359,6 +359,7 @@ class Commands(object):
             use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
+            module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
         )
         print("New project was successfully created.")
 
@@ -381,6 +382,7 @@ class Commands(object):
             chroots=args.chroots,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
+            module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
         )
 
     @requires_api_auth
@@ -818,6 +820,9 @@ def setup_parser():
                                help="If mock bootstrap container is used to initialize the buildroot.")
     parser_create.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help="Delete the project after the specfied period of time")
+    parser_create.add_argument("--module-hotfixes", choices=["on", "off"], default="off",
+                               help=("make packages from this project available "
+                                     "on along with packages from the active module streams."))
     parser_create.add_argument(
         "--multilib", choices=["on", "off"], default="off",
         help=("When users enable this copr repository on 64bit variant of "
@@ -854,6 +859,9 @@ def setup_parser():
                                help=("Delete the project after the specfied "
                                      "period of time, empty or -1 disables, "
                                      "(default is \"don't change\")"))
+    parser_modify.add_argument("--module-hotfixes", choices=["on", "off"],
+                               help=("make packages from this project available "
+                                     "on along with packages from the active module streams."))
     parser_modify.add_argument(
         "--multilib", choices=["on", "off"],
         help=("When users enable this copr repository on 64bit variant of "

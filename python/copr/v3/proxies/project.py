@@ -60,7 +60,7 @@ class ProjectProxy(BaseProxy):
     def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False, devel_mode=False,
-            delete_after_days=None, multilib=False):
+            delete_after_days=None, multilib=False, module_hotfixes=False):
         """
         Create a project
 
@@ -79,6 +79,8 @@ class ProjectProxy(BaseProxy):
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
+        :param bool module_hotfixes: make packages from this project available
+                                     on along with packages from the active module streams.
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -101,6 +103,7 @@ class ProjectProxy(BaseProxy):
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
+            "module_hotfixes": module_hotfixes,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
@@ -110,7 +113,7 @@ class ProjectProxy(BaseProxy):
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
-             delete_after_days=None, multilib=None):
+             delete_after_days=None, multilib=None, module_hotfixes=None):
         """
         Edit a project
 
@@ -128,6 +131,8 @@ class ProjectProxy(BaseProxy):
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
+        :param bool module_hotfixes: make packages from this project available
+                                     on along with packages from the active module streams.
         :return: Munch
         """
         endpoint = "/project/edit/{ownername}/{projectname}"
@@ -149,6 +154,7 @@ class ProjectProxy(BaseProxy):
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
+            "module_hotfixes": module_hotfixes,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
