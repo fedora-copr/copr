@@ -4,9 +4,6 @@ from commands.create_sqlite_file import create_sqlite_file_function
 import click
 
 
-"""
-Create the DB schema
-"""
 @click.command()
 @click.option(
     "--alembic", "-f", "alembic_ini",
@@ -14,6 +11,9 @@ Create the DB schema
     required=True
 )
 def create_db(alembic_ini):
+    """
+    Create the DB schema
+    """
     create_sqlite_file_function()
     db.create_all()
     # load the Alembic configuration and generate the

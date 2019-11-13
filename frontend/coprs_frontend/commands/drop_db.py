@@ -2,10 +2,9 @@ from coprs import db
 import click
 
 
-"""
-Delete DB
-"""
-
 @click.command()
 def drop_db():
+    """
+    Delete DB
+    """
     db.drop_all()

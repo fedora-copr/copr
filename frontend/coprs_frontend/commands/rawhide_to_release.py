@@ -19,6 +19,9 @@ from coprs.logic import coprs_logic, actions_logic, builds_logic, packages_logic
     required=True
 )
 def rawhide_to_release(rawhide_chroot, dest_chroot):
+    """
+    Branching
+    """
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
     if not mock_chroot:
         print("Given chroot does not exist. Please run:")

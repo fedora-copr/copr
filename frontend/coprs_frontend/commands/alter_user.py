@@ -8,6 +8,9 @@ from coprs import models
 @click.option('--proven/--no-proven', default=False)
 @click.option('--proxy/--no-proxy', default=False)
 def alter_user(name, admin, proven, proxy):
+    """
+    Alter user data
+    """
     user = models.User.query.filter(
         models.User.username == name).first()
     if not user:

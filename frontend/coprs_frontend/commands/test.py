@@ -12,6 +12,9 @@ import click
 )
 
 def test(coverage, arguments):
+    """
+    Runs tests
+    """
     os.environ["COPRS_ENVIRON_UNITTEST"] = "1"
     if not (("COPR_CONFIG" in os.environ) and os.environ["COPR_CONFIG"]):
         os.environ["COPR_CONFIG"] = "/etc/copr/copr_unit_test.conf"

@@ -3,11 +3,6 @@ import flask
 import click
 
 
-"""
-Create the sqlite DB file (not the tables).
-Used for alembic, "create-db" does this automatically.
-"""
-
 def create_sqlite_file_function():
     if flask.current_app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
         # strip sqlite:///
@@ -18,4 +13,8 @@ def create_sqlite_file_function():
 
 @click.command()
 def create_sqlite_file():
+    """
+    Create the sqlite DB file (not the tables).
+    Used for alembic, "create-db" does this automatically.
+    """
     return create_sqlite_file()
