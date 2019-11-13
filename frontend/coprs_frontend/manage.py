@@ -6,7 +6,7 @@ import sys
 import pipes
 import importlib
 import click
-import commands.runserver
+from commands.flask3_wrapper import get_flask_wrapper_command
 import commands.test
 import commands.create_sqlite_file
 import commands.create_db
@@ -45,7 +45,6 @@ if os.getuid() == 0:
 
 commands_list =	[
     # General commands
-    "runserver",
     "test",
 
     # Database commands
@@ -87,6 +86,10 @@ commands_list =	[
 for command in commands_list:
     command_func = getattr(getattr(commands, command), command)
     app.cli.add_command(command_func)
+
+app.cli.add_command(get_flask_wrapper_command('runserver'))
+app.cli.add_command(get_flask_wrapper_command('run'))
+app.cli.add_command(get_flask_wrapper_command('shell'))
 
 if __name__ == "__main__":
     app.cli()
