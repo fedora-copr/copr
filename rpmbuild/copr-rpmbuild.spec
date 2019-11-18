@@ -61,6 +61,7 @@ Requires: git
 Requires: git-svn
 # for the /bin/unbuffer binary
 Requires: expect
+Requires: qemu-user-static
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg
