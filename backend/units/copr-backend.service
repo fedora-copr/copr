@@ -1,6 +1,9 @@
 [Unit]
 Description=Copr Backend service
 After=syslog.target network.target auditd.service
+# we resubmit all running build jobs, we need to do it before build service will
+# re-attach workers to existing builders (issue #1113)
+Before=copr-backend-build.service
 Requires=copr-backend-vmm.service copr-backend-log.service copr-backend-build.service copr-backend-action.service
 Wants=logrotate.timer
 
