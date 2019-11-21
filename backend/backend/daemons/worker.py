@@ -67,7 +67,11 @@ class Worker(multiprocessing.Process):
         """
         Announce everywhere that a build process started now.
         """
-        self.mark_running(job)
+        self._mark_running(job)
+
+        # the message has been sent before, stop now
+        if self.reattach:
+            return
 
         for topic in ['build.start', 'chroot.start']:
             self._announce(topic, job)
@@ -82,7 +86,7 @@ class Worker(multiprocessing.Process):
         self.log.info("worker finished build: %s", self.vm.vm_ip)
         self._announce('build.end', job)
 
-    def mark_running(self, job):
+    def _mark_running(self, job):
         """
         Send data about started build to the frontend
         """
@@ -159,10 +163,7 @@ class Worker(multiprocessing.Process):
         self.update_process_title(suffix="Task: {} chroot: {} build running"
                                   .format(job.build_id, job.chroot))
 
-        if not self.reattach:
-            self._announce_start(job)
-        else:
-            self.mark_running(job)
+        self._announce_start(job)
 
         # setup our target dir locally
         if not os.path.exists(job.chroot_dir):
