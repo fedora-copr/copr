@@ -83,7 +83,7 @@ Prepare VM for snapshot
 Open a ssh connection to ``copr-be-dev.cloud.fedoraproject.org`` and run::
 
     # su - copr
-    $ copr-builder-image-prepare-cloud.sh os:x86_64 # or ppc64le
+    $ copr-builder-image-prepare-cloud.sh os:x86_64 Fedora-Cloud-Base-30-1.2.x86_64 # or ppc64le
     ... snip ...
     TASK [disable offloading] *****************************************************
     Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
@@ -101,7 +101,7 @@ where the problem is - fix the following playbook files::
 
 Repeat the fixing of playbooks till the script finishes properly::
 
-    $ copr-builder-image-prepare-cloud.sh os:x86_64
+    $ copr-builder-image-prepare-cloud.sh os:x86_64 Fedora-Cloud-Base-30-1.2.x86_64
     ... see the output instructions ...
     TASK [disable offloading] *****************************************************
     Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
