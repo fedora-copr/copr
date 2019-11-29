@@ -80,7 +80,7 @@ if __name__ == "__main__":
         pkgs = args.builddeps.split()
         run_cmd(mock + ['--install'] + pkgs)
 
-    run_cmd(mock + ['--shell', 'cat - > /script'], stdin=args.script)
+    run_cmd(mock + ['--copyin', args.script.name, '/script'])
 
     setup_cmd = 'set -ex; chmod a+x /script;'
 
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     if args.hook_payload_file:
         payload_file_inner = "{0}/hook_payload".format(pipes.quote(workdir))
-        run_cmd(mock + ['--shell', 'cat - > ' + payload_file_inner],
-                stdin=args.hook_payload_file)
+        run_cmd(mock + ['--copyin', args.hook_payload_file.name,
+                        os.path.join(workdir, 'hook_payload')])
         run_cmd(mock + ['--shell', 'chmod a+r ' + payload_file_inner])
 
     cmd = 'set -xe ; cd {workdir} ; {env} /script'.format(
