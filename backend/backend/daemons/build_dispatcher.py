@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import os
 import time
 import multiprocessing
 
@@ -179,6 +180,11 @@ class BuildDispatcher(multiprocessing.Process):
 
                 if cache_entry in skip_jobs_cache:
                     self.log.debug("Skipped job %s, cached", job)
+                    continue
+
+                repodata = os.path.join(job.destdir, job.chroot, "repodata/repomd.xml")
+                if not os.path.exists(repodata) and job.chroot != "srpm-builds":
+                    self.log.debug("Skipping job %s because copr_base repo is not available yet", job)
                     continue
 
                 # ... and if the task is new to us,
