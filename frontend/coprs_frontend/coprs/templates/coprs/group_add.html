@@ -26,6 +26,6 @@
 <p>
 You agree to build only <a href="https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr">allowed content</a> in Copr. Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
 </p>
-  {{ copr_form(form, view = 'coprs_ns.copr_new', username=g.user.name, group=group) }}
+  {{ copr_form(form, view = 'coprs_ns.copr_new', username=g.user.name, group=group, comments=comments) }}
 
 {% endblock %}

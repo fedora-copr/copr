@@ -148,10 +148,13 @@ def coprs_fulltext_search(page=1):
 @login_required
 def copr_add(username=None, group_name=None):
     form = forms.CoprFormFactory.create_form_cls()()
+    comments = {}
+    for chroot in MockChrootsLogic.get_multiple(active_only=True):
+        comments[chroot.name] = chroot.comment
     if group_name:
         group = ComplexLogic.get_group_by_name_safe(group_name)
-        return flask.render_template("coprs/group_add.html", form=form, group=group)
-    return flask.render_template("coprs/add.html", form=form)
+        return flask.render_template("coprs/group_add.html", form=form, group=group, comments=comments)
+    return flask.render_template("coprs/add.html", form=form, comments=comments)
 
 
 @coprs_ns.route("/<username>/new/", methods=["POST"])
