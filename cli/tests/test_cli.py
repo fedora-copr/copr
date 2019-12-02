@@ -681,3 +681,15 @@ def test_edit_permissions_request(ocnfig, action):
     test_me( # we don't parse '=' here
         ['some/project', '--admin', 'bad_status=nothing'],
         {'your user': {'admin': 'bad_status=nothing'}} )
+
+
+@mock.patch('copr.v3.proxies.mock_chroot.MockChrootProxy.get_list')
+def test_list_chroots(list_chroots):
+    list_chroots.return_value = Munch({
+        "fedora-18-x86_64": "",
+        "fedora-17-x86_64": "A short chroot comment",
+        "fedora-17-i386": "Chroot comment containing [url with four\nwords](https://copr.fedorainfracloud.org/)",
+        "fedora-rawhide-i386": "",
+    })
+
+    main.main(argv=["list-chroots"])

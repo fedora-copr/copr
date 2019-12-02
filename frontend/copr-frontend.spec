@@ -85,6 +85,7 @@ BuildRequires: python3-flask-sqlalchemy
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-flask-wtf
 BuildRequires: python3-gobject
+BuildRequires: python3-html2text
 BuildRequires: python3-html5-parser
 BuildRequires: python3-humanize
 BuildRequires: python3-lxml
@@ -138,6 +139,7 @@ Requires: python3-flask-whooshee
 Requires: python3-flask-wtf
 Requires: python3-flask-wtf
 Requires: python3-gobject
+Requires: python3-html2text
 Requires: python3-html5-parser
 Requires: python3-humanize
 Requires: python3-lxml

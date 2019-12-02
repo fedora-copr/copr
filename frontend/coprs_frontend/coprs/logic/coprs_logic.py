@@ -806,6 +806,10 @@ class MockChrootsLogic(object):
         return [ch.name for ch in cls.get_multiple(active_only=True).all()]
 
     @classmethod
+    def active_names_with_comments(cls):
+        return [(ch.name, ch.comment) for ch in cls.get_multiple(active_only=True).all()]
+
+    @classmethod
     def new(cls, mock_chroot):
         db.session.add(mock_chroot)
 

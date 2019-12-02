@@ -151,11 +151,13 @@ class CoprsTestCase(object):
         self.mc1.distgit_branch = models.DistGitBranch(name='f18')
 
         self.mc2 = models.MockChroot(
-            os_release="fedora", os_version="17", arch="x86_64", is_active=True)
+            os_release="fedora", os_version="17", arch="x86_64", is_active=True,
+            comment="A short chroot comment")
         self.mc2.distgit_branch = models.DistGitBranch(name='fedora-17')
 
         self.mc3 = models.MockChroot(
-            os_release="fedora", os_version="17", arch="i386", is_active=True)
+            os_release="fedora", os_version="17", arch="i386", is_active=True,
+            comment="Chroot comment containing <a href='https://copr.fedorainfracloud.org/'>url with four words</a>")
         self.mc3.distgit_branch = self.mc2.distgit_branch
 
         self.mc4 = models.MockChroot(

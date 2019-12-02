@@ -11,6 +11,7 @@ import six
 import simplejson
 import requests
 from collections import defaultdict
+from textwrap import indent
 
 import logging
 if six.PY2:
@@ -534,6 +535,16 @@ class Commands(object):
         )
         print(json_dumps(project_chroot))
 
+    def action_list_chroots(self, args):
+        """List all currently available chroots.
+        """
+        chroots = self.client.mock_chroot_proxy.get_list()
+        chroots = simplejson.loads(json_dumps(chroots))
+        for chroot, comment in chroots.items():
+            print(chroot)
+            if comment:
+                print(indent(comment, '    '))
+
     #########################################################
     ###                   Package actions                 ###
     #########################################################
@@ -1049,6 +1060,9 @@ def setup_parser():
     parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")
     parser_get_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
     parser_get_chroot.set_defaults(func="action_get_chroot")
+
+    parser_list_chroots = subparsers.add_parser("list-chroots", help="List all currently available chroots.")
+    parser_list_chroots.set_defaults(func="action_list_chroots")
 
     #########################################################
     ###                   Package options                 ###
