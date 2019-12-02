@@ -106,6 +106,16 @@
               {{ build.copr_dir.name }}
             </a>
           </dd>
+          {% if build.resubmitted_from_id %}
+          <dt> Resubmitted from: </dt>
+          <dd>
+              {% if build.resubmitted_from %}
+                <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.resubmitted_from.id) }}">{{ build.resubmitted_from.id }}</a>
+              {% else %}
+                {{ build.resubmitted_from_id }}
+              {% endif %}
+          </dd>
+          {% endif %}
           <dt> Built by: </dt>
           <dd>
             {% if build.submitter[1] %}
@@ -167,7 +177,7 @@
         {% if build.source_status | state_from_num in ['pending', 'starting'] %}
           <dd> Build has not started yet</dd>
         {% else %}
-          {% if build.resubmitted_from and build.source_is_uploaded %}
+          {% if build.resubmitted_from_id and build.source_is_uploaded %}
             <dd>Build resubmitted from build
               {% if build.resubmitted_from %}
                 <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.resubmitted_from.id) }}">#{{ build.resubmitted_from.id }}</a>
