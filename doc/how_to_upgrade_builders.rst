@@ -4,7 +4,8 @@ How to upgrade builders
 =======================
 
 This article explains how to upgrade the Copr builders in OpenStack (ppc64le,
-x86_64) and libvirt (aarch64) to a newer Fedora once it is released.
+x86_64), AWS (x86_64 and aarch64) and libvirt (aarch64) to a newer Fedora once
+it is released.
 
 Keep amending this page if you find something not matching reality or expectations.
 
@@ -20,6 +21,7 @@ Requirements
 * ssh access to the main aarch64 hypervisor
   ``copr@virthost-aarch64-os01.fedorainfracloud.org``
 * ssh access to ``batcave01.phx2.fedoraproject.org``, and sudo access there
+* be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
 
 
 Find source images
@@ -140,6 +142,43 @@ the old builders, and check the spawner log what is happening::
     [copr@copr-be-dev ~][STG]$  tail -f /var/log/copr-backend/spawner.log
 
 Try to build some packages and you are done.
+
+
+Prepare AWS source images
+-------------------------
+
+First, check that `AWS login link`_ works fine for you, and that you are
+successfully logged-in.  Otherwise the following steps won't redirect you
+properly to AWS web console.
+
+Then you need to find proper (official) ``ami-*`` Fedora image IDs, bound to
+your desired VM location.  You can e.g. go to `Fedora Cloud Page`_ and search
+for ``GP2 HVM AMIs`` (for x86_64) and ``arm64 AMIs`` (for aarch64) sections.
+
+You should see there the *Click to launch* buttons.  When you click on them a
+new window should appear (javascript) with a list of available server locations.
+So you see the small "blue cloud" icon/hyperlink related to the desired server
+location (we are using N.Virginia option, aka ``us-east-1``, but we should move
+to ``us-west-*`` soon).  Check what address the button points to::
+
+    https://redirect.fedoraproject.org/console.aws.amazon.com/ec2/v2/home
+        ?region=us-east-1#LaunchInstanceWizard:ami=ami-0c830793775595d4b
+
+... remember the ``ami-0c830793775595d4b`` ID part.
+
+Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - copr``, and
+execute::
+
+    $ copr-builder-image-prepare-cloud.sh aws:aarch64 ami-0c830793775595d4b
+    ... snip output ...
+    The new image ID   is: ami-XXXXXXXXXXXXXXXXX
+    The new image Name is: copr-builder-aarch64-f31-20191203_110334
+
+Continue fixing the script/playbooks/fedora till you succeed like that.  Repeat
+the previous steps for both ``aarch64`` and ``x86_64``.
+
+The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
+options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev``.
 
 
 Prepare libvirt source images
@@ -284,3 +323,4 @@ playbook from batcave::
 .. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
 .. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
 .. _`staging copr instance`: https://copr-fe-dev.cloud.fedoraproject.org
+.. _`AWS login link`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
