@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.156
+Version:    1.157
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -364,6 +364,11 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.157-1
+- createrepo action for pull-request copr-dirs
+- traceback fix for copr.add form
+- provide alias commands with underscores in ./manage.py
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.156-1
 - display chroot comments on create project page
 - add info to UI that build was resubmitted from another build
