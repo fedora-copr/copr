@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.75
+Version:    1.76
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -167,6 +167,10 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.76-1
+- releases are done with tito again
+- correctly depend on and use logrotate
+
 * Tue May 07 2019 Pavel Raiskup <praiskup@redhat.com> 1.75-1
 - make sure key generation is not blocked by trustdb operation
 - add daily cron job to do trustdb maintenance
