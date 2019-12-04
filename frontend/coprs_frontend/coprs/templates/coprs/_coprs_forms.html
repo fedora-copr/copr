@@ -73,7 +73,7 @@
                 <span class="pficon pficon-edit"> Edit </span>
               </a>
             {% endif %}
-            {% if comments[chrootname] %}
+            {% if comments and comments[chrootname] %}
               <small class="text-muted"> {{ comments[chrootname]|safe }} </small>
             {% endif %}
           </label>
