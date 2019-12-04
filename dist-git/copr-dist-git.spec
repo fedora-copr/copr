@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.46
+Version:    0.47
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -124,6 +124,11 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 0.47-1
+- new releases done with tito again
+- avoid making more than the predetermined number of workers
+- require logrotate service
+
 * Fri Jul 12 2019 Pavel Raiskup <praiskup@redhat.com> 0.46-1
 - add offline argument to upload method, to fix RPM import
 - add script to clear lookaside cache of old sources
