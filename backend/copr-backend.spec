@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.128
+Version:    1.129
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -219,6 +219,17 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.129-1
+- do not start a build if copr_base is not available yet
+- systemd services' restart re-ordering
+- de-duplicate frontend_.update() call when reattaching to existing build
+- allow specifying timeout for spawn/terminate playbooks
+- removing dependecy on euca2ools in spec
+- send `uses_devel_repo' as a part of task info
+- correctly configure logrotate
+- get_redis_logger: skip log entries bellow log_level
+- delete leftover action workers from redis
+
 * Fri Oct 11 2019 Pavel Raiskup <praiskup@redhat.com> 1.128-1
 - restart copr-backend sub-services on failure
 - don't kill action processors by 'systemctl restart'
