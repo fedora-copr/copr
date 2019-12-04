@@ -3,6 +3,7 @@
 
 import os
 import sys
+import copy
 import pipes
 import importlib
 import click
@@ -84,8 +85,19 @@ commands_list =	[
 ]
 
 for command in commands_list:
-    command_func = getattr(getattr(commands, command), command)
-    app.cli.add_command(command_func)
+    cmd_obj = getattr(getattr(commands, command), command)
+
+    # Add underscored commands, e.g. 'add_user' for 'add-user' for compatibility
+    # reasons.  TODO: we can drop this once we have the deployment scripts fixed
+    # to use the dash-variant commands.
+    if '_' in command and hasattr(cmd_obj, 'hidden'):
+        # hidden option is available on f30+ only (click v7.0)
+        alias = copy.deepcopy(cmd_obj)
+        alias.hidden = True
+        app.cli.add_command(alias, command)
+
+    app.cli.add_command(cmd_obj)
+
 
 app.cli.add_command(get_flask_wrapper_command('runserver'))
 app.cli.add_command(get_flask_wrapper_command('run'))
