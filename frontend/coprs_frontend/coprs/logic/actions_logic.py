@@ -5,6 +5,7 @@ from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import models
 from coprs import helpers
+from coprs import exceptions
 
 
 class ActionsLogic(object):
@@ -69,11 +70,25 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_createrepo(cls, copr):
+    def send_createrepo(cls, copr, dirnames=None, main_only=True):
+        possible_dirnames = [copr_dir.name for copr_dir in copr.dirs
+                             if not main_only or copr_dir.main]
+
+        if not dirnames:
+            # by default we createrepo for all of them
+            dirnames = possible_dirnames
+        else:
+            missing = set(dirnames) - set(possible_dirnames)
+            if missing:
+                # TODO: we should raise NotFoundException here
+                #raise exceptions.NotFoundException(
+                #    "Can't createrepo for {} in {}".format(
+                #        missing, copr.full_name))
+                pass
         data_dict = {
             "ownername": copr.owner_name,
             "projectname": copr.name,
-            "project_dirnames": [copr_dir.name for copr_dir in copr.dirs],
+            "project_dirnames": dirnames,
             "chroots": [chroot.name for chroot in copr.active_chroots],
         }
         action = models.Action(
