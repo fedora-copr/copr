@@ -99,7 +99,7 @@ This needs to be run for `copr-common`, `python`, `copr-cli` and
 Build packages for production
 -----------------------------
 
-Make sure that ``releng/releasers.ini`` has up to date list of branches.
+Make sure that ``.tito/releasers.conf`` has up to date list of branches.
 
 Make sure you are co-maintainer of those packages in Fedora::
 
