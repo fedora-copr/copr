@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.155
+Version:    1.156
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -364,6 +364,21 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.156-1
+- display chroot comments on create project page
+- add info to UI that build was resubmitted from another build
+- manage.py ported out from flask-script third party module
+- support for module_hotfixes
+- fixed non-working SRPM builder-live.log.gz link
+- epydoc retired in new fedoras, build-condition added
+- forking: correct builds in chroots are now forked (issues 1010 and 1012)
+- `uses_devel_repo' is now part of task info
+- centos chroot logo added
+- correctly configure and depend on logrotate
+- fix apiv2 for validation errors (issue 1061)
+- pagure-events ported from fedmsg to fedora-messaging
+- display project ID in UI
+
 * Tue Oct 08 2019 Pavel Raiskup <praiskup@redhat.com> 1.155-1
 - frontend: api_2: ignore validation problems mm_serialize_one
 - frontend: fix one more traceback in builder-live.log link
