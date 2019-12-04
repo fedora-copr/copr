@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.31
+Version: 0.32
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -208,6 +208,13 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 0.32-1
+- fix custom method for F31's nspawn (--console=pipe is not default)
+- buildrequires: add qemu-user-static for building armhfp
+- module_hotfixes support
+- define %%copr_username again on copr builders
+- skip_if_unavailable=False for copr_base
+
 * Wed Jul 31 2019 Pavel Raiskup <praiskup@redhat.com> 0.31-1
 - rpmbuild: make sure librepo/libdnf is always up2date
 
