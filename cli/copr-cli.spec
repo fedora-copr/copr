@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.82
+Version:    1.83
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -120,6 +120,11 @@ ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
 
 
 %changelog
+* Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.83-1
+- added module_hotfixes support
+- nicer mock-config (build config) api output
+- mock-config un-deprecated
+
 * Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 1.82-1
 - manpage: update API token url
 - support multilib projects
