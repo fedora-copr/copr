@@ -151,7 +151,10 @@ class ComplexLogic(object):
 
     @staticmethod
     def get_copr_by_repo_safe(repo_url):
-        owner, copr = helpers.copr_repo_fullname(repo_url).split("/")
+        copr_repo = helpers.copr_repo_fullname(repo_url)
+        if not copr_repo:
+            return None
+        owner, copr = copr_repo.split("/")
         return ComplexLogic.get_copr_by_owner_safe(owner, copr)
 
     @staticmethod
