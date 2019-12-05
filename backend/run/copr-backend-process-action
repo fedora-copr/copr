@@ -104,7 +104,7 @@ def main():
 
     context = contextlib.nullcontext()
     if args.daemon:
-        context = daemon.DaemonContext()
+        context = daemon.DaemonContext(umask=0o022)
 
     with context:
         logger_name = '{}.{}.pid-{}'.format(
