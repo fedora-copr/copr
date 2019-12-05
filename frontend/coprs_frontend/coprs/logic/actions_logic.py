@@ -70,21 +70,17 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_createrepo(cls, copr, dirnames=None, main_only=True):
-        possible_dirnames = [copr_dir.name for copr_dir in copr.dirs
-                             if not main_only or copr_dir.main]
-
+    def send_createrepo(cls, copr, dirnames=None):
+        possible_dirnames = [copr_dir.name for copr_dir in copr.dirs]
         if not dirnames:
             # by default we createrepo for all of them
             dirnames = possible_dirnames
         else:
             missing = set(dirnames) - set(possible_dirnames)
             if missing:
-                # TODO: we should raise NotFoundException here
-                #raise exceptions.NotFoundException(
-                #    "Can't createrepo for {} in {}".format(
-                #        missing, copr.full_name))
-                pass
+                raise exceptions.NotFoundException(
+                    "Can't createrepo for {} dirnames in {} project".format(
+                        missing, copr.full_name))
         data_dict = {
             "ownername": copr.owner_name,
             "projectname": copr.name,

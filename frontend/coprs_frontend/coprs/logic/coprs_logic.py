@@ -526,7 +526,7 @@ class CoprDirsLogic(object):
         copr_dir = models.CoprDir(
             name=dirname, copr=copr, main=main)
 
-        ActionsLogic.send_createrepo(copr, dirnames=[dirname], main_only=False)
+        ActionsLogic.send_createrepo(copr, dirnames=[dirname])
 
         db.session.add(copr_dir)
         return copr_dir
@@ -701,15 +701,15 @@ class CoprChrootsLogic(object):
         current_chroots = copr.mock_chroots
         new_chroots = cls.mock_chroots_from_names(names)
         # add non-existing
-        run_createrepo = []
+        run_createrepo = False
         for mock_chroot in new_chroots:
             if mock_chroot not in current_chroots:
                 db.session.add(
                     models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
-                run_createrepo.append(mock_chroot.name)
+                run_createrepo = True
 
         if run_createrepo:
-            ActionsLogic.send_createrepo(copr, dirnames=run_createrepo)
+            ActionsLogic.send_createrepo(copr)
 
         # delete no more present
         to_remove = []
