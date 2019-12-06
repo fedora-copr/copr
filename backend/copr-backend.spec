@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.129
+Version:    1.130
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -219,6 +219,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 1.130-1
+- backend: execute actions with sane umask=0022
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.129-1
 - do not start a build if copr_base is not available yet
 - systemd services' restart re-ordering
