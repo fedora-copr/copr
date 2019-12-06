@@ -19,7 +19,7 @@ def run_cmd_unsafe(comm_str, lock_name, lock_path="/var/lock/copr-backend"):
     title = getproctitle()
     try:
         # TODO change this to logger
-        setproctitle("[locked] in createrepo")
+        setproctitle(title + " [locked] in createrepo")
         with lockutils.lock(name=lock_name, external=True, lock_path=lock_path):
             cmd = Popen(comm, stdout=PIPE, stderr=PIPE, encoding="utf-8")
             out, err = cmd.communicate()
