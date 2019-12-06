@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.32
+Version: 0.33
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -208,6 +208,9 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 0.33-1
+- rpmbuild: skip_if_unavailable=1 for non-ACR projects
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 0.32-1
 - fix custom method for F31's nspawn (--console=pipe is not default)
 - buildrequires: add qemu-user-static for building armhfp
