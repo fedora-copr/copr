@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.157
+Version:    1.158
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -364,6 +364,10 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 1.158-1
+- revert wrong optimization in createrepo
+- don't assume all additional repos are copr://
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.157-1
 - createrepo action for pull-request copr-dirs
 - traceback fix for copr.add form
