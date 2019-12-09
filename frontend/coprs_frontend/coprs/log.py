@@ -41,7 +41,8 @@ def setup_log():
     log_filename = app.config.get("LOG_FILENAME")
     handler = WatchedFileHandler(log_filename)
     handler.setFormatter(default_formatter)
-    log_level = app.config.get("LOGGING_LEVEL", logging.INFO)
+    log_level_text = app.config.get("LOGGING_LEVEL", 'info')
+    log_level = getattr(logging, log_level_text.upper())
     handler.setLevel(log_level)
     app.logger.addHandler(handler)
 

@@ -32,7 +32,7 @@ class Config(object):
 
     # logging options
     SEND_LOGS_TO = ["root@localhost"]
-    LOGGING_LEVEL = logging.DEBUG
+    LOGGING_LEVEL = 'info'
 
     SEND_LEGAL_TO = ["root@localhost"]
     REPLY_TO = "copr-devel@lists.fedorahosted.org"
