@@ -1,5 +1,6 @@
 import flask
 import sqlalchemy
+import time
 
 from copr_common.enums import StatusEnum
 from coprs import db, app
@@ -257,6 +258,7 @@ def update():
         to_update = {}
         for obj in request_data[typ]:
             to_update[obj["id"]] = obj
+            to_update[obj["ended_on"]] = time.time()
 
         existing = {}
         for obj in logic_cls.get_by_ids(to_update.keys()).all():

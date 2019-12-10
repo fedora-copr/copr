@@ -582,7 +582,7 @@ class ActionWorkerManager(WorkerManager):
         result = Munch()
         result.id = int(task_id)
         result.result = int(task_info['status'])
-        result.job_ended_on = time.time()
+        result.ended_on = time.time()
 
         try:
             self.frontend_client.update({"actions": [result]})
