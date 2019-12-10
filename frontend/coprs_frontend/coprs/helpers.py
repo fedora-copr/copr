@@ -312,12 +312,13 @@ class Serializer(object):
 
 
 class RedisConnectionProvider(object):
-    def __init__(self, config):
+    def __init__(self, config, db=0):
         self.host = config.get("REDIS_HOST", "127.0.0.1")
         self.port = int(config.get("REDIS_PORT", "6379"))
+        self.db = db
 
     def get_connection(self):
-        return StrictRedis(host=self.host, port=self.port)
+        return StrictRedis(host=self.host, port=self.port, db=self.db)
 
 
 def get_redis_connection():

@@ -5,6 +5,7 @@ import flask
 
 from flask_sqlalchemy import SQLAlchemy
 from contextlib import contextmanager
+from flask_cache import Cache
 from flask_openid import OpenID
 from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse
@@ -56,6 +57,15 @@ import coprs.whoosheers
 from coprs.helpers import RedisConnectionProvider
 rcp = RedisConnectionProvider(config=app.config)
 app.session_interface = RedisSessionInterface(rcp.get_connection())
+
+cache_rcp = RedisConnectionProvider(config=app.config, db=1)
+cache = Cache(app, config={
+    'CACHE_TYPE': 'redis',
+    'CACHE_REDIS_DB': 1,    # we use 0 for sessions
+    'CACHE_KEY_PREFIX': 'copr_cache_',
+    'CACHE_REDIS_HOST': cache_rcp.host,
+    'CACHE_REDIS_PORT': cache_rcp.port,
+})
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general

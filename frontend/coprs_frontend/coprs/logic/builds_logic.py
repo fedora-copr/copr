@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 
 from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
+from coprs import cache
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -66,7 +67,8 @@ class BuildsLogic(object):
         return result
 
     @classmethod
-    def get_recent_tasks(cls, user=None, limit=100, period_days=2):
+    @cache.memoize(timeout=2*60)
+    def get_recent_task_ids(cls, user=None, limit=100, period_days=2):
         query_args = (
             models.BuildChroot.build_id,
             func.max(models.BuildChroot.ended_on).label('max_ended_on'),
@@ -94,6 +96,12 @@ class BuildsLogic(object):
         subquery = subquery.order_by(desc('max_ended_on')).limit(limit).subquery()
 
         query = models.Build.query.join(subquery, subquery.c.build_id == models.Build.id)
+        return [i.id for i in query.all()]
+
+    @classmethod
+    def get_recent_tasks(cls, *args, **kwargs):
+        task_ids = cls.get_recent_task_ids(*args, **kwargs)
+        query = models.Build.query.filter(models.Build.id.in_(task_ids))
         return list(query.all())
 
     @classmethod

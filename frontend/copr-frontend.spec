@@ -78,6 +78,7 @@ BuildRequires: python3-copr-common > 0.4
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator
 BuildRequires: python3-flask
+BuildRequires: python3-flask-cache
 BuildRequires: python3-flask-openid
 BuildRequires: python3-flask-restful
 BuildRequires: python3-flask-script
@@ -131,6 +132,7 @@ Requires: python3-blinker
 Requires: python3-copr-common > 0.4
 Requires: python3-dateutil
 Requires: python3-flask
+Requires: python3-flask-cache
 Requires: python3-flask-openid
 Requires: python3-flask-restful
 Requires: python3-flask-script
