@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.158
+Version:    1.159
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -368,6 +368,11 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Dec 11 2019 Pavel Raiskup <praiskup@redhat.com> 1.159-1
+- cache the recent task queries
+- simplify log level configuration
+- API route to list all available chroots
+
 * Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 1.158-1
 - revert wrong optimization in createrepo
 - don't assume all additional repos are copr://
