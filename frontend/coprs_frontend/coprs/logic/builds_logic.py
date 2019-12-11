@@ -102,7 +102,7 @@ class BuildsLogic(object):
     def get_recent_tasks(cls, *args, **kwargs):
         task_ids = cls.get_recent_task_ids(*args, **kwargs)
         query = models.Build.query.filter(models.Build.id.in_(task_ids))
-        return list(query.all())
+        return sorted(query.all(), key=lambda o: task_ids.index(o.id))
 
     @classmethod
     def get_running_tasks_by_time(cls, start, end):
