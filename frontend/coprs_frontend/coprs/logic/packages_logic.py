@@ -1,8 +1,9 @@
 import json
 import re
 
-from sqlalchemy import bindparam, Integer
+from sqlalchemy import bindparam, Integer, func
 from sqlalchemy.sql import true, text
+from sqlalchemy.orm import selectinload
 
 from coprs import app
 from coprs import db
@@ -34,80 +35,24 @@ class PackagesLogic(object):
                 .filter(models.Package.copr_id == copr_id))
 
     @classmethod
-    def get_copr_packages_list(cls, copr_dir):
-        query_select = """
-SELECT package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild, order_to_status(subquery2.min_order_for_a_build) AS status, build.source_status
-FROM package
-LEFT OUTER JOIN (select MAX(build.id) as max_build_id_for_a_package, package_id
-  FROM build
-  WHERE build.copr_dir_id = :copr_dir_id
-  GROUP BY package_id) as subquery1 ON subquery1.package_id = package.id
-LEFT OUTER JOIN build ON build.id = subquery1.max_build_id_for_a_package
-LEFT OUTER JOIN (select build_id, min(status_to_order(status)) as min_order_for_a_build
-  FROM build_chroot
-  GROUP BY build_id) as subquery2 ON subquery2.build_id = subquery1.max_build_id_for_a_package
-WHERE package.copr_dir_id = :copr_dir_id;
-        """
+    def get_packages_with_latest_builds_for_dir(cls, copr_dir_id):
+        packages = (models.Package.query.filter_by(copr_dir_id=copr_dir_id)
+                                        .order_by(models.Package.name).all())
+        pkg_ids = [package.id for package in packages]
+        builds_ids = models.Build.query \
+            .filter(models.Build.package_id.in_(pkg_ids)) \
+            .with_entities(func.max(models.Build.id)) \
+            .group_by(models.Build.package_id)
+        packages_map = {package.id: package for package in packages}
+        builds = (
+            models.Build.query.filter(models.Build.id.in_(builds_ids))
+                              .options(selectinload('build_chroots')))
+        for build in builds:
+            if not build.package_id:
+                continue
+            packages_map[build.package_id].latest_build = build
 
-        if db.engine.url.drivername == "sqlite":
-            def sqlite_status_to_order(x):
-                if x == 3:
-                    return 1
-                elif x == 6:
-                    return 2
-                elif x == 7:
-                    return 3
-                elif x == 4:
-                    return 4
-                elif x == 0:
-                    return 5
-                elif x == 1:
-                    return 6
-                elif x == 5:
-                    return 7
-                elif x == 2:
-                    return 8
-                elif x == 8:
-                    return 9
-                elif x == 9:
-                    return 10
-                return 1000
-
-            def sqlite_order_to_status(x):
-                if x == 1:
-                    return 3
-                elif x == 2:
-                    return 6
-                elif x == 3:
-                    return 7
-                elif x == 4:
-                    return 4
-                elif x == 5:
-                    return 0
-                elif x == 6:
-                    return 1
-                elif x == 7:
-                    return 5
-                elif x == 8:
-                    return 2
-                elif x == 9:
-                    return 8
-                elif x == 10:
-                    return 9
-                return 1000
-
-            conn = db.engine.connect()
-            conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
-            conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
-            statement = text(query_select)
-            statement.bindparams(bindparam("copr_dir_id", Integer))
-            result = conn.execute(statement, {"copr_dir_id": copr_dir.id})
-        else:
-            statement = text(query_select)
-            statement.bindparams(bindparam("copr_dir_id", Integer))
-            result = db.engine.execute(statement, {"copr_dir_id": copr_dir.id})
-
-        return result
+        return list(packages)
 
     @classmethod
     def get_list_by_copr(cls, copr_id, package_name):

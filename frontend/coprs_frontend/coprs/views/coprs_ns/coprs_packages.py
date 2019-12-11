@@ -21,13 +21,15 @@ from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPacka
 @req_with_copr
 def copr_packages(copr):
     flashes = flask.session.pop('_flashes', [])
-    packages_query = PackagesLogic.get_copr_packages_list(copr.main_dir)
-    response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/packages.html",
-                                 copr=copr,
-                                 packages=list(packages_query),
-                                 flashes=flashes,
-                                 )))
-
+    packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
+        copr.main_dir.id)
+    response = flask.Response(
+        stream_with_context(helpers.stream_template(
+            "coprs/detail/packages.html",
+            copr=copr,
+            packages=packages,
+            flashes=flashes,
+        )))
     flask.session.pop('_flashes', [])
     return response
 

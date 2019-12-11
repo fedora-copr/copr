@@ -16,29 +16,29 @@
     <tbody>
     {# packages here is not a package object #}
     {% for package in packages %}
+      {% if package.latest_build %}
+        {% set pkg_version = package.latest_build.pkg_version %}
+        {% set submitted_on = package.latest_build.submitted_on %}
+      {% endif %}
       <tr>
         <td data-order="{{ package.name }}">
           <b><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></b>
         </td>
 
-        <td data-order="{{ package.pkg_version }}">
-          {% if package.pkg_version %}
-            {{ package.pkg_version }}
-          {% else %}
-            -
-          {% endif %}
+        <td data-order="{{ pkg_version }}">
+            {{ pkg_version or '-' }}
         </td>
 
-        <td data-order="{{ package.submitted_on }}">
-          {% if package.submitted_on  %}
-            {{ package.submitted_on|time_ago() }} ago
+        <td data-order="{{ submitted_on or 0 }}">
+          {% if submitted_on %}
+            {{ submitted_on | time_ago() }} ago
           {% else %}
             -
           {% endif %}
         </td>
         <td>
-          {% if package.status is not none %}
-            {{ build_state(package) }}
+          {% if package.latest_build %}
+            {{ build_state(package.latest_build) }}
           {% else %}
             not built yet
           {% endif %}
