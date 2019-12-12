@@ -22,6 +22,3 @@ def create_db(alembic_ini):
     from alembic import command
     alembic_cfg = Config(alembic_ini)
     command.stamp(alembic_cfg, "head")
-    # Functions are not covered by models.py, and no migrations are run
-    # by command.stamp() above.  Create functions explicitly:
-    builds_logic.BuildsLogic.init_db()

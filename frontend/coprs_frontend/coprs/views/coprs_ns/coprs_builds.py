@@ -53,7 +53,7 @@ def render_copr_build(build_id, copr):
 @req_with_copr
 def copr_builds(copr):
     flashes = flask.session.pop('_flashes', [])
-    dirname = flask.request.args.get('dirname', '')
+    dirname = flask.request.args.get('dirname')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
     response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
                               copr=copr,

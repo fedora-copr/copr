@@ -8,7 +8,7 @@ import requests
 
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import not_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy import func, desc
@@ -330,138 +330,15 @@ class BuildsLogic(object):
             models.Copr.user == user)
 
     @classmethod
-    def init_db(cls):
-        if db.engine.url.drivername == "sqlite":
-            return
-
-        status_to_order = """
-        CREATE OR REPLACE FUNCTION status_to_order (x integer)
-        RETURNS integer AS $$ BEGIN
-        RETURN CASE WHEN x = 3 THEN 1
-                WHEN x = 6 THEN 2
-                WHEN x = 7 THEN 3
-                WHEN x = 4 THEN 4
-                WHEN x = 0 THEN 5
-                WHEN x = 1 THEN 6
-                WHEN x = 5 THEN 7
-                WHEN x = 2 THEN 8
-                WHEN x = 8 THEN 9
-                WHEN x = 9 THEN 10
-            ELSE x
-        END; END;
-        $$ LANGUAGE plpgsql;
-        """
-
-        order_to_status = """
-        CREATE OR REPLACE FUNCTION order_to_status (x integer)
-        RETURNS integer AS $$ BEGIN
-        RETURN CASE WHEN x = 1 THEN 3
-                WHEN x = 2 THEN 6
-                WHEN x = 3 THEN 7
-                WHEN x = 4 THEN 4
-                WHEN x = 5 THEN 0
-                WHEN x = 6 THEN 1
-                WHEN x = 7 THEN 5
-                WHEN x = 8 THEN 2
-                WHEN x = 9 THEN 8
-                WHEN x = 10 THEN 9
-            ELSE x
-        END; END;
-        $$ LANGUAGE plpgsql;
-        """
-
-        db.engine.connect()
-        db.engine.execute(status_to_order)
-        db.engine.execute(order_to_status)
-
-    @classmethod
-    def get_copr_builds_list(cls, copr, dirname=''):
-        query_select = """
-SELECT build.id, build.source_status, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
-    MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
-    build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as user_name, build.copr_id
-FROM build
-LEFT OUTER JOIN package
-    ON build.package_id = package.id
-LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_order(status) AS st FROM build_chroot) AS statuses
-    ON statuses.build_id=build.id
-LEFT OUTER JOIN copr
-    ON copr.id = build.copr_id
-LEFT OUTER JOIN copr_dir
-    ON build.copr_dir_id = copr_dir.id
-LEFT OUTER JOIN "user"
-    ON copr.user_id = "user".id
-LEFT OUTER JOIN "group"
-    ON copr.group_id = "group".id
-WHERE build.copr_id = :copr_id
-    AND (:dirname = '' OR :dirname = copr_dir.name)
-GROUP BY
-    build.id
-ORDER BY
-    build.id DESC;
-"""
-
-        if db.engine.url.drivername == "sqlite":
-            def sqlite_status_to_order(x):
-                if x == 3:
-                    return 1
-                elif x == 6:
-                    return 2
-                elif x == 7:
-                    return 3
-                elif x == 4:
-                    return 4
-                elif x == 0:
-                    return 5
-                elif x == 1:
-                    return 6
-                elif x == 5:
-                    return 7
-                elif x == 2:
-                    return 8
-                elif x == 8:
-                    return 9
-                elif x == 9:
-                    return 10
-                return 1000
-
-            def sqlite_order_to_status(x):
-                if x == 1:
-                    return 3
-                elif x == 2:
-                    return 6
-                elif x == 3:
-                    return 7
-                elif x == 4:
-                    return 4
-                elif x == 5:
-                    return 0
-                elif x == 6:
-                    return 1
-                elif x == 7:
-                    return 5
-                elif x == 8:
-                    return 2
-                elif x == 9:
-                    return 8
-                elif x == 10:
-                    return 9
-                return 1000
-
-            conn = db.engine.connect()
-            conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
-            conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
-            statement = text(query_select)
-            statement.bindparams(bindparam("copr_id", Integer))
-            statement.bindparams(bindparam("dirname", String))
-            result = conn.execute(statement, {"copr_id": copr.id, "dirname": dirname})
+    def get_copr_builds_list(cls, copr, dirname=None):
+        query = models.Build.query.filter(models.Build.copr_id==copr.id)
+        if dirname:
+            copr_dir = coprs_logic.CoprDirsLogic.get_by_copr(copr, dirname).one()
         else:
-            statement = text(query_select)
-            statement.bindparams(bindparam("copr_id", Integer))
-            statement.bindparams(bindparam("dirname", String))
-            result = db.engine.execute(statement, {"copr_id": copr.id, "dirname": dirname})
-
-        return result
+            copr_dir = copr.main_dir
+        query = query.filter(models.Build.copr_dir_id==copr_dir.id)
+        query = query.options(selectinload('build_chroots'), selectinload('package'))
+        return list(query)
 
     @classmethod
     def join_group(cls, query):
