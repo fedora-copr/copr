@@ -684,7 +684,8 @@ def test_edit_permissions_request(ocnfig, action):
 
 
 @mock.patch('copr.v3.proxies.mock_chroot.MockChrootProxy.get_list')
-def test_list_chroots(list_chroots):
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_list_chroots(config, list_chroots):
     list_chroots.return_value = Munch({
         "fedora-18-x86_64": "",
         "fedora-17-x86_64": "A short chroot comment",

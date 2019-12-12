@@ -11,7 +11,6 @@ import six
 import simplejson
 import requests
 from collections import defaultdict
-from textwrap import indent
 
 import logging
 if six.PY2:
@@ -35,7 +34,7 @@ import copr.exceptions as copr_exceptions
 from copr.v3 import (Client, config_from_file, CoprException, CoprRequestException, CoprNoConfigException,
                      CoprConfigException, CoprNoResultException)
 
-from .util import ProgressBar, json_dumps
+from .util import ProgressBar, json_dumps, serializable
 from .build_config import MockProfile
 
 import pkg_resources
@@ -538,12 +537,15 @@ class Commands(object):
     def action_list_chroots(self, args):
         """List all currently available chroots.
         """
+        def indent(string):
+            return '\n'.join(['    ' + l for l in string.split('\n')])
+
         chroots = self.client.mock_chroot_proxy.get_list()
-        chroots = simplejson.loads(json_dumps(chroots))
+        chroots = serializable(chroots)
         for chroot, comment in chroots.items():
             print(chroot)
             if comment:
-                print(indent(comment, '    '))
+                print(indent(comment))
 
     #########################################################
     ###                   Package actions                 ###
