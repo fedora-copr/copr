@@ -34,6 +34,7 @@ from coprs.models import BuildChroot
 from .coprs_logic import MockChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
 
+from .helpers import get_graph_parameters
 log = app.logger
 
 
@@ -190,7 +191,7 @@ class BuildsLogic(object):
     @classmethod
     def get_task_graph_data(cls, type):
         data = [["pending"], ["running"], ["avg running"], ["time"]]
-        params = cls.get_graph_parameters(type)
+        params = get_graph_parameters(type)
         cached_data = cls.get_cached_graph_data(params)
         data[0].extend(cached_data["pending"])
         data[1].extend(cached_data["running"])
@@ -218,7 +219,7 @@ class BuildsLogic(object):
     @classmethod
     def get_small_graph_data(cls, type):
         data = [[""]]
-        params = cls.get_graph_parameters(type)
+        params = get_graph_parameters(type)
         cached_data = cls.get_cached_graph_data(params)
         data[0].extend(cached_data["running"])
 
@@ -250,33 +251,6 @@ class BuildsLogic(object):
             db.session.commit()
         except IntegrityError: # other process already calculated the graph data and cached it
             db.session.rollback()
-
-    @classmethod
-    def get_graph_parameters(cls, type):
-        if type is "10min":
-            # 24 hours with 10 minute intervals
-            step = 600
-            steps = 144
-        elif type is "30min":
-            # 24 hours with 30 minute intervals
-            step = 1800
-            steps = 48
-        elif type is "24h":
-            # 90 days with 24 hour intervals
-            step = 86400
-            steps = 90
-
-        end = int(time.time())
-        end = end - (end % step) # align graph interval to a multiple of step
-        start = end - (steps * step)
-
-        return {
-            "type": type,
-            "step": step,
-            "steps": steps,
-            "start": start,
-            "end": end,
-        }
 
     @classmethod
     def get_build_importing_queue(cls, background=None):

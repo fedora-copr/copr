@@ -32,6 +32,16 @@ This page uses JavaScript to show graphs of Copr utilization.
       <div id="chartChrootsNinetyDays"></div>
     </div>
   </div>
+  <div class="row">
+    <h2>Actions</h2>
+    <p>Graph shows number of actions that were being processed in given time frame
+      and how many of them failed. There is also option to enable line for succeeded actions.
+    </p>
+    <h3>Actions during last 24 hours</h3>
+      <div id="chartActionsDay" class="line-chart-pf"></div>
+    <h3>Actions during last 90 days</h3>
+      <div id="chartActionsNinetyDays" class="line-chart-pf"></div>
+  </div>
 </div>
 {% endblock %}
 
@@ -42,6 +52,8 @@ This page uses JavaScript to show graphs of Copr utilization.
 <script>
   lineGraph({{ data1|tojson }}, 25, "#chartDay", "%H:%M");
   lineGraph({{ data2|tojson }}, 15, "#chartNinetyDays", "%Y-%m-%d");
+  lineGraph({{ actions1|tojson }}, 25, "#chartActionsDay", "%H:%M");
+  lineGraph({{ actions2|tojson }}, 15, "#chartActionsNinetyDays", "%Y-%m-%d");
   chrootGraph({{ chroots1|tojson }}, "#chartChrootsDay");
   chrootGraph({{ chroots2|tojson }}, "#chartChrootsNinetyDays");
 </script>

@@ -19,7 +19,7 @@ function graphConfig() {
         },
         color: {pattern: colorPattern},
         data: {
-            hide: ['avg running'],
+            hide: ['avg running', 'success'],
             type: 'line',
             x: 'time',
             xFormat: '%Y-%m-%d %H:%M:%S'

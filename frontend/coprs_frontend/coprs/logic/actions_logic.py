@@ -7,6 +7,8 @@ from coprs import models
 from coprs import helpers
 from coprs import exceptions
 
+from .helpers import get_graph_parameters
+from sqlalchemy import and_, or_
 
 class ActionsLogic(object):
 
@@ -62,11 +64,13 @@ class ActionsLogic(object):
         Updates result, message and ended_on parameters.
         """
 
-        for attr in ["result", "message", "ended_on"]:
+        for attr in ["result", "message"]:
             value = upd_dict.get(attr, None)
             if value:
                 setattr(action, attr, value)
 
+            if attr == "result" and value in [BackendResultEnum("success"), BackendResultEnum("waiting")]:
+                setattr(action, "ended_on", time.time())
         db.session.add(action)
 
     @classmethod
@@ -314,3 +318,89 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+
+    @classmethod
+    def cache_action_graph_data(cls, type, time, waiting, success, failure):
+        result = models.ActionsStatistics.query\
+                .filter(models.ActionsStatistics.stat_type == type)\
+                .filter(models.ActionsStatistics.time == time).first()
+        if result:
+            return
+
+        try:
+            cached_data = models.ActionsStatistics(
+                time = time,
+                stat_type = type,
+                waiting = waiting,
+                success = success,
+                failed = failure
+            )
+            db.session.add(cached_data)
+            db.session.commit()
+        except IntegrityError: # other process already calculated the graph data and cached it
+            db.session.rollback()
+
+    @classmethod
+    def get_actions_bucket(cls, start, end, actionType):
+        if actionType == 0:
+            # used for getting data for "processed" line of action graphs
+            result = models.Action.query\
+                .filter(and_(
+                    models.Action.created_on <= end,
+                    or_(
+                        models.Action.ended_on > start,
+                        models.Action.ended_on == None
+                    )))\
+                .count()
+            return result
+
+        else:
+            # used to getting data for "successed and failure" line of action graphs
+            result = models.Action.query\
+                .filter(models.Action.ended_on <= end)\
+                .filter(models.Action.ended_on > start)\
+                .filter(models.Action.result == actionType)\
+                .count()
+            return result
+
+    @classmethod
+    def get_cached_action_data(cls, params):
+        data = {
+            "waiting": [],
+            "success": [],
+            "failure": [],
+        }
+        result = models.ActionsStatistics.query\
+            .filter(models.ActionsStatistics.stat_type == params["type"])\
+            .filter(models.ActionsStatistics.time >= params["start"])\
+            .filter(models.ActionsStatistics.time <= params["end"])\
+            .order_by(models.ActionsStatistics.time)
+        for row in result:
+            data["waiting"].append(row.waiting)
+            data["success"].append(row.success)
+            data["failure"].append(row.failed)
+
+        return data
+
+    @classmethod
+    def get_action_graph_data(cls, type):
+        data = [["processed"], ["success"], ["failure"], ["time"] ]
+        params = get_graph_parameters(type)
+        cached_data = cls.get_cached_action_data(params)
+        for actionType in ["waiting", "success", "failure"]:
+            data[BackendResultEnum(actionType)].extend(cached_data[actionType])
+        for i in range(len(data[0]) - 1, params["steps"]):
+            step_start = params["start"] + i * params["step"]
+            step_end = step_start + params["step"]
+            waiting = cls.get_actions_bucket(step_start, step_end, BackendResultEnum("waiting"))
+            success = cls.get_actions_bucket(step_start, step_end, BackendResultEnum("success"))
+            failure = cls.get_actions_bucket(step_start, step_end, BackendResultEnum("failure"))
+            data[0].append(waiting)
+            data[1].append(success)
+            data[2].append(failure)
+            cls.cache_action_graph_data(type, time=step_start, waiting=waiting, success=success, failure=failure)
+
+        for i in range(params["start"], params["end"], params["step"]):
+            data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))
+
+        return data

@@ -1477,9 +1477,9 @@ class Action(db.Model, helpers.Serializer):
     # optional message from the backend/whatever
     message = db.Column(db.Text)
     # time created as returned by int(time.time())
-    created_on = db.Column(db.Integer)
+    created_on = db.Column(db.Integer, index=True)
     # time ended as returned by int(time.time())
-    ended_on = db.Column(db.Integer)
+    ended_on = db.Column(db.Integer, index=True)
 
     def __str__(self):
         return self.__unicode__()
@@ -1657,3 +1657,10 @@ class BuildsStatistics(db.Model):
     stat_type = db.Column(db.Text, primary_key=True)
     running = db.Column(db.Integer)
     pending = db.Column(db.Integer)
+
+class ActionsStatistics(db.Model):
+    time = db.Column(db.Integer, primary_key=True)
+    stat_type = db.Column(db.Text, primary_key=True)
+    waiting = db.Column(db.Integer)
+    success = db.Column(db.Integer)
+    failed = db.Column(db.Integer)

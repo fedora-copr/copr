@@ -45,9 +45,14 @@ def stats():
     chroots_90d = builds_logic.BuildsLogic.get_chroot_histogram(curr_time - 90*86400, curr_time)
     data_24h = builds_logic.BuildsLogic.get_task_graph_data('10min')
     data_90d = builds_logic.BuildsLogic.get_task_graph_data('24h')
+    actions_24h = builds_logic.ActionsLogic.get_action_graph_data('10min')
+    actions_90d = builds_logic.ActionsLogic.get_action_graph_data('24h')
 
     return flask.render_template("status/stats.html",
                                  data1=data_24h,
                                  data2=data_90d,
                                  chroots1=chroots_24h,
-                                 chroots2=chroots_90d)
+                                 chroots2=chroots_90d,
+                                 actions1=actions_24h,
+                                 actions2=actions_90d
+                                 )
