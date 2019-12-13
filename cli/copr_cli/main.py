@@ -481,7 +481,7 @@ class Commands(object):
                 sys.stderr.write("No data for build id: {} and chroot: {}.\n".format(args.build_id, chroot.name))
                 continue
 
-            cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off']
+            cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off', '--no-verbose']
             cmd.extend(['-P', os.path.join(args.dest, chroot.name)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
             cmd.append(chroot.result_url)
