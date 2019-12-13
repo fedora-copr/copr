@@ -420,7 +420,7 @@ class RedisPublishHandler(logging.Handler):
         record.args = ()
 
         try:
-            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(record.__dict__))
+            self.rc.rpush(constants.LOG_REDIS_FIFO, json.dumps(record.__dict__))
         # pylint: disable=W0703
         except Exception as error:
             _, _, ex_tb = sys.exc_info()

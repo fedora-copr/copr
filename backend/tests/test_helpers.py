@@ -7,7 +7,7 @@ import logging
 from backend.exceptions import BuilderError
 from backend.helpers import get_redis_logger, get_chroot_arch, \
         format_filename, get_redis_connection
-from backend.constants import LOG_PUB_SUB
+from backend.constants import LOG_REDIS_FIFO
 
 """
 SOME TESTS REQUIRES RUNNING REDIS
@@ -24,9 +24,9 @@ class TestHelpers(object):
             redis_port=7777,
         )
 
-        rc = get_redis_connection(self.opts)
-        self.channel = rc.pubsub(ignore_subscribe_messages=True)
-        self.channel.subscribe(LOG_PUB_SUB)
+        self.rc = get_redis_connection(self.opts)
+        # remove leftovers from previous tests
+        self.rc.delete(LOG_REDIS_FIFO)
 
     def teardown_method(self, method):
         pass
@@ -38,14 +38,11 @@ class TestHelpers(object):
         except Exception as err:
             log.exception("error occurred: {}".format(err))
 
-        # read only one message
-        for raw in self.channel.listen():
-            assert raw.get("type") == "message"
-            data = json.loads(raw['data'])
-            assert data.get("who") == "test"
-            assert data.get("levelno") == logging.ERROR
-            assert 'backend.exceptions.BuilderError: foobar\n' in data['msg']
-            break
+        (_, raw_message) = self.rc.blpop([LOG_REDIS_FIFO])
+        data = json.loads(raw_message)
+        assert data.get("who") == "test"
+        assert data.get("levelno") == logging.ERROR
+        assert 'backend.exceptions.BuilderError: foobar\n' in data['msg']
 
     def test_get_chroot_arch(self):
         assert get_chroot_arch("fedora-26-x86_64") == "x86_64"

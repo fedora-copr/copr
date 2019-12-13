@@ -71,9 +71,7 @@ class RedisLogHandler(object):
         setproctitle("RedisLogHandler")
 
         rc = helpers.get_redis_connection(self.opts)
-        channel = rc.pubsub(ignore_subscribe_messages=True)
-        channel.subscribe(constants.LOG_PUB_SUB)
-
-        for raw in channel.listen():
-            if raw is not None and raw.get("type") == "message" and "data" in raw:
-                self.handle_msg(raw)
+        while True:
+            # indefinitely wait for next entry
+            (_, raw_message) = rc.blpop([constants.LOG_REDIS_FIFO])
+            self.handle_msg(raw_message)

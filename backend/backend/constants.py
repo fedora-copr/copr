@@ -35,7 +35,7 @@ class BuildStatus(object):
         raise AttributeError("no such status id: {0} ".format(number))
 
 
-LOG_PUB_SUB = "copr:backend:log:pubsub::"
+LOG_REDIS_FIFO = "copr:backend:log:fifo::"
 
 default_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
