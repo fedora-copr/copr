@@ -38,6 +38,6 @@ class BuildStatus(object):
 LOG_PUB_SUB = "copr:backend:log:pubsub::"
 
 default_log_format = Formatter(
-    '[%(asctime)s][%(levelname)6s][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
+    '[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
 build_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][PID:%(process)d] %(message)s')

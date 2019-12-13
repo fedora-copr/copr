@@ -11,7 +11,6 @@ from setproctitle import setproctitle
 # TODO: remove when RedisLogHandler works fine
 from .. import constants
 from .. import helpers
-from ..constants import default_log_format
 
 
 class RedisLogHandler(object):
@@ -35,7 +34,7 @@ class RedisLogHandler(object):
         self.main_logger = logging.Logger("logger", level=logging.DEBUG)
         self.main_handler = logging.handlers.WatchedFileHandler(
             filename=os.path.join(self.log_dir, "logger.log"))
-        self.main_handler.setFormatter(default_log_format)
+        self.main_handler.setFormatter(self.opts.log_format)
         self.main_logger.addHandler(self.main_handler)
 
         level = getattr(logging, self.opts.log_level.upper(), None)
@@ -45,7 +44,7 @@ class RedisLogHandler(object):
             logger = logging.Logger(component)
             handler = logging.handlers.WatchedFileHandler(
                 filename=os.path.join(self.log_dir, "{}.log".format(component)))
-            handler.setFormatter(default_log_format)
+            handler.setFormatter(self.opts.log_format)
             handler.setLevel(level)
             logger.addHandler(handler)
             self.loggers[component] = logger

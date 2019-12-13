@@ -82,6 +82,7 @@ prune_days=14
 # logging settings
 # log_dir=/var/log/copr-backend/
 # log_level=info
+# log_format=[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s
 
 # verbose=False
 

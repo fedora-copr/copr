@@ -277,6 +277,8 @@ class BackendConfigReader(object):
             cp, "backend", "log_dir", "/var/log/copr-backend/")
         opts.log_level = _get_conf(
             cp, "backend", "log_level", "info")
+        opts.log_format = _get_conf(
+            cp, "backend", "log_format", default_log_format)
         opts.verbose = _get_conf(
             cp, "backend", "verbose", False, mode="bool")
 
