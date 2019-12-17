@@ -14,6 +14,7 @@ import coprs
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, StatusEnum
 from coprs import helpers
 from coprs import models
+from coprs import cache
 from coprs.logic.coprs_logic import BranchesLogic
 
 from unittest import mock
@@ -72,6 +73,7 @@ class CoprsTestCase(object):
 
         self.rmodel_TSE_coprs_general_patcher.stop()
         self.app.config = self.original_config.copy()
+        cache.clear()
 
     @property
     def auth_header(self):
