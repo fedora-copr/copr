@@ -131,6 +131,19 @@ class TestProjectForking(CoprsTestCase):
                 assert fc1.forked_from_id == self.c1.id
                 assert fc1.mock_chroots == self.c1.mock_chroots
 
+    def test_copr_by_repo_safe(self, f_users, f_coprs, f_mock_chroots, f_builds,
+                               f_db):
+
+        assert ComplexLogic.get_copr_by_repo_safe("xxx") == None
+        assert ComplexLogic.get_copr_by_repo_safe("copr://") == None
+        assert ComplexLogic.get_copr_by_repo_safe("copr://a/b/c") == None
+
+        assert ComplexLogic.get_copr_by_repo_safe("copr://user1/foocopr") != None
+
+        # we could fix these in future
+        assert ComplexLogic.get_copr_by_repo_safe("copr:///user1/foocopr") == None
+        assert ComplexLogic.get_copr_by_repo_safe("copr://user1//foocopr") == None
+
 
 class FooModel(object):
     """

@@ -154,7 +154,11 @@ class ComplexLogic(object):
         copr_repo = helpers.copr_repo_fullname(repo_url)
         if not copr_repo:
             return None
-        owner, copr = copr_repo.split("/")
+        try:
+            owner, copr = copr_repo.split("/")
+        except:
+            # invalid format, e.g. multiple slashes in copr_repo
+            return None
         return ComplexLogic.get_copr_by_owner_safe(owner, copr)
 
     @staticmethod
