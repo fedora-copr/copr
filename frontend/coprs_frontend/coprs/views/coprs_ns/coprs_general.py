@@ -21,6 +21,7 @@ from pygments.formatters import HtmlFormatter
 
 from copr_common.enums import StatusEnum
 from coprs import app
+from coprs import cache
 from coprs import db
 from coprs import rcp
 from coprs import exceptions
@@ -722,6 +723,7 @@ def process_legal_flag(copr):
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/<repofile>")
 @req_with_copr_dir
+@cache.memoize(timeout=5*60)
 def generate_repo_file(copr_dir, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """

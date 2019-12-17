@@ -8,7 +8,7 @@ from unittest import mock
 from sqlalchemy import desc
 
 from copr_common.enums import ActionTypeEnum
-from coprs import app, models
+from coprs import app, cache, models
 
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
@@ -851,6 +851,7 @@ class TestRepo(CoprsTestCase):
             # Only one chroot enabled, alias defined
             self.c1.copr_chroots = [cc_rhelbeta]
             self.db.session.commit()
+            cache.clear()
             r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
             r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
             assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r1.data.decode("utf-8")
