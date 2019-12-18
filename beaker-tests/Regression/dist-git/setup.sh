@@ -93,7 +93,6 @@ chown -R git:git /home/git/
 # install copr-mocks deps (why not covered by dnf -y builddep?)
 if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-flask
-    dnf -y install python3-flask-script
     dnf -y install python3-devel
 fi
 

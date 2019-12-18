@@ -16,7 +16,6 @@ BuildRequires: python3-devel
 BuildRequires: systemd-units
 Requires: python3
 Requires: python3-flask
-Requires: python3-flask-script
 
 %description
 This package provides mocks for individual copr system components

@@ -1,6 +1,5 @@
 import click
 
-from flask_script import Command, Option
 from coprs import exceptions
 from coprs import db
 from coprs.helpers import chroot_to_branch

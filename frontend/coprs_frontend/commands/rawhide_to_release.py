@@ -2,7 +2,6 @@ import click
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from flask_script import Command, Option
 from copr_common.enums import StatusEnum
 from coprs import db
 from coprs import models

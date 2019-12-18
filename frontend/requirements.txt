@@ -1,7 +1,6 @@
 Flask
 Flask-OpenID
 Flask-SQLAlchemy
-Flask-Script
 Flask-WTF
 flask-whooshee
 pytest

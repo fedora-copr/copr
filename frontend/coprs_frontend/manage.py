@@ -35,7 +35,6 @@ import commands.clean_expired_projects
 import commands.clean_old_builds
 import commands.delete_orphans
 
-from flask_script import Manager
 from coprs import app
 
 if os.getuid() == 0:

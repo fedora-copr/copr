@@ -11,7 +11,7 @@ virtualenv _venv -p /usr/bin/python2.7
 source _venv/bin/activate
 
 
-# sphinx flask flask-script SQLAlchemy==0.8.7 flask-whooshee Flask-OpenID Flask-SQLAlchemy==1.0  Flask-WTF blinker pytz markdown pyLibravatar pydns  flexmock whoosh decorator
+# sphinx flask SQLAlchemy==0.8.7 flask-whooshee Flask-OpenID Flask-SQLAlchemy==1.0  Flask-WTF blinker pytz markdown pyLibravatar pydns  flexmock whoosh decorator
 pip install  pytest mock pytest-cov  ipdb redis bunch PyYAML setproctitle ansible
 
 
