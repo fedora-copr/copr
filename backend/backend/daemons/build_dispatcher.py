@@ -131,7 +131,6 @@ class BuildDispatcher(multiprocessing.Process):
     def start_worker(self, vm, job, reattach=False):
         worker = Worker(
             opts=self.opts,
-            frontend_client=self.frontend_client,
             vm_manager=self.vm_manager,
             worker_id=self.next_worker_id,
             vm=vm, job=job, reattach=reattach

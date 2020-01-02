@@ -22,10 +22,10 @@ class FrontendClient(object):
     # do we block the main daemon process?
     try_indefinitely = False
 
-    def __init__(self, opts, logger=None):
-        super(FrontendClient, self).__init__()
+    def __init__(self, opts, logger=None, try_indefinitely=False):
         self.frontend_url = "{}/backend".format(opts.frontend_base_url)
         self.frontend_auth = opts.frontend_auth
+        self.try_indefinitely = try_indefinitely
 
         self.msg = None
         self.logger = logger

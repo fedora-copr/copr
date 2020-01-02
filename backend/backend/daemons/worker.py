@@ -12,6 +12,7 @@ from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_logger, \
     local_file_logger, run_cmd, pkg_name_evr
+from ..frontend import FrontendClient
 
 from ..msgbus import (
         MsgBusStomp,
@@ -26,18 +27,20 @@ from ..sshcmd import SSHConnectionError
 class Worker(multiprocessing.Process):
     msg_buses = []
 
-    def __init__(self, opts, frontend_client, vm_manager, worker_id, vm, job, reattach=False):
+    def __init__(self, opts, vm_manager, worker_id, vm, job, reattach=False):
         multiprocessing.Process.__init__(self, name="worker-{}".format(worker_id))
 
+        # safe variables to be inherited through fork() call
         self.opts = opts
-        self.frontend_client = frontend_client
         self.vm_manager = vm_manager
         self.worker_id = worker_id
         self.vm = vm
         self.job = job
         self.reattach = reattach
 
-        self.log = get_redis_logger(self.opts, self.name, "worker")
+        # for the sake of readability, those are defined in run()
+        self.log = None
+        self.frontend_client = None
 
     @property
     def name(self):
@@ -357,9 +360,11 @@ class Worker(multiprocessing.Process):
         setproctitle(title)
 
     def run(self):
+        self.log = get_redis_logger(self.opts, self.name, "worker")
+        self.frontend_client = FrontendClient(self.opts, self.log,
+                                              try_indefinitely=True)
         self.log.info("Starting worker")
         self.init_buses()
-        self.frontend_client.try_indefinitely = True
 
         try:
             self.do_job(self.job)

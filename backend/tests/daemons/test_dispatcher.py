@@ -171,7 +171,6 @@ class TestDispatcher(object):
     def init_worker(self):
         self.worker = Worker(
             opts=self.opts,
-            frontend_client=self.frontend_client,
             vm_manager=None,
             worker_id=None,
             vm=VmDescriptor("1.1.1.1", "vm_name", 3, "ready"),
