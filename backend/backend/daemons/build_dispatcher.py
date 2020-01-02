@@ -41,7 +41,7 @@ class BuildDispatcher(multiprocessing.Process):
         self.arch_to_groups = defaultdict(list)
         # PC => max N builders per user
         self.group_to_usermax = dict()
-
+        self.job_ids_previous_request = set()
         self.init_internal_structures()
 
     def get_vm_group_ids(self, arch):
@@ -89,7 +89,12 @@ class BuildDispatcher(multiprocessing.Process):
                 if not tasks:
                     time.sleep(self.opts.sleeptime)
 
-        self.log.info("Got new build jobs: %s", [task.get("task_id") for task in tasks if task])
+        job_ids = {task.get("task_id") for task in tasks if task}
+        new_ids = job_ids - self.job_ids_previous_request
+        if new_ids:
+            self.log.info("Got new build jobs: %s", new_ids)
+        self.job_ids_previous_request = job_ids
+
         return [BuildJob(task, self.opts) for task in tasks if task]
 
     def can_build_start(self, job):
