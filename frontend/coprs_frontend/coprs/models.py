@@ -1032,7 +1032,7 @@ class Build(db.Model, helpers.Serializer):
 
         if not self.chroot_states:
             # There were some builds in DB which had source_status equal
-            # to 'succeeded', while they had no biuld_chroots created.
+            # to 'succeeded', while they had no build_chroots created.
             # The original source of this inconsistency isn't known
             # because we only ever flip source_status to "succeded" directly
             # from the "importing" state.
