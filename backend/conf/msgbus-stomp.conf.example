@@ -2,9 +2,9 @@
 Example configuration file for stomp message bus.
 """
 
-bus_id = 'ci_message_bus'
-
 bus_type = 'stomp'
+bus_id = 'ci_message_bus'
+bus_publish_retries = 5
 
 # we use python-stomppy, see it's documentation for more info
 hosts = [

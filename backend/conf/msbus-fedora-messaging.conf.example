@@ -3,8 +3,8 @@ Example configuration file for fedora-messaging AMQP bus.
 """
 
 bus_type = 'fedora-messaging'
-
 bus_id = 'fm'
+bus_publish_retries = 5
 
 toml_config = '/etc/fedora-messaging/fedora.toml'
 
