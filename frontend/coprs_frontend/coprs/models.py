@@ -880,6 +880,9 @@ class Build(db.Model, helpers.Serializer):
     # the info that the build was resubmitted
     resubmitted_from_id = db.Column(db.Integer)
 
+    _cached_status = None
+    _cached_status_set = None
+
     @property
     def user_name(self):
         return self.user.name
@@ -1020,6 +1023,12 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def status(self):
+        if getattr(self, '_cached_status_set') is None:
+            self._cached_status = self._status()
+            self._cached_status_set = True
+        return self._cached_status
+
+    def _status(self):
         """
         Return build status.
         """
