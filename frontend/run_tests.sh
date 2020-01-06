@@ -13,6 +13,8 @@ cleanup ()
 }
 trap cleanup EXIT
 
+./build_aux/check-alembic-revisions
+
 common_path=$(readlink -f ../common)
 export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
 export COPR_CONFIG="$(pwd)/coprs_frontend/config/copr_unit_test.conf"
