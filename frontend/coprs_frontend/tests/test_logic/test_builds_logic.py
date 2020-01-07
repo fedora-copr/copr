@@ -221,7 +221,7 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(ActionsLogic.get_many().all()) == 1
         action = ActionsLogic.get_many().one()
         delete_data = json.loads(action.data)
-        assert delete_data['chroot_builddirs'] == {'srpm-builds': 'bar', 'fedora-18-x86_64': 'bar'}
+        assert delete_data['chroot_builddirs'] == {'srpm-builds': ['bar'], 'fedora-18-x86_64': ['bar']}
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()

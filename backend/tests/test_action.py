@@ -606,11 +606,11 @@ class TestAction(object):
         ext_data = json.dumps({
             "ownername": "foo",
             "projectname": "bar",
-            "project_dirname": "bar",
-            "builds": [
-                {"fedora-20": "01-foo"},
-                {"fedora-20": "02-foo"},
-            ]
+            "project_dirnames": {
+                'bar': {
+                    "fedora-20": ["01-foo", "02-foo"],
+                }
+            },
         })
 
         self.opts.destdir = tmp_dir

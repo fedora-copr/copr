@@ -144,9 +144,9 @@ class TestCoprDeleteBuild(CoprsTestCase):
         self.b_few_chroots.build_chroots[1].status= StatusEnum("canceled")
         self.db.session.commit()
 
-        expected_chroot_builddirs = {'srpm-builds': self.b_few_chroots.result_dir}
+        expected_chroot_builddirs = {'srpm-builds': [self.b_few_chroots.result_dir]}
         for chroot in self.b_few_chroots.build_chroots:
-            expected_chroot_builddirs[chroot.name] = chroot.result_dir
+            expected_chroot_builddirs[chroot.name] = [chroot.result_dir]
 
         expected_dir = self.b_few_chroots.result_dir
         r = self.test_client.post(
@@ -214,8 +214,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
     @TransactionDecorator("u1")
     def test_copr_delete_multiple_builds_sends_single_action(self, f_users,
                                                              f_coprs,
-                                                             f_mock_chroots,
-                                                             f_builds):
+                                                             f_pr_build):
         for bc in self.b2_bc:
             bc.status = StatusEnum("canceled")
         self.db.session.add_all(self.b2_bc)
@@ -224,10 +223,11 @@ class TestCoprDeleteBuild(CoprsTestCase):
 
         b_id1 = self.b1.id
         b_id2 = self.b2.id
+        b_id3 = self.b_pr.id
         url = "/coprs/{0}/{1}/delete_builds/".format(self.u1.name, self.c1.name)
 
         r = self.test_client.post(
-            url, data={"build_ids[]": [b_id1, b_id2]}, follow_redirects=True)
+            url, data={"build_ids[]": [b_id1, b_id2, b_id3]}, follow_redirects=True)
         assert r.status_code == 200
 
         b1 = (
@@ -249,8 +249,16 @@ class TestCoprDeleteBuild(CoprsTestCase):
         assert act.object_type == "builds"
         assert data.get('ownername') == "user1"
         assert data.get('projectname') == "foocopr"
-        assert data.get('builds') == 2 * [{'fedora-18-x86_64': 'bar',
-                                           'srpm-builds': 'bar'}]
+        assert data.get('project_dirnames') == {
+            'foocopr': {
+                # they'd usually look like ID-PKGNAME, not 'bar'
+                'fedora-18-x86_64': ['bar', 'bar'],
+                'srpm-builds': ['bar', 'bar']},
+            'foocopr:PR': {
+                'fedora-17-x86_64': ['0000PR-pr-package'],
+                'srpm-builds': ['0000PR'],
+            }
+        }
 
     @TransactionDecorator("u1")
     def test_copr_delete_package_sends_single_action(self, f_users,

@@ -397,7 +397,8 @@ class CoprsTestCase(object):
             user=self.u1,
             submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
-            pkg_version="1.58"
+            pkg_version="1.58",
+            result_dir='00000FEW',
         )
 
         self.db.session.add(self.b_few_chroots)
@@ -541,6 +542,23 @@ class CoprsTestCase(object):
         self.p4 = models.Package(
             copr=self.c1, copr_dir=self.c4_dir, name="hello-world",
             source_type=0)
+
+    @pytest.fixture
+    def f_pr_build(self, f_mock_chroots, f_builds, f_pr_dir):
+        self.b_pr = models.Build(
+            copr=self.c1, copr_dir=self.c4_dir, package=self.p1,
+            user=self.u1, submitted_on=50, srpm_url="http://somesrpm",
+            source_status=StatusEnum("succeeded"), result_dir='0000PR')
+
+        self.bc_pr = models.BuildChroot(
+            build=self.b_pr,
+            mock_chroot=self.mc2,
+            status=StatusEnum("succeeded"),
+            git_hash="deadbeef",
+            result_dir='0000PR-pr-package',
+        )
+
+        self.db.session.add_all([self.b_pr, self.bc_pr])
 
     @pytest.fixture
     def f_batches(self):

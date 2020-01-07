@@ -119,10 +119,10 @@ class ActionsLogic(object):
         Creates a dictionary of chroot builddirs for build delete action
         :type build: models.build
         """
-        chroot_builddirs = {'srpm-builds': build.result_dir}
+        chroot_builddirs = {'srpm-builds': [build.result_dir]}
 
         for build_chroot in build.build_chroots:
-            chroot_builddirs[build_chroot.name] = build_chroot.result_dir
+            chroot_builddirs[build_chroot.name] = [build_chroot.result_dir]
 
         return chroot_builddirs
 
@@ -132,17 +132,13 @@ class ActionsLogic(object):
         Creates data needed for build delete action
         :type build: models.build
         """
-        data = {
+        return {
             "ownername": build.copr.owner_name,
             "projectname": build.copr_name,
+            "project_dirname":
+                build.copr_dirname if build.copr_dir else build.copr_name,
+            "chroot_builddirs": cls.get_chroot_builddirs(build)
         }
-
-        if build.copr_dir:
-            data["project_dirname"] = build.copr_dirname
-        else:
-            data["project_dirname"] = build.copr_name
-
-        return data
 
     @classmethod
     def send_delete_build(cls, build):
@@ -150,14 +146,11 @@ class ActionsLogic(object):
         Schedules build delete action
         :type build: models.Build
         """
-        data = cls.get_build_delete_data(build)
-        data["chroot_builddirs"] = cls.get_chroot_builddirs(build)
-
         action = models.Action(
             action_type=ActionTypeEnum("delete"),
             object_type="build",
             object_id=build.id,
-            data=json.dumps(data),
+            data=json.dumps(cls.get_build_delete_data(build)),
             created_on=int(time.time())
         )
         db.session.add(action)
@@ -168,11 +161,31 @@ class ActionsLogic(object):
         Schedules builds delete action for builds belonging to the same project
         :type build: list of models.Build
         """
-        data = cls.get_build_delete_data(builds[0])
-        data["builds"] = []
+        project_dirnames = {}
+        data = {'project_dirnames': project_dirnames}
+
         for build in builds:
-            chroot_builddirs = cls.get_chroot_builddirs(build)
-            data["builds"].append(chroot_builddirs)
+            build_delete_data = cls.get_build_delete_data(build)
+
+            # inherit some params from the first build
+            for param in ['ownername', 'projectname']:
+                new = build_delete_data[param]
+                if param in data and data[param] != new:
+                    # this shouldn't happen
+                    raise exceptions.BadRequest("Can not delete builds "
+                                                "from more projects")
+                data[param] = new
+
+            dirname = build_delete_data['project_dirname']
+            if not dirname in project_dirnames:
+                project_dirnames[dirname] = {}
+
+            project_dirname = project_dirnames[dirname]
+            for chroot, subdirs in build_delete_data['chroot_builddirs'].items():
+                if chroot not in project_dirname:
+                    project_dirname[chroot] = subdirs
+                else:
+                    project_dirname[chroot].extend(subdirs)
 
         action = models.Action(
             action_type=ActionTypeEnum("delete"),

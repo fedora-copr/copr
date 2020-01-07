@@ -264,26 +264,39 @@ class Action(object):
             except CreateRepoError:
                 self.log.exception("Error making local repo: %s", chroot_path)
 
-    def delete_build(self, ownername, project_dirname, chroot_builddirs):
+    def delete_builddirs(self, ownername, project_dirname, chroot_builddirs):
+        """
+        delete build (sub)directories from chroot directory, chroot_builddirs
+        parameter is in form [{str_chrootname_2: [str_builddir1, str_builddir2]}]
+        """
         self.log.info("Going to delete: %s", chroot_builddirs)
 
-        for chroot, builddir in chroot_builddirs.items():
-            if not builddir:
-                self.log.warning("Received empty builddir!")
+        for chroot, builddirs in chroot_builddirs.items():
+            if not builddirs:
+                self.log.warning("No builddirs received!")
                 continue
 
-            chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
-            builddir_path = os.path.join(chroot_path, builddir)
+            chroot_path = os.path.join(self.destdir, ownername,
+                                       project_dirname, chroot)
+            for builddir in builddirs:
+                builddir_path = os.path.join(chroot_path, builddir)
+                if not os.path.isdir(builddir_path):
+                    self.log.error("%s not found", builddir_path)
+                    continue
 
-            if not os.path.isdir(builddir_path):
-                self.log.error("%s not found", builddir_path)
-                continue
-
-            self.log.debug("builddir to be deleted %s", builddir_path)
-            shutil.rmtree(builddir_path)
+                self.log.debug("builddir to be deleted %s", builddir_path)
+                shutil.rmtree(builddir_path)
 
     def handle_delete_build(self):
         self.log.info("Action delete build.")
+
+        # == EXAMPLE DATA ==
+        # ownername: @copr
+        # projectname: TEST1576047114845905086Project10Fork
+        # project_dirname: TEST1576047114845905086Project10Fork:pr:12
+        # chroot_builddirs:
+        #   srpm-builds: [00849545]
+        #   fedora-30-x86_64: [00849545-example]
         ext_data = json.loads(self.data["data"])
 
         ownername = ext_data["ownername"]
@@ -292,25 +305,31 @@ class Action(object):
         chroot_builddirs = ext_data["chroot_builddirs"]
         chroots = list(chroot_builddirs.keys())
 
-        self.delete_build(ownername, project_dirname, chroot_builddirs)
+        self.delete_builddirs(ownername, project_dirname, chroot_builddirs)
         self.run_createrepo(ownername, projectname, project_dirname, chroots)
 
     def handle_delete_multiple_builds(self):
         self.log.debug("Action delete multiple builds.")
+
+        # == EXAMPLE DATA ==
+        # ownername: @copr
+        # projectname: testproject
+        # project_dirnames:
+        #   testproject:pr:10:
+        #     srpm-builds: [00849545, 00849546]
+        #     fedora-30-x86_64: [00849545-example, 00849545-foo]
+        #   [...]
         ext_data = json.loads(self.data["data"])
 
         ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
-        project_dirname = ext_data["project_dirname"]
+        project_dirnames = ext_data["project_dirnames"]
 
-        chroots = []
-        for chroot_builddirs in ext_data["builds"]:
-            self.delete_build(ownername, project_dirname, chroot_builddirs)
-            for chroot in chroot_builddirs.keys():
-                if chroot not in chroots:
-                    chroots.append(chroot)
-
-        self.run_createrepo(ownername, projectname, project_dirname, chroots)
+        for project_dirname, chroot_builddirs in project_dirnames.items():
+            self.delete_builddirs(ownername, project_dirname, chroot_builddirs)
+            chroots = [ch for ch in chroot_builddirs]
+            self.run_createrepo(ownername, projectname, project_dirname,
+                                chroots)
 
     def handle_delete_chroot(self):
         self.log.info("Action delete project chroot.")
