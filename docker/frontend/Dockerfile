@@ -3,8 +3,11 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
+ENV LANG=en_US.UTF-8
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
+
+RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
 
 # base packages
 RUN dnf -y update && \
@@ -15,7 +18,6 @@ RUN dnf -y update && \
                    vim \
                    yum \
                    sudo \
-                   supervisor \
                    copr-selinux \
                    python3-alembic \
                    postgresql-server \
@@ -33,6 +35,8 @@ RUN cd /copr/frontend && \
     ( dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm || true ) && \
     dnf clean all
 
-RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
+RUN mkdir -p /usr/share/copr/data/whooshee
+RUN chown -R copr-fe:copr-fe /usr/share/copr
+RUN chown -R copr-fe:copr-fe /var/log/copr-frontend
 
 CMD ["/bin/run.sh"]

@@ -53,7 +53,6 @@ services:
       context: .
       dockerfile: docker/frontend/Dockerfile
     hostname: frontend
-    command: /bin/run.sh
     depends_on:
       - database
       - redis
