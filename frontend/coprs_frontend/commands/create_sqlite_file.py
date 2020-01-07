@@ -1,15 +1,20 @@
 import os
 import flask
 import click
+from coprs import app
 
 
 def create_sqlite_file_function():
-    if flask.current_app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
-        # strip sqlite:///
-        datadir_name = os.path.dirname(
-            flask.current_app.config["SQLALCHEMY_DATABASE_URI"][10:])
-        if not os.path.exists(datadir_name):
-            os.makedirs(datadir_name)
+    with app.app_context():
+        uri = app.config["SQLALCHEMY_DATABASE_URI"]
+
+    if not uri.startswith("sqlite"):
+        return None
+
+    # strip sqlite:///
+    datadir_name = os.path.dirname(uri[10:])
+    if not os.path.exists(datadir_name):
+        os.makedirs(datadir_name)
 
 @click.command()
 def create_sqlite_file():
