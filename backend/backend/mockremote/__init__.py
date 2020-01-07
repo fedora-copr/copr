@@ -24,13 +24,12 @@ import time
 
 from ..constants import DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
-from ..exceptions import MockRemoteError, BuilderError, CreateRepoError
-from ..helpers import uses_devel_repo
+from ..exceptions import MockRemoteError, BuilderError
+from ..helpers import uses_devel_repo, call_copr_repo
 
 
 # TODO: replace sign & createrepo with dependency injection
 from ..sign import sign_rpms_in_dir, get_pubkey
-from ..createrepo import createrepo
 
 from .builder import Builder, SrpmBuilder
 
@@ -216,19 +215,10 @@ class MockRemote(object):
                       "front url: {}; path: {}; base_url: {}"
                       .format(project_owner, project_name,
                               self.opts.frontend_base_url, self.chroot_dir, base_url))
-        try:
-            createrepo(
-                path=self.chroot_dir,
-                base_url=base_url,
-                username=project_owner,
-                projectname=project_name,
-                devel=devel,
-            )
-        except CreateRepoError:
-            self.log.exception("Error making local repo: {}".format(self.chroot_dir))
 
-            # FIXME - maybe clean up .repodata and .olddata
-            # here?
+        if not call_copr_repo(self.chroot_dir, devel=devel,
+                              add=[self.job.target_dir_name]):
+            raise MockRemoteError("do_createrepo failed")
 
     def on_success_build(self):
         self.log.info("Success building {0}".format(self.job.package_name))

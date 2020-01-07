@@ -1,0 +1,243 @@
+#! /usr/bin/python3
+
+"""
+Remove/add package build(s) to copr repository, and
+    1. run createrepo_c,
+    2. run appstream-builder, and
+    3. modify repo so it contains modular metadata.
+We expect that this script can be run concurrently, so we acquire lock to not
+mess up everything around.
+"""
+
+import os
+import sys
+
+import argparse
+import contextlib
+import logging
+import oslo_concurrency.lockutils
+import pipes
+import shutil
+import subprocess
+
+class CommandException(Exception):
+    pass
+
+
+def run_cmd(cmd, opts, check=True):
+    cmd_printable = ' '.join([pipes.quote(arg) for arg in cmd])
+    opts.log.info("running: %s", cmd_printable)
+    sp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = sp.communicate()
+    if out:
+        opts.log.debug("stdout:\n%s", out.decode('utf-8'))
+    if err:
+        opts.log.debug("stderr:\n%s", err.decode('utf-8'))
+
+    if check and sp.returncode:
+        raise CommandException("command failed with {}".format(sp.returncode))
+
+    opts.log.debug("command exited with %s", sp.returncode)
+    return sp.returncode
+
+
+def get_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--delete', action='append', metavar='SUBDIR',
+                        default=[])
+    parser.add_argument('--add', action='append', metavar='SUBDIR', default=[])
+    parser.add_argument('--devel', action='store_true', default=False)
+    parser.add_argument('--no-appstream-metadata', action='store_true',
+                        default=False)
+    parser.add_argument('--log-to-stdout', action='store_true')
+    parser.add_argument('directory')
+    return parser
+
+
+def unlink_unsafe(path):
+    try:
+        os.unlink(path)
+    except:
+        pass
+
+
+def get_logger(opts):
+    if 'COPR_TESTSUITE_NO_OUTPUT' in os.environ:
+        logging.basicConfig(level=logging.CRITICAL)
+        return logging.getLogger()
+
+    if opts.log_to_stdout:
+        logging.basicConfig(level=logging.DEBUG)
+        return logging.getLogger()
+
+    # meh, we should add our sources to default pythonpath
+    sys.path.append("/usr/share/copr/")
+    from backend.helpers import get_redis_logger, BackendConfigReader
+    config = '/etc/copr/copr-be.conf'
+    log_opts = BackendConfigReader(config).read()
+    logger_name = '{}.pid-{}'.format(sys.argv[0], os.getpid())
+    return get_redis_logger(log_opts, logger_name, "modifyrepo")
+
+
+def run_createrepo(opts):
+    createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
+                      '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8',
+                      opts.directory]
+
+    if "epel-5" in opts.directory or "rhel-5" in opts.directory:
+        # this is because rhel-5 doesn't know sha256
+        createrepo_cmd.extend(['-s', 'sha', '--checksum', 'md5'])
+
+    if opts.delete or opts.add:
+        # request for modification, is the repo actually initialized?  Otherwise
+        # we do full createrepo_c run.
+        repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
+        if os.path.exists(repodata_xml):
+            createrepo_cmd += ["--recycle-pkglist", "--update", "--skip-stat"]
+
+    for subdir in opts.delete:
+        createrepo_cmd += ['--excludes', '*{}/*'.format(subdir)]
+
+    filelist = os.path.join(opts.directory, '.copr-createrepo-pkglist')
+    if opts.add:
+        unlink_unsafe(filelist)
+        with open(filelist, "wb") as filelist_fd:
+            for subdir in opts.add:
+                q_dir = pipes.quote(opts.directory)
+                q_sub = pipes.quote(subdir)
+                find = 'cd {} && find {} -name "*.rpm"'.format(q_dir, q_sub)
+                opts.log.info("searching for rpms: %s", find)
+                files = subprocess.check_output(find, shell=True)
+                opts.log.info("rpms: %s", files.decode('utf-8').strip().split('\n'))
+                filelist_fd.write(files)
+
+        createrepo_cmd += ['--pkglist', filelist]
+
+    if opts.devel:
+        createrepo_cmd += ['--outputdir', os.path.join(opts.directory, 'devel')]
+
+    try:
+        run_cmd(createrepo_cmd, opts)
+    finally:
+        unlink_unsafe(filelist)
+
+
+def add_appdata(opts):
+    if opts.devel or opts.no_appstream_metadata:
+        return
+
+    path = opts.directory
+
+    # path is .../<owner>/<copr_dir>/<chroot>/
+    directory, _ = os.path.split(path) # .../<owner>/<copr_dir>
+    directory = directory.split('/')
+    origin = os.path.join(directory[-2], directory[-1])
+
+    run_cmd([
+        "/usr/bin/timeout", "--kill-after=240", "180",
+        "/usr/bin/appstream-builder",
+        "--temp-dir=" + os.path.join(path, 'tmp'),
+        "--cache-dir=" + os.path.join(path, 'cache'),
+        "--packages-dir=" + path,
+        "--output-dir=" + os.path.join(path, 'appdata'),
+        "--basename=appstream",
+        "--include-failed",
+        "--min-icon-size=48",
+        "--veto-ignore=missing-parents",
+        "--enable-hidpi",
+        "--origin=" + origin], opts)
+
+    mr_cmd = ["/usr/bin/modifyrepo_c", "--no-compress"]
+
+    if os.path.exists(os.path.join(path, "appdata", "appstream.xml.gz")):
+        run_cmd(mr_cmd + [os.path.join(path, 'appdata', 'appstream.xml.gz'),
+                          os.path.join(path, 'repodata')],
+                opts)
+
+    if os.path.exists(os.path.join(path, "appdata", "appstream-icons.tar.gz")):
+        run_cmd(mr_cmd +
+                [os.path.join(path, 'appdata', 'appstream-icons.tar.gz'),
+                 os.path.join(path, 'repodata')],
+                opts)
+
+    # appstream builder provides strange access rights to result dir
+    # fix them, so that lighttpd could serve appdata dir
+    run_cmd(['chmod', '-R', '+rX', os.path.join(path, 'appdata')], opts)
+
+def add_modular_metadata(opts):
+    if not os.path.exists(os.path.join(opts.directory, "modules.yaml")):
+        return
+    run_cmd(
+        ["/usr/bin/modifyrepo_c",
+         "--mdtype", "modules",
+         "--compress-type", "gz",
+         os.path.join(opts.directory, 'modules.yaml'),
+         os.path.join(opts.directory, 'repodata')], opts)
+
+
+def delete_builds(opts):
+    # To avoid race conditions, remove the directories _after_ we have
+    # successfully generated the new repodata.
+    for subdir in opts.delete:
+        opts.log.info("removing %s subdirectory", subdir)
+        try:
+            shutil.rmtree(os.path.join(opts.directory, subdir))
+        except:
+            opts.log.exception("can't remove %s subdirectory", subdir)
+
+
+def assert_new_createrepo():
+    sp = subprocess.Popen(['/usr/bin/createrepo_c', '--help'],
+                          stdout=subprocess.PIPE)
+    out, _ = sp.communicate()
+    assert b'--recycle-pkglist' in out
+
+
+@contextlib.contextmanager
+def lock(opts):
+    lock_path = os.environ.get('COPR_TESTSUITE_LOCKPATH', "/var/lock/copr-backend")
+    # TODO: better lock filename once we can remove craterepo.py
+    lock_name = os.path.join(opts.directory, 'createrepo.lock')
+    opts.log.debug("acquiring lock")
+    with oslo_concurrency.lockutils.lock(name=lock_name, external=True,
+                                         lock_path=lock_path):
+        opts.log.debug("acquired lock")
+        yield
+
+
+def main_locked(opts, log):
+    # (re)create the repository
+    run_createrepo(opts)
+
+    # delete the RPMs, do this _after_ craeterepo, so we close the major
+    # race between package removal and re-createrepo
+    delete_builds(opts)
+
+    # TODO: racy, these info aren't available for some time, once it is
+    # possible we should move those two things before 'delete_builds' call.
+    add_appdata(opts)
+    add_modular_metadata(opts)
+
+    log.info("%s run successful", sys.argv[0])
+
+
+def main():
+    opts = get_arg_parser().parse_args()
+    log = opts.log = get_logger(opts)
+
+    assert_new_createrepo()
+
+    try:
+        with lock(opts):
+            main_locked(opts, log)
+
+    except CommandException:
+        log.error("Sub-command failed")
+        return 1
+
+    except Exception:
+        log.exception("Unexpeted exception")
+        raise
+
+if __name__ == "__main__":
+    sys.exit(main())

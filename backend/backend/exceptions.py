@@ -136,6 +136,10 @@ class CreateRepoError(CmdError):
     pass
 
 
+class CoprRepoCmdError(CmdError):
+    pass
+
+
 class DispatchBuildError(CoprBackendError):
     pass
 

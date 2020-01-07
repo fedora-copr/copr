@@ -42,9 +42,8 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
         In most cases use `createrepo(...)`
 
     :param string path: target location to create repo
-    :param lock: [optional]
-    :param str dest_dir: [optional] relative to path location for repomd, in most cases
-        you should also provide base_url.
+    :param str dest_dir: [optional] relative to path location for repomd,
+            in most cases you should also provide base_url.
     :param str base_url: optional parameter for createrepo_c, "--baseurl"
 
     :return tuple: (return_code,  stdout, stderr)

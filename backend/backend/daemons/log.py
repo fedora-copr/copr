@@ -27,7 +27,8 @@ class RedisLogHandler(object):
             os.makedirs(self.log_dir, mode=0o750)
 
         self.components = ["spawner", "terminator", "vmm", "build_dispatcher",
-                           "action_dispatcher", "backend", "actions", "worker"]
+                           "action_dispatcher", "backend", "actions", "worker",
+                           "modifyrepo"]
 
     def setup_logging(self):
 

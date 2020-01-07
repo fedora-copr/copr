@@ -20,11 +20,10 @@ from gi.repository import Modulemd
 
 from copr_common.rpm import splitFilename
 from .sign import create_user_keys, CoprKeygenRequestError
-from .createrepo import createrepo
-from .exceptions import CreateRepoError, CoprSignError
+from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, cmd_debug, format_filename,
-                      uses_devel_repo)
+                      uses_devel_repo, call_copr_repo)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 from backend.worker_manager import WorkerManager
 
@@ -70,7 +69,7 @@ class Action(object):
     def handle_legal_flag(self):
         self.log.debug("Action legal-flag: ignoring")
 
-    def handle_createrepo(self, result):
+    def handle_createrepo(self):
         self.log.info("Action createrepo")
         data = json.loads(self.data["data"])
         ownername = data["ownername"]
@@ -78,36 +77,25 @@ class Action(object):
         project_dirnames = data["project_dirnames"]
         chroots = data["chroots"]
 
+        result = ActionResult.SUCCESS
+
         done_count = 0
         for project_dirname in project_dirnames:
             for chroot in chroots:
                 self.log.info("Creating repo for: {}/{}/{}"
                               .format(ownername, project_dirname, chroot))
-
-                path = self.get_chroot_result_dir(chroot, project_dirname, ownername)
+                repo = os.path.join(self.destdir, ownername,
+                                    project_dirname, chroot)
                 try:
-                    self.log.info("Empty repo so far, creating the directory")
-                    os.makedirs(path)
+                    os.makedirs(repo)
+                    self.log.info("Empty repo so far, directory created")
                 except FileExistsError:
                     pass
 
-                try:
-                    createrepo(path=path, username=ownername,
-                               projectname=projectname)
-                    done_count += 1
-                except CoprRequestException as err:
-                    # fixme: dirty hack to catch case when createrepo invoked upon deleted project
-                    if "does not exists" in str(err):
-                        result.result = ActionResult.FAILURE
-                        return
-                except CreateRepoError:
-                    self.log.exception("Error making local repo for: {}/{}/{}"
-                                       .format(ownername, project_dirname, chroot))
+                if not call_copr_repo(repo):
+                    result = ActionResult.FAILURE
 
-        if done_count == len(project_dirnames)*len(chroots):
-            result.result = ActionResult.SUCCESS
-        else:
-            result.result = ActionResult.FAILURE
+        return result
 
     def handle_fork(self, result):
         sign = self.opts.do_sign
@@ -168,12 +156,10 @@ class Action(object):
 
                     self.log.info("Forked build %s as %s", src_path, dst_path)
 
-            for chroot_path in chroot_paths:
-                createrepo(path=chroot_path, username=data["user"],
-                           projectname=data["copr"])
-
             result.result = ActionResult.SUCCESS
-            result.ended_on = time.time()
+            for chroot_path in chroot_paths:
+                if not call_copr_repo(chroot_path):
+                    result.result = ActionResult.FAILURE
 
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
@@ -233,59 +219,21 @@ class Action(object):
                                    remote_comps_url, local_comps_path)
                 result.result = ActionResult.FAILURE
 
-    def run_createrepo(self, ownername, projectname, project_dirname, chroots):
-        devel = uses_devel_repo(self.front_url, ownername,
-                                projectname)
-
-        for chroot in chroots:
-            chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
-            self.log.debug("Running createrepo on %s", chroot_path)
-            result_base_url = "/".join(
-                [self.results_root_url, ownername, project_dirname, chroot])
-
-            project = "{}/{}".format(ownername, project_dirname)
-            if  project in self.opts.build_deleting_without_createrepo.split():
-                self.log.warning("createrepo takes too long in %s, skipped",
-                                 project)
-                return
-
-            try:
-                os.makedirs(chroot_path)
-            except FileExistsError:
-                pass
-
-            try:
-                createrepo(path=chroot_path, base_url=result_base_url,
-                           username=ownername, projectname=projectname,
-                           devel=devel)
-            except CoprRequestException:
-                # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
-                self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
-            except CreateRepoError:
-                self.log.exception("Error making local repo: %s", chroot_path)
-
-    def delete_builddirs(self, ownername, project_dirname, chroot_builddirs):
-        """
-        delete build (sub)directories from chroot directory, chroot_builddirs
-        parameter is in form [{str_chrootname_2: [str_builddir1, str_builddir2]}]
-        """
-        self.log.info("Going to delete: %s", chroot_builddirs)
-
-        for chroot, builddirs in chroot_builddirs.items():
-            if not builddirs:
-                self.log.warning("No builddirs received!")
+    def _handle_delete_builds(self, ownername, projectname, project_dirname,
+                              chroot_builddirs):
+        """ call /bin/copr-repo --delete """
+        devel = uses_devel_repo(self.front_url, ownername, projectname)
+        result = ActionResult.SUCCESS
+        for chroot, subdirs in chroot_builddirs.items():
+            chroot_path = os.path.join(self.destdir, ownername, project_dirname,
+                                       chroot)
+            if not os.path.exists(chroot_path):
+                self.log.error("%s chroot path doesn't exist", chroot_path)
+                result = ActionResult.FAILURE
                 continue
-
-            chroot_path = os.path.join(self.destdir, ownername,
-                                       project_dirname, chroot)
-            for builddir in builddirs:
-                builddir_path = os.path.join(chroot_path, builddir)
-                if not os.path.isdir(builddir_path):
-                    self.log.error("%s not found", builddir_path)
-                    continue
-
-                self.log.debug("builddir to be deleted %s", builddir_path)
-                shutil.rmtree(builddir_path)
+            if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
+                result = ActionResult.FAILURE
+        return result
 
     def handle_delete_build(self):
         self.log.info("Action delete build.")
@@ -303,10 +251,9 @@ class Action(object):
         projectname = ext_data["projectname"]
         project_dirname = ext_data["project_dirname"]
         chroot_builddirs = ext_data["chroot_builddirs"]
-        chroots = list(chroot_builddirs.keys())
 
-        self.delete_builddirs(ownername, project_dirname, chroot_builddirs)
-        self.run_createrepo(ownername, projectname, project_dirname, chroots)
+        return self._handle_delete_builds(ownername, projectname,
+                                          project_dirname, chroot_builddirs)
 
     def handle_delete_multiple_builds(self):
         self.log.debug("Action delete multiple builds.")
@@ -325,11 +272,13 @@ class Action(object):
         projectname = ext_data["projectname"]
         project_dirnames = ext_data["project_dirnames"]
 
+        result = ActionResult.SUCCESS
         for project_dirname, chroot_builddirs in project_dirnames.items():
-            self.delete_builddirs(ownername, project_dirname, chroot_builddirs)
-            chroots = [ch for ch in chroot_builddirs]
-            self.run_createrepo(ownername, projectname, project_dirname,
-                                chroots)
+            if ActionResult.FAILURE == \
+               self._handle_delete_builds(ownername, projectname,
+                                          project_dirname, chroot_builddirs):
+                result = ActionResult.FAILURE
+        return result
 
     def handle_delete_chroot(self):
         self.log.info("Action delete project chroot.")
@@ -368,8 +317,11 @@ class Action(object):
             self.log.exception(e)
             return False
 
-    def handle_rawhide_to_release(self, result):
+    def handle_rawhide_to_release(self):
         data = json.loads(self.data["data"])
+
+        result = ActionResult.SUCCESS
+
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
@@ -387,12 +339,14 @@ class Action(object):
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
-            createrepo(path=chrootdir, username=data["ownername"],
-                       projectname=data["projectname"])
+            if not call_copr_repo(chrootdir):
+                self.log.error("call_copr_repo('%s') failure", chrootdir)
+                result = ActionResult.FAILURE
         except:
-            result.result = ActionResult.FAILURE
+            result = ActionResult.FAILURE
 
-        result.result = ActionResult.SUCCESS
+        return result
+
 
     def handle_cancel_build(self, result):
         result.result = ActionResult.SUCCESS
@@ -447,7 +401,8 @@ class Action(object):
         result.result = ActionResult.SUCCESS
 
 
-    def handle_build_module(self, result):
+    def handle_build_module(self):
+        result = ActionResult.SUCCESS
         try:
             data = json.loads(self.data["data"])
             ownername = data["ownername"]
@@ -492,13 +447,14 @@ class Action(object):
                     mmd.set_rpm_artifacts(artifacts)
                     self.log.info("Module artifacts: %s", mmd.get_rpm_artifacts())
                     Modulemd.dump([mmd], os.path.join(destdir, "modules.yaml"))
-                    createrepo(path=destdir, username=ownername,
-                               projectname=projectname)
+                    if not call_copr_repo(destdir):
+                        result = ActionResult.FAILURE
 
-            result.result = ActionResult.SUCCESS
-        except Exception as e:
-            self.log.error(str(e))
-            result.result = ActionResult.FAILURE
+        except Exception:
+            self.log.exception("handle_build_module failed")
+            result = ActionResult.FAILURE
+
+        return result
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
@@ -513,14 +469,16 @@ class Action(object):
         if action_type == ActionType.DELETE:
             if self.data["object_type"] == "copr":
                 self.handle_delete_project(result)
+                # TODO: we shouldn't ignore errors
+                result.result = ActionResult.SUCCESS
             elif self.data["object_type"] == "build":
-                self.handle_delete_build()
+                result.result = self.handle_delete_build()
             elif self.data["object_type"] == "builds":
-                self.handle_delete_multiple_builds()
+                result.result = self.handle_delete_multiple_builds()
             elif self.data["object_type"] == "chroot":
                 self.handle_delete_chroot()
-
-            result.result = ActionResult.SUCCESS
+                # TODO: we shouldn't ignore errors
+                result.result = ActionResult.SUCCESS
 
         elif action_type == ActionType.LEGAL_FLAG:
             self.handle_legal_flag()
@@ -529,7 +487,7 @@ class Action(object):
             self.handle_fork(result)
 
         elif action_type == ActionType.CREATEREPO:
-            self.handle_createrepo(result)
+            result.result = self.handle_createrepo()
 
         elif action_type == ActionType.UPDATE_COMPS:
             self.handle_comps_update(result)
@@ -538,10 +496,10 @@ class Action(object):
             self.handle_generate_gpg_key(result)
 
         elif action_type == ActionType.RAWHIDE_TO_RELEASE:
-            self.handle_rawhide_to_release(result)
+            result.result = self.handle_rawhide_to_release()
 
         elif action_type == ActionType.BUILD_MODULE:
-            self.handle_build_module(result)
+            result.result = self.handle_build_module()
 
         elif action_type == ActionType.CANCEL_BUILD:
             self.handle_cancel_build(result)

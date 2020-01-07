@@ -547,3 +547,23 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
     if epoch.isdigit():
         return "{}-{}:{}-{}.{}".format(name, epoch, version, release, arch)
     return "{}-{}-{}.{}".format(name, version, release, arch)
+
+
+def call_copr_repo(directory, devel=False, add=None, delete=None):
+    """
+    Execute 'copr-repo' tool, and return True if the command succeeded.
+    """
+    cmd = ['copr-repo', directory]
+    def subdirs(option, subdirs):
+        args = []
+        if not subdirs:
+            return []
+        for subdir in subdirs:
+            args += [option, subdir]
+        return args
+    cmd += subdirs('--add', add)
+    cmd += subdirs('--delete', delete)
+    if devel:
+        cmd += ['--devel']
+
+    return not subprocess.call(cmd)

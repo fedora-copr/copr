@@ -55,8 +55,18 @@ class TestAction(object):
             keygen_host="example.com"
         )
 
+        self.lockpath = tempfile.mkdtemp(prefix="copr-test-lockpath")
+        self.os_env_patcher = mock.patch.dict(os.environ, {
+            'COPR_TESTSUITE_NO_OUTPUT': '1',
+            'COPR_TESTSUITE_LOCKPATH': self.lockpath,
+            'PATH': os.environ['PATH']+':run',
+        })
+        self.os_env_patcher.start()
+
     def teardown_method(self, method):
         self.rm_tmp_dir()
+        shutil.rmtree(self.lockpath)
+        self.os_env_patcher.stop()
 
     def rm_tmp_dir(self):
         if self.tmp_dir_name:
@@ -101,8 +111,8 @@ class TestAction(object):
     @mock.patch("backend.actions.copy_tree")
     @mock.patch("backend.actions.os.path.exists")
     @mock.patch("backend.actions.unsign_rpms_in_dir")
-    @mock.patch("backend.actions.createrepo")
-    def test_action_handle_forks(self, mc_createrepo, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
+    @mock.patch("backend.actions.subprocess.call")
+    def test_action_handle_forks(self, mc_call, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
         mc_time.time.return_value = self.test_time
         mc_exists = True
         test_action = Action(
@@ -150,6 +160,19 @@ class TestAction(object):
         assert calls[5][0] == (
             "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-i386/00000005-pkg2",
             "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-i386/00000010-pkg2")
+
+        # TODO: calling createrepo for srpm-builds is useless
+        assert len(mc_call.call_args_list) == 3
+
+        dirs = set()
+        for call in mc_call.call_args_list:
+            args = call[0][0]
+            assert args[0] == 'copr-repo'
+            dirs.add(args[1])
+
+        for chroot in ['srpm-builds', 'fedora-17-i386', 'fedora-17-x86_64']:
+            dir = '/var/lib/copr/public_html/results/thrnciar/destination-copr/' + chroot
+            assert dir in dirs
 
     @unittest.skip("Fixme, test doesn't work.")
     def test_action_run_rename(self, mc_time):
@@ -584,11 +607,8 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @mock.patch("backend.actions.createrepo")
     @mock.patch("backend.actions.uses_devel_repo")
-    def test_delete_multiple_builds_succeeded(self, mc_build_devel,
-                                              mc_createrepo, mc_time):
-
+    def test_delete_multiple_builds_succeeded(self, mc_build_devel, mc_time):
         mc_time.time.return_value = self.test_time
         mc_build_devel.return_value = False
 
@@ -631,15 +651,6 @@ class TestAction(object):
         assert not os.path.exists(pkg_build_2_dir)
         assert os.path.exists(chroot_dir)
         assert os.path.exists(pkg_build_3_dir)
-
-        create_repo_expected_call = mock.call(
-            username=u'foo',
-            projectname=u'bar',
-            base_url=u'http://example.com/results/foo/bar/fedora-20',
-            path='{}/foo/bar/fedora-20'.format(self.tmp_dir_name),
-            devel=False,
-        )
-        assert mc_createrepo.call_args == create_repo_expected_call
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.createrepo")
