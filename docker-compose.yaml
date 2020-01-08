@@ -80,7 +80,6 @@ services:
       context: .
       dockerfile: docker/distgit/Dockerfile
     hostname: distgit
-    command: /bin/run.sh
     stdin_open: true
     tty: true
     volumes:

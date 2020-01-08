@@ -18,7 +18,6 @@ RUN dnf -y update && \
                    tito
 
 COPY . /copr
-COPY docker/distgit/files/ /
 
 RUN cd /copr/dist-git && \
     dnf builddep -y *spec && \

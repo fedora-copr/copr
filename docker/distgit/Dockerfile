@@ -3,6 +3,7 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
+ENV PYTHONPATH=/usr/share/copr/
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
@@ -12,14 +13,12 @@ RUN dnf -y update && \
                    which \
                    wget \
                    vim \
-                   supervisor \
                    copr-selinux \
                    cgit \
                    python3-rpkg \
                    tito
 
 COPY . /copr
-COPY docker/distgit/files/ /
 
 RUN cd /copr/dist-git && \
     dnf builddep -y *spec && \
@@ -43,4 +42,4 @@ RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
 RUN sed -i "s/^cache-size.*//" /etc/cgitrc
 RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
 
-CMD ["/bin/run.sh"]
+CMD ["/usr/sbin/runuser", "-u", "root", "-g", "packager", "/usr/bin/importer_runner.py"]
