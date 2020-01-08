@@ -36,9 +36,13 @@ class TestAction(object):
 
         self.ext_data_for_delete_build = json.dumps({
             "src_pkg_name": self.pkgs_stripped[0],
-            "username": "foo",
+            "ownername": "foo",
             "projectname": "bar",
-            "chroots": ["fedora20", "epel7"]
+            "project_dirname": "bar",
+            "chroot_builddirs": {
+                "srpm-builds": ["00001", "00002"],
+                "fedora-rawhide-x86_64": ["00001-foo", "00002-baz"],
+            },
         })
 
         self.opts = Munch(
@@ -321,8 +325,9 @@ class TestAction(object):
 
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
 
-    @unittest.skip("Fixme, test doesn't work.")
-    def test_delete_no_chroot_dirs(self, mc_time):
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_no_chroot_dirs(self, mc_devel, mc_time):
+        mc_devel.return_value = False
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
@@ -331,17 +336,15 @@ class TestAction(object):
         test_action = Action(
             opts=self.opts,
             action={
+                "id": 7,
                 "action_type": ActionType.DELETE,
                 "object_type": "build",
-                "id": 7,
-                "old_value": "not-existing-project",
                 "data": self.ext_data_for_delete_build,
             },
-            frontend_client=mc_front_cb
+
         )
-        with mock.patch("backend.actions.shutil") as mc_shutil:
-            test_action.run()
-            assert not mc_shutil.rmtree.called
+        result = test_action.run()
+        assert result.result == ActionResult.FAILURE
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.createrepo")
