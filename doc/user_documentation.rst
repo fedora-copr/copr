@@ -217,22 +217,40 @@ Links
 Multilib
 --------
 
-In Copr you cannot build multilib packages, i.e. build a i386 package in a x86_64 chroot. If you need to use multilib packages you will need to specify both repos on your x86_64 system. An example of the rhughes/f20-gnome-3-12 project follows:
+In Copr, you cannot build an i386 package into x86_64 repository (also known as
+multilib package) like e.g. in Koji.  You can though build for both
+multilib-pair chroots (e.g. ``fedora-31-x86_64`` and ``fedora-31-i386``)
+separately, and users can enable both multilib-pair repositories - so in turn
+all built 32bit and 64bit packages will be available concurrently.
 
-Install the repo file for this Copr by copying it to /etc/yum.repos.d and run yum update. If you have a multilib system (i.e. are running x86_64 but have i686 packages installed for flash / steam) then you'll need to modify the .repo file to include both i386 and x86_64 sources, e.g.::
+If you want to automatize this, specify that your project is supposed to be
+"multilib capable".  Either in commandline::
 
-    $ cat rhughes-f20-gnome-3-12.repo
-    [rhughes-f20-gnome-3-12-i386]
-    name=Copr repo for f20-gnome-3-12 owned by rhughes (i386)
-    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-i386/
+    copr create --multilib=on [other options]
+
+or by checkbox on ``Project -> Settings`` web-UI page.
+
+When (a) this feature is enabled for project and (b) the project also contains
+multilib-pair chroots, the relevant copr web-UI project page will also provide
+multilib repo files button (aside the normal one) so user can pick those.  On
+top of that, ``dnf copr enable <owner>/<project>`` installs the multilib
+repofile automatically instead of the normal one on multilib capable system.
+
+Users can also manually install the multilib repofiles on multilib capable
+system regardless of the project settings, those repofile can e.g. look like::
+
+    $ cat /etc/yum.repos.d/rhughes-f20-gnome-3-12.repo
+    [copr:copr.fedorainfracloud.org:rhughes:gnome-3-12]
+    name=Copr repo for f20-gnome-3-12 owned by rhughes
+    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/
     skip_if_unavailable=True
     gpgcheck=0
     cost=900
     enabled=1
 
-    [rhughes-f20-gnome-3-12-x86_64]
-    name=Copr repo for f20-gnome-3-12 owned by rhughes (x86_64)
-    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-x86_64/
+    [copr:copr.fedorainfracloud.org:rhughes:gnome-3-12:ml]
+    name=Copr repo for f20-gnome-3-12 owned by rhughes (i386)
+    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-i386/
     skip_if_unavailable=True
     gpgcheck=0
     cost=800
