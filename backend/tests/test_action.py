@@ -40,8 +40,8 @@ class TestAction(object):
             "projectname": "bar",
             "project_dirname": "bar",
             "chroot_builddirs": {
-                "srpm-builds": ["00001", "00002"],
-                "fedora-rawhide-x86_64": ["00001-foo", "00002-baz"],
+                "fedora20": ["00001-foo"],
+                "epel7": ["00001-foo"],
             },
         })
 
@@ -326,7 +326,8 @@ class TestAction(object):
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
 
     @mock.patch("backend.actions.uses_devel_repo")
-    def test_delete_no_chroot_dirs(self, mc_devel, mc_time):
+    @mock.patch("backend.actions.call_copr_repo")
+    def test_delete_no_chroot_dirs(self, mc_call, mc_devel, mc_time):
         mc_devel.return_value = False
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
@@ -336,7 +337,8 @@ class TestAction(object):
         test_action = Action(
             opts=self.opts,
             action={
-                "id": 7,
+                "id": 1,
+                "object_id": 1,
                 "action_type": ActionType.DELETE,
                 "object_type": "build",
                 "data": self.ext_data_for_delete_build,
@@ -344,30 +346,29 @@ class TestAction(object):
 
         )
         result = test_action.run()
+        assert len(mc_call.call_args_list) == 0
         assert result.result == ActionResult.FAILURE
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_delete_build_succeeded(self, mc_createrepo, mc_time):
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_build_succeeded(self, mc_devel, mc_time):
+        mc_devel.return_value = False
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
-        mc_createrepo.return_value = (0, "", "")
-        # mc_createrepo.side_effect = IOError()
-
         tmp_dir = self.make_temp_dir()
 
-        chroot_1_dir = os.path.join(tmp_dir, "old_dir", "fedora20")
-        os.mkdir(chroot_1_dir)
-        foo_pkg_dir = os.path.join(chroot_1_dir, "foo")
-        os.mkdir(foo_pkg_dir)
-        chroot_2_dir = os.path.join(tmp_dir, "old_dir", "epel7")
-        os.mkdir(chroot_2_dir)
+        proj_dir = os.path.join(tmp_dir, "foo", "bar")
+        chroot_1_dir = os.path.join(proj_dir, "fedora20")
+        chroot_2_dir = os.path.join(proj_dir, "epel7")
+        foo_pkg_dir = os.path.join(chroot_1_dir, "00001-foo")
 
-        with open(os.path.join(chroot_1_dir, "foo", "foo.src.rpm"), "w") as fh:
+        os.makedirs(chroot_2_dir)
+        os.makedirs(foo_pkg_dir)
+
+        with open(os.path.join(foo_pkg_dir, "foo.src.rpm"), "w") as fh:
             fh.write("foo\n")
 
-        log_path = os.path.join(chroot_1_dir, "build-42.log")
+        log_path = os.path.join(chroot_1_dir, "build-{:08d}.log".format(42))
         with open(log_path, "w") as fh:
             fh.write(self.test_content)
 
@@ -382,7 +383,6 @@ class TestAction(object):
                 "data": self.ext_data_for_delete_build,
                 "object_id": 42
             },
-            frontend_client=mc_front_cb,
         )
 
         assert os.path.exists(foo_pkg_dir)
@@ -391,15 +391,6 @@ class TestAction(object):
         assert not os.path.exists(log_path)
         assert os.path.exists(chroot_1_dir)
         assert os.path.exists(chroot_2_dir)
-
-        create_repo_expected_call = mock.call(
-            username=u'foo',
-            projectname=u'bar',
-            base_url=u'http://example.com/results/foo/bar/fedora20',
-            path='{}/old_dir/fedora20'.format(self.tmp_dir_name),
-            front_url=None
-        )
-        assert mc_createrepo.call_args == create_repo_expected_call
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.createrepo")
@@ -634,6 +625,7 @@ class TestAction(object):
                     "fedora-20": ["01-foo", "02-foo"],
                 }
             },
+            "build_ids": ['01', '02'],
         })
 
         self.opts.destdir = tmp_dir

@@ -23,7 +23,7 @@ from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, cmd_debug, format_filename,
-                      uses_devel_repo, call_copr_repo)
+                      uses_devel_repo, call_copr_repo, build_chroot_log_name)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 from backend.worker_manager import WorkerManager
 
@@ -220,7 +220,7 @@ class Action(object):
                 result.result = ActionResult.FAILURE
 
     def _handle_delete_builds(self, ownername, projectname, project_dirname,
-                              chroot_builddirs):
+                              chroot_builddirs, build_ids):
         """ call /bin/copr-repo --delete """
         devel = uses_devel_repo(self.front_url, ownername, projectname)
         result = ActionResult.SUCCESS
@@ -231,8 +231,18 @@ class Action(object):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
                 result = ActionResult.FAILURE
                 continue
+
             if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
                 result = ActionResult.FAILURE
+
+            for build_id in build_ids or []:
+                log_path = os.path.join(chroot_path,
+                                        build_chroot_log_name(build_id))
+                try:
+                    os.unlink(log_path)
+                except OSError:
+                    self.log.exception("can't remove %s", log_path)
+
         return result
 
     def handle_delete_build(self):
@@ -248,12 +258,14 @@ class Action(object):
         ext_data = json.loads(self.data["data"])
 
         ownername = ext_data["ownername"]
+        build_ids = [self.data['object_id']]
         projectname = ext_data["projectname"]
         project_dirname = ext_data["project_dirname"]
         chroot_builddirs = ext_data["chroot_builddirs"]
 
         return self._handle_delete_builds(ownername, projectname,
-                                          project_dirname, chroot_builddirs)
+                                          project_dirname, chroot_builddirs,
+                                          build_ids)
 
     def handle_delete_multiple_builds(self):
         self.log.debug("Action delete multiple builds.")
@@ -271,12 +283,14 @@ class Action(object):
         ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
         project_dirnames = ext_data["project_dirnames"]
+        build_ids = ext_data["build_ids"]
 
         result = ActionResult.SUCCESS
         for project_dirname, chroot_builddirs in project_dirnames.items():
             if ActionResult.FAILURE == \
                self._handle_delete_builds(ownername, projectname,
-                                          project_dirname, chroot_builddirs):
+                                          project_dirname, chroot_builddirs,
+                                          build_ids):
                 result = ActionResult.FAILURE
         return result
 

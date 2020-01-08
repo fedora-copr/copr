@@ -1,6 +1,8 @@
 import copy
 import os
 
+from backend.helpers import build_target_dir, build_chroot_log_name
+
 
 class BuildJob(object):
     def __init__(self, task_data, worker_opts):
@@ -104,13 +106,11 @@ class BuildJob(object):
 
     @property
     def target_dir_name(self):
-        if not self.package_name:
-            return "{:08d}".format(self.build_id)
-        return "{:08d}-{}".format(self.build_id, self.package_name)
+        return build_target_dir(self.build_id, self.package_name)
 
     @property
     def chroot_log_name(self):
-        return "build-{:08d}.log".format(self.build_id)
+        return build_chroot_log_name(self.build_id, self.package_name)
 
     @property
     def chroot_log_path(self):

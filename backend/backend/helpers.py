@@ -567,3 +567,12 @@ def call_copr_repo(directory, devel=False, add=None, delete=None):
         cmd += ['--devel']
 
     return not subprocess.call(cmd)
+
+def build_target_dir(build_id, package_name=None):
+    build_id = int(build_id)
+    if not package_name:
+        return "{:08d}".format(build_id)
+    return "{:08d}-{}".format(build_id, package_name)
+
+def build_chroot_log_name(build_id, package_name=None):
+    return 'build-{}.log'.format(build_target_dir(build_id, package_name))

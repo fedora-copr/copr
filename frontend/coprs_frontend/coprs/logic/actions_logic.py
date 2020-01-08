@@ -165,8 +165,10 @@ class ActionsLogic(object):
         project_dirnames = {}
         data = {'project_dirnames': project_dirnames}
 
+        build_ids = []
         for build in builds:
             build_delete_data = cls.get_build_delete_data(build)
+            build_ids.append(build.id)
 
             # inherit some params from the first build
             for param in ['ownername', 'projectname']:
@@ -188,6 +190,9 @@ class ActionsLogic(object):
                 else:
                     project_dirname[chroot].extend(subdirs)
 
+        data['build_ids'] = build_ids
+
+        # not object_id here, we are working with multiple IDs
         action = models.Action(
             action_type=ActionTypeEnum("delete"),
             object_type="builds",
