@@ -12,7 +12,6 @@ RUN dnf -y update && \
                    which \
                    wget \
                    vim \
-                   supervisor \
 # builder packages
                    openssh-server \
                    packagedb-cli \
@@ -54,4 +53,4 @@ RUN cd /copr/rpmbuild && \
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
-CMD ["/bin/run.sh"]
+CMD ["/usr/sbin/sshd", "-D"]

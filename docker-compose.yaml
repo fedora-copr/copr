@@ -38,7 +38,6 @@ services:
       context: .
       dockerfile: docker/builder/Dockerfile
     hostname: builder
-    command: /bin/run.sh
     stdin_open: true
     tty: true
     privileged: true
