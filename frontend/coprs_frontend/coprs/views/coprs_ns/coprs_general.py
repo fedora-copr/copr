@@ -723,7 +723,6 @@ def process_legal_flag(copr):
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/<repofile>")
 @req_with_copr_dir
-@cache.memoize(timeout=5*60)
 def generate_repo_file(copr_dir, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
@@ -747,6 +746,7 @@ def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None):
                                  repo_id=repo_id, arch=arch, cost=cost) + "\n"
 
 
+@cache.memoize(timeout=5*60)
 def render_generate_repo_file(copr_dir, name_release, arch=None):
     copr = copr_dir.copr
 

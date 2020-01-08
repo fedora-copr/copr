@@ -703,7 +703,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
                                f_mock_chroots_many, f_custom_builds, f_db):
 
         r_non_ml_chroot = self.tc.get(
-            "/coprs/{0}/{1}/repo/fedora-18/some.repo&arch=x86_64".format(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
                 self.u1.name, self.c1.name))
 
         for f_version in range(19, 24):
@@ -711,12 +711,14 @@ class TestCoprRepoGeneration(CoprsTestCase):
                 # with disabled multilib there's no change between fedora repos,
                 # no matter what the version or architecture is
                 r_ml_chroot = self.tc.get(
-                    "/coprs/{0}/{1}/repo/fedora-{2}/some.repo&arch={3}".format(
+                    "/coprs/{0}/{1}/repo/fedora-{2}/some.repo?arch={3}".format(
                         self.u1.name, self.c1.name, f_version, arch))
                 assert r_ml_chroot.data == r_non_ml_chroot.data
 
         self.c1.multilib = True
         self.db.session.commit()
+
+        cache.clear() # f18 repofile is cached
 
         # The project is now multilib, but f18 chroot doesn't have i386
         # countepart in c1
@@ -737,6 +739,14 @@ class TestCoprRepoGeneration(CoprsTestCase):
                     self.u1.name, self.c1.name, f_version))
             assert r_ml_chroot.data == r_ml_first_chroot.data
             assert r_ml_chroot.data != r_non_ml_chroot.data
+
+            # and the non-ml variants need to match non-ml chroot f18
+            # (this also checks that we don't cache 'some.repo' requests with
+            # 'some.repo&arch=...')
+            r_non_ml_repofile = self.tc.get(
+                "/coprs/{0}/{1}/repo/fedora-{2}/some.repo".format(
+                    self.u1.name, self.c1.name, f_version))
+            assert r_non_ml_repofile.data == r_non_ml_chroot.data
 
         def parse_repofile(string):
             lines = string.split('\n')
