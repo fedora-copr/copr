@@ -245,7 +245,6 @@ system regardless of the project settings, those repofile can e.g. look like::
     baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/
     skip_if_unavailable=True
     gpgcheck=0
-    cost=900
     enabled=1
 
     [copr:copr.fedorainfracloud.org:rhughes:gnome-3-12:ml]
@@ -253,7 +252,7 @@ system regardless of the project settings, those repofile can e.g. look like::
     baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-i386/
     skip_if_unavailable=True
     gpgcheck=0
-    cost=800
+    cost=1100
     enabled=1
 
 Status Badges

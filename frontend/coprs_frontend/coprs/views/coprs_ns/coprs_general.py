@@ -732,7 +732,7 @@ def generate_repo_file(copr_dir, name_release, repofile):
     return render_generate_repo_file(copr_dir, name_release, arch)
 
 
-def render_repo_template(copr_dir, mock_chroot, arch=None):
+def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None):
     repo_id = "copr:{0}:{1}:{2}{3}".format(
         app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
         copr_dir.copr.owner_name.replace("@", "group_"),
@@ -744,7 +744,7 @@ def render_repo_template(copr_dir, mock_chroot, arch=None):
     pubkey_url = urljoin(url, "pubkey.gpg")
     return flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir,
                                  url=repo_url, pubkey_url=pubkey_url,
-                                 repo_id=repo_id, arch=arch) + "\n"
+                                 repo_id=repo_id, arch=arch, cost=cost) + "\n"
 
 
 def render_generate_repo_file(copr_dir, name_release, arch=None):
@@ -767,14 +767,21 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
         raise ObjectNotFound("Chroot {} does not exist in {}".format(
             searched_chroot, copr.full_name))
 
+    # append multilib counterpart repo only upon explicit request (ach != None),
+    # and only if the chroot actually is multilib capable
+    multilib_on = (arch and
+                   copr.multilib and
+                   mock_chroot in copr.active_multilib_chroots)
+
     # normal, arch agnostic repofile
     response_content = render_repo_template(copr_dir, mock_chroot)
 
-    # append multilib counterpart repo only upon explicit request (ach != None),
-    # and only if the chroot actually is multilib capable
-    copr = copr_dir.copr
-    if arch and copr.multilib and mock_chroot in copr.active_multilib_chroots:
-        response_content += "\n" + render_repo_template(copr_dir, mock_chroot, 'i386')
+    if multilib_on:
+        # slightly lower cost than the default dnf cost=1000
+        response_content += "\n" + render_repo_template(
+            copr_dir, mock_chroot,
+            models.MockChroot.multilib_pairs[mock_chroot.arch],
+            cost=1100)
 
     response = flask.make_response(response_content)
 

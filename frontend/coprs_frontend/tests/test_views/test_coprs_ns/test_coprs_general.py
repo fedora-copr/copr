@@ -748,20 +748,24 @@ class TestCoprRepoGeneration(CoprsTestCase):
                 get_params('baseurl', lines),
                 get_params('gpgkey', lines),
                 get_params('name', lines),
+                get_params('cost', lines),
             )
 
         non_ml_repofile = r_non_ml_chroot.data.decode('utf-8')
         ml_repofile = r_ml_first_chroot.data.decode('utf-8')
 
-        repoids, baseurls, gpgkeys, _ = parse_repofile(non_ml_repofile)
+        repoids, baseurls, gpgkeys, _, costs = parse_repofile(non_ml_repofile)
         assert len(repoids) == len(baseurls) == len(gpgkeys) == 1
+        assert len(costs) == 0
 
         normal_gpgkey = gpgkeys[0]
         normal_repoid = repoids[0]
         normal_baseurl = baseurls[0]
 
-        repoids, baseurls, gpgkeys, names = parse_repofile(ml_repofile)
+        repoids, baseurls, gpgkeys, names, costs = parse_repofile(ml_repofile)
         assert len(repoids) == len(baseurls) == len(gpgkeys) == 2
+        assert len(costs) == 1
+        assert costs[0] == '1100'
 
         assert normal_repoid == repoids[0]
         assert normal_repoid + ':ml' == repoids[1]

@@ -7,6 +7,9 @@ skip_if_unavailable=True
 gpgcheck={{ config.REPO_GPGCHECK | default("1")}}
 gpgkey={{ pubkey_url | fix_url_https_backend  }}
 repo_gpgcheck=0
+{% if cost %}
+cost={{ cost }}
+{% endif %}
 enabled=1
 enabled_metadata=1
 {% if copr_dir.copr.module_hotfixes %}
