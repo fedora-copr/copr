@@ -744,7 +744,7 @@ def render_repo_template(copr_dir, mock_chroot, arch=None):
     pubkey_url = urljoin(url, "pubkey.gpg")
     return flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir,
                                  url=repo_url, pubkey_url=pubkey_url,
-                                 repo_id=repo_id) + "\n"
+                                 repo_id=repo_id, arch=arch) + "\n"
 
 
 def render_generate_repo_file(copr_dir, name_release, arch=None):

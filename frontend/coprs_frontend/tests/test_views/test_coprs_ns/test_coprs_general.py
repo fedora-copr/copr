@@ -740,26 +740,34 @@ class TestCoprRepoGeneration(CoprsTestCase):
 
         def parse_repofile(string):
             lines = string.split('\n')
-            repoids = [x.strip('[]') for x in lines if re.match(r'^\[.*\]$', x)]
-            baseurls = [x.split('=')[1] for x in lines if re.match(r'^baseurl=.*', x)]
-            gpgkeys = [x.split('=')[1] for x in lines if re.match(r'^gpgkey=.*', x)]
-            return repoids, baseurls, gpgkeys
+            def get_params(name, lines):
+                return [x.split('=')[1] for x in lines
+                        if re.match(r'^{}=.*'.format(name), x)]
+            return (
+                [x.strip('[]') for x in lines if re.match(r'^\[.*\]$', x)],
+                get_params('baseurl', lines),
+                get_params('gpgkey', lines),
+                get_params('name', lines),
+            )
 
         non_ml_repofile = r_non_ml_chroot.data.decode('utf-8')
         ml_repofile = r_ml_first_chroot.data.decode('utf-8')
 
-        repoids, baseurls, gpgkeys = parse_repofile(non_ml_repofile)
+        repoids, baseurls, gpgkeys, _ = parse_repofile(non_ml_repofile)
         assert len(repoids) == len(baseurls) == len(gpgkeys) == 1
 
         normal_gpgkey = gpgkeys[0]
         normal_repoid = repoids[0]
         normal_baseurl = baseurls[0]
 
-        repoids, baseurls, gpgkeys = parse_repofile(ml_repofile)
+        repoids, baseurls, gpgkeys, names = parse_repofile(ml_repofile)
         assert len(repoids) == len(baseurls) == len(gpgkeys) == 2
 
         assert normal_repoid == repoids[0]
         assert normal_repoid + ':ml' == repoids[1]
+        assert 'x86_64' not in names[0]
+        assert '(i386)' not in names[0]
+        assert '(i386)' in names[1]
         assert gpgkeys[0] == gpgkeys[1] == normal_gpgkey
         assert normal_baseurl == baseurls[0]
         assert normal_baseurl.rsplit('-', 1)[0] == baseurls[1].rsplit('-', 1)[0]
