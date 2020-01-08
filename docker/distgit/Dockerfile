@@ -40,13 +40,7 @@ RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
     echo " name = Copr dist git" >> /home/copr-dist-git/.gitconfig && \
     chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig
 
-RUN echo "AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside\\$1\\$2\"" >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
-    echo "Alias /repo/ /var/lib/dist-git/cache/lookaside/" >>  /etc/httpd/conf.d/dist-git/lookaside-copr.conf
-
 RUN sed -i "s/^cache-size.*//" /etc/cgitrc
-
 RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
-
-RUN rm /etc/httpd/conf.d/ssl.conf
 
 CMD ["/bin/run.sh"]

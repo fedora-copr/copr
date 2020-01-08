@@ -84,10 +84,22 @@ services:
     command: /bin/run.sh
     stdin_open: true
     tty: true
+    volumes:
+      - .:/opt/copr:z
+      - dist-git:/var/lib/dist-git
+
+  distgit-httpd:
+    build:
+      context: .
+      dockerfile: docker/distgit-httpd/Dockerfile
+    hostname: distgit-httpd
+    stdin_open: true
+    tty: true
     ports:
       - "5001:80"
     volumes:
       - .:/opt/copr:z
+      - dist-git:/var/lib/dist-git
 
   keygen-signd:
     build:
@@ -114,3 +126,4 @@ services:
 volumes:
   results:
   copr-keygen:
+  dist-git:
