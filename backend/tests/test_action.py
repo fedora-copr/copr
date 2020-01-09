@@ -85,6 +85,9 @@ class TestAction(object):
         os.mkdir(self.tmp_dir_name)
         os.mkdir(os.path.join(self.tmp_dir_name, "old_dir"))
 
+        self.test_project_dir = os.path.join(self.tmp_dir_name, "foo", "bar")
+        os.makedirs(self.test_project_dir)
+
         self.test_content = "time: {}\n".format(self.test_time)
 
         return self.tmp_dir_name
@@ -97,7 +100,7 @@ class TestAction(object):
                                 "_resources", resource_name)
 
         with tarfile.open(src_path, "r:gz") as tfile:
-            tfile.extractall(os.path.join(self.tmp_dir_name, "old_dir"))
+            tfile.extractall(self.test_project_dir)
 
     def test_action_run_legal_flag(self, mc_time):
         mc_time.time.return_value = self.test_time
@@ -558,23 +561,19 @@ class TestAction(object):
         assert os.path.isdir(os.path.join(chroot_20_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
         assert os.path.isdir(os.path.join(chroot_21_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_delete_build_with_bad_pkg_name(self, mc_createrepo, mc_time):
+    def test_delete_build_with_bad_pkg_name(self, mc_time):
         """
-        regression: https://bugzilla.redhat.com/show_bug.cgi?id=1203753
-
+        Originally written for regression:
+        https://bugzilla.redhat.com/show_bug.cgi?id=1203753
+        But we nowadays donjt send src_pkg_name at all.
         """
         mc_time.time.return_value = self.test_time
 
-        resource_name = "1171796_doubled.tar.gz"
-        self.unpack_resource(resource_name)
+        self.unpack_resource("1171796_doubled.tar.gz")
 
-        chroot_20_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-x86_64")
-        chroot_21_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-x86_64")
+        chroot_20_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-20-x86_64")
+        chroot_21_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-21-x86_64")
 
-        mc_createrepo.return_value = 0, STDOUT, ""
-        mc_front_cb = MagicMock()
         self.opts.destdir = self.tmp_dir_name
         test_action = Action(
             opts=self.opts,
@@ -586,17 +585,19 @@ class TestAction(object):
                 "old_value": "old_dir",
                 "data": json.dumps({
                     "src_pkg_name": "",
-                    "username": "foo",
+                    "ownername": "foo",
                     "projectname": "bar",
+                    "project_dirname": "bar",
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
                 }),
             },
-            frontend_client=mc_front_cb,
         )
 
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
-        test_action.run()
+        result = test_action.run()
+        assert result.result == ActionResult.FAILURE
+
         # shouldn't touch chroot dirs
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)

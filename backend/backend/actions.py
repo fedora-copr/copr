@@ -257,11 +257,15 @@ class Action(object):
         #   fedora-30-x86_64: [00849545-example]
         ext_data = json.loads(self.data["data"])
 
-        ownername = ext_data["ownername"]
-        build_ids = [self.data['object_id']]
-        projectname = ext_data["projectname"]
-        project_dirname = ext_data["project_dirname"]
-        chroot_builddirs = ext_data["chroot_builddirs"]
+        try:
+            ownername = ext_data["ownername"]
+            build_ids = [self.data['object_id']]
+            projectname = ext_data["projectname"]
+            project_dirname = ext_data["project_dirname"]
+            chroot_builddirs = ext_data["chroot_builddirs"]
+        except KeyError:
+            self.log.exception("Invalid action data")
+            return ActionResult.FAILURE
 
         return self._handle_delete_builds(ownername, projectname,
                                           project_dirname, chroot_builddirs,
