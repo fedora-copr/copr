@@ -83,10 +83,13 @@ class TestAction(object):
         self.tmp_dir_name = os.path.join(root_tmp_dir, subdir)
 
         os.mkdir(self.tmp_dir_name)
-        os.mkdir(os.path.join(self.tmp_dir_name, "old_dir"))
 
         self.test_project_dir = os.path.join(self.tmp_dir_name, "foo", "bar")
         os.makedirs(self.test_project_dir)
+
+        # nothing should ever delete these
+        os.mkdir(os.path.join(self.tmp_dir_name, "foo", "old_dir"))
+        os.mkdir(os.path.join(self.tmp_dir_name, "old_dir"))
 
         self.test_content = "time: {}\n".format(self.test_time)
 
@@ -275,13 +278,9 @@ class TestAction(object):
         assert os.path.exists(os.path.join(tmp_dir, "new_dir"))
         assert not os.path.exists(os.path.join(tmp_dir, "new_dir", "foobar.txt"))
 
-    @unittest.skip("Fixme, test doesn't work.")
     def test_action_run_delete_copr(self, mc_time):
-        mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
-
         tmp_dir = self.make_temp_dir()
-        self.opts.destdir = os.path.join(tmp_dir, "dir-not-exists")
+        self.opts.destdir = tmp_dir
 
         test_action = Action(
             opts=self.opts,
@@ -289,18 +288,19 @@ class TestAction(object):
                 "action_type": ActionType.DELETE,
                 "object_type": "copr",
                 "id": 6,
-                "old_value": "old_dir",
+                # baz doesn't exist
+                "data": json.dumps({
+                    "ownername": "foo",
+                    "project_dirnames": ["bar", "baz"],
+                }),
             },
-            frontend_client=mc_front_cb,
         )
-        test_action.run()
 
-        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
-        assert result_dict["id"] == 6
-        assert result_dict["result"] == ActionResult.SUCCESS
-        assert result_dict["job_ended_on"] == self.test_time
-
+        assert os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
+        assert not os.path.exists(os.path.join(tmp_dir, "foo", "baz"))
+        assert test_action.run().result == ActionResult.SUCCESS
         assert os.path.exists(os.path.join(tmp_dir, "old_dir"))
+        assert not os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
 
     @unittest.skip("Fixme, test doesn't work.")
     def test_action_run_delete_copr_remove_folders(self, mc_time):
