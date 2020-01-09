@@ -4,6 +4,7 @@
 import os
 import sys
 import copy
+from functools import wraps
 import pipes
 import importlib
 import click
@@ -83,8 +84,21 @@ commands_list =	[
     "delete_orphans",
 ]
 
+
+def always_exit(function):
+    """
+    Decorate click command function so it always exits, so each 'return STATUS'
+    is actually propagated to shell.
+    """
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        sys.exit(bool(function(*args, **kwargs)))
+    return wrapper
+
+
 for command in commands_list:
     cmd_obj = getattr(getattr(commands, command), command)
+    cmd_obj.callback = always_exit(cmd_obj.callback)
 
     # Add underscored commands, e.g. 'add_user' for 'add-user' for compatibility
     # reasons.  TODO: we can drop this once we have the deployment scripts fixed
