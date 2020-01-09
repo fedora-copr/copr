@@ -11,7 +11,7 @@ from alembic import op
 
 
 revision = 'd230af5e05d8'
-down_revision = '4ed794df3bbb'
+down_revision = 'a8ef299dcac8'
 
 def upgrade():
     query_functions = """
