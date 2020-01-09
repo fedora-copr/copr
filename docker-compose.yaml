@@ -69,9 +69,12 @@ services:
       context: .
       dockerfile: docker/database/Dockerfile
     hostname: database
-    command: /bin/run.sh
     stdin_open: true
     tty: true
+    environment:
+      - POSTGRESQL_USER=copr-fe
+      - POSTGRESQL_PASSWORD=coprpass
+      - POSTGRESQL_DATABASE=coprdb
     ports:
       - 5432:5432
 
