@@ -395,25 +395,23 @@ class TestAction(object):
         assert os.path.exists(chroot_1_dir)
         assert os.path.exists(chroot_2_dir)
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_delete_build_succeeded_createrepo_error(self, mc_createrepo, mc_time):
+    @mock.patch("backend.actions.call_copr_repo")
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_build_succeeded_createrepo_error(self, mc_devel,
+                                                     mc_call_repo, mc_time):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
-        mc_createrepo.return_value = (1, "", "Create repo failed")
-        # mc_createrepo.side_effect = IOError()
-
+        mc_call_repo.return_value = 0
         tmp_dir = self.make_temp_dir()
 
-        chroot_1_dir = os.path.join(tmp_dir, "old_dir", "fedora20")
-        os.mkdir(chroot_1_dir)
+        chroot_1_dir = os.path.join(tmp_dir, "foo", "bar", "fedora20")
         foo_pkg_dir = os.path.join(chroot_1_dir, "foo")
-        os.mkdir(foo_pkg_dir)
-        chroot_2_dir = os.path.join(tmp_dir, "old_dir", "epel7")
+        os.makedirs(foo_pkg_dir)
+        chroot_2_dir = os.path.join(tmp_dir, "foo", "bar", "epel7")
         os.mkdir(chroot_2_dir)
 
-        with open(os.path.join(chroot_1_dir, "foo", "foo.src.rpm"), "w") as fh:
+        with open(os.path.join(foo_pkg_dir, "foo.src.rpm"), "w") as fh:
             fh.write("foo\n")
 
         self.opts.destdir = tmp_dir
@@ -427,10 +425,9 @@ class TestAction(object):
                 "data": self.ext_data_for_delete_build,
                 "object_id": 42,
             },
-            frontend_client=mc_front_cb,
         )
-
-        test_action.run()
+        # just fail
+        assert test_action.run().result == ActionResult.FAILURE
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.createrepo")
