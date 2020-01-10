@@ -1023,12 +1023,6 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def status(self):
-        if getattr(self, '_cached_status_set') is None:
-            self._cached_status = self._status()
-            self._cached_status_set = True
-        return self._cached_status
-
-    def _status(self):
         """
         Return build status.
         """

@@ -317,7 +317,9 @@ class TestUpdateActions(CoprsTestCase):
   ]
 }"""
 
-    def test_update_one_action(self, f_users, f_coprs, f_actions, f_db):
+    @mock.patch('coprs.logic.actions_logic.time.time')
+    def test_update_one_action(self, mc_time, f_users, f_coprs, f_actions, f_db):
+        mc_time.return_value = 1390866440
         r = self.tc.post("/backend/update/",
                          content_type="application/json",
                          headers=self.auth_header,
