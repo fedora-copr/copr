@@ -1,10 +1,14 @@
 import os
 import json
+import glob
 import tempfile
 import shutil
 import time
 import tarfile
+import gzip
+import subprocess
 from munch import Munch
+from xml.dom import minidom
 
 import pytest
 
@@ -72,6 +76,30 @@ class TestAction(object):
         shutil.rmtree(self.lockpath)
         self.os_env_patcher.stop()
 
+    def load_primary_xml(self, dirname):
+        packages = {}
+        hrefs = set()
+        names = set()
+        primary = glob.glob(os.path.join(dirname, '*primary*xml*'))[0]
+        with gzip.open(primary) as fprimary:
+            xml_content = fprimary.read()
+
+        dom = minidom.parseString(xml_content)
+
+        for d_package in dom.getElementsByTagName('package'):
+            name = d_package.getElementsByTagName('name')[0].firstChild.nodeValue
+            names.add(name)
+            packages[name] = {'name': name}
+            package = packages[name]
+            package['href'] = d_package.getElementsByTagName('location')[0].getAttribute('href')
+            hrefs.add(package['href'])
+
+        return {
+            'packages': packages,
+            'hrefs': hrefs,
+            'names': names,
+        }
+
     def rm_tmp_dir(self):
         if self.tmp_dir_name:
             shutil.rmtree(self.tmp_dir_name)
@@ -102,8 +130,21 @@ class TestAction(object):
         src_path = os.path.join(os.path.dirname(__file__),
                                 "_resources", resource_name)
 
+        extract_to = self.test_project_dir
+
         with tarfile.open(src_path, "r:gz") as tfile:
             tfile.extractall(self.test_project_dir)
+
+        if resource_name == "testresults.tar.gz":
+            # This tar.gz is inconsistently generated, but changing it would
+            # only waste the git repo size.  NOTE! If you ever have to touch
+            # this tarball, start distributing that tarball as separate
+            # file/project and use it as Source1: in the spec file.
+            testresults = os.path.join(self.test_project_dir, 'testresults')
+            for subdir in os.listdir(testresults):
+                shutil.move(os.path.join(testresults, subdir),
+                            os.path.join(self.tmp_dir_name, subdir))
+            self.test_project_dir = os.path.join(self.tmp_dir_name, '@copr', 'prunerepo')
 
     def test_action_run_legal_flag(self, mc_time):
         mc_time.time.return_value = self.test_time
@@ -389,11 +430,72 @@ class TestAction(object):
         )
 
         assert os.path.exists(foo_pkg_dir)
-        test_action.run()
+        assert test_action.run().result == ActionResult.SUCCESS
         assert not os.path.exists(foo_pkg_dir)
         assert not os.path.exists(log_path)
         assert os.path.exists(chroot_1_dir)
         assert os.path.exists(chroot_2_dir)
+
+    @pytest.mark.parametrize('devel', [False, True])
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_build_acr_reflected(self, mc_devel, mc_time, devel):
+        """
+        When build is deleted, we want to remove it from both devel and normal
+        (production) repodata
+        """
+        mc_devel.return_value = devel
+        self.unpack_resource("testresults.tar.gz")
+
+        chroot = os.path.join(self.test_project_dir, 'fedora-23-x86_64')
+        repodata = os.path.join(chroot, 'repodata')
+        devel_dir = os.path.join(chroot, 'devel')
+        repodata_devel = os.path.join(devel_dir, 'repodata')
+        builddir1 = '00000041-prunerepo'
+        builddir2 = '00000049-example'
+        assert os.path.exists(chroot)
+        assert not os.path.exists(devel_dir)
+
+        # create repodata under 'devel'
+        assert 0 == subprocess.call(['copr-repo', chroot, '--devel'])
+
+        old_primary = self.load_primary_xml(repodata)
+        old_primary_devel = self.load_primary_xml(repodata_devel)
+        assert len(old_primary['names']) == 3 # noarch vs. src
+        assert len(old_primary['hrefs']) == 5
+        assert old_primary == old_primary_devel
+
+        self.opts.destdir = self.tmp_dir_name
+
+        test_action = Action(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "build",
+                "id": 7,
+                "object_id": 49,
+                "old_value": "old_dir",
+                "data": json.dumps({
+                    "ownername": "@copr",
+                    "projectname": "prunerepo",
+                    "project_dirname": "prunerepo",
+                    "chroot_builddirs": {
+                        "fedora-23-x86_64": ["00000049-example"],
+                    },
+                }),
+            },
+        )
+
+        assert test_action.run().result == ActionResult.SUCCESS
+
+        new_primary = self.load_primary_xml(repodata)
+        new_primary_devel = self.load_primary_xml(repodata_devel)
+
+        if devel:
+            assert new_primary_devel['names'] == set(['prunerepo'])
+            assert len(new_primary['names']) == 3
+        else:
+            assert new_primary['names'] == set(['prunerepo'])
+            assert len(new_primary_devel['names']) == 3
 
     @mock.patch("backend.actions.call_copr_repo")
     @mock.patch("backend.actions.uses_devel_repo")

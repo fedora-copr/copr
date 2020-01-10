@@ -114,8 +114,17 @@ def run_createrepo(opts):
         createrepo_cmd += ['--pkglist', filelist]
 
     if opts.devel:
-        createrepo_cmd += ['--outputdir', os.path.join(opts.directory, 'devel')]
+        # createrepo_c doesn't create --outputdir itself
+        outputdir = os.path.join(opts.directory, 'devel')
+        try:
+            os.mkdir(outputdir)
+        except FileExistsError:
+            pass
+        createrepo_cmd += ['--outputdir', outputdir]
 
+        # TODO: With --devel, we should check that all removed packages isn't
+        # referenced by the main repository.  If it does, we should delete those
+        # entries from main repo as well.
     try:
         run_cmd(createrepo_cmd, opts)
     finally:
