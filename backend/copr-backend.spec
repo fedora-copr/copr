@@ -18,6 +18,7 @@ Source0:    %name-%version.tar.gz
 BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: createrepo_c
+BuildRequires: libappstream-glib-builder
 BuildRequires: libmodulemd < 2
 BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: libxslt

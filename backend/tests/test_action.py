@@ -654,19 +654,25 @@ class TestAction(object):
         assert os.path.exists(chroot_dir)
         assert os.path.exists(pkg_build_3_dir)
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_handle_createrepo_ok(self, mc_createrepo, mc_time):
-        mc_front_cb = MagicMock()
+    # We want to test that ACR flag doesn't make any difference here, explicit
+    # createrepo always works with non-devel directory.
+    @pytest.mark.parametrize('devel', [False, True])
+    @mock.patch("backend.actions.subprocess.call")
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_handle_createrepo_ok(self, mc_devel, mc_sp_call, mc_time, devel):
+        mc_sp_call.return_value = 0 # exit_status=0
+        mc_devel.return_value = devel
+
         tmp_dir = self.make_temp_dir()
-        mc_createrepo.return_value = 0, STDOUT, ""
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
-            "username": "foo",
-            "projectname": "bar"
+            "ownername": "foo",
+            "projectname": "bar",
+            "project_dirnames": ["bar"]
         })
-        self.opts.destdir=tmp_dir
+        self.opts.destdir = tmp_dir
+
         test_action = Action(
             opts=self.opts,
             action={
@@ -674,37 +680,28 @@ class TestAction(object):
                 "data": action_data,
                 "id": 8
             },
-            frontend_client=mc_front_cb,
         )
-        test_action.run()
+        assert test_action.run().result == ActionResult.SUCCESS
 
-        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+        for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
+            cmd = ['copr-repo',
+                   os.path.join(self.test_project_dir, chroot)]
+            exp_call = mock.call(cmd)
+            assert exp_call in mc_sp_call.call_args_list
 
-        assert result_dict["id"] == 8
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert len(mc_sp_call.call_args_list) == 2
 
-        exp_call_1 = mock.call(path=tmp_dir + u'/foo/bar/epel-6-i386',
-                               front_url=self.opts.frontend_base_url, override_acr_flag=True,
-                               username=u"foo", projectname=u"bar")
-        exp_call_2 = mock.call(path=tmp_dir + u'/foo/bar/fedora-20-x86_64',
-                               front_url=self.opts.frontend_base_url, override_acr_flag=True,
-                               username=u"foo", projectname=u"bar")
-        assert exp_call_1 in mc_createrepo.call_args_list
-        assert exp_call_2 in mc_createrepo.call_args_list
-        assert len(mc_createrepo.call_args_list) == 2
-
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_handle_createrepo_failure_1(self, mc_createrepo, mc_time):
-        mc_front_cb = MagicMock()
+    @mock.patch("backend.actions.call_copr_repo")
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_handle_createrepo_failure_1(self, mc_devel, mc_call, mc_time):
         tmp_dir = self.make_temp_dir()
-        mc_createrepo.side_effect = CreateRepoError("test exception", ["foo", "bar"], 1)
-        # return_value = 1, STDOUT, ""
+        mc_call.return_value = 0 # failure
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
-            "username": "foo",
-            "projectname": "bar"
+            "ownername": "foo",
+            "projectname": "bar",
+            "project_dirnames": ["bar"]
         })
         self.opts.destdir = tmp_dir
         test_action = Action(
@@ -714,46 +711,8 @@ class TestAction(object):
                 "data": action_data,
                 "id": 9
             },
-            frontend_client=mc_front_cb,
         )
-        test_action.run()
-
-        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
-
-        assert result_dict["id"] == 9
-        assert result_dict["result"] == ActionResult.FAILURE
-
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_handle_createrepo_failure_3(self, mc_createrepo, mc_time):
-        mc_front_cb = MagicMock()
-        tmp_dir = self.make_temp_dir()
-        mc_createrepo.side_effect = [
-            STDOUT,
-            CreateRepoError("test exception", ["foo", "bar"], 1),
-        ]
-
-        action_data = json.dumps({
-            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
-            "username": "foo",
-            "projectname": "bar"
-        })
-        self.opts.destdir = tmp_dir
-        test_action = Action(
-            opts=self.opts,
-            action={
-                "action_type": ActionType.CREATEREPO,
-                "data": action_data,
-                "id": 10
-            },
-            frontend_client=mc_front_cb,
-        )
-        test_action.run()
-
-        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
-
-        assert result_dict["id"] == 10
-        assert result_dict["result"] == ActionResult.FAILURE
+        assert test_action.run().result == ActionResult.FAILURE
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.create_user_keys")
