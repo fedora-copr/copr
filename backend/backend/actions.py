@@ -236,12 +236,16 @@ class Action(object):
                 result = ActionResult.FAILURE
 
             for build_id in build_ids or []:
-                log_path = os.path.join(chroot_path,
-                                        build_chroot_log_name(build_id))
-                try:
-                    os.unlink(log_path)
-                except OSError:
-                    self.log.exception("can't remove %s", log_path)
+                log_paths = [
+                    os.path.join(chroot_path, build_chroot_log_name(build_id)),
+                    # we used to create those before
+                    os.path.join(chroot_path, 'build-{}.rsync.log'.format(build_id)),
+                    os.path.join(chroot_path, 'build-{}.log'.format(build_id))]
+                for log_path in log_paths:
+                    try:
+                        os.unlink(log_path)
+                    except OSError:
+                        self.log.debug("can't remove %s", log_path)
 
         return result
 

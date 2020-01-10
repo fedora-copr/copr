@@ -429,23 +429,27 @@ class TestAction(object):
         # just fail
         assert test_action.run().result == ActionResult.FAILURE
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_delete_two_chroots(self, mc_createrepo, mc_time):
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_two_chroots(self, mc_devel, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
-
         """
-        mc_createrepo.return_value = 0, STDOUT, ""
+        mc_devel.return_value = 0
+        self.unpack_resource("1171796.tar.gz")
 
-        resource_name = "1171796.tar.gz"
-        self.unpack_resource(resource_name)
-
-        chroot_20_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-x86_64")
-        chroot_21_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-x86_64")
+        chroot_20_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-20-x86_64")
+        chroot_21_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-21-x86_64")
 
         assert os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
+
+        for path in [chroot_20_path, chroot_21_path]:
+            # the 1171796 tarball above contains too old directory structure,
+            # for some time we prefix the ID with zeroes.  So create another
+            # (newer variant of) log file and check that both logs would be
+            # potentially removed.
+            shutil.copy(os.path.join(path, "build-15.log"),
+                        os.path.join(path, "build-00000015.log"))
 
         assert os.path.exists(os.path.join(chroot_20_path, "build-15.rsync.log"))
         assert os.path.exists(os.path.join(chroot_21_path, "build-15.rsync.log"))
@@ -454,7 +458,6 @@ class TestAction(object):
         assert os.path.isdir(os.path.join(chroot_21_path, "rubygem-log4r-1.1.10-2.fc21"))
 
         mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
 
         self.opts.destdir = self.tmp_dir_name
         test_action = Action(
@@ -466,16 +469,20 @@ class TestAction(object):
                 "id": 15,
                 "old_value": "old_dir",
                 "data": json.dumps({
-                    "src_pkg_name": "rubygem-log4r-1.1.10-2.fc21",
-                    "username": "foo",
+                    "ownername": "foo",
                     "projectname": "bar",
-                    "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
+                    "project_dirname": "bar",
+                    "chroot_builddirs": {
+                        "fedora-20-x86_64": ["rubygem-log4r-1.1.10-2.fc21"],
+                        "fedora-21-x86_64": ["rubygem-log4r-1.1.10-2.fc21"],
+                    }
                 }),
             },
-            frontend_client=mc_front_cb,
         )
-        test_action.run()
+        assert test_action.run().result == ActionResult.SUCCESS
 
+        assert not os.path.exists(os.path.join(chroot_20_path, "build-00000015.log"))
+        assert not os.path.exists(os.path.join(chroot_21_path, "build-00000015.log"))
         assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
 
@@ -488,22 +495,21 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.createrepo")
-    def test_delete_two_chroots_two_remains(self, mc_createrepo, mc_time):
+    @mock.patch("backend.actions.uses_devel_repo")
+    def test_delete_two_chroots_two_remain(self, mc_devel, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
         extended: we also put two more chroots, which should be unaffected
         """
-        mc_createrepo.return_value = 0, STDOUT, ""
+        mc_devel.return_value = 0
+        self.unpack_resource("1171796_doubled.tar.gz")
 
-        resource_name = "1171796_doubled.tar.gz"
-        self.unpack_resource(resource_name)
+        subdir = os.path.join(self.tmp_dir_name, "foo", "bar")
 
-        chroot_20_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-x86_64")
-        chroot_21_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-x86_64")
-        chroot_20_i386_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-i386")
-        chroot_21_i386_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-i386")
+        chroot_20_path = os.path.join(subdir, "fedora-20-x86_64")
+        chroot_21_path = os.path.join(subdir, "fedora-21-x86_64")
+        chroot_20_i386_path = os.path.join(subdir, "fedora-20-i386")
+        chroot_21_i386_path = os.path.join(subdir, "fedora-21-i386")
 
         assert os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
@@ -521,7 +527,6 @@ class TestAction(object):
         assert os.path.isdir(os.path.join(chroot_21_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
 
         mc_time.time.return_value = self.test_time
-        mc_front_cb = MagicMock()
 
         self.opts.destdir = self.tmp_dir_name
         test_action = Action(
@@ -533,15 +538,19 @@ class TestAction(object):
                 "id": 15,
                 "old_value": "old_dir",
                 "data": json.dumps({
-                    "src_pkg_name": "rubygem-log4r-1.1.10-2.fc21",
-                    "username": "foo",
+                    "ownername": "foo",
                     "projectname": "bar",
-                    "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
+                    "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"],
+                    "project_dirname": "bar",
+                    "chroot_builddirs": {
+                        "fedora-20-x86_64": ["rubygem-log4r-1.1.10-2.fc21"],
+                        "fedora-21-x86_64": ["rubygem-log4r-1.1.10-2.fc21"],
+                    }
                 }),
             },
-            frontend_client=mc_front_cb
         )
-        test_action.run()
+
+        assert test_action.run().result == ActionResult.SUCCESS
 
         assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
