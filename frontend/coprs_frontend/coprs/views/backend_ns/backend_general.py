@@ -5,13 +5,12 @@ from copr_common.enums import StatusEnum
 from coprs import db, app
 from coprs import helpers
 from coprs import models
-from coprs import exceptions
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.coprs_logic import MockChrootsLogic
-from coprs.exceptions import MalformedArgumentException
+from coprs.exceptions import MalformedArgumentException, ObjectNotFound
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
@@ -218,7 +217,7 @@ def pending_jobs():
 def get_build_task(task_id):
     try:
         task = BuildsLogic.get_build_task(task_id)
-    except exceptions.MalformedArgumentException:
+    except MalformedArgumentException:
         jsonout = flask.jsonify({'msg': 'Invalid task ID'})
         jsonout.status_code = 500
         return jsonout
