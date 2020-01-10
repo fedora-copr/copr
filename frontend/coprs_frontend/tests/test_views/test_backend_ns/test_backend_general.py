@@ -1,5 +1,7 @@
 import json
 
+from unittest import mock
+
 from copr_common.enums import BackendResultEnum, StatusEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.builds_logic import BuildsLogic
@@ -300,20 +302,17 @@ class TestUpdateActions(CoprsTestCase):
     {
       "id": 1,
       "result": 1,
-      "message": null,
-      "ended_on": 1390866440
+      "message": null
     },
     {
       "id": 2,
       "result": 2,
-      "message": "problem!",
-      "ended_on": 1390866440
+      "message": "problem!"
     },
     {
       "id": 100,
       "result": 123,
-      "message": "wheeeee!",
-      "ended_on": 1390866440
+      "message": "wheeeee!"
     }
   ]
 }"""
@@ -332,9 +331,12 @@ class TestUpdateActions(CoprsTestCase):
         assert updated.message == "no problem"
         assert updated.ended_on == 1390866440
 
-    def test_update_more_existent_and_non_existent_actions(self, f_users,
-                                                          f_coprs, f_actions,
-                                                          f_db):
+
+    @mock.patch('coprs.logic.actions_logic.time.time')
+    def test_update_more_existent_and_non_existent_actions(self, mc_time, f_users,
+                                                           f_coprs, f_actions,
+                                                           f_db):
+        mc_time.return_value = 1390866440
         r = self.tc.post("/backend/update/",
                          content_type="application/json",
                          headers=self.auth_header,

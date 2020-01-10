@@ -69,8 +69,9 @@ class ActionsLogic(object):
             if value:
                 setattr(action, attr, value)
 
-            if attr == "result" and value in [BackendResultEnum("success"), BackendResultEnum("waiting")]:
-                setattr(action, "ended_on", time.time())
+        if upd_dict.get('result', None) in [BackendResultEnum("success"),
+                                            BackendResultEnum("failure")]:
+            action.ended_on = time.time()
         db.session.add(action)
 
     @classmethod
