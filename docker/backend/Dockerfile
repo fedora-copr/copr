@@ -1,6 +1,9 @@
 FROM fedora:30
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+ENV export LANG=en_US.UTF-8
+ENV PYTHONPATH="/usr/share/copr/"
+
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # TERM is to make the tito work in container, rhbz#1733043
@@ -19,7 +22,6 @@ RUN dnf -y update && \
                    git \
                    sudo \
                    openssh-server \
-                   supervisor \
                    psmisc \
                    nginx \
 # to get more entropy for generation of gpg keys
@@ -90,5 +92,10 @@ RUN gpasswd -a copr obsrun
 # copr user needs permissions to create lock files
 RUN chmod o+w /var/lock
 
+# using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
+RUN rngd -r /dev/urandom
+
+# Required for Copr VMM service to run spawn_local.yml
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 CMD ["/bin/run.sh"]

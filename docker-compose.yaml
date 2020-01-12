@@ -1,23 +1,98 @@
 version: '3'
 services:
+
+  # @TODO Probably not all backend services should use the same Dockerfile
+
   backend:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
     hostname: backend
-    command: /bin/run.sh
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_be.py
     depends_on:
-      - redis
-      - backend_httpd
+      - backend-log
+      - backend-vmm
     stdin_open: true
     tty: true
-    privileged: true
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
+
+  backend-log:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    hostname: backend-log
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_logger.py
+    depends_on:
+      - redis
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
+
+  backend-vmm:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    hostname: backend-vmm
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_vmm.py
+    depends_on:
+      - backend-log
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
+
+  backend-build:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    hostname: backend-build
+    command: /usr/sbin/runuser -u copr -g copr -G obsrun -- /usr/bin/copr_run_build_dispatcher.py
+    depends_on:
+      - backend-log
+      - backend-vmm
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
+
+  backend-action:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    hostname: backend-action
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_action_dispatcher.py
+    depends_on:
+      - backend-log
+      - backend-vmm
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
+
+  backend-signd:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    hostname: backend-signd
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/sbin/signd
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/opt/copr:z
+      - results:/var/lib/copr/public_html/results
+      - backend-etc:/etc
 
   redis:
     image: centos/redis-32-centos7
@@ -128,3 +203,4 @@ volumes:
   results:
   copr-keygen:
   dist-git:
+  backend-etc:
