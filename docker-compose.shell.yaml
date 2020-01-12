@@ -1,0 +1,28 @@
+version: '3'
+services:
+
+  # The main docker-compose.yaml file runs Copr services installed from RPM packages.
+  # This configuration allows you tu run a container that is ready-to-use, but
+  # doesn't run the service for you. Instead, you can open a shell, hack, and run
+  # the service as pleased.
+
+  # Use this configuration by running
+  #    docker-compose -f docker-compose.shell.yaml up <service>
+
+  backend:
+    command: /bin/bash
+
+  backend-log:
+    command: /bin/bash
+
+  backend-vmm:
+    command: /bin/bash
+
+  backend-build:
+    command: /bin/bash
+
+  backend-action:
+    command: /bin/bash
+
+  frontend:
+    command: /bin/bash
