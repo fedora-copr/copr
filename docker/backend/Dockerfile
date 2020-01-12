@@ -24,6 +24,7 @@ RUN dnf -y update && \
                    openssh-server \
                    psmisc \
                    nginx \
+                   python3-ipdb \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package

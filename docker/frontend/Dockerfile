@@ -20,6 +20,7 @@ RUN dnf -y update && \
                    sudo \
                    copr-selinux \
                    python3-alembic \
+                   python3-ipdb \
                    postgresql-server \
                    redis \
                    mock-core-configs \

@@ -12,6 +12,7 @@ RUN dnf -y update && \
                    which \
                    wget \
                    vim \
+                   python3-ipdb \
 # builder packages
                    openssh-server \
                    packagedb-cli \

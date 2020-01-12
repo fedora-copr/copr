@@ -16,6 +16,7 @@ RUN dnf -y update && \
                    copr-selinux \
                    cgit \
                    python3-rpkg \
+                   python3-ipdb \
                    tito
 
 COPY . /copr
