@@ -7,6 +7,8 @@ import runpy
 import shutil
 import subprocess
 import tempfile
+from backend.helpers import call_copr_repo
+from testlib.repodata import load_primary_xml
 
 modifyrepo = 'run/copr-repo'
 
@@ -55,3 +57,40 @@ class TestModifyRepo(object):
         out, err = proc.communicate(timeout=5)
         proc.kill()
         assert b"acquired lock" in err
+
+    @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
+    def test_copr_repo_add_subdir(self, f_second_build):
+        ctx = f_second_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        repodata = os.path.join(chrootdir, 'repodata')
+        empty_repodata = load_primary_xml(repodata)
+
+        assert empty_repodata['names'] == set()
+        assert call_copr_repo(chrootdir, add=[ctx.builds[0]])
+        first_repodata = load_primary_xml(repodata)
+
+        assert first_repodata['hrefs'] == {'00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm'}
+        assert call_copr_repo(chrootdir, add=[ctx.builds[1]])
+        second_repodata = load_primary_xml(repodata)
+        assert second_repodata['hrefs'] == {
+            '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
+            '00000002-example/example-1.0.4-1.fc23.x86_64.rpm'
+        }
+
+    @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
+    def test_copr_repo_add_subdir_devel(self, f_acr_on_and_first_build):
+        ctx = f_acr_on_and_first_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        repodata = os.path.join(chrootdir, 'repodata')
+        devel_repodata = os.path.join(chrootdir, 'devel', 'repodata')
+        empty_repodata = load_primary_xml(repodata)
+        assert empty_repodata == load_primary_xml(devel_repodata)
+        assert call_copr_repo(chrootdir, add=[ctx.builds[0]], devel=True)
+        # shouldn't change
+        assert empty_repodata == load_primary_xml(repodata)
+        updated = load_primary_xml(devel_repodata)
+        assert updated['hrefs'] == {
+            '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
+        }
