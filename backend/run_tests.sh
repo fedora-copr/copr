@@ -14,7 +14,7 @@ cleanup ()
 trap cleanup EXIT
 
 common_path=$(readlink -f ../common)
-export PYTHONPATH="$common_path:backend:run${PYTHONPATH+:$PYTHONPATH}$common_path"
+export PYTHONPATH="$common_path:tests:backend:run${PYTHONPATH+:$PYTHONPATH}"
 
 COVPARAMS='--cov-report term-missing --cov ./backend --cov ./run'
 

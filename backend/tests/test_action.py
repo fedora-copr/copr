@@ -1,14 +1,11 @@
 import os
 import json
-import glob
 import tempfile
 import shutil
 import time
 import tarfile
-import gzip
 import subprocess
 from munch import Munch
-from xml.dom import minidom
 
 import pytest
 
@@ -20,7 +17,7 @@ from backend.actions import Action, ActionType, ActionResult
 from backend.exceptions import CreateRepoError, CoprKeygenRequestError
 from requests import RequestException
 
-import os
+from testlib.repodata import load_primary_xml
 
 RESULTS_ROOT_URL = "http://example.com/results"
 STDOUT = "stdout"
@@ -75,30 +72,6 @@ class TestAction(object):
         self.rm_tmp_dir()
         shutil.rmtree(self.lockpath)
         self.os_env_patcher.stop()
-
-    def load_primary_xml(self, dirname):
-        packages = {}
-        hrefs = set()
-        names = set()
-        primary = glob.glob(os.path.join(dirname, '*primary*xml*'))[0]
-        with gzip.open(primary) as fprimary:
-            xml_content = fprimary.read()
-
-        dom = minidom.parseString(xml_content)
-
-        for d_package in dom.getElementsByTagName('package'):
-            name = d_package.getElementsByTagName('name')[0].firstChild.nodeValue
-            names.add(name)
-            packages[name] = {'name': name}
-            package = packages[name]
-            package['href'] = d_package.getElementsByTagName('location')[0].getAttribute('href')
-            hrefs.add(package['href'])
-
-        return {
-            'packages': packages,
-            'hrefs': hrefs,
-            'names': names,
-        }
 
     def rm_tmp_dir(self):
         if self.tmp_dir_name:
@@ -450,16 +423,15 @@ class TestAction(object):
         repodata = os.path.join(chroot, 'repodata')
         devel_dir = os.path.join(chroot, 'devel')
         repodata_devel = os.path.join(devel_dir, 'repodata')
-        builddir1 = '00000041-prunerepo'
-        builddir2 = '00000049-example'
+        builddir = '00000049-example'
         assert os.path.exists(chroot)
         assert not os.path.exists(devel_dir)
 
         # create repodata under 'devel'
-        assert 0 == subprocess.call(['copr-repo', chroot, '--devel'])
+        assert subprocess.call(['copr-repo', chroot, '--devel']) == 0
 
-        old_primary = self.load_primary_xml(repodata)
-        old_primary_devel = self.load_primary_xml(repodata_devel)
+        old_primary = load_primary_xml(repodata)
+        old_primary_devel = load_primary_xml(repodata_devel)
         assert len(old_primary['names']) == 3 # noarch vs. src
         assert len(old_primary['hrefs']) == 5
         assert old_primary == old_primary_devel
@@ -479,7 +451,7 @@ class TestAction(object):
                     "projectname": "prunerepo",
                     "project_dirname": "prunerepo",
                     "chroot_builddirs": {
-                        "fedora-23-x86_64": ["00000049-example"],
+                        "fedora-23-x86_64": [builddir],
                     },
                 }),
             },
@@ -487,8 +459,8 @@ class TestAction(object):
 
         assert test_action.run().result == ActionResult.SUCCESS
 
-        new_primary = self.load_primary_xml(repodata)
-        new_primary_devel = self.load_primary_xml(repodata_devel)
+        new_primary = load_primary_xml(repodata)
+        new_primary_devel = load_primary_xml(repodata_devel)
 
         if devel:
             assert new_primary_devel['names'] == set(['prunerepo'])
