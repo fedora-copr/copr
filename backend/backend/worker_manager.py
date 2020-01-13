@@ -160,10 +160,16 @@ class WorkerManager():
         """
         Process the task (priority) queue.
         """
+        now = None
         start_time = time.time()
 
-        while time.time() - start_time < timeout:
-            self._cleanup_workers()
+        while True:
+            now = start_time if now is None else time.time()
+
+            if not now - start_time < timeout:
+                break
+
+            self._cleanup_workers(now)
 
             worker_count = len(self.worker_ids())
             if worker_count >= self.max_workers:
@@ -183,11 +189,11 @@ class WorkerManager():
                 # to do.  Just simply wait till the end of the cycle.
                 break
 
-            self._start_worker(task)
+            self._start_worker(task, now)
 
-    def _start_worker(self, task):
+    def _start_worker(self, task, time_now):
         worker_id = self.get_worker_id(repr(task))
-        self.redis.hset(worker_id, 'allocated', time.time())
+        self.redis.hset(worker_id, 'allocated', time_now)
         self.log.info("Starting worker %s", worker_id)
         self.start_task(worker_id, task)
 
@@ -195,9 +201,7 @@ class WorkerManager():
         'remove all tasks from queue'
         self.tasks = JobQueue()
 
-    def _cleanup_workers(self):
-        now = time.time()
-
+    def _cleanup_workers(self, now):
         for worker_id in self.worker_ids():
             info = self.redis.hgetall(worker_id)
 

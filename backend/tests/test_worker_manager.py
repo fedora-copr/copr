@@ -130,7 +130,7 @@ class TestWorkerManager(object):
     def test_worker_starts(self):
         task = self.worker_manager.tasks.pop_task()
         assert task.id == 0
-        self.worker_manager._start_worker(task)
+        self.worker_manager._start_worker(task, time.time())
         worker_id = self.worker_manager.get_worker_id(repr(task))
         assert len(self.redis.keys(worker_id)) == 1
 
@@ -172,23 +172,30 @@ class TestWorkerManager(object):
                 return params
         return params
 
-    def test_delete_not_finished_workers(self):
+    @patch('backend.worker_manager.time.time')
+    def test_delete_not_finished_workers(self, mc_time):
         self.worker_manager.environ = {'FAIL_STARTED': '1'}
         self.worker_manager.worker_timeout_deadcheck = 0.4
 
-        # start toy:0
-        self.worker_manager.run(timeout=0.0001)
+        # each time.time() call incremented by 1
+        mc_time.side_effect = range(1000)
+
+        # first loop just starts the toy:0 worker
+        with patch('backend.worker_manager.time.sleep'):
+            self.worker_manager.run(timeout=1)
 
         params = self.wait_field(self.w0, 'started')
         assert self.w0 in self.workers()
         assert 'started' in params
 
         # toy 0 is marked for deleting
-        self.worker_manager.run(timeout=0.0001)
+        with patch('backend.worker_manager.time.sleep'):
+            self.worker_manager.run(timeout=1)
         assert 'delete' in self.redis.hgetall(self.w0)
 
         # toy 0 should be deleted
-        self.worker_manager.run(timeout=0.0001)
+        with patch('backend.worker_manager.time.sleep'):
+            self.worker_manager.run(timeout=1)
         keys = self.workers()
         assert self.w1 in keys
         assert self.w0 not in keys
