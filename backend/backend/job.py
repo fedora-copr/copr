@@ -114,7 +114,7 @@ class BuildJob(object):
 
     @property
     def chroot_log_path(self):
-        return os.path.join(self.chroot_dir, self.chroot_log_name)
+        return os.path.join(self.results_dir, self.chroot_log_name)
 
     @property
     def rsync_log_name(self):

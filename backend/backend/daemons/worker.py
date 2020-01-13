@@ -178,7 +178,7 @@ class Worker(multiprocessing.Process):
                 failed = True
 
         if not self.reattach:
-            self.clean_result_directory(job)
+            self.prepare_result_directory(job)
 
         if not failed:
             # FIXME
@@ -324,11 +324,16 @@ class Worker(multiprocessing.Process):
             except IOError:
                 self.log.info("File %s not found", src)
 
-    def clean_result_directory(self, job):
+    def prepare_result_directory(self, job):
         """
         Create backup directory and move there results from previous build.
         """
-        if not os.path.exists(job.results_dir) or os.listdir(job.results_dir) == []:
+        try:
+            os.mkdir(job.results_dir)
+        except FileExistsError:
+            pass
+
+        if not os.listdir(job.results_dir):
             return
 
         backup_dir_name = "prev_build_backup"
