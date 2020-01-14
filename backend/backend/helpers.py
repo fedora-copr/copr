@@ -549,7 +549,7 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
     return "{}-{}-{}.{}".format(name, version, release, arch)
 
 
-def call_copr_repo(directory, devel=False, add=None, delete=None):
+def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None):
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
@@ -566,7 +566,10 @@ def call_copr_repo(directory, devel=False, add=None, delete=None):
     if devel:
         cmd += ['--devel']
 
-    return not subprocess.call(cmd)
+    try:
+        return not subprocess.call(cmd, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return False
 
 def build_target_dir(build_id, package_name=None):
     build_id = int(build_id)

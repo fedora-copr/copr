@@ -760,7 +760,7 @@ class TestAction(object):
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
             cmd = ['copr-repo',
                    os.path.join(self.test_project_dir, chroot)]
-            exp_call = mock.call(cmd)
+            exp_call = mock.call(cmd, timeout=None)
             assert exp_call in mc_sp_call.call_args_list
 
         assert len(mc_sp_call.call_args_list) == 2
