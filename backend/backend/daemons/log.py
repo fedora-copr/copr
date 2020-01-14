@@ -50,10 +50,9 @@ class RedisLogHandler(object):
             logger.addHandler(handler)
             self.loggers[component] = logger
 
-    def handle_msg(self, raw):
+    def handle_msg(self, json_event):
         try:
-            event = json.loads(raw["data"])
-
+            event = json.loads(json_event)
             who = event.get('who', None)
             if not who:
                 raise Exception("No LogRecord.who field, raw: {}".format(event))
@@ -73,6 +72,7 @@ class RedisLogHandler(object):
 
         rc = helpers.get_redis_connection(self.opts)
         while True:
-            # indefinitely wait for next entry
-            (_, raw_message) = rc.blpop([constants.LOG_REDIS_FIFO])
-            self.handle_msg(raw_message)
+            # indefinitely wait for the next entry, note that blpop returns
+            # tuple (FIFO_NAME, ELEMENT)
+            (_, json_event) = rc.blpop([constants.LOG_REDIS_FIFO])
+            self.handle_msg(json_event)
