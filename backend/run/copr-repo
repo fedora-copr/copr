@@ -61,22 +61,34 @@ def unlink_unsafe(path):
         pass
 
 
-def get_logger(opts):
+def process_backend_config(opts):
+    # obtain backend options
+    try:
+        # meh, we should add our sources to default pythonpath
+        sys.path.append("/usr/share/copr/")
+        from backend.helpers import get_redis_logger, BackendConfigReader
+        config = "/etc/copr/copr-be.conf"
+        opts.backend_opts = BackendConfigReader(config).read()
+        opts.results_baseurl = opts.backend_opts.results_baseurl
+    except:
+        # Useful if copr-backend isn't correctly configured, or when
+        # copr-backend isn't installed (mostly developing and unittesting).
+        opts.results_baseurl = 'https://example.com/results'
+
+    # obtain logger object
     if 'COPR_TESTSUITE_NO_OUTPUT' in os.environ:
         logging.basicConfig(level=logging.CRITICAL)
-        return logging.getLogger()
+        opts.log = logging.getLogger()
+        return
 
     if opts.log_to_stdout:
         logging.basicConfig(level=logging.DEBUG)
-        return logging.getLogger()
+        opts.log = logging.getLogger()
+        return
 
     # meh, we should add our sources to default pythonpath
-    sys.path.append("/usr/share/copr/")
-    from backend.helpers import get_redis_logger, BackendConfigReader
-    config = '/etc/copr/copr-be.conf'
-    log_opts = BackendConfigReader(config).read()
     logger_name = '{}.pid-{}'.format(sys.argv[0], os.getpid())
-    return get_redis_logger(log_opts, logger_name, "modifyrepo")
+    opts.log = get_redis_logger(opts.backend_opts, logger_name, "modifyrepo")
 
 
 def run_createrepo(opts):
@@ -120,7 +132,10 @@ def run_createrepo(opts):
             os.mkdir(outputdir)
         except FileExistsError:
             pass
-        createrepo_cmd += ['--outputdir', outputdir]
+
+        createrepo_cmd += [
+            '--outputdir', outputdir,
+            '--baseurl', opts.baseurl]
 
         # TODO: With --devel, we should check that all removed packages isn't
         # referenced by the main repository.  If it does, we should delete those
@@ -136,11 +151,7 @@ def add_appdata(opts):
         return
 
     path = opts.directory
-
-    # path is .../<owner>/<copr_dir>/<chroot>/
-    directory, _ = os.path.split(path) # .../<owner>/<copr_dir>
-    directory = directory.split('/')
-    origin = os.path.join(directory[-2], directory[-1])
+    origin = os.path.join(opts.ownername, opts.projectname)
 
     run_cmd([
         "/usr/bin/timeout", "--kill-after=240", "180",
@@ -230,22 +241,38 @@ def main_locked(opts, log):
     log.info("%s run successful", sys.argv[0])
 
 
+def process_directory_path(opts):
+    helper_path = os.path.abspath(opts.directory)
+    helper_path, opts.chroot = os.path.split(helper_path)
+    helper_path, opts.dirname = os.path.split(helper_path)
+    helper_path, opts.ownername = os.path.split(helper_path)
+    opts.projectname = opts.dirname.split(':')[0]
+    opts.baseurl = os.path.join(opts.results_baseurl, opts.ownername,
+                                opts.dirname, opts.chroot)
+
+
 def main():
     opts = get_arg_parser().parse_args()
-    log = opts.log = get_logger(opts)
+
+    # try to setup logging based on copr-be.conf
+    process_backend_config(opts)
+
+    # resolve absolute path from opts.directory, and detect
+    # ownername, dirname, chroot, etc. from it
+    process_directory_path(opts)
 
     assert_new_createrepo()
 
     try:
         with lock(opts):
-            main_locked(opts, log)
+            main_locked(opts, opts.log)
 
     except CommandException:
-        log.error("Sub-command failed")
+        opts.log.error("Sub-command failed")
         return 1
 
     except Exception:
-        log.exception("Unexpeted exception")
+        opts.log.exception("Unexpeted exception")
         raise
 
 if __name__ == "__main__":

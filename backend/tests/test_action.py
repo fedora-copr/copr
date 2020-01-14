@@ -434,6 +434,13 @@ class TestAction(object):
         old_primary_devel = load_primary_xml(repodata_devel)
         assert len(old_primary['names']) == 3 # noarch vs. src
         assert len(old_primary['hrefs']) == 5
+
+        for package in old_primary_devel['packages']:
+            assert old_primary_devel['packages'][package]['xml:base'] \
+                   == 'https://example.com/results/@copr/prunerepo/fedora-23-x86_64'
+            # clear it
+            old_primary_devel['packages'][package]['xml:base'] = ''
+
         assert old_primary == old_primary_devel
 
         self.opts.destdir = self.tmp_dir_name

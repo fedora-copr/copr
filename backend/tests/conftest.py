@@ -8,6 +8,9 @@ import shutil
 import tarfile
 import tempfile
 import subprocess
+from unittest import mock
+
+from backend.helpers import call_copr_repo
 
 class CoprTestFixtureContext():
     pass
@@ -45,7 +48,8 @@ def f_empty_repos(f_testresults):
     for chroot in ctx.chroots:
         chdir = os.path.join(ctx.empty_dir, chroot)
         os.makedirs(chdir)
-        subprocess.check_output(['createrepo_c', chdir])
+        with mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'}):
+            assert call_copr_repo(chdir)
     yield ctx
 
 @fixture

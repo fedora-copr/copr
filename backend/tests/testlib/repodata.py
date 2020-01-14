@@ -27,6 +27,7 @@ def load_primary_xml(dirname):
         packages[name] = {'name': name}
         package = packages[name]
         package['href'] = d_package.getElementsByTagName('location')[0].getAttribute('href')
+        package['xml:base'] = d_package.getElementsByTagName('location')[0].getAttribute('xml:base')
         hrefs.add(package['href'])
 
     return {

@@ -88,9 +88,15 @@ class TestModifyRepo(object):
         empty_repodata = load_primary_xml(repodata)
         assert empty_repodata == load_primary_xml(devel_repodata)
         assert call_copr_repo(chrootdir, add=[ctx.builds[0]], devel=True)
+
         # shouldn't change
         assert empty_repodata == load_primary_xml(repodata)
         updated = load_primary_xml(devel_repodata)
         assert updated['hrefs'] == {
             '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
         }
+
+        # the --devel repdata need to have 'xml:base' element, otherwise those
+        # wouldn't be able to reference ../ locations
+        assert updated['packages']['prunerepo']['xml:base'] == \
+                'https://example.com/results/john/empty/fedora-rawhide-x86_64'
