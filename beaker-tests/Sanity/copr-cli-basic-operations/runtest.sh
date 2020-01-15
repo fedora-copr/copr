@@ -467,23 +467,6 @@ rlJournalStart
         sleep 30
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
-        # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
-        TMP=`mktemp -d`
-        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url $COPR_HELLO_GIT"
-        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteGroupBuild_example_build_id.txt"
-        BUILD_ID=`cat $TMP/TestDeleteGroupBuild_example_build_id.txt`
-        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
-        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory, ideally with results, is present on backend"
-        cd - && rm -r $MYTMPDIR
-        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
-        sleep 11 # default sleeptime + 1
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
-        rlRun "find . -type d | grep '${BUILD_ID}-example'" 1 "Test that the build directory is not present on backend"
-        cd - && rm -r $MYTMPDIR
-
         # test that results and configs are correctly retrieved from builders after build
         rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot $CHROOT" 0
         rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs $HELLO"
@@ -563,7 +546,6 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}TestBug1393361-2"
         cleanProject "${NAME_PREFIX}ModifyProjectChroots"
         cleanProject "${NAME_PREFIX}EditChrootProject"
-        cleanProject "${NAME_PREFIX}TestDeleteGroupBuild"
         cleanProject "${NAME_PREFIX}MockConfig"
         cleanProject "${NAME_PREFIX}MockConfigParent"
         cleanProject "${NAME_PREFIX}TestBug1444804"
