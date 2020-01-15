@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.130
+Version:    1.131
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -221,6 +221,22 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.131-1
+- put build-ID.log file to resultdir
+- call call_copr_repo if initial createrepo failed
+- Build Dispatcher does not wait forever till repo is created,
+  it creates it manually
+- properly delete logs for old builds
+- delete build-ID.log files again
+- edit repositories only by new 'copr-repo' tool
+- fix multi-build delete
+- fix for not saving end time of actions
+- lower traffic in build_dispatcher log
+- more resilient redis logging
+- attempt to publish on msgbus N-times
+- log service: move RequiredBy to [Install]
+- keep worker ID in proc title
+
 * Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 1.130-1
 - backend: execute actions with sane umask=0022
 
