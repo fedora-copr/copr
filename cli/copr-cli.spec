@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.83
+Version:    1.84
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -120,6 +120,11 @@ ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
 
 
 %changelog
+* Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.84-1
+- Don't spam when downloading build
+- fix chroot-list command to work on both python2 and python3
+- add command to list all available chroots
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.83-1
 - added module_hotfixes support
 - nicer mock-config (build config) api output
