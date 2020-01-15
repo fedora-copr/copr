@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.159
+Version:    1.160
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -366,6 +366,24 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.160-1
+- don't cache some.repo with some.repo?arch=X
+- put cost=1100 to multilib repo
+- put arch into multilib repo name
+- manage.py: propagate return values to cmdline
+- backend: fix multi-build delete
+- add migration to drop PG-only functions
+- cache Build.status at runtime
+- faster <project>/builds query
+- faster <project>/packages query
+- check alembic scripts automatically by run_tests.sh
+- adds 24h and 90d graphs for actions
+- sort recent tasks after caching again
+- don't traceback for invalid copr:// repos
+- removes unnecessary imports of flask-script
+- cache repository contents
+- packages does not need to be online
+
 * Wed Dec 11 2019 Pavel Raiskup <praiskup@redhat.com> 1.159-1
 - cache the recent task queries
 - simplify log level configuration
