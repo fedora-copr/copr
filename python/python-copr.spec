@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.99
+Version:    1.100
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -236,6 +236,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.100-1
+- add command to list all available chroots
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.99-1
 - add api support for module_hotfixes
 - nicer mock-config command output
