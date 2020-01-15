@@ -55,12 +55,6 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
     sudo rbac-playbook -l copr-dist-git-dev.fedorainfracloud.org groups/copr-dist-git.yml
 
 
-Note: if need manually run DB upgrade on frontend::
-
-    sudo su - copr-fe
-
-    alembic-3 upgrade head
-
 Note: If there is a new version of copr-rpmbuild, follow the
 :ref:`terminate_os_vms` and :ref:`terminate_resalloc_vms` instructions.
 
