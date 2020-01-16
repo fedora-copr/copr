@@ -43,16 +43,32 @@ class PackagesLogic(object):
             .filter(models.Build.package_id.in_(pkg_ids)) \
             .with_entities(func.max(models.Build.id)) \
             .group_by(models.Build.package_id)
+
+        # map package.id => package object in packages array
         packages_map = {package.id: package for package in packages}
-        builds = (
-            models.Build.query.filter(models.Build.id.in_(builds_ids))
-                              .options(selectinload('build_chroots')))
+
+        builds = (models.Build.query.filter(models.Build.id.in_(builds_ids))
+                  .options(selectinload('build_chroots'))
+                  .yield_per(1000))
+
         for build in builds:
+            class SmallBuild():
+                pass
+
             if not build.package_id:
                 continue
-            packages_map[build.package_id].latest_build = build
 
-        return list(packages)
+            small_build_object = SmallBuild()
+            for param in ['state', 'status', 'pkg_version',
+                          'submitted_on']:
+                # we don't want to keep all the attributes here in memory, and
+                # also we don't need any further info about assigned
+                # build_chroot(s).  So we only pick the info we need, and throw
+                # the expensive objects away.
+                setattr(small_build_object, param, getattr(build, param))
+            packages_map[build.package_id].latest_build = small_build_object
+
+        return packages
 
     @classmethod
     def get_list_by_copr(cls, copr_id, package_name):

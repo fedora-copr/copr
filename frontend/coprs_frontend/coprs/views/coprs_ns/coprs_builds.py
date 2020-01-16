@@ -55,9 +55,10 @@ def copr_builds(copr):
     flashes = flask.session.pop('_flashes', [])
     dirname = flask.request.args.get('dirname')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
+    builds = builds_query.yield_per(1000)
     response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
                               copr=copr,
-                              builds=list(builds_query),
+                              builds=builds,
                               current_dirname=dirname,
                               flashes=flashes)))
 

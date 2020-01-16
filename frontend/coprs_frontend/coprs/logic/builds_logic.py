@@ -338,7 +338,7 @@ class BuildsLogic(object):
             copr_dir = copr.main_dir
         query = query.filter(models.Build.copr_dir_id==copr_dir.id)
         query = query.options(selectinload('build_chroots'), selectinload('package'))
-        return list(query)
+        return query
 
     @classmethod
     def join_group(cls, query):
