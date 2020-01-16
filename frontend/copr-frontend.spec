@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.160
+Version:    1.161
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -366,6 +366,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Jan 16 2020 Pavel Raiskup <praiskup@redhat.com> 1.161-1
+- memory optimize /packages/ and /builds/ routes
+
 * Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.160-1
 - don't cache some.repo with some.repo?arch=X
 - put cost=1100 to multilib repo
