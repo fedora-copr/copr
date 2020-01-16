@@ -148,6 +148,12 @@ def run_createrepo(opts):
 
 def add_appdata(opts):
     if opts.devel or opts.no_appstream_metadata:
+        opts.log.info("appstream-builder skipped, /devel subdir or "
+                      "--no-appstream-metadata specified")
+        return
+
+    if os.path.exists(os.path.join(opts.projectdir, ".disable-appstream")):
+        opts.log.info("appstream-builder skipped, .disable-appstream file")
         return
 
     path = opts.directory
@@ -244,6 +250,7 @@ def main_locked(opts, log):
 def process_directory_path(opts):
     helper_path = os.path.abspath(opts.directory)
     helper_path, opts.chroot = os.path.split(helper_path)
+    opts.projectdir = helper_path
     helper_path, opts.dirname = os.path.split(helper_path)
     helper_path, opts.ownername = os.path.split(helper_path)
     opts.projectname = opts.dirname.split(':')[0]
