@@ -56,7 +56,6 @@ class TestAction(object):
 
             do_sign=False,
 
-            build_deleting_without_createrepo="",
             keygen_host="example.com"
         )
 
