@@ -46,34 +46,7 @@
     </div>
   </div>
   {% endif %}
-  {% if builds %}
-    {{ builds_table(builds) }}
-    {{ build_states() }}
-  {% else %}
-  <div class="blank-slate-pf">
-    {% if not current_dirname %}
-    <div class="blank-slate-pf-icon">
-      <span class="pficon pficon pficon-add-circle-o"></span>
-    </div>
-    <h1>
-      No Builds in This Project
-    </h1>
-    <p>
-      Click on the New Build button to submit your first build.
-    </p>
-    <p>
-      You can also set up <strong>automatic builds</strong> directly from your git. This can be done on the <a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages view</a>.
-    </p>
-    {% if g.user and g.user.can_build_in(copr) %}
-    <div class="blank-slate-pf-main-action">
-      <a class="btn btn-primary btn-lg" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"> Submit a New Build </a>
-    </div>
-    {% endif %}
-    {% else %}
-    <h1>
-      No builds in this project directory.
-    </h1>
-    {% endif %}
-  </div>
-  {% endif %}
+
+  {{ builds_table(builds) }}
+
 {% endblock %}
