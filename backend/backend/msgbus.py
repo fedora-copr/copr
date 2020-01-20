@@ -181,6 +181,7 @@ class MsgBus(object):
         for attempt in range(1, self.opts.bus_publish_retries + 1):
             try:
                 self._send_message(message)
+                break
             except Exception: # pylint: disable=W0703
                 # We don't want to halt the worker because of messaging.
                 self.log.exception("Attempt %s to publish a message failed", attempt)
