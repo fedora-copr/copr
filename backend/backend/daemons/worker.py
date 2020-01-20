@@ -156,6 +156,32 @@ class Worker(multiprocessing.Process):
     #     job.status = BuildStatus.SKIPPED
     #     self._announce_end(job)
 
+    def wait_for_repo(self, job):
+        if job.chroot == 'srpm-builds':
+            # we don't need copr_base repodata for srpm builds
+            return True
+
+        repodata = os.path.join(job.chroot_dir, "repodata/repomd.xml")
+        waiting_from = time.time()
+        while time.time() - waiting_from < 60:
+            if os.path.exists(repodata):
+                return True
+
+            # Either (a) the very first copr-repo run in this chroot dir
+            # is still running on background (or failed), or (b) we are
+            # hitting the race condition between
+            # 'rm -rf repodata && mv .repodata repodata' sequence that
+            # is done in createrepo_c.  Try again after some time.
+            self.log.info("waiting for copr_base repository")
+            time.sleep(2)
+
+        self.log.error("giving up waiting for copr_base repository")
+
+        # This should never happen, but if yes - we need to debug
+        # properly.  Give up waiting, and fail the build.  That should
+        # motivate people to report bugs.
+        return False
+
     def do_job(self, job):
         """
         Executes new job.
@@ -178,6 +204,8 @@ class Worker(multiprocessing.Process):
                 failed = True
 
         if not self.reattach:
+            if not self.wait_for_repo(job):
+                failed = True
             self.prepare_result_directory(job)
 
         if not failed:

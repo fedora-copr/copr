@@ -141,19 +141,6 @@ class BuildDispatcher(multiprocessing.Process):
         worker.start()
         return worker
 
-    def assure_repodata_exist(self, job):
-        repodata = os.path.join(job.destdir, job.chroot, "repodata/repomd.xml")
-        if not os.path.exists(repodata) and job.chroot != "srpm-builds":
-            self.log.error("Executing 'copr-repo' tool for %s job, because copr_base repo is not available yet.", job)
-            if not call_copr_repo(os.path.join(job.destdir, job.chroot), timeout=60):
-                job.status = BuildStatus.FAILURE
-                build = job.to_dict()
-                self.log.error("Build %s failed", build)
-                data = {"builds": [build]}
-                try:
-                    self.frontend_client.update(data)
-                except:
-                    pass
     def run(self):
         """
         Executes build dispatching process.
@@ -198,8 +185,6 @@ class BuildDispatcher(multiprocessing.Process):
                 if cache_entry in skip_jobs_cache:
                     self.log.debug("Skipped job %s, cached", job)
                     continue
-
-                self.assure_repodata_exist(job)
 
                 # ... and if the task is new to us,
                 # allocate new vm and run full build
