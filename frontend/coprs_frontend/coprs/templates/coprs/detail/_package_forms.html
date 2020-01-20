@@ -148,6 +148,15 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
+        <h3 class="panel-title">Select chroots and other options</h3>
+      </div>
+      <div class="panel-body">
+      {{ render_additional_build_options(form, copr) }}
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
         <h3 class="panel-title">Select packages for rebuild</h3>
       </div>
       <div class="panel-body">
@@ -173,15 +182,6 @@
           {% endif %}
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Select chroots and other options</h3>
-      </div>
-      <div class="panel-body">
-      {{ render_additional_build_options(form, copr) }}
       </div>
     </div>
 
