@@ -676,7 +676,8 @@ class Commands(object):
         buildopts = {
             "chroots": args.chroots,
             #"memory": args.memory,
-            "timeout": args.timeout
+            "timeout": args.timeout,
+            "background": args.background,
         }
         try:
             build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
