@@ -180,6 +180,11 @@ the previous steps for both ``aarch64`` and ``x86_64``.
 The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
 options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev``.
 
+You can try to kill all the old currently unused builders, and check the spawner
+log what is happening::
+
+    [copr@copr-be-dev ~][STG]$ cleanup-vms-aws --kill-also-unused
+    [copr@copr-be-dev ~][STG]$ tail -f /var/log/copr-backend/spawner.log
 
 Prepare libvirt source images
 -----------------------------
@@ -313,6 +318,12 @@ playbook from batcave::
     $ sudo rbac-playbook \
         -l copr-be.cloud.fedoraproject.org groups/copr-backend.yml \
         -t provision_config
+
+Optionally, when you need to propagate the builders quickly, you can terminate
+the old currently unused builders by::
+
+    $ cleanup_vm_nova.py --kill-also-unused
+    $ cleanup-vms-aws --kill-also-unused
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
