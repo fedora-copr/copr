@@ -1,5 +1,6 @@
 import click
 from coprs import db
+from coprs import app
 from coprs.logic import coprs_logic, actions_logic
 
 
@@ -24,6 +25,13 @@ def delete_outdated_chroots_function(dry_run):
     chroots = coprs_logic.CoprChrootsLogic \
         .filter_outdated_to_be_deleted(coprs_logic.CoprChrootsLogic.get_multiple())
     for i, chroot in enumerate(chroots, start=1):
+
+        # This shouldn't happen but we should play it safe, not just hope
+        if not chroot.delete_notify:
+            app.logger.error("Refusing to delete {0}/{1} because any notification was sent about its deletion",
+                             chroot.copr.full_name, chroot.name)
+            continue
+
         # This command will possibly delete a lot of chroots and can be a performance issue when committing
         # all at once. We are going to commit every x actions to avoid that.
         if i % 1000 == 0:
