@@ -10,6 +10,10 @@ from coprs.logic import coprs_logic, actions_logic
     help="Do not actually remove any data, but rather print information on stdout"
 )
 def delete_outdated_chroots(dry_run):
+    return delete_outdated_chroots_function(dry_run)
+
+
+def delete_outdated_chroots_function(dry_run):
     """
     Delete data in all chroots that are considered as outdated. That means, the chroot is EOL
     and the preservation period is over because admin of the project didn't extend its duration.

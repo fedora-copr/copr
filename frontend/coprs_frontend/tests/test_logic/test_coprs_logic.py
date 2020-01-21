@@ -1,7 +1,7 @@
 import json
-import datetime
 import pytest
 
+from datetime import datetime, timedelta, date
 from flask_whooshee import Whooshee
 
 from sqlalchemy import desc
@@ -135,6 +135,40 @@ class TestCoprChrootsLogic(CoprsTestCase):
 
         # However, it should not be removed from the Copr
         assert [ch.name for ch in self.c2.copr_chroots] == ["fedora-17-x86_64", "fedora-17-i386"]
+
+    def test_filter_outdated(self, f_users, f_coprs, f_mock_chroots, f_db):
+        outdated = CoprChrootsLogic.filter_outdated(CoprChrootsLogic.get_multiple())
+        assert outdated.all() == []
+
+        # A chroot is supposed to be removed today (without a time specification)
+        # Do not notify anyone, it is already too late. For all intents and purposes,
+        # the data is already gone.
+        self.c2.copr_chroots[0].delete_after = date.today()
+        assert outdated.all() == []
+
+        # A chroot will be deleted tomorrow
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=1)
+        assert outdated.all() == [self.c2.copr_chroots[0]]
+
+        # A chroot was deleted yesterday
+        self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
+        assert outdated.all() == []
+
+    def test_filter_outdated_to_be_deleted(self, f_users, f_coprs, f_mock_chroots, f_db):
+        outdated = CoprChrootsLogic.filter_outdated_to_be_deleted(CoprChrootsLogic.get_multiple())
+        assert outdated.all() == []
+
+        # A chroot is supposed to be removed today (without a time specification)
+        self.c2.copr_chroots[0].delete_after = date.today()
+        assert outdated.all() == [self.c2.copr_chroots[0]]
+
+        # A chroot should be deleted tomorrow, don't touch it yet
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=1)
+        assert outdated.all() == []
+
+        # A chroot was supposed to be deleted yesterday, delete it
+        self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
+        assert outdated.all() == [self.c2.copr_chroots[0]]
 
 
 class TestPinnedCoprsLogic(CoprsTestCase):

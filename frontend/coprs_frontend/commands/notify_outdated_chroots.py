@@ -22,6 +22,10 @@ from coprs.mail import send_mail, OutdatedChrootMessage
     help="Notify all (even the recently notified) relevant people"
 )
 def notify_outdated_chroots(dry_run, email_filter, all):
+    return notify_outdated_chroots_function(dry_run, email_filter, all)
+
+
+def notify_outdated_chroots_function(dry_run, email_filter, all):
     """
     Notify all admins of projects with builds in outdated chroots about upcoming deletion.
     """
