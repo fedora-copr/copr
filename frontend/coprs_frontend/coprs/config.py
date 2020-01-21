@@ -81,6 +81,9 @@ class Config(object):
     # When the data in EOL chroots should be deleted (in days)
     DELETE_EOL_CHROOTS_AFTER = 180
 
+    # Days between notification emails about a chroot
+    EOL_CHROOTS_NOTIFICATION_PERIOD = 80
+
     # We may have a (temporary) chroot that doesn't correspond with /etc/os-release
     # on a client system, e.g. "rhelbeta-8" chroots in Copr which doesn't match to
     # any real system, instead it is a temporary alias for "epel-8". In such case,

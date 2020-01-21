@@ -66,7 +66,7 @@ def filter_chroots(chroots, all):
 
         # Skip the chroot if was notified in less than `n` days
         now = datetime.datetime.now()
-        if (now - chroot.delete_notify).days >= 80:
+        if (now - chroot.delete_notify).days >= app.config["EOL_CHROOTS_NOTIFICATION_PERIOD"]:
             filtered.append(chroot)
 
     return filtered
