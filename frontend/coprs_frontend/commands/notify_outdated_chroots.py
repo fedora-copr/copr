@@ -43,7 +43,6 @@ def notify_outdated_chroots_function(dry_run, email_filter, all):
             continue
         chroots.sort(key=lambda x: x.copr.full_name)
         notifier.notify(user, chroots)
-        notifier.store_timestamp(chroots)
 
         # This command will possibly update a lot of chroots and can be a performance issue when committing
         # all at once. We are going to commit every x actions to avoid that.
@@ -92,7 +91,8 @@ class Notifier(object):
         msg = OutdatedChrootMessage(chroots)
         send_mail([user.mail], msg)
 
-    def store_timestamp(self, chroots):
+        # If `send_mail` didn't raise any exception,
+        # we consider the email to be sent correctly
         for chroot in chroots:
             chroot.delete_notify = datetime.datetime.now()
 
@@ -104,9 +104,6 @@ class DryRunNotifier(object):
     def notify(self, user, chroots):
         about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
         print("Notify {} about {}".format(user.mail, about))
-
-    def store_timestamp(self, chroots):
-        pass
 
     def commit(self):
         pass
