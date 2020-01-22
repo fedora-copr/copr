@@ -36,13 +36,21 @@ def notify_outdated_chroots_function(dry_run, email_filter, all):
 
     notifier = DryRunNotifier() if dry_run else Notifier()
     outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
-    for user, chroots in get_user_chroots_map(outdated, email_filter).items():
+    user_chroots_map = get_user_chroots_map(outdated, email_filter).items()
+    for i, (user, chroots) in enumerate(user_chroots_map, start=1):
         chroots = filter_chroots([chroot for chroot in chroots], all)
         if not chroots:
             continue
         chroots.sort(key=lambda x: x.copr.full_name)
         notifier.notify(user, chroots)
         notifier.store_timestamp(chroots)
+
+        # This command will possibly update a lot of chroots and can be a performance issue when committing
+        # all at once. We are going to commit every x actions to avoid that.
+        if i % 1000 == 0:
+            notifier.commit()
+
+    notifier.commit()
 
 def get_user_chroots_map(chroots, email_filter):
     user_chroot_map = {}
@@ -87,6 +95,8 @@ class Notifier(object):
     def store_timestamp(self, chroots):
         for chroot in chroots:
             chroot.delete_notify = datetime.datetime.now()
+
+    def commit(self):
         db.session.commit()
 
 
@@ -96,4 +106,7 @@ class DryRunNotifier(object):
         print("Notify {} about {}".format(user.mail, about))
 
     def store_timestamp(self, chroots):
+        pass
+
+    def commit(self):
         pass
