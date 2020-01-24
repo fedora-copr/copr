@@ -3,3 +3,6 @@
 # Do a periodic trustdb maintenance.  Use --batch, so the maintenance is done
 # only when needed.
 runuser -u copr-signer -- /usr/bin/gpg-copr --check-trustdb --batch
+
+# prolong keys which would otherwise expire in the following 30 days
+runuser -u copr-signer -- /usr/bin/gpg-copr-prolong

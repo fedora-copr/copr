@@ -1,0 +1,41 @@
+#! /bin/sh
+
+# list all soon-to-expire keys, which are still valid, and prolong them
+
+if test "$(id -u -n)" != copr-signer; then
+    echo >&2 "execute as 'copr-signer' user"
+    exit 1
+fi
+
+# get the unix timestamp
+date=$(date +"%s")
+
+set -e
+
+gpg-copr --list-keys --with-colons | grep ^pub: \
+| while read -r line
+do
+    # split $line fore each colon into $1, $2, $3, ...
+    old_IFS=$IFS ; IFS=:
+    set -- $line
+    IFS=$old_IFS
+
+    state=$2
+    expires=$7
+    key_id=$5
+
+    case $state in
+        # see /usr/share/doc/gnupg2/DETAILS, the keys not yet checked
+        # by '--check-trustdb' have '-'
+        -|u) ;;
+        *) continue ;;
+    esac
+
+    prolong_years=5
+    days=365
+    if test "$date" -gt "$(( expires - 24*60*60 * days ))"; then
+        echo "$key_id expires in $days days, prolonging ..."
+        printf "expire\n%sy\nsave\n" "${prolong_years}" | \
+            gpg-copr --batch --command-fd 0 --edit-key "$key_id"
+    fi
+done
