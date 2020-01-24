@@ -1,5 +1,14 @@
-from pagure_events import event_info_from_pr_comment, event_info_from_push, event_info_from_pr
+from pagure_events import (event_info_from_pr_comment, event_info_from_push, event_info_from_pr, ScmPackage,
+                           build_on_fedmsg_loop)
 from tests.coprs_test_case import CoprsTestCase
+import pytest
+from unittest import mock
+
+
+class Message:
+    def __init__(self, topic, body):
+        self.topic = topic
+        self.body = body
 
 
 class TestPagureEvents(CoprsTestCase):
@@ -31,6 +40,28 @@ class TestPagureEvents(CoprsTestCase):
         event_info = event_info_from_pr_comment(self.data, self.base_url)
         assert not event_info
 
+    @mock.patch('pagure_events.helpers.raw_commit_changes')
+    @mock.patch('pagure_events.get_repeatedly')
+    def test_positive_build_from_pr_update(self, f_get_repeatedly, f_raw_commit_changes, f_users, f_coprs):
+        f_raw_commit_changes.return_value = {
+            'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
+            'tests/integration/conftest.py b/tests/integration/conftest.py index '
+            '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
+        self.p1 = self.models.Package(
+            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            source_json='{"clone_url": "https://pagure.io/test/copr/copr"}'
+        )
+        build = build_on_fedmsg_loop()
+        message = Message(
+            'io.pagure.prod.pagure.pull-request.updated',
+            self.data['msg']
+        )
+        build(message)
+        builds = self.models.Build.query.all()
+
+        assert len(builds) == 1
+        assert builds[0].scm_object_type == 'pull-request'
+
     def test_positive_event_info_from_pr_comment(self):
         self.data['msg']['pullrequest']["comments"].append({"comment": "[copr-build]"})
         event_info = event_info_from_pr_comment(self.data, self.base_url)
@@ -50,3 +81,25 @@ class TestPagureEvents(CoprsTestCase):
         self.data['msg']['repo'] = {"fullname": "test", "url_path": "test"}
         event_info = event_info_from_push(self.data, self.base_url)
         assert event_info.base_clone_url == "https://pagure.io/test"
+
+    @mock.patch('pagure_events.helpers.raw_commit_changes')
+    @mock.patch('pagure_events.get_repeatedly')
+    def test_positive_build_from_push(self, f_get_repeatedly, f_raw_commit_changes, f_users, f_coprs):
+        f_raw_commit_changes.return_value = {
+            'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
+            'tests/integration/conftest.py b/tests/integration/conftest.py index '
+            '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
+        self.p1 = self.models.Package(
+            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            source_json='{"clone_url": "https://pagure.io/test"}'
+        )
+        build = build_on_fedmsg_loop()
+        message = Message(
+            'io.pagure.prod.pagure.git.receive',
+            self.data['msg']
+        )
+        build(message)
+        builds = self.models.Build.query.all()
+
+        assert len(builds) == 1
+        assert builds[0].scm_object_type == 'commit'
