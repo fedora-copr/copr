@@ -81,3 +81,14 @@ class TestNotifyOutdatedChroots(CoprsTestCase):
             notify_outdated_chroots_function(dry_run=False, email_filter=None, all=True)
             assert send_mail.call_count == 2
             assert self.c2.copr_chroots[0].delete_notify != previous_delete_notify
+
+    @patch("commands.notify_outdated_chroots.dev_instance_warning")
+    @patch("commands.notify_outdated_chroots.send_mail")
+    def test_notify_outdated_chroots_email_filter(self, send_mail, dev_instance_warning,
+                                                  f_users, f_coprs, f_mock_chroots, f_db):
+        # Make sure that if `email_filter` is set, nobody else is going to be affected
+        email_filter = ["somebody@nonexistent.ex"]
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
+        notify_outdated_chroots_function(dry_run=False, email_filter=email_filter, all=True)
+        assert send_mail.call_count == 0
+        assert not self.c2.copr_chroots[0].delete_notify
