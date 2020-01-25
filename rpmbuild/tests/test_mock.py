@@ -2,7 +2,6 @@ import re
 import unittest
 import configparser
 import subprocess
-import datetime
 from os.path import realpath, dirname
 
 from copr_rpmbuild.builders.mock import MockBuilder
@@ -15,8 +14,9 @@ except ImportError:
      import mock
      builtins = '__builtin__'
 
-class TestMockBuilder(unittest.TestCase):
-    def setUp(self):
+
+class TestMockBuilder(object):
+    def setup_method(self, method):
         self.task = {
             "_description": "dist-git build",
             "_expected_outcome": "success",
@@ -52,12 +52,12 @@ class TestMockBuilder(unittest.TestCase):
 
     def test_init(self):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
-        self.assertEqual(builder.task_id, "10-fedora-24-x86_64")
-        self.assertEqual(builder.chroot, "fedora-24-x86_64")
-        self.assertEqual(builder.buildroot_pkgs, ["pkg1", "pkg2", "pkg3"])
-        self.assertEqual(builder.enable_net, True)
-        self.assertEqual(builder.repos, [])
-        self.assertEqual(builder.use_bootstrap_container, False)
+        assert builder.task_id == "10-fedora-24-x86_64"
+        assert builder.chroot == "fedora-24-x86_64"
+        assert builder.buildroot_pkgs == ["pkg1", "pkg2", "pkg3"]
+        assert builder.enable_net
+        assert builder.repos == []
+        assert not builder.use_bootstrap_container
 
     def test_render_config_template(self):
         confdirs = [dirname(dirname(realpath(__file__)))]
@@ -74,13 +74,13 @@ class TestMockBuilder(unittest.TestCase):
         code = compile(cfg, "/tmp/foobar", 'exec')
         exec(code)
 
-        self.assertEqual(config_opts["root"], "10-fedora-24-x86_64")
-        self.assertEqual(config_opts["chroot_additional_packages"], "pkg1 pkg2 pkg3")
-        self.assertEqual(config_opts["rpmbuild_networking"], True)
-        self.assertEqual(config_opts["use_bootstrap_container"], False)
-        self.assertEqual(config_opts["macros"]["%copr_username"], "@copr")
-        self.assertEqual(config_opts["macros"]["%copr_projectname"], "copr-dev")
-        self.assertEqual(config_opts["yum.conf"], [])
+        assert config_opts["root"] == "10-fedora-24-x86_64"
+        assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
+        assert config_opts["rpmbuild_networking"]
+        assert not config_opts["use_bootstrap_container"]
+        assert config_opts["macros"]["%copr_username"] == "@copr"
+        assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
+        assert config_opts["yum.conf"] == []
 
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
@@ -108,5 +108,5 @@ class TestMockBuilder(unittest.TestCase):
     def test_custom1_chroot_settings(self):
         b1 = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.sourcedir, self.resultdir, self.config)
-        self.assertEqual(b1.pkg_manager_conf, "yum")
-        self.assertEqual(b2.pkg_manager_conf, "dnf")
+        assert b1.pkg_manager_conf == "yum"
+        assert b2.pkg_manager_conf == "dnf"
