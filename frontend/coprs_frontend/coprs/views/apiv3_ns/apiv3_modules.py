@@ -21,14 +21,15 @@ def to_dict(module):
 @file_upload()
 def build_module(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    form = forms.ModuleBuildForm(meta={'csrf': False})
+    form = forms.get_module_build_form(meta={'csrf': False})
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
 
     facade = None
     try:
         mod_info = ModuleProvider.from_input(form.modulemd.data or form.scmurl.data)
-        facade = ModuleBuildFacade(flask.g.user, copr, mod_info.yaml, mod_info.filename)
+        facade = ModuleBuildFacade(flask.g.user, copr, mod_info.yaml,
+                                   mod_info.filename, form.distgit.data)
         module = facade.submit_build()
         db.session.commit()
         return flask.jsonify(to_dict(module))

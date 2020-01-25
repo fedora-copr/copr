@@ -16,6 +16,7 @@ from coprs import helpers
 from coprs import models
 from coprs import cache
 from coprs.logic.coprs_logic import BranchesLogic
+from coprs.logic.dist_git_logic import DistGitLogic
 
 from unittest import mock
 
@@ -70,6 +71,10 @@ class CoprsTestCase(object):
         self.db.session.rollback()
         for tbl in reversed(self.db.metadata.sorted_tables):
             self.db.engine.execute(tbl.delete())
+
+        # This table has after_create() hook with default data in models.py, so
+        # we actually need to drop it so the setup_method() re-creates the data
+        self.db.engine.execute('drop table dist_git_instance')
 
         self.rmodel_TSE_coprs_general_patcher.stop()
         self.app.config = self.original_config.copy()
@@ -566,6 +571,23 @@ class CoprsTestCase(object):
         self.batch2 = models.Batch()
         self.batch3 = models.Batch()
         self.batch4 = models.Batch()
+
+    @pytest.fixture
+    def f_other_distgit(self):
+        self.dg0 = DistGitLogic.get_with_default()
+        self.dg1 = models.DistGitInstance(
+            name='test',
+            clone_url='git://example.com',
+            clone_package_uri='some/uri/{pkgname}/git',
+            priority='80',
+        )
+        self.dg2 = models.DistGitInstance(
+            name='prioritized',
+            clone_url='git://prio.com',
+            clone_package_uri='some/other/uri/{pkgname}/git',
+            priority='120',
+        )
+        self.db.session.add_all([self.dg1, self.dg2])
 
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,

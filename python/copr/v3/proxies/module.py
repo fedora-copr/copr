@@ -7,7 +7,8 @@ from ..requests import Request, FileRequest, munchify, POST
 
 class ModuleProxy(BaseProxy):
 
-    def build_from_url(self, ownername, projectname, url, branch="master"):
+    def build_from_url(self, ownername, projectname, url, branch="master",
+                       distgit=None):
         """
         Build a module from a URL pointing to a modulemd YAML file
 
@@ -26,12 +27,14 @@ class ModuleProxy(BaseProxy):
             "scmurl": url,
             "branch": branch,
         }
+        if distgit is not None:
+            data["distgit"] = distgit
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return munchify(response)
 
-    def build_from_file(self, ownername, projectname, path):
+    def build_from_file(self, ownername, projectname, path, distgit=None):
         """
         Build a module from a local modulemd YAML file
 
@@ -49,7 +52,10 @@ class ModuleProxy(BaseProxy):
         files = {
             "modulemd": (os.path.basename(f.name), f, "application/x-rpm")
         }
+        data = None
+        if distgit is not None:
+            data = {"distgit": distgit}
         request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
-                              params=params, files=files, auth=self.auth)
+                              params=params, files=files, data=data, auth=self.auth)
         response = request.send()
         return munchify(response)

@@ -19,6 +19,7 @@ from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.dist_git_logic import DistGitLogic
 from coprs import exceptions
 
 
@@ -940,10 +941,41 @@ class ModuleFormUploadFactory(FlaskForm):
     build = wtforms.BooleanField("build", default=True, false_values=FALSE_VALUES)
 
 
-class ModuleBuildForm(FlaskForm):
-    modulemd = FileField("modulemd")
-    scmurl = wtforms.StringField()
-    branch = wtforms.StringField()
+class DistGitValidator(object):
+    def __call__(self, form, field):
+        if field.data not in form.distgit_choices:
+            message = "DistGit ID must be one of: {}".format(
+                ", ".join(form.distgit_choices))
+            raise wtforms.ValidationError(message)
+
+
+class NoneFilter():
+    def __init__(self, default):
+        self.default = default
+
+    def __call__(self, value):
+        if value in [None, 'None']:
+            return self.default
+        return value
+
+
+def get_module_build_form(*args, **kwargs):
+    class ModuleBuildForm(FlaskForm):
+        distgit_choices = [x.id for x in DistGitLogic.ordered().all()]
+        distgit_default = distgit_choices[0]
+
+        modulemd = FileField("modulemd")
+        scmurl = wtforms.StringField()
+        branch = wtforms.StringField()
+
+        distgit = wtforms.SelectField(
+            'Build against DistGit instance',
+            choices=[(x, x) for x in distgit_choices],
+            validators=[DistGitValidator()],
+            filters=[NoneFilter(distgit_default)],
+        )
+
+    return ModuleBuildForm(*args, **kwargs)
 
 
 class PagureIntegrationForm(FlaskForm):

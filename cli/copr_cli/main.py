@@ -698,9 +698,11 @@ class Commands(object):
         ownername, projectname = self.parse_name(args.copr)
 
         if args.yaml:
-            module = self.client.module_proxy.build_from_file(ownername, projectname, args.yaml)
+            module = self.client.module_proxy.build_from_file(
+                    ownername, projectname, args.yaml, distgit=args.distgit)
         else:
-            module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
+            module = self.client.module_proxy.build_from_url(
+                    ownername, projectname, args.url, distgit=args.distgit)
         print("Created module {0}".format(module.nsv))
 
     def action_permissions_edit(self, args):
@@ -1208,6 +1210,10 @@ def setup_parser():
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
     parser_build_module.set_defaults(func="action_build_module")
+    parser_build_module.add_argument(
+        "--distgit",
+        help="Dist-git instance to build against, e.g. 'fedora'"
+    )
 
 
     #########################################################

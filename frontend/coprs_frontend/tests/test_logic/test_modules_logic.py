@@ -127,6 +127,28 @@ class TestModuleBuildFacade(CoprsTestCase):
         assert {chroot.name for chroot in self.c1.active_chroots} == set(fedora_chroots)
         assert set(facade.platform_chroots) == {"fedora-22-i386", "fedora-22-x86_64"}
 
+    def test_distgit_option(self, f_users, f_coprs, f_mock_chroots_many,
+                            f_builds, f_modules, f_other_distgit, f_db):
+        pkg1 = Modulemd.ComponentRpm(name="foo", rationale="foo package")
+        generator = ModulemdGenerator(name="testmodule", stream="master",
+                                      version=123, summary="some summary")
+
+        # check default distgit
+        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(),
+                                   "testmodule.yaml")
+        facade.add_builds({"foo": pkg1}, self.m1)
+        assert facade.distgit.id == self.dg2.id
+        assert facade.get_clone_url('foo', pkg1) == \
+            'git://prio.com/some/other/uri/foo/git'
+
+        # check explicit distgit
+        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(),
+                                   "testmodule.yaml", distgit_name='test')
+        facade.add_builds({"foo": pkg1}, self.m1)
+        assert facade.distgit == self.dg1
+        assert facade.get_clone_url('foo', pkg1) == \
+            'git://example.com/some/uri/foo/git'
+
 
 class TestModulemdGenerator(CoprsTestCase):
     config = {"DIST_GIT_URL": "http://distgiturl.org"}

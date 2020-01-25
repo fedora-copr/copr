@@ -9,6 +9,7 @@ from coprs import models
 from coprs import db
 from coprs import exceptions
 from coprs.logic import builds_logic
+from coprs.logic.dist_git_logic import DistGitLogic
 from wtforms import ValidationError
 
 import gi
@@ -82,11 +83,12 @@ class ModulesLogic(object):
 
 
 class ModuleBuildFacade(object):
-    def __init__(self, user, copr, yaml, filename=None):
+    def __init__(self, user, copr, yaml, filename=None, distgit_name=None):
         self.user = user
         self.copr = copr
         self.yaml = yaml
         self.filename = filename
+        self.distgit = DistGitLogic.get_with_default(distgit_name)
 
         self.modulemd = ModulesLogic.yaml2modulemd(yaml)
         ModulesLogic.set_defaults_for_optional_params(self.modulemd, filename=filename)
@@ -179,12 +181,8 @@ class ModuleBuildFacade(object):
     def get_clone_url(self, pkgname, rpm):
         if rpm.peek_repository():
             return rpm.peek_repository()
-        return self.default_distgit.format(pkgname=pkgname)
 
-    @property
-    def default_distgit(self):
-        # @TODO move to better place
-        return "https://src.fedoraproject.org/rpms/{pkgname}"
+        return self.distgit.package_clone_url(pkgname)
 
 
 class ModulemdGenerator(object):

@@ -9,6 +9,7 @@ from fnmatch import fnmatch
 from sqlalchemy import outerjoin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
+from sqlalchemy.event import listens_for
 from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
@@ -1667,3 +1668,36 @@ class ActionsStatistics(db.Model):
     waiting = db.Column(db.Integer)
     success = db.Column(db.Integer)
     failed = db.Column(db.Integer)
+
+
+class DistGitInstance(db.Model):
+    """ Dist-git instances, e.g. Fedora/CentOS/RHEL/ """
+
+    # numeric id, not used ATM
+    id = db.Column(db.Integer, primary_key=True)
+
+    # case sensitive identificator, e.g. 'fedora'
+    name = db.Column(db.String(50), nullable=False, unique=True)
+
+    # e.g. 'https://src.fedoraproject.org'
+    clone_url = db.Column(db.String(100), nullable=False)
+
+    # e.g. 'rpms/{pkgname}', needs to contain {pkgname} to be expanded later
+    clone_package_uri = db.Column(db.String(100), nullable=False)
+
+    # for UI form ordering, higher number means higher priority
+    priority = db.Column(db.Integer, default=100, nullable=False)
+
+    def package_clone_url(self, pkgname):
+        url = '/'.join([self.clone_url, self.clone_package_uri])
+        return url.format(pkgname=pkgname)
+
+
+@listens_for(DistGitInstance.__table__, 'after_create')
+def insert_fedora_distgit(*args, **kwargs):
+    db.session.add(DistGitInstance(
+        name="fedora",
+        clone_url="https://src.fedoraproject.org",
+        clone_package_uri="rpms/{pkgname}",
+    ))
+    db.session.commit()

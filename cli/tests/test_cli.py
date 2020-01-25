@@ -697,3 +697,27 @@ def test_list_chroots(config, list_chroots):
     })
 
     main.main(argv=["list-chroots"])
+
+
+@pytest.mark.parametrize('patch_name', ['build_from_file', 'build_from_url'])
+@pytest.mark.parametrize('args', [[], ['--distgit', 'test']])
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_module_build(config, patch_name, args):
+    argv = ["build-module", "testproject"]
+
+    if patch_name == 'build_from_file':
+        argv += ["--yaml", "non-existing.yaml"]
+    else:
+        argv += ["--url", "http://example.com/test.yml"]
+
+    module = 'copr.v3.proxies.module'
+    with mock.patch('{0}.ModuleProxy.{1}'.format(module, patch_name)) as p:
+        main.main(argv=argv + args)
+
+        assert len(p.call_args_list) == 1
+        kwargs = p.call_args_list[0][1]
+        assert 'distgit' in kwargs
+        if args:
+            assert kwargs['distgit'] == args[1]
+        else:
+            assert kwargs['distgit'] is None
