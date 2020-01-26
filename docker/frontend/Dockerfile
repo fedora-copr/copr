@@ -29,8 +29,37 @@ RUN dnf -y update && \
 
 COPY files/ /
 
-RUN mkdir -p /usr/share/copr/data/whooshee
-RUN chown -R copr-fe:copr-fe /usr/share/copr
-RUN chown -R copr-fe:copr-fe /var/log/copr-frontend
+RUN sed -i 's/User apache/User copr-fe/g' /etc/httpd/conf/httpd.conf
+RUN sed -i 's/Group apache/Group copr-fe/g' /etc/httpd/conf/httpd.conf
 
-CMD ["/bin/run.sh"]
+# We cannot expose privileged port as non-root user
+RUN sed -i 's/Listen 80/#Listen 80/g' /etc/httpd/conf/httpd.conf
+
+# Otherwise it is run/httpd.pid in OpenShift, which is outside of
+# the copr-fe user permissions
+RUN echo "PidFile /var/run/httpd/httpd.pid" >> /etc/httpd/conf/httpd.conf
+
+# Some OpenShift shenanigans
+# We can't have these directories owned by copr-fe:copr-fe
+# because OpenShift runs pod as a semi-randomly generated user
+# https://docs.openshift.com/container-platform/4.3/openshift_images/create-images.html#use-uid_create-images
+RUN chown -R copr-fe:root \
+    /usr/share/copr \
+    /var/log/copr-frontend \
+    /etc/httpd/ \
+    /var/run/httpd/ \
+    /var/log/httpd/
+
+# Too bad, Dockerfile can't handle arrays in ARG definitions
+# so we need to copy-paste the directories
+RUN chmod -R g+rwX \
+    /usr/share/copr \
+    /var/log/copr-frontend \
+    /etc/httpd/ \
+    /var/run/httpd/ \
+    /var/log/httpd/
+
+# Use copr-fe user when running outside of OpenShift
+USER 993
+
+CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
