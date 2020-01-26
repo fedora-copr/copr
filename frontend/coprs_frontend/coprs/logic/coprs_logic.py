@@ -632,7 +632,7 @@ class CoprChrootsLogic(object):
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="",
-                      delete_after=None, delete_notify=None):
+                      delete_after=None, delete_notify=None, module_toggle=""):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -647,12 +647,12 @@ class CoprChrootsLogic(object):
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
-                           with_opts, without_opts, delete_after, delete_notify)
+                           with_opts, without_opts, delete_after, delete_notify, module_toggle)
         return chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
-                      with_opts="", without_opts="", delete_after=None, delete_notify=None):
+                      with_opts="", without_opts="", delete_after=None, delete_notify=None, module_toggle=""):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -662,12 +662,12 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name,
-                           copr_chroot, with_opts, without_opts, delete_after, delete_notify)
+                           copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle)
         return copr_chroot
 
     @classmethod
     def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name,
-                       copr_chroot, with_opts, without_opts, delete_after, delete_notify):
+                       copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
 
@@ -690,6 +690,9 @@ class CoprChrootsLogic(object):
 
         if delete_notify is not None:
             copr_chroot.delete_notify = delete_notify
+
+        if module_toggle is not None:
+            copr_chroot.module_toggle = module_toggle
 
         db.session.add(copr_chroot)
 

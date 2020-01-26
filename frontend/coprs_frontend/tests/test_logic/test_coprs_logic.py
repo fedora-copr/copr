@@ -8,7 +8,7 @@ from sqlalchemy import desc
 
 from copr_common.enums import ActionTypeEnum
 from coprs import app
-from coprs.forms import PinnedCoprsForm
+from coprs.forms import PinnedCoprsForm, ChrootForm, ModuleEnableNameValidator
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, PinnedCoprsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -211,3 +211,26 @@ class TestPinnedCoprsLogic(CoprsTestCase):
         ComplexLogic.delete_copr(self.c2, admin_action=True)
         assert set(CoprsLogic.get_multiple_by_username(self.u2.name)) == {self.c3}
         assert set(PinnedCoprsLogic.get_by_owner(self.u2)) == {pc2}
+
+class TestChrootFormLogic(CoprsTestCase):
+
+    def test_module_toggle_format(self):
+        with app.app_context():
+            form = ChrootForm()
+            form.module_toggle.data = "module:stream"
+            assert form.validate()
+
+            form.module_toggle.data = ""
+            assert form.validate()
+
+            form.module_toggle.data = "module:stream, module1:stream1"
+            assert form.validate()
+
+            form.module_toggle.data = "module"
+            assert False == form.validate()
+
+            form.module_toggle.data = "module 1:stream"
+            assert False == form.validate()
+
+            form.module_toggle.data = "module: stream"
+            assert False == form.validate()

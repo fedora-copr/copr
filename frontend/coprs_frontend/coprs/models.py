@@ -1282,6 +1282,8 @@ class CoprChroot(db.Model, helpers.Serializer):
     comps_zlib = db.Column(db.LargeBinary(), nullable=True)
     comps_name = db.Column(db.String(127), nullable=True)
 
+    module_toggle = db.Column(db.Text, nullable=True)
+
     with_opts = db.Column(db.Text, default="", server_default="", nullable=False)
     without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
 
@@ -1332,6 +1334,16 @@ class CoprChroot(db.Model, helpers.Serializer):
         now = datetime.datetime.now()
         days = (self.delete_after - now).days
         return days if days > 0 else 0
+
+    @property
+    def module_toggle_array(self):
+        if not self.module_toggle:
+            return []
+        module_enable = []
+        for m in self.module_toggle.split(','):
+            if m[0] != "!":
+                module_enable.append(m)
+        return module_enable
 
     def to_dict(self):
         options = {"__columns_only__": [

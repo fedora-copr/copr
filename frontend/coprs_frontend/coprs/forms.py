@@ -22,6 +22,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 from coprs import exceptions
 
+from wtforms import ValidationError
 
 FALSE_VALUES = {False, "false", ""}
 
@@ -165,6 +166,32 @@ class NameCharactersValidator(object):
                         message=self.message)
         validator(form, field)
 
+class ModuleEnableNameValidator(object):
+
+    def __call__(self, form, field):
+        for module in form.module_toggle.data.split(","):
+            if module == "":
+                return True
+
+            try:
+                module_name, stream = module.strip().split(":")
+            except ValueError:
+                raise ValidationError(
+                    message="Module name '{0}' must consist of two parts separated with colon.\
+                         Eg. module:stream"
+                .format(module))
+
+            pattern = re.compile(re.compile(r"^([a-zA-Z0-9-_!][^\ ]*)$"))
+            if pattern.match(module_name) == None:
+                raise ValidationError(
+                    message="Module name '{0}' must contain only letters, digits, dashes, underscores."
+                .format(module_name))
+
+            if pattern.match(stream) == None:
+                raise ValidationError(
+                    message="Stream part of module name '{0}' must contain only letters,\
+                        digits, dashes, underscores."
+                .format(stream))
 
 class ChrootsValidator(object):
     def __call__(self, form, field):
@@ -220,6 +247,17 @@ class StringListFilter(object):
         regex = re.compile(r"\s+")
         return regex.sub(lambda x: '\n', result)
 
+class StringWhiteCharactersFilter(object):
+
+    def __call__(self, value):
+        if not value:
+            return ''
+
+        modules = [module.strip() for module in value.split(",")]
+        # to remove empty strings
+        modules = [m for m in modules if m]
+
+        return ", ".join(module for module in modules if module != "")
 
 class ValueToPermissionNumberFilter(object):
 
@@ -1005,6 +1043,11 @@ class ChrootForm(FlaskForm):
                                   filters=[StringListFilter()])
 
     comps = FileField("comps_xml")
+
+    module_toggle = wtforms.StringField("Enable module",
+                                        validators=[ModuleEnableNameValidator()],
+                                        filters=[StringWhiteCharactersFilter()]
+                                        )
 
     with_opts = wtforms.StringField("With options")
     without_opts = wtforms.StringField("Without options")

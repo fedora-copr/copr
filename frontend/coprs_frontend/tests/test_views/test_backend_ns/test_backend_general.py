@@ -1,11 +1,39 @@
 import json
 
-from unittest import mock
+from unittest import mock, skip
 
 from copr_common.enums import BackendResultEnum, StatusEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.builds_logic import BuildsLogic
 
+
+class TestGetBuildTask(CoprsTestCase):
+
+    def test_module_name_empty(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.c1.copr_chroots[0].module_toggle = ""
+        r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+        assert data['modules']['toggle'] == []
+
+    def test_module_name_enable(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.c1.copr_chroots[0].module_toggle = "XXX"
+        r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+        assert data['modules']['toggle'] == [{'enable': 'XXX'}]
+
+    @skip("Modules disable not implemented yet.")
+    def test_module_name_disable(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.c1.copr_chroots[0].module_toggle = "!XXX"
+        r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+        assert data['modules']['toggle'] == [{'disable': '!XXX'}]
+
+    @skip("Modules disable not implemented yet.")
+    def test_module_name_many_modules(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.c1.copr_chroots[0].module_toggle = "!XXX,YYY,ZZZ"
+        r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+        assert data['modules']['toggle'] == [{'disable': '!XXX'}, {'enable': 'YYY'}, {'enable': 'ZZZ'}]
 
 class TestWaitingBuilds(CoprsTestCase):
 

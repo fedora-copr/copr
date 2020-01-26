@@ -33,6 +33,14 @@
     {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
 
     {{ render_field(
+        form.module_toggle,
+        size=80,
+        info='You can specify modules which will be enabled for builds in the given chroot.',
+        placeholder='module:stream, module1:stream1'
+       )
+    }}
+
+    {{ render_field(
         form.with_opts,
         size=80,
         info='You can specify rpmbuild --with options here for builds in the given chroot.',

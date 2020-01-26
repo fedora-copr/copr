@@ -9,7 +9,7 @@ from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.coprs_logic import MockChrootsLogic
+from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
 from coprs.exceptions import MalformedArgumentException, ObjectNotFound
 
 from coprs.views import misc
@@ -92,6 +92,12 @@ def get_build_record(task, short=False):
 
     build_record = None
     try:
+        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+        enabled_disabled_modules = []
+        for module in copr_chroot.module_toggle_array:
+            if module:
+                enabled_disabled_modules.append({"enable": module})
+
         build_record = {
             "task_id": task.task_id,
             "build_id": task.build.id,
@@ -114,6 +120,7 @@ def get_build_record(task, short=False):
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "uses_devel_repo": task.build.copr.devel_mode,
+            "modules": {'toggle': enabled_disabled_modules},
         }
         if short:
             return build_record
