@@ -29,19 +29,14 @@ RUN dnf -y update && \
                    python3-alembic \
                    postgresql-server \
                    redis \
-                   tito \
                    uwsgi \
                    uwsgi-plugin-python3
 
 # Copy files from the host into the container
-COPY . /copr
-COPY docker/keygen-httpd/files/ /
-
+COPY files/ /
 
 # Install copr-keygen package
-# We should probably install it via tito
 RUN dnf -y install copr-keygen && dnf clean all
-
 
 # For whatever reason the copr-keygen package installed
 # copr-signer user incorrectly and set it's home directory

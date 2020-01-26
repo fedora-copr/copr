@@ -30,12 +30,9 @@ RUN dnf -y update && \
                    glib2 \
                    ca-certificates \
                    scl-utils-build \
-                   ethtool \
-                   tito
+                   ethtool
 
-COPY . /copr
-COPY docker/builder/files/ /
-COPY docker/backend/files/home/copr/.ssh/id_rsa.pub /root/.ssh/id_backend.pub
+COPY files/ /
 
 # needed to run sshd
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
@@ -46,10 +43,7 @@ RUN echo 'root:passwd' | chpasswd && \
     touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && \
     cat /root/.ssh/id_backend.pub >> /root/.ssh/authorized_keys
 
-RUN cd /copr/rpmbuild && \
-    dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--nocheck' && \
-    dnf -y install /tmp/tito/x86_64/copr-{rpmbuild,builder}*.x86_64.rpm --allowerasing && \
+RUN dnf -y install copr-builder && \
     dnf clean all
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg

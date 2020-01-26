@@ -24,17 +24,10 @@ RUN dnf -y update && \
                    postgresql-server \
                    redis \
                    mock-core-configs \
-                   tito
+                   findutils \
+                   copr-frontend
 
-COPY . /copr
-COPY docker/frontend/files/ /
-
-# build and install copr-frontend
-RUN cd /copr/frontend && \
-    dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--nocheck' && \
-    ( dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm || true ) && \
-    dnf clean all
+COPY files/ /
 
 RUN mkdir -p /usr/share/copr/data/whooshee
 RUN chown -R copr-fe:copr-fe /usr/share/copr

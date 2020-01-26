@@ -16,15 +16,9 @@ RUN dnf -y update && \
                    copr-selinux \
                    cgit \
                    python3-rpkg \
-                   python3-ipdb \
-                   tito
+                   python3-ipdb
 
-COPY . /copr
-
-RUN cd /copr/dist-git && \
-    dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--nocheck' && \
-    ( dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || true ) && \
+RUN dnf -y install copr-dist-git && \
     dnf clean all
 
 RUN mkdir /tmp/copr-dist-git

@@ -14,15 +14,9 @@ RUN dnf -y update && \
                    wget \
                    vim \
                    copr-selinux \
-                   cgit \
-                   tito
+                   cgit
 
-COPY . /copr
-
-RUN cd /copr/dist-git && \
-    dnf builddep -y *spec && \
-    tito build --rpm --test --rpmbuild-options='--nocheck' && \
-    ( dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || true ) && \
+RUN dnf -y install copr-dist-git && \
     dnf clean all
 
 RUN rm /etc/httpd/conf.d/ssl.conf

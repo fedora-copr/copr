@@ -5,8 +5,7 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend
     command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_be.py
     depends_on:
@@ -21,8 +20,7 @@ services:
 
   backend-log:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend-log
     command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_logger.py
     depends_on:
@@ -36,8 +34,7 @@ services:
 
   backend-vmm:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend-vmm
     command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_vmm.py
     depends_on:
@@ -51,8 +48,7 @@ services:
 
   backend-build:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend-build
     command: /usr/sbin/runuser -u copr -g copr -G obsrun -- /usr/bin/copr_run_build_dispatcher.py
     depends_on:
@@ -67,8 +63,7 @@ services:
 
   backend-action:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend-action
     command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_action_dispatcher.py
     depends_on:
@@ -83,8 +78,7 @@ services:
 
   backend-signd:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: docker/backend
     hostname: backend-signd
     command: /usr/sbin/runuser -u copr -g copr -- /usr/sbin/signd
     stdin_open: true
@@ -100,8 +94,7 @@ services:
 
   backend_httpd:
     build:
-      context: .
-      dockerfile: docker/backend_httpd/Dockerfile
+      context: docker/backend_httpd
     hostname: backend_httpd
     ports:
       - "5002:5002"
@@ -110,8 +103,7 @@ services:
 
   builder:
     build:
-      context: .
-      dockerfile: docker/builder/Dockerfile
+      context: docker/builder
     hostname: builder
     stdin_open: true
     tty: true
@@ -124,8 +116,7 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: docker/frontend/Dockerfile
+      context: docker/frontend/
     hostname: frontend
     depends_on:
       - database
@@ -141,8 +132,7 @@ services:
 
   database:
     build:
-      context: .
-      dockerfile: docker/database/Dockerfile
+      context: docker/database/
     hostname: database
     stdin_open: true
     tty: true
@@ -155,8 +145,7 @@ services:
 
   distgit:
     build:
-      context: .
-      dockerfile: docker/distgit/Dockerfile
+      context: docker/distgit/
     hostname: distgit
     stdin_open: true
     tty: true
@@ -166,8 +155,7 @@ services:
 
   distgit-httpd:
     build:
-      context: .
-      dockerfile: docker/distgit-httpd/Dockerfile
+      context: docker/distgit-httpd/
     hostname: distgit-httpd
     stdin_open: true
     tty: true
@@ -179,8 +167,7 @@ services:
 
   keygen-signd:
     build:
-      context: .
-      dockerfile: docker/keygen-signd/Dockerfile
+      context: docker/keygen-signd/
     hostname: keygen-signd
     stdin_open: true
     tty: true
@@ -190,8 +177,7 @@ services:
 
   keygen-httpd:
     build:
-      context: .
-      dockerfile: docker/keygen-httpd/Dockerfile
+      context: docker/keygen-httpd/
     hostname: keygen-httpd
     stdin_open: true
     tty: true
