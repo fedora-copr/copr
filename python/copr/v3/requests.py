@@ -48,7 +48,10 @@ class Request(object):
         return self._method.upper()
 
     def send(self):
-        response = requests.request(**self._request_params)
+        try:
+            response = requests.request(**self._request_params)
+        except requests.exceptions.ConnectionError:
+            raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
         handle_errors(response)
         return response
 
