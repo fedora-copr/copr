@@ -1,6 +1,10 @@
 import re
 import configparser
+import os
+import pytest
+import shutil
 import subprocess
+import tempfile
 from os.path import realpath, dirname
 
 from copr_rpmbuild.builders.mock import MockBuilder
@@ -12,6 +16,32 @@ except ImportError:
      # Python 2 version depends on mock
      import mock
      builtins = '__builtin__'
+
+@pytest.yield_fixture
+def f_mock_calls():
+    p_popen = mock.patch('copr_rpmbuild.builders.mock.GentlyTimeoutedPopen')
+
+    dummy_patchers = [
+        mock.patch('copr_rpmbuild.builders.mock.MockBuilder.clean_cache'),
+        mock.patch('copr_rpmbuild.builders.mock.shutil'),
+        mock.patch('copr_rpmbuild.builders.mock.locate_spec',
+                   new=mock.MagicMock(return_value='spec')),
+        mock.patch('copr_rpmbuild.builders.mock.locate_srpm',
+                   new=mock.MagicMock(return_value='srpm')),
+        mock.patch('copr_rpmbuild.builders.mock.get_mock_uniqueext',
+                   new=mock.MagicMock(return_value='0')),
+    ]
+
+    for patcher in dummy_patchers:
+        patcher.start()
+
+    yield_val = p_popen.start()
+    yield_val.return_value = mock.MagicMock(returncode=0)
+
+    yield yield_val.call_args_list
+
+    for patcher in dummy_patchers:
+        patcher.stop()
 
 
 class TestMockBuilder(object):
@@ -43,11 +73,18 @@ class TestMockBuilder(object):
             "with_opts": [],
             "without_opts": [],
         }
+
         self.sourcedir = "/path/to/sourcedir"
-        self.resultdir = "/path/to/resultdir"
+        self.resultdir = tempfile.mkdtemp(prefix='test-mock-builder')
+        self.configdir = os.path.join(self.resultdir, 'configs')
+        self.child_config = os.path.join(self.configdir, 'child.cfg')
+
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
         self.config.set('main', 'logfile', '/dev/null')
+
+    def teardown_method(self, method):
+        shutil.rmtree(self.resultdir)
 
     def test_init(self):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
@@ -81,6 +118,35 @@ class TestMockBuilder(object):
         assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
         assert config_opts["yum.conf"] == []
 
+    def test_mock_config(self, f_mock_calls):
+        """ test that no module_enable statements are in config """
+        MockBuilder(self.task, self.sourcedir, self.resultdir,
+                    self.config).run()
+
+        config = open(self.child_config, 'r').readlines()
+        config = ''.join(config)
+        assert config == """\
+include('/etc/mock/fedora-24-x86_64.cfg')
+
+config_opts['root'] = '10-fedora-24-x86_64'
+
+
+config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'
+
+
+
+config_opts['rpmbuild_networking'] = True
+config_opts['use_host_resolv'] = True
+
+
+config_opts['macros']['%copr_username'] = '@copr'
+config_opts['macros']['%copr_projectname'] = 'copr-dev'
+config_opts['use_bootstrap_container'] = False
+
+
+
+"""  # TODO: make the output nicer
+
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
     def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock):
@@ -102,7 +168,8 @@ class TestMockBuilder(object):
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         builder.touch_success_file()
-        mock_open.assert_called_with("/path/to/resultdir/success", "w")
+        success = os.path.join(self.resultdir, "success")
+        mock_open.assert_called_with(success, "w")
 
     def test_custom1_chroot_settings(self):
         b1 = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
