@@ -225,7 +225,7 @@ class HookContentStorage(object):
         try:
             with open(os.path.join(self.tmp, 'hook_payload'), "w") as f:
                 # Do we need to dump http headers, too?
-                f.write(flask.request.data.decode('ascii'))
+                f.write(flask.request.data.decode(errors='replace'))
 
         except Exception:
             log.exception('can not store hook payload')

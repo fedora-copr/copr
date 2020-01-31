@@ -13,7 +13,7 @@ class TestCustomWebhook(CoprsTestCase):
         return self.tc.post(
             url,
             content_type="application/json",
-            data=json.dumps(data) if data != None else None,
+            data=json.dumps(data, ensure_ascii=False) if data != None else None,
         )
 
 
@@ -30,7 +30,7 @@ class TestCustomWebhook(CoprsTestCase):
 
     def test_hook_data_stored(self, f_hook_package, f_db):
         package_name = self.pHook.name
-        hook_payload = {'some': 'data'}
+        hook_payload = {'utf-8': 'data ❤'}
         r = self.custom_post(
             hook_payload,
             self.c1.webhook_secret,
