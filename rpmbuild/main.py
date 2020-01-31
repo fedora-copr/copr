@@ -152,12 +152,14 @@ def produce_srpm(task, config, resultdir):
     """
     tempdir = tempfile.mkdtemp(prefix=resultdir)
     os.chmod(tempdir, stat.S_IRWXU|stat.S_IRWXO)
-    provider = providers.factory(task["source_type"])(
-        task["source_json"], tempdir, config)
-    provider.produce_srpm()
-    for item in os.listdir(tempdir):
-        shutil.copy(os.path.join(tempdir, item), resultdir)
-    shutil.rmtree(tempdir)
+    try:
+        provider = providers.factory(task["source_type"])(
+            task["source_json"], tempdir, config)
+        provider.produce_srpm()
+        for item in os.listdir(tempdir):
+            shutil.copy(os.path.join(tempdir, item), resultdir)
+    finally:
+        shutil.rmtree(tempdir)
 
 
 def get_task(args, config, build_config_url_path=None, task_id=None):
@@ -240,20 +242,21 @@ def build_rpm(args, config):
     log_task(task)
 
     sourcedir = tempfile.mkdtemp()
-    scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
+    try:
+        scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
+        if task.get("fetch_sources_only"):
+            scm_provider.produce_sources()
+        else:
+            scm_provider.produce_srpm()
+            built_srpm = locate_srpm(sourcedir)
+            extract_srpm(built_srpm, sourcedir)
 
-    if task.get("fetch_sources_only"):
-        scm_provider.produce_sources()
-    else:
-        scm_provider.produce_srpm()
-        built_srpm = locate_srpm(sourcedir)
-        extract_srpm(built_srpm, sourcedir)
-
-    resultdir = config.get("main", "resultdir")
-    builder = MockBuilder(task, sourcedir, resultdir, config)
-    builder.run()
-    builder.touch_success_file()
-    shutil.rmtree(sourcedir)
+        resultdir = config.get("main", "resultdir")
+        builder = MockBuilder(task, sourcedir, resultdir, config)
+        builder.run()
+        builder.touch_success_file()
+    finally:
+        shutil.rmtree(sourcedir)
 
 
 def dump_configs(args, config):
