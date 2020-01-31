@@ -1,5 +1,4 @@
 import re
-import unittest
 import configparser
 import subprocess
 from os.path import realpath, dirname
