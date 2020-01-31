@@ -79,6 +79,17 @@ class TestMockBuilder(object):
         self.configdir = os.path.join(self.resultdir, 'configs')
         self.child_config = os.path.join(self.configdir, 'child.cfg')
 
+        self.mock_rpm_call = [
+            'unbuffer', 'mock', '--rebuild', 'srpm', '--configdir',
+            self.configdir, '--resultdir', self.resultdir,
+            '--uniqueext', '0', '-r', 'child']
+
+        self.mock_srpm_call = [
+            'unbuffer', 'mock', '--buildsrpm', '--spec', 'spec', '--sources',
+            self.sourcedir, '--configdir', self.configdir,
+            '--resultdir', self.resultdir, '--uniqueext', '0', '-r',
+            'child']
+
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
         self.config.set('main', 'logfile', '/dev/null')
@@ -146,6 +157,18 @@ config_opts['use_bootstrap_container'] = False
 
 
 """  # TODO: make the output nicer
+
+    def test_mock_options(self, f_mock_calls):
+        """ test that mock options are correctly constructed """
+        MockBuilder(self.task, self.sourcedir, self.resultdir,
+                    self.config).run()
+        assert len(f_mock_calls) == 2 # srpm + rpm
+
+        call = f_mock_calls[0]
+        assert call[0][0] == self.mock_srpm_call
+
+        call = f_mock_calls[1]
+        assert call[0][0] == self.mock_rpm_call
 
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
