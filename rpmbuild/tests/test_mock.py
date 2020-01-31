@@ -199,3 +199,54 @@ config_opts['use_bootstrap_container'] = False
         b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.sourcedir, self.resultdir, self.config)
         assert b1.pkg_manager_conf == "yum"
         assert b2.pkg_manager_conf == "dnf"
+
+    @pytest.mark.parametrize('modules', [
+        ['postgresql:9.6'],
+        ['moduleA:S1', 'moduleA:S2'],
+        # we trim spaces around modules
+        [' moduleA:S1', ' moduleA:S2 '],
+    ])
+    def test_module_mock_options(self, f_mock_calls, modules):
+        'test that mock options for module-enable is correctly constructed'
+        self.task['modules'] = {
+            'toggle': [{'enable': x} for x in modules],
+        }
+        MockBuilder(self.task, self.sourcedir, self.resultdir,
+                    self.config).run()
+
+        assert len(f_mock_calls) == 2 # srpm + rpm
+
+        # srpm call isn't affected by modules
+        call = f_mock_calls[0]
+        assert call[0][0] == self.mock_srpm_call
+
+        call = f_mock_calls[1]
+        assert call[0][0] == self.mock_rpm_call
+
+        part_of_expected_output = (
+            "config_opts['use_bootstrap_container'] = False\n"
+            "\n"
+            "\n"
+            "\n"
+            "{0}\n"
+        ).format('\n'.join(
+            ['config_opts["module_enable"] += "{0}"'.format(module.strip()) for module in modules]
+        ))
+
+        config = ''.join(open(self.child_config, 'r').readlines())
+        assert part_of_expected_output in config
+
+    @pytest.mark.parametrize('modules', [
+        [], # dict expected
+        "asf",
+        {}, # toggle required for now
+        {'toggle': []}, # can not be empty
+        {'toggle': ""}, # string required
+        {'toggle': [{'enable': 1}]}, # enable accepts string
+    ])
+    def test_module_mock_assertions(self, f_mock_calls, modules):
+        'test that assertions work'
+        self.task['modules'] = modules
+        with pytest.raises(AssertionError):
+            MockBuilder(self.task, self.sourcedir, self.resultdir,
+                        self.config).run()

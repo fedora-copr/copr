@@ -29,6 +29,7 @@ class MockBuilder(object):
         self.logfile = self.config.get("main", "logfile")
         self.copr_username = task.get("project_owner")
         self.copr_projectname = task.get("project_name")
+        self.modules = task.get("modules")
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -69,7 +70,8 @@ class MockBuilder(object):
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
                                repos=self.repos, pkg_manager_conf=self.pkg_manager_conf,
-                               copr_username=self.copr_username, copr_projectname=self.copr_projectname)
+                               copr_username=self.copr_username, copr_projectname=self.copr_projectname,
+                               modules=self.enable_modules)
 
     def produce_srpm(self, spec, sources, configdir, resultdir):
         cmd = MOCK_CALL + [
@@ -109,6 +111,28 @@ class MockBuilder(object):
             "--scrub", "cache",
         ]
         subprocess.call(cmd) # ignore failure here, if any
+
+    @property
+    def enable_modules(self):
+        """ Return the list() of modules to be enabled """
+        enable = []
+        if self.modules is None:
+            return enable
+
+        assert isinstance(self.modules, dict)
+        assert 'toggle' in self.modules
+        assert isinstance(self.modules['toggle'], list)
+        assert self.modules['toggle']
+
+        for toggle in self.modules['toggle']:
+            assert isinstance(toggle, dict)
+            # we only have 'enable' now
+            assert 'enable' in toggle
+            assert isinstance(toggle['enable'], str)
+            module = toggle['enable'].strip()
+            enable.append(module)
+
+        return enable
 
     def produce_rpm(self, srpm, configdir, resultdir):
         cmd = MOCK_CALL + [

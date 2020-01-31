@@ -23,7 +23,9 @@ config_opts['bootstrap_chroot_additional_packages'] = []
 config_opts['bootstrap_module_enable'] = []
 config_opts['bootstrap_module_install'] = []
 {% endif %}
-
+{% for module in modules %}
+config_opts["module_enable"] += "{{ module }}"
+{%- endfor %}
 {% if repos %}
 config_opts['{{ pkg_manager_conf }}.conf'] += """
 {% for repo in repos %}
