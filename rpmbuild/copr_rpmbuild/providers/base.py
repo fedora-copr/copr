@@ -1,6 +1,7 @@
 import os
 import logging
 import tempfile
+import shutil
 from ..helpers import string2list
 
 log = logging.getLogger("__main__")
@@ -25,7 +26,7 @@ class Provider(object):
             rpmmacros.write("%__urlhelper_localopts --proto -all,{0}\n"
                             .format(','.join(["+"+protocol for protocol in enabled_protocols])))
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __del__(self):
         self.cleanup()
 
     def cleanup(self):
