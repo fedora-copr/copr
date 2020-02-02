@@ -57,7 +57,7 @@ class TestScmProvider(TestCase):
         self.assertEqual(provider.spec_path, os.path.join(provider.workdir, "somerepo", "SPECS", "pkg.spec"))
 
     def test_generate_rpkg_config(self):
-        rpkg_tmpdir = tempfile.mkdtemp()
+        rpkg_tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
         rpkg_config = open(os.path.join(rpkg_tmpdir, "rpkg.conf.j2"), "w")
         rpkg_config.write(RPKG_CONF_JINJA)
         rpkg_config.close()

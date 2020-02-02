@@ -12,7 +12,7 @@ class Provider(object):
         self.outdir = outdir
         self.config = config
 
-        self.workdir = tempfile.mkdtemp()
+        self.workdir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
 
         # Change home directory to workdir and create .rpmmacros there
         os.environ["HOME"] = self.workdir

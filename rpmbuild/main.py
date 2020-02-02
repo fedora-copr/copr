@@ -150,7 +150,7 @@ def produce_srpm(task, config, resultdir):
     create tempdir to allow --private-users=pick with make_srpm
     that changes permissions on the result directory to out of scope values
     """
-    tempdir = tempfile.mkdtemp(prefix=resultdir)
+    tempdir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
     os.chmod(tempdir, stat.S_IRWXU|stat.S_IRWXO)
     try:
         provider = providers.factory(task["source_type"])(
@@ -241,7 +241,7 @@ def build_rpm(args, config):
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
-    sourcedir = tempfile.mkdtemp()
+    sourcedir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
     try:
         scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
         if task.get("fetch_sources_only"):

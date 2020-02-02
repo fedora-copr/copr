@@ -14,7 +14,7 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(string2list(',,foo\tbar\tbaz'), ['foo', 'bar', 'baz'])
 
     def test_locate_srpm(self):
-        tmpdir = tempfile.mkdtemp()
+        tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
         srpm_path = os.path.join(tmpdir, "dummy.src.rpm")
         open(srpm_path, "w").close()
         self.assertEqual(srpm_path, locate_srpm(tmpdir))

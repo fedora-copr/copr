@@ -62,7 +62,7 @@ class TestUrlProviderQueryString(TestCase):
                    "srelay-0.4.8p3-0.20181224.git688764b.fc10.3sunshine.src.rpm?dl=1",
         }
         self.json_2 = { 'url': "http://example.com/test.spec?a=1&b=2" }
-        self.resultdir = tempfile.mkdtemp()
+        self.resultdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
 
     @pytest.mark.skipif(distro.id() in ['rhel', 'centos'] and
                             distro.major_version() == '6',
