@@ -24,9 +24,12 @@ class CommandException(Exception):
     pass
 
 
+def printable_cmd(cmd):
+    return ' '.join([pipes.quote(arg) for arg in cmd])
+
+
 def run_cmd(cmd, opts, check=True):
-    cmd_printable = ' '.join([pipes.quote(arg) for arg in cmd])
-    opts.log.info("running: %s", cmd_printable)
+    opts.log.info("running: %s", printable_cmd(cmd))
     sp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = sp.communicate()
     if out:
@@ -100,18 +103,42 @@ def run_createrepo(opts):
         # this is because rhel-5 doesn't know sha256
         createrepo_cmd.extend(['-s', 'sha', '--checksum', 'md5'])
 
+    # we assume that we could skip the call at the beginning
+    createrepo_run_needed = False
+
     if opts.delete or opts.add:
         # request for modification, is the repo actually initialized?  Otherwise
         # we do full createrepo_c run.
         repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
         if os.path.exists(repodata_xml):
             createrepo_cmd += ["--recycle-pkglist", "--update", "--skip-stat"]
+        else:
+            # Either --add or --delete was specified, but there are no metadata,
+            # yet.  This would be bug in most cases (most likely the initial
+            # createrepo run after project creation failed).  But would be wrong
+            # to not run "full" createrepo in such case.
+            createrepo_run_needed = True
+    else:
+        # full createrepo run requested
+        createrepo_run_needed = True
 
     for subdir in opts.delete:
+        subdir_full = os.path.join(opts.directory, subdir)
+
+        # if the sub-directory doesn't exist (removed by prunerepo, e.g.) it is
+        # better to save one argument and perhaps save one whole createrepo run.
+        if not os.path.exists(subdir_full):
+            continue
+
+        # something is going to be deleted
+        createrepo_run_needed = True
         createrepo_cmd += ['--excludes', '*{}/*'.format(subdir)]
 
     filelist = os.path.join(opts.directory, '.copr-createrepo-pkglist')
     if opts.add:
+        # assure createrepo is run after each addition
+        createrepo_run_needed = True
+
         unlink_unsafe(filelist)
         with open(filelist, "wb") as filelist_fd:
             for subdir in opts.add:
@@ -140,10 +167,19 @@ def run_createrepo(opts):
         # TODO: With --devel, we should check that all removed packages isn't
         # referenced by the main repository.  If it does, we should delete those
         # entries from main repo as well.
+
     try:
-        run_cmd(createrepo_cmd, opts)
+        if createrepo_run_needed:
+            run_cmd(createrepo_cmd, opts)
+        else:
+            opts.log.info("createrepo_c run is not actually needed, "
+                          "skipping command: %s",
+                          printable_cmd(createrepo_cmd))
+
     finally:
         unlink_unsafe(filelist)
+
+    return createrepo_run_needed
 
 
 def add_appdata(opts):
@@ -233,7 +269,9 @@ def lock(opts):
 
 def main_locked(opts, log):
     # (re)create the repository
-    run_createrepo(opts)
+    if not run_createrepo(opts):
+        opts.log.warning("no-op")
+        return
 
     # delete the RPMs, do this _after_ craeterepo, so we close the major
     # race between package removal and re-createrepo
