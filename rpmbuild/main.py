@@ -157,6 +157,8 @@ def produce_srpm(task, config, resultdir):
             task["source_json"], tempdir, config)
         provider.produce_srpm()
         for item in os.listdir(tempdir):
+            if item in ["obtain-sources"]:
+                continue
             shutil.copy(os.path.join(tempdir, item), resultdir)
     finally:
         shutil.rmtree(tempdir)

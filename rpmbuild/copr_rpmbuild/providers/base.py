@@ -1,7 +1,6 @@
 import os
 import logging
 import tempfile
-import shutil
 from ..helpers import string2list
 
 log = logging.getLogger("__main__")
@@ -12,7 +11,11 @@ class Provider(object):
         self.outdir = outdir
         self.config = config
 
-        self.workdir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
+        self.workdir = os.path.join(outdir, "obtain-sources")
+        try:
+            os.mkdir(self.workdir)
+        except FileExistsError:
+            pass
 
         # Change home directory to workdir and create .rpmmacros there
         os.environ["HOME"] = self.workdir
@@ -25,12 +28,3 @@ class Provider(object):
             enabled_protocols = string2list(self.config.get("main", "enabled_source_protocols"))
             rpmmacros.write("%__urlhelper_localopts --proto -all,{0}\n"
                             .format(','.join(["+"+protocol for protocol in enabled_protocols])))
-
-    def __del__(self):
-        self.cleanup()
-
-    def cleanup(self):
-        try:
-            shutil.rmtree(self.workdir)
-        except OSError as e:
-            pass
