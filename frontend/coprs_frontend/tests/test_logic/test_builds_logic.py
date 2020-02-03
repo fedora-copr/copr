@@ -202,6 +202,80 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b4.id).one()
 
+    def test_delete_build_no_resultdir(
+            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        expected_dir = self.b1.result_dir
+        self.db.session.add(self.b1)
+        bc = self.b1_bc[0]
+        bc.result_dir = ''
+        self.db.session.add(bc)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 0
+        BuildsLogic.delete_build(self.u1, self.b1)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 1
+        action = ActionsLogic.get_many().one()
+        delete_data = json.loads(action.data)
+        # doesn't contain 'fedora-18-x86_64': ['bar']!
+        assert delete_data['chroot_builddirs'] == {'srpm-builds': ['bar']}
+
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b1.id).one()
+
+    def test_delete_mulitple_builds_no_resultdir(
+            self, f_users, f_coprs, f_pr_build, f_db):
+
+        self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        expected_dir = self.b1.result_dir
+        self.db.session.add(self.b1)
+        bc = self.b1_bc[0]
+        bc.result_dir = ''
+
+        # one more finished build
+        first = True
+        for bchroot in self.b2_bc:
+            if first:
+                first = False
+                bchroot.result_dir = ''
+            bchroot.status = StatusEnum('failed')
+            self.db.session.add(bchroot)
+
+        self.db.session.add(bc)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 0
+        BuildsLogic.delete_multiple_builds(self.u1, [self.b1, self.b2,
+                                                     self.b_pr])
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 1
+        action = ActionsLogic.get_many().one()
+        delete_data = json.loads(action.data)
+
+        # doesn't contain 'fedora-18-x86_64': ['bar']!
+        assert delete_data == {
+            'ownername': 'user1',
+            'projectname': 'foocopr',
+            'project_dirnames': {
+                'foocopr': {
+                    'srpm-builds': ['bar', '00000002'],
+                    # 'fedora-18-x86_64': ['bar'] # this has result_dir=''
+                },
+                'foocopr:PR': {
+                    'srpm-builds': ['0000PR'],
+                    'fedora-17-x86_64': ['0000PR-pr-package'],
+                }
+            },
+            'build_ids': [1, 2, 5]
+        }
+
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b1.id).one()
+
     def test_delete_build_basic(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 

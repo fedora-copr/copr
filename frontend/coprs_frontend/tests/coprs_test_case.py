@@ -251,7 +251,7 @@ class CoprsTestCase(object):
         self.b2 = models.Build(
             copr=self.c1, copr_dir=self.c1_dir, package=self.p1,
             user=self.u2, submitted_on=10, srpm_url="http://somesrpm",
-            source_status=StatusEnum("importing"), result_dir='bar',
+            source_status=StatusEnum("importing"), result_dir='00000002',
             source_json='{}')
         self.b3 = models.Build(
             copr=self.c2, copr_dir=self.c2_dir, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')

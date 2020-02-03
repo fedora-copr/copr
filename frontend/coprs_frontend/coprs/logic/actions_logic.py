@@ -120,9 +120,18 @@ class ActionsLogic(object):
         Creates a dictionary of chroot builddirs for build delete action
         :type build: models.build
         """
-        chroot_builddirs = {'srpm-builds': [build.result_dir]}
+        chroot_builddirs = {}
 
+        # plan to remove sub-dir in srpm-builds/ directory
+        if build.result_dir:
+            chroot_builddirs['srpm-builds'] = [build.result_dir]
+
+        # and all chroot sub-dirs
         for build_chroot in build.build_chroots:
+            if not build_chroot.result_dir:
+                # when we cancel build when the src.rpm (e.g. SCM method) is not
+                # yet generated
+                continue
             chroot_builddirs[build_chroot.name] = [build_chroot.result_dir]
 
         return chroot_builddirs

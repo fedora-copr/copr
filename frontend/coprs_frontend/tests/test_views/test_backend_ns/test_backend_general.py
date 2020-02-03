@@ -210,7 +210,7 @@ class TestUpdateBuilds(CoprsTestCase):
         ended = self.models.Build.query.filter(
             self.models.Build.id == 2).first()
         assert ended.status == 0
-        assert ended.result_dir == "bar"
+        assert ended.result_dir == "00000002"
         assert ended.chroots_ended_on == {'fedora-18-x86_64': 1390866440}
 
 

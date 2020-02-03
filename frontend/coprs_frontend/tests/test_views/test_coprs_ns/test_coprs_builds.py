@@ -253,7 +253,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             'foocopr': {
                 # they'd usually look like ID-PKGNAME, not 'bar'
                 'fedora-18-x86_64': ['bar', 'bar'],
-                'srpm-builds': ['bar', 'bar']},
+                'srpm-builds': ['bar', '00000002']},
             'foocopr:PR': {
                 'fedora-17-x86_64': ['0000PR-pr-package'],
                 'srpm-builds': ['0000PR'],
