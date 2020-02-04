@@ -19,13 +19,16 @@ class TestRubyGemsProvider(TestCase):
         self.source_json = {"gem_name": "A_123"}
         self.resultdir = "/path/to/resultdir"
 
-    def test_init(self):
+    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_init(self, mock_mkdir, mock_open):
         provider = RubyGemsProvider(self.source_json, self.resultdir, self.config)
         self.assertEqual(provider.gem_name, "A_123")
 
     @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
     @mock.patch("{0}.open".format(builtins))
-    def test_produce_srpm(self, mock_open, run_cmd):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd):
         provider = RubyGemsProvider(self.source_json, self.resultdir, self.config)
         provider.produce_srpm()
         assert_cmd = ["gem2rpm", "A_123", "--srpm", "-C", "/path/to/resultdir", "--fetch"]
@@ -33,7 +36,8 @@ class TestRubyGemsProvider(TestCase):
 
     @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
     @mock.patch("{0}.open".format(builtins))
-    def test_empty_license(self, mock_open, run_cmd):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_empty_license(self, mock_mkdir, mock_open, run_cmd):
         stderr = ("error: line 8: Empty tag: License:"
                   "Command failed: rpmbuild -bs --nodeps --define '_sourcedir /tmp/gem2rpm-foo-20170905-3367-c2flks'"
                   "--define '_srcrpmdir .' /tmp/gem2rpm-foo-20170905-3367-c2flks/rubygem-foo.spec")

@@ -9,9 +9,11 @@ from . import TestCase
 
 try:
      from unittest import mock
+     builtins = 'builtins'
 except ImportError:
      # Python 2 version depends on mock
      import mock
+     builtins = '__builtin__'
 
 RPKG_CONF_JINJA = """
 [rpkg]
@@ -32,7 +34,9 @@ class TestScmProvider(TestCase):
         }
         self.resultdir = "/path/to/resultdir"
 
-    def test_init(self):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_init(self, mock_mkdir, mock_open):
         source_json = self.source_json.copy()
 
         provider = ScmProvider(source_json, self.resultdir, self.config)
@@ -57,7 +61,8 @@ class TestScmProvider(TestCase):
         self.assertEqual(provider.spec_path, os.path.join(provider.workdir, "somerepo", "SPECS", "pkg.spec"))
 
     def test_generate_rpkg_config(self):
-        rpkg_tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
+        tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
+        rpkg_tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-", dir=tmpdir)
         rpkg_config = open(os.path.join(rpkg_tmpdir, "rpkg.conf.j2"), "w")
         rpkg_config.write(RPKG_CONF_JINJA)
         rpkg_config.close()
@@ -66,7 +71,7 @@ class TestScmProvider(TestCase):
         source_json["clone_url"] = "http://copr-dist-git.fedorainfracloud.org/git/clime/project/pkg.git"
 
         with mock.patch("copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
-            provider = ScmProvider(source_json, self.resultdir, self.config)
+            provider = ScmProvider(source_json, tmpdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
 
         config = configparser.RawConfigParser()
@@ -78,32 +83,40 @@ class TestScmProvider(TestCase):
         source_json["clone_url"] = "http://unknownurl/git/clime/project/pkg.git"
 
         with mock.patch("copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
-            provider = ScmProvider(source_json, self.resultdir, self.config)
+            provider = ScmProvider(source_json, tmpdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
             self.assertEqual(rpkg_config_path, os.path.join(os.environ['HOME'], '.config', 'rpkg.conf'))
 
-        shutil.rmtree(rpkg_tmpdir)
+        shutil.rmtree(tmpdir)
 
-    def test_get_rpkg_command(self):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_get_rpkg_command(self, mock_mkdir, mock_open):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         provider.generate_rpkg_config = mock.MagicMock(return_value="/etc/rpkg.conf")
         assert_cmd = ["rpkg", "srpm", "--outdir", self.resultdir, "--spec", provider.spec_path]
         self.assertEqual(provider.get_rpkg_command(), assert_cmd)
 
-    def test_get_tito_command(self):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_get_tito_command(self, mock_mkdir, mock_open):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         assert_cmd = ["tito", "build", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_command(), assert_cmd)
 
 
     @mock.patch("copr_rpmbuild.helpers.run_cmd")
-    def test_get_tito_test_command(self, run_cmd_mock):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_get_tito_test_command(self, mock_mkdir, mock_open, run_cmd_mock):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         assert_cmd = ["tito", "build", "--test", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_test_command(), assert_cmd)
 
     @mock.patch("copr_rpmbuild.providers.scm.get_mock_uniqueext")
-    def test_get_make_srpm_command(self, get_mock_uniqueext_mock):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_get_make_srpm_command(self, mock_mkdir, mock_open, get_mock_uniqueext_mock):
         get_mock_uniqueext_mock.return_value = '2'
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         bind_mount_cmd_part = '--plugin-option=bind_mount:dirs=(("{0}", "/mnt{1}"), ("{2}", "/mnt{3}"))'\

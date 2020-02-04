@@ -16,7 +16,8 @@ class TestProvider(TestCase):
         self.resultdir = "/path/to/resultdir"
 
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
-    def test_create_rpmmacros(self, mock_open):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_create_rpmmacros(self, mock_mkdir, mock_open):
         provider = Provider(self.source_json, self.resultdir, self.config)
         rpmmacros = mock.MagicMock()
         mock_open.return_value = rpmmacros

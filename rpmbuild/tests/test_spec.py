@@ -33,14 +33,17 @@ class TestUrlProvider(TestCase):
         self.source_json = {"url": u"http://foo.ex/somepackage.spec"}
         self.resultdir = "/path/to/resultdir"
 
-    def test_init(self):
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_init(self, mock_mkdir, mock_open):
         provider = UrlProvider(self.source_json, self.resultdir, self.config)
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
     @mock.patch('requests.get')
     @mock.patch("copr_rpmbuild.providers.spec.run_cmd")
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
-    def test_produce_srpm(self, mock_open, run_cmd, mock_get):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd, mock_get):
         provider = UrlProvider(self.source_json, self.resultdir, self.config)
         provider.produce_srpm()
         run_cmd.assert_called_with(["rpkg", "srpm", "--outdir", self.resultdir,
@@ -49,7 +52,8 @@ class TestUrlProvider(TestCase):
 
     @mock.patch('requests.get')
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
-    def test_save_spec(self, mock_open, mock_get):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_save_spec(self, mock_mkdir, mock_open, mock_get):
         provider = UrlProvider(self.source_json, self.resultdir, self.config)
         provider.save_spec()
         mock_open.assert_called_with("{0}/somepackage.spec".format(provider.workdir), "w")

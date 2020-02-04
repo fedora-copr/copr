@@ -19,7 +19,9 @@ class TestPyPIProvider(TestCase):
                             "python_versions": [2, 3]}
         self.resultdir = "/path/to/resultdir"
 
-    def test_init(self):
+    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_init(self, mock_mkdir, mock_open):
        provider = PyPIProvider(self.source_json, self.resultdir, self.config)
        self.assertEqual(provider.pypi_package_version, "1.52")
        self.assertEqual(provider.pypi_package_name, "motionpaint")
@@ -28,7 +30,8 @@ class TestPyPIProvider(TestCase):
 
     @mock.patch("copr_rpmbuild.providers.pypi.run_cmd")
     @mock.patch("{0}.open".format(builtins))
-    def test_produce_srpm(self, mock_open, run_cmd):
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd):
         provider = PyPIProvider(self.source_json, "/some/tmp/directory", self.config)
         provider.produce_srpm()
         assert_cmd = ["pyp2rpm", "motionpaint", "-t", "epel7", "--srpm", "-d", "/some/tmp/directory",
