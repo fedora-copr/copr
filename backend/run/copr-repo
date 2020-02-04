@@ -44,11 +44,28 @@ def run_cmd(cmd, opts, check=True):
     return sp.returncode
 
 
+def arg_parser_subdir_type(subdir):
+    if not subdir:
+        raise argparse.ArgumentTypeError("subdir can not be empty string")
+    if '..' in subdir:
+        raise argparse.ArgumentTypeError(
+                "relative '..' in subdir name '{}'".format(subdir))
+    if ' ' in subdir:
+        raise argparse.ArgumentTypeError(
+                "space character in subdir name '{}'".format(subdir))
+    if '/' in subdir:
+        raise argparse.ArgumentTypeError(
+                "'/' in subdir name '{}', we support only single-level subdir "
+                "for now".format(subdir))
+    return subdir
+
+
 def get_arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--delete', action='append', metavar='SUBDIR',
-                        default=[])
-    parser.add_argument('--add', action='append', metavar='SUBDIR', default=[])
+                        default=[], type=arg_parser_subdir_type)
+    parser.add_argument('--add', action='append', metavar='SUBDIR', default=[],
+                        type=arg_parser_subdir_type)
     parser.add_argument('--devel', action='store_true', default=False)
     parser.add_argument('--no-appstream-metadata', action='store_true',
                         default=False)

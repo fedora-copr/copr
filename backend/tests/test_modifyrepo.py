@@ -100,3 +100,15 @@ class TestModifyRepo(object):
         # wouldn't be able to reference ../ locations
         assert updated['packages']['prunerepo']['xml:base'] == \
                 'https://example.com/results/john/empty/fedora-rawhide-x86_64'
+
+    @pytest.mark.parametrize('add', [
+        ["aaa", ''],
+        ["File 1"],
+        ["slash/in/path"],
+        [".."],
+    ])
+    def test_copr_repo_subdir_validator(self, add, capfd):
+        assert 0 == call_copr_repo('/some/dir', add=add)
+        # not using capsys because pytest/issues/5997
+        _, err = capfd.readouterr()
+        assert 'copr-repo: error: argument' in err
