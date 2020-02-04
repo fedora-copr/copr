@@ -556,6 +556,10 @@ def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None):
         if not subdirs:
             return []
         for subdir in subdirs:
+            if subdir is None:
+                # this should never happen, but better to skip
+                # this than kill some backend process
+                continue
             args += [option, subdir]
         return args
     cmd += subdirs('--add', add)

@@ -112,3 +112,12 @@ class TestModifyRepo(object):
         # not using capsys because pytest/issues/5997
         _, err = capfd.readouterr()
         assert 'copr-repo: error: argument' in err
+
+    @mock.patch("backend.helpers.subprocess.call")
+    def test_copr_repo_subdir_none_doesnt_raise(self, call):
+        """ check that None is skipped in add (or delete) """
+        call.return_value = 0 # exit status 0
+        assert True == call_copr_repo('/some/dir', add=['xxx', None])
+        assert len(call.call_args_list) == 1
+        call = call.call_args_list[0]
+        assert call[0][0] == ['copr-repo', '/some/dir', '--add', 'xxx']
