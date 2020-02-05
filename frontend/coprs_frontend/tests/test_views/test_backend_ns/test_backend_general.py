@@ -13,7 +13,7 @@ class TestGetBuildTask(CoprsTestCase):
         self.c1.copr_chroots[0].module_toggle = ""
         r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
         data = json.loads(r.decode("utf-8"))
-        assert data['modules']['toggle'] == []
+        assert 'modules' not in data
 
     def test_module_name_enable(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.c1.copr_chroots[0].module_toggle = "XXX"

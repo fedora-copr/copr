@@ -93,11 +93,6 @@ def get_build_record(task, short=False):
     build_record = None
     try:
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
-        enabled_disabled_modules = []
-        for module in copr_chroot.module_toggle_array:
-            if module:
-                enabled_disabled_modules.append({"enable": module})
-
         build_record = {
             "task_id": task.task_id,
             "build_id": task.build.id,
@@ -120,8 +115,12 @@ def get_build_record(task, short=False):
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "uses_devel_repo": task.build.copr.devel_mode,
-            "modules": {'toggle': enabled_disabled_modules},
         }
+
+        if copr_chroot.module_toggle_array:
+            array = [{'enable': m} for m in copr_chroot.module_toggle_array]
+            build_record["modules"] = {'toggle': array}
+
         if short:
             return build_record
 
