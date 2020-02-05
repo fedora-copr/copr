@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.76
+Version:    1.77
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -169,6 +169,9 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.77-1
+- add cron-job to automate prolonging gpg-keys
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 1.76-1
 - releases are done with tito again
 - correctly depend on and use logrotate
