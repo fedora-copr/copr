@@ -169,6 +169,7 @@ class NameCharactersValidator(object):
 class ModuleEnableNameValidator(object):
 
     def __call__(self, form, field):
+        already_enabled = {}
         for module in form.module_toggle.data.split(","):
             if module == "":
                 return True
@@ -177,21 +178,27 @@ class ModuleEnableNameValidator(object):
                 module_name, stream = module.strip().split(":")
             except ValueError:
                 raise ValidationError(
-                    message="Module name '{0}' must consist of two parts separated with colon.\
-                         Eg. module:stream"
-                .format(module))
+                    message=(
+                        "Module name '{0}' must consist of two parts separated "
+                        "with colon, e.g. module:stream"
+                    ).format(module))
 
             pattern = re.compile(re.compile(r"^([a-zA-Z0-9-_!][^\ ]*)$"))
-            if pattern.match(module_name) == None:
-                raise ValidationError(
-                    message="Module name '{0}' must contain only letters, digits, dashes, underscores."
-                .format(module_name))
+            if pattern.match(module_name) is None:
+                raise ValidationError(message=(
+                    "Module name '{0}' must contain only letters, digits, "
+                    "dashes, underscores.").format(module_name))
 
-            if pattern.match(stream) == None:
-                raise ValidationError(
-                    message="Stream part of module name '{0}' must contain only letters,\
-                        digits, dashes, underscores."
-                .format(stream))
+            if module_name in already_enabled:
+                raise ValidationError("Module name '{0}' specified multiple "
+                                      "times".format(module_name))
+            else:
+                already_enabled[module_name] = True
+
+            if pattern.match(stream) is None:
+                raise ValidationError(message=(
+                    "Stream part of module name '{0}' must contain only "
+                    "letters, digits, dashes, underscores.").format(stream))
 
 class ChrootsValidator(object):
     def __call__(self, form, field):
