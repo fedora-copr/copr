@@ -51,6 +51,12 @@ class LegacyApiError(CoprHttpException):
     _code = 500
 
 
+class InsufficientStorage(CoprHttpException):
+    """When there is not enough space left on the server for the src rpm."""
+    _default = "Not enough space left"
+    _code = 500
+
+
 class MalformedArgumentException(ValueError):
     pass
 

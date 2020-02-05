@@ -6,7 +6,13 @@ import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict
 from coprs import app
-from coprs.exceptions import CoprHttpException, ObjectNotFound, AccessRestricted, ActionInProgressException
+from coprs.exceptions import (
+    AccessRestricted,
+    ActionInProgressException,
+    CoprHttpException,
+    InsufficientStorage,
+    ObjectNotFound,
+)
 from coprs.logic.complex_logic import ComplexLogic
 
 
@@ -36,6 +42,8 @@ class APIErrorHandler(object):
         return self.handle_xxx(error)
 
     def handle_500(self, error):
+        if isinstance(error, InsufficientStorage):
+            return self.handle_xxx(error)
         if isinstance(error, ActionInProgressException):
             return self.handle_xxx(error)
         return self.respond("Request wasn't successful, there is probably a bug in the API code.", 500)

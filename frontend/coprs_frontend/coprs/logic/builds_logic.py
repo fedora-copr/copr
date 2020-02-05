@@ -27,6 +27,7 @@ from coprs.exceptions import (
     ConflictingRequest,
     DuplicateException,
     InsufficientRightsException,
+    InsufficientStorage,
     MalformedArgumentException,
     UnrepeatableBuildException,
 )
@@ -504,11 +505,17 @@ class BuildsLogic(object):
         :param f_uploader(file_path): function which stores data at the given `file_path`
         :return:
         """
-        tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
-        tmp_name = os.path.basename(tmp)
-        filename = secure_filename(orig_filename)
-        file_path = os.path.join(tmp, filename)
-        f_uploader(file_path)
+        tmp = None
+        try:
+            tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
+            tmp_name = os.path.basename(tmp)
+            filename = secure_filename(orig_filename)
+            file_path = os.path.join(tmp, filename)
+            f_uploader(file_path)
+        except OSError as error:
+            if tmp:
+                shutil.rmtree(tmp)
+            raise InsufficientStorage("Can not create storage directory for uploaded file: {}".format(str(error)))
 
         # make the pkg public
         pkg_url = "{baseurl}/tmp/{tmp_dir}/{filename}".format(
