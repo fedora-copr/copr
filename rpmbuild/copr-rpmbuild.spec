@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.33
+Version: 0.34
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -208,6 +208,12 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 0.34-1
+- don't create unnecessary tmp directory
+- prefix the name of all copr-rpmbuild temporary directory
+- properly cleanup after obtaining sources, and build failure
+- add support for mock's module_enable
+
 * Fri Dec 06 2019 Pavel Raiskup <praiskup@redhat.com> 0.33-1
 - rpmbuild: skip_if_unavailable=1 for non-ACR projects
 
