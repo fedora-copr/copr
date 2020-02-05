@@ -1006,7 +1006,7 @@ class NoneFilter():
 
 def get_module_build_form(*args, **kwargs):
     class ModuleBuildForm(FlaskForm):
-        distgit_choices = [x.id for x in DistGitLogic.ordered().all()]
+        distgit_choices = [x.name for x in DistGitLogic.ordered().all()]
         distgit_default = distgit_choices[0]
 
         modulemd = FileField("modulemd")
