@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.161
+Version:    1.162
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -366,6 +366,14 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.162-1
+- module enable option for chroot settings
+- delete action fix for incomplete builds
+- custom webhook to accept utf-8 hook data
+- users can now pick against what dist-git to build module
+- fix delete-chroot e-mail notification
+- change panel order in 'Rebuild all packages' page
+
 * Thu Jan 16 2020 Pavel Raiskup <praiskup@redhat.com> 1.161-1
 - memory optimize /packages/ and /builds/ routes
 
