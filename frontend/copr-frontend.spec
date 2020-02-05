@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.162
+Version:    1.163
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -366,6 +366,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.163-1
+- don't generate 'modules' in build-job unnecessarily
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.162-1
 - module enable option for chroot settings
 - delete action fix for incomplete builds
