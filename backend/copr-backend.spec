@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.131
+Version:    1.132
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -221,6 +221,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.132-1
+- better handle invalid options in copr-repo --add/--delete
+- copr-repo: optimize-out useless createrepo_c runs
+- move initial createrepo check from dispatcher to worker
+- don't send messages on bus N-times
+- /bin/copr-repo now respects .disable-appstream files
+- drop unused build_deleting_without_createrepo option
+
 * Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.131-1
 - put build-ID.log file to resultdir
 - call call_copr_repo if initial createrepo failed
