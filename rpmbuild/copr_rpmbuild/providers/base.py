@@ -1,4 +1,5 @@
 import os
+import errno
 import logging
 import tempfile
 from ..helpers import string2list
@@ -14,8 +15,9 @@ class Provider(object):
         self.workdir = os.path.join(outdir, "obtain-sources")
         try:
             os.mkdir(self.workdir)
-        except FileExistsError:
-            pass
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
         # Change home directory to workdir and create .rpmmacros there
         os.environ["HOME"] = self.workdir
