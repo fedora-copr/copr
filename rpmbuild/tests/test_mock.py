@@ -230,7 +230,7 @@ config_opts['use_bootstrap_container'] = False
             "\n"
             "{0}\n"
         ).format('\n'.join(
-            ['config_opts["module_enable"] += "{0}"'.format(module.strip()) for module in modules]
+            ['config_opts["module_enable"] += ["{0}"]'.format(module.strip()) for module in modules]
         ))
 
         config = ''.join(open(self.child_config, 'r').readlines())
