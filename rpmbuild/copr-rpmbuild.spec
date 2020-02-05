@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.34
+Version: 0.35
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -208,6 +208,10 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 0.35-1
+- mock config - module_enable needs to be an array
+- catch FileExistsError in python2 compatible manner
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 0.34-1
 - don't create unnecessary tmp directory
 - prefix the name of all copr-rpmbuild temporary directory
