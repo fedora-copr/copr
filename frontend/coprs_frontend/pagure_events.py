@@ -57,7 +57,7 @@ class ScmPackage(object):
         self.committish = self.source_json_dict.get('committish') or ''
         self.subdirectory = self.source_json_dict.get('subdirectory') or ''
 
-        self.package = ComplexLogic.get_package_by_id_safe(db_row.id)
+        self.package = ComplexLogic.get_package_by_id_safe(db_row.package_id)
         self.copr = self.package.copr
 
     def build(self, source_dict_update, copr_dir, update_callback,
@@ -68,20 +68,32 @@ class ScmPackage(object):
         else:
             package = self.package
 
+        db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
         return BuildsLogic.rebuild_package(
             package, source_dict_update, copr_dir, update_callback,
             scm_object_type, scm_object_id, scm_object_url, submitted_by=agent_url)
 
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
-        rows = models.Package.query \
-            .join(models.CoprDir, models.CoprDir.id == models.Package.copr_dir_id) \
-            .filter(models.Package.source_type == SCM_SOURCE_TYPE) \
-            .filter(models.Package.webhook_rebuild) \
-            .filter(models.CoprDir.main) \
-            .filter(models.Package.source_json.ilike('%' + clone_url + '%'))
+        if db.engine.url.drivername == 'sqlite':
+            placeholder = '?'
+            true = '1'
+        else:
+            placeholder = '%s'
+            true = 'true'
 
+        rows = db.engine.execute(
+            """
+            SELECT package.id AS package_id, package.source_json AS source_json, package.copr_id AS copr_id
+            FROM package JOIN copr_dir ON package.copr_dir_id = copr_dir.id
+            WHERE package.source_type = {0} AND
+                  package.webhook_rebuild = {1} AND
+                  copr_dir.main = {2} AND
+                  package.source_json ILIKE {placeholder}
+            """.format(SCM_SOURCE_TYPE, true, true, placeholder=placeholder), '%'+clone_url+'%'
+        )
         return [ScmPackage(row) for row in rows]
+
 
     def is_dir_in_commit(self, changed_files):
         if not changed_files:
