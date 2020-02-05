@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.100
+Version:    1.101
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -236,6 +236,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.101-1
+- allow to pick dist-git instance when building modules
+- fix traceback when wrong url to frontend is specified
+
 * Wed Jan 15 2020 Tomas Hrnciar <thrnciar@redhat.com> 1.100-1
 - add command to list all available chroots
 
