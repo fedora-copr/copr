@@ -161,7 +161,11 @@ def produce_srpm(task, config, resultdir):
                 continue
             shutil.copy(os.path.join(tempdir, item), resultdir)
     finally:
-        shutil.rmtree(tempdir)
+        try:
+            shutil.rmtree(tempdir)
+        except Exception:
+            log.error("Can not remove tempdir, "
+                      "https://pagure.io/copr/copr/issue/1258")
 
 
 def get_task(args, config, build_config_url_path=None, task_id=None):
