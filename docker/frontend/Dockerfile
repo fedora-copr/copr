@@ -62,4 +62,6 @@ RUN chmod -R g+rwX \
 # Use copr-fe user when running outside of OpenShift
 USER 993
 
+EXPOSE 5000
+
 CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
