@@ -28,3 +28,9 @@ class TestProvider(TestCase):
             mock.call.__enter__().write('%__urlhelper_localopts --proto -all,+https,+ftps\n'),
         ]
         rpmmacros.assert_has_calls(calls, any_order=True)
+
+    @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
+    @mock.patch('copr_rpmbuild.providers.base.Provider.create_rpmmacros')
+    def test_workdir_in_outdir(self, mock_create_rpmmacros, mock_mkdir):
+        provider = Provider(self.source_json, self.resultdir, self.config)
+        assert provider.workdir == "/path/to/resultdir/obtain-sources"
