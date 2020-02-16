@@ -34,6 +34,8 @@ Disable chroots
     - fedora-<VERSION>-x86_64
     - fedora-<VERSION>-i386
     - fedora-<VERSION>-ppc64le
+    - fedora-<VERSION>-aarch64
+    - fedora-<VERSION>-armhfp
 
     Additionally, according to Outdated chroots removal policy [2], Copr is
     going to preserve existing build results in those chroots for another

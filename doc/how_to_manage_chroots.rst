@@ -71,8 +71,8 @@ happened in the time window between ``rawhide-to-release`` and chroot enablement
 will be missed in the branched chroot later (users will have to rebuild them
 manually).  So as soon as it is possible, do::
 
-    copr-frontend alter-chroot --action activate \
-        fedora-31-x86_64 fedora-31-i386 fedora-31-ppc64le fedora-31-aarch64
+    copr-frontend alter-chroot --action activate fedora-32-x86_64 fedora-32-i386 \
+        fedora-32-ppc64le fedora-32-aarch64 fedora-32-armhfp
 
 When everything is done, `send an information email to a mailing list <#mailing-lists>`_.
 
@@ -88,7 +88,8 @@ comfortably deal with it. It can be done like this
 
 ::
 
-    copr-frontend alter-chroot --action eol fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
+    copr-frontend alter-chroot --action eol fedora-31-x86_64 fedora-31-i386 \
+        fedora-31-ppc64le fedora-31-aarch64 fedora-31-armhfp
 
 After running such command, no data are going to be removed. All repositories for the chroot are preserved. It is just
 disabled and users can't build new packages in it anymore.
