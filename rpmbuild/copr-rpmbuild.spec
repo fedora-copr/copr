@@ -157,8 +157,23 @@ cat > copr-update-builder <<EOF
 # Update the Copr builder machine, can be called anytime Copr build system
 # decides to do so (please keep the output idempotent).
 
+# Remove old rpmnew config files, if they exist now it is a configuration bug
+# anyways.
+find /etc/mock -name '*.rpmnew' -delete
+
 # install the latest versions of those packages
 dnf update -y %latest_requires_packages
+
+# The mock-core-configs package was potentially updated above, and it provides
+# "noreplace" %%config files.  It means that - if the builder cloud image had
+# baked-in locally _changed_ configuration files - the updated official
+# configuration files from mock-core-configs package wouldn't be used.  So now
+# make sure that they _are_ used (those, if any, would reside in .rpmnew files).
+find /etc/mock -name '*.rpmnew' | while read -r rpmnew_file; do
+    config=${rpmnew_file%%.rpmnew}
+    mv -f "$config" "$config.copr-builder-backup" && \
+    mv "$rpmnew_file" "$config"
+done
 EOF
 
 
