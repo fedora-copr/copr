@@ -50,17 +50,13 @@ class MockBuilder(object):
         except OSError:
             pass
 
-        # The child_cfg file is just used as template for mock to generate
-        # the self-standing mock_config_file.
-        child_cfg = os.path.join(self.configdir, 'child.cfg')
-        cfg = self.render_config_template()
-        with open(child_cfg, "w") as child:
-            child.write(cfg)
+        # Copy all the host's configuration files for the reproducibility
+        # purposes (documentation), those files are not used for builds.
+        subprocess.call(['rsync', '-rl', '/etc/mock/', self.configdir])
 
-        # Generate self-standing mock config file.
-        with open(self.mock_config_file, "w") as chroot_config:
-            subprocess.call(['mock', '-r', child_cfg, '--debug-config'],
-                            stdout=chroot_config)
+        # Generate the target mock config file.
+        with open(self.mock_config_file, "w") as child:
+            child.write(self.render_config_template())
 
     def render_config_template(self):
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
@@ -113,7 +109,7 @@ class MockBuilder(object):
 
     @property
     def mock_config_file(self):
-        return os.path.join(self.configdir, self.chroot + ".cfg")
+        return os.path.join(self.configdir, "child.cfg")
 
     @property
     def enable_modules(self):

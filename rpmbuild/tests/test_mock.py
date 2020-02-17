@@ -79,17 +79,16 @@ class TestMockBuilder(object):
         self.configdir = os.path.join(self.resultdir, 'configs')
         self.child_config = os.path.join(self.configdir, 'child.cfg')
 
-        config = os.path.join(self.resultdir, 'configs',
-                              'fedora-24-x86_64.cfg')
         self.mock_rpm_call = [
             'unbuffer', 'mock', '--rebuild', 'srpm',
-            '--resultdir', self.resultdir, '--uniqueext', '0', '-r', config,
+            '--resultdir', self.resultdir, '--uniqueext', '0',
+            '-r', self.child_config,
         ]
 
         self.mock_srpm_call = [
             'unbuffer', 'mock', '--buildsrpm', '--spec', 'spec', '--sources',
             self.sourcedir, '--resultdir', self.resultdir, '--uniqueext', '0',
-            '-r', config]
+            '-r', self.child_config]
 
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
@@ -246,6 +245,7 @@ config_opts['use_bootstrap_container'] = False
     def test_module_mock_assertions(self, f_mock_calls, modules):
         'test that assertions work'
         self.task['modules'] = modules
-        with pytest.raises(AssertionError):
-            MockBuilder(self.task, self.sourcedir, self.resultdir,
-                        self.config).run()
+        with mock.patch("copr_rpmbuild.builders.mock.subprocess.call"):
+            with pytest.raises(AssertionError):
+                MockBuilder(self.task, self.sourcedir, self.resultdir,
+                            self.config).run()
