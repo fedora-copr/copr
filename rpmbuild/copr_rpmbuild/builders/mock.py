@@ -19,7 +19,6 @@ class MockBuilder(object):
         self.enable_net = task.get("enable_net")
         self.repos = task.get("repos")
         self.use_bootstrap_container = task.get("use_bootstrap_container")
-        self.pkg_manager_conf = "dnf" if "custom-1" in task.get("chroot") else "yum"
         self.timeout = task.get("timeout", 3600)
         self.with_opts = task.get("with_opts", [])
         self.without_opts = task.get("without_opts", [])
@@ -69,7 +68,7 @@ class MockBuilder(object):
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
-                               repos=self.repos, pkg_manager_conf=self.pkg_manager_conf,
+                               repos=self.repos,
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
                                modules=self.enable_modules)
 

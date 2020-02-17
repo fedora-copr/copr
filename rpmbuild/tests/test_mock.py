@@ -194,12 +194,6 @@ config_opts['use_bootstrap_container'] = False
         success = os.path.join(self.resultdir, "success")
         mock_open.assert_called_with(success, "w")
 
-    def test_custom1_chroot_settings(self):
-        b1 = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
-        b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.sourcedir, self.resultdir, self.config)
-        assert b1.pkg_manager_conf == "yum"
-        assert b2.pkg_manager_conf == "dnf"
-
     @pytest.mark.parametrize('modules', [
         ['postgresql:9.6'],
         ['moduleA:S1', 'moduleA:S2'],

@@ -27,7 +27,7 @@ config_opts['bootstrap_module_install'] = []
 config_opts["module_enable"] += ["{{ module }}"]
 {%- endfor %}
 {% if repos %}
-config_opts['{{ pkg_manager_conf }}.conf'] += """
+config_opts[f"{config_opts.package_manager}.conf"] += """
 {% for repo in repos %}
 [{{ repo["id"] }}]
 name='{{ repo["name"] }}'

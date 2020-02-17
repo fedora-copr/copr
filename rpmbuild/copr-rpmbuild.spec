@@ -56,7 +56,7 @@ Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-simplejson
 
-Requires: mock
+Requires: mock >= 2.0
 Requires: git
 Requires: git-svn
 # for the /bin/unbuffer binary
