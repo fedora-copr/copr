@@ -32,36 +32,35 @@ class MockBuilder(object):
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
-        configdir = os.path.join(self.resultdir, "configs")
-        self.prepare_configs(configdir)
+        self.prepare_configs()
 
         spec = locate_spec(self.sourcedir)
         shutil.copy(spec, self.resultdir)
         try:
-            self.produce_srpm(spec, self.sourcedir, configdir, self.resultdir)
+            self.produce_srpm(spec, self.sourcedir, self.resultdir)
 
             srpm = locate_srpm(self.resultdir)
-            self.produce_rpm(srpm, configdir, self.resultdir)
+            self.produce_rpm(srpm, self.resultdir)
         finally:
-            self.clean_cache(configdir)
+            self.clean_cache()
 
-    def prepare_configs(self, configdir):
-        site_config_path = os.path.join(configdir, "site-defaults.cfg")
-        mock_config_path = os.path.join(configdir, "{0}.cfg".format(self.chroot))
-        child_config_path = os.path.join(configdir, "child.cfg")
-
+    def prepare_configs(self):
         try:
-            os.makedirs(configdir)
+            os.makedirs(self.configdir)
         except OSError:
             pass
 
-        shutil.copy2("/etc/mock/site-defaults.cfg", site_config_path)
-        shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), mock_config_path)
+        # The child_cfg file is just used as template for mock to generate
+        # the self-standing mock_config_file.
+        child_cfg = os.path.join(self.configdir, 'child.cfg')
         cfg = self.render_config_template()
-        with open(child_config_path, "w") as child:
+        with open(child_cfg, "w") as child:
             child.write(cfg)
 
-        return [child_config_path, mock_config_path, site_config_path]
+        # Generate self-standing mock config file.
+        with open(self.mock_config_file, "w") as chroot_config:
+            subprocess.call(['mock', '-r', child_cfg, '--debug-config'],
+                            stdout=chroot_config)
 
     def render_config_template(self):
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
@@ -72,15 +71,14 @@ class MockBuilder(object):
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
                                modules=self.enable_modules)
 
-    def produce_srpm(self, spec, sources, configdir, resultdir):
+    def produce_srpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [
             "--buildsrpm",
             "--spec", spec,
             "--sources", sources,
-            "--configdir", configdir,
             "--resultdir", resultdir,
             "--uniqueext", get_mock_uniqueext(),
-            "-r", "child"]
+            "-r", self.mock_config_file]
 
         for with_opt in self.with_opts:
             cmd += ["--with", with_opt]
@@ -101,15 +99,21 @@ class MockBuilder(object):
         if process.returncode != 0:
             raise RuntimeError("Build failed")
 
-    @classmethod
-    def clean_cache(cls, configdir):
+    def clean_cache(self):
         """ Do best effort /var/mock/cache cleanup. """
         cmd = MOCK_CALL + [
-            "--configdir", configdir,
-            "-r", "child",
+            "-r", self.mock_config_file,
             "--scrub", "cache",
         ]
         subprocess.call(cmd) # ignore failure here, if any
+
+    @property
+    def configdir(self):
+        return os.path.join(self.resultdir, "configs")
+
+    @property
+    def mock_config_file(self):
+        return os.path.join(self.configdir, self.chroot + ".cfg")
 
     @property
     def enable_modules(self):
@@ -133,13 +137,12 @@ class MockBuilder(object):
 
         return enable
 
-    def produce_rpm(self, srpm, configdir, resultdir):
+    def produce_rpm(self, srpm, resultdir):
         cmd = MOCK_CALL + [
                "--rebuild", srpm,
-               "--configdir", configdir,
                "--resultdir", resultdir,
                "--uniqueext", get_mock_uniqueext(),
-               "-r", "child"]
+               "-r", self.mock_config_file]
 
         for with_opt in self.with_opts:
             cmd += ["--with", with_opt]

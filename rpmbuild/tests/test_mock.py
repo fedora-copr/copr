@@ -79,16 +79,17 @@ class TestMockBuilder(object):
         self.configdir = os.path.join(self.resultdir, 'configs')
         self.child_config = os.path.join(self.configdir, 'child.cfg')
 
+        config = os.path.join(self.resultdir, 'configs',
+                              'fedora-24-x86_64.cfg')
         self.mock_rpm_call = [
-            'unbuffer', 'mock', '--rebuild', 'srpm', '--configdir',
-            self.configdir, '--resultdir', self.resultdir,
-            '--uniqueext', '0', '-r', 'child']
+            'unbuffer', 'mock', '--rebuild', 'srpm',
+            '--resultdir', self.resultdir, '--uniqueext', '0', '-r', config,
+        ]
 
         self.mock_srpm_call = [
             'unbuffer', 'mock', '--buildsrpm', '--spec', 'spec', '--sources',
-            self.sourcedir, '--configdir', self.configdir,
-            '--resultdir', self.resultdir, '--uniqueext', '0', '-r',
-            'child']
+            self.sourcedir, '--resultdir', self.resultdir, '--uniqueext', '0',
+            '-r', config]
 
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
@@ -129,7 +130,8 @@ class TestMockBuilder(object):
         assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
         assert config_opts["yum.conf"] == []
 
-    def test_mock_config(self, f_mock_calls):
+    @mock.patch("copr_rpmbuild.builders.mock.subprocess.call")
+    def test_mock_config(self, call, f_mock_calls):
         """ test that no module_enable statements are in config """
         MockBuilder(self.task, self.sourcedir, self.resultdir,
                     self.config).run()
@@ -158,7 +160,8 @@ config_opts['use_bootstrap_container'] = False
 
 """  # TODO: make the output nicer
 
-    def test_mock_options(self, f_mock_calls):
+    @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.prepare_configs")
+    def test_mock_options(self, prep_configs, f_mock_calls):
         """ test that mock options are correctly constructed """
         MockBuilder(self.task, self.sourcedir, self.resultdir,
                     self.config).run()
@@ -170,20 +173,20 @@ config_opts['use_bootstrap_container'] = False
         call = f_mock_calls[1]
         assert call[0][0] == self.mock_rpm_call
 
+    @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.prepare_configs")
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
-    def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock):
+    def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock, prep_configs):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         get_mock_uniqueext_mock.return_value = '2'
         process = mock.MagicMock(returncode=0)
         popen_mock.return_value = process
-        builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
+        builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/results")
         assert_cmd = ['unbuffer', 'mock',
                       '--rebuild', '/path/to/pkg.src.rpm',
-                      '--configdir', '/path/to/configs',
                       '--resultdir', '/path/to/results',
                       '--uniqueext', '2',
-                      '-r', 'child']
+                      '-r', builder.mock_config_file]
         popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE,
                                       timeout=21600)
 
@@ -205,8 +208,10 @@ config_opts['use_bootstrap_container'] = False
         self.task['modules'] = {
             'toggle': [{'enable': x} for x in modules],
         }
-        MockBuilder(self.task, self.sourcedir, self.resultdir,
-                    self.config).run()
+
+        with mock.patch("copr_rpmbuild.builders.mock.subprocess.call"):
+            MockBuilder(self.task, self.sourcedir, self.resultdir,
+                        self.config).run()
 
         assert len(f_mock_calls) == 2 # srpm + rpm
 
