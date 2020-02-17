@@ -44,7 +44,7 @@ class TestMockConfig():
             additional=""
 
         return """
-config_opts['yum.conf'] += \"\"\"
+config_opts[config_opts['package_manager'] + '.conf'] += \"\"\"
 
 [copr_base]
 name="Copr repository"
