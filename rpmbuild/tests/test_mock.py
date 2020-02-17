@@ -160,7 +160,8 @@ config_opts['use_bootstrap_container'] = False
 """  # TODO: make the output nicer
 
     @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.prepare_configs")
-    def test_mock_options(self, prep_configs, f_mock_calls):
+    @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.archive_configs")
+    def test_mock_options(self, archive_configs, prep_configs, f_mock_calls):
         """ test that mock options are correctly constructed """
         MockBuilder(self.task, self.sourcedir, self.resultdir,
                     self.config).run()

@@ -43,6 +43,7 @@ class MockBuilder(object):
             self.produce_rpm(srpm, self.resultdir)
         finally:
             self.clean_cache()
+            self.archive_configs()
 
     def prepare_configs(self):
         try:
@@ -102,6 +103,12 @@ class MockBuilder(object):
             "--scrub", "cache",
         ]
         subprocess.call(cmd) # ignore failure here, if any
+
+    def archive_configs(self):
+        subprocess.call(['tar', '-cz', '--remove-files',
+                         '-C', os.path.dirname(self.configdir),
+                         '-f', os.path.join(self.resultdir, 'configs.tar.gz'),
+                         os.path.basename(self.configdir)])
 
     @property
     def configdir(self):
