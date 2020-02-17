@@ -124,6 +124,7 @@ Requires: yum-utils
 %latest_requires dnf-plugins-core
 %latest_requires libdnf
 %latest_requires librepo
+%latest_requires libsolv
 %endif
 %latest_requires mock
 %latest_requires mock-core-configs
