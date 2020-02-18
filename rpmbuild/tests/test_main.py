@@ -8,9 +8,11 @@ from copr_rpmbuild.helpers import SourceType
 
 try:
      from unittest import mock
+     EPEL = False
 except ImportError:
      # Python 2 version depends on mock
      import mock
+     EPEL = True
 
 
 class TestTmpCleanup(unittest.TestCase):
@@ -28,15 +30,24 @@ class TestTmpCleanup(unittest.TestCase):
 
         # Test that we cleanup after successful build
         produce_srpm(self.task, self.config, self.resultdir)
-        args, _ = mock_rmtree.call_args
-        assert mock_rmtree.call_count == 1
-        assert args[0].startswith("/tmp/copr-rpmbuild-")
+        assert mock_rmtree.call_count == (1 if not EPEL else 2)
+        for call in mock_rmtree.call_args_list:
+            args, _ = call
+            assert args[0].startswith("/tmp/copr-rpmbuild-")
+
+        # Just to check, that on EPEL it recursively removes one directory, 
+        # not two different directories. Do not run this check on Fedora/Python3
+        # because there the directory is removed on one rmtree call.
+        if EPEL:
+            assert mock_rmtree.call_args_list[1][0][0] == \
+                os.path.join(mock_rmtree.call_args_list[0][0][0], "obtain-sources")
 
         # Test that we cleanup after unsuccessful build
         mock_produce_srpm.side_effect = RuntimeError("Jeeez, something failed")
         with pytest.raises(RuntimeError):
             produce_srpm(self.task, self.config, self.resultdir)
 
-        args, _ = mock_rmtree.call_args
-        assert mock_rmtree.call_count == 2
-        assert args[0].startswith("/tmp/copr-rpmbuild-")
+        assert mock_rmtree.call_count == (2 if not EPEL else 4)
+        for call in mock_rmtree.call_args_list:
+            args, _ = call
+            assert args[0].startswith("/tmp/copr-rpmbuild-")
