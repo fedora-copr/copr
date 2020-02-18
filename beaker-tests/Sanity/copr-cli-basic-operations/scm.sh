@@ -51,12 +51,11 @@ rlJournalStart
         rlRun "copr add-package-scm --name example --clone-url $COPR_HELLO_GIT --method tito ${NAME_PREFIX}PackageScm" 0
         rlRun "copr edit-package-scm --name example --clone-url $COPR_HELLO_GIT --method rpkg ${NAME_PREFIX}PackageScm" 0
         rlRun "copr build-package --name example ${NAME_PREFIX}PackageScm" 0
-
-        rlRun "copr-cli delete ${NAME_PREFIX}BuildScm"
-        rlRun "copr-cli delete ${NAME_PREFIX}PackageScm"
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        cleanProject "${NAME_PREFIX}BuildScm"
+        cleanProject "${NAME_PREFIX}PackageScm"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
