@@ -28,6 +28,12 @@ do
         # see /usr/share/doc/gnupg2/DETAILS, the keys not yet checked
         # by '--check-trustdb' have '-'
         -|u) ;;
+
+	# By default we are prolonging only keys that expire soon.
+	# Already expired keys are not going to be updated. If you want
+	# to temporarily change this behavior, uncommet the following line:
+	# e) ;;
+
         *) continue ;;
     esac
 
