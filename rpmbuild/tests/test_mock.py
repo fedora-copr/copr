@@ -124,7 +124,7 @@ class TestMockBuilder(object):
         assert config_opts["root"] == "10-fedora-24-x86_64"
         assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
         assert config_opts["rpmbuild_networking"]
-        assert not config_opts["use_bootstrap_container"]
+        assert not config_opts["use_bootstrap"]
         assert config_opts["macros"]["%copr_username"] == "@copr"
         assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
         assert config_opts["yum.conf"] == []
@@ -153,7 +153,7 @@ config_opts['use_host_resolv'] = True
 
 config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'
-config_opts['use_bootstrap_container'] = False
+config_opts['use_bootstrap'] = False
 
 
 
@@ -223,7 +223,7 @@ config_opts['use_bootstrap_container'] = False
         assert call[0][0] == self.mock_rpm_call
 
         part_of_expected_output = (
-            "config_opts['use_bootstrap_container'] = False\n"
+            "config_opts['use_bootstrap'] = False\n"
             "\n"
             "\n"
             "\n"
