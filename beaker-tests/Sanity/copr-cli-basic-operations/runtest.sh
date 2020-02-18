@@ -472,7 +472,8 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs $HELLO"
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/$CHROOT/
-        rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
+        rlAssertEquals "check that configs.tar.gz exists" "$(find . -name configs.tar.gz | wc -l)" 1
+        rlRun "tar tf $(find . -name configs.tar.gz) | grep 'configs/$CHROOT.cfg'" 0
         rlRun "find . -type f | grep 'backend.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         cd - && rm -r $MYTMPDIR
@@ -496,7 +497,8 @@ rlJournalStart
         copr-cli build ${NAME_PREFIX}TestBug1444804 $EVIL_HELLO
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/$CHROOT/
-        rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
+        rlAssertEquals "check that configs.tar.gz exists" "$(find . -name configs.tar.gz | wc -l)" 1
+        rlRun "tar tf $(find . -name configs.tar.gz) | grep 'configs/$CHROOT.cfg'" 0
         rlRun "find . -type f | grep 'backend.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         rlRun "find . -type f | grep 'build.log'" 0
@@ -508,7 +510,7 @@ rlJournalStart
         rlRun -s "copr-cli build ${NAME_PREFIX}BootstrapProject $HELLO --nowait"
         rlRun "parse_build_id"
         rlRun "copr watch-build $BUILD_ID"
-        rlRun "curl $BACKEND_URL/results/${NAME_PREFIX}BootstrapProject/$CHROOT/`printf %08d $BUILD_ID`-hello/configs/child.cfg |grep \"config_opts\['use_bootstrap_container'\] = True\""
+        rlRun "curl $BACKEND_URL/results/${NAME_PREFIX}BootstrapProject/$CHROOT/`printf %08d $BUILD_ID`-hello/configs.tar.gz | tar xz -O '*configs/child.cfg' | grep \"config_opts\['use_bootstrap_container'\] = True\""
         rlRun "copr-cli modify ${NAME_PREFIX}BootstrapProject --use-bootstrap off"
         rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` false
 
