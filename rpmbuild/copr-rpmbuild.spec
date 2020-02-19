@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.36
+Version: 0.37
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -209,6 +209,14 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Feb 19 2020 Pavel Raiskup <praiskup@redhat.com> 0.37-1
+- add tests that we properly cleanup tmp directories
+- mock 2.0: config s/use_bootstrap_container/use_bootstrap/
+- mock 2.0: disable bootstrap chroot for make_srpm method
+- put complete set of mock configs to resultdir, in tarball
+- mock 2.0: use dnf.conf/yum.conf automatically
+- make sure builders have the latest libsolv
+
 * Thu Feb 06 2020 Pavel Raiskup <praiskup@redhat.com> 0.36-1
 - do not fail if we can not remove temporary we created
 
