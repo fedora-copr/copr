@@ -127,7 +127,10 @@ def main():
             action = build_rpm
 
         action(args, config)
-    except (RuntimeError, OSError):
+    except RuntimeError as e:
+        log.error("Copr build error: %s", e)
+        sys.exit(1)
+    except OSError:
         log.exception("")
         sys.exit(1)
     except: # Programmer's mistake

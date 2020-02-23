@@ -94,7 +94,7 @@ class MockBuilder(object):
             process.done()
 
         if process.returncode != 0:
-            raise RuntimeError("Build failed")
+            raise RuntimeError("Mock build failed")
 
     def clean_cache(self):
         """ Do best effort /var/mock/cache cleanup. """
