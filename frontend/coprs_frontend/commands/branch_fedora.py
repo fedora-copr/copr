@@ -38,7 +38,7 @@ def branch_fedora(fedora_version, retry_forked, branch=None):
         for rch in rawhide_chroots
     }
 
-    create_chroot_function(chroot_pairs.keys(), branch, True)
+    create_chroot_function(chroot_pairs.keys(), branch, False)
 
     for new_chroot, rawhide_chroot in chroot_pairs.items():
         rawhide_to_release_function(rawhide_chroot, new_chroot, retry_forked)
