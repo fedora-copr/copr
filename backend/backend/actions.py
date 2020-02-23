@@ -347,7 +347,7 @@ class Action(object):
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
-                self.log.debug("Create directory: %s", chrootdir)
+                self.log.info("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
 
             for build in data["builds"]:
@@ -355,7 +355,7 @@ class Action(object):
                                       data["projectname"], data["rawhide_chroot"], build)
                 if os.path.exists(srcdir):
                     destdir = os.path.join(chrootdir, build)
-                    self.log.debug("Copy directory: %s as %s", srcdir, destdir)
+                    self.log.info("Copy directory: %s as %s", srcdir, destdir)
                     shutil.copytree(srcdir, destdir)
 
                     with open(os.path.join(destdir, "build.info"), "a") as f:
