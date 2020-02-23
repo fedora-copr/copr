@@ -11,10 +11,18 @@ from commands.rawhide_to_release import rawhide_to_release_function
     type=int
 )
 @click.option(
+    "--retry-forked/--no-retry-forked",
+    default=False,
+    help=(
+        "Generate actions for backend also for already forked builds, useful "
+        "e.g. when previous run of this command failed."
+    )
+)
+@click.option(
     "--dist-git-branch", "-b", "branch",
     help="Branch name for this set of new chroots"
 )
-def branch_fedora(fedora_version, branch=None):
+def branch_fedora(fedora_version, retry_forked, branch=None):
     """
     Branch fedora-rawhide-* chroots to fedora-N* and execute rawhide-to-release
     on them
@@ -33,4 +41,4 @@ def branch_fedora(fedora_version, branch=None):
     create_chroot_function(chroot_pairs.keys(), branch, True)
 
     for new_chroot, rawhide_chroot in chroot_pairs.items():
-        rawhide_to_release_function(rawhide_chroot, new_chroot)
+        rawhide_to_release_function(rawhide_chroot, new_chroot, retry_forked)

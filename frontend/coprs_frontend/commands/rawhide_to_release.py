@@ -17,13 +17,22 @@ from coprs.logic import coprs_logic, actions_logic, builds_logic, packages_logic
     "dest_chroot",
     required=True
 )
-def rawhide_to_release(rawhide_chroot, dest_chroot):
+@click.option(
+    "--retry-forked/--no-retry-forked",
+    default=False,
+    help=(
+        "Generate actions for backend also for already forked builds, useful "
+        "e.g. when previous run of this command failed."
+    )
+)
+def rawhide_to_release(rawhide_chroot, dest_chroot, retry_forked):
     """
     Branching
     """
-    return rawhide_to_release_function(rawhide_chroot, dest_chroot)
+    return rawhide_to_release_function(rawhide_chroot, dest_chroot,
+                                       retry_forked)
 
-def rawhide_to_release_function(rawhide_chroot, dest_chroot):
+def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
     if not mock_chroot:
         print("Given chroot does not exist. Please run:")
@@ -79,13 +88,19 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot):
             continue
 
         for build in fork_builds:
+            chroot_exists = mock_chroot in build.chroots
+
+            if chroot_exists and not retry_forked:
+                # this build should already be forked
+                continue
+
             # rbc means rawhide_build_chroot (we needed short variable)
             rbc = None
             for rbc in build.build_chroots:
                 if rbc.mock_chroot == mock_rawhide_chroot:
                     break
 
-            if mock_chroot not in build.chroots:
+            if not chroot_exists:
                 # forked chroot may already exists, e.g. from prevoius
                 # 'rawhide-to-release-run'
                 dest_build_chroot = models.BuildChroot(**rbc.to_dict())
