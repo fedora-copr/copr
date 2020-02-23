@@ -95,7 +95,8 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot):
             dest_build_chroot.status = StatusEnum("forked")
             db.session.add(dest_build_chroot)
 
-            data['builds'].append(build.result_dir)
+            if rbc.result_dir:
+                data['builds'].append(rbc.result_dir)
 
         if len(data["builds"]):
             actions_logic.ActionsLogic.send_rawhide_to_release(data)
