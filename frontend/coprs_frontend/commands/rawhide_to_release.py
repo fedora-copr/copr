@@ -79,21 +79,20 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot):
             continue
 
         for build in fork_builds:
-            if mock_chroot in build.chroots:
-                # forked chroot already exists, from previous run?
-                continue
-
             # rbc means rawhide_build_chroot (we needed short variable)
             rbc = None
             for rbc in build.build_chroots:
                 if rbc.mock_chroot == mock_rawhide_chroot:
                     break
 
-            dest_build_chroot = models.BuildChroot(**rbc.to_dict())
-            dest_build_chroot.mock_chroot_id = mock_chroot.id
-            dest_build_chroot.mock_chroot = mock_chroot
-            dest_build_chroot.status = StatusEnum("forked")
-            db.session.add(dest_build_chroot)
+            if mock_chroot not in build.chroots:
+                # forked chroot may already exists, e.g. from prevoius
+                # 'rawhide-to-release-run'
+                dest_build_chroot = models.BuildChroot(**rbc.to_dict())
+                dest_build_chroot.mock_chroot_id = mock_chroot.id
+                dest_build_chroot.mock_chroot = mock_chroot
+                dest_build_chroot.status = StatusEnum("forked")
+                db.session.add(dest_build_chroot)
 
             if rbc.result_dir:
                 data['builds'].append(rbc.result_dir)
