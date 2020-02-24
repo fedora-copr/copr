@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.163
+Version:    1.164
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -366,6 +366,13 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Feb 24 2020 Pavel Raiskup <praiskup@redhat.com> 1.164-1
+- rawhide-to-release should create the chroots deactivated
+- new rawhide-to-release --retry-forked option
+- allow repeated run of 'rawhide-to-release'
+- bugfix rawihde to release
+- raise timeout limit for builds to 24h
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.163-1
 - don't generate 'modules' in build-job unnecessarily
 
