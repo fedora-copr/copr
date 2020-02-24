@@ -38,21 +38,21 @@ Upgrade -dev machines
 
 Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
-    sudo rbac-playbook -l copr-be-dev.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org \
                        manual/copr/copr-backend-upgrade.yml
-    sudo rbac-playbook -l copr-be-dev.cloud.fedoraproject.org groups/copr-backend.yml
+    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org groups/copr-backend.yml
 
-    sudo rbac-playbook -l copr-keygen-dev.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org \
                        manual/copr/copr-keygen-upgrade.yml
-    sudo rbac-playbook -l copr-keygen-dev.cloud.fedoraproject.org groups/copr-keygen.yml
+    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org groups/copr-keygen.yml
 
-    sudo rbac-playbook -l copr-fe-dev.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org \
                        manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe-dev.cloud.fedoraproject.org groups/copr-frontend-cloud.yml
+    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend-cloud.yml
 
-    sudo rbac-playbook -l copr-dist-git-dev.fedorainfracloud.org \
+    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
-    sudo rbac-playbook -l copr-dist-git-dev.fedorainfracloud.org groups/copr-dist-git.yml
+    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
 
 
 Note: If there is a new version of copr-rpmbuild, follow the
@@ -196,21 +196,21 @@ builds due to temporarily having installed incompatible versions of Copr package
 
 Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
-    sudo rbac-playbook -l copr-be.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-be.aws.fedoraproject.org \
                        manual/copr/copr-backend-upgrade.yml
-    sudo rbac-playbook -l copr-be.cloud.fedoraproject.org groups/copr-backend.yml
+    sudo rbac-playbook -l copr-be.aws.fedoraproject.org groups/copr-backend.yml
 
-    sudo rbac-playbook -l copr-keygen.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-keygen.aws.fedoraproject.org \
                        manual/copr/copr-keygen-upgrade.yml
-    sudo rbac-playbook -l copr-keygen.cloud.fedoraproject.org groups/copr-keygen.yml
+    sudo rbac-playbook -l copr-keygen.aws.fedoraproject.org groups/copr-keygen.yml
 
-    sudo rbac-playbook -l copr-fe.cloud.fedoraproject.org \
+    sudo rbac-playbook -l copr-fe.aws.fedoraproject.org \
                        manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe.cloud.fedoraproject.org groups/copr-frontend-cloud.yml
+    sudo rbac-playbook -l copr-fe.aws.fedoraproject.org groups/copr-frontend-cloud.yml
 
-    sudo rbac-playbook -l copr-dist-git.fedorainfracloud.org \
+    sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
-    sudo rbac-playbook -l copr-dist-git.fedorainfracloud.org groups/copr-dist-git.yml
+    sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org groups/copr-dist-git.yml
 
 Note: You shouldn't need to upgrade DB manually, playbook covers it.
 
