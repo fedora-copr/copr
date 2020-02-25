@@ -78,6 +78,7 @@ class ScmPackage(object):
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
         rows = models.Package.query \
+            .join(models.CoprDir) \
             .filter(models.Package.source_type == SCM_SOURCE_TYPE) \
             .filter(models.Package.webhook_rebuild) \
             .filter(models.CoprDir.main) \
