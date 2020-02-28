@@ -32,8 +32,13 @@ class CoprHtmlRenderer(commonmark.HtmlRenderer):
         lexer = None
 
         if len(info_words) > 0 and len(info_words[0]) > 0:
-            attrs.append(['class', 'language-' +
-                          commonmark.common.escape_xml(info_words[0], True)])
+            try:
+                code = commonmark.common.escape_xml(info_words[0])
+            except TypeError:
+                # fallback for Fedora <= 30
+                code = commonmark.common.escape_xml(info_words[0], True)
+            attrs.append(['class', 'language-' + code])
+
             try:
                 lexer = get_lexer_by_name(info_words[0])
             except ClassNotFound:

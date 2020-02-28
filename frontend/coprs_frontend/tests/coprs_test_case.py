@@ -139,7 +139,13 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_coprs(self):
-        self.c1 = models.Copr(name=u"foocopr", user=self.u1, repos="")
+        self.c1 = models.Copr(name=u"foocopr", user=self.u1, repos="", description="""
+```python
+# code snippet
+def foo():
+    bar()
+    return 1
+```""")
         self.c2 = models.Copr(name=u"foocopr", user=self.u2, repos="")
         self.c3 = models.Copr(name=u"barcopr", user=self.u2, repos="")
         self.basic_coprs_list = [self.c1, self.c2, self.c3]

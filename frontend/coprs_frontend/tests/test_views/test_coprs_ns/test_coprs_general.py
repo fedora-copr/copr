@@ -278,6 +278,19 @@ class TestCoprDetail(CoprsTestCase):
             "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
         assert b"/cancel_build/" in r.data
 
+    def test_codeblock_html_in_project_description(self, f_users, f_coprs):
+        r = self.tc.get("/coprs/{0}/{1}/".format(self.u1.name, self.c1.name))
+        lines = ['<p><pre><code class="language-python"><div class="highlight"><span></span><span class="c1"># code snippet</span>',
+                 '<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>',
+                 '    <span class="n">bar</span><span class="p">()</span>',
+                 '    <span class="k">return</span> <span class="mi">1</span>',
+                 '</div>',
+                 '</code></pre>']
+
+        generated_html = r.data.decode("utf-8")
+        for line in lines:
+            assert line in generated_html
+
 
 class TestCoprEdit(CoprsTestCase):
 
