@@ -6,7 +6,7 @@ import time
 
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
-from coprs.constants import MAX_BUILD_TIMEOUT
+from coprs import app
 
 from copr_common.enums import StatusEnum
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
@@ -116,12 +116,12 @@ class TestBuildsLogic(CoprsTestCase):
         for build_chroots in [self.b1_bc, self.b2_bc]:
             for build_chroot in build_chroots:
                 build_chroot.status = StatusEnum("running")
-                build_chroot.started_on = time_now - 2 * MAX_BUILD_TIMEOUT
+                build_chroot.started_on = time_now - 2 * app.config["MAX_BUILD_TIMEOUT"]
                 build_chroot.ended_on = None
         for build_chroots in [self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:
                 build_chroot.status = StatusEnum("failed")
-                build_chroot.started_on = time_now - 2 * MAX_BUILD_TIMEOUT
+                build_chroot.started_on = time_now - 2 * app.config["MAX_BUILD_TIMEOUT"]
                 build_chroot.ended_on = None
 
         self.db.session.commit()

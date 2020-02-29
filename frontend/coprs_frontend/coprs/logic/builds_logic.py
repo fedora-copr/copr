@@ -23,7 +23,6 @@ from coprs import cache
 from coprs import db
 from coprs import models
 from coprs import helpers
-from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, \
                              UnrepeatableBuildException, RequestCannotBeExecuted, DuplicateException
 
@@ -288,7 +287,7 @@ class BuildsLogic(object):
                     models.BuildChroot.status == StatusEnum("pending"),
                     and_(
                         models.BuildChroot.status == StatusEnum("running"),
-                        models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
+                        models.BuildChroot.started_on < int(time.time() - 1.1 * app.config["MAX_BUILD_TIMEOUT"]),
                         models.BuildChroot.ended_on.is_(None)
                     )
                 ))
@@ -621,7 +620,7 @@ class BuildsLogic(object):
         )
 
         if timeout:
-            build.timeout = timeout or DEFAULT_BUILD_TIMEOUT
+            build.timeout = timeout or app.config["DEFAULT_BUILD_TIMEOUT"]
 
         db.session.add(build)
 
@@ -663,7 +662,7 @@ class BuildsLogic(object):
             source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=package.copr.build_enable_net,
-            timeout=DEFAULT_BUILD_TIMEOUT,
+            timeout=app.config["DEFAULT_BUILD_TIMEOUT"],
             copr_dir=copr_dir,
             update_callback=update_callback,
             scm_object_type=scm_object_type,

@@ -13,7 +13,6 @@ try: # get rid of deprecation warning with newer flask_wtf
 except ImportError:
     from flask_wtf import Form as FlaskForm
 
-from coprs import constants
 from coprs import app
 from coprs import helpers
 from coprs import models
@@ -481,17 +480,17 @@ class BuildFormRebuildFactory(object):
                 "Memory requirements",
                 validators=[
                     wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_MEMORY,
-                        max=constants.MAX_BUILD_MEMORY)],
-                default=constants.DEFAULT_BUILD_MEMORY)
+                        min=app.config["MIN_BUILD_MEMORY"],
+                        max=app.config["MAX_BUILD_MEMORY"])],
+                default=app.config["DEFAULT_BUILD_MEMORY"])
 
             timeout = wtforms.IntegerField(
                 "Timeout",
                 validators=[
                     wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_TIMEOUT,
-                        max=constants.MAX_BUILD_TIMEOUT)],
-                default=constants.DEFAULT_BUILD_TIMEOUT)
+                        min=app.config["MIN_BUILD_TIMEOUT"],
+                        max=app.config["MAX_BUILD_TIMEOUT"])],
+                default=app.config["DEFAULT_BUILD_TIMEOUT"])
 
             enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
             background = wtforms.BooleanField(false_values=FALSE_VALUES)
@@ -874,18 +873,18 @@ class BaseBuildFormFactory(object):
             validators=[
                 wtforms.validators.Optional(),
                 wtforms.validators.NumberRange(
-                    min=constants.MIN_BUILD_MEMORY,
-                    max=constants.MAX_BUILD_MEMORY)],
-            default=constants.DEFAULT_BUILD_MEMORY)
+                    min=app.config["MIN_BUILD_MEMORY"],
+                    max=app.config["MAX_BUILD_MEMORY"])],
+            default=app.config["DEFAULT_BUILD_MEMORY"])
 
         F.timeout = wtforms.IntegerField(
             "Timeout",
             validators=[
                 wtforms.validators.Optional(),
                 wtforms.validators.NumberRange(
-                    min=constants.MIN_BUILD_TIMEOUT,
-                    max=constants.MAX_BUILD_TIMEOUT)],
-            default=constants.DEFAULT_BUILD_TIMEOUT)
+                    min=app.config["MIN_BUILD_TIMEOUT"],
+                    max=app.config["MAX_BUILD_TIMEOUT"])],
+            default=app.config["DEFAULT_BUILD_TIMEOUT"])
 
         F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
         F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)

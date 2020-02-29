@@ -19,7 +19,6 @@ import json
 
 from copr_common.enums import EnumType
 from copr_common.rpm import splitFilename
-from coprs import constants
 from coprs import app
 
 
@@ -98,8 +97,8 @@ class Paginator(object):
         self.query = query
         self.total_count = total_count
         self.page = page
-        self.per_page = per_page_override or constants.ITEMS_PER_PAGE
-        self.urls_count = urls_count_override or constants.PAGES_URLS_COUNT
+        self.per_page = per_page_override or app.config["ITEMS_PER_PAGE"]
+        self.urls_count = urls_count_override or app.config["PAGES_URLS_COUNT"]
         self.additional_params = additional_params or dict()
 
         self._sliced_query = None

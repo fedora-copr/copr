@@ -98,6 +98,20 @@ class Config(object):
 
     WHITELIST_EMAILS = []
 
+    # PAGINATION
+    ITEMS_PER_PAGE = 10
+    PAGES_URLS_COUNT = 5
+
+    # Builds defaults
+    # # memory in MB
+    DEFAULT_BUILD_MEMORY = 2048
+    MIN_BUILD_MEMORY = 2048
+    MAX_BUILD_MEMORY = 4096
+    # in seconds
+    DEFAULT_BUILD_TIMEOUT = 3600 * 24
+    MIN_BUILD_TIMEOUT = 0
+    MAX_BUILD_TIMEOUT = 86400
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

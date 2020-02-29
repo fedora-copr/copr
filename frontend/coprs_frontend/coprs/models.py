@@ -17,7 +17,6 @@ import zlib
 from flask import url_for
 
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, FailTypeEnum, ModuleStatusEnum, StatusEnum
-from coprs import constants
 from coprs import db
 from coprs import helpers
 from coprs import app
@@ -828,9 +827,9 @@ class Build(db.Model, helpers.Serializer):
     # directory name on backend with the srpm build results
     result_dir = db.Column(db.Text, default='', server_default='', nullable=False)
     # memory requirements for backend builder
-    memory_reqs = db.Column(db.Integer, default=constants.DEFAULT_BUILD_MEMORY)
+    memory_reqs = db.Column(db.Integer, default=app.config["DEFAULT_BUILD_MEMORY"])
     # maximum allowed time of build, build will fail if exceeded
-    timeout = db.Column(db.Integer, default=constants.DEFAULT_BUILD_TIMEOUT)
+    timeout = db.Column(db.Integer, default=app.config["DEFAULT_BUILD_TIMEOUT"])
     # enable networking during a build process
     enable_net = db.Column(db.Boolean, default=False,
                            server_default="0", nullable=False)
