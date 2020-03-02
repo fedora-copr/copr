@@ -118,6 +118,9 @@ class ScmProvider(Provider):
             'tito_test': self.get_tito_test_command,
             'make_srpm': self.get_make_srpm_command,
         }[self.srpm_build_method]()
+        if not os.path.exists(self.repo_subpath):
+            raise RuntimeError("The user-defined SCM subdirectory `{}' doesn't exist within this repository {}"
+                               .format(self.repo_subdir, self.clone_url))
         return run_cmd(cmd, cwd=self.repo_subpath)
 
     def produce_sources(self):
