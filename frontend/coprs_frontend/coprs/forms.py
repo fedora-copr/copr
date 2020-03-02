@@ -1256,7 +1256,8 @@ class ActivateFasGroupForm(FlaskForm):
 class CreateModuleForm(FlaskForm):
     builds = wtforms.FieldList(wtforms.StringField("Builds ID list"))
     packages = wtforms.FieldList(wtforms.StringField("Packages list"))
-    filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
+    filter = wtforms.FieldList(wtforms.StringField("Package Filter"),
+                               validators=[wtforms.validators.DataRequired("You must select some packages from this project")])
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
     profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)

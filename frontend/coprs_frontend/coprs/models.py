@@ -1647,6 +1647,7 @@ class Module(db.Model, helpers.Serializer):
         for state in ["canceled", "running", "starting", "pending", "failed", "succeeded"]:
             if ModuleStatusEnum(state) in build_statuses:
                 return ModuleStatusEnum(state)
+        return ModuleStatusEnum("unknown")
 
     @property
     def state(self):
