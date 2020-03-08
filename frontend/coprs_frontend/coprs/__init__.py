@@ -111,6 +111,8 @@ from coprs.exceptions import (
     ConflictingRequest,
     MalformedArgumentException,
     ObjectNotFound,
+    NonAdminCannotCreatePersistentProject,
+    NonAdminCannotDisableAutoPrunning,
 )
 from .context_processors import include_banner, inject_fedmenu, counter_processor
 
@@ -150,6 +152,8 @@ def handle_404(error):
 
 @app.errorhandler(403)
 @app.errorhandler(AccessRestricted)
+@app.errorhandler(NonAdminCannotCreatePersistentProject)
+@app.errorhandler(NonAdminCannotDisableAutoPrunning)
 def handle_403(error):
     error_handler = get_error_handler()
     return error_handler.handle_403(error)

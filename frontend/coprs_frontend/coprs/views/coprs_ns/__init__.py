@@ -36,7 +36,7 @@ class UIErrorHandler(object):
 
     def message(self, error):
         if isinstance(error, CoprHttpException):
-            return error.message
+            return error.message or error._default
         if hasattr(error, "description"):
             return error.description
         return str(error)
