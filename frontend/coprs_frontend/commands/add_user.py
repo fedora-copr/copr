@@ -1,5 +1,5 @@
 import click
-from coprs import db
+from coprs import db, app
 from coprs import models
 from coprs.views.misc import create_user_wrapper
 
@@ -15,6 +15,11 @@ from coprs.views.misc import create_user_wrapper
     required=False
 )
 def add_user(name, mail, api_token=None, api_login=None):
+    with app.app_context():
+        return add_user_function(name, mail, api_token, api_login)
+
+
+def add_user_function(name, mail, api_token=None, api_login=None):
     """
     You should not use regularly as that user will not be related to FAS account.
     This should be used only for testing or adding special accounts e.g. proxy user.
