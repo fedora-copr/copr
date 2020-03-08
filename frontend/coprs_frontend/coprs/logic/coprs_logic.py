@@ -1,6 +1,7 @@
 import os
 import time
 import datetime
+import flask
 
 from sqlalchemy import and_
 from sqlalchemy.sql import func
@@ -219,10 +220,10 @@ class CoprsLogic(object):
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
             auto_prune=True, use_bootstrap_container=False, follow_fedora_branching=False, **kwargs):
 
-        if not user.admin and persistent:
+        if not flask.g.user.admin and persistent:
             raise exceptions.NonAdminCannotCreatePersistentProject()
 
-        if not user.admin and not auto_prune:
+        if not flask.g.user.admin and not auto_prune:
             raise exceptions.NonAdminCannotDisableAutoPrunning()
 
         # form validation checks for duplicates

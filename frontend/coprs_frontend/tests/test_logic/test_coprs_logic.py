@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, date
 from flask_whooshee import Whooshee
 
 from sqlalchemy import desc
+from unittest import mock
 
 from copr_common.enums import ActionTypeEnum, StatusEnum
 from coprs import app
@@ -16,7 +17,7 @@ from coprs.logic.complex_logic import ComplexLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
-from tests.coprs_test_case import CoprsTestCase
+from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.exceptions import (
     ConflictingRequest,
     InsufficientRightsException,
@@ -102,10 +103,13 @@ class TestCoprsLogic(CoprsTestCase):
         with pytest.raises(InsufficientRightsException):
             CoprsLogic.raise_if_cant_delete(self.u2, self.c2)
 
-    def test_copr_logic_add_sends_create_gpg_key_action(self, f_users, f_mock_chroots, f_db):
+    @new_app_context
+    @mock.patch("flask.g")
+    def test_copr_logic_add_sends_create_gpg_key_action(self, mc_flask_g, f_users, f_mock_chroots, f_db):
         name = u"project_1"
         selected_chroots = [self.mc1.name]
 
+        mc_flask_g.user = self.u1
         CoprsLogic.add(self.u1, name, selected_chroots)
         self.db.session.commit()
 

@@ -6,9 +6,10 @@ from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
-                              InsufficientRightsException, BadRequest, ObjectNotFound)
+                              InsufficientRightsException, BadRequest, ObjectNotFound, AccessRestricted)
 
 
 def to_dict(copr):
@@ -52,6 +53,18 @@ def validate_chroots(input, allowed_chroots):
     unexpected = inserted - allowed
     if unexpected:
         raise BadRequest("Unexpected chroot: {}".format(", ".join(unexpected)))
+
+
+def owner2tuple(ownername):
+    user = flask.g.user
+    group = None
+    if ownername[0] == "@":
+        group = ComplexLogic.get_group_by_name_safe(ownername[1:])
+    elif ownername != flask.g.user.name:
+        user = UsersLogic.get(ownername).first()
+    if not user:
+        raise ObjectNotFound("No such user `{0}'".format(ownername))
+    return user, group
 
 
 @apiv3_ns.route("/project", methods=GET)
@@ -98,22 +111,23 @@ def search_projects(query, **kwargs):
 @apiv3_ns.route("/project/add/<ownername>", methods=POST)
 @api_login_required
 def add_project(ownername):
+    user, group = owner2tuple(ownername)
     data = rename_fields(get_form_compatible_data())
-    form = forms.CoprFormFactory.create_form_cls()(data, meta={'csrf': False})
+    form = forms.CoprFormFactory.create_form_cls(user=user, group=group)(data, meta={'csrf': False})
+
+    if not flask.g.user.admin and flask.g.user != user:
+        raise AccessRestricted("You were authorized as `{0}' and don't have permissions to access "
+                               "project of `{1}' user".format(flask.g.user.name, user.name))
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
     validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
-    group = None
-    if ownername[0] == "@":
-        group = ComplexLogic.get_group_by_name_safe(ownername[1:])
-
     try:
         copr = CoprsLogic.add(
             name=form.name.data.strip(),
             repos=" ".join(form.repos.data.split()),
-            user=flask.g.user,
+            user=user,
             selected_chroots=form.selected_chroots,
             description=form.description.data,
             instructions=form.instructions.data,
