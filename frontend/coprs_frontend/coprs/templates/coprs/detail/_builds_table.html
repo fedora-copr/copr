@@ -6,7 +6,7 @@
 {% macro builds_table(builds, print_possible_states=True) %}
   {% for build in builds %}
     {% if loop.first %}
-    <noscript><p>WARNING!! This page is using JavaScript to filter and sort the table.</p></noscript>
+    <noscript><p>WARNING!! This page is using JavaScript to filter, sort and delete builds from the table.</p></noscript>
     <table class="datatable table table-striped table-bordered">
       <thead>
         <tr>
@@ -18,7 +18,7 @@
           <th>Status</th>
 
           {% if g.user and g.user.can_edit(copr) %}
-          <th data-orderable="false"><a href="#" onclick="$('tr.build-row :checkbox').prop('checked', $('tr.build-row :checkbox').length != $('tr.build-row :checkbox:checked').length); return false;">Mark all</a></th>
+          <th data-orderable="false" class="show-me-javascript hidden"><a href="#" onclick="$('tr.build-row :checkbox').prop('checked', $('tr.build-row :checkbox').length != $('tr.build-row :checkbox:checked').length); return false;">Mark all</a></th>
           {% endif %}
         </tr>
       </thead>
@@ -53,7 +53,7 @@
           </td>
 
           {% if g.user and g.user.can_edit(copr) %}
-          <td>
+          <td class="show-me-javascript hidden">
             <input type="checkbox" name="build_ids" value="{{ build.id }}"></input>
           </td>
           {% endif %}

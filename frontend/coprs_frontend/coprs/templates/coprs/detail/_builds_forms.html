@@ -202,7 +202,7 @@
 {% endmacro %}
 
 {% macro copr_delete_builds(copr, class="") %}
-  <form class="{{ class }} delete-builds" action="#" method="post">
+  <form class="{{ class }} delete-builds show-me-javascript hidden" action="#" method="post">
     <button class="btn btn-danger" type="submit">
       <span class="pficon pficon-delete"></span> Delete all marked
     </button>
