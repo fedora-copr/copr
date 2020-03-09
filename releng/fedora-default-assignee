@@ -1,0 +1,30 @@
+#! /bin/sh
+
+# Execute this script in cloned directory from this repo:
+# https://pagure.io/releng/fedora-scm-requests.git
+# Add the changes, and propose pull-request.
+
+packages='
+    copr-backend
+    copr-cli
+    copr-dist-git
+    copr-frontend
+    copr-keygen
+    copr-messaging
+    copr-selinux
+    copr-rpmbuild
+
+    python-copr
+    python-copr-common
+
+    mock
+    mock-core-configs
+'
+
+for package in $packages; do
+    cat <<\EOF > "rpms/$package"
+bugzilla_contact:
+  Fedora: '@copr-sig'
+  Fedora EPEL: '@copr-sig'
+EOF
+done
