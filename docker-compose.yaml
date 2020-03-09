@@ -91,6 +91,10 @@ services:
   redis:
     image: centos/redis-32-centos7
     hostname: redis
+    networks:
+      default:
+        aliases:
+          - redis-32-centos7
 
   backend_httpd:
     build:

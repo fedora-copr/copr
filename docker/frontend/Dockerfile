@@ -4,6 +4,7 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
 ENV LANG=en_US.UTF-8
+ENV REDIS_HOST=redis-32-centos7
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
@@ -38,6 +39,9 @@ RUN sed -i 's/Listen 80/#Listen 80/g' /etc/httpd/conf/httpd.conf
 # Otherwise it is run/httpd.pid in OpenShift, which is outside of
 # the copr-fe user permissions
 RUN echo "PidFile /var/run/httpd/httpd.pid" >> /etc/httpd/conf/httpd.conf
+
+# Configuration based on environment variables
+RUN sed -i "s/REDIS_HOST = \"redis\"/REDIS_HOST = \"${REDIS_HOST}\"/g" /etc/copr/copr.conf
 
 # Some OpenShift shenanigans
 # We can't have these directories owned by copr-fe:copr-fe
