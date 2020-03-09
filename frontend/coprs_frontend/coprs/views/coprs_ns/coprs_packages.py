@@ -57,7 +57,7 @@ def copr_package_icon(copr, package_name):
 @req_with_copr
 def copr_rebuild_all_packages(copr):
     form = forms.RebuildAllPackagesFormFactory(
-        copr.active_chroots, [package.name for package in copr.packages])()
+        copr.active_chroots, [package.name for package in copr.main_dir.packages])()
 
     if flask.request.method == "POST" and form.validate_on_submit():
         try:
