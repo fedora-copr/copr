@@ -13,6 +13,7 @@ def to_dict(build_chroot):
         "started_on": build_chroot.started_on,
         "ended_on": build_chroot.ended_on,
         "result_url": build_chroot.result_dir_url,
+        "state": build_chroot.state,
     }
 
 
