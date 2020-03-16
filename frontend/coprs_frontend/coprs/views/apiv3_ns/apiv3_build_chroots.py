@@ -4,7 +4,7 @@ from coprs.views.apiv3_ns import apiv3_ns
 from coprs import models
 from coprs.logic.builds_logic import BuildChrootsLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
-from coprs.logic.complex_logic import BuildConfigLogic
+from coprs.logic.complex_logic import BuildConfigLogic, ComplexLogic
 
 
 def to_dict(build_chroot):
@@ -36,7 +36,7 @@ def build_config(build_chroot):
 
 @apiv3_ns.route("/build-chroot/<int:build_id>/<chrootname>", methods=GET)
 def get_build_chroot(build_id, chrootname):
-    chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chrootname).one()
+    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
     return flask.jsonify(to_dict(chroot))
 
 
@@ -52,5 +52,5 @@ def get_build_chroot_list(build_id, **kwargs):
 
 @apiv3_ns.route("/build-chroot/build-config/<int:build_id>/<chrootname>", methods=GET)
 def get_build_chroot_config(build_id, chrootname):
-    chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chrootname).one()
+    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
     return flask.jsonify(build_config(chroot))

@@ -17,7 +17,8 @@ from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
-from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic, PinnedCoprsLogic
+from coprs.logic.coprs_logic import (CoprsLogic, CoprDirsLogic, CoprChrootsLogic,
+                                     PinnedCoprsLogic, MockChrootsLogic)
 
 
 @sqlalchemy.event.listens_for(models.Copr.deleted, "set")
@@ -185,6 +186,21 @@ class ComplexLogic(object):
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
                 message="Build {} does not exist.".format(build_id))
+
+    @staticmethod
+    def get_build_chroot(build_id, chrootname):
+        """
+        Return a `models.BuildChroot` instance based on build ID and name of the chroot.
+        If there is no such chroot, `ObjectNotFound` execption is raised.
+        """
+        build = ComplexLogic.get_build_safe(build_id)
+        try:
+            return build.chroots_dict_by_name[chrootname]
+        except KeyError:
+            msg = "Build {} was not submitted to {} chroot.".format(build_id, chrootname)
+            if not MockChrootsLogic.get_from_name(chrootname).one_or_none():
+                msg = "Chroot {} does not exist".format(chrootname)
+            raise ObjectNotFound(message=msg)
 
     @staticmethod
     def get_package_by_id_safe(package_id):
