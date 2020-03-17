@@ -32,6 +32,7 @@ Requires:      python3-copr >= 1.89
 Requires:      python3-jinja2
 Requires:      python3-simplejson
 Requires:      python3-humanize
+Requires:      python3-koji
 
 Recommends:    python3-progress
 
@@ -99,6 +100,7 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 install -d %{buildroot}%{_datadir}/cheat
 cp -a man/copr-cli.cheat %{buildroot}%{_datadir}/cheat/copr-cli
 ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
+install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-build-order
 
 
 %check
@@ -117,6 +119,7 @@ ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
 %{_datadir}/cheat/copr-cli
 %{_datadir}/cheat/copr
 %{python_sitelib}/*
+%{_bindir}/package-build-order
 
 
 %changelog
