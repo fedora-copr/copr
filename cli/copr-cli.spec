@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.85
+Version:    1.86
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -123,6 +123,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Mar 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.86-1
+- add script to list package build order in copr or koji
+- fix `copr mock-config` to use `dnf.conf/yum.conf` automatically
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.85-1
 - new 'copr-cli build-module --distgit DISTGIT' option
 - make build-package honor the --background flag
