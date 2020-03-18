@@ -42,7 +42,7 @@ class MockBuilder(object):
             srpm = locate_srpm(self.resultdir)
             self.produce_rpm(srpm, self.resultdir)
         finally:
-            self.clean_cache()
+            self.mock_clean()
             self.archive_configs()
 
     def prepare_configs(self):
@@ -96,11 +96,14 @@ class MockBuilder(object):
         if process.returncode != 0:
             raise RuntimeError("Mock build failed")
 
-    def clean_cache(self):
+    def mock_clean(self):
         """ Do best effort /var/mock/cache cleanup. """
         cmd = MOCK_CALL + [
             "-r", self.mock_config_file,
-            "--scrub", "cache", "--quiet",
+            "--scrub", "cache",
+            "--scrub", "bootstrap",
+            "--scrub", "chroot",
+            "--quiet",
         ]
         subprocess.call(cmd) # ignore failure here, if any
 

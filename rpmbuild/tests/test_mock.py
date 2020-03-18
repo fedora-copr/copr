@@ -22,7 +22,7 @@ def f_mock_calls():
     p_popen = mock.patch('copr_rpmbuild.builders.mock.GentlyTimeoutedPopen')
 
     dummy_patchers = [
-        mock.patch('copr_rpmbuild.builders.mock.MockBuilder.clean_cache'),
+        mock.patch('copr_rpmbuild.builders.mock.MockBuilder.mock_clean'),
         mock.patch('copr_rpmbuild.builders.mock.shutil'),
         mock.patch('copr_rpmbuild.builders.mock.locate_spec',
                    new=mock.MagicMock(return_value='spec')),
