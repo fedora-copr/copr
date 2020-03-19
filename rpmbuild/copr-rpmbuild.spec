@@ -151,7 +151,9 @@ PYTHON=%{python} ./run_tests.sh
 name="%{name}" version="%{version}" summary="%{summary}" %py_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
-cat > copr-update-builder <<EOF
+%global mock_config_overrides %_sysconfdir/copr-rpmbuild/mock-config-overrides
+
+cat > copr-update-builder <<'EOF'
 #! /bin/sh
 
 # Update the Copr builder machine, can be called anytime Copr build system
@@ -174,11 +176,22 @@ find /etc/mock -name '*.rpmnew' | while read -r rpmnew_file; do
     mv -f "$config" "$config.copr-builder-backup" && \
     mv "$rpmnew_file" "$config"
 done
+
+# And now use the overrides from %mock_config_overrides directory
+(
+  cd %mock_config_overrides
+  find . -name '*.tpl' -o -name '*.cfg' | while read -r file; do
+    base=$(basename "$file")
+    dir=%_sysconfdir/mock/$(dirname "$file")
+    mkdir -p "$dir"
+    cp "$file" "$dir"
+  done
+)
 EOF
 
 
 %install
-install -d %{buildroot}%{_sysconfdir}/copr-rpmbuild
+install -d %{buildroot}%mock_config_overrides
 install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild
 install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
 
@@ -189,6 +202,13 @@ install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 install -m 644 make_srpm_mock.cfg %{buildroot}%{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
+
+cat <<EOF > %buildroot%mock_config_overrides/README
+Contents of this directory is used by %_bindir/copr-update-builder script.
+When the script is executed, all files and directories (recursively) from here
+are automatically copied to /etc/mock directory.  The files in /etc/mock are
+overwritten if they already exist.
+EOF
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
@@ -221,6 +241,8 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 %files -n copr-builder
 %license LICENSE
 %_bindir/copr-update-builder
+%dir %mock_config_overrides
+%doc %mock_config_overrides/README
 
 
 %changelog
