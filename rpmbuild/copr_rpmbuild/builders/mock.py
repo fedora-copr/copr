@@ -100,7 +100,6 @@ class MockBuilder(object):
         """ Do best effort /var/mock/cache cleanup. """
         cmd = MOCK_CALL + [
             "-r", self.mock_config_file,
-            "--scrub", "cache",
             "--scrub", "bootstrap",
             "--scrub", "chroot",
             "--quiet",

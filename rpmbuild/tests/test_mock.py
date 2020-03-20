@@ -121,7 +121,6 @@ class TestMockBuilder(object):
         code = compile(cfg, "/tmp/foobar", 'exec')
         exec(code)
 
-        assert config_opts["root"] == "10-fedora-24-x86_64"
         assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
         assert config_opts["rpmbuild_networking"]
         assert not config_opts["use_bootstrap"]
@@ -139,8 +138,6 @@ class TestMockBuilder(object):
         config = ''.join(config)
         assert config == """\
 include('/etc/mock/fedora-24-x86_64.cfg')
-
-config_opts['root'] = '10-fedora-24-x86_64'
 
 
 config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'

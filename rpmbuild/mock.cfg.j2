@@ -1,7 +1,5 @@
 include('/etc/mock/{{ chroot }}.cfg')
 
-config_opts['root'] = '{{ task_id }}'
-
 {% if buildroot_pkgs %}
 config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
 {% endif %}
