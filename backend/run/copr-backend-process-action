@@ -76,11 +76,12 @@ def handle_task(opts, args, log):
         sys.exit(1)
 
     action_task = resp.json()
-    action = Action(opts, action_task, log=log)
+    action = Action.create_from(opts, action_task, log=log)
     result = ActionResult.FAILURE
     try:
-        action_result = action.run()
-        result = action_result.result
+        log.info("Executing: %s", str(action))
+        result = action.run()
+        log.info("Action result: %s", result)
     except Exception:
         log.exception("action failed for unknown error")
 

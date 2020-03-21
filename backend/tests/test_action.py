@@ -120,7 +120,7 @@ class TestAction(object):
 
     def test_action_run_legal_flag(self, mc_time):
         mc_time.time.return_value = self.test_time
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.LEGAL_FLAG,
@@ -138,7 +138,7 @@ class TestAction(object):
     def test_action_handle_forks(self, mc_call, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
         mc_time.time.return_value = self.test_time
         mc_exists = True
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.FORK,
@@ -208,7 +208,7 @@ class TestAction(object):
             handle.write(self.test_content)
 
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.RENAME,
@@ -239,7 +239,7 @@ class TestAction(object):
         tmp_dir = self.make_temp_dir()
 
         self.opts.destdir = os.path.join(tmp_dir, "dir-not-exists")
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.RENAME,
@@ -269,7 +269,7 @@ class TestAction(object):
         os.mkdir(os.path.join(tmp_dir, "new_dir"))
 
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.RENAME,
@@ -295,7 +295,7 @@ class TestAction(object):
         tmp_dir = self.make_temp_dir()
         self.opts.destdir = tmp_dir
 
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -311,7 +311,7 @@ class TestAction(object):
 
         assert os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
         assert not os.path.exists(os.path.join(tmp_dir, "foo", "baz"))
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
         assert os.path.exists(os.path.join(tmp_dir, "old_dir"))
         assert not os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
 
@@ -322,7 +322,7 @@ class TestAction(object):
 
         tmp_dir = self.make_temp_dir()
         self.opts.destdir=tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -350,7 +350,7 @@ class TestAction(object):
 
         tmp_dir = self.make_temp_dir()
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "id": 1,
@@ -363,7 +363,7 @@ class TestAction(object):
         )
         result = test_action.run()
         assert len(mc_call.call_args_list) == 0
-        assert result.result == ActionResult.FAILURE
+        assert result == ActionResult.FAILURE
 
     @mock.patch("backend.actions.uses_devel_repo")
     def test_delete_build_succeeded(self, mc_devel, mc_time):
@@ -389,7 +389,7 @@ class TestAction(object):
             fh.write(self.test_content)
 
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -402,7 +402,7 @@ class TestAction(object):
         )
 
         assert os.path.exists(foo_pkg_dir)
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
         assert not os.path.exists(foo_pkg_dir)
         assert not os.path.exists(log_path)
         assert os.path.exists(chroot_1_dir)
@@ -444,7 +444,7 @@ class TestAction(object):
 
         self.opts.destdir = self.tmp_dir_name
 
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -463,7 +463,7 @@ class TestAction(object):
             },
         )
 
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
 
         new_primary = load_primary_xml(repodata)
         new_primary_devel = load_primary_xml(repodata_devel)
@@ -495,7 +495,7 @@ class TestAction(object):
             fh.write("foo\n")
 
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -507,7 +507,7 @@ class TestAction(object):
             },
         )
         # just fail
-        assert test_action.run().result == ActionResult.FAILURE
+        assert test_action.run() == ActionResult.FAILURE
 
     @mock.patch("backend.actions.uses_devel_repo")
     def test_delete_two_chroots(self, mc_devel, mc_time):
@@ -540,7 +540,7 @@ class TestAction(object):
         mc_time.time.return_value = self.test_time
 
         self.opts.destdir = self.tmp_dir_name
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -559,7 +559,7 @@ class TestAction(object):
                 }),
             },
         )
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
 
         assert not os.path.exists(os.path.join(chroot_20_path, "build-00000015.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-00000015.log"))
@@ -609,7 +609,7 @@ class TestAction(object):
         mc_time.time.return_value = self.test_time
 
         self.opts.destdir = self.tmp_dir_name
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -630,7 +630,7 @@ class TestAction(object):
             },
         )
 
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
 
         assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
@@ -661,7 +661,7 @@ class TestAction(object):
         chroot_21_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-21-x86_64")
 
         self.opts.destdir = self.tmp_dir_name
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -682,7 +682,7 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
         result = test_action.run()
-        assert result.result == ActionResult.FAILURE
+        assert result == ActionResult.FAILURE
 
         # shouldn't touch chroot dirs
         assert os.path.exists(chroot_20_path)
@@ -716,7 +716,7 @@ class TestAction(object):
         })
 
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,
@@ -753,7 +753,7 @@ class TestAction(object):
         })
         self.opts.destdir = tmp_dir
 
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.CREATEREPO,
@@ -761,7 +761,7 @@ class TestAction(object):
                 "id": 8
             },
         )
-        assert test_action.run().result == ActionResult.SUCCESS
+        assert test_action.run() == ActionResult.SUCCESS
 
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
             cmd = ['copr-repo',
@@ -784,7 +784,7 @@ class TestAction(object):
             "project_dirnames": ["bar"]
         })
         self.opts.destdir = tmp_dir
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.CREATEREPO,
@@ -792,7 +792,7 @@ class TestAction(object):
                 "id": 9
             },
         )
-        assert test_action.run().result == ActionResult.FAILURE
+        assert test_action.run() == ActionResult.FAILURE
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("backend.actions.create_user_keys")
@@ -807,7 +807,7 @@ class TestAction(object):
         expected_call = mock.call(uname, pname, self.opts)
 
         mc_front_cb = MagicMock()
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.GEN_GPG_KEY,
@@ -855,7 +855,7 @@ class TestAction(object):
         tmp_dir = self.make_temp_dir()
         self.opts.destdir = os.path.join(tmp_dir, "dir-not-exists")
 
-        test_action = Action(
+        test_action = Action.create_from(
             opts=self.opts,
             action={
                 "action_type": ActionType.DELETE,

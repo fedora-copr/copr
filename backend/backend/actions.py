@@ -48,6 +48,39 @@ class Action(object):
         # TODO: describe actions
 
     """
+
+    @classmethod
+    def create_from(cls, opts, action, log=None):
+        action_class = cls.get_action_class(action)
+        return action_class(opts, action, log)
+
+    @classmethod
+    def get_action_class(cls, action):
+        action_type = action["action_type"]
+        action_class = {
+            ActionType.LEGAL_FLAG: LegalFlag,
+            ActionType.CREATEREPO: Createrepo,
+            ActionType.UPDATE_COMPS: CompsUpdate,
+            ActionType.GEN_GPG_KEY: GenerateGpgKey,
+            ActionType.RAWHIDE_TO_RELEASE: RawhideToRelease,
+            ActionType.FORK: Fork,
+            ActionType.BUILD_MODULE: BuildModule,
+            ActionType.CANCEL_BUILD: CancelBuild,
+        }.get(action_type, None)
+
+        if action_type == ActionType.DELETE:
+            object_type = action["object_type"]
+            action_class = {
+                "copr": DeleteProject,
+                "build": DeleteBuild,
+                "builds": DeleteMultipleBuilds,
+                "chroot": DeleteChroot,
+            }.get(object_type, action_class)
+
+        if not action_class:
+            raise ValueError("Unexpected action type")
+        return action_class
+
     # TODO: get more form opts, decrease number of parameters
     def __init__(self, opts, action, log=None):
 
@@ -61,15 +94,23 @@ class Action(object):
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
     def __str__(self):
-        return "<Action: {}>".format(self.data)
+        return "<{}(Action): {}>".format(self.__class__.__name__, self.data)
 
-    def get_chroot_result_dir(self, chroot, project_dirname, ownername):
-        return os.path.join(self.destdir, ownername, project_dirname, chroot)
+    def run(self):
+        """
+        This is an abstract class, implement this function for specific actions
+        in their own classes
+        """
+        raise NotImplementedError()
 
-    def handle_legal_flag(self):
+
+class LegalFlag(Action):
+    def run(self):
         self.log.debug("Action legal-flag: ignoring")
 
-    def handle_createrepo(self):
+
+class Createrepo(Action):
+    def run(self):
         self.log.info("Action createrepo")
         data = json.loads(self.data["data"])
         ownername = data["ownername"]
@@ -97,7 +138,22 @@ class Action(object):
 
         return result
 
-    def handle_fork(self, result):
+
+class GPGMixin(object):
+    def generate_gpg_key(self, ownername, projectname):
+        if self.opts.do_sign is False:
+            # skip key creation, most probably sign component is unused
+            return True
+        try:
+            create_user_keys(ownername, projectname, self.opts)
+            return True
+        except CoprKeygenRequestError as e:
+            self.log.exception(e)
+            return False
+
+
+class Fork(Action, GPGMixin):
+    def run(self):
         sign = self.opts.do_sign
         self.log.info("Action fork %s", self.data["object_type"])
         data = json.loads(self.data["data"])
@@ -107,7 +163,7 @@ class Action(object):
 
         if not os.path.exists(old_path):
             self.log.info("Source copr directory doesn't exist: %s", old_path)
-            result.result = ActionResult.FAILURE
+            result = ActionResult.FAILURE
             return
 
         try:
@@ -156,20 +212,23 @@ class Action(object):
 
                     self.log.info("Forked build %s as %s", src_path, dst_path)
 
-            result.result = ActionResult.SUCCESS
+            result = ActionResult.SUCCESS
             for chroot_path in chroot_paths:
                 if not call_copr_repo(chroot_path):
-                    result.result = ActionResult.FAILURE
+                    result = ActionResult.FAILURE
 
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
             self.log.error(traceback.format_exc())
-            result.result = ActionResult.FAILURE
+            result = ActionResult.FAILURE
+        return result
 
-    def handle_delete_project(self, result):
+
+class DeleteProject(Action):
+    def run(self):
         self.log.debug("Action delete copr")
-        result.result = ActionResult.SUCCESS
+        result = ActionResult.SUCCESS
 
         ext_data = json.loads(self.data["data"])
         ownername = ext_data["ownername"]
@@ -177,7 +236,7 @@ class Action(object):
 
         if not ownername:
             self.log.error("Received empty ownername!")
-            result.result = ActionResult.FAILURE
+            result = ActionResult.FAILURE
             return
 
         for dirname in project_dirnames:
@@ -188,8 +247,11 @@ class Action(object):
             if os.path.exists(path):
                 self.log.info("Removing copr dir {}".format(path))
                 shutil.rmtree(path)
+        return result
 
-    def handle_comps_update(self, result):
+
+class CompsUpdate(Action):
+    def run(self):
         self.log.debug("Action comps update")
 
         ext_data = json.loads(self.data["data"])
@@ -204,7 +266,7 @@ class Action(object):
         path = self.get_chroot_result_dir(chroot, projectname, ownername)
         ensure_dir_exists(path, self.log)
         local_comps_path = os.path.join(path, "comps.xml")
-        result.result = ActionResult.SUCCESS
+        result = ActionResult.SUCCESS
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
             self.log.info("deleted comps.xml for %s/%s/%s from %s ",
@@ -217,7 +279,37 @@ class Action(object):
             except Exception:
                 self.log.exception("Failed to update comps from %s at location %s",
                                    remote_comps_url, local_comps_path)
-                result.result = ActionResult.FAILURE
+                result = ActionResult.FAILURE
+        return result
+
+
+class DeleteMultipleBuilds(Action):
+    def run(self):
+        self.log.debug("Action delete multiple builds.")
+
+        # == EXAMPLE DATA ==
+        # ownername: @copr
+        # projectname: testproject
+        # project_dirnames:
+        #   testproject:pr:10:
+        #     srpm-builds: [00849545, 00849546]
+        #     fedora-30-x86_64: [00849545-example, 00849545-foo]
+        #   [...]
+        ext_data = json.loads(self.data["data"])
+
+        ownername = ext_data["ownername"]
+        projectname = ext_data["projectname"]
+        project_dirnames = ext_data["project_dirnames"]
+        build_ids = ext_data["build_ids"]
+
+        result = ActionResult.SUCCESS
+        for project_dirname, chroot_builddirs in project_dirnames.items():
+            if ActionResult.FAILURE == \
+               self._handle_delete_builds(ownername, projectname,
+                                          project_dirname, chroot_builddirs,
+                                          build_ids):
+                result = ActionResult.FAILURE
+        return result
 
     def _handle_delete_builds(self, ownername, projectname, project_dirname,
                               chroot_builddirs, build_ids):
@@ -249,7 +341,9 @@ class Action(object):
 
         return result
 
-    def handle_delete_build(self):
+
+class DeleteBuild(DeleteMultipleBuilds):
+    def run(self):
         self.log.info("Action delete build.")
 
         # == EXAMPLE DATA ==
@@ -275,34 +369,9 @@ class Action(object):
                                           project_dirname, chroot_builddirs,
                                           build_ids)
 
-    def handle_delete_multiple_builds(self):
-        self.log.debug("Action delete multiple builds.")
 
-        # == EXAMPLE DATA ==
-        # ownername: @copr
-        # projectname: testproject
-        # project_dirnames:
-        #   testproject:pr:10:
-        #     srpm-builds: [00849545, 00849546]
-        #     fedora-30-x86_64: [00849545-example, 00849545-foo]
-        #   [...]
-        ext_data = json.loads(self.data["data"])
-
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
-        project_dirnames = ext_data["project_dirnames"]
-        build_ids = ext_data["build_ids"]
-
-        result = ActionResult.SUCCESS
-        for project_dirname, chroot_builddirs in project_dirnames.items():
-            if ActionResult.FAILURE == \
-               self._handle_delete_builds(ownername, projectname,
-                                          project_dirname, chroot_builddirs,
-                                          build_ids):
-                result = ActionResult.FAILURE
-        return result
-
-    def handle_delete_chroot(self):
+class DeleteChroot(Action):
+    def run(self):
         self.log.info("Action delete project chroot.")
 
         ext_data = json.loads(self.data["data"])
@@ -317,8 +386,11 @@ class Action(object):
             self.log.error("Directory %s not found", chroot_path)
             return
         shutil.rmtree(chroot_path)
+        return ActionResult.SUCCESS
 
-    def handle_generate_gpg_key(self, result):
+
+class GenerateGpgKey(Action, GPGMixin):
+    def run(self):
         ext_data = json.loads(self.data["data"])
         self.log.info("Action generate gpg key: %s", ext_data)
 
@@ -326,24 +398,13 @@ class Action(object):
         projectname = ext_data["projectname"]
 
         success = self.generate_gpg_key(ownername, projectname)
-        result.result = ActionResult.SUCCESS if success else ActionResult.FAILURE
+        return ActionResult.SUCCESS if success else ActionResult.FAILURE
 
-    def generate_gpg_key(self, ownername, projectname):
-        if self.opts.do_sign is False:
-            # skip key creation, most probably sign component is unused
-            return True
-        try:
-            create_user_keys(ownername, projectname, self.opts)
-            return True
-        except CoprKeygenRequestError as e:
-            self.log.exception(e)
-            return False
 
-    def handle_rawhide_to_release(self):
+class RawhideToRelease(Action):
+    def run(self):
         data = json.loads(self.data["data"])
-
         result = ActionResult.SUCCESS
-
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
@@ -370,8 +431,8 @@ class Action(object):
         return result
 
 
-    def handle_cancel_build(self, result):
-        result.result = ActionResult.SUCCESS
+class CancelBuild(Action):
+    def run(self):
         data = json.loads(self.data["data"])
         task_id = data["task_id"]
 
@@ -381,8 +442,7 @@ class Action(object):
             self.log.info("Found VM %s for task %s", vmd.vm_ip, task_id)
         else:
             self.log.error("No VM found for task %s", task_id)
-            result.result = ActionResult.FAILURE
-            return
+            return ActionResult.FAILURE
 
         conn = SSHConnection(
             user=self.opts.build_user,
@@ -395,35 +455,32 @@ class Action(object):
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
             self.log.exception("Error running cmd: %s", cmd)
-            result.result = ActionResult.FAILURE
-            return
+            return ActionResult.FAILURE
 
         cmd_debug(cmd, rc, out, err, self.log)
 
         if rc != 0:
-            result.result = ActionResult.FAILURE
-            return
+            return ActionResult.FAILURE
 
         try:
             pid = int(out.strip())
         except ValueError:
             self.log.exception("Invalid pid %s received", out)
-            result.result = ActionResult.FAILURE
-            return
+            return ActionResult.FAILURE
 
         cmd = "kill -9 -{}".format(pid)
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
             self.log.exception("Error running cmd: %s", cmd)
-            result.result = ActionResult.FAILURE
-            return
+            return ActionResult.FAILURE
 
         cmd_debug(cmd, rc, out, err, self.log)
-        result.result = ActionResult.SUCCESS
+        return ActionResult.SUCCESS
 
 
-    def handle_build_module(self):
+class BuildModule(Action):
+    def run(self):
         result = ActionResult.SUCCESS
         try:
             data = json.loads(self.data["data"])
@@ -476,57 +533,6 @@ class Action(object):
             self.log.exception("handle_build_module failed")
             result = ActionResult.FAILURE
 
-        return result
-
-    def run(self):
-        """ Handle action (other then builds) - like rename or delete of project """
-        self.log.info("Executing: %s", str(self))
-
-        # TODO: we don't need Munch() here, drop it
-        result = Munch()
-        result.id = self.data["id"]
-
-        action_type = self.data["action_type"]
-
-        if action_type == ActionType.DELETE:
-            if self.data["object_type"] == "copr":
-                self.handle_delete_project(result)
-                # TODO: we shouldn't ignore errors
-                result.result = ActionResult.SUCCESS
-            elif self.data["object_type"] == "build":
-                result.result = self.handle_delete_build()
-            elif self.data["object_type"] == "builds":
-                result.result = self.handle_delete_multiple_builds()
-            elif self.data["object_type"] == "chroot":
-                self.handle_delete_chroot()
-                # TODO: we shouldn't ignore errors
-                result.result = ActionResult.SUCCESS
-
-        elif action_type == ActionType.LEGAL_FLAG:
-            self.handle_legal_flag()
-
-        elif action_type == ActionType.FORK:
-            self.handle_fork(result)
-
-        elif action_type == ActionType.CREATEREPO:
-            result.result = self.handle_createrepo()
-
-        elif action_type == ActionType.UPDATE_COMPS:
-            self.handle_comps_update(result)
-
-        elif action_type == ActionType.GEN_GPG_KEY:
-            self.handle_generate_gpg_key(result)
-
-        elif action_type == ActionType.RAWHIDE_TO_RELEASE:
-            result.result = self.handle_rawhide_to_release()
-
-        elif action_type == ActionType.BUILD_MODULE:
-            result.result = self.handle_build_module()
-
-        elif action_type == ActionType.CANCEL_BUILD:
-            self.handle_cancel_build(result)
-
-        self.log.info("Action result: %s", result)
         return result
 
 
