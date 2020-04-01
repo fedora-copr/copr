@@ -294,12 +294,12 @@ a. you do not have the right to upload or use, such as Material that
 b. is governed in whole or in part by a license not contained in the
    list of acceptable licenses for Fedora, currently located at
    https://fedoraproject.org/wiki/Licensing, as that list may be
-   revised from time to time by the Fedora Project Board;
+   revised from time to time by the Fedora Council;
 
 c. is categorized as a "Forbidden Item" at
    https://fedoraproject.org/wiki/Forbidden_items,
    as that page may be revised from time to time by the Fedora
-   Project Board;
+   Council;
 
 d. is designed to interfere with, disable, overburden, damage,
    impair or disrupt Copr or Fedora Project infrastructure;
