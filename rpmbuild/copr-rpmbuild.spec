@@ -44,7 +44,7 @@ BuildRequires: %{python_pfx}-jinja2
 
 BuildRequires: python-rpm-macros
 
-%if %{?python} == "python2"
+%if "%{?python}" == "python2"
 BuildRequires: python2-configparser
 BuildRequires: python2-mock
 Requires: python2-configparser
