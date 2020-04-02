@@ -227,7 +227,38 @@ class Fork(Action, GPGMixin):
         return result
 
 
-class DeleteProject(Action):
+class Delete(Action):
+    def _handle_delete_builds(self, ownername, projectname, project_dirname,
+                              chroot_builddirs, build_ids):
+        """ call /bin/copr-repo --delete """
+        devel = uses_devel_repo(self.front_url, ownername, projectname)
+        result = ActionResult.SUCCESS
+        for chroot, subdirs in chroot_builddirs.items():
+            chroot_path = os.path.join(self.destdir, ownername, project_dirname,
+                                       chroot)
+            if not os.path.exists(chroot_path):
+                self.log.error("%s chroot path doesn't exist", chroot_path)
+                result = ActionResult.FAILURE
+                continue
+
+            if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
+                result = ActionResult.FAILURE
+
+            for build_id in build_ids or []:
+                log_paths = [
+                    os.path.join(chroot_path, build_chroot_log_name(build_id)),
+                    # we used to create those before
+                    os.path.join(chroot_path, 'build-{}.rsync.log'.format(build_id)),
+                    os.path.join(chroot_path, 'build-{}.log'.format(build_id))]
+                for log_path in log_paths:
+                    try:
+                        os.unlink(log_path)
+                    except OSError:
+                        self.log.debug("can't remove %s", log_path)
+        return result
+
+
+class DeleteProject(Delete):
     def run(self):
         self.log.debug("Action delete copr")
         result = ActionResult.SUCCESS
@@ -285,7 +316,7 @@ class CompsUpdate(Action):
         return result
 
 
-class DeleteMultipleBuilds(Action):
+class DeleteMultipleBuilds(Delete):
     def run(self):
         self.log.debug("Action delete multiple builds.")
 
@@ -313,38 +344,8 @@ class DeleteMultipleBuilds(Action):
                 result = ActionResult.FAILURE
         return result
 
-    def _handle_delete_builds(self, ownername, projectname, project_dirname,
-                              chroot_builddirs, build_ids):
-        """ call /bin/copr-repo --delete """
-        devel = uses_devel_repo(self.front_url, ownername, projectname)
-        result = ActionResult.SUCCESS
-        for chroot, subdirs in chroot_builddirs.items():
-            chroot_path = os.path.join(self.destdir, ownername, project_dirname,
-                                       chroot)
-            if not os.path.exists(chroot_path):
-                self.log.error("%s chroot path doesn't exist", chroot_path)
-                result = ActionResult.FAILURE
-                continue
 
-            if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
-                result = ActionResult.FAILURE
-
-            for build_id in build_ids or []:
-                log_paths = [
-                    os.path.join(chroot_path, build_chroot_log_name(build_id)),
-                    # we used to create those before
-                    os.path.join(chroot_path, 'build-{}.rsync.log'.format(build_id)),
-                    os.path.join(chroot_path, 'build-{}.log'.format(build_id))]
-                for log_path in log_paths:
-                    try:
-                        os.unlink(log_path)
-                    except OSError:
-                        self.log.debug("can't remove %s", log_path)
-
-        return result
-
-
-class DeleteBuild(DeleteMultipleBuilds):
+class DeleteBuild(Delete):
     def run(self):
         self.log.info("Action delete build.")
 
