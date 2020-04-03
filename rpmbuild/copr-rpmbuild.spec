@@ -177,7 +177,7 @@ find /etc/mock -name '*.rpmnew' | while read -r rpmnew_file; do
     mv "$rpmnew_file" "$config"
 done
 
-# And now use the overrides from %mock_config_overrides directory
+# And now use the overrides from %%mock_config_overrides directory
 (
   cd %mock_config_overrides
   find . -name '*.tpl' -o -name '*.cfg' | while read -r file; do
