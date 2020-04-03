@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.37
+Version: 0.38
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -246,6 +246,13 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Fri Apr 03 2020 Pavel Raiskup <praiskup@redhat.com> 0.38-1
+- do not scrub mock caches, to re-use dnf/yum caches
+- scrub chroot and bootstrap chroot when build is done
+- invent /etc/copr-rpmbuild/mock-config-overrides config dir
+- print human friendly error for nonexisting subdirectory
+- less verbose error output
+
 * Wed Feb 19 2020 Pavel Raiskup <praiskup@redhat.com> 0.37-1
 - add tests that we properly cleanup tmp directories
 - mock 2.0: config s/use_bootstrap_container/use_bootstrap/
