@@ -15,9 +15,10 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create ${NAME_PREFIX}Createrepo --chroot fedora-30-x86_64"
+        rlRun "copr-cli create ${NAME_PREFIX}Createrepo --chroot $CHROOT"
         echo "sleep 60 seconds to give backend enough time to generate the repo"
         sleep 60
+        # don't specify chroot here, rely on auto-detection
         rlRun "dnf -y copr enable ${URL}/${NAME_PREFIX}Createrepo"
         rlRun "dnf --disablerepo='*' \
             --enablerepo='copr:${URL}:group_copr:${NAME_VAR}Createrepo' \

@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM fedora:32
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ENV container docker
@@ -19,9 +19,6 @@ RUN dnf -y install htop wget net-tools iputils vim mlocate git sudo openssh-serv
 
 # Sanity tests
 RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
-
-# Hack, beakerlib is not installable on F30, bug 1719226
-RUN sed -i 's/$releasever/29/g' /etc/yum.repos.d/beaker-client-Fedora.repo
 
 RUN dnf -y install rhts-test-env beakerlib
 
