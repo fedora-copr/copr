@@ -157,11 +157,7 @@ cat > copr-update-builder <<'EOF'
 #! /bin/sh
 
 # Update the Copr builder machine, can be called anytime Copr build system
-# decides to do so (please keep the output idempotent).
-
-# Remove old rpmnew config files, if they exist now it is a configuration bug
-# anyways.
-find /etc/mock -name '*.rpmnew' -delete
+# decides to do so (please keep the script idempotent).
 
 # install the latest versions of those packages
 dnf update -y %latest_requires_packages
