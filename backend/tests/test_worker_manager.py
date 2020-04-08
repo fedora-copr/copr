@@ -14,7 +14,7 @@ from copr_common.enums import DefaultActionPriorityEnum
 WORKDIR = os.path.dirname(__file__)
 
 from copr_backend.helpers import get_redis_connection
-from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action, ActionType
+from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action
 from copr_backend.worker_manager import JobQueue, WorkerManager, QueueTask
 
 REDIS_OPTS = Munch(
@@ -54,12 +54,13 @@ class ToyActionWorkerManager(ToyWorkerManager, ActionWorkerManager):
     pass
 
 
-class ToyQueueTask(object):
+class ToyQueueTask(QueueTask):
     def __init__(self, id):
-        self.id = id
+        self._id = id
 
-    def __repr__(self):
-        return str(self.id)
+    @property
+    def id(self):
+        return self._id
 
 
 class TestPrioQueue(object):
@@ -170,7 +171,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
     def setup_tasks(self):
         raw_actions = [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
         for action in raw_actions:
-            action = ActionQueueTask(Action.create_from({"id": action, "action_type": 0}))
+            action = ToyQueueTask(action)
             self.worker_manager.add_task(action)
 
     def test_run_starts_the_workers(self):
@@ -247,7 +248,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         self.worker_manager.run(timeout=0.0001)
 
         queue = copy.deepcopy(self.worker_manager.tasks)
-        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
+        self.worker_manager.add_task(ToyQueueTask(0))
         assert len(queue.prio_queue) == len(self.worker_manager.tasks.prio_queue)
         assert ('root', logging.WARNING, "Task 0 has worker, skipped") in caplog.record_tuples
 
@@ -258,7 +259,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
 
         # only one task, but it will take some time.
         self.worker_manager.task_sleep = 0.5
-        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
+        self.worker_manager.add_task(ToyQueueTask(0))
 
         # start the worker
         self.worker_manager.run(timeout=0.0001) # start them task
@@ -286,7 +287,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         """
         self.worker_manager.task_sleep = 3 # assure task takes some time
         self.worker_manager.clean_tasks()
-        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
+        self.worker_manager.add_task(ToyQueueTask(0))
         self.worker_manager.worker_timeout_start = 1
         self.worker_manager.worker_timeout_deadcheck = 1.5
 
@@ -336,26 +337,20 @@ class TestActionWorkerManagerPriorities(BaseTestWorkerManager):
 
     def test_actions_priorities(self):
         frontend_data = [
-            {"id": 10, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
-            {"id": 11, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
-            {"id": 12, "action_type": ActionType.CREATEREPO, "priority": DefaultActionPriorityEnum("createrepo")},
-            {"id": 13, "action_type": ActionType.UPDATE_COMPS, "priority": DefaultActionPriorityEnum("update_comps")},
-            {
-                "id": 14, "action_type": ActionType.RAWHIDE_TO_RELEASE,
-                "priority": DefaultActionPriorityEnum("rawhide_to_release")
-            },
-            {
-                "id": 15, "action_type": ActionType.RAWHIDE_TO_RELEASE,
-                "priority": DefaultActionPriorityEnum("rawhide_to_release")
-            },
-            {"id": 16, "action_type": ActionType.BUILD_MODULE, "priority": DefaultActionPriorityEnum("build_module")},
-            {"id": 17, "action_type": ActionType.CANCEL_BUILD, "priority": DefaultActionPriorityEnum("cancel_build")},
-            {"id": 18, "action_type": ActionType.FORK, "priority": DefaultActionPriorityEnum("fork")},
-            {"id": 19, "action_type": ActionType.GEN_GPG_KEY, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
-            {"id": 20, "action_type": ActionType.LEGAL_FLAG, "priority": 0},
+            {"id": 10, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 11, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 12, "priority": DefaultActionPriorityEnum("createrepo")},
+            {"id": 13, "priority": DefaultActionPriorityEnum("update_comps")},
+            {"id": 14, "priority": DefaultActionPriorityEnum("rawhide_to_release")},
+            {"id": 15, "priority": DefaultActionPriorityEnum("rawhide_to_release")},
+            {"id": 16, "priority": DefaultActionPriorityEnum("build_module")},
+            {"id": 17, "priority": DefaultActionPriorityEnum("cancel_build")},
+            {"id": 18, "priority": DefaultActionPriorityEnum("fork")},
+            {"id": 19, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
+            {"id": 20, "priority": 0},
         ]
         for action in frontend_data:
-            queue_task = ActionQueueTask(Action.create_from(action, opts=MagicMock(), log=log))
+            queue_task = ActionQueueTask(Action(MagicMock(), action, log=log))
             self.worker_manager.add_task(queue_task)
 
         assert self.pop().id == 19
@@ -384,13 +379,13 @@ class TestActionWorkerManagerPriorities(BaseTestWorkerManager):
         Test that backend still can adjust or ultimately override priorities
         """
         frontend_data = [
-            {"id": 10, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
-            {"id": 11, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
-            {"id": 12, "action_type": ActionType.CREATEREPO, "priority": DefaultActionPriorityEnum("createrepo")},
-            {"id": 13, "action_type": ActionType.GEN_GPG_KEY, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
-            {"id": 14, "action_type": ActionType.FORK, "priority": DefaultActionPriorityEnum("fork")},
+            {"id": 10, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 11, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 12, "priority": DefaultActionPriorityEnum("createrepo")},
+            {"id": 13, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
+            {"id": 14, "priority": DefaultActionPriorityEnum("fork")},
         ]
-        actions = [ActionQueueTask(Action.create_from(action)) for action in frontend_data]
+        actions = [ActionQueueTask(Action(MagicMock(), action, log)) for action in frontend_data]
 
         # QueueTask.backend_priority is a property which should be
         # overriden when in the class descendants.

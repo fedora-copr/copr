@@ -44,8 +44,8 @@ class ActionDispatcher(multiprocessing.Process):
                 error)
             return []
 
-        return [ActionQueueTask(Action.create_from(action, opts=self.opts, log=self.log))
-            for action in raw_actions]
+        return [ActionQueueTask(Action(self.opts, action, log=self.log))
+                for action in raw_actions]
 
 
     def run(self):

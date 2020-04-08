@@ -2,7 +2,7 @@ import json
 
 from unittest import mock, skip
 
-from copr_common.enums import BackendResultEnum, StatusEnum
+from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -272,8 +272,8 @@ class TestWaitingActions(CoprsTestCase):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
         assert actions == [
-            {'id': 1, 'action_type': 0, 'priority': None},
-            {'id': 2, 'action_type': 10, 'priority': None}
+            {'id': 1, 'priority': DefaultActionPriorityEnum("delete")},
+            {'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")}
         ]
 
         self.delete_action.result = BackendResultEnum("success")

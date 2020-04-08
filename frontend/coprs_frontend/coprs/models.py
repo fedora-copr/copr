@@ -16,7 +16,8 @@ import zlib
 
 from flask import url_for
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum, FailTypeEnum, ModuleStatusEnum, StatusEnum
+from copr_common.enums import (ActionTypeEnum, BackendResultEnum, FailTypeEnum,
+                               ModuleStatusEnum, StatusEnum, DefaultActionPriorityEnum)
 from coprs import db
 from coprs import helpers
 from coprs import app
@@ -1523,6 +1524,11 @@ class Action(db.Model, helpers.Serializer):
             })
             d["data"] = json.dumps(data)
         return d
+
+    @property
+    def default_priority(self):
+        action_type_str = ActionTypeEnum(self.action_type)
+        return DefaultActionPriorityEnum.vals.get(action_type_str, 0)
 
 
 class Krb5Login(db.Model, helpers.Serializer):

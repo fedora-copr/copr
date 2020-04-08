@@ -189,11 +189,9 @@ def pending_actions():
     for action in actions_logic.ActionsLogic.get_waiting():
         data.append({
             'id': action.id,
-            'action_type': action.action_type,
-            'object_type': action.object_type,
-            'priority': action.priority,
+            'priority': action.priority or action.default_priority,
         })
-    return flask.json.dumps(data, sort_keys=False)
+    return flask.json.dumps(data)
 
 
 

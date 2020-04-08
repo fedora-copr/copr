@@ -20,7 +20,7 @@ gi.require_version('Modulemd', '1.0')
 from gi.repository import Modulemd
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionResult, DefaultActionPriorityEnum, ActionTypeEnum
+from copr_common.enums import ActionResult
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
@@ -52,14 +52,13 @@ class Action(object):
     """
 
     @classmethod
-    def create_from(cls, action, opts=None, log=None):
-        opts = opts or {}
+    def create_from(cls, opts, action, log=None):
         action_class = cls.get_action_class(action)
         return action_class(opts, action, log)
 
     @classmethod
     def get_action_class(cls, action):
-        action_type = action.get("action_type")
+        action_type = action["action_type"]
         action_class = {
             ActionType.LEGAL_FLAG: LegalFlag,
             ActionType.CREATEREPO: Createrepo,
@@ -73,7 +72,7 @@ class Action(object):
         }.get(action_type, None)
 
         if action_type == ActionType.DELETE:
-            object_type = action.get("object_type")
+            object_type = action["object_type"]
             action_class = {
                 "copr": DeleteProject,
                 "build": DeleteBuild,
@@ -91,9 +90,9 @@ class Action(object):
         self.opts = opts
         self.data = action
 
-        self.destdir = self.opts.get("destdir", None)
-        self.front_url = self.opts.get("frontend_base_url", None)
-        self.results_root_url = self.opts.get("results_baseurl", None)
+        self.destdir = self.opts.destdir
+        self.front_url = self.opts.frontend_base_url
+        self.results_root_url = self.opts.results_baseurl
 
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
@@ -566,9 +565,7 @@ class ActionQueueTask(QueueTask):
 
     @property
     def frontend_priority(self):
-        action_type = ActionTypeEnum(self.task.data["action_type"])
-        default = DefaultActionPriorityEnum.vals.get(action_type)
-        return self.task.data.get("priority") or default or 0
+        return self.task.data.get("priority", 0)
 
 
 class ActionWorkerManager(WorkerManager):
