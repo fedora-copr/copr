@@ -44,6 +44,23 @@ class ActionResult(with_metaclass(EnumType, object)):
     }
 
 
+class DefaultActionPriorityEnum(with_metaclass(EnumType, object)):
+    """
+    The higher the 'priority' is, the later the task is taken.
+    Keep actions priority in range -100 to 100
+    """
+    vals = {
+        "gen_gpg_key": -70,
+        "cancel_build": -10,
+        "createrepo": 0,
+        "fork": 0,
+        "build_module": 0,
+        "update_comps": 0,
+        "delete": 60,
+        "rawhide_to_release": 70,
+    }
+
+
 class BackendResultEnum(with_metaclass(EnumType, object)):
     vals = {"waiting": 0, "success": 1, "failure": 2}
 
