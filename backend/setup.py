@@ -1,0 +1,29 @@
+#!/usr/bin/python
+
+from setuptools import setup
+
+long_description = """\
+COPR is lightweight build system. It allows you to create new project in WebUI,
+and submit new builds and COPR will create yum repository from latest builds.
+
+This package contains backend."""
+
+__description__ = "Python client for copr service."
+__author__ = "Copr Team"
+__author_email__ = "copr-team@redhat.com"
+__url__ = "https://pagure.io/copr/copr"
+
+
+setup(
+    name='copr-backend',
+    version="1.132",
+    description=__description__,
+    long_description=long_description,
+    author=__author__,
+    author_email=__author_email__,
+    url=__url__,
+    license='GPLv2+',
+    packages=['copr_backend'],
+    include_package_data=True,
+    zip_safe=False,
+)

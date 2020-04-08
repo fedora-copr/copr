@@ -110,14 +110,15 @@ only.
 
 %build
 make -C docs %{?_smp_mflags} html
+%py3_build
 
 
 %install
-install -d %{buildroot}%{_sharedstatedir}/copr
-install -d %{buildroot}%{_sharedstatedir}/copr/jobs
+%py3_install
+
+
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
-install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_unitdir}
@@ -130,7 +131,6 @@ install -d %{buildroot}%{_sysconfdir}/sudoers.d
 install -d %{buildroot}%{_bindir}/
 
 cp -a copr-backend-service %{buildroot}/%{_sbindir}/
-cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a run/* %{buildroot}%{_bindir}/
 cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
@@ -162,7 +162,6 @@ cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysc
 
 cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 
-%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/backend
 
 %check
 ./run_tests.sh
@@ -184,10 +183,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %files
 %license LICENSE
+%python3_sitelib/copr_backend
+%python3_sitelib/copr_backend*egg-info
 
-%{_datadir}/copr/*
 %dir %{_sharedstatedir}/copr
-%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/jobs/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/run/copr-backend
