@@ -41,6 +41,27 @@ class JobQueue():
         raise KeyError('pop from an empty priority queue')
 
 
+class QueueTask(object):
+    def __repr__(self):
+        return str(self.id)
+
+    @property
+    def id(self):
+        raise NotImplementedError
+
+    @property
+    def priority(self):
+        return sum([self.frontend_priority, self.backend_priority])
+
+    @property
+    def frontend_priority(self):
+        return 0
+
+    @property
+    def backend_priority(self):
+        return 0
+
+
 class WorkerManager():
     """
     Automatically process 'self.tasks' priority queue, and start background jobs
@@ -148,7 +169,7 @@ class WorkerManager():
             return
 
         self.log.info("Adding task %s to queue", task_id)
-        self.tasks.add_task(task)
+        self.tasks.add_task(task, task.priority)
 
     def worker_ids(self):
         """

@@ -20,14 +20,14 @@ gi.require_version('Modulemd', '1.0')
 from gi.repository import Modulemd
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionResult
+from copr_common.enums import ActionResult, DefaultActionPriorityEnum, ActionTypeEnum
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, cmd_debug, format_filename,
                       uses_devel_repo, call_copr_repo, build_chroot_log_name)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
-from copr_backend.worker_manager import WorkerManager
+from copr_backend.worker_manager import WorkerManager, QueueTask
 
 from .vm_manage.manager import VmManager
 
@@ -52,13 +52,14 @@ class Action(object):
     """
 
     @classmethod
-    def create_from(cls, opts, action, log=None):
+    def create_from(cls, action, opts=None, log=None):
+        opts = opts or {}
         action_class = cls.get_action_class(action)
         return action_class(opts, action, log)
 
     @classmethod
     def get_action_class(cls, action):
-        action_type = action["action_type"]
+        action_type = action.get("action_type")
         action_class = {
             ActionType.LEGAL_FLAG: LegalFlag,
             ActionType.CREATEREPO: Createrepo,
@@ -68,10 +69,11 @@ class Action(object):
             ActionType.FORK: Fork,
             ActionType.BUILD_MODULE: BuildModule,
             ActionType.CANCEL_BUILD: CancelBuild,
+            ActionType.DELETE: Delete,
         }.get(action_type, None)
 
         if action_type == ActionType.DELETE:
-            object_type = action["object_type"]
+            object_type = action.get("object_type")
             action_class = {
                 "copr": DeleteProject,
                 "build": DeleteBuild,
@@ -80,7 +82,7 @@ class Action(object):
             }.get(object_type, action_class)
 
         if not action_class:
-            raise ValueError("Unexpected action type")
+            raise ValueError("Unexpected action type: {}".format(action))
         return action_class
 
     # TODO: get more form opts, decrease number of parameters
@@ -89,9 +91,9 @@ class Action(object):
         self.opts = opts
         self.data = action
 
-        self.destdir = self.opts.destdir
-        self.front_url = self.opts.frontend_base_url
-        self.results_root_url = self.opts.results_baseurl
+        self.destdir = self.opts.get("destdir", None)
+        self.front_url = self.opts.get("frontend_base_url", None)
+        self.results_root_url = self.opts.get("results_baseurl", None)
 
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
@@ -373,7 +375,7 @@ class DeleteBuild(Delete):
                                           build_ids)
 
 
-class DeleteChroot(Action):
+class DeleteChroot(Delete):
     def run(self):
         self.log.info("Action delete project chroot.")
 
@@ -554,11 +556,19 @@ class ActionType(object):
     CANCEL_BUILD = 10
 
 
-class ActionQueueTask():
-    def __init__(self, id):
-        self.id = id
-    def __repr__(self):
-        return str(self.id)
+class ActionQueueTask(QueueTask):
+    def __init__(self, task):
+        self.task = task
+
+    @property
+    def id(self):
+        return self.task.data["id"]
+
+    @property
+    def frontend_priority(self):
+        action_type = ActionTypeEnum(self.task.data["action_type"])
+        default = DefaultActionPriorityEnum.vals.get(action_type)
+        return self.task.data.get("priority") or default or 0
 
 
 class ActionWorkerManager(WorkerManager):

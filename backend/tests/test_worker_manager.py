@@ -4,16 +4,18 @@ import os
 import sys
 import copy
 import time
+import pytest
 import logging
 import subprocess
 from unittest.mock import MagicMock, patch
 from munch import Munch
+from copr_common.enums import DefaultActionPriorityEnum
 
 WORKDIR = os.path.dirname(__file__)
 
 from copr_backend.helpers import get_redis_connection
-from copr_backend.actions import ActionWorkerManager, ActionQueueTask
-from copr_backend.worker_manager import JobQueue
+from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action, ActionType
+from copr_backend.worker_manager import JobQueue, WorkerManager, QueueTask
 
 REDIS_OPTS = Munch(
     redis_db=9,
@@ -24,7 +26,7 @@ log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 
-class ToyWorkerManager(ActionWorkerManager):
+class ToyWorkerManager(WorkerManager):
     process_counter = 0
     task_sleep = 0
 
@@ -46,6 +48,18 @@ class ToyWorkerManager(ActionWorkerManager):
            environ.update(task_env)
 
         subprocess.check_call(list(map(str, cmd)), env=environ)
+
+
+class ToyActionWorkerManager(ToyWorkerManager, ActionWorkerManager):
+    pass
+
+
+class ToyQueueTask(object):
+    def __init__(self, id):
+        self.id = id
+
+    def __repr__(self):
+        return str(self.id)
 
 
 class TestPrioQueue(object):
@@ -87,30 +101,28 @@ class TestPrioQueue(object):
         assert self.get_tasks() == [6, 7, 9, 0, 1, 2, 3, 4, 5, 8]
 
 
-class TestWorkerManager(object):
+class BaseTestWorkerManager(object):
     redis = None
     worker_manager = None
 
     def setup_method(self, method):
+        self.setup_redis()
+        self.setup_worker_manager()
+        self.setup_tasks()
+
+    def setup_redis(self):
         self.redis = get_redis_connection(REDIS_OPTS)
         self.redis.flushall()
 
+    def setup_worker_manager(self):
         self.worker_manager = ToyWorkerManager(
             redis_connection=self.redis,
             max_workers=5,
             log=log)
 
-        prefix = 'toy:' + str(time.time())
-        self.worker_manager.worker_prefix = prefix
-        prefix += ':'
-        self.wprefix = prefix
-        self.w0 = prefix + '0'
-        self.w1 = prefix + '1'
-
-        self.worker_manager.frontend_client = MagicMock()
-
+    def setup_tasks(self):
         raw_actions = [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
-        actions = [ActionQueueTask(action) for action in raw_actions]
+        actions = [ToyQueueTask(action) for action in raw_actions]
         for action in actions:
             self.worker_manager.add_task(action)
 
@@ -127,6 +139,8 @@ class TestWorkerManager(object):
                 break
         return count
 
+
+class TestWorkerManager(BaseTestWorkerManager):
     def test_worker_starts(self):
         task = self.worker_manager.tasks.pop_task()
         assert task.id == 0
@@ -136,6 +150,28 @@ class TestWorkerManager(object):
 
     def test_number_of_tasks(self):
         assert self.remaining_tasks() == 10
+
+
+class TestActionWorkerManager(BaseTestWorkerManager):
+    def setup_worker_manager(self):
+        self.worker_manager = ToyActionWorkerManager(
+            redis_connection=self.redis,
+            max_workers=5,
+            log=log)
+
+        prefix = 'toy:' + str(time.time())
+        self.worker_manager.worker_prefix = prefix
+        prefix += ':'
+        self.wprefix = prefix
+        self.w0 = prefix + '0'
+        self.w1 = prefix + '1'
+        self.worker_manager.frontend_client = MagicMock()
+
+    def setup_tasks(self):
+        raw_actions = [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
+        for action in raw_actions:
+            action = ActionQueueTask(Action.create_from({"id": action, "action_type": 0}))
+            self.worker_manager.add_task(action)
 
     def test_run_starts_the_workers(self):
         self.worker_manager.run(timeout=0.0001)
@@ -211,7 +247,7 @@ class TestWorkerManager(object):
         self.worker_manager.run(timeout=0.0001)
 
         queue = copy.deepcopy(self.worker_manager.tasks)
-        self.worker_manager.add_task(ActionQueueTask(0))
+        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
         assert len(queue.prio_queue) == len(self.worker_manager.tasks.prio_queue)
         assert ('root', logging.WARNING, "Task 0 has worker, skipped") in caplog.record_tuples
 
@@ -222,7 +258,7 @@ class TestWorkerManager(object):
 
         # only one task, but it will take some time.
         self.worker_manager.task_sleep = 0.5
-        self.worker_manager.add_task(ActionQueueTask(0))
+        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
 
         # start the worker
         self.worker_manager.run(timeout=0.0001) # start them task
@@ -250,7 +286,7 @@ class TestWorkerManager(object):
         """
         self.worker_manager.task_sleep = 3 # assure task takes some time
         self.worker_manager.clean_tasks()
-        self.worker_manager.add_task(ActionQueueTask(0))
+        self.worker_manager.add_task(ActionQueueTask(Action.create_from({"id": 0, "action_type": 0})))
         self.worker_manager.worker_timeout_start = 1
         self.worker_manager.worker_timeout_deadcheck = 1.5
 
@@ -283,3 +319,93 @@ class TestWorkerManager(object):
         self.worker_manager.run(timeout=0.0001)
 
         assert len(self.worker_manager.worker_ids()) == 0
+
+
+class TestActionWorkerManagerPriorities(BaseTestWorkerManager):
+    def setup_worker_manager(self):
+        self.worker_manager = ToyActionWorkerManager(
+            redis_connection=self.redis,
+            max_workers=5,
+            log=log)
+
+    def setup_tasks(self):
+        pass
+
+    def pop(self):
+        return self.worker_manager.tasks.pop_task()
+
+    def test_actions_priorities(self):
+        frontend_data = [
+            {"id": 10, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 11, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 12, "action_type": ActionType.CREATEREPO, "priority": DefaultActionPriorityEnum("createrepo")},
+            {"id": 13, "action_type": ActionType.UPDATE_COMPS, "priority": DefaultActionPriorityEnum("update_comps")},
+            {
+                "id": 14, "action_type": ActionType.RAWHIDE_TO_RELEASE,
+                "priority": DefaultActionPriorityEnum("rawhide_to_release")
+            },
+            {
+                "id": 15, "action_type": ActionType.RAWHIDE_TO_RELEASE,
+                "priority": DefaultActionPriorityEnum("rawhide_to_release")
+            },
+            {"id": 16, "action_type": ActionType.BUILD_MODULE, "priority": DefaultActionPriorityEnum("build_module")},
+            {"id": 17, "action_type": ActionType.CANCEL_BUILD, "priority": DefaultActionPriorityEnum("cancel_build")},
+            {"id": 18, "action_type": ActionType.FORK, "priority": DefaultActionPriorityEnum("fork")},
+            {"id": 19, "action_type": ActionType.GEN_GPG_KEY, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
+            {"id": 20, "action_type": ActionType.LEGAL_FLAG, "priority": 0},
+        ]
+        for action in frontend_data:
+            queue_task = ActionQueueTask(Action.create_from(action, opts=MagicMock(), log=log))
+            self.worker_manager.add_task(queue_task)
+
+        assert self.pop().id == 19
+        assert self.pop().id == 17
+
+        # These have the same priority and the queue is FIFO
+        assert self.pop().id == 12
+        assert self.pop().id == 13
+        assert self.pop().id == 16
+        assert self.pop().id == 18
+        assert self.pop().id == 20
+
+        assert self.pop().id == 10
+        assert self.pop().id == 11
+
+        assert self.pop().id == 14
+        assert self.pop().id == 15
+
+        # Tasks queue is empty now
+        with pytest.raises(KeyError) as ex:
+            self.pop()
+        assert "empty" in str(ex)
+
+    def test_backend_priority_adjustments(self):
+        """
+        Test that backend still can adjust or ultimately override priorities
+        """
+        frontend_data = [
+            {"id": 10, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 11, "action_type": ActionType.DELETE, "priority": DefaultActionPriorityEnum("delete")},
+            {"id": 12, "action_type": ActionType.CREATEREPO, "priority": DefaultActionPriorityEnum("createrepo")},
+            {"id": 13, "action_type": ActionType.GEN_GPG_KEY, "priority": DefaultActionPriorityEnum("gen_gpg_key")},
+            {"id": 14, "action_type": ActionType.FORK, "priority": DefaultActionPriorityEnum("fork")},
+        ]
+        actions = [ActionQueueTask(Action.create_from(action)) for action in frontend_data]
+
+        # QueueTask.backend_priority is a property which should be
+        # overriden when in the class descendants.
+        delattr(QueueTask, "backend_priority")
+        actions[0].backend_priority = 0
+        actions[1].backend_priority = -999
+        actions[2].backend_priority = 999
+        actions[3].backend_priority = 0
+        actions[4].backend_priority = -900
+
+        for action in actions:
+            self.worker_manager.add_task(action)
+
+        assert self.pop().id == 11
+        assert self.pop().id == 14
+        assert self.pop().id == 13
+        assert self.pop().id == 10
+        assert self.pop().id == 12

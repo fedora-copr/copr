@@ -7,7 +7,7 @@ from setproctitle import setproctitle
 from copr_backend.frontend import FrontendClient
 from copr_backend.exceptions import FrontendClientException
 
-from ..actions import ActionWorkerManager, ActionQueueTask
+from ..actions import ActionWorkerManager, ActionQueueTask, Action
 from ..helpers import get_redis_logger, get_redis_connection
 
 
@@ -44,7 +44,8 @@ class ActionDispatcher(multiprocessing.Process):
                 error)
             return []
 
-        return [ActionQueueTask(action['id']) for action in raw_actions]
+        return [ActionQueueTask(Action.create_from(action, opts=self.opts, log=self.log))
+            for action in raw_actions]
 
 
     def run(self):
