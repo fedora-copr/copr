@@ -10,15 +10,15 @@ import tempfile
 import shutil
 import time
 
-from backend.constants import BuildStatus
-from backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteError, NoVmAvailable, VmError
-from backend.job import BuildJob
-from backend.vm_manage.models import VmDescriptor
+from copr_backend.constants import BuildStatus
+from copr_backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteError, NoVmAvailable, VmError
+from copr_backend.job import BuildJob
+from copr_backend.vm_manage.models import VmDescriptor
 
 from unittest import mock, skip
 from unittest.mock import MagicMock
 
-from backend.daemons.worker import Worker
+from copr_backend.daemons.worker import Worker
 
 # TODO: drop these, not needed
 JOB_GRAB_TASK_END_PUBSUB = "unused"
@@ -29,7 +29,7 @@ COPR_OWNER = "copr_owner"
 COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
 
-MODULE_REF = "backend.daemons.worker"
+MODULE_REF = "copr_backend.daemons.worker"
 
 @pytest.yield_fixture
 def mc_register_build_result(*args, **kwargs):
@@ -289,8 +289,8 @@ class TestDispatcher(object):
             self.worker.starting_build(self.job)
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.daemons.dispatcher.MockRemote")
-    @mock.patch("backend.daemons.dispatcher.os")
+    @mock.patch("copr_backend.daemons.dispatcher.MockRemote")
+    @mock.patch("copr_backend.daemons.dispatcher.os")
     def test_do_job_failure_on_mkdirs(self, mc_os, mc_mr, init_worker, reg_vm):
         mc_os.path.exists.return_value = False
         mc_os.makedirs.side_effect = IOError()
@@ -360,7 +360,7 @@ class TestDispatcher(object):
         assert "foo.rpm" in os.listdir(self.job.results_dir)
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.daemons.dispatcher.fedmsg")
+    @mock.patch("copr_backend.daemons.dispatcher.fedmsg")
     def test_init_fedmsg(self, mc_fedmsg, init_worker):
         self.worker.init_fedmsg()
         assert not mc_fedmsg.init.called

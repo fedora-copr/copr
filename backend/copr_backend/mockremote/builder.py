@@ -2,7 +2,7 @@ import os
 import pipes
 from subprocess import Popen
 
-from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
+from copr_backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 
 import gi
 gi.require_version('Modulemd', '1.0')

@@ -3,7 +3,7 @@ import copy
 
 from collections import defaultdict
 from munch import Munch
-from backend.exceptions import MockRemoteError, CoprSignError, BuilderError
+from copr_backend.exceptions import MockRemoteError, CoprSignError, BuilderError
 
 import tempfile
 import shutil
@@ -13,11 +13,11 @@ from unittest import mock, skip
 from unittest.mock import patch, MagicMock
 import pytest
 
-from backend.mockremote import MockRemote
-from backend.job import BuildJob
+from copr_backend.mockremote import MockRemote
+from copr_backend.job import BuildJob
 
 
-MODULE_REF = "backend.mockremote"
+MODULE_REF = "copr_backend.mockremote"
 
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -30,7 +30,7 @@ class TestMockRemote(object):
 
     @pytest.yield_fixture
     def f_mock_remote(self):
-        patcher = mock.patch("backend.mockremote.Builder")
+        patcher = mock.patch("copr_backend.mockremote.Builder")
         self.mc_builder = patcher.start()
         self.mc_logger = MagicMock()
         self.mr = MockRemote(self.HOST, self.JOB, opts=self.OPTS, logger=self.mc_logger)
@@ -98,7 +98,7 @@ class TestMockRemote(object):
 
         out, err = capsys.readouterr()
 
-    @mock.patch("backend.mockremote.get_pubkey")
+    @mock.patch("copr_backend.mockremote.get_pubkey")
     def test_add_pubkey(self, mc_get_pubkey, f_mock_remote):
         self.mr.add_pubkey()
         assert mc_get_pubkey.called
@@ -106,31 +106,31 @@ class TestMockRemote(object):
         assert mc_get_pubkey.call_args == mock.call(
             COPR_OWNER, COPR_NAME, expected_path)
 
-    @mock.patch("backend.mockremote.get_pubkey")
+    @mock.patch("copr_backend.mockremote.get_pubkey")
     def test_add_pubkey_on_exception(self, mc_get_pubkey, f_mock_remote):
         mc_get_pubkey.side_effect = CoprSignError("foobar")
         # doesn't raise an error
         self.mr.add_pubkey()
 
-    @mock.patch("backend.mockremote.sign_rpms_in_dir")
+    @mock.patch("copr_backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages(self, mc_sign_rpms_in_dir, f_mock_remote):
         self.mr.sign_built_packages()
         assert mc_sign_rpms_in_dir.called
 
-    @mock.patch("backend.mockremote.sign_rpms_in_dir")
+    @mock.patch("copr_backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages_exception(self, mc_sign_rpms_in_dir, f_mock_remote):
         mc_sign_rpms_in_dir.side_effect = IOError()
         # doesn't raise an error
         self.mr.sign_built_packages()
 
-    @mock.patch("backend.mockremote.sign_rpms_in_dir")
+    @mock.patch("copr_backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages_exception_reraise(self, mc_sign_rpms_in_dir, f_mock_remote):
         mc_sign_rpms_in_dir.side_effect = MockRemoteError("foobar")
         with pytest.raises(MockRemoteError):
             self.mr.sign_built_packages()
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.createrepo")
+    @mock.patch("copr_backend.mockremote.createrepo")
     def test_do_createrepo(self, mc_createrepo, f_mock_remote):
         mc_createrepo.return_value = ("", "", "")
         self.mr.do_createrepo()
@@ -145,7 +145,7 @@ class TestMockRemote(object):
         assert mc_createrepo.call_args == expected_call
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.createrepo")
+    @mock.patch("copr_backend.mockremote.createrepo")
     def test_do_createrepo_on_error(self, mc_createrepo, f_mock_remote):
         err_msg = "error occurred"
         mc_createrepo.return_value = ("", "", err_msg)

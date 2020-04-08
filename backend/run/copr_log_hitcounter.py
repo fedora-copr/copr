@@ -15,13 +15,11 @@ import argparse
 import netaddr
 import time
 
-sys.path.append("/usr/share/copr/")
-
 from dateutil.parser import parse as dt_parse
 from netaddr import IPNetwork, IPAddress
 
 from collections import defaultdict
-from backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader
 
 opts = BackendConfigReader().read()
 

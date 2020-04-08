@@ -30,9 +30,9 @@ from munch import Munch
 from redis import StrictRedis
 
 from copr.client import CoprClient
-from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
+from copr_backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
-from backend.exceptions import CoprBackendError, CoprBackendSrpmError
+from copr_backend.exceptions import CoprBackendError, CoprBackendSrpmError
 
 from . import constants
 

@@ -9,12 +9,12 @@ import pytest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from backend.createrepo import createrepo, createrepo_unsafe, add_appdata, run_cmd_unsafe
-from backend.exceptions import CreateRepoError
+from copr_backend.createrepo import createrepo, createrepo_unsafe, add_appdata, run_cmd_unsafe
+from copr_backend.exceptions import CreateRepoError
 
-@mock.patch('backend.createrepo.createrepo_unsafe')
-@mock.patch('backend.createrepo.add_appdata')
-@mock.patch('backend.helpers.CoprClient')
+@mock.patch('copr_backend.createrepo.createrepo_unsafe')
+@mock.patch('copr_backend.createrepo.add_appdata')
+@mock.patch('copr_backend.helpers.CoprClient')
 def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {}})
     mc_create_unsafe.return_value = ""
@@ -31,8 +31,8 @@ def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe
     mc_create_unsafe.reset_mock()
 
 
-@mock.patch('backend.createrepo.createrepo_unsafe')
-@mock.patch('backend.helpers.CoprClient')
+@mock.patch('copr_backend.createrepo.createrepo_unsafe')
+@mock.patch('copr_backend.helpers.CoprClient')
 def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": False}})
 
@@ -44,13 +44,13 @@ def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
 
 @pytest.yield_fixture
 def mc_popen():
-    with mock.patch('backend.createrepo.Popen') as handle:
+    with mock.patch('copr_backend.createrepo.Popen') as handle:
         yield handle
 
 
 @pytest.yield_fixture
 def mc_run_cmd_unsafe():
-    with mock.patch('backend.createrepo.run_cmd_unsafe') as handle:
+    with mock.patch('copr_backend.createrepo.run_cmd_unsafe') as handle:
         yield handle
 
 

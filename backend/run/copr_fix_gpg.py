@@ -1,17 +1,14 @@
 #!/usr/bin/python3
 
-import shutil
-
 import sys
 import os
 import logging
 import argparse
 import pwd
 
-sys.path.append("/usr/share/copr/")
-from backend.helpers import BackendConfigReader
-from backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, create_user_keys, create_gpg_email
-from backend.createrepo import createrepo_unsafe, add_appdata
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, create_user_keys, create_gpg_email
+from copr_backend.createrepo import createrepo_unsafe, add_appdata
 
 logging.basicConfig(
     filename="/var/log/copr-backend/fix_gpg.log",

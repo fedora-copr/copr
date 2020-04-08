@@ -2,12 +2,8 @@
 
 # coding: utf-8
 
-import sys
-sys.path.append("/usr/share/copr/")
-
-
-from backend.helpers import BackendConfigReader
-from backend.vm_manage.manager import VmManager
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.vm_manage.manager import VmManager
 
 
 def main():

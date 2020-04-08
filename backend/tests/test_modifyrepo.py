@@ -7,7 +7,7 @@ import runpy
 import shutil
 import subprocess
 import tempfile
-from backend.helpers import call_copr_repo
+from copr_backend.helpers import call_copr_repo
 from testlib.repodata import load_primary_xml
 
 modifyrepo = 'run/copr-repo'
@@ -113,7 +113,7 @@ class TestModifyRepo(object):
         _, err = capfd.readouterr()
         assert 'copr-repo: error: argument' in err
 
-    @mock.patch("backend.helpers.subprocess.call")
+    @mock.patch("copr_backend.helpers.subprocess.call")
     def test_copr_repo_subdir_none_doesnt_raise(self, call):
         """ check that None is skipped in add (or delete) """
         call.return_value = 0 # exit status 0

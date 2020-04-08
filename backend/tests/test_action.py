@@ -13,8 +13,8 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from backend.actions import Action, ActionType, ActionResult
-from backend.exceptions import CreateRepoError, CoprKeygenRequestError
+from copr_backend.actions import Action, ActionType, ActionResult
+from copr_backend.exceptions import CreateRepoError, CoprKeygenRequestError
 from requests import RequestException
 
 from testlib.repodata import load_primary_xml
@@ -24,7 +24,7 @@ STDOUT = "stdout"
 STDERR = "stderr"
 
 
-@mock.patch("backend.actions.time")
+@mock.patch("copr_backend.actions.time")
 class TestAction(object):
 
     def setup_method(self, method):
@@ -131,10 +131,10 @@ class TestAction(object):
 
         self.dummy = str(test_action)
 
-    @mock.patch("backend.actions.copy_tree")
-    @mock.patch("backend.actions.os.path.exists")
-    @mock.patch("backend.actions.unsign_rpms_in_dir")
-    @mock.patch("backend.actions.subprocess.call")
+    @mock.patch("copr_backend.actions.copy_tree")
+    @mock.patch("copr_backend.actions.os.path.exists")
+    @mock.patch("copr_backend.actions.unsign_rpms_in_dir")
+    @mock.patch("copr_backend.actions.subprocess.call")
     def test_action_handle_forks(self, mc_call, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
         mc_time.time.return_value = self.test_time
         mc_exists = True
@@ -341,8 +341,8 @@ class TestAction(object):
 
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
 
-    @mock.patch("backend.actions.uses_devel_repo")
-    @mock.patch("backend.actions.call_copr_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.call_copr_repo")
     def test_delete_no_chroot_dirs(self, mc_call, mc_devel, mc_time):
         mc_devel.return_value = False
         mc_time.time.return_value = self.test_time
@@ -365,7 +365,7 @@ class TestAction(object):
         assert len(mc_call.call_args_list) == 0
         assert result == ActionResult.FAILURE
 
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_build_succeeded(self, mc_devel, mc_time):
         mc_devel.return_value = False
         mc_time.time.return_value = self.test_time
@@ -409,7 +409,7 @@ class TestAction(object):
         assert os.path.exists(chroot_2_dir)
 
     @pytest.mark.parametrize('devel', [False, True])
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_build_acr_reflected(self, mc_devel, mc_time, devel):
         """
         When build is deleted, we want to remove it from both devel and normal
@@ -475,8 +475,8 @@ class TestAction(object):
             assert new_primary['names'] == set(['prunerepo'])
             assert len(new_primary_devel['names']) == 3
 
-    @mock.patch("backend.actions.call_copr_repo")
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.call_copr_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_build_succeeded_createrepo_error(self, mc_devel,
                                                      mc_call_repo, mc_time):
         mc_time.time.return_value = self.test_time
@@ -509,7 +509,7 @@ class TestAction(object):
         # just fail
         assert test_action.run() == ActionResult.FAILURE
 
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_two_chroots(self, mc_devel, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
@@ -575,7 +575,7 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_two_chroots_two_remain(self, mc_devel, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
@@ -688,7 +688,7 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_multiple_builds_succeeded(self, mc_build_devel, mc_time):
         mc_time.time.return_value = self.test_time
         mc_build_devel.return_value = False
@@ -737,8 +737,8 @@ class TestAction(object):
     # We want to test that ACR flag doesn't make any difference here, explicit
     # createrepo always works with non-devel directory.
     @pytest.mark.parametrize('devel', [False, True])
-    @mock.patch("backend.actions.subprocess.call")
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.subprocess.call")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_handle_createrepo_ok(self, mc_devel, mc_sp_call, mc_time, devel):
         mc_sp_call.return_value = 0 # exit_status=0
         mc_devel.return_value = devel
@@ -771,8 +771,8 @@ class TestAction(object):
 
         assert len(mc_sp_call.call_args_list) == 2
 
-    @mock.patch("backend.actions.call_copr_repo")
-    @mock.patch("backend.actions.uses_devel_repo")
+    @mock.patch("copr_backend.actions.call_copr_repo")
+    @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_handle_createrepo_failure_1(self, mc_devel, mc_call, mc_time):
         tmp_dir = self.make_temp_dir()
         mc_call.return_value = 0 # failure
@@ -795,7 +795,7 @@ class TestAction(object):
         assert test_action.run() == ActionResult.FAILURE
 
     @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("backend.actions.create_user_keys")
+    @mock.patch("copr_backend.actions.create_user_keys")
     def test_handle_generate_gpg_key(self, mc_cuk, mc_time):
         uname = "foo"
         pname = "bar"

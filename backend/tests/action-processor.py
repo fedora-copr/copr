@@ -11,7 +11,7 @@ WORKDIR = os.path.dirname(__file__)
 
 sys.path.append(os.path.join(WORKDIR, '..'))
 
-from backend.helpers import get_redis_connection
+from copr_backend.helpers import get_redis_connection
 
 REDIS_OPTS = Munch(
     redis_db=9,

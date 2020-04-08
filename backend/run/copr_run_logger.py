@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # coding: utf-8
 
-from backend.helpers import get_backend_opts
-from backend.daemons.log import RedisLogHandler
+from copr_backend.helpers import get_backend_opts
+from copr_backend.daemons.log import RedisLogHandler
 
 
 def main():

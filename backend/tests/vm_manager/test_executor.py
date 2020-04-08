@@ -6,8 +6,8 @@ import types
 from munch import Munch
 import time
 
-from backend.helpers import get_redis_connection
-from backend.vm_manage.executor import Executor
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage.executor import Executor
 
 from unittest import mock
 import pytest
@@ -18,7 +18,7 @@ REQUIRES RUNNING REDIS
 TODO: look if https://github.com/locationlabs/mockredis can be used
 """
 
-MODULE_REF = "backend.vm_manage.executor"
+MODULE_REF = "copr_backend.vm_manage.executor"
 
 @pytest.yield_fixture
 def mc_time():

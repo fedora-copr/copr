@@ -4,7 +4,6 @@
 """
 One-time run script to sign unsigned rpms and  place pubkey gpg to the all projects.
 """
-import shutil
 
 import sys
 import os
@@ -19,12 +18,11 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-sys.path.append("/usr/share/copr/")
-from backend.helpers import (BackendConfigReader, create_file_logger,
+from copr_backend.helpers import (BackendConfigReader, create_file_logger,
                              uses_devel_repo)
-from backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
-from backend.exceptions import CoprSignNoKeyError
-from backend.createrepo import createrepo
+from copr_backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
+from copr_backend.exceptions import CoprSignNoKeyError
+from copr_backend.createrepo import createrepo
 
 
 def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opts, devel):
@@ -104,8 +102,6 @@ def check_pubkey(pubkey_path, user, project, opts):
 
 
 def main():
-    # shutil.rmtree("/tmp/users_failed.txt", ignore_errors=True)
-    # shutil.rmtree("/tmp/users_done.txt", ignore_errors=True)
     users_done_old = set()
     try:
         with open("/tmp/users_done.txt") as handle:

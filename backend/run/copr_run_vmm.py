@@ -3,13 +3,13 @@
 
 from setproctitle import setproctitle
 
-from backend.vm_manage.manager import VmManager
-from backend.vm_manage.spawn import Spawner
-from backend.vm_manage.event_handle import EventHandler
-from backend.vm_manage.terminate import Terminator
-from backend.vm_manage.check import HealthChecker
-from backend.daemons.vm_master import VmMaster
-from backend.helpers import get_redis_logger, get_backend_opts
+from copr_backend.vm_manage.manager import VmManager
+from copr_backend.vm_manage.spawn import Spawner
+from copr_backend.vm_manage.event_handle import EventHandler
+from copr_backend.vm_manage.terminate import Terminator
+from copr_backend.vm_manage.check import HealthChecker
+from copr_backend.daemons.vm_master import VmMaster
+from copr_backend.helpers import get_redis_logger, get_backend_opts
 
 
 class VmmRunner(object):

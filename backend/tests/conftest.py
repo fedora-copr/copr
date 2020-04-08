@@ -10,7 +10,7 @@ import tempfile
 import subprocess
 from unittest import mock
 
-from backend.helpers import call_copr_repo
+from copr_backend.helpers import call_copr_repo
 
 class CoprTestFixtureContext():
     pass

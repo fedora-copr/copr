@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from pprint import pformat
-from backend.exceptions import VmDescriptorNotFound
+from copr_backend.exceptions import VmDescriptorNotFound
 from . import KEY_VM_INSTANCE
 
 

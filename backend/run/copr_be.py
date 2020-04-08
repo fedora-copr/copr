@@ -7,7 +7,7 @@ import sys
 
 from munch import Munch
 
-from backend.daemons.backend import run_backend
+from copr_backend.daemons.backend import run_backend
 
 
 def parse_args(args):

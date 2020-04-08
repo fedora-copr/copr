@@ -25,7 +25,7 @@ from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, cmd_debug, format_filename,
                       uses_devel_repo, call_copr_repo, build_chroot_log_name)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
-from backend.worker_manager import WorkerManager
+from copr_backend.worker_manager import WorkerManager
 
 from .vm_manage.manager import VmManager
 
@@ -35,7 +35,7 @@ from .sshcmd import SSHConnectionError, SSHConnection
 class Action(object):
     """ Object to send data back to fronted
 
-    :param backend.callback.FrontendCallback frontent_callback:
+    :param copr_backend.callback.FrontendCallback frontent_callback:
         object to post data back to frontend
 
     :param destdir: filepath with build results

@@ -8,7 +8,7 @@ from munch import Munch
 import time
 import requests
 
-from backend.exceptions import CoprJobGrabError
+from copr_backend.exceptions import CoprJobGrabError
 
 from retask.queue import Queue
 
@@ -20,11 +20,11 @@ from unittest import mock
 from unittest.mock import patch, MagicMock, call
 import pytest
 
-from backend.daemons.job_grab import CoprJobGrab
-import backend.actions
+from copr_backend.daemons.job_grab import CoprJobGrab
+import copr_backend.actions
 
 
-MODULE_REF = "backend.daemons.job_grab"
+MODULE_REF = "copr_backend.daemons.job_grab"
 
 @pytest.yield_fixture
 def mc_logging():
@@ -174,7 +174,7 @@ class TestJobGrab(object):
         with pytest.raises(CoprJobGrabError) as err:
             self.jg.route_build_task(self.task_dict_bad_arch)
 
-    @mock.patch("backend.daemons.job_grab.Action", spec=backend.actions.Action)
+    @mock.patch("copr_backend.daemons.job_grab.Action", spec=copr_backend.actions.Action)
     def test_process_action(self, mc_action, init_jg):
         test_action = MagicMock()
 
@@ -184,7 +184,7 @@ class TestJobGrab(object):
         assert expected_call == mc_action.call_args
         assert mc_action.return_value.run.called
 
-    @mock.patch("backend.daemons.job_grab.get")
+    @mock.patch("copr_backend.daemons.job_grab.get")
     def test_load_tasks_error_request(self, mc_get, init_jg):
         mc_get.side_effect = requests.RequestException()
 
@@ -197,7 +197,7 @@ class TestJobGrab(object):
         assert not self.jg.route_build_task.called
         assert not self.jg.process_action.called
 
-    @mock.patch("backend.daemons.job_grab.get")
+    @mock.patch("copr_backend.daemons.job_grab.get")
     def test_load_tasks_error_request_json(self, mc_get, init_jg):
         mc_get.return_value.json.side_effect = ValueError()
 
@@ -210,7 +210,7 @@ class TestJobGrab(object):
         assert not self.jg.route_build_task.called
         assert not self.jg.process_action.called
 
-    @mock.patch("backend.daemons.job_grab.get")
+    @mock.patch("copr_backend.daemons.job_grab.get")
     def test_load_tasks_builds(self, mc_get, init_jg):
         mc_get.return_value.json.return_value = {
             "builds": [
@@ -234,7 +234,7 @@ class TestJobGrab(object):
         assert len(self.jg.route_build_task.call_args_list) == 3
         assert not self.jg.process_action.called
 
-    @mock.patch("backend.daemons.job_grab.get")
+    @mock.patch("copr_backend.daemons.job_grab.get")
     def test_load_tasks_actions(self, mc_get, init_jg):
         action_1 = MagicMock()
         action_2 = MagicMock()
@@ -255,7 +255,7 @@ class TestJobGrab(object):
         expected_calls = [call(action_1), call(action_2)]
         assert self.jg.process_action.call_args_list == expected_calls
 
-    @mock.patch("backend.daemons.job_grab.get")
+    @mock.patch("copr_backend.daemons.job_grab.get")
     def test_regression_load_tasks_actions_(self, mc_get, init_jg):
         """
         https://bugzilla.redhat.com/show_bug.cgi?id=1182106

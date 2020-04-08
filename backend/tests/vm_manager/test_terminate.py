@@ -8,11 +8,11 @@ import types
 
 from munch import Munch
 from redis import ConnectionError
-from backend.exceptions import CoprSpawnFailError
+from copr_backend.exceptions import CoprSpawnFailError
 
-from backend.helpers import get_redis_connection
-from backend.vm_manage import EventTopics
-from backend.vm_manage.terminate import Terminator, terminate_vm
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage import EventTopics
+from copr_backend.vm_manage.terminate import Terminator, terminate_vm
 
 from unittest import mock, skip
 from unittest.mock import MagicMock
@@ -24,7 +24,7 @@ REQUIRES RUNNING REDIS
 TODO: look if https://github.com/locationlabs/mockredis can be used
 """
 
-MODULE_REF = "backend.vm_manage.terminate"
+MODULE_REF = "copr_backend.vm_manage.terminate"
 
 @pytest.yield_fixture
 def mc_time():

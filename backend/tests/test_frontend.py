@@ -5,9 +5,9 @@ import multiprocessing
 from munch import Munch
 from requests import RequestException, Response
 
-from backend.frontend import (FrontendClient, FrontendClientRetryError,
+from copr_backend.frontend import (FrontendClient, FrontendClientRetryError,
                               SLEEP_INCREMENT_TIME)
-from backend.exceptions import FrontendClientException
+from copr_backend.exceptions import FrontendClientException
 
 from unittest import mock
 from unittest.mock import MagicMock
@@ -15,19 +15,19 @@ import pytest
 
 @pytest.yield_fixture
 def post_req():
-    with mock.patch("backend.frontend.post") as obj:
+    with mock.patch("copr_backend.frontend.post") as obj:
         yield obj
 
 @pytest.fixture(scope='function', params=['get', 'post', 'put'])
 def f_request_method(request):
     'mock the requests.{get,post,put} method'
-    with mock.patch("backend.frontend.{}".format(request.param)) as ctx:
+    with mock.patch("copr_backend.frontend.{}".format(request.param)) as ctx:
         yield (request.param, ctx)
 
 
 @pytest.yield_fixture
 def mc_time():
-    with mock.patch("backend.frontend.time") as obj:
+    with mock.patch("copr_backend.frontend.time") as obj:
         yield obj
 
 
@@ -127,7 +127,7 @@ class TestFrontendClient(object):
             assert self.fc._post_to_frontend_repeatedly(self.data, self.url_path) == response
         assert mc_time.sleep.called
 
-    @mock.patch('backend.frontend.BACKEND_TIMEOUT', 100)
+    @mock.patch('copr_backend.frontend.BACKEND_TIMEOUT', 100)
     def test_post_to_frontend_repeated_all_attempts_failed(self,
             mask_frontend_request, caplog, mc_time):
         mc_time.time.side_effect = [0, 0, 5, 5+10, 5+10+15, 5+10+15+20, 1000]

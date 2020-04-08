@@ -2,18 +2,15 @@
 
 import os
 import sys
-import time
 import daemon
 import argparse
 import logging
 import contextlib
 
-sys.path.append("/usr/share/copr/")
-
-from backend.helpers import (BackendConfigReader, get_redis_logger,
+from copr_backend.helpers import (BackendConfigReader, get_redis_logger,
                              get_redis_connection)
-from backend.frontend import FrontendClient
-from backend.actions import Action, ActionResult
+from copr_backend.frontend import FrontendClient
+from copr_backend.actions import Action, ActionResult
 
 
 def get_arg_parser():

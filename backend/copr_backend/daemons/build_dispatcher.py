@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import os
 import time
 import multiprocessing
 
@@ -8,7 +7,7 @@ from collections import defaultdict
 
 from setproctitle import setproctitle
 
-from backend.frontend import FrontendClient
+from copr_backend.frontend import FrontendClient
 
 from ..helpers import get_redis_logger, call_copr_repo
 from ..exceptions import (DispatchBuildError, NoVmAvailable,

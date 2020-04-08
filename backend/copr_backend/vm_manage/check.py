@@ -4,9 +4,9 @@ import json
 # from multiprocessing import Process
 #from threading import Thread
 
-from backend.helpers import get_redis_connection
-from backend.vm_manage import PUBSUB_MB, EventTopics
-from backend.vm_manage.executor import Executor
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage import PUBSUB_MB, EventTopics
+from copr_backend.vm_manage.executor import Executor
 
 from ..helpers import get_redis_logger
 from ..sshcmd import SSHConnection
@@ -17,7 +17,7 @@ def check_health(opts, vm_name, vm_ip):
     Test connectivity to the VM
 
     :param vm_ip: ip address to the newly created VM
-    :raises: :py:class:`~backend.exceptions.CoprWorkerSpawnFailError`: validation fails
+    :raises: :py:class:`~copr_backend.exceptions.CoprWorkerSpawnFailError`: validation fails
     """
     log = get_redis_logger(opts, "vmm.check_health.detached", "vmm")
 

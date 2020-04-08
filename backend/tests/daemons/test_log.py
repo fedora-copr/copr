@@ -12,19 +12,18 @@ import pytest
 from unittest import mock
 from unittest.mock import patch, MagicMock
 
-import backend.daemons.log as log_module
-from backend.daemons.log import RedisLogHandler
+from copr_backend.daemons.log import RedisLogHandler
 
 
 @pytest.yield_fixture
 def mc_logging():
-    with mock.patch("backend.daemons.log.logging") as mc_logging:
+    with mock.patch("copr_backend.daemons.log.logging") as mc_logging:
         yield mc_logging
 
 
 @pytest.yield_fixture
 def mc_setproctitle():
-    with mock.patch("backend.daemons.log.setproctitle") as mc_spt:
+    with mock.patch("copr_backend.daemons.log.setproctitle") as mc_spt:
         yield mc_spt
 
 
@@ -32,7 +31,7 @@ class TestLog(object):
 
     def setup_method(self, method):
 
-        self.mc_mpp_patcher = mock.patch("backend.daemons.log.Process")
+        self.mc_mpp_patcher = mock.patch("copr_backend.daemons.log.Process")
         self.mc_mpp = self.mc_mpp_patcher.start()
 
         self.test_time = time.time()
@@ -67,7 +66,7 @@ class TestLog(object):
 
     # todo: replace with RedisLogHandler + helpers.get_redis_logger
     # def test_constructor(self):
-    #     # with mock.patch("backend.daemons.log.Process.__init__") as mc_pi:
+    #     # with mock.patch("copr_backend.daemons.log.Process.__init__") as mc_pi:
     #     assert not os.path.exists(self.log_file)
     #     assert not os.path.exists(self.log_dir)
     #     cbl = CoprBackendLog(self.opts, self.queue)

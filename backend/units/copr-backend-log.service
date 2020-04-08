@@ -8,7 +8,6 @@ Wants=logrotate.timer
 
 [Service]
 Type=simple
-Environment="PYTHONPATH=/usr/share/copr/"
 User=copr
 Group=copr
 ExecStart=/usr/bin/copr_run_logger.py

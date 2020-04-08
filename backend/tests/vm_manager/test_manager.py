@@ -8,12 +8,12 @@ from multiprocessing import Queue
 
 from munch import Munch
 
-from backend import exceptions
-from backend.exceptions import VmError, NoVmAvailable
-from backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_MB, EventTopics, KEY_SERVER_INFO
-from backend.vm_manage.manager import VmManager
-from backend.daemons.vm_master import VmMaster
-from backend.helpers import get_redis_connection
+from copr_backend import exceptions
+from copr_backend.exceptions import VmError, NoVmAvailable
+from copr_backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_MB, EventTopics, KEY_SERVER_INFO
+from copr_backend.vm_manage.manager import VmManager
+from copr_backend.daemons.vm_master import VmMaster
+from copr_backend.helpers import get_redis_connection
 
 from  unittest import mock
 from unittest.mock import MagicMock
@@ -25,7 +25,7 @@ REQUIRES RUNNING REDIS
 TODO: look if https://github.com/locationlabs/mockredis can be used
 """
 
-MODULE_REF = "backend.vm_manage.manager"
+MODULE_REF = "copr_backend.vm_manage.manager"
 
 @pytest.yield_fixture
 def mc_time():

@@ -8,7 +8,6 @@ import time
 import logging
 import argparse
 
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dateutil.parser import parse as dt_parse
 
@@ -18,14 +17,12 @@ from novaclient.client import Client
 # don't kill younger VMs than this (minutes)
 SPAWN_TIMEOUT = 10
 
-sys.path.append("/usr/share/copr/")
-
-from backend.helpers import BackendConfigReader
-from backend.helpers import utc_now
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.helpers import utc_now
 
 try:
-    from backend.vm_manage.manager import VmManager
-    from backend.vm_manage import VmStates
+    from copr_backend.vm_manage.manager import VmManager
+    from copr_backend.vm_manage import VmStates
 except ImportError:
     VmManager = None
 

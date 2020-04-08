@@ -5,23 +5,23 @@ from collections import defaultdict
 from pprint import pprint
 import socket
 from munch import Munch
-from backend.exceptions import BuilderError, VmError
+from copr_backend.exceptions import BuilderError, VmError
 
 import tempfile
 import shutil
 import os
 
-from backend.job import BuildJob
+from copr_backend.job import BuildJob
 
 from unittest import mock, skip
 from unittest.mock import patch, MagicMock
 import pytest
 from types import MethodType
 
-import backend.mockremote.builder as builder_module
-from backend.mockremote.builder import Builder
+import copr_backend.mockremote.builder as builder_module
+from copr_backend.mockremote.builder import Builder
 
-MODULE_REF = "backend.mockremote.builder"
+MODULE_REF = "copr_backend.mockremote.builder"
 
 # TODO: drop these, these are not needed
 class BuilderTimeOutError(Exception):
@@ -501,7 +501,7 @@ class TestBuilder(object):
         assert builder.conn.module_args == expected
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.check_for_ans_error")
+    @mock.patch("copr_backend.mockremote.builder.check_for_ans_error")
     def test_run_ansible_with_check(self, mc_check_for_ans_errror):
         builder = self.get_test_builder()
 
@@ -539,7 +539,7 @@ class TestBuilder(object):
 
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.check_for_ans_error")
+    @mock.patch("copr_backend.mockremote.builder.check_for_ans_error")
     def test_check_build_success(self, mc_check_for_ans_errror):
         builder = self.get_test_builder()
 
@@ -553,7 +553,7 @@ class TestBuilder(object):
         assert expected_ans_args == builder.conn.module_args
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.check_for_ans_error")
+    @mock.patch("copr_backend.mockremote.builder.check_for_ans_error")
     def test_check_build_exception(self, mc_check_for_ans_errror):
         builder = self.get_test_builder()
 
@@ -618,7 +618,7 @@ class TestBuilder(object):
         # assert result_cmd == expected
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.time")
+    @mock.patch("copr_backend.mockremote.builder.time")
     def test_run_command_and_wait_timeout(self, mc_time):
         build_cmd = "foo bar"
         builder = self.get_test_builder()
@@ -634,7 +634,7 @@ class TestBuilder(object):
             builder.run_build_and_wait(build_cmd)
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.time")
+    @mock.patch("copr_backend.mockremote.builder.time")
     def test_run_command_and_wait(self, mc_time):
         build_cmd = "foo bar"
         builder = self.get_test_builder()
@@ -660,7 +660,7 @@ class TestBuilder(object):
         builder.run_build_and_wait(build_cmd)
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.Popen")
+    @mock.patch("copr_backend.mockremote.builder.Popen")
     def test_download(self, mc_popen):
         builder = self.get_test_builder()
 
@@ -686,7 +686,7 @@ class TestBuilder(object):
             # assert mc_popen.call_args[0][0] == expected_arg
 
     @skip("Fixme or remove, test doesn't work.")
-    @mock.patch("backend.mockremote.builder.Popen")
+    @mock.patch("copr_backend.mockremote.builder.Popen")
     def test_download_popen_error(self, mc_popen):
         builder = self.get_test_builder()
         mc_popen.side_effect = IOError()

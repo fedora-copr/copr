@@ -16,12 +16,10 @@ log = logging.getLogger(__name__)
 from copr.exceptions import CoprException
 from copr.exceptions import CoprRequestException
 
-sys.path.append("/usr/share/copr/")
-
-from backend.helpers import BackendConfigReader
-from backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status
-from backend.frontend import FrontendClient
-from backend.createrepo import createrepo
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status
+from copr_backend.frontend import FrontendClient
+from copr_backend.createrepo import createrepo
 
 DEF_DAYS = 14
 

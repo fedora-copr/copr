@@ -15,11 +15,11 @@ import tempfile
 import shutil
 import os
 
-from backend.helpers import get_redis_connection
-from backend.vm_manage import VmStates
-from backend.vm_manage.manager import VmManager
-from backend.daemons.vm_master import VmMaster
-from backend.exceptions import VmError, VmSpawnLimitReached
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage import VmStates
+from copr_backend.vm_manage.manager import VmManager
+from copr_backend.daemons.vm_master import VmMaster
+from copr_backend.exceptions import VmError, VmSpawnLimitReached
 
 from unittest import mock, skip
 from unittest.mock import patch, MagicMock
@@ -34,7 +34,7 @@ REQUIRES RUNNING REDIS
 TODO: look if https://github.com/locationlabs/mockredis can be used
 """
 
-MODULE_REF = "backend.daemons.vm_master"
+MODULE_REF = "copr_backend.daemons.vm_master"
 
 @pytest.yield_fixture
 def mc_time():
@@ -54,7 +54,7 @@ def mc_setproctitle():
 
 # @pytest.yield_fixture
 # def mc_time_vmm():
-#     with mock.patch("backend.vm_manage.manager.time") as handle:
+#     with mock.patch("copr_backend.vm_manage.manager.time") as handle:
 #         yield handle
 
 

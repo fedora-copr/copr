@@ -4,8 +4,8 @@ import time
 import multiprocessing
 from setproctitle import setproctitle
 
-from backend.frontend import FrontendClient
-from backend.exceptions import FrontendClientException
+from copr_backend.frontend import FrontendClient
+from copr_backend.exceptions import FrontendClientException
 
 from ..actions import ActionWorkerManager, ActionQueueTask
 from ..helpers import get_redis_logger, get_redis_connection

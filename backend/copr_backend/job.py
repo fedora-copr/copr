@@ -1,7 +1,7 @@
 import copy
 import os
 
-from backend.helpers import build_target_dir, build_chroot_log_name
+from copr_backend.helpers import build_target_dir, build_chroot_log_name
 
 
 class BuildJob(object):

@@ -13,10 +13,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-sys.path.append("/usr/share/copr/")
-
-from backend.createrepo import createrepo
-from backend.helpers import SortedOptParser, BackendConfigReader
+from copr_backend.createrepo import createrepo
+from copr_backend.helpers import SortedOptParser, BackendConfigReader
 
 
 def main(args):

@@ -6,7 +6,7 @@ from setproctitle import getproctitle, setproctitle
 from oslo_concurrency import lockutils
 
 # todo: add logging here
-# from backend.helpers import BackendConfigReader, get_redis_logger
+# from copr_backend.helpers import BackendConfigReader, get_redis_logger
 # opts = BackendConfigReader().read()
 # log = get_redis_logger(opts, "createrepo", "actions")
 

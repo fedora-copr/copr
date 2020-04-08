@@ -3,13 +3,8 @@
 
 import sys
 
-from redis import StrictRedis
-
-sys.path.append("/usr/share/copr/")
-
-
-from backend.helpers import BackendConfigReader, get_redis_connection
-from backend.constants import CONSECUTIVE_FAILURE_REDIS_KEY
+from copr_backend.helpers import BackendConfigReader, get_redis_connection
+from copr_backend.constants import CONSECUTIVE_FAILURE_REDIS_KEY
 
 
 def main():

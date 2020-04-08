@@ -7,8 +7,7 @@ import time
 from copr.v3 import Client
 from copr.v3.exceptions import CoprNoResultException
 
-sys.path.append("/usr/share/copr/")
-from backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader
 
 
 def main():

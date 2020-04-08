@@ -11,9 +11,9 @@ from munch import Munch
 
 WORKDIR = os.path.dirname(__file__)
 
-from backend.helpers import get_redis_connection
-from backend.actions import ActionWorkerManager, ActionQueueTask
-from backend.worker_manager import JobQueue
+from copr_backend.helpers import get_redis_connection
+from copr_backend.actions import ActionWorkerManager, ActionQueueTask
+from copr_backend.worker_manager import JobQueue
 
 REDIS_OPTS = Munch(
     redis_db=9,
@@ -172,7 +172,7 @@ class TestWorkerManager(object):
                 return params
         return params
 
-    @patch('backend.worker_manager.time.time')
+    @patch('copr_backend.worker_manager.time.time')
     def test_delete_not_finished_workers(self, mc_time):
         self.worker_manager.environ = {'FAIL_STARTED': '1'}
         self.worker_manager.worker_timeout_deadcheck = 0.4
@@ -181,7 +181,7 @@ class TestWorkerManager(object):
         mc_time.side_effect = range(1000)
 
         # first loop just starts the toy:0 worker
-        with patch('backend.worker_manager.time.sleep'):
+        with patch('copr_backend.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
 
         params = self.wait_field(self.w0, 'started')
@@ -189,12 +189,12 @@ class TestWorkerManager(object):
         assert 'started' in params
 
         # toy 0 is marked for deleting
-        with patch('backend.worker_manager.time.sleep'):
+        with patch('copr_backend.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
         assert 'delete' in self.redis.hgetall(self.w0)
 
         # toy 0 should be deleted
-        with patch('backend.worker_manager.time.sleep'):
+        with patch('copr_backend.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
         keys = self.workers()
         assert self.w1 in keys
@@ -227,7 +227,7 @@ class TestWorkerManager(object):
         # start the worker
         self.worker_manager.run(timeout=0.0001) # start them task
 
-        with patch('backend.worker_manager.time.sleep') as sleep:
+        with patch('copr_backend.worker_manager.time.sleep') as sleep:
             # we can spawn more workers, but queue is empty
             self.worker_manager.run(timeout=0.0001)
             assert sleep.called
@@ -237,7 +237,7 @@ class TestWorkerManager(object):
         self.wait_field(self.w0, 'status')
 
         # check that we don't sleep here (no worker, no task)
-        with patch('backend.worker_manager.time.sleep') as sleep:
+        with patch('copr_backend.worker_manager.time.sleep') as sleep:
             self.worker_manager.run(timeout=0.0001)
             assert not sleep.called
 

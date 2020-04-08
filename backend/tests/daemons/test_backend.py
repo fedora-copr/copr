@@ -10,8 +10,8 @@ import retask
 from retask import ConnectionError
 import sys
 
-from backend.daemons.backend import CoprBackend, run_backend
-from backend.exceptions import CoprBackendError
+from copr_backend.daemons.backend import CoprBackend, run_backend
+from copr_backend.exceptions import CoprBackendError
 
 from unittest import mock, skip
 from unittest.mock import MagicMock
@@ -22,16 +22,16 @@ COPR_OWNER = "copr_owner"
 COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
 
-MODULE_REF = "backend.daemons.backend" 
+MODULE_REF = "copr_backend.daemons.backend" 
 
 @pytest.yield_fixture
 def mc_worker():
-    with mock.patch("backend.daemons.worker.Worker") as worker:
+    with mock.patch("copr_backend.daemons.worker.Worker") as worker:
         yield worker
 
 @pytest.yield_fixture
 def mc_time():
-    with mock.patch("backend.daemons.worker.time") as time:
+    with mock.patch("copr_backend.daemons.worker.time") as time:
         yield time
 
 @pytest.yield_fixture
@@ -53,7 +53,7 @@ class TestBackend(object):
         self.tmp_dir_path = os.path.join(tempfile.gettempdir(), subdir)
         os.mkdir(self.tmp_dir_path)
 
-        self.bc_patcher = mock.patch("backend.daemons.backend.BackendConfigReader")
+        self.bc_patcher = mock.patch("copr_backend.daemons.backend.BackendConfigReader")
         self.bc = self.bc_patcher.start()
 
         self.config_file = "/dev/null/copr.conf"
@@ -94,8 +94,8 @@ class TestBackend(object):
 
         # for run backend
         self.pidfile_path = os.path.join(self.tmp_dir_path, "backend.pid")
-        self.grp_patcher = mock.patch("backend.daemons.backend.grp")
-        self.pwd_patcher = mock.patch("backend.daemons.backend.pwd")
+        self.grp_patcher = mock.patch("copr_backend.daemons.backend.grp")
+        self.pwd_patcher = mock.patch("copr_backend.daemons.backend.pwd")
         self.grp = self.grp_patcher.start()
         self.pwd = self.pwd_patcher.start()
 

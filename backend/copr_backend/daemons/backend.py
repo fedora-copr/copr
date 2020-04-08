@@ -6,7 +6,7 @@ import sys
 
 import lockfile
 from daemon import DaemonContext
-from backend.frontend import FrontendClient
+from copr_backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError, FrontendClientException
 from ..helpers import BackendConfigReader, get_redis_logger

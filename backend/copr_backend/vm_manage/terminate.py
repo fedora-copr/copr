@@ -2,11 +2,11 @@
 import json
 import os
 import time
-from backend.ans_utils import ans_extra_vars_encode, run_ansible_playbook_cli
-from backend.exceptions import CoprSpawnFailError
-from backend.helpers import get_redis_connection
-from backend.vm_manage import EventTopics, PUBSUB_MB
-from backend.vm_manage.executor import Executor
+from copr_backend.ans_utils import ans_extra_vars_encode, run_ansible_playbook_cli
+from copr_backend.exceptions import CoprSpawnFailError
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage import EventTopics, PUBSUB_MB
+from copr_backend.vm_manage.executor import Executor
 from ..helpers import get_redis_logger
 
 

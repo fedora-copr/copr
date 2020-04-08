@@ -9,11 +9,11 @@ import types
 from munch import Munch
 from redis.client import Script
 
-from backend.exceptions import VmDescriptorNotFound
-from backend.helpers import get_redis_connection
-from backend.vm_manage import VmStates
-from backend.vm_manage.event_handle import EventHandler, Recycle
-from backend.vm_manage.models import VmDescriptor
+from copr_backend.exceptions import VmDescriptorNotFound
+from copr_backend.helpers import get_redis_connection
+from copr_backend.vm_manage import VmStates
+from copr_backend.vm_manage.event_handle import EventHandler, Recycle
+from copr_backend.vm_manage.models import VmDescriptor
 
 from unittest import mock, skip
 from unittest.mock import MagicMock
@@ -25,7 +25,7 @@ REQUIRES RUNNING REDIS
 TODO: look if https://github.com/locationlabs/mockredis can be used
 """
 
-MODULE_REF = "backend.vm_manage.event_handle"
+MODULE_REF = "copr_backend.vm_manage.event_handle"
 
 @pytest.yield_fixture
 def mc_time():

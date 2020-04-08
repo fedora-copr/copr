@@ -7,9 +7,9 @@ import datetime
 import tabulate
 import humanize
 from io import StringIO
-from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
+from copr_backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
 
-from backend.helpers import get_redis_connection
+from copr_backend.helpers import get_redis_connection
 from .models import VmDescriptor
 from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO, \
     KEY_VM_POOL_INFO

@@ -4,16 +4,16 @@ from munch import Munch
 import json
 import logging
 
-from backend.exceptions import BuilderError
-from backend.helpers import get_redis_logger, get_chroot_arch, \
+from copr_backend.exceptions import BuilderError
+from copr_backend.helpers import get_redis_logger, get_chroot_arch, \
         format_filename, get_redis_connection
-from backend.constants import LOG_REDIS_FIFO
+from copr_backend.constants import LOG_REDIS_FIFO
 
 """
 SOME TESTS REQUIRES RUNNING REDIS
 """
 
-MODULE_REF = "backend.helpers"
+MODULE_REF = "copr_backend.helpers"
 
 
 class TestHelpers(object):
@@ -32,7 +32,7 @@ class TestHelpers(object):
         pass
 
     def test_redis_logger_exception(self):
-        log = get_redis_logger(self.opts, "backend.test", "test")
+        log = get_redis_logger(self.opts, "copr_backend.test", "test")
         try:
             raise BuilderError("foobar")
         except Exception as err:
@@ -42,7 +42,7 @@ class TestHelpers(object):
         data = json.loads(raw_message)
         assert data.get("who") == "test"
         assert data.get("levelno") == logging.ERROR
-        assert 'backend.exceptions.BuilderError: foobar\n' in data['msg']
+        assert 'copr_backend.exceptions.BuilderError: foobar\n' in data['msg']
 
     def test_get_chroot_arch(self):
         assert get_chroot_arch("fedora-26-x86_64") == "x86_64"

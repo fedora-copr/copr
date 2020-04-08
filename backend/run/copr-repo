@@ -84,9 +84,7 @@ def unlink_unsafe(path):
 def process_backend_config(opts):
     # obtain backend options
     try:
-        # meh, we should add our sources to default pythonpath
-        sys.path.append("/usr/share/copr/")
-        from backend.helpers import get_redis_logger, BackendConfigReader
+        from copr_backend.helpers import get_redis_logger, BackendConfigReader
         config = "/etc/copr/copr-be.conf"
         opts.backend_opts = BackendConfigReader(config).read()
         opts.results_baseurl = opts.backend_opts.results_baseurl

@@ -6,7 +6,6 @@ Wants=logrotate.timer
 [Service]
 Type=simple
 PIDFile=/var/run/copr-backend/copr-be.pid
-Environment="PYTHONPATH=/usr/share/copr/"
 User=copr
 Group=copr
 ExecStart=/usr/bin/copr_be.py

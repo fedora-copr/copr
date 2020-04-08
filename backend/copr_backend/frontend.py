@@ -3,7 +3,7 @@ import time
 import logging
 from requests import get, post, put, RequestException
 
-from backend.exceptions import FrontendClientException
+from copr_backend.exceptions import FrontendClientException
 
 # prolong the sleep time before asking frontend again
 SLEEP_INCREMENT_TIME = 5

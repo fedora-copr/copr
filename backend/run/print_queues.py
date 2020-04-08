@@ -4,11 +4,10 @@
 NUM_QUEUES = 2
 
 import sys
-sys.path.append("/usr/share/copr/")
 
 from retask.task import Task
 from retask.queue import Queue
-from backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader
 
 opts = BackendConfigReader().read()
 redis_config = {
@@ -24,7 +23,7 @@ for i in range(0, NUM_QUEUES):
     save_q = []
     while q.length != 0:
         task = q.dequeue()
-        print task.data
+        print(task.data)
         save_q.append(task)
     for t in save_q:
         q.enqueue(t)

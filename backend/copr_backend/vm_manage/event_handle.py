@@ -5,9 +5,9 @@ from threading import Thread
 import time
 from setproctitle import setproctitle
 
-from backend.exceptions import VmDescriptorNotFound
-from backend.helpers import get_redis_logger
-from backend.vm_manage import VmStates, PUBSUB_MB, EventTopics
+from copr_backend.exceptions import VmDescriptorNotFound
+from copr_backend.helpers import get_redis_logger
+from copr_backend.vm_manage import VmStates, PUBSUB_MB, EventTopics
 
 
 class Recycle(Thread):
