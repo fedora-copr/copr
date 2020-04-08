@@ -15,6 +15,9 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 ERDFILE         = _static/db-erd.png
 
+PLANTUML_DIAGRAMS = \
+	process-build-actions
+
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 help:
@@ -48,10 +51,22 @@ $(ERDFILE): ../frontend/coprs_frontend/coprs/models.py
 	python3 -c "from eralchemy import render_er; from coprs import db; \
 		render_er(db.metadata, '$@')"
 
-html: $(ERDFILE)
+html: $(ERDFILE) plantuml-diagrams
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+_static/%.uml.png: plantuml/%.dot
+	plantuml $<
+	mv $(patsubst %.dot,%.png,$<) $@
+
+.PHONY: plantuml-diagrams
+plantuml-diagrams:
+	@file_names= ; \
+	for diagram in $(PLANTUML_DIAGRAMS); do \
+	    file_names="$$file_names _static/$$diagram.uml.png" ; \
+	done ; \
+	$(MAKE) $$file_names
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

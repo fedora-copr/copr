@@ -1,0 +1,41 @@
+@startuml
+start
+
+:REDIS: mark job as <i>allocated</i>;
+
+:Prepare <i>resultdir</i>, for <i>task-log</i> and downloaded results;
+
+:Setup <i>task-log</i> ASAP so it is as complete as possible;
+
+:Fetch task from Frontend;
+
+:FRONTEND: mark job <b>started</b>
+(from now on, any error leads to <b>failed</b> task state);
+
+:Task validation;
+
+:Allocate worker VM;
+
+partition "minimal time with allocated VM" {
+    :Touch <i>live-log</i> before it is marked running, to avoid 404 apache errors;
+    :Mark task as <b>running</b> on frontend;
+    :Run the task on allocated VM;
+    :Wait till the job finishes and redirect the <i>live-log</i> to <i>resultdir</i>;
+    :Download results from VM to <i>resultdir</i>;
+}
+
+:Release VM;
+
+
+if (analyze(<i>resultdir</i>) == failed) then (yes)
+else (no)
+    :attempt to sign RPMs <b>or</b> set error;
+    :attempt to run createrepo_c <b>or</b> set error;
+endif
+
+:FRONTEND: mark as <b>succeeded</b> or <b>failed</b>;
+
+:REDIS: mark as <i>finished</i>;
+
+stop
+@enduml
