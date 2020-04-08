@@ -1484,6 +1484,9 @@ class Action(db.Model, helpers.Serializer):
     # old and new values of the changed property
     old_value = db.Column(db.String(255))
     new_value = db.Column(db.String(255))
+    # the higher the 'priority' is, the later the task is taken.
+    # Keep actions priority in range -100 to 100
+    priority = db.Column(db.Integer, nullable=True)
     # additional data
     data = db.Column(db.Text)
     # result of the action, see BackendResultEnum

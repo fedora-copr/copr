@@ -1,9 +1,11 @@
 import click
+from . import deprioritize_actions
 from coprs import db_session_scope
 from coprs.logic.builds_logic import BuildsLogic
 
 
 @click.command()
+@deprioritize_actions
 def clean_old_builds():
     """
     This garbage collects all builds which are "obsoleted" per user

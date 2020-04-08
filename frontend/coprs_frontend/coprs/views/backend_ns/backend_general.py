@@ -185,9 +185,16 @@ def pending_action():
 @backend_ns.route("/pending-actions/")
 def pending_actions():
     'get the list of actions backand should take care of'
-    actions = actions_logic.ActionsLogic.get_waiting()
-    data = [{'id': action.id} for action in actions]
-    return flask.jsonify(data)
+    data = []
+    for action in actions_logic.ActionsLogic.get_waiting():
+        data.append({
+            'id': action.id,
+            'action_type': action.action_type,
+            'object_type': action.object_type,
+            'priority': action.priority,
+        })
+    return flask.json.dumps(data, sort_keys=False)
+
 
 
 @backend_ns.route("/action/<int:action_id>/")

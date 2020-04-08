@@ -271,7 +271,10 @@ class TestWaitingActions(CoprsTestCase):
     def test_pending_actions_list(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
-        assert actions == [{'id': 1}, {'id': 2}]
+        assert actions == [
+            {'id': 1, 'action_type': 0, 'priority': None},
+            {'id': 2, 'action_type': 10, 'priority': None}
+        ]
 
         self.delete_action.result = BackendResultEnum("success")
         self.db.session.add(self.delete_action)
