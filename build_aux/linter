@@ -1,0 +1,287 @@
+#! /usr/bin/python3
+
+"""
+Using 'csdiff', print newly added coding errors.
+"""
+
+import os
+import sys
+from subprocess import Popen, PIPE, check_output, check_call
+import glob
+import logging
+import tempfile
+import shutil
+import argparse
+
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger()  # pylint: disable=invalid-name
+
+CSDIFF_PYLINT = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                              'csdiff-pylint'))
+
+
+def file_type(filename):
+    """
+    Taking FILENAME (must exist), return it's type in string format.  Current
+    supported formats are ('python',).
+    """
+    if filename.endswith(".py"):
+        return 'python'
+    with open(filename) as f_d:
+        first_line = f_d.readline()
+        if first_line.startswith('#!') and first_line.find('python') != -1:
+            return 'python'
+    return 'unknown'
+
+
+class _Linter:
+    filetype = None
+    path_filters = None
+
+    def __init__(self, projectdir, renames=None):
+        self.projectdir = projectdir
+        self.renames = renames
+
+    @classmethod
+    def modify_rename(cls, old, new):
+        """ if the paths in linter output need adjustments """
+        return old, new
+
+    def _sed_filter(self):
+        if not self.renames:
+            return None
+
+        rules = []
+        for pair in self.renames:
+            old, new = self.modify_rename(pair[0], pair[1])
+            rule = "s|^{}|{}|".format(old, new)
+            rules += ['-e', rule]
+
+        return ['sed'] + rules
+
+    def command(self, filenames):
+        """
+        Given the list of FILENAMES, generate command that will be executed
+        by lint() method, and environment vars set.  Return (CMD, ENV) pair.
+        """
+        raise NotImplementedError
+
+    # pylint: disable=no-self-use,unused-argument
+    def is_compatible(self, file):
+        """ file contains 'filename' and 'type' attributes """
+        return True
+
+    def lint(self, cwd, files, logfd):
+        """ run the linter """
+        if not files:
+            return
+
+        oldcwd = os.getcwd()
+
+        try:
+            log.debug("linting in %s", cwd)
+            os.chdir(cwd)
+            files = [f.filename for f in files if self.is_compatible(f)]
+            if not files:
+                return
+            linter_cmd, linter_env = self.command(files)
+            env = os.environ.copy()
+            env.update(linter_env)
+            sed_cmd = self._sed_filter()
+            if sed_cmd:
+                linter = Popen(linter_cmd, env=env, stdout=PIPE)
+                sed = Popen(sed_cmd, stdout=logfd, stdin=linter.stdout)
+                sed.communicate()
+            else:
+                linter = Popen(linter_cmd, env=env, stdout=logfd)
+                linter.communicate()
+
+        finally:
+            os.chdir(oldcwd)
+
+
+class PylintLinter(_Linter):
+    """
+    Generate pyilnt error output that is compatible with 'csdiff'.
+    """
+    def is_compatible(self, file):
+        return file.type == 'python'
+
+    @classmethod
+    def modify_rename(cls, old, new):
+        """
+        Git reports 'a -> b' rename, but we use '/a -> /b' here because
+        otherwise csdiff wouldn't parse the reports.  That's why we have to
+        modify it here, too.
+        """
+        return '/' + old, '/' + new
+
+    def command(self, filenames):
+        options = []
+        pylintrc = os.path.realpath(os.path.join(self.projectdir, 'pylintrc'))
+        cmd = [CSDIFF_PYLINT] + options + filenames
+        env = {'PYLINTRC': pylintrc}
+        return cmd, env
+
+
+def get_rename_map(options):
+    """
+    Using the os.getcwd() and 'git diff --namestatus', generate list of
+    files to analyze with possible overrides.  The returned format is
+    dict of format 'new_file' -> 'old_file'.
+    """
+    cmd = ['git', 'diff', '--name-status', '-C', options.compare_against,
+           '--numstat', '.']
+    # current file -> old_name
+    return_map = {}
+    output = check_output(cmd).decode('utf-8')
+    for line in output.split('\n'):
+        if not line:
+            continue
+
+        parts = line.split('\t')
+        mode = parts[0]
+        if mode == '':
+            continue
+        if mode.startswith('R'):
+            return_map[parts[2]] = parts[1]
+        elif mode.startswith('A'):
+            return_map[parts[1]] = None
+        elif mode == 'M':
+            return_map[parts[1]] = parts[1]
+        else:
+            assert False
+
+    return return_map
+
+
+class _Worker:  # pylint: disable=too-few-public-methods
+    gitroot = None
+    projectdir = None
+    workdir = None
+    checkout = None
+    linters = [PylintLinter]
+
+    def __init__(self, options):
+        self.options = options
+
+    def _analyze_projectdir(self):
+        """ find sub-directory in git repo which contains spec file """
+        gitroot = check_output(['git', 'rev-parse', '--show-toplevel'])
+        self.gitroot = gitroot.decode('utf-8').strip()
+
+        checkout = check_output(['git', 'rev-parse',
+                                 self.options.compare_against])
+        self.checkout = checkout.decode('utf-8').strip()
+
+        path = os.getcwd()
+        while True:
+            log.debug("checking for projectdir: %s", path)
+            if os.path.realpath(path) == '/':
+                raise Exception("project dir not found")
+            if os.path.isdir(os.path.join(path, '.git')):
+                self.projectdir = path
+                return
+            if glob.glob(os.path.join(path, '*.spec')):
+                self.projectdir = path
+                return
+            path = os.path.normpath(os.path.join(path, '..'))
+
+    def _run_linters(self, old_report_fd, new_report_fd):
+        # pylint: disable=too-many-locals
+        lookup = get_rename_map(self.options)
+        if not lookup:
+            return
+
+        old_files = []
+        new_files = []
+        old_dir = os.path.join(self.workdir, 'old_dir')
+        origin_from = self.gitroot
+        check_call(['git', 'clone', '--quiet', origin_from, old_dir])
+        ret_cwd = os.getcwd()
+        try:
+            os.chdir(old_dir)
+            check_call(['git', 'checkout', '-q', self.checkout])
+        finally:
+            os.chdir(ret_cwd)
+
+        new_dir = self.gitroot
+
+        def add_file(dirname, files, filename):
+            if not filename:
+                return
+            git_file = os.path.join(dirname, filename)
+            if not os.path.isfile(git_file):
+                log.debug("skipping non-file %s", git_file)
+                return
+            file = lambda: None  # noqa: E731
+            file.filename = filename
+            file.type = file_type(git_file)
+            files.append(file)
+
+        for filename in lookup:
+            add_file(new_dir, new_files, filename)
+            add_file(old_dir, old_files, lookup[filename])
+
+        renames = []
+        for new in lookup:
+            old = lookup[new]
+            if old and old != new:
+                renames.append((old, new))
+
+        for LinterClass in self.linters:
+            linter_new = LinterClass(self.projectdir)
+            linter_old = LinterClass(self.projectdir, renames)
+            linter_new.lint(new_dir, new_files, logfd=new_report_fd)
+            linter_old.lint(old_dir, old_files, logfd=old_report_fd)
+
+    def run(self):
+        """
+        Run all the 'self.linters' against old sources and new sources,
+        and provide the diff.
+        """
+        self._analyze_projectdir()
+        self.workdir = tempfile.mkdtemp(prefix='copr-linter-')
+        try:
+            old_report = os.path.join(self.workdir, 'old')
+            new_report = os.path.join(self.workdir, 'new')
+
+            with open(old_report, 'w') as old, open(new_report, 'w') as new:
+                oldcwd = os.getcwd()
+                try:
+                    log.debug("going to projectdir %s", self.projectdir)
+                    os.chdir(self.projectdir)
+                    self._run_linters(old, new)
+                finally:
+                    os.chdir(oldcwd)
+
+            popen_diff = Popen(['csdiff', old_report, new_report],
+                               stdout=PIPE)
+            diff = popen_diff.communicate()[0].decode('utf-8')
+            sys.stdout.write(diff)
+            sys.exit(bool(diff))
+        finally:
+            log.debug("removing workdir %s", self.workdir)
+            shutil.rmtree(self.workdir)
+
+
+def _get_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--compare-against",
+        default="origin/master",
+        help=("What git ref to diff the linters' results against.  Note "
+              "that the reference needs to be available in the current "
+              "git directory"))
+    return parser
+
+
+def _main():
+    options = _get_arg_parser().parse_args()
+    worker = _Worker(options)
+    worker.run()
+
+
+if __name__ == "__main__":
+    _main()

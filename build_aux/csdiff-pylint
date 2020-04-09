@@ -1,0 +1,12 @@
+#! /bin/bash
+
+# csdiff mis-parses the line if we don't produce absoulute filenames, hence
+# the leading /.
+
+pylint -rn \
+       --score=no \
+       --msg-template='/{path}:{line}:{column}: {msg_id}[pylint]: {msg}' \
+       "$@" \
+    | grep -F -v '*******'
+
+exit "${PIPESTATUS[0]}"

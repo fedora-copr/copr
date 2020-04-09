@@ -8,6 +8,15 @@ persistent=no
 extension-pkg-whitelist=SQLAlchemy
 ignored-modules = SQLAlchemy
 
+init-hook=
+    import os
+    import sys
+    from pylint.config import find_pylintrc
+    pylintrc = find_pylintrc()
+    backend_dir = os.path.dirname(pylintrc)
+    sys.path.insert(0, os.path.join(backend_dir, '..', 'common'))
+    sys.path.insert(0, os.path.join(backend_dir, '..', 'python'))
+
 [MESSAGES CONTROL]
 
 # Disable the message(s) with the given id(s).
