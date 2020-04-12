@@ -1,125 +1,52 @@
 #! /usr/bin/python3
 
-import os
-import sys
-import daemon
-import argparse
-import logging
-import contextlib
+"""
+Process one Action task provided by frontend (on backend).
+"""
 
-from copr_backend.helpers import (BackendConfigReader, get_redis_logger,
-                             get_redis_connection)
-from copr_backend.frontend import FrontendClient
+from copr_backend.background_worker import BackgroundWorker
 from copr_backend.actions import Action, ActionResult
 
 
-def get_arg_parser():
-    'return argument parser object'
+class ActionBackgroundWorker(BackgroundWorker):
+    redis_logger_id = 'actions'
 
-    parser = argparse.ArgumentParser(
-        description="Process single copr action",
-    )
-    parser.add_argument(
-        "--task-id",
-        type=int,
-        required=True,
-        help="Task ID to process",
-    )
-    parser.add_argument(
-        "--worker-id",
-        help="Worker ID already exists in DB (used by WorkerManager only)",
-    )
-    parser.add_argument(
-        "--daemon",
-        action='store_true',
-        help="run on background, as daemon process"
-    )
-    return parser
-
-
-def identify(worker_id, redis, log):
-    redis.hset(worker_id, 'started', 1)
-    redis.hset(worker_id, 'PID', os.getpid())
-
-    data = redis.hgetall(worker_id)
-    if not 'allocated' in data:
-        log.error("too slow box, manager thinks we are dead")
-        redis.delete(worker_id)
-        return False
-
-    # There's still small race on a very slow box (TOCTOU in manager, the db
-    # entry can be deleted after our check above ^^).  But we don't risk
-    # anything else than concurrent run of multiple workers in such case.
-    return True
-
-
-def handle_task(opts, args, log):
-    "Handle the task, executed on background in DaemonContext"
-
-    task_id = args.task_id
-
-    frontend_client = FrontendClient(opts, log)
-    redis = get_redis_connection(opts)
-
-    log.info("Handling action %s", task_id)
-
-    if args.worker_id and not identify(args.worker_id, redis, log):
-        log.error("can not identify myself")
-        sys.exit(1)
-
-    resp = frontend_client.get('action/{}'.format(task_id))
-    if resp.status_code != 200:
-        log.error("failed to download task, apache code %s", resp.status_code)
-        sys.exit(1)
-
-    action_task = resp.json()
-    action = Action.create_from(opts, action_task, log=log)
-    result = ActionResult.FAILURE
-    try:
-        log.info("Executing: %s", str(action))
-        result = action.run()
-        log.info("Action result: %s", result)
-    except Exception:
-        log.exception("action failed for unknown error")
-
-    log.info("Action %s ended with status=%s", action_task, result)
-
-    # Let the manager know what's the result.
-    if args.worker_id:
-        redis.hset(args.worker_id, 'status', str(result))
-
-
-def main():
-    'handle the task, the main function'
-
-    if os.getuid() == 0:
-        sys.stderr.write("this needs to be run as 'copr' user\n")
-        sys.exit(1)
-
-    config = '/etc/copr/copr-be.conf'
-    opts = BackendConfigReader(config).read()
-    args = get_arg_parser().parse_args()
-
-    context = contextlib.nullcontext()
-    if args.daemon:
-        context = daemon.DaemonContext(umask=0o022)
-
-    with context:
-        logger_name = '{}.{}.pid-{}'.format(
-            sys.argv[0],
-            'managed' if args.worker_id else 'manual',
-            os.getpid(),
+    @classmethod
+    def adjust_arg_parser(cls, parser):
+        parser.add_argument(
+            "--task-id",
+            type=int,
+            required=True,
+            help="task ID to process",
         )
-        log = get_redis_logger(opts, logger_name, "actions")
+
+    def handle_action(self, action_id):
+        self.log.info("Handling action %s", action_id)
+        result = ActionResult.FAILURE
+        resp = self.frontend_client.get('action/{}'.format(action_id))
+        if resp.status_code != 200:
+            self.log.error("failed to download task, apache code %s",
+                           resp.status_code)
+            return result
+        action_task = resp.json()
+        action = Action.create_from(self.opts, action_task, log=self.log)
         try:
-            if not args.daemon:
-                # when executing from commandline - on foreground - we want to print
-                # something to stderr as well
-                log.addHandler(logging.StreamHandler())
-            handle_task(opts, args, log)
-        except Exception as exc: # pylint: disable=W0703
-            log.exception("unexpected failure %s", str(exc))
+            self.log.info("Executing: %s", str(action))
+            result = action.run()
+        except Exception:
+            self.log.exception("action failed for unknown error")
+        return result
+
+    def handle_task(self):
+        result = ActionResult.FAILURE
+        action_id = self.args.task_id
+        try:
+            result = self.handle_action(action_id)
+        finally:
+            self.log.info("Action %s ended with status=%s", action_id, result)
+            self.redis_hset('status', str(result))
 
 
 if __name__ == "__main__":
-    main()
+    worker = ActionBackgroundWorker()
+    worker.process()

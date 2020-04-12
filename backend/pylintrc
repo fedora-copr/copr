@@ -65,7 +65,7 @@ dummy-variables-rgx=_|dummy
 
 # Regular expression which should only match correct module names
 #module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
-module-rgx=([a-zA-Z_][a-zA-Z0-9_]+)$
+module-rgx=(copr-backend-[a-z-]*|[a-zA-Z_][a-zA-Z0-9_]+)$
 
 # Regular expression which should only match correct module level names
 const-rgx=(([a-zA-Z_][a-zA-Z0-9_]*)|(__.*__))$

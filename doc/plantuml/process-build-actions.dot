@@ -7,8 +7,6 @@ start
 
 :Setup <i>task-log</i> ASAP so it is as complete as possible;
 
-:Fetch task from Frontend;
-
 :FRONTEND: mark job <b>started</b>
 (from now on, any error leads to <b>failed</b> task state);
 
