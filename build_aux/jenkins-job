@@ -1,0 +1,94 @@
+#! /bin/bash
+
+set -x
+set -e
+
+# only PRs now
+case $REPO in
+    *forks*) ;;
+    *) exit 0 ;;
+esac
+
+cleanup_actions=()
+cleanup()
+{
+    for action in "${cleanup_actions[@]}"; do
+        $action
+    done
+}
+trap cleanup EXIT
+
+filter="
+import sys, json
+d = json.loads(sys.stdin.read())
+for member in d['members']:
+    sys.stdout.write(' ' + member + ' ')
+print()
+"
+
+echo "Checking whether we want to run against $REPO/$BRANCH"
+
+# only copr-team for now
+members=$(curl https://pagure.io/api/0/group/copr \
+    | python3 -c "$filter")
+
+# https://pagure.io/pagure/issue/4807
+copr_sig_member=false
+for member in $members; do
+    case $REPO in
+        *forks/$member/*)
+            copr_sig_member=true
+            break
+            ;;
+    esac
+done
+$copr_sig_member || exit 0  # silently skip non-copr people
+
+git remote rm proposed || true
+git remote add proposed "$REPO"
+git fetch proposed
+git checkout "proposed/$BRANCH"
+
+: "${DIFF_AGAINST=origin/master}"
+
+subdirs=(
+    -e ^backend$
+    -e ^frontend$
+    -e ^distgit$
+    -e ^cli$
+    -e ^common$
+    -e ^messaging$
+    -e ^rpmbuild$
+    -e ^keygen$
+    -e ^python$
+)
+
+changed_packages=$(
+    git diff --name-only "$DIFF_AGAINST" \
+        | cut -d'/' -f1 | sort | uniq \
+        | grep "${subdirs[@]}"
+) || :
+
+test -n "$changed_packages" || exit 0
+
+
+run_linter()
+{
+    test -f build_aux/linter || return 0
+    mkdir -p image
+    image=copr-lint-container:latest
+    cat > image/Dockerfile <<EOF
+From fedora:32
+RUN dnf install -y csdiff git pylint
+EOF
+    ( cd image
+      docker build -t "$image" .
+    )
+    container=$(docker run --rm -v "$PWD":/workdir:Z -d "$image" sleep 1800)
+    cleanup_actions+=( "docker kill $container" )
+    for package; do
+      docker exec "$container" bash -c "cd /workdir/$package && ../build_aux/linter --compare-against $DIFF_AGAINST"
+    done
+}
+
+run_linter $changed_packages
