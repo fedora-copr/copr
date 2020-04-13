@@ -73,6 +73,7 @@ class ActionsLogic(object):
                                             BackendResultEnum("failure")]:
             action.ended_on = time.time()
         db.session.add(action)
+        return action
 
     @classmethod
     def send_createrepo(cls, copr, dirnames=None):
@@ -100,6 +101,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_delete_copr(cls, copr):
@@ -113,6 +115,7 @@ class ActionsLogic(object):
                                data=json.dumps(data_dict),
                                created_on=int(time.time()))
         db.session.add(action)
+        return action
 
     @classmethod
     def get_chroot_builddirs(cls, build):
@@ -164,6 +167,7 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_delete_multiple_builds(cls, builds):
@@ -209,11 +213,15 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_cancel_build(cls, build):
         """ Schedules build cancel action
         :type build: models.Build
+
+        @TODO refactor this method generate only one action and then
+              add a return statement
         """
         for chroot in build.build_chroots:
             if chroot.state != "running":
@@ -253,6 +261,7 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_create_gpg_key(cls, copr):
@@ -272,6 +281,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_rawhide_to_release(cls, data):
@@ -282,6 +292,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_fork_copr(cls, src, dst, builds_map):
@@ -300,6 +311,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_build_module(cls, copr, module):
@@ -324,6 +336,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def send_delete_chroot(cls, copr_chroot):
@@ -346,6 +359,7 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+        return action
 
     @classmethod
     def cache_action_graph_data(cls, type, time, waiting, success, failure):
@@ -364,7 +378,8 @@ class ActionsLogic(object):
                 failed = failure
             )
             db.session.add(cached_data)
-            db.session.commit()
+            db.session.commit()  # @FIXME We should not commit here
+            return action
         except IntegrityError: # other process already calculated the graph data and cached it
             db.session.rollback()
 
