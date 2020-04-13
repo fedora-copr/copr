@@ -61,6 +61,16 @@ class DefaultActionPriorityEnum(with_metaclass(EnumType, object)):
     }
 
 
+class ActionPriorityEnum(with_metaclass(EnumType, object)):
+    """
+    Naming/assigning the values is a little bit tricky because
+    how the current implementation works (i.e. it is inverted).
+    However, from the most abstract point of view,
+    "highest priority" means "do this as soon as possible"
+    """
+    vals = {"highest": -99, "lowest": 99}
+
+
 class BackendResultEnum(with_metaclass(EnumType, object)):
     vals = {"waiting": 0, "success": 1, "failure": 2}
 

@@ -1487,7 +1487,7 @@ class Action(db.Model, helpers.Serializer):
     new_value = db.Column(db.String(255))
     # the higher the 'priority' is, the later the task is taken.
     # Keep actions priority in range -100 to 100
-    priority = db.Column(db.Integer, nullable=True)
+    priority = db.Column(db.Integer, nullable=True, default=0)
     # additional data
     data = db.Column(db.Text)
     # result of the action, see BackendResultEnum

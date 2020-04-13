@@ -7,7 +7,7 @@ from unittest import mock
 
 from sqlalchemy import desc
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, ActionPriorityEnum
 from coprs import app, cache, models
 
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
@@ -891,3 +891,25 @@ class TestRepo(CoprsTestCase):
             r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
             assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r1.data.decode("utf-8")
             assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+
+
+class TestCoprActionsGeneration(CoprsTestCase):
+
+    @TransactionDecorator("u1")
+    def test_createrepo_priority(self, f_users, f_mock_chroots, f_db):
+        # When creating a project the initial createrepo action should be prioritized
+        self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
+            data={"name": "foo",
+                  "fedora-rawhide-i386": "y",
+                  "arches": ["i386"]})
+
+        copr = CoprsLogic.get(self.u1.username, "foo").one()
+        actions = ActionsLogic.get_many(ActionTypeEnum("createrepo")).all()
+        assert len(actions) == 1
+        assert actions[0].priority == ActionPriorityEnum("highest")
+
+        # User-requested createrepo actions should have normal priority
+        self.test_client.post("/coprs/id/{0}/createrepo/".format(copr.id), data={})
+        actions = ActionsLogic.get_many(ActionTypeEnum("createrepo")).all()
+        assert len(actions) == 2
+        assert actions[1].priority == 0

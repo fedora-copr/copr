@@ -10,7 +10,7 @@ from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, ActionPriorityEnum
 from coprs import db
 from coprs import exceptions
 from coprs import helpers
@@ -627,7 +627,8 @@ class CoprChrootsLogic(object):
             db.session.add(
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
-        ActionsLogic.send_createrepo(copr)
+        action = ActionsLogic.send_createrepo(copr)
+        action.priority = ActionPriorityEnum("highest")
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
