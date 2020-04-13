@@ -5,14 +5,19 @@ from six import with_metaclass
 
 
 class EnumType(type):
-    def __call__(self, attr):
+    def _wrap(cls, attr=None):
+        if attr is None:
+            raise NotImplementedError
         if isinstance(attr, int):
-            for k, v in self.vals.items():
+            for k, v in cls.vals.items():
                 if v == attr:
                     return k
             raise KeyError("num {0} is not mapped".format(attr))
-        else:
-            return self.vals[attr]
+        return cls.vals[attr]
+    def __call__(cls, attr):
+        return cls._wrap(attr)
+    def __getattr__(cls, attr):
+        return cls._wrap(attr)
 
 
 class ActionTypeEnum(with_metaclass(EnumType, object)):
@@ -28,6 +33,14 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "update_module_md": 8,
         "build_module": 9,
         "cancel_build": 10,
+    }
+
+
+class ActionResult(with_metaclass(EnumType, object)):
+    vals = {
+        'WAITING': 0,
+        'SUCCESS': 1,
+        'FAILURE': 2,
     }
 
 

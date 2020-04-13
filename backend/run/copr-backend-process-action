@@ -43,7 +43,8 @@ class ActionBackgroundWorker(BackgroundWorker):
         try:
             result = self.handle_action(action_id)
         finally:
-            self.log.info("Action %s ended with status=%s", action_id, result)
+            self.log.info("Action %s ended with status=%s", action_id,
+                          ActionResult(int(result)))
             self.redis_hset('status', str(result))
 
 

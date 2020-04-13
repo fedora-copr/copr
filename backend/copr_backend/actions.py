@@ -16,9 +16,11 @@ from munch import Munch
 
 import gi
 gi.require_version('Modulemd', '1.0')
+# pylint: disable=wrong-import-position
 from gi.repository import Modulemd
 
 from copr_common.rpm import splitFilename
+from copr_common.enums import ActionResult
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
@@ -549,12 +551,6 @@ class ActionType(object):
     UPDATE_MODULE_MD = 8  # Deprecated
     BUILD_MODULE = 9
     CANCEL_BUILD = 10
-
-
-class ActionResult(object):
-    WAITING = 0
-    SUCCESS = 1
-    FAILURE = 2
 
 
 class ActionQueueTask():
