@@ -15,7 +15,7 @@
 
 Name:       python-copr-common
 Version:    0.6
-Release:    1%{?dist}
+Release:    10%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
