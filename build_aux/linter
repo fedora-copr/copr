@@ -14,7 +14,7 @@ import shutil
 import argparse
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR, format='%(levelname)s: %(message)s')
 log = logging.getLogger()  # pylint: disable=invalid-name
 
 CSDIFF_PYLINT = os.path.realpath(os.path.join(os.path.dirname(__file__),
@@ -39,8 +39,8 @@ class _Linter:
     filetype = None
     path_filters = None
 
-    def __init__(self, projectdir, renames=None):
-        self.projectdir = projectdir
+    def __init__(self, gitroot, renames=None):
+        self.gitroot = gitroot
         self.renames = renames
 
     @classmethod
@@ -60,7 +60,7 @@ class _Linter:
 
         return ['sed'] + rules
 
-    def command(self, filenames):
+    def command(self, projectdir, filenames):
         """
         Given the list of FILENAMES, generate command that will be executed
         by lint() method, and environment vars set.  Return (CMD, ENV) pair.
@@ -72,20 +72,22 @@ class _Linter:
         """ file contains 'filename' and 'type' attributes """
         return True
 
-    def lint(self, cwd, files, logfd):
+    def lint(self, projectdir, files, logfd):
         """ run the linter """
         if not files:
             return
 
+        abs_projectdir = os.path.join(self.gitroot, projectdir)
+
         oldcwd = os.getcwd()
 
         try:
-            log.debug("linting in %s", cwd)
-            os.chdir(cwd)
+            log.info("linting in %s", abs_projectdir)
+            os.chdir(abs_projectdir)
             files = [f.filename for f in files if self.is_compatible(f)]
             if not files:
                 return
-            linter_cmd, linter_env = self.command(files)
+            linter_cmd, linter_env = self.command(projectdir, files)
             env = os.environ.copy()
             env.update(linter_env)
             sed_cmd = self._sed_filter()
@@ -117,11 +119,13 @@ class PylintLinter(_Linter):
         """
         return '/' + old, '/' + new
 
-    def command(self, filenames):
-        options = []
-        pylintrc = os.path.realpath(os.path.join(self.projectdir, 'pylintrc'))
-        cmd = [CSDIFF_PYLINT] + options + filenames
-        env = {'PYLINTRC': pylintrc}
+    def command(self, projectdir, filenames):
+        abs_pylintrc = os.path.join(self.gitroot, projectdir, 'pylintrc')
+        pylintrc = os.path.realpath(abs_pylintrc)
+        env = {}
+        if os.path.exists(pylintrc):
+            env['PYLINTRC'] = pylintrc
+        cmd = [CSDIFF_PYLINT] + filenames
         return cmd, env
 
 
@@ -132,7 +136,7 @@ def get_rename_map(options):
     dict of format 'new_file' -> 'old_file'.
     """
     cmd = ['git', 'diff', '--name-status', '-C', options.compare_against,
-           '--numstat', '.']
+           '--numstat','--relative', '.']
     # current file -> old_name
     return_map = {}
     output = check_output(cmd).decode('utf-8')
@@ -145,19 +149,22 @@ def get_rename_map(options):
         if mode == '':
             continue
         if mode.startswith('R'):
+            log.debug("renamed: %s -> %s", parts[1], parts[2])
             return_map[parts[2]] = parts[1]
         elif mode.startswith('A'):
+            log.debug("new: %s", parts[1])
             return_map[parts[1]] = None
         elif mode == 'M':
             return_map[parts[1]] = parts[1]
         else:
-            assert False
+            log.info("skipping diff mode %s for file %s", mode, parts[1])
 
     return return_map
 
 
 class _Worker:  # pylint: disable=too-few-public-methods
     gitroot = None
+    # relative path within gitroot to the sub-project
     projectdir = None
     workdir = None
     checkout = None
@@ -175,16 +182,24 @@ class _Worker:  # pylint: disable=too-few-public-methods
                                  self.options.compare_against])
         self.checkout = checkout.decode('utf-8').strip()
 
+        def rel_projdir(projdir):
+            gitroot_a = os.path.realpath(self.gitroot)
+            gitproj_a = os.path.realpath(projdir)
+            rel_projdir = gitproj_a.replace(gitroot_a + '/', '')
+            log.debug("relative projectdir: %s", rel_projdir)
+            return rel_projdir
+
+
         path = os.getcwd()
         while True:
-            log.debug("checking for projectdir: %s", path)
+            log.info("checking for projectdir: %s", path)
             if os.path.realpath(path) == '/':
                 raise Exception("project dir not found")
             if os.path.isdir(os.path.join(path, '.git')):
-                self.projectdir = path
+                self.projectdir = rel_projdir(path)
                 return
             if glob.glob(os.path.join(path, '*.spec')):
-                self.projectdir = path
+                self.projectdir = rel_projdir(path)
                 return
             path = os.path.normpath(os.path.join(path, '..'))
 
@@ -194,35 +209,34 @@ class _Worker:  # pylint: disable=too-few-public-methods
         if not lookup:
             return
 
-        old_files = []
-        new_files = []
-        old_dir = os.path.join(self.workdir, 'old_dir')
+        # prepare the old checkout
+        old_gitroot = os.path.join(self.workdir, 'old_dir')
         origin_from = self.gitroot
-        check_call(['git', 'clone', '--quiet', origin_from, old_dir])
+        check_call(['git', 'clone', '--quiet', origin_from, old_gitroot])
         ret_cwd = os.getcwd()
         try:
-            os.chdir(old_dir)
+            os.chdir(old_gitroot)
             check_call(['git', 'checkout', '-q', self.checkout])
         finally:
             os.chdir(ret_cwd)
 
-        new_dir = self.gitroot
-
-        def add_file(dirname, files, filename):
+        def add_file(gitroot, files, filename):
             if not filename:
                 return
-            git_file = os.path.join(dirname, filename)
+            git_file = os.path.join(gitroot, self.projectdir, filename)
             if not os.path.isfile(git_file):
-                log.debug("skipping non-file %s", git_file)
+                log.debug("skipping non-file %s", filename)
                 return
             file = lambda: None  # noqa: E731
             file.filename = filename
             file.type = file_type(git_file)
             files.append(file)
 
+        old_files = []
+        new_files = []
         for filename in lookup:
-            add_file(new_dir, new_files, filename)
-            add_file(old_dir, old_files, lookup[filename])
+            add_file(self.gitroot, new_files, filename)
+            add_file(old_gitroot, old_files, lookup[filename])
 
         renames = []
         for new in lookup:
@@ -231,10 +245,10 @@ class _Worker:  # pylint: disable=too-few-public-methods
                 renames.append((old, new))
 
         for LinterClass in self.linters:
-            linter_new = LinterClass(self.projectdir)
-            linter_old = LinterClass(self.projectdir, renames)
-            linter_new.lint(new_dir, new_files, logfd=new_report_fd)
-            linter_old.lint(old_dir, old_files, logfd=old_report_fd)
+            linter_new = LinterClass(self.gitroot)
+            linter_old = LinterClass(old_gitroot, renames)
+            linter_new.lint(self.projectdir, new_files, logfd=new_report_fd)
+            linter_old.lint(self.projectdir, old_files, logfd=old_report_fd)
 
     def run(self):
         """
@@ -250,8 +264,8 @@ class _Worker:  # pylint: disable=too-few-public-methods
             with open(old_report, 'w') as old, open(new_report, 'w') as new:
                 oldcwd = os.getcwd()
                 try:
-                    log.debug("going to projectdir %s", self.projectdir)
-                    os.chdir(self.projectdir)
+                    pd = os.path.join(self.gitroot, self.projectdir)
+                    os.chdir(pd)
                     self._run_linters(old, new)
                 finally:
                     os.chdir(oldcwd)
@@ -274,11 +288,16 @@ def _get_arg_parser():
         help=("What git ref to diff the linters' results against.  Note "
               "that the reference needs to be available in the current "
               "git directory"))
+    parser.add_argument(
+        "--log-level",
+        default='error',
+        help="The python logging level, e.g. debug, error, ...")
     return parser
 
 
 def _main():
     options = _get_arg_parser().parse_args()
+    log.setLevel(level=getattr(logging, options.log_level.upper()))
     worker = _Worker(options)
     worker.run()
 
