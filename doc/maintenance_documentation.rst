@@ -19,3 +19,4 @@ This section contains information about maintenance topics. You may also be inte
    seeddb
    email_templates
    createrepo
+   aws_tips_and_tricks
