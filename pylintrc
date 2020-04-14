@@ -1,71 +1,25 @@
-# python-copr pylint configuration
+# copr global (fallback) pylint configuration
 
 [MASTER]
-
 # Pickle collected data for later comparisons.
 persistent=no
-
-extension-pkg-whitelist=SQLAlchemy
-ignored-modules = SQLAlchemy
 
 init-hook=
     import os
     import sys
-    from pylint.config import find_pylintrc
-    pylintrc = find_pylintrc()
-    backend_dir = os.path.dirname(pylintrc)
-    sys.path.insert(0, os.path.join(backend_dir, '..', 'common'))
-    sys.path.insert(0, os.path.join(backend_dir, '..', 'python'))
-
-
-[MESSAGES CONTROL]
-
-# Disable the message(s) with the given id(s).
-disable=I0011,C0302,C0111,R0801,R0902,R0904,R0912,R0913,R0914,R0915,R0921,R0922,W0142,W0403,W0603,C1001,W0121,useless-else-on-loop,bad-whitespace,unpacking-non-sequence,superfluous-parens,cyclic-import
-
-# list of disabled messages:
-#I0011: 62: Locally disabling R0201
-#C0302:  1: Too many lines in module (2425)
-#C0111:  1: Missing docstring
-#R0902: 19:RequestedChannels: Too many instance attributes (9/7)
-#R0904: 26:Transport: Too many public methods (22/20)
-#R0912:171:set_slots_from_cert: Too many branches (59/20)
-#R0913:101:GETServer.__init__: Too many arguments (11/10)
-#R0914:171:set_slots_from_cert: Too many local variables (38/20)
-#R0915:171:set_slots_from_cert: Too many statements (169/50)
-#W0142:228:MPM_Package.write: Used * or ** magic
-#W0403: 28: Relative import 'rhnLog', should be 'backend.common.rhnLog'
-#W0603: 72:initLOG: Using the global statement
-# for pylint-1.0 we also disable
-#C1001: 46, 0: Old-style class defined. (old-style-class)
-#W0121: 33,16: Use raise ErrorClass(args) instead of raise ErrorClass, args. (old-raise-syntax)
-#W:243, 8: Else clause on loop without a break statement (useless-else-on-loop)
-# pylint-1.1 checks
-#C:334, 0: No space allowed after bracket (bad-whitespace)
-#W:162, 8: Attempting to unpack a non-sequence defined at line 6 of (unpacking-non-sequence)
-#C: 37, 0: Unnecessary parens after 'not' keyword (superfluous-parens)
-#C:301, 0: Unnecessary parens after 'if' keyword (superfluous-parens)
-
-[REPORTS]
-
-# Set the output format. Available formats are text, parseable, colorized, msvs
-# (visual studio) and html
-output-format=text
-
-# Tells whether to display a full report or only the messages
-reports=no
+    import subprocess
+    gitrootdir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
+    sys.path.insert(0, os.path.join(gitrootdir, 'common'))
+    sys.path.insert(0, os.path.join(gitrootdir, 'python'))
 
 
 [VARIABLES]
-
 # A regular expression matching names used for dummy variables (i.e. not used).
 dummy-variables-rgx=_|dummy
 
 
 [BASIC]
-
 # Regular expression which should only match correct module names
-#module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 module-rgx=([a-zA-Z_][a-zA-Z0-9_]+)$
 
 # Regular expression which should only match correct module level names
@@ -136,11 +90,7 @@ min-public-methods=1
 max-public-methods=20
 
 
-[CLASSES]
-
-
 [FORMAT]
-
 # Maximum number of characters on a single line.
 max-line-length=120
 
@@ -153,6 +103,5 @@ indent-string='    '
 
 
 [MISCELLANEOUS]
-
 # List of note tags to take in consideration, separated by a comma.
 notes=

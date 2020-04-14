@@ -14,6 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+# pylint: skip-file
+
 """Unit tests for the message schema."""
 
 import copy
@@ -81,7 +83,6 @@ class BuildChrootStartedV1Test(unittest.TestCase):
         for key in self.required_fields:
             body = copy.deepcopy(self.fedmsg_message)
 
-            print(key)
             if key in int_fields:
                 body['msg'][key] = "str"
             else:
