@@ -1,0 +1,29 @@
+@startuml
+
+start
+while (timeout reached **or** queue.empty()) is (no)
+
+
+Partition WorkerCleanup {
+  :cleanup <b>finished</b> or <b>dead</b> workers;
+}
+  if (max_workers reached) then (no)
+      :task = queue.pop();
+      :redis.mark_allocated(task);
+      :spawn_worker(task);
+  else (yes)
+      :sleep a while;
+  endif
+endwhile
+stop
+
+Partition WorkerCleanup {
+start
+while (**worker** = workers_in_redis.pop())
+    :**if** worker.has_ended() **then** redis.remove(worker);
+    :**if not ** worker.is_alive() **then** redis.remove(worker)\n(the job would be re-taken);
+endwhile
+stop
+}
+
+@enduml

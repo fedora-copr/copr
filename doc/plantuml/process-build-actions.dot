@@ -1,7 +1,7 @@
 @startuml
 start
 
-:REDIS: mark job as <i>allocated</i>;
+:REDIS: store our **PID** for WorkerManager;
 
 :Prepare <i>resultdir</i>, for <i>task-log</i> and downloaded results;
 

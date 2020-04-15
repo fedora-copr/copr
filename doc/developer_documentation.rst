@@ -49,12 +49,14 @@ Here is an example of how building process goes (for the simplest case of SRPM b
 Note that we need to figure out whether CoprDistGit is actually still needed in the COPR architecture. That's why the lines are dotted there. It is still present in the current architecture though.
 
 
-Other work-flow schemas
------------------------
+The backgand design and diagrams
+--------------------------------
 
 .. toctree::
    :maxdepth: 1
 
+   Build/action dispatcher <developer_documentation/dispatchers>
+   WorkerManager principle <developer_documentation/worker_manager>
    Build process actions on backend <developer_documentation/builder_actions>
 
 Integration tests

@@ -16,7 +16,9 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 ERDFILE         = _static/db-erd.png
 
 PLANTUML_DIAGRAMS = \
-	process-build-actions
+	dispatchers \
+	process-build-actions \
+	worker-manager-run
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 

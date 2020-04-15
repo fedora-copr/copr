@@ -1,0 +1,10 @@
+@startuml
+
+start
+repeat
+  :task_list = get_frontend_tasks();
+  :WorkerManager.add_tasks(task_list);
+  :WorkerManager.run(timeout in seconds);
+repeat while
+
+@enduml
