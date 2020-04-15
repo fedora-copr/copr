@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 long_description = """\
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -23,7 +23,7 @@ setup(
     author_email=__author_email__,
     url=__url__,
     license='GPLv2+',
-    packages=['copr_backend'],
+    packages=find_packages(exclude=('tests*',)),
     include_package_data=True,
     zip_safe=False,
 )
