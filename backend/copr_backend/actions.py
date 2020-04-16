@@ -21,13 +21,15 @@ from gi.repository import Modulemd
 
 from copr_common.rpm import splitFilename
 from copr_common.enums import ActionResult
+
+from copr_backend.worker_manager import WorkerManager, QueueTask
+
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, cmd_debug, format_filename,
                       uses_devel_repo, call_copr_repo, build_chroot_log_name)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
-from copr_backend.worker_manager import WorkerManager, QueueTask
 
 from .vm_manage.manager import VmManager
 
@@ -229,6 +231,10 @@ class Fork(Action, GPGMixin):
 
 
 class Delete(Action):
+    """
+    Abstract class for all other Delete* classes.
+    """
+    # pylint: disable=abstract-method
     def _handle_delete_builds(self, ownername, projectname, project_dirname,
                               chroot_builddirs, build_ids):
         """ call /bin/copr-repo --delete """

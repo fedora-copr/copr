@@ -41,7 +41,7 @@ class JobQueue():
         raise KeyError('pop from an empty priority queue')
 
 
-class QueueTask(object):
+class QueueTask:
     def __repr__(self):
         return str(self.id)
 

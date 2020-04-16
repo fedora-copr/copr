@@ -4,18 +4,19 @@ import os
 import sys
 import copy
 import time
-import pytest
 import logging
 import subprocess
 from unittest.mock import MagicMock, patch
+
+import pytest
 from munch import Munch
 from copr_common.enums import DefaultActionPriorityEnum
-
-WORKDIR = os.path.dirname(__file__)
 
 from copr_backend.helpers import get_redis_connection
 from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action
 from copr_backend.worker_manager import JobQueue, WorkerManager, QueueTask
+
+WORKDIR = os.path.dirname(__file__)
 
 REDIS_OPTS = Munch(
     redis_db=9,
@@ -27,6 +28,7 @@ log.setLevel(logging.DEBUG)
 
 
 class ToyWorkerManager(WorkerManager):
+    # pylint: disable=abstract-method
     process_counter = 0
     task_sleep = 0
 
@@ -55,8 +57,8 @@ class ToyActionWorkerManager(ToyWorkerManager, ActionWorkerManager):
 
 
 class ToyQueueTask(QueueTask):
-    def __init__(self, id):
-        self._id = id
+    def __init__(self, _id):
+        self._id = _id
 
     @property
     def id(self):
@@ -102,7 +104,7 @@ class TestPrioQueue(object):
         assert self.get_tasks() == [6, 7, 9, 0, 1, 2, 3, 4, 5, 8]
 
 
-class BaseTestWorkerManager(object):
+class BaseTestWorkerManager:
     redis = None
     worker_manager = None
 
@@ -154,6 +156,7 @@ class TestWorkerManager(BaseTestWorkerManager):
 
 
 class TestActionWorkerManager(BaseTestWorkerManager):
+    # pylint: disable=attribute-defined-outside-init
     def setup_worker_manager(self):
         self.worker_manager = ToyActionWorkerManager(
             redis_connection=self.redis,
