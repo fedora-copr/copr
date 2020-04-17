@@ -16,6 +16,8 @@ VOLUME ["/sys/fs/cgroup"]
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 RUN dnf -y install htop wget net-tools iputils vim mlocate git sudo openssh-server psmisc python-jedi procps-ng findutils tmux expect
+RUN for repo in fedora updates updates-testing; do \
+    dnf -y config-manager --save --setopt $repo.excludepkgs=hello ; done
 
 # Sanity tests
 RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
