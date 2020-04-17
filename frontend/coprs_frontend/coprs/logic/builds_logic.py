@@ -25,6 +25,7 @@ from coprs import models
 from coprs import helpers
 from coprs.exceptions import (
     ActionInProgressException,
+    BadRequest,
     ConflictingRequest,
     DuplicateException,
     InsufficientRightsException,
@@ -960,15 +961,43 @@ class BuildsLogic(object):
         db.session.delete(build)
 
     @classmethod
-    def delete_multiple_builds(cls, user, builds):
+    def delete_builds(cls, user, build_ids):
         """
+        Delete builds specified by list of IDs
+
         :type user: models.User
-        :type builds: list of models.Build
+        :type build_ids: list of Int
         """
         to_delete = []
+        no_permission = []
+        still_running = []
+
+        build_ids = set(build_ids)
+        builds = cls.get_by_ids(build_ids)
         for build in builds:
-            cls.check_build_to_delete(user, build)
-            to_delete.append(build)
+            try:
+                cls.check_build_to_delete(user, build)
+                to_delete.append(build)
+            except InsufficientRightsException:
+                no_permission.append(build.id)
+            except ActionInProgressException:
+                still_running.append(build.id)
+            finally:
+                build_ids.remove(build.id)
+
+        if build_ids or no_permission or still_running:
+            msg = ""
+            if no_permission:
+                msg += "You don't have permissions to delete build(s) {0}.\n"\
+                    .format(", ".join(map(str, no_permission)))
+            if still_running:
+                msg += "Build(s) {0} are still running.\n"\
+                    .format(", ".join(map(str, still_running)))
+            if build_ids:
+                msg += "Build(s) {0} don't exist.\n"\
+                    .format(", ".join(map(str, build_ids)))
+
+            raise BadRequest(msg)
 
         if to_delete:
             ActionsLogic.send_delete_multiple_builds(to_delete)

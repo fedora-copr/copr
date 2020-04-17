@@ -17,7 +17,8 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
-                              UnrepeatableBuildException)
+                              UnrepeatableBuildException,
+                              BadRequest)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -479,12 +480,15 @@ def copr_delete_builds(copr):
 
     to_delete = []
     for build_id in build_ids:
-        build = ComplexLogic.get_build_safe(build_id)
-        to_delete.append(build)
+        to_delete.append(int(build_id))
 
-    builds_logic.BuildsLogic.delete_multiple_builds(flask.g.user, to_delete)
+    try:
+        builds_logic.BuildsLogic.delete_builds(flask.g.user, to_delete)
 
-    db.session.commit()
-    build_ids_str = ", ".join(build_ids).strip(", ")
-    flask.flash("Builds {} have been deleted successfully.".format(build_ids_str), "success")
-    return flask.jsonify({"msg": "success"})
+        db.session.commit()
+        build_ids_str = ", ".join(build_ids).strip(", ")
+        flask.flash("Builds {} have been deleted successfully.".format(build_ids_str), "success")
+        return flask.jsonify({"msg": "success"})
+    except BadRequest as e:
+        flask.flash(e, "error")
+        return flask.jsonify({"msg": "error"})

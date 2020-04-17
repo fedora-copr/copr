@@ -275,5 +275,17 @@ class BuildProxy(BaseProxy):
         """
         endpoint = "/build/delete/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
+
+    def delete_list(self, build_ids):
+        """
+        Delete multiple builds specified by a list of their ids.
+
+        :param list[int] build_id:
+        :return: Munch
+        """
+
+        endpoint = "/build/delete/list"
+        data = {"builds": build_ids}
+        request = Request(endpoint, data=data, api_base_url=self.api_base_url, method=POST, auth=self.auth)
         response = request.send()
         return munchify(response)

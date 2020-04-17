@@ -500,8 +500,8 @@ class Commands(object):
         self._watch_builds(args.build_id)
 
     def action_delete_build(self, args):
-        build = self.client.build_proxy.delete(args.build_id)
-        print("Build deleted")
+        result = self.client.build_proxy.delete_list(args.build_id)
+        print("Build(s) {0} were deleted.".format(", ".join(map(str, result["builds"]))))
 
     #########################################################
     ###                   Chroot actions                  ###
@@ -1039,10 +1039,9 @@ def setup_parser():
 
     # create the parser for the "delete-build" command
     parser_delete = subparsers.add_parser("delete-build",
-                                         help="Delete build specified by its ID")
-    parser_delete.add_argument("build_id", help="Build ID", type=int)
+                                          help="Delete builds specified by their IDs")
+    parser_delete.add_argument("build_id", help="Build ID", type=int, nargs="+")
     parser_delete.set_defaults(func="action_delete_build")
-
 
     #########################################################
     ###                   Chroot options                  ###

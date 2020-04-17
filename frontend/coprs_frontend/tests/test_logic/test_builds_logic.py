@@ -9,7 +9,8 @@ from coprs import models
 from coprs import app
 
 from copr_common.enums import StatusEnum
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
+from coprs.exceptions import ActionInProgressException, InsufficientRightsException, \
+                             MalformedArgumentException, BadRequest
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -248,8 +249,7 @@ class TestBuildsLogic(CoprsTestCase):
         self.db.session.commit()
 
         assert len(ActionsLogic.get_many().all()) == 0
-        BuildsLogic.delete_multiple_builds(self.u1, [self.b1, self.b2,
-                                                     self.b_pr])
+        BuildsLogic.delete_builds(self.u1, [self.b1.id, self.b2.id, self.b_pr.id])
         self.db.session.commit()
 
         assert len(ActionsLogic.get_many().all()) == 1
@@ -299,6 +299,39 @@ class TestBuildsLogic(CoprsTestCase):
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds")
+    def test_delete_multiple_builds(self):
+        """
+        Test deleting multiple builds at once.
+        """
+        self.b4_bc[0].status = StatusEnum("succeeded")
+        build_ids = [self.b1.id, self.b2.id, self.b3.id, self.b4.id, 1234]
+        with pytest.raises(BadRequest) as err_msg:
+            BuildsLogic.delete_builds(self.u2, build_ids)
+
+        msg1 = "Build(s) {0} are still running".format(self.b3.id)
+        msg2 = "Build(s) 1234 don't exist"
+        msg3 = ("You don't have permissions to delete build(s) {0}, {1}"
+                .format(self.b1.id, self.b2.id))
+
+        for msg in [msg1, msg2, msg3]:
+            assert msg in str(err_msg.value)
+
+        for build_id in [self.b1.id, self.b2.id, self.b3.id, self.b4.id]:
+            BuildsLogic.get(build_id).one()
+
+        self.c1.user = self.u2
+        build_ids = [self.b1.id, self.b4.id]
+        BuildsLogic.delete_builds(self.u2, build_ids)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 1
+
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b1.id).one()
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b4.id).one()
 
     def test_mark_as_failed(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.b1.source_status = StatusEnum("succeeded")

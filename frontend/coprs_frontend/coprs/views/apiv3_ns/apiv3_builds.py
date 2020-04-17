@@ -281,3 +281,15 @@ def delete_build(build_id):
     BuildsLogic.delete_build(flask.g.user, build)
     db.session.commit()
     return flask.jsonify(build_dict)
+
+
+@apiv3_ns.route("/build/delete/list", methods=POST)
+@api_login_required
+def delete_builds():
+    """
+    Delete builds specified by a list of IDs.
+    """
+    build_ids = flask.request.json["builds"]
+    BuildsLogic.delete_builds(flask.g.user, build_ids)
+    db.session.commit()
+    return flask.jsonify({"builds": build_ids})

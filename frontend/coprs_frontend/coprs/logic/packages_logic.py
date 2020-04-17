@@ -191,9 +191,9 @@ class PackagesLogic(object):
 
         to_delete = []
         for build in package.builds:
-            to_delete.append(build)
+            to_delete.append(build.id)
 
-        builds_logic.BuildsLogic.delete_multiple_builds(user, to_delete)
+        builds_logic.BuildsLogic.delete_builds(user, to_delete)
         db.session.delete(package)
 
 
