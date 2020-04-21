@@ -5,7 +5,10 @@ import flask
 
 from flask_sqlalchemy import SQLAlchemy
 from contextlib import contextmanager
-from flask_cache import Cache
+try:
+    from flask_caching import Cache
+except ImportError:
+    from flask_cache import Cache
 from flask_openid import OpenID
 from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse

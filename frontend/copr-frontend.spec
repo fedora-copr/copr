@@ -78,7 +78,11 @@ BuildRequires: python3-copr-common > 0.4
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator
 BuildRequires: python3-flask
+%if 0%{?fedora} >= 31
+BuildRequires: python3-flask-caching
+%else
 BuildRequires: python3-flask-cache
+%endif
 BuildRequires: python3-flask-openid
 BuildRequires: python3-flask-restful
 BuildRequires: python3-flask-sqlalchemy
@@ -131,6 +135,11 @@ Requires: python3-blinker
 Requires: python3-copr-common > 0.4
 Requires: python3-dateutil
 Requires: python3-flask
+%if 0%{?fedora} >= 31
+Requires: python3-flask-caching
+%else
+Requires: python3-flask-cache
+%endif
 Requires: python3-flask-cache
 Requires: python3-flask-openid
 Requires: python3-flask-restful
