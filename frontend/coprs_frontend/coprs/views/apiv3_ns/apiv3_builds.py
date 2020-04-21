@@ -1,9 +1,11 @@
 import os
 import flask
+
 from werkzeug.datastructures import MultiDict
+from werkzeug.utils import secure_filename
+
 from . import get_copr, file_upload, query_params, pagination, Paginator, json2form, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
-from werkzeug import secure_filename
 from copr_common.enums import StatusEnum
 from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)

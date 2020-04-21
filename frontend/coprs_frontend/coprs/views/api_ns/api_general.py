@@ -8,7 +8,7 @@ import json
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
 
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 from copr_common.enums import StatusEnum
 from coprs import db
