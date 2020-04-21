@@ -322,6 +322,11 @@ class CoprFormFactory(object):
                 validators=[UrlRepoListValidator()],
                 filters=[StringListFilter()])
 
+            runtime_dependencies = wtforms.TextAreaField(
+                "Runtime dependencies",
+                validators=[UrlRepoListValidator()],
+                filters=[StringListFilter()])
+
             initial_pkgs = wtforms.TextAreaField(
                 "Initial packages to build",
                 validators=[

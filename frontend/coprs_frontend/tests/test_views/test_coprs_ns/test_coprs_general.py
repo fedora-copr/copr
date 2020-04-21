@@ -1,15 +1,18 @@
 import json
-import flask
-import pytest
 import re
+from configparser import ConfigParser
 
 from unittest import mock
 
+import pytest
+import flask
 from sqlalchemy import desc
+
 
 from copr_common.enums import ActionTypeEnum, ActionPriorityEnum
 from coprs import app, cache, models
 
+from coprs.helpers import generate_repo_name
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
@@ -700,7 +703,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
 
     def test_works_on_older_builds(self, f_users, f_coprs, f_mock_chroots,
                                    f_custom_builds, f_db):
-        from coprs import app
         orig = app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"]
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = "https"
         r = self.tc.get(
@@ -798,6 +800,108 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert gpgkeys[0] == gpgkeys[1] == normal_gpgkey
         assert normal_baseurl == baseurls[0]
         assert normal_baseurl.rsplit('-', 1)[0] == baseurls[1].rsplit('-', 1)[0]
+
+    @new_app_context
+    def test_repofile_copr_runtime_deps(self, f_users, f_coprs, f_mock_chroots):
+        """
+        Test that a repofile for a project that has runtime dependencies was
+        generated correctly.
+        """
+        _side_effects = (f_users, f_coprs, f_mock_chroots)
+
+        repofile = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
+                self.u2.name, self.c3.name))
+
+        config = ConfigParser()
+        config.read_string(repofile.data.decode("utf-8"))
+
+        name1 = "Copr localhost/user2/barcopr runtime dependency #1 - user1/foocopr"
+        name2 = "Copr localhost/user2/barcopr external runtime dependency #1 - https_url_to_external_repo"
+
+        assert len(config.sections()) == 3
+        assert name1 in config.get(config.sections()[1], "name")
+        assert name2 in config.get(config.sections()[2], "name")
+        assert "{0}:{1}".format(self.u1.name, self.c1.name) in config.sections()[1]
+
+        url = "https://url.to/external/repo"
+        repo_id = "coprdep:{0}".format(generate_repo_name(url))
+        assert repo_id == config.sections()[2]
+        assert config.get(repo_id, "baseurl") == url
+
+    @new_app_context
+    def test_repofile_group_copr_runtime_deps(self, f_users, f_coprs,
+                                              f_mock_chroots, f_group_copr,
+                                              f_group_copr_dependent):
+        """
+        Test that repofiles for a project that has runtime dependency on
+        a group project and a group project with runtime dependency were
+        generated correctly.
+        """
+        _side_effects = (f_users, f_coprs, f_mock_chroots, f_group_copr,
+                         f_group_copr_dependent)
+
+        repofile = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
+                self.u2.name, self.c_gd.name))
+
+        config = ConfigParser()
+        config.read_string(repofile.data.decode("utf-8"))
+
+        name = (
+            "Copr localhost/user2/depcopr runtime dependency #1 - "
+            "@group1/groupcopr"
+        )
+
+        assert len(config.sections()) == 2
+        assert name in config.get(config.sections()[1], "name")
+
+        repofile = self.tc.get(
+            "/coprs/g/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
+                self.g1.name, self.gc2.name))
+
+        config = ConfigParser()
+        config.read_string(repofile.data.decode("utf-8"))
+
+        name = (
+            "Copr localhost/@group1/groupcopr2 runtime dependency #1 - "
+            "@group1/groupcopr1"
+        )
+
+        assert len(config.sections()) == 2
+        assert name in config.get(config.sections()[1], "name")
+
+
+    @new_app_context
+    def test_repofile_transitive_runtime_deps(self, f_users,
+                                              f_copr_transitive_dependency):
+        """
+        Test that a repofile for a project that has multiple transitive
+        runtime dependencies was generated correctly.
+        """
+        _side_effects = (f_users, f_copr_transitive_dependency)
+
+        repofile = self.tc.get(
+            "/coprs/{0}/{1}/repo/fedora-18/some.repo?arch=x86_64".format(
+                self.u2.name, self.c_td1.name))
+
+        config = ConfigParser()
+        config.read_string(repofile.data.decode("utf-8"))
+
+        warning = (
+            "# This repository is configured to have a runtime dependency on "
+            "a Copr project user2/nonexisting but that doesn't exist."
+        )
+        assert warning in repofile.data.decode("utf-8")
+
+        assert len(config.sections()) == 4
+        assert "coprdep:localhost:{0}:{1}".format(self.u2.name, self.c_td2.name) in config.sections()
+        assert "coprdep:localhost:{0}:{1}".format(self.u2.name, self.c_td3.name) in config.sections()
+
+        url = "http://some.url/"
+        repo_id = "coprdep:{0}".format(generate_repo_name(url))
+        assert repo_id == config.sections()[3]
+        assert config.get(repo_id, "baseurl") == url
 
 
 class TestSearch(CoprsTestCase):

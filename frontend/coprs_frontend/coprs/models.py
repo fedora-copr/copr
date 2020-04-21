@@ -279,6 +279,8 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     multilib = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
     module_hotfixes = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    runtime_dependencies = db.Column(db.Text)
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """
@@ -547,6 +549,20 @@ class Copr(db.Model, helpers.Serializer):
             if perm.copr_admin == helpers.PermissionEnum('approved'):
                 mails.append(perm.user.mail)
         return mails
+
+    @property
+    def runtime_deps(self):
+        """
+        Return a list of runtime dependencies"
+        """
+        dependencies = set()
+        if self.runtime_dependencies:
+            for dep in self.runtime_dependencies.split(" "):
+                if not dep:
+                    continue
+                dependencies.add(dep)
+
+        return list(dependencies)
 
 class CoprPermission(db.Model, helpers.Serializer):
     """

@@ -153,6 +153,7 @@
             placeholder='Optional',
             info='Delete the project after the specfied period of time (empty = disabled)') }}
 
+    {{ render_field(form.runtime_dependencies, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used as runtime dependencies. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
     </div>
   </div>
 

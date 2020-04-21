@@ -1,3 +1,4 @@
+# pylint: disable=attribute-defined-outside-init
 import base64
 import json
 import os
@@ -138,6 +139,18 @@ class CoprsTestCase(object):
             self.user_api_creds[u.username] = {"login": u.api_login, "token": u.api_token}
 
     @pytest.fixture
+    def f_groups(self):
+        """ Group for creating group projects."""
+        self.g1 = models.Group(
+            name=u"group1",
+            fas_name="fas_1",
+        )
+
+        self.basic_group_list = [self.g1]
+
+        self.db.session.add_all(self.basic_group_list)
+
+    @pytest.fixture
     def f_coprs(self):
         self.c1 = models.Copr(name=u"foocopr", user=self.u1, repos="", description="""
 ```python
@@ -147,7 +160,11 @@ def foo():
     return 1
 ```""")
         self.c2 = models.Copr(name=u"foocopr", user=self.u2, repos="")
-        self.c3 = models.Copr(name=u"barcopr", user=self.u2, repos="")
+        self.c3 = models.Copr(name=u"barcopr", user=self.u2, repos="",
+                              runtime_dependencies=(
+                                  "copr://user1/foocopr "
+                                  "https://url.to/external/repo"
+                              ))
         self.basic_coprs_list = [self.c1, self.c2, self.c3]
         self.db.session.add_all(self.basic_coprs_list)
 
@@ -195,11 +212,105 @@ def foo():
 
             cc4 = models.CoprChroot()
             cc4.mock_chroot = self.mc4
-            # c3 barcopr with fedora-rawhide-i386
+            cc5 = models.CoprChroot()
+            cc5.mock_chroot = self.mc1
+            # c3 barcopr with fedora-rawhide-i386 fedora-18-x86_64
+            cc5.copr = self.c3
             self.c3.copr_chroots.append(cc4)
-            self.db.session.add_all([cc1, cc2, cc3, cc4])
+
+            self.db.session.add_all([cc1, cc2, cc3, cc4, cc5])
 
         self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
+
+    @pytest.fixture
+    def f_group_copr(self, f_groups, f_mock_chroots):
+        """ Two group Coprs, the first being a dependency for the second."""
+        _side_effects = (f_groups, f_mock_chroots)
+
+        self.gc1 = models.Copr(name=u"groupcopr1", user=self.u1, group=self.g1,
+                               repos="")
+        self.gc2 = models.Copr(name=u"groupcopr2", user=self.u1, group=self.g1,
+                               repos="",
+                               runtime_dependencies="copr://@group1/groupcopr1")
+        self.gc1_dir = models.CoprDir(name=u"groupcopr1", copr=self.gc1,
+                                      main=True)
+        self.gc2_dir = models.CoprDir(name=u"groupcopr2", copr=self.gc2,
+                                      main=True)
+        self.group_coprs_list = [self.gc1, self.gc2]
+        self.db.session.add_all(self.group_coprs_list)
+        self.group_copr_dir_list = [self.gc1_dir, self.gc2_dir]
+        self.db.session.add_all(self.group_copr_dir_list)
+
+        cc1 = models.CoprChroot()
+        cc1.mock_chroot = self.mc1
+        self.gc1.copr_chroots.append(cc1)
+        cc2 = models.CoprChroot()
+        cc2.mock_chroot = self.mc1
+        self.gc2.copr_chroots.append(cc2)
+        self.db.session.add_all([cc1, cc2])
+
+    @pytest.fixture
+    def f_group_copr_dependent(self, f_coprs, f_mock_chroots, f_group_copr):
+        """ Copr dependent on a group copr."""
+        _side_effects = (f_coprs, f_mock_chroots, f_group_copr)
+
+        self.c_gd = models.Copr(name=u"depcopr", user=self.u2, repos="",
+                                runtime_dependencies="copr://@group1/groupcopr1")
+        self.basic_coprs_list.append(self.c_gd)
+        self.db.session.add_all(self.basic_coprs_list)
+
+        self.c_gd_dir = models.CoprDir(name=u"depcopr", copr=self.c_gd,
+                                       main=True)
+        self.basic_copr_dir_list.append(self.c_gd_dir)
+        self.db.session.add_all(self.basic_copr_dir_list)
+
+        cc = models.CoprChroot()
+        cc.mock_chroot = self.mc1
+        cc.copr = self.c_gd
+
+        self.db.session.add_all([cc])
+
+
+    @pytest.fixture
+    def f_copr_transitive_dependency(self, f_coprs, f_mock_chroots):
+        """ Coprs that have transitive runtime dependency on each other."""
+        _side_effects = (f_coprs, f_mock_chroots)
+
+        self.c_td1 = models.Copr(name=u"depcopr1", user=self.u2, repos="",
+                                 runtime_dependencies=(
+                                     "copr://user2/depcopr1 "
+                                     "copr://user2/depcopr2"
+                                 ))
+        self.c_td2 = models.Copr(name=u"depcopr2", user=self.u2, repos="",
+                                 runtime_dependencies=(
+                                     "copr://user2/depcopr3 "
+                                     "http://some.url/"
+                                 ))
+        self.c_td3 = models.Copr(name=u"depcopr3", user=self.u2, repos="",
+                                 runtime_dependencies=(
+                                     "copr://user2/depcopr1 "
+                                     "copr://user2/nonexisting"
+                                 ))
+        self.basic_coprs_list.extend([self.c_td1, self.c_td2, self.c_td3])
+        self.db.session.add_all(self.basic_coprs_list)
+
+        self.c_td1_dir = models.CoprDir(name=u"depcopr1", copr=self.c_td1, main=True)
+        self.c_td2_dir = models.CoprDir(name=u"depcopr2", copr=self.c_td2, main=True)
+        self.c_td3_dir = models.CoprDir(name=u"depcopr3", copr=self.c_td3, main=True)
+        self.basic_copr_dir_list.extend([self.c_td1_dir, self.c_td2_dir, self.c_td3_dir])
+        self.db.session.add_all(self.basic_copr_dir_list)
+
+        cc1 = models.CoprChroot()
+        cc2 = models.CoprChroot()
+        cc3 = models.CoprChroot()
+        cc1.mock_chroot = self.mc1
+        cc2.mock_chroot = self.mc1
+        cc3.mock_chroot = self.mc1
+        cc1.copr = self.c_td1
+        cc2.copr = self.c_td2
+        cc3.copr = self.c_td3
+
+        self.db.session.add_all([cc1, cc2, cc3])
 
     @pytest.fixture
     def f_mock_chroots_many(self):

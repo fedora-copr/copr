@@ -1,5 +1,5 @@
 [{{ repo_id }}]
-name=Copr repo for {{ copr_dir.name }} owned by {{ copr_dir.copr.owner_name }}
+name={{ name }}
 {{- " (" + arch + ")" if arch }}
 baseurl={{ url | fix_url_https_backend }}
 type=rpm-md

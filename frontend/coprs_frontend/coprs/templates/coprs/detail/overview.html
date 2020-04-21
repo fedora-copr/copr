@@ -89,6 +89,16 @@
     </ul>
     {% endif %}
 
+    {% if copr.runtime_deps %}
+    <h3>Runtime Dependency List</h3>
+    <p> The following repositories are used as runtime dependencies </p>
+    <ul class=repos-list>
+      {% for repo in copr.runtime_deps %}
+        <li><a href="{{ repo|repo_url }}">{{ repo }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
     {% if config.ENABLE_DISCUSSION %}
     {% if config.DISCOURSE_URL %}
     <div id='discourse-comments'></div>
