@@ -15,7 +15,6 @@ version_files  = os.path.join(
     '..',
     'coprs_frontend',
     'alembic',
-    'schema',
     'versions',
     '*.py'
 )
@@ -48,8 +47,8 @@ for py_file in glob.glob(version_files):
         'file': py_file,
     }
 
-def print_revision(revision):
-    print(os.path.basename(revision['file']))
+def print_revision(revision_dict):
+    print(os.path.basename(revision_dict['file']))
 
 printed_rev = initial_revision
 while True:
