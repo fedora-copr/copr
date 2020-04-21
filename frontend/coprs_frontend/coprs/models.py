@@ -221,6 +221,7 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     __tablename__ = "copr"
     __table_args__ = (
         db.Index('copr_name_group_id_idx', 'name', 'group_id'),
+        db.Index('copr_deleted_name', 'deleted', 'name'),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -240,7 +241,7 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     playground = db.Column(db.Boolean, default=False)
 
     # should copr run `createrepo` each time when build packages are changed
-    auto_createrepo = db.Column(db.Boolean, default=True)
+    auto_createrepo = db.Column(db.Boolean, default=True, nullable=False)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
@@ -290,8 +291,8 @@ class _CoprPrivate(db.Model, helpers.Serializer):
     )
 
     # copr relation
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True,
-            nullable=False, primary_key=True)
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=False,
+                        primary_key=True)
 
     # a secret to be used for webhooks authentication
     webhook_secret = db.Column(db.String(100))
@@ -561,7 +562,8 @@ class CoprPermission(db.Model, helpers.Serializer):
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
     user = db.relationship("User", backref=db.backref("copr_permissions"))
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True)
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True,
+                        index=True)
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
 
     def set_permission(self, name, value):
@@ -595,6 +597,9 @@ class CoprDir(db.Model):
     copr = db.relationship("Copr", backref=db.backref("dirs"))
 
     __table_args__ = (
+        # TODO: Drop the PG only index.  Add (a) normal unique index, (b) add a
+        # check index for 'main == true' (NULLs are not calculated), and (c)
+        # flip all the false values to NULL.
         db.Index('only_one_main_copr_dir', copr_id, main,
                  unique=True, postgresql_where=(main==True)),
 
@@ -635,6 +640,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     __table_args__ = (
         db.UniqueConstraint('copr_dir_id', 'name', name='packages_copr_dir_pkgname'),
+        db.Index('package_copr_id_name', 'copr_id', 'name'),
         db.Index('package_webhook_sourcetype', 'webhook_rebuild', 'source_type'),
     )
 
@@ -795,6 +801,7 @@ class Build(db.Model, helpers.Serializer):
                       db.Index('build_order', "is_background", "id"),
                       db.Index('build_filter', "source_type", "canceled"),
                       db.Index('build_canceled_is_background_source_status_id_idx', 'canceled', "is_background", "source_status", "id"),
+                      db.Index('build_copr_id_package_id', "copr_id", "package_id")
                      )
 
     def __init__(self, *args, **kwargs):
@@ -1272,7 +1279,8 @@ class CoprChroot(db.Model, helpers.Serializer):
         db.Integer, db.ForeignKey("mock_chroot.id"), primary_key=True)
     mock_chroot = db.relationship(
         "MockChroot", backref=db.backref("copr_chroots"))
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True)
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True,
+                        index=True)
     copr = db.relationship("Copr",
                            backref=db.backref(
                                "copr_chroots",
@@ -1365,7 +1373,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                                primary_key=True)
     mock_chroot = db.relationship("MockChroot", backref=db.backref("builds"))
     build_id = db.Column(db.Integer, db.ForeignKey("build.id", ondelete="CASCADE"),
-                         primary_key=True)
+                         primary_key=True, index=True)
     build = db.relationship("Build", backref=db.backref("build_chroots", cascade="all, delete-orphan",
                                                         passive_deletes=True))
     git_hash = db.Column(db.String(40))
@@ -1447,7 +1455,7 @@ class LegalFlag(db.Model, helpers.Serializer):
     # time of raising the flag as returned by int(time.time())
     raised_on = db.Column(db.Integer)
     # time of resolving the flag by admin as returned by int(time.time())
-    resolved_on = db.Column(db.Integer)
+    resolved_on = db.Column(db.Integer, index=True)
 
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=True)
@@ -1474,6 +1482,10 @@ class Action(db.Model, helpers.Serializer):
     Representation of a custom action that needs
     backends cooperation/admin attention/...
     """
+
+    __table_args__ = (
+        db.Index('action_result_action_type', 'result', 'action_type'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     # see ActionTypeEnum

@@ -6,27 +6,35 @@ from coprs.logic import coprs_logic
 from coprs.mail import OutdatedChrootMessage
 from commands.notify_outdated_chroots import get_user_chroots_map, filter_chroots, notify_outdated_chroots_function
 
+def _get_user_chroots_sets(chroots, user):
+    """ the list of CoprChroots is not ordered """
+    with_hashes = get_user_chroots_map(chroots, user)
+    with_sets = {}
+    for key in with_hashes:
+        with_sets[key] = set(with_hashes[key])
+    return with_sets
+
 class TestNotifyOutdatedChroots(CoprsTestCase):
 
     def test_user_chroots_map(self, f_users, f_coprs, f_mock_chroots, f_db):
         chroots = coprs_logic.CoprChrootsLogic.get_multiple().all()
-        assert get_user_chroots_map(chroots, None) == {
-            self.u1: self.c1.copr_chroots,
-            self.u2: self.c2.copr_chroots + self.c3.copr_chroots,
+        assert _get_user_chroots_sets(chroots, None) == {
+            self.u1: set(self.c1.copr_chroots),
+            self.u2: set(self.c2.copr_chroots + self.c3.copr_chroots),
         }
 
     def test_user_chroots_map_permissions(self, f_users, f_coprs, f_mock_chroots, f_copr_permissions, f_db):
         # With `f_copr_permissions`, `u1` is now one of the admis of `c3`
         chroots = coprs_logic.CoprChrootsLogic.get_multiple().all()
-        assert get_user_chroots_map(chroots, None) == {
-            self.u1: self.c1.copr_chroots + self.c3.copr_chroots,
-            self.u2: self.c2.copr_chroots + self.c3.copr_chroots,
+        assert _get_user_chroots_sets(chroots, None) == {
+            self.u1: set(self.c1.copr_chroots + self.c3.copr_chroots),
+            self.u2: set(self.c2.copr_chroots + self.c3.copr_chroots),
         }
 
     def test_user_chroots_map_email(self, f_users, f_coprs, f_mock_chroots, f_db):
         chroots = coprs_logic.CoprChrootsLogic.get_multiple().all()
-        assert get_user_chroots_map(chroots, "user2@spam.foo") == \
-            {self.u2: self.c2.copr_chroots + self.c3.copr_chroots}
+        assert _get_user_chroots_sets(chroots, "user2@spam.foo") == \
+            {self.u2: set(self.c2.copr_chroots + self.c3.copr_chroots)}
 
 
     def test_filter_chroots(self, f_users, f_coprs, f_mock_chroots, f_db):
