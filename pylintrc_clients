@@ -1,23 +1,8 @@
-# Copr global pylint configuration.
+# Copr clients pylint configuration
 
 [MASTER]
 # Pickle collected data for later comparisons.
 persistent=no
-
-# Reasoning for ignored classes
-# -----------------------------
-# SQLAlchemy:
-#     Per https://github.com/PyCQA/pylint/issues/1973#issuecomment-418980111
-# scoped_session:
-#     Same SQLAlchemy.
-ignored-classes=SQLAlchemy,scoped_session
-
-# Reasoning for ignored modules
-# -----------------------------
-# alembic:
-#     Pylint entirely fails to parse the module.
-#     Example error: Module 'alembic.op' has no 'drop_index' member
-ignored-modules=alembic
 
 init-hook=
     import os
@@ -38,7 +23,9 @@ load-plugins=pylint_copr_plugin
 #     This is to fix our Jenkins CI where we do not have all the build
 #     requirements for all our sub-components.  We can afford not listening to
 #     this error because our packaging CI would discover the problems anyways.
-disable=import-error
+# useless-object-inheritance
+#     We need to keep compatibility with Python 2 for EL6 and EL7.
+disable=import-error,useless-object-inheritance
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
@@ -47,12 +34,7 @@ dummy-variables-rgx=_|dummy
 
 [BASIC]
 # Regular expression which should only match correct module names
-# We ignore all
-# - "copr-*" scripts (lowercase)
-# - alembic migrations
-# - fdec9947f8a1
-# Default is: [a-z_][a-z0-9_]{2,30}$
-module-rgx=(copr-[a-z-]*|[0-9a-f]{12}_[a-z_]+|[a-z_][a-z0-9_]{2,30})$
+module-rgx=([a-zA-Z_][a-zA-Z0-9_]+)$
 
 # Regular expression which should only match correct module level names
 const-rgx=(([a-zA-Z_][a-zA-Z0-9_]*)|(__.*__))$
