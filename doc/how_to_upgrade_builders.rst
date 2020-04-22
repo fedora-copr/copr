@@ -10,6 +10,11 @@ it is released.
 Keep amending this page if you find something not matching reality or expectations.
 
 
+.. note:: Until a datacenter migration is done, our builders run only in
+          Amazon AWS. You can safely jump to :ref:`prepare_aws_source_images`.
+          Also, ``ppc64le`` builders are temporarily disabled.
+
+
 Requirements
 ------------
 
@@ -144,6 +149,8 @@ the old builders, and check the spawner log what is happening::
 Try to build some packages and you are done.
 
 
+.. _prepare_aws_source_images:
+
 Prepare AWS source images
 -------------------------
 
@@ -164,7 +171,8 @@ to ``us-west-*`` soon).  Check what address the button points to::
     https://redirect.fedoraproject.org/console.aws.amazon.com/ec2/v2/home
         ?region=us-east-1#LaunchInstanceWizard:ami=ami-0c830793775595d4b
 
-... remember the ``ami-0c830793775595d4b`` ID part.
+Do not click the launch button and do not proceed to launch the instance manually
+through Amazon AWS launcher. Only remember the ``ami-0c830793775595d4b`` ID part.
 
 Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - copr``, and
 execute::
@@ -178,13 +186,9 @@ Continue fixing the script/playbooks/fedora till you succeed like that.  Repeat
 the previous steps for both ``aarch64`` and ``x86_64``.
 
 The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
-options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev``.
+options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev_aws``
+and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 
-You can try to kill all the old currently unused builders, and check the spawner
-log what is happening::
-
-    [copr@copr-be-dev ~][STG]$ cleanup-vms-aws --kill-also-unused
-    [copr@copr-be-dev ~][STG]$ tail -f /var/log/copr-backend/spawner.log
 
 Prepare libvirt source images
 -----------------------------
@@ -286,6 +290,8 @@ address, you are mostly done::
     145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
 
 
+.. _testing:
+
 Testing
 -------
 
@@ -304,6 +310,13 @@ should re-provision the backend configuration from batcave::
 You might well want to stop here for now, and try to test for a week or so that
 the devel instance behaves sanely.  If not, consider running
 :ref:`sanity_tests` (or at least try to build several packages there).
+
+You can try to kill all the old currently unused builders, and check the spawner
+log what is happening::
+
+    [copr@copr-be-dev ~][STG]$ cleanup_vm_nova.py --kill-also-unused
+    [copr@copr-be-dev ~][STG]$ cleanup-vms-aws --kill-also-unused
+    [copr@copr-be-dev ~][STG]$ tail -f /var/log/copr-backend/spawner.log
 
 
 Production
