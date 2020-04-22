@@ -277,7 +277,8 @@ class _Worker:  # pylint: disable=too-few-public-methods
             sys.exit(bool(diff))
         finally:
             log.debug("removing workdir %s", self.workdir)
-            shutil.rmtree(self.workdir)
+            if not self.options.no_cleanup:
+                shutil.rmtree(self.workdir)
 
 
 def _get_arg_parser():
@@ -292,6 +293,13 @@ def _get_arg_parser():
         "--log-level",
         default='error',
         help="The python logging level, e.g. debug, error, ...")
+    parser.add_argument(
+        "--no-cleanup",
+        action='store_true',
+        default=False,
+        help=("Keep the temporary working directory, you can use the "
+              "--log-level=info switch to see where it is created"),
+    )
     return parser
 
 
