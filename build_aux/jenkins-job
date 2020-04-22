@@ -87,7 +87,7 @@ EOF
     container=$(docker run --rm -v "$PWD":/workdir:Z -d "$image" sleep 1800)
     cleanup_actions+=( "docker kill $container" )
     for package; do
-      docker exec "$container" bash -c "cd /workdir/$package && ../build_aux/linter --compare-against $DIFF_AGAINST"
+      docker exec "$container" bash -c "cd /workdir/$package && ../build_aux/linter --print-fixed-errors --compare-against $DIFF_AGAINST"
     done
 }
 

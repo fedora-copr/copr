@@ -20,6 +20,18 @@ log = logging.getLogger()  # pylint: disable=invalid-name
 CSDIFF_PYLINT = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                               'csdiff-pylint'))
 
+def _run_csdiff(old, new, msg):
+    popen_diff = Popen(['csdiff', old, new],
+                       stdout=PIPE)
+    diff = popen_diff.communicate()[0].decode('utf-8')
+    if diff:
+        print("============")
+        print(msg)
+        print("============")
+        print()
+        sys.stdout.write(diff)
+    return int(bool(diff))
+
 
 def file_type(filename):
     """
@@ -270,11 +282,11 @@ class _Worker:  # pylint: disable=too-few-public-methods
                 finally:
                     os.chdir(oldcwd)
 
-            popen_diff = Popen(['csdiff', old_report, new_report],
-                               stdout=PIPE)
-            diff = popen_diff.communicate()[0].decode('utf-8')
-            sys.stdout.write(diff)
-            sys.exit(bool(diff))
+            if self.options.print_fixed_errors:
+                _run_csdiff(new_report, old_report, "Fixed warnings")
+
+            sys.exit(_run_csdiff(old_report, new_report, "Added warnings"))
+
         finally:
             log.debug("removing workdir %s", self.workdir)
             if not self.options.no_cleanup:
@@ -299,6 +311,12 @@ def _get_arg_parser():
         default=False,
         help=("Keep the temporary working directory, you can use the "
               "--log-level=info switch to see where it is created"),
+    )
+    parser.add_argument(
+        "--print-fixed-errors",
+        action='store_true',
+        default=False,
+        help="Also print defects which were fixed by the changes",
     )
     return parser
 
