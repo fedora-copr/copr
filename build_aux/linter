@@ -20,15 +20,16 @@ log = logging.getLogger()  # pylint: disable=invalid-name
 CSDIFF_PYLINT = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                               'csdiff-pylint'))
 
+
 def _run_csdiff(old, new, msg):
-    popen_diff = Popen(['csdiff', old, new],
+    popen_diff = Popen(['csdiff', '-c', old, new],
                        stdout=PIPE)
     diff = popen_diff.communicate()[0].decode('utf-8')
     if diff:
-        print("============")
-        print(msg)
-        print("============")
-        print()
+        sep = "=" * (len(msg) + 2)
+        print(sep)
+        print(" {} ".format(msg))
+        print(sep + "\n")
         sys.stdout.write(diff)
     return int(bool(diff))
 
@@ -67,7 +68,7 @@ class _Linter:
         rules = []
         for pair in self.renames:
             old, new = self.modify_rename(pair[0], pair[1])
-            rule = "s|^{}|{}|".format(old, new)
+            rule = "s|: \"{}\"|: \"{}\"|".format(old, new)
             rules += ['-e', rule]
 
         return ['sed'] + rules
@@ -121,15 +122,6 @@ class PylintLinter(_Linter):
     """
     def is_compatible(self, file):
         return file.type == 'python'
-
-    @classmethod
-    def modify_rename(cls, old, new):
-        """
-        Git reports 'a -> b' rename, but we use '/a -> /b' here because
-        otherwise csdiff wouldn't parse the reports.  That's why we have to
-        modify it here, too.
-        """
-        return '/' + old, '/' + new
 
     def command(self, projectdir, filenames):
         abs_pylintrc = os.path.join(self.gitroot, projectdir, 'pylintrc')
@@ -284,6 +276,7 @@ class _Worker:  # pylint: disable=too-few-public-methods
 
             if self.options.print_fixed_errors:
                 _run_csdiff(new_report, old_report, "Fixed warnings")
+                print()
 
             sys.exit(_run_csdiff(old_report, new_report, "Added warnings"))
 

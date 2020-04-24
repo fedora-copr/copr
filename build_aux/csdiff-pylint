@@ -1,12 +1,43 @@
 #! /bin/bash
 
-# csdiff mis-parses the line if we don't produce absoulute filenames, hence
-# the leading /.
+# The csdiff tool doesn't support the Pylint's JSON output yet.  So this just a
+# trivial wrapper which reads Pylint's report and transforms it to JSON which is
+# supported by csdiff.
+#
+# The script accepts the same parameters as pylint itself.
 
 pylint -rn \
        --score=no \
-       --msg-template='/{path}:{line}:{column}: {msg_id}[pylint]: {msg}' \
-       "$@" \
-    | grep -F -v '*******'
+       --output-format=json \
+      "$@" | python3 -c '
+import sys
+import json
+
+
+def _main():
+    data = json.load(sys.stdin)
+    csdiff_data = []
+    for defect in data:
+        message = defect["obj"] + ": " if defect["obj"] else ""
+        message += defect["message"]
+
+        csdiff_data.append({
+            "checker": "PYLINT",
+            "events": [{
+                "file_name": defect["path"],
+                "line": defect["line"],
+                "column": defect["column"],
+                "event": "{}({})".format(defect["message-id"],
+                                         defect["symbol"]),
+                "message": message,
+            }],
+        })
+
+    print(json.dumps({"defects": csdiff_data}, indent=2))
+
+
+if __name__ == "__main__":
+    _main()
+'
 
 exit "${PIPESTATUS[0]}"
