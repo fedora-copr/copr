@@ -14,7 +14,7 @@ We currently don't have automatic snapshots enabled, so you need to do them manu
 4. See what tags they have and what is the naming convention
     - Tags: `Name`, `CoprInstance`, `CoprPurpose`, `FedoraGroup`
     - Naming: `data-copr-XY-prod-YYYY-MM-DD` where `XY` is instance name
-      (`fg`, `bg`, `dg`, `kg`)
+      (`fe`, `be`, `dg`, `kg`)
     - We also keep `-last-clean` snapshots for backend and distgit instances. They are
       created from an unmounted filesystem
 5. Open volumes from the left menu and filter `CoprPurpose: infrastructure`
