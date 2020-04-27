@@ -1,3 +1,5 @@
+import pytest
+
 from copr_common.enums import StatusEnum
 from tests.coprs_test_case import CoprsTestCase
 
@@ -62,9 +64,26 @@ class TestBuildModel(CoprsTestCase):
 
         self.b1.source_status = StatusEnum("running")
         assert not self.b1.finished
+        assert not self.b1.finished_early
 
         self.b1.source_status = StatusEnum("canceled")
         assert self.b1.finished
+        assert self.b1.finished_early
 
         self.b1.source_status = StatusEnum("failed")
         assert self.b1.finished
+        assert self.b1.finished_early
+
+    @pytest.mark.usefixtures('f_users', 'f_coprs', 'f_mock_chroots', 'f_builds',
+                             'f_db')
+    def test_canceled(self):
+        """ test that build.cancel affects build.build_chroots[*].finished """
+        bch = self.b1.build_chroots[0]
+        bch.status = StatusEnum("pending")
+        assert not self.b1.finished
+        assert not bch.finished
+        self.b1.canceled = True
+        assert bch.finished
+        self.b1.canceled = False
+        self.b1.source_status = StatusEnum("canceled")
+        assert bch.finished

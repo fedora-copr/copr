@@ -2,10 +2,13 @@ import datetime
 import json
 from unittest import mock
 
+import pytest
+
 from coprs import models, helpers, app
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic, ProjectForking
+from coprs.logic.coprs_logic import CoprChrootsLogic
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 
 
@@ -111,6 +114,32 @@ class TestProjectForking(CoprsTestCase):
         assert ch.started_on == fch.started_on
         assert ch.ended_on == fch.ended_on
         assert ch.mock_chroot_id == fch.mock_chroot_id
+
+    @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
+    def test_fork_check_assigned_copr_chroot(self):
+        """
+        When old build with old set of CoprChroots is forked, only the
+        "still-enabled" copr_chroots get the new forked BuildChroot.
+        """
+        _side_effects = (self)
+        assert len(self.c2.copr_chroots) == 2
+        assert self.b1.copr != self.c2  # fork from different copr
+
+        # enable f18-x86_64, that's where b1 was build into
+        new_cch = CoprChrootsLogic.create_chroot(
+            user=self.u1,
+            copr=self.c2,
+            mock_chroot=self.b1_bc[0].mock_chroot,
+        )
+        self.db.session.add(new_cch)
+
+        forking = ProjectForking(self.u1)
+        fork_b = forking.fork_build(self.b1, self.c2, self.p2,
+                                    self.b1.build_chroots)
+
+        # check the forked build_chroot has assigned copr_chroot
+        assert len(new_cch.build_chroots) == 1
+        assert fork_b.build_chroots == new_cch.build_chroots
 
     def test_fork_package(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         forking = ProjectForking(self.u1)

@@ -6,7 +6,7 @@ from flask_whooshee import Whooshee
 
 from sqlalchemy import desc
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, StatusEnum
 from coprs import app
 from coprs.forms import PinnedCoprsForm, ChrootForm, ModuleEnableNameValidator
 from coprs.logic.actions_logic import ActionsLogic
@@ -17,7 +17,10 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
 from tests.coprs_test_case import CoprsTestCase
-from coprs.exceptions import InsufficientRightsException
+from coprs.exceptions import (
+    BuildInProgressException,
+    InsufficientRightsException,
+)
 
 
 class TestCoprsLogic(CoprsTestCase):
@@ -169,6 +172,24 @@ class TestCoprChrootsLogic(CoprsTestCase):
         # A chroot was supposed to be deleted yesterday, delete it
         self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
         assert outdated.all() == [self.c2.copr_chroots[0]]
+
+    @pytest.mark.usefixtures("f_copr_chroots_assigned")
+    def test_disabling_disallowed_when_build_runs(self):
+        """
+        We disallow removing chroots from project when some BuildChroot(s) are
+        still in progress.
+        """
+        chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+
+        with pytest.raises(BuildInProgressException) as exc:
+            CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
+        assert "builds 3 and 4 are still in progress" in exc.value.message
+        for bch in self.b3_bc:
+            bch.status = StatusEnum("failed")
+        for bch in self.b4_bc:
+            bch.status = StatusEnum("succeeded")
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
 
 
 class TestPinnedCoprsLogic(CoprsTestCase):

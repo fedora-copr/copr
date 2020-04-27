@@ -484,13 +484,15 @@ def process_copr_update(copr, form):
         copr.auto_prune = form.auto_prune.data
     else:
         copr.auto_prune = True
-    coprs_logic.CoprChrootsLogic.update_from_names(
-        flask.g.user, copr, form.selected_chroots)
+
     try:
+        coprs_logic.CoprChrootsLogic.update_from_names(
+            flask.g.user, copr, form.selected_chroots)
         # form validation checks for duplicates
         coprs_logic.CoprsLogic.update(flask.g.user, copr)
     except (exceptions.ActionInProgressException,
-            exceptions.InsufficientRightsException) as e:
+            exceptions.InsufficientRightsException,
+            exceptions.BuildInProgressException) as e:
 
         flask.flash(str(e), "error")
         db.session.rollback()

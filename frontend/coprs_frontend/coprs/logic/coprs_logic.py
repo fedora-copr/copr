@@ -589,7 +589,11 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def mock_chroots_from_names(cls, names):
-
+        """
+        Return a list of MockChroot objects (not a query object!) which are
+        named by one of the ``names`` list.
+        """
+        # TODO: this should be moved to MockChrootsLogic
         db_chroots = models.MockChroot.query.all()
         mock_chroots = []
         for ch in db_chroots:
@@ -707,35 +711,63 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def update_from_names(cls, user, copr, names):
+        """
+        Update list of CoprChroots assigned to ``copr`` from chroot ``names``
+        array.  The chroots not present in ``names`` are disabled.
+
+        :param user: The user who does the change.
+        :type user: models.User
+        """
+
         UsersLogic.raise_if_cant_update_copr(
             user, copr,
             "Only owners and admins may update their projects.")
-        current_chroots = copr.mock_chroots
-        new_chroots = cls.mock_chroots_from_names(names)
+
+        current_copr_chroots = copr.copr_chroots
+        chroot_map = {cch.mock_chroot: cch for cch in current_copr_chroots}
+        new_mock_chroots = cls.mock_chroots_from_names(names)
+
         # add non-existing
         run_createrepo = False
-        for mock_chroot in new_chroots:
-            if mock_chroot not in current_chroots:
-                db.session.add(
-                    models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
+        for mock_chroot in new_mock_chroots:
+            if mock_chroot not in chroot_map:
+                db.session.add(CoprChrootsLogic.create_chroot(
+                    user=user,
+                    copr=copr,
+                    mock_chroot=mock_chroot,
+                ))
                 run_createrepo = True
 
         if run_createrepo:
             ActionsLogic.send_createrepo(copr)
 
-        # delete no more present
         to_remove = []
-        for mock_chroot in current_chroots:
-            if mock_chroot in new_chroots:
+        for mock_chroot in chroot_map:
+            if mock_chroot in new_mock_chroots:
                 continue
             if not mock_chroot.is_active:
+                # we don't remove EOLed variants here
                 continue
             # can't delete here, it would change current_chroots and break
             # iteration
             to_remove.append(mock_chroot)
 
+        running_builds = set()
         for mc in to_remove:
+            for bch in chroot_map[mc].build_chroots:
+                if not bch.finished:
+                    running_builds.add(bch.build_id)
+                    continue
             copr.mock_chroots.remove(mc)
+
+        # reject the request when some build_chroots are not yet finished
+        if running_builds:
+            raise exceptions.BuildInProgressException(
+                "Can't drop chroot from project, related "
+                "{} still in progress".format(
+                    helpers.pluralize("build", list(running_builds),
+                                      be_suffix=True)))
+
 
     @classmethod
     def remove_comps(cls, user, copr_chroot):

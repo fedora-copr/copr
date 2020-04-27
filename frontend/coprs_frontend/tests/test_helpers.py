@@ -1,13 +1,15 @@
 import os
 from copy import deepcopy
 from unittest import mock
+
 from flask import Flask
+import pytest
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
     fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, \
     parse_repo_params, pagure_html_diff_changed, SubdirMatch, \
-    raw_commit_changes, WorkList
+    raw_commit_changes, WorkList, pluralize
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -255,3 +257,15 @@ def test_worklist_class():
     assert _get_list(task_a) == ["a", "c", "b"]
     assert _get_list(task_b) == ["b", "a", "c"]
     assert _get_list(task_c) == ["c", "b", "a"]
+
+
+def test_pluralize():
+    """ test generic I/O for helpers.pluralize """
+    # we don't explicitly re-order
+    assert pluralize("build", [2, 1, 3], be_suffix=True) == "builds 2, 1 and 3 are"
+    assert pluralize("action", [1], be_suffix=True) == "action 1 is"
+    assert pluralize("sth", [1, 2], be_suffix=False) == "sths 1 and 2"
+    assert pluralize("a", [2], be_suffix=False) == "a 2"
+
+    with pytest.raises(IndexError):
+        pluralize("a", [])

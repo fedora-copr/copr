@@ -16,7 +16,7 @@ from copr_common.enums import ActionTypeEnum, BackendResultEnum, StatusEnum
 from coprs import helpers
 from coprs import models
 from coprs import cache
-from coprs.logic.coprs_logic import BranchesLogic
+from coprs.logic.coprs_logic import BranchesLogic, CoprChrootsLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 
 from unittest import mock
@@ -707,6 +707,32 @@ def foo():
             priority='120',
         )
         self.db.session.add_all([self.dg1, self.dg2])
+
+    @pytest.fixture
+    def f_copr_chroots_assigned(self, f_users, f_coprs, f_mock_chroots,
+                                f_builds):
+        """
+        Make sure that users/coprs/builds are created, and that some build
+        chroots have correcponding copr_chroot instsances.
+        """
+        _side_effects = (self, f_users, f_coprs, f_mock_chroots, f_builds)
+        for bch in models.BuildChroot.query.all():
+            bch.copr_chroot = CoprChrootsLogic.get_by_mock_chroot_id(
+                bch.build.copr,
+                bch.mock_chroot_id,
+            ).one_or_none()
+
+    @pytest.fixture
+    def f_copr_chroots_assigned_finished(self, f_copr_chroots_assigned):
+        """
+        Same as f_copr_chroots_assigned, but _some_ BuildChroots are flipped
+        from non-finished statuses to finished.
+        """
+        _side_effects = (self, f_copr_chroots_assigned)
+        for bch in self.b3_bc:
+            bch.status = StatusEnum("failed")
+        for bch in self.b4_bc:
+            bch.status = StatusEnum("succeeded")
 
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,

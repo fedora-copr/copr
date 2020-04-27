@@ -1110,6 +1110,22 @@ class Build(db.Model, helpers.Serializer):
         return self.source_status == StatusEnum("succeeded")
 
     @property
+    def finished_early(self):
+        """
+        Check if the build has finished, and if that happened prematurely
+        because:
+        - it was canceled
+        - it failed to generate/download sources).
+        That said, whether it's clear that the build has finished and we don't
+        have to do additional SQL query to check corresponding BuildChroots.
+        """
+        if self.canceled:
+            return True
+        if self.source_status in [StatusEnum("failed"), StatusEnum("canceled")]:
+            return True
+        return False
+
+    @property
     def finished(self):
         """
         Find out if this build is in finished state.
@@ -1117,7 +1133,7 @@ class Build(db.Model, helpers.Serializer):
         Build is finished only if all its build_chroots are in finished state or
         the build was canceled.
         """
-        if self.canceled:
+        if self.finished_early:
             return True
         if not self.build_chroots:
             return StatusEnum(self.source_status) in helpers.FINISHED_STATUSES
@@ -1460,6 +1476,8 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def finished(self):
+        if self.build.finished_early:
+            return True
         return self.state in helpers.FINISHED_STATUSES
 
     @property

@@ -33,6 +33,12 @@ class BadRequest(CoprHttpException):
     _code = 400
 
 
+class ConflictingRequest(CoprHttpException):
+    """ Generic DB conflict """
+    _default = "Conflicting request"
+    _code = 409
+
+
 class ApiError(CoprHttpException):
 
     _default = "API error"
@@ -71,6 +77,14 @@ InsufficientRightsException = AccessRestricted
 
 class RequestCannotBeExecuted(CoprHttpException):
     pass
+
+
+class BuildInProgressException(ConflictingRequest):
+    """
+    Raised when user tries to perform an action which is not allowed when some
+    build is running.
+    """
+    _code = 409
 
 
 class ActionInProgressException(CoprHttpException):
