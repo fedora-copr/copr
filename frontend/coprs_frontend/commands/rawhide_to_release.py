@@ -103,9 +103,12 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
             if not chroot_exists:
                 # forked chroot may already exists, e.g. from prevoius
                 # 'rawhide-to-release-run'
-                dest_build_chroot = models.BuildChroot(**rbc.to_dict())
-                dest_build_chroot.mock_chroot_id = mock_chroot.id
-                dest_build_chroot.mock_chroot = mock_chroot
+                dest_build_chroot = builds_logic.BuildChrootsLogic.new(
+                    copr=copr,
+                    build=rbc.build,
+                    mock_chroot=mock_chroot,
+                    **rbc.to_dict(),
+                )
                 dest_build_chroot.status = StatusEnum("forked")
                 db.session.add(dest_build_chroot)
 

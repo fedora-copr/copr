@@ -338,10 +338,21 @@ class ProjectForking(object):
         db.session.flush()
 
         fbuild.result_dir = '{:08}'.format(fbuild.id)
-        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id", "result_dir"]) for c in build_chroots]
+        fbuild.build_chroots = [
+            self.create_object(models.BuildChroot, c,
+                               exclude=["id_", "build_id", "result_dir",
+                                        "copr_chroot_id"])
+            for c in build_chroots
+        ]
         for chroot in fbuild.build_chroots:
             chroot.result_dir = '{:08}-{}'.format(fbuild.id, fpackage.name)
             chroot.status = StatusEnum("forked")
+            # the CoprChroot could be disabled in project (when we fork directly
+            # by fork_build(), without parent fork_copr(), hence one_or_none()
+            chroot.copr_chroot = CoprChrootsLogic.get_by_mock_chroot_id(
+                fcopr,
+                chroot.mock_chroot_id,
+            ).one_or_none()
         db.session.add(fbuild)
         return fbuild
 

@@ -629,7 +629,7 @@ class BuildsLogic(object):
             git_hash = None
             if git_hashes:
                 git_hash = git_hashes.get(chroot.name)
-            buildchroot = models.BuildChroot(
+            buildchroot = BuildChrootsLogic.new(
                 build=build,
                 status=chroot_status,
                 mock_chroot=chroot,
@@ -674,7 +674,7 @@ class BuildsLogic(object):
 
         status = StatusEnum("waiting")
         for chroot in package.chroots:
-            buildchroot = models.BuildChroot(
+            buildchroot = BuildChrootsLogic.new(
                 build=build,
                 status=status,
                 mock_chroot=chroot,
@@ -777,7 +777,7 @@ class BuildsLogic(object):
                     # create the BuildChroots from Package setting, if not
                     # already set explicitly for concrete build
                     for chroot in build.package.chroots:
-                        buildchroot = models.BuildChroot(
+                        buildchroot = BuildChrootsLogic.new(
                             build=build,
                             status=chroot_status,
                             mock_chroot=chroot,
@@ -1069,6 +1069,25 @@ class BuildsLogic(object):
 
 class BuildChrootsLogic(object):
     @classmethod
+    def new(cls, build, mock_chroot, **kwargs):
+        """
+        Create new instance of BuildChroot
+        (which is not assigned to any session)
+
+        Each freshly created instance of BuildChroot has to be assigned to
+        pre-existing Build and MockChroot, hence the mandatory arguments.
+        """
+        copr_chroot = coprs_logic.CoprChrootsLogic.get_by_mock_chroot_id(
+            build.copr, mock_chroot.id
+        ).one()
+        return models.BuildChroot(
+            mock_chroot=mock_chroot,
+            copr_chroot=copr_chroot,
+            build=build,
+            **kwargs,
+        )
+
+    @classmethod
     def get_by_build_id_and_name(cls, build_id, name):
         mc = MockChrootsLogic.get_from_name(name).one()
 
@@ -1109,6 +1128,27 @@ class BuildChrootsLogic(object):
     @classmethod
     def filter_by_group_name(cls, query, group_name):
         return query.filter(models.Group.name == group_name)
+
+    @classmethod
+    def filter_by_copr_and_mock_chroot(cls, query, copr, mock_chroot):
+        """
+        Filter BuildChroot query so it returns only instances related to
+        particular Copr and MockChroot.
+        """
+        return (
+            query.join(models.BuildChroot.build)
+            .filter(models.BuildChroot.mock_chroot_id == mock_chroot.id)
+            .filter(models.Build.copr_id == copr.id)
+        )
+
+    @classmethod
+    def by_copr_and_mock_chroot(cls, copr, mock_chroot):
+        """
+        Given Copr and MockChroot instances, return query object which provides
+        a list of related BuildChroots.
+        """
+        return cls.filter_by_copr_and_mock_chroot(BuildChroot.query, copr,
+                                                  mock_chroot)
 
 
 class BuildsMonitorLogic(object):

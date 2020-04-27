@@ -1286,16 +1286,36 @@ class MockChroot(db.Model, helpers.Serializer):
 
 class CoprChroot(db.Model, helpers.Serializer):
     """
-    Representation of Copr<->MockChroot relation
+    Representation of Copr<->MockChroot M:N relation.
+
+    This table basically determines what chroots are enabled in what projects.
+    But it also contains configuration for assigned Copr/MockChroot pairs.
+
+    We create/delete instances of this class when user enables/disables the
+    chroots in his project.  That said, we don't keep history of changes here
+    which means that there's only one configuration at any time.
     """
+
+    id_ = db.Column('id', db.Integer, primary_key=True)
+
+    __table_args__ = (
+        # For now we don't allow adding multiple CoprChroots having the same
+        # assigned MockChroot into the same project, but we could allow this
+        # in future (e.g. two chroots for 'fedora-rawhide-x86_64', both with
+        # slightly different configuration).
+        db.UniqueConstraint("mock_chroot_id", "copr_id",
+                            name="copr_chroot_mock_chroot_id_copr_id_uniq"),
+    )
+
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
 
     buildroot_pkgs = db.Column(db.Text)
     repos = db.Column(db.Text, default="", server_default="", nullable=False)
-    mock_chroot_id = db.Column(
-        db.Integer, db.ForeignKey("mock_chroot.id"), primary_key=True)
+    mock_chroot_id = db.Column(db.Integer, db.ForeignKey("mock_chroot.id"),
+                               nullable=False)
     mock_chroot = db.relationship(
         "MockChroot", backref=db.backref("copr_chroots"))
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True,
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=False,
                         index=True)
     copr = db.relationship("Copr",
                            backref=db.backref(
@@ -1383,13 +1403,32 @@ class BuildChroot(db.Model, helpers.Serializer):
     Representation of Build<->MockChroot relation
     """
 
-    __table_args__ = (db.Index('build_chroot_status_started_on_idx', "status", "started_on"),)
+    __table_args__ = (
+        db.Index("build_chroot_status_started_on_idx", "status", "started_on"),
+        db.UniqueConstraint("mock_chroot_id", "build_id",
+                            name="build_chroot_mock_chroot_id_build_id_uniq"),
+    )
 
+    id_ = db.Column('id', db.Integer, primary_key=True)
+
+    # The copr_chrot field needs to be nullable because we don't remove
+    # BuildChroot when we delete CoprChroot.
+    copr_chroot_id = db.Column(
+        db.Integer,
+        db.ForeignKey("copr_chroot.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
+    copr_chroot = db.relationship("CoprChroot",
+                                  backref=db.backref("build_chroots"))
+
+    # The mock_chroot reference is not redundant!  We need it because reference
+    # through copr_chroot.mock_chroot is disposable.
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey("mock_chroot.id"),
-                               primary_key=True)
+                               nullable=False)
     mock_chroot = db.relationship("MockChroot", backref=db.backref("builds"))
-    build_id = db.Column(db.Integer, db.ForeignKey("build.id", ondelete="CASCADE"),
-                         primary_key=True, index=True)
+    build_id = db.Column(db.Integer,
+                         db.ForeignKey("build.id", ondelete="CASCADE"),
+                         index=True, nullable=False)
     build = db.relationship("Build", backref=db.backref("build_chroots", cascade="all, delete-orphan",
                                                         passive_deletes=True))
     git_hash = db.Column(db.String(40))

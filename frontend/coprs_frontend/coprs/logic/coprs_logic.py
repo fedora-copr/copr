@@ -15,6 +15,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
+from coprs import logic
 from coprs.exceptions import MalformedArgumentException, BadRequest
 from coprs.logic import users_logic
 from coprs.whoosheers import CoprWhoosheer
@@ -598,14 +599,20 @@ class CoprChrootsLogic(object):
         return mock_chroots
 
     @classmethod
+    def get_by_mock_chroot_id(cls, copr, mock_chroot_id):
+        """
+        Query CoprChroot(s) in Copr with MockChroot.id
+        """
+        return (
+            models.CoprChroot.query
+            .filter(models.CoprChroot.copr_id == copr.id)
+            .filter(models.CoprChroot.mock_chroot_id == mock_chroot_id)
+        )
+
+    @classmethod
     def get_by_name(cls, copr, chroot_name, active_only=True):
         mc = MockChrootsLogic.get_from_name(chroot_name, active_only=active_only).one()
-        query = (
-            models.CoprChroot.query.join(models.MockChroot)
-            .filter(models.CoprChroot.copr_id == copr.id)
-            .filter(models.MockChroot.id == mc.id)
-        )
-        return query
+        return cls.get_by_mock_chroot_id(copr, mc.id)
 
     @classmethod
     def get_by_name_safe(cls, copr, chroot_name):
@@ -649,6 +656,7 @@ class CoprChrootsLogic(object):
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
                            with_opts, without_opts, delete_after, delete_notify, module_toggle)
+
         return chroot
 
     @classmethod
