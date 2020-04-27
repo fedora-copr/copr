@@ -27,7 +27,7 @@ def _main():
         message += defect["message"]
 
         csdiff_data.append({
-            "checker": "PYLINT",
+            "checker": "PYLINT_WARNING",
             "events": [{
                 "file_name": defect["path"],
                 "line": defect["line"],
