@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.ERROR, format='%(levelname)s: %(message)s')
 log = logging.getLogger()  # pylint: disable=invalid-name
 
 CSDIFF_PYLINT = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                              'csdiff-pylint'))
+                                              'copr-csdiff-pylint'))
 
 
 def _run_csdiff(old, new, msg):
