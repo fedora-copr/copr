@@ -6,7 +6,8 @@ from flask import Flask
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
     fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, \
-    parse_repo_params, pagure_html_diff_changed, SubdirMatch, raw_commit_changes
+    parse_repo_params, pagure_html_diff_changed, SubdirMatch, \
+    raw_commit_changes, WorkList
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -224,3 +225,33 @@ class TestHelpers(CoprsTestCase):
         assert pagure_html_diff_changed('<html></html>') == set([])
         assert pagure_html_diff_changed('some-dust-ajablůňka>isdf/#~<--') == set([])
         assert pagure_html_diff_changed(b'091213114151deadbeaf') == set([])
+
+
+def test_worklist_class():
+    """ test that all tasks are processed only once """
+
+    class _Task:
+        # pylint: disable=too-few-public-methods
+        def __init__(self, name, depends_on=None):
+            self.name = name
+            self.depends_on = depends_on or []
+
+    task_a = _Task("a")
+    task_b = _Task("b", [task_a])
+    task_c = _Task("c", [task_b])
+    # cycle
+    task_a.depends_on = [task_c]
+
+    def _get_list(start_with):
+        wlist = WorkList([start_with])
+        result = []
+        while not wlist.empty:
+            task = wlist.pop()
+            result.append(task.name)
+            for dep in task.depends_on:
+                wlist.schedule(dep)
+        return result
+
+    assert _get_list(task_a) == ["a", "c", "b"]
+    assert _get_list(task_b) == ["b", "a", "c"]
+    assert _get_list(task_c) == ["c", "b", "a"]

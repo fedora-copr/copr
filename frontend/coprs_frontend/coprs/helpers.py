@@ -42,6 +42,55 @@ PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project
 FINISHED_STATUSES = ["succeeded", "forked", "canceled", "skipped", "failed"]
 
 
+class WorkList:
+    """
+    WorkList (TODO list) abstraction
+
+    This is useful if we want to process some dynamically changing TODO list
+    (directed graph traversal) and we want to make sure that each task is
+    processed only once.  E.g. to check all (even transitive) dependencies:
+
+        wl = WorkList(["dep A", "dep B"]
+        while not wl.empty:
+            dep = wl.pop()
+            if not dep_available(dep):
+                print(dep + " not found")  # problem found
+                continue
+            for dep in get_2nd_level_deps(dep):
+                wl.schedule(dep)
+
+    Note that (a) each task, even if it is scheduled multiple times, is
+    processed only once - so subsequent schedule() calls are no-ops, (b) tasks
+    can be scheduled while the WorkList is being processed and (c) tasks need to
+    be hashable objects.
+
+    Implementation inspired by Predator project:
+    http://www.fit.vutbr.cz/research/groups/verifit/tools/predator/api/classWorkList.html
+    """
+    def __init__(self, initial_tasks):
+        self._tasks = []
+        self._seen = set()
+        for task in initial_tasks:
+            self.schedule(task)
+
+    def schedule(self, task):
+        """ Add task to queue, if it is not already there or processed """
+        if task in self._seen:
+            return False
+        self._tasks.insert(0, task)
+        self._seen.add(task)
+        return True
+
+    @property
+    def empty(self):
+        """ True if there's nothing to do """
+        return not bool(len(self._tasks))
+
+    def pop(self):
+        """ Get task (the oldest one) """
+        return self._tasks.pop()
+
+
 class CounterStatType(object):
     REPO_DL = "repo_dl"
 
