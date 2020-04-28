@@ -1,14 +1,15 @@
 import json
 import time
 
+from sqlalchemy import and_, or_
+from sqlalchemy.exc import IntegrityError
+
 from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import models
 from coprs import helpers
 from coprs import exceptions
-
 from .helpers import get_graph_parameters
-from sqlalchemy import and_, or_
 
 class ActionsLogic(object):
 
@@ -379,7 +380,6 @@ class ActionsLogic(object):
             )
             db.session.add(cached_data)
             db.session.commit()  # @FIXME We should not commit here
-            return action
         except IntegrityError: # other process already calculated the graph data and cached it
             db.session.rollback()
 
