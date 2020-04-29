@@ -290,7 +290,6 @@ class TestProjectChrootResource(CoprsTestCase):
         }
         data.update(base_data)
         self.db.session.commit()
-        self.db.session.commit()
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
         assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
