@@ -46,7 +46,7 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 $(ERDFILE): ../frontend/coprs_frontend/coprs/models.py
-	export PYTHONPATH=`pwd`/../frontend/coprs_frontend/; \
+	export PYTHONPATH=`pwd`/../frontend/coprs_frontend/:`pwd`/../common ; \
 	export COPR_CONFIG=`pwd`/../frontend/coprs_frontend/config/copr_unit_test.conf; \
 	python3 -c "from eralchemy import render_er; from coprs import db; \
 		render_er(db.metadata, '$@')"

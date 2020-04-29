@@ -1,4 +1,4 @@
-.. _database-erd:
+.. _builder_actions:
 
 Backend build process
 =====================
