@@ -191,6 +191,28 @@ class TestCoprChrootsLogic(CoprsTestCase):
             bch.status = StatusEnum("succeeded")
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
 
+    @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
+    def test_chroot_reenable(self):
+        """
+        We re-assign old unassigned BuildChroots to newly created
+        CoprChroot instances if they match the corresponding MockChroot
+        """
+        assert len(self.c2.copr_chroots) == 2
+        assert self.mc3 in self.c2.mock_chroots
+        old_copr_chroot = self.c2.copr_chroots[1]
+        old_bch_ids = [bch.id_ for bch in old_copr_chroot.build_chroots]
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
+        assert len(self.c2.copr_chroots) == 1
+        assert self.mc3 not in self.c2.mock_chroots
+
+        # re-enable
+        CoprChrootsLogic.update_from_names(
+            self.c2.user, self.c2, ["fedora-17-x86_64", "fedora-17-i386"])
+
+        new_copr_chroot = self.c2.copr_chroots[1]
+        assert old_copr_chroot != new_copr_chroot
+        assert old_bch_ids == [bch.id_ for bch in new_copr_chroot.build_chroots]
+
 
 class TestPinnedCoprsLogic(CoprsTestCase):
 

@@ -51,8 +51,8 @@ class ProjectChrootListR(Resource):
         except (MalformedArgumentException, ObjectNotFoundError) as err:
             raise MalformedRequest("Bad mock chroot name: {}. Error: {}".format(name, err))
 
-        CoprChrootsLogic.create_chroot(flask.g.user, project, mock_chroot, **req)
         try:
+            CoprChrootsLogic.create_chroot(flask.g.user, project, mock_chroot, **req)
             db.session.commit()
         except IntegrityError as err:
             # assuming conflict with existing chroot

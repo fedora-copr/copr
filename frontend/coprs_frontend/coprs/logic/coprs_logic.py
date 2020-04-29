@@ -661,6 +661,11 @@ class CoprChrootsLogic(object):
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
                            with_opts, without_opts, delete_after, delete_notify, module_toggle)
 
+        # reassign old build_chroots, if the chroot is re-created
+        get_old = logic.builds_logic.BuildChrootsLogic.by_copr_and_mock_chroot
+        for old_bch in get_old(copr, mock_chroot):
+            old_bch.copr_chroot = chroot
+
         return chroot
 
     @classmethod
