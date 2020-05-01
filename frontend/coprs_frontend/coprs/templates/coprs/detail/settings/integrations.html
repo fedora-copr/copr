@@ -11,18 +11,18 @@
     <div class="col-sm-8 col-md-9">
         <h2> Integrations </h2>
         <p>
-        Setup an integration with a Git hosting website and get Copr build statuses reported
+        Set up an integration with a Git hosting website and get Copr build statuses reported
         in pull requests and commits.
         </p>
 
         <h3> Simple guide: </h3>
         <ol>
-          <li> Create an scm package and set its default source by specifying an https:// "Clone URL". </li>
+          <li> Create an SCM package and set its default source by specifying an https:// "Clone URL". </li>
           <li> Make sure the package auto-rebuild option is checked. </li>
           <li> Finish it by following the Git host specific guide below. </li>
         </ol>
 
-        <p> Copr will now rebuild the package every time, it receives an update event -
+        <p> Copr will now rebuild the package every time it receives an update event -
             usually for every new commit, every new tag, or every opened pull request. </p>
 
         <p> If valid credentials for a source repository are entered below, Copr will
@@ -34,7 +34,7 @@
           <li> Activate Fedmsg in section 'Hooks' in the Pagure project settings. </li>
         </ol>
 
-        <p> Don’t get confused by “Activate fedmsg notifications” in the “Project options” section; that’s only for Pagure UI-related actions. Scroll down until you reach the “Hooks” section. </p>
+        <p> Don’t get confused by “Activate fedmsg notifications” in the “Project options” section: That’s only for Pagure UI-related actions. Scroll down until you reach the “Hooks” section. </p>
 
         <p> To enable commit and pull request flagging, enter a Pagure public clone repo URL and an associated API key below. To create a new key, go to your Pagure project settings and find section "API keys". </p>
 
