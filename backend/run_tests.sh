@@ -30,9 +30,4 @@ for arg; do
     esac
 done
 
-test -f ../build_aux/linter && {
-    echo >&2 "running linter"
-    ../build_aux/linter
-}
-
 python3 -m pytest -s tests $COVPARAMS "${KEEP_ARGS[@]}"
