@@ -5,13 +5,13 @@ import time
 import flask
 import sqlalchemy
 
-from .. import db
-from .builds_logic import BuildsLogic
 from copr_common.enums import StatusEnum
+from coprs import db
 from coprs import helpers
 from coprs import models
 from coprs import exceptions
 from coprs.exceptions import ObjectNotFound, ActionInProgressException
+from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.actions_logic import ActionsLogic
 

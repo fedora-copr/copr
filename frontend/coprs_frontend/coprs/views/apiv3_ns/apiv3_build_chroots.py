@@ -1,10 +1,10 @@
 import flask
-from . import query_params, pagination, Paginator, GET
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs import models
 from coprs.logic.builds_logic import BuildChrootsLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.complex_logic import BuildConfigLogic, ComplexLogic
+from . import query_params, pagination, Paginator, GET
 
 
 def to_dict(build_chroot):
