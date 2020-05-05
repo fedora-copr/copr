@@ -14,8 +14,8 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.6
-Release:    10%{?dist}
+Version:    0.7
+Release:    1%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
@@ -104,6 +104,12 @@ version=%version %py2_install
 
 
 %changelog
+* Tue May 05 2020 Jakub Kadlcik <frostyx@email.cz> 0.7-1
+- add ActionResult (moved from backend package)
+- add DefaultActionPriorityEnum
+- add ActionPriorityEnum
+- add run_tests.sh script and run pylint in it
+
 * Wed Aug 28 2019 Pavel Raiskup <praiskup@redhat.com> 0.6-1
 - enhanced ModuleStatusEnum (issue#607)
 
