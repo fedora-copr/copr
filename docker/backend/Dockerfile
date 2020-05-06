@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM fedora:32
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ENV export LANG=en_US.UTF-8

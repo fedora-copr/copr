@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM fedora:32
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 # TERM is to make the tito work in container, rhbz#1733043
@@ -15,17 +15,13 @@ RUN dnf -y update && \
                    python3-ipdb \
 # builder packages
                    openssh-server \
-                   packagedb-cli \
                    fedora-packager \
                    mock \
                    mock-lvm \
                    createrepo \
                    yum-utils \
-                   pyliblzma \
                    rsync \
                    openssh-clients \
-                   libselinux-python \
-                   libsemanage-python \
                    rpm \
                    glib2 \
                    ca-certificates \
