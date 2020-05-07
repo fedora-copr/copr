@@ -171,7 +171,7 @@ class TestModuleBuildFacade(CoprsTestCase):
 
 
 class TestModulemdGenerator(CoprsTestCase):
-    config = {"DIST_GIT_URL": "http://distgiturl.org"}
+    config = {"DIST_GIT_CLONE_URL": "http://distgiturl.org"}
 
     def test_basic_mmd_attrs(self):
         generator = ModulemdGenerator(name="testmodule", stream="master",
@@ -220,7 +220,6 @@ class TestModulemdGenerator(CoprsTestCase):
         with mock.patch("coprs.app.config", self.config):
             assert component.peek_repository().startswith("http://distgiturl.org")
             assert component.peek_repository().endswith(".git")
-            assert chroot.dist_git_url.startswith(component.peek_repository())
         assert component.peek_ref() == chroot.git_hash
 
     def test_components(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

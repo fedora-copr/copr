@@ -240,7 +240,7 @@ class ModulemdGenerator(object):
 
     def add_component(self, package_name, build, chroot, rationale, buildorder=1):
         ref = str(chroot.git_hash) if chroot else ""
-        distgit_url = self.config["DIST_GIT_URL"].replace("/cgit", "/git")
+        distgit_url = self.config["DIST_GIT_CLONE_URL"]
         url = os.path.join(distgit_url, build.copr.full_name, "{}.git".format(build.package.name))
         component = Modulemd.ComponentRpm(name=str(package_name), rationale=rationale,
                                           repository=url, ref=ref, buildorder=1)
