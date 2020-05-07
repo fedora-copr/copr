@@ -136,7 +136,7 @@ services:
       - POSTGRESQL_PASSWORD=coprpass
       - POSTGRESQL_DATABASE=coprdb
     ports:
-      - 5432:5432
+      - 5009:5432
 
   distgit:
     build:
