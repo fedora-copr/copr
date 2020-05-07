@@ -1,10 +1,12 @@
 import yaml
 from unittest import mock
+import pytest
 
 from tests.coprs_test_case import CoprsTestCase
-from coprs.logic.modules_logic import ModuleBuildFacade, ModulemdGenerator
+from coprs.logic.modules_logic import ModulesLogic, ModuleBuildFacade, ModulemdGenerator
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, ModuleStatusEnum, StatusEnum
+from coprs.exceptions import BadRequest
 from coprs import models, db
 
 import gi
@@ -45,6 +47,24 @@ class TestModulesLogic(CoprsTestCase):
         # the backend proceeds the action
         action.result = BackendResultEnum("success")
         assert self.m1.status == ModuleStatusEnum("succeeded")
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_modules", "f_db")
+    def test_get_by_nsv_str(self):
+        """
+        We have a module NSV stored as one string.
+        Test that we are able to query module (from a project) with this NSV.
+        """
+        m4 = ModulesLogic.get_by_nsv_str(self.c2, "foomod-baz-1").one()
+        assert m4 == self.m4
+
+        # Test module with dash in its name (RHBZ 1833010)
+        m1 = ModulesLogic.get_by_nsv_str(self.c1, "first-module-foo-1").one()
+        assert m1 == self.m1
+
+        # What if there is not enough separators and therefore it is not a valid NSV
+        with pytest.raises(BadRequest) as ex:
+            ModulesLogic.get_by_nsv_str(self.c1, "notenough-dashes").one()
+        assert "not a valid NSV" in str(ex)
 
 
 class TestModuleBuildFacade(CoprsTestCase):

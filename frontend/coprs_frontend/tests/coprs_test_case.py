@@ -655,7 +655,9 @@ def foo():
                                 summary="Sum 2", description="Desc 2", created_on=time.time())
         self.m3 = models.Module(name="third-module", stream="baz", version=1, copr_id=self.c2.id, copr=self.c2,
                                 summary="Sum 3", description="Desc 3", created_on=time.time())
-        self.db.session.add_all([self.m1, self.m2, self.m3])
+        self.m4 = models.Module(name="foomod", stream="baz", version=1, copr_id=self.c2.id, copr=self.c2,
+                                summary="Sum 4", description="Desc 4", created_on=time.time())
+        self.db.session.add_all([self.m1, self.m2, self.m3, self.m4])
 
     @pytest.fixture
     def f_pr_dir(self):

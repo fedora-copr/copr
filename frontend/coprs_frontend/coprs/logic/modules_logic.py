@@ -35,8 +35,11 @@ class ModulesLogic(object):
 
     @classmethod
     def get_by_nsv_str(cls, copr, nsv):
-        name, stream, version = nsv.split("-")
-        return cls.get_by_nsv(copr, name, stream, version)
+        try:
+            name, stream, version = nsv.rsplit("-", 2)
+            return cls.get_by_nsv(copr, name, stream, version)
+        except ValueError:
+            raise exceptions.BadRequest("The '{}' is not a valid NSV".format(nsv))
 
     @classmethod
     def get_multiple(cls):
