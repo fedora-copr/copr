@@ -767,7 +767,7 @@ class CoprChrootsLogic(object):
 
         # reject the request when some build_chroots are not yet finished
         if running_builds:
-            raise exceptions.BuildInProgressException(
+            raise exceptions.ConflictingRequest(
                 "Can't drop chroot from project, related "
                 "{} still in progress".format(
                     helpers.pluralize("build", list(running_builds),

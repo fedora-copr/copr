@@ -492,7 +492,7 @@ def process_copr_update(copr, form):
         coprs_logic.CoprsLogic.update(flask.g.user, copr)
     except (exceptions.ActionInProgressException,
             exceptions.InsufficientRightsException,
-            exceptions.BuildInProgressException) as e:
+            exceptions.ConflictingRequest) as e:
 
         flask.flash(str(e), "error")
         db.session.rollback()

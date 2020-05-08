@@ -75,18 +75,6 @@ class NonAdminCannotDisableAutoPrunning(CoprHttpException):
 InsufficientRightsException = AccessRestricted
 
 
-class RequestCannotBeExecuted(CoprHttpException):
-    pass
-
-
-class BuildInProgressException(ConflictingRequest):
-    """
-    Raised when user tries to perform an action which is not allowed when some
-    build is running.
-    """
-    _code = 409
-
-
 class ActionInProgressException(CoprHttpException):
 
     def __init__(self, msg, action):

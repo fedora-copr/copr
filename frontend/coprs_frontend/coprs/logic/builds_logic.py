@@ -23,8 +23,14 @@ from coprs import cache
 from coprs import db
 from coprs import models
 from coprs import helpers
-from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, \
-                             UnrepeatableBuildException, RequestCannotBeExecuted, DuplicateException
+from coprs.exceptions import (
+    ActionInProgressException,
+    ConflictingRequest,
+    DuplicateException,
+    InsufficientRightsException,
+    MalformedArgumentException,
+    UnrepeatableBuildException,
+)
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -912,7 +918,7 @@ class BuildsLogic(object):
                 err_msg = "Cannot cancel build {} in state 'starting'".format(build.id)
             else:
                 err_msg = "Cannot cancel build {}".format(build.id)
-            raise RequestCannotBeExecuted(err_msg)
+            raise ConflictingRequest(err_msg)
 
         if build.status == StatusEnum("running"): # otherwise the build is just in frontend
             ActionsLogic.send_cancel_build(build)

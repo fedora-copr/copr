@@ -18,7 +18,7 @@ from coprs import models
 from coprs.whoosheers import CoprWhoosheer
 from tests.coprs_test_case import CoprsTestCase
 from coprs.exceptions import (
-    BuildInProgressException,
+    ConflictingRequest,
     InsufficientRightsException,
 )
 
@@ -182,7 +182,7 @@ class TestCoprChrootsLogic(CoprsTestCase):
         chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
         assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
 
-        with pytest.raises(BuildInProgressException) as exc:
+        with pytest.raises(ConflictingRequest) as exc:
             CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
         assert "builds 3 and 4 are still in progress" in exc.value.message
         for bch in self.b3_bc:

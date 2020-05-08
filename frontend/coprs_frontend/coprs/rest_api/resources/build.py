@@ -5,7 +5,11 @@ from flask import url_for, make_response
 from flask_restful import Resource
 
 from ... import db
-from ...exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
+from ...exceptions import (
+    ActionInProgressException,
+    ConflictingRequest,
+    InsufficientRightsException,
+)
 from ...logic.builds_logic import BuildsLogic
 from ..common import get_project_safe
 from ..exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
@@ -212,7 +216,7 @@ class BuildR(Resource):
             if not build.canceled and build_dict["state"] == "canceled":
                 BuildsLogic.cancel_build(flask.g.user, build)
                 db.session.commit()
-        except (RequestCannotBeExecuted, ActionInProgressException) as err:
+        except (ActionInProgressException, ConflictingRequest) as err:
             db.session.rollback()
             raise CannotProcessRequest("Cannot update build due to: {}"
                                        .format(err))
