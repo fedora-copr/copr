@@ -32,7 +32,7 @@ def _main():
                 "file_name": defect["path"],
                 "line": defect["line"],
                 "column": defect["column"],
-                "event": "{}({})".format(defect["message-id"],
+                "event": "{}[{}]".format(defect["message-id"],
                                          defect["symbol"]),
                 "message": message,
             }],
