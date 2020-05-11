@@ -300,12 +300,14 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()
 
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
     def test_delete_multiple_builds(self):
         """
         Test deleting multiple builds at once.
         """
-        self.b4_bc[0].status = StatusEnum("succeeded")
+        for build_chroot in self.b4_bc:
+            build_chroot.status = StatusEnum("succeeded")
+
         build_ids = [self.b1.id, self.b2.id, self.b3.id, self.b4.id, 1234]
         with pytest.raises(BadRequest) as err_msg:
             BuildsLogic.delete_builds(self.u2, build_ids)
