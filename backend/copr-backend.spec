@@ -28,7 +28,6 @@ BuildRequires: util-linux
 
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
-BuildRequires: python3-requests
 
 BuildRequires: python3-copr
 BuildRequires: python3-copr-messaging
