@@ -17,13 +17,17 @@ ignored-classes=SQLAlchemy,scoped_session
 # alembic:
 #     Pylint entirely fails to parse the module.
 #     Example error: Module 'alembic.op' has no 'drop_index' member
-ignored-modules=alembic
+# setproctitle:
+#     https://github.com/dvarrazzo/py-setproctitle/issues/31
+ignored-modules=alembic,setproctitle
 
 init-hook=
     import os
     import sys
     import subprocess
     gitrootdir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
+    sys.path.insert(0, os.path.join(gitrootdir, 'backend'))
+    sys.path.insert(0, os.path.join(gitrootdir, 'frontend', 'coprs_frontend'))
     sys.path.insert(0, os.path.join(gitrootdir, 'common'))
     sys.path.insert(0, os.path.join(gitrootdir, 'python'))
     sys.path.insert(0, os.path.join(gitrootdir, '.pylintpath'))
