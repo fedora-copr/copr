@@ -28,7 +28,7 @@ log.setLevel(logging.DEBUG)
 
 
 class ToyWorkerManager(WorkerManager):
-    # pylint: disable=abstract-method
+    # pylint: disable=abstract-method,too-many-instance-attributes
     process_counter = 0
     task_sleep = 0
 
@@ -154,6 +154,28 @@ class TestWorkerManager(BaseTestWorkerManager):
     def test_number_of_tasks(self):
         assert self.remaining_tasks() == 10
 
+    def test_task_to_worker_id(self):
+        wid = "{}:123".format(self.worker_manager.worker_prefix)
+        assert self.worker_manager.get_task_id_from_worker_id(wid) == "123"
+
+    @patch('copr_backend.worker_manager.time.sleep')
+    def test_preexisting_broken_worker(self, _mc_sleep, caplog):
+        """ from previous systemctl restart """
+        fake_worker_name = self.worker_manager.worker_prefix + ":fake"
+        self.redis.hset(fake_worker_name, "foo", "bar")
+        self.worker_manager.run(timeout=0.0001)
+        msg = "Missing 'allocated' flag for worker " + fake_worker_name
+        assert ('root', logging.INFO, msg) in caplog.record_tuples
+
+def wait_pid_exit(pid):
+    """ wait till pid stops responding to no-op kill 0 """
+    while True:
+        try:
+            os.kill(int(pid), 0)
+        except OSError:
+            return True
+        time.sleep(0.1)
+
 
 class TestActionWorkerManager(BaseTestWorkerManager):
     # pylint: disable=attribute-defined-outside-init
@@ -195,6 +217,21 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         # we are not sure 'toy:1' had a chance to start
         assert len(keys) <= 1
 
+    def test_delete_not_allocated_workers(self):
+        self.worker_manager.run(timeout=0.0001)
+        assert self.w0 in self.workers()
+        # "allocated" can be the only one hash attribute, so add another one to
+        # not loose the key from redis DB
+        self.redis.hset(self.w0, "keep_me_around", "yes?")
+        self.redis.hdel(self.w0, "allocated")
+        self.worker_manager.run(timeout=0.0001)
+        params = self.redis.hgetall(self.w0)
+        if params:
+            # The action-processor.py script re-added itself to the database,
+            # but still the 'keep_me_around' flag disappeared after worker
+            # manager removed it.
+            assert "keep_me_around" not in params
+
     def test_delete_not_started_workers(self):
         self.worker_manager.environ = {'FAIL_EARLY': '1'}
         self.worker_manager.worker_timeout_start = 0
@@ -212,9 +249,10 @@ class TestActionWorkerManager(BaseTestWorkerManager):
                 return params
         return params
 
+    @pytest.mark.parametrize('fail', ['FAIL_STARTED_PID', 'FAIL_STARTED'])
     @patch('copr_backend.worker_manager.time.time')
-    def test_delete_not_finished_workers(self, mc_time):
-        self.worker_manager.environ = {'FAIL_STARTED': '1'}
+    def test_delete_not_finished_workers(self, mc_time, fail):
+        self.worker_manager.environ = {fail: '1'}
         self.worker_manager.worker_timeout_deadcheck = 0.4
 
         # each time.time() call incremented by 1
@@ -227,6 +265,11 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         params = self.wait_field(self.w0, 'started')
         assert self.w0 in self.workers()
         assert 'started' in params
+
+        if fail == 'FAIL_STARTED':
+            # make sure kernel cleans up the process, so the next wm.run()
+            # certainly sets the 'delete' flag
+            wait_pid_exit(params['PID'])
 
         # toy 0 is marked for deleting
         with patch('copr_backend.worker_manager.time.sleep'):
@@ -323,6 +366,12 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         self.worker_manager.run(timeout=0.0001)
 
         assert len(self.worker_manager.worker_ids()) == 0
+
+    def test_max_workers_has_effect(self):
+        self.worker_manager.max_workers = 1
+        self.worker_manager.run(timeout=1)
+        assert self.w0 in self.workers()
+        assert self.w1 not in self.workers()
 
 
 class TestActionWorkerManagerPriorities(BaseTestWorkerManager):

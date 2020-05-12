@@ -232,6 +232,7 @@ class WorkerManager():
                 # start worker.  So this may only happen when worker is
                 # orphaned for some reason (we gave up with him), and it still
                 # touches the database on background.
+                self.log.info("Missing 'allocated' flag for worker %s", worker_id)
                 self.redis.delete(worker_id)
                 continue
 

@@ -1,5 +1,9 @@
 #! /usr/bin/python3
 
+"""
+Testing background action spawner.
+"""
+
 import os
 import sys
 import time
@@ -19,12 +23,33 @@ REDIS_OPTS = Munch(
 )
 
 def do_the_useful_stuff(process_counter, task_id, worker_id, sleep):
+    """
+    Execute the testing code as background daemon.
+
+    There are several environment variables which can be set by the testing
+    WorkerManager:
+
+    'FAIL_EARLY': When set, nothing happens, the worker doesn't even mark
+        itself as starting in Redis DB.
+    'FAIL_STARTED_PID': Process ends immediately after marked as starting, but
+        before setting 'PID' in Redis DB
+    'FAIL_STARTED: When set, 'started' and 'PID' Redis fields are set, but
+        then we fail.  Before we actually start doing anything "useful".
+
+    When none of those environment variables are set, we process to do the work
+    (sleep) according to the ``sleep`` argument.  We set 'status' according to
+    the ``process_counter`` (each 8th is failure).
+    """
     if 'FAIL_EARLY' in os.environ:
         raise Exception("sorry")
 
     redis = get_redis_connection(REDIS_OPTS)
 
     redis.hset(worker_id, 'started', 1)
+
+    if 'FAIL_STARTED_PID' in os.environ:
+        return 0
+
     redis.hset(worker_id, 'PID', os.getpid())
 
     if 'FAIL_STARTED' in os.environ:
