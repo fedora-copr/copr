@@ -35,6 +35,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        TIMEOUT=180
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url $COPR_HELLO_GIT"
@@ -49,13 +50,41 @@ rlJournalStart
         while curl -f "$check_url"; do
             sleep 2
             i=$(( i + 2 ))
-            test "$i" -gt 60 && break
+            test "$i" -gt $TIMEOUT && break
         done
-        rlAssertGreater "Check that we did not wait longer than 60s" 60 "$i"
+        rlAssertGreater "Check that we did not wait longer than $TIMEOUT s" $TIMEOUT "$i"
+
+        # Test deleting builds specified by a list of IDs
+        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteBuilds --chroot $CHROOT" 0
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteBuilds --name example --clone-url $COPR_HELLO_GIT"
+        build_ids=()
+        for i in {0..2}; do
+            rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteBuilds | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteBuilds_example_build_id.txt"
+            build_ids+=($(cat "$TMP"/TestDeleteBuilds_example_build_id.txt))
+        done
+
+        chroot_url=$BACKEND_URL/results/${NAME_PREFIX}TestDeleteBuilds/$CHROOT
+        for id in "${build_ids[@]}"; do
+            check_url=$chroot_url/$(printf "%08d" "$id")-example
+            rlRun "curl -f $check_url" 0 "check that the directory still exists"
+        done
+        rlRun "copr-cli delete-build ${build_ids[*]}" 0
+
+        for id in "${build_ids[@]}"; do
+            check_url=$chroot_url/$(printf "%08d" "$id")-example
+            t=0
+            while curl -f "$check_url"; do
+                sleep 2
+                t=$(( t + 2 ))
+                test "$t" -gt $TIMEOUT && break
+            done
+            rlAssertGreater "Check that we did not wait longer than $TIMEOUT s" $TIMEOUT "$t"
+        done
     rlPhaseEnd
 
     rlPhaseStartCleanup
         cleanProject "${NAME_PREFIX}TestDeleteGroupBuild"
+        cleanProject "${NAME_PREFIX}TestDeleteBuilds"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
