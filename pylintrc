@@ -137,3 +137,8 @@ indent-string='    '
 [MISCELLANEOUS]
 # List of note tags to take in consideration, separated by a comma.
 notes=
+
+
+[SIMILARITIES]
+# default is 4, which is pretty small
+min-similarity-lines=8
