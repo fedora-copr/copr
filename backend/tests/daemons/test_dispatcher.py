@@ -13,7 +13,7 @@ import time
 from copr_backend.constants import BuildStatus
 from copr_backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteError, NoVmAvailable, VmError
 from copr_backend.job import BuildJob
-from copr_backend.vm_manage.models import VmDescriptor
+from copr_backend.vm_alloc import RemoteHost
 
 from unittest import mock, skip
 from unittest.mock import MagicMock
@@ -60,12 +60,6 @@ def mc_time():
 @pytest.yield_fixture
 def mc_grl():
     with mock.patch("{}.get_redis_logger".format(MODULE_REF)) as handle:
-        yield handle
-
-
-@pytest.yield_fixture
-def mc_setproctitle():
-    with mock.patch("{}.setproctitle".format(MODULE_REF)) as handle:
         yield handle
 
 
@@ -169,11 +163,13 @@ class TestDispatcher(object):
 
     @pytest.fixture
     def init_worker(self):
+        vm = RemoteHost()
+        vm.hostname = "1.1.1.1"
+
         self.worker = Worker(
             opts=self.opts,
-            vm_manager=None,
             worker_id=None,
-            vm=VmDescriptor("1.1.1.1", "vm_name", 3, "ready"),
+            vm=vm,
             job=self.job,
         )
 
@@ -425,30 +421,6 @@ class TestDispatcher(object):
         assert self.worker.run_cycle.called
 
     @skip("Fixme or remove, test doesn't work.")
-    def test_group_name_error(self, init_worker):
-        self.opts.build_groups[self.group_id].pop("name")
-        assert self.worker.group_name == str(self.group_id)
-
-    @skip("Fixme or remove, test doesn't work.")
-    def test_update_process_title(self, init_worker, mc_setproctitle):
-        self.worker.update_process_title()
-        base_title = 'worker-{} {} '.format(self.group_id, self.worker_num)
-        assert mc_setproctitle.call_args[0][0] == base_title
-        #mc_setproctitle.reset_mock()
-        self.worker.vm_ip = self.vm_ip
-        self.worker.update_process_title()
-        title_with_ip = base_title + "VM_IP={} ".format(self.vm_ip)
-        assert mc_setproctitle.call_args[0][0] == title_with_ip
-
-        self.worker.vm_name = self.vm_name
-        self.worker.update_process_title()
-        title_with_name = title_with_ip + "VM_NAME={} ".format(self.vm_name)
-        assert mc_setproctitle.call_args[0][0] == title_with_name
-
-        self.worker.update_process_title("foobar")
-        assert mc_setproctitle.call_args[0][0] == title_with_name + "foobar"
-
-    @skip("Fixme or remove, test doesn't work.")
     def test_dummy_notify_job_grab_about_task_end(self, init_worker):
         self.worker.rc = MagicMock()
         self.worker.notify_job_grab_about_task_end(self.job)
@@ -482,8 +454,8 @@ class TestDispatcher(object):
         assert mc_time.sleep.called
         assert not mc_time.time.called
 
-        vmd = VmDescriptor(self.vm_ip, self.vm_name, 0, "ready")
-        vmd.vm_ip = self.vm_ip
+        vmd = RemoteHost()
+        vmd.ip = vmd.vm_ip = self.vm_ip
         vmd.vm_name = self.vm_name
 
         self.worker.obtain_job.return_value = self.job

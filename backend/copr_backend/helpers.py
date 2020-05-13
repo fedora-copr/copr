@@ -269,8 +269,14 @@ class BackendConfigReader(object):
             cp, "builder", "consecutive_failure_threshold",
             DEF_CONSECUTIVE_FAILURE_THRESHOLD, mode="int")
 
+        opts.resalloc_connection = _get_conf(
+            cp, "backend", "resalloc_connection", "http://localhost:49100")
+        opts.builds_max_workers = _get_conf(
+            cp, "backend", "builds_max_workers",
+            default=60, mode="int")
+
         opts.actions_max_workers = _get_conf(
-            cp, "builder", "actions_max_workers",
+            cp, "backend", "actions_max_workers",
             default=10, mode="int")
 
         opts.log_dir = _get_conf(

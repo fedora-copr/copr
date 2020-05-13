@@ -15,6 +15,10 @@ from copr_backend.helpers import (BackendConfigReader, get_redis_logger,
 
 
 class BackgroundWorker:
+    """
+    copr-backend-process-* abstraction
+    """
+
     redis_logger_id = 'unknown'
     frontend_client = None
     _redis_conn = None
@@ -66,12 +70,16 @@ class BackgroundWorker:
 
     @classmethod
     def adjust_arg_parser(cls, parser):
-        pass
+        """
+        The inherited worker class will need more commandline options than those
+        we provide by default.  Override is required.
+        """
+        raise NotImplementedError()
 
     def handle_task(self):
         """
-        Abstract method for handling the task.  This should never hrow any
-        exception, and no return value is expected.
+        Abstract method for handling the task.  This should never throw any
+        exception, and we don't expect it to return any value.
         """
         raise NotImplementedError()
 
@@ -81,6 +89,11 @@ class BackgroundWorker:
         Returns True if worker manager started this process, and False
         if it is manual run.
         """
+        return bool(self.worker_id)
+
+    @property
+    def worker_id(self):
+        """ Return worker ID if set by worker manager, or None.  """
         return self.args.worker_id
 
     def _wm_started(self):

@@ -55,9 +55,23 @@ destdir=/var/lib/copr/public_html/results
 # default is 10
 sleeptime=30
 
-# How many workers (background processes) can Backend spawn for handling actions
-# concurrently.
-#actions_max_workers=8
+# Builder machine allocation is done by resalloc server listening on
+# this address.
+#resalloc_connection=http://localhost:49100
+
+# Maximum number of concurrent background builder processes.  Note that
+# the background process doesn't have the builder machine allocated all
+# the time but only as long as really needed.  To control the number of
+# builder machines please configure resalloc server, see the
+# 'resalloc_connection' config option.
+# This option basically controls the amount of RAM allocated for
+# processing builds on copr backend, and how many resalloc tickets can
+# be taken at the same time.
+#builds_max_workers=60
+
+# Maximum number of concurrent background processes spawned for handling
+# actions.
+#actions_max_workers=10
 
 # exit on worker failure
 # default is false

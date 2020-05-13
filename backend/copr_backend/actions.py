@@ -575,7 +575,6 @@ class ActionQueueTask(QueueTask):
 
 
 class ActionWorkerManager(WorkerManager):
-    frontend_client = None
     worker_prefix = 'action_worker'
 
     def start_task(self, worker_id, task):
@@ -588,9 +587,6 @@ class ActionWorkerManager(WorkerManager):
         # TODO: mark as started on FE, and let user know in UI
         subprocess.check_call(command)
 
-    def has_worker_ended(self, worker_id, task_info):
-        return 'status' in task_info
-
     def finish_task(self, worker_id, task_info):
         task_id = self.get_task_id_from_worker_id(worker_id)
 
@@ -602,18 +598,5 @@ class ActionWorkerManager(WorkerManager):
             self.frontend_client.update({"actions": [result]})
         except FrontendClientException:
             self.log.exception("can't post to frontend, retrying indefinitely")
-            return False
-        return True
-
-    def is_worker_alive(self, worker_id, task_info):
-        if not 'PID' in task_info:
-            return False
-        pid = int(task_info['PID'])
-        try:
-            # Send signal=0 to the process to check whether it still exists.
-            # This is just no-op if the signal was successfully delivered to
-            # existing process, otherwise exception is raised.
-            os.kill(pid, 0)
-        except OSError:
             return False
         return True

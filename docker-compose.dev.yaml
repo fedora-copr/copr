@@ -26,12 +26,12 @@ services:
   backend-build:
     environment:
       - PYTHONPATH=/opt/copr/backend
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_build_dispatcher.py
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr-run-dispatcher builds
 
   backend-action:
     environment:
       - PYTHONPATH=/opt/copr/backend
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_action_dispatcher.py
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr-run-dispatcher actions
 
   frontend:
     environment:

@@ -89,11 +89,13 @@ class WorkerManager():
     worker_timeout_start = 30
     worker_timeout_deadcheck = 60
 
-    def __init__(self, redis_connection=None, max_workers=8, log=None):
+    def __init__(self, redis_connection=None, max_workers=8, log=None,
+                 frontend_client=None):
         self.tasks = JobQueue()
         self.log = log if log else logging.getLogger()
         self.redis = redis_connection
         self.max_workers = max_workers
+        self.frontend_client = frontend_client
 
     def start_task(self, worker_id, task):
         """
@@ -101,10 +103,12 @@ class WorkerManager():
         queue.  The background task should _on its own_ and ASAP let the manager
         know that it successfully started (e.g. mark the job 'started' in redis
         DB), so the has_worker_started() method later gives us valid info.
+        That's btw. the reason why we have the mandatory `worker_id` argument
+        here, the background worker needs to know what key to update in redis.
         """
         raise NotImplementedError
 
-    def finish_task(self, worker_id, task):
+    def finish_task(self, worker_id, task_info):
         """
         This is called once the worker manager consider the task to be done,
         because the `has_worker_ended()` method already returns True.  Override
@@ -128,9 +132,11 @@ class WorkerManager():
         Check 'task_info' (dictionary output from redis) whether the task is
         already finished by worker.  If yes, do whatever is needed with the
         result (contact frontend) and return True.  If the task is still
-        processed, return False.
+        processed, return False.  By default we just check for the ``status``
+        presence in ``task_info``, but this method is to be overridden.
         """
-        raise NotImplementedError
+        _subclass_can_use = (self, worker_id)
+        return 'status' in task_info
 
     def is_worker_alive(self, worker_id, task_info):
         """
@@ -138,8 +144,23 @@ class WorkerManager():
         notified us about the status.  We'll keep asking after
         worker_timeout_deadcheck seconds left since we tried to spawn the
         worker.
+
+        By default we check for 'PID' presence in task_info, but users are
+        advised to override this method when necessary.  We keep the 'self'
+        and 'worker_id' arguments as they might be useful.
         """
-        raise NotImplementedError
+        # pylint: disable=unused-argument,no-self-use
+        if not 'PID' in task_info:
+            return False
+        pid = int(task_info['PID'])
+        try:
+            # Send signal=0 to the process to check whether it still exists.
+            # This is just no-op if the signal was successfully delivered to
+            # existing process, otherwise exception is raised.
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
 
     def get_worker_id(self, task_id):
         """
@@ -157,13 +178,10 @@ class WorkerManager():
         assert prefix == self.worker_prefix
         return task_id
 
-    def has_worker(self, task_id):
-        worker_id = self.get_worker_id(task_id)
-        return worker_id in self.worker_ids()
-
     def add_task(self, task):
         task_id = repr(task)
-        if self.has_worker(task_id):
+        worker_id = self.get_worker_id(task_id)
+        if worker_id in self.worker_ids():
             # No need to re-add this to queue.
             self.log.warning("Task %s has worker, skipped", task_id)
             return
@@ -222,6 +240,9 @@ class WorkerManager():
         'remove all tasks from queue'
         self.tasks = JobQueue()
 
+    def _delete_worker(self, worker_id):
+        self.redis.delete(worker_id)
+
     def _cleanup_workers(self, now):
         for worker_id in self.worker_ids():
             info = self.redis.hgetall(worker_id)
@@ -233,7 +254,7 @@ class WorkerManager():
                 # orphaned for some reason (we gave up with him), and it still
                 # touches the database on background.
                 self.log.info("Missing 'allocated' flag for worker %s", worker_id)
-                self.redis.delete(worker_id)
+                self._delete_worker(worker_id)
                 continue
 
             allocated = float(allocated)
@@ -242,19 +263,19 @@ class WorkerManager():
                 # finished worker
                 self.log.info("Finished worker %s", worker_id)
                 self.finish_task(worker_id, info)
-                self.redis.delete(worker_id)
+                self._delete_worker(worker_id)
                 continue
 
             if info.get('delete'):
                 self.log.warning("worker %s deleted", worker_id)
-                self.redis.delete(worker_id)
+                self._delete_worker(worker_id)
                 continue
 
             if not self.has_worker_started(worker_id, info):
                 if now - allocated > self.worker_timeout_start:
                     # This worker failed to start?
                     self.log.error("worker %s failed to start", worker_id)
-                    self.redis.delete(worker_id)
+                    self._delete_worker(worker_id)
                 continue
 
             checked = info.get('checked', allocated)

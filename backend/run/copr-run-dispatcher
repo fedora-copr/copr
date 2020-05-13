@@ -1,0 +1,30 @@
+#! /usr/bin/python3
+
+"""
+Simple wrapper around our Dispatcher classed that is used to start the
+dispatchers from our systemd unit files.
+"""
+
+import sys
+
+from copr_backend.daemons.action_dispatcher import ActionDispatcher
+from copr_backend.daemons.build_dispatcher import BuildDispatcher
+from copr_backend.helpers import get_backend_opts
+
+
+def _main():
+    dispatcher = None
+    request = sys.argv[1]
+    if request == "actions":
+        dispatcher = ActionDispatcher
+    elif request == "builds":
+        dispatcher = BuildDispatcher
+    else:
+        raise NotImplementedError(
+            "Not implemented '{}' dispatcher".format(request))
+
+    dispatcher(backend_opts=get_backend_opts()).run()
+
+
+if __name__ == "__main__":
+    _main()

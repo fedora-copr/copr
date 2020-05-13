@@ -2,10 +2,8 @@ import os
 import time
 import gzip
 import shutil
-import multiprocessing
 import pipes
 import glob
-from setproctitle import setproctitle
 
 from ..exceptions import MockRemoteError, CoprWorkerError, VmError, CoprBackendSrpmError
 from ..mockremote import MockRemote
@@ -24,19 +22,20 @@ from ..sshcmd import SSHConnectionError
 
 # ansible_playbook = "ansible-playbook"
 
-class Worker(multiprocessing.Process):
+class Worker:
+    """
+    Do the rpm build.  TODO: move from daemons/ directory.
+    """
     msg_buses = []
 
-    def __init__(self, opts, vm_manager, worker_id, vm, job, reattach=False):
-        multiprocessing.Process.__init__(self, name="worker-{}".format(worker_id))
+    def __init__(self, opts, worker_id, vm, job):
+        self.pid = os.getpid()
 
         # safe variables to be inherited through fork() call
         self.opts = opts
-        self.vm_manager = vm_manager
         self.worker_id = worker_id
         self.vm = vm
         self.job = job
-        self.reattach = reattach
 
         # for the sake of readability, those are defined in run()
         self.log = None
@@ -44,37 +43,24 @@ class Worker(multiprocessing.Process):
 
     @property
     def name(self):
-        return "backend.worker-{}-{}".format(self.worker_id, self.group_name)
-
-    @property
-    def group_name(self):
-        try:
-            return self.opts.build_groups[self.vm.group]["name"]
-        except Exception as error:
-            self.log.exception("Failed to get builder group name from config, using group_id as name."
-                               "Original error: %s", error)
-            return str(self.vm.group)
-
+        """ just a name for logging purposes """
+        return "backend.worker-{}".format(self.worker_id)
 
     def _announce(self, topic, job):
         for bus in self.msg_buses:
             bus.announce_job(
                 topic, job,
                 who=self.name,
-                ip=self.vm.vm_ip,
+                ip=self.vm.hostname,
                 pid=self.pid
             )
-
 
     def _announce_start(self, job):
         """
         Announce everywhere that a build process started now.
         """
+        job.started_on = time.time()
         self._mark_running(job)
-
-        # the message has been sent before, stop now
-        if self.reattach:
-            return
 
         for topic in ['build.start', 'chroot.start']:
             self._announce(topic, job)
@@ -86,7 +72,7 @@ class Worker(multiprocessing.Process):
         """
         job.ended_on = time.time()
         self.return_results(job)
-        self.log.info("worker finished build: %s", self.vm.vm_ip)
+        self.log.info("worker finished build: %s", self.vm.hostname)
         self._announce('build.end', job)
 
     def _mark_running(self, job):
@@ -110,8 +96,7 @@ class Worker(multiprocessing.Process):
         self.log.info("Build %s finished with status %s",
                       job.build_id, job.status)
 
-        if job.started_on: # unset for reattached builds
-            self.log.info("Took %s seconds.", job.ended_on - job.started_on)
+        self.log.info("Took %s seconds.", job.ended_on - job.started_on)
 
         data = {"builds": [job.to_dict()]}
 
@@ -189,8 +174,6 @@ class Worker(multiprocessing.Process):
         :param job: :py:class:`~backend.job.BuildJob`
         """
         failed = False
-        self.update_process_title(suffix="Task: {} chroot: {} build running"
-                                  .format(job.build_id, job.chroot))
 
         self._announce_start(job)
 
@@ -203,10 +186,9 @@ class Worker(multiprocessing.Process):
                                    job.chroot_dir)
                 failed = True
 
-        if not self.reattach:
-            if not self.wait_for_repo(job):
-                failed = True
-            self.prepare_result_directory(job)
+        if not self.wait_for_repo(job):
+            failed = True
+        self.prepare_result_directory(job)
 
         if not failed:
             # FIXME
@@ -218,7 +200,7 @@ class Worker(multiprocessing.Process):
             # start the build - most importantly license checks.
 
             self.log.info("Starting build: id=%s builder=%s job: %s",
-                          job.build_id, self.vm.vm_ip, job)
+                          job.build_id, self.vm.hostname, job)
 
             with local_file_logger(
                 "{}.builder.mr".format(self.name),
@@ -227,18 +209,14 @@ class Worker(multiprocessing.Process):
 
                 try:
                     mr = MockRemote(
-                        builder_host=self.vm.vm_ip,
+                        builder_host=self.vm.hostname,
                         job=job,
                         logger=build_logger,
                         opts=self.opts
                     )
 
-                    if self.reattach:
-                        mr.reattach_to_pkg_build()
-                    else:
-                        mr.check()
-                        mr.build_pkg()
-
+                    mr.check()
+                    mr.build_pkg()
                     mr.compress_live_log(job)
                     mr.check_build_success() # raises if build didn't succeed
                     mr.download_results()
@@ -248,16 +226,14 @@ class Worker(multiprocessing.Process):
                     self.log.error(
                         "Error during the build, host=%s, build_id=%s, "
                         "chroot=%s, error='%s'",
-                        self.vm.vm_ip, job.build_id, job.chroot, str(e))
+                        self.vm.hostname, job.build_id, job.chroot, str(e))
                     failed = True
                     mr.download_results()
 
                 except SSHConnectionError as err:
                     self.log.exception(
                         "SSH connection stalled: %s", str(err))
-                    # The VM is unusable, don't wait for relatively slow
-                    # garbage collector.
-                    self.vm_manager.start_vm_termination(self.vm.vm_name)
+                    self.vm.release()
                     self.frontend_client.reschedule_build(
                         job.build_id, job.task_id, job.chroot)
                     raise VmError("SSH connection issue, build rescheduled")
@@ -280,15 +256,13 @@ class Worker(multiprocessing.Process):
 
             self.log.info(
                 "Finished build: id=%s builder=%s timeout=%s destdir=%s chroot=%s",
-                job.build_id, self.vm.vm_ip, job.timeout, job.destdir, job.chroot)
+                job.build_id, self.vm.hostname, job.timeout, job.destdir, job.chroot)
             self.copy_logs(job)
 
         register_build_result(self.opts, failed=failed)
         job.status = (BuildStatus.FAILURE if failed else BuildStatus.SUCCEEDED)
 
         self._announce_end(job)
-        self.update_process_title(suffix="Task: {} chroot: {} done"
-                                  .format(job.build_id, job.chroot))
 
     def collect_built_packages(self, job):
         self.log.info("Listing built binary packages in %s",
@@ -384,15 +358,11 @@ class Worker(multiprocessing.Process):
             else:
                 shutil.rmtree(file_path)
 
-    def update_process_title(self, suffix=None):
-        title = "Worker-{}-{} ".format(self.worker_id, self.group_name)
-        title += "vm.vm_ip={} ".format(self.vm.vm_ip)
-        title += "vm.vm_name={} ".format(self.vm.vm_name)
-        if suffix:
-            title += str(suffix)
-        setproctitle(title)
-
     def run(self):
+        """
+        Run the worker (in sync).  This method exists because previously we
+        inherited from multiprocessing.Process class.
+        """
         self.log = get_redis_logger(self.opts, self.name, "worker")
         self.frontend_client = FrontendClient(self.opts, self.log,
                                               try_indefinitely=True)
@@ -406,4 +376,4 @@ class Worker(multiprocessing.Process):
         except Exception as e:
             self.log.exception("Unexpected error: %s", e)
         finally:
-            self.vm_manager.release_vm(self.vm.vm_name)
+            self.vm.release()

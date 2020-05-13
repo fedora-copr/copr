@@ -64,6 +64,7 @@ class BuildJob(object):
 
         self.srpm_url = None
         self.uses_devel_repo = None
+        self.sandbox = None
 
         # TODO: validate update data, user marshmallow
         for key, val in task_data.items():

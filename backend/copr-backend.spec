@@ -42,6 +42,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-pytz
 BuildRequires: python3-requests
+BuildRequires: python3-resalloc
 BuildRequires: python3-retask
 BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
@@ -75,6 +76,7 @@ Requires:   python3-novaclient
 Requires:   python3-oslo-concurrency
 Requires:   python3-pytz
 Requires:   python3-requests
+Requires:   python3-resalloc >= 3.0
 Requires:   python3-retask
 Requires:   python3-setproctitle
 Requires:   python3-tabulate

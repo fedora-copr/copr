@@ -224,6 +224,7 @@ def pending_jobs():
     return flask.jsonify(build_records)
 
 
+@backend_ns.route("/get-build-task/<task_id>/")
 @backend_ns.route("/get-build-task/<task_id>")
 def get_build_task(task_id):
     try:
@@ -240,6 +241,7 @@ def get_build_task(task_id):
     return flask.jsonify(build_record)
 
 
+@backend_ns.route("/get-srpm-build-task/<build_id>/")
 @backend_ns.route("/get-srpm-build-task/<build_id>")
 def get_srpm_build_task(build_id):
     try:

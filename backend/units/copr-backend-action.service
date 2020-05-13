@@ -8,7 +8,7 @@ Wants=logrotate.timer
 Type=simple
 User=copr
 Group=copr
-ExecStart=/usr/bin/copr_run_action_dispatcher.py
+ExecStart=/usr/bin/copr-run-dispatcher actions
 # we don't want to kill background action processors (daemoncontext)
 KillMode=process
 Restart=on-failure
