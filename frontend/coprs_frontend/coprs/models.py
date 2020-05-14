@@ -30,6 +30,9 @@ import gi
 gi.require_version('Modulemd', '1.0')
 from gi.repository import Modulemd
 
+# Pylint Specifics for models.py:
+# - too-few-public-methods: models are often very trivial classes
+# pylint: disable=too-few-public-methods
 
 class CoprSearchRelatedData(object):
     def get_search_related_copr_id(self):
@@ -1797,6 +1800,13 @@ class DistGitInstance(db.Model):
     def package_clone_url(self, pkgname):
         url = '/'.join([self.clone_url, self.clone_package_uri])
         return url.format(pkgname=pkgname)
+
+
+class CancelRequest(db.Model):
+    """ Requests for backend to cancel some background job """
+    # for now we only cancel builds, so we have here task_id (either <build_id>
+    # for SRPM builds, or <build_id>-<chroot> for RPM builds).
+    what = db.Column(db.String(100), nullable=False, primary_key=True)
 
 
 @listens_for(DistGitInstance.__table__, 'after_create')

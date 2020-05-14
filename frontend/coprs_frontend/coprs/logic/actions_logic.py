@@ -218,26 +218,18 @@ class ActionsLogic(object):
 
     @classmethod
     def send_cancel_build(cls, build):
-        """ Schedules build cancel action
-        :type build: models.Build
-
-        @TODO refactor this method generate only one action and then
-              add a return statement
         """
+        Schedule build cancel.  The build is marked as canceled immediately, but
+        to not waste the resources we propagate this information to Backend
+        which may deallocate the builder resources.
+
+        :type build: models.Build
+        """
+        if build.canceled:
+            return
+        db.session.add(models.CancelRequest(what=str(build.id)))
         for chroot in build.build_chroots:
-            if chroot.state != "running":
-                continue
-
-            data_dict = {
-                "task_id": chroot.task_id,
-            }
-
-            action = models.Action(
-                action_type=ActionTypeEnum("cancel_build"),
-                data=json.dumps(data_dict),
-                created_on=int(time.time())
-            )
-            db.session.add(action)
+            db.session.add(models.CancelRequest(what=chroot.task_id))
 
     @classmethod
     def send_update_comps(cls, chroot):

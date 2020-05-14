@@ -210,7 +210,13 @@ class JobQueue():
 
     def remove_task(self, task):
         'Mark an existing task as removed.  Raise KeyError if not found.'
-        entry = self.entry_finder.pop(repr(task))
+        self.remove_task_by_id(repr(task))
+
+    def remove_task_by_id(self, task_id):
+        """
+        Using task id, drop the task from queue.  Raise KeyError if not found.
+        """
+        entry = self.entry_finder.pop(task_id)
         entry[-1] = self.removed
 
     def pop_task(self):
@@ -376,7 +382,13 @@ class WorkerManager():
             limit.worker_dropped(worker_id)
         self._tracked_workers.remove(worker_id)
 
+    def cancel_request_done(self, task):
+        """ Report back to frontend that the cancel request was finished. """
+
     def add_task(self, task):
+        """
+        Add task to queue.
+        """
         task_id = repr(task)
         worker_id = self.get_worker_id(task_id)
 
@@ -390,6 +402,26 @@ class WorkerManager():
 
         self.log.debug("Adding task %s to queue", task_id)
         self.tasks.add_task(task, task.priority)
+
+    def _drop_task_id_safe(self, task_id):
+        try:
+            self.tasks.remove_task_by_id(task_id)
+        except KeyError:
+            pass
+
+    def cancel_task_id(self, task_id):
+        """
+        Using task_id, cancel corresponding task, and request worker
+        shut-down (when already started)
+        """
+        self._drop_task_id_safe(task_id)
+        worker_id = self.get_worker_id(task_id)
+        if worker_id not in self.worker_ids():
+            self.log.info("Cancel request, worker %s is not running", worker_id)
+            return
+        self.log.info("Cancel request, worker %s requested to cancel",
+                      worker_id)
+        self.redis.hset(worker_id, 'cancel_request', 1)
 
     def worker_ids(self):
         """

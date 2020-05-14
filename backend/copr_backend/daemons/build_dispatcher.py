@@ -50,3 +50,14 @@ class BuildDispatcher(Dispatcher):
             task = BuildQueueTask(raw)
             tasks.append(task)
         return tasks
+
+    def get_cancel_requests_ids(self):
+        try:
+            return self.frontend_client.get('build-tasks/cancel-requests').json()
+        except (FrontendClientException, ValueError) as error:
+            self.log.exception("Retrieving build jobs from %s failed with error: %s",
+                               self.opts.frontend_base_url, error)
+            return []
+
+    def canceled_task_id(self, task_id):
+        self.frontend_client.post('build-tasks/canceled/{}'.format(task_id), None)

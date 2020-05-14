@@ -182,6 +182,24 @@ def pending_action():
     return flask.jsonify(action_record)
 
 
+@backend_ns.route("/build-tasks/cancel-requests/")
+def pending_cancel_builds():
+    """
+    Return the list of task IDs to be canceled.
+    """
+    task_ids = [x.what for x in models.CancelRequest.query.all()]
+    return flask.jsonify(task_ids)
+
+
+@backend_ns.route("/build-tasks/canceled/<task_id>/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def build_task_canceled(task_id):
+    """ Report back to frontend that the task was canceled on backend """
+    models.CancelRequest.query.filter_by(what=task_id).delete()
+    db.session.commit()
+    return flask.jsonify("success")
+
+
 @backend_ns.route("/pending-actions/")
 def pending_actions():
     'get the list of actions backand should take care of'

@@ -921,8 +921,7 @@ class BuildsLogic(object):
                 err_msg = "Cannot cancel build {}".format(build.id)
             raise ConflictingRequest(err_msg)
 
-        if build.status == StatusEnum("running"): # otherwise the build is just in frontend
-            ActionsLogic.send_cancel_build(build)
+        ActionsLogic.send_cancel_build(build)
 
         build.canceled = True
         cls.process_update_callback(build)

@@ -63,6 +63,19 @@ class Dispatcher(multiprocessing.Process):
         """
         raise NotImplementedError
 
+    def get_cancel_requests_ids(self):
+        """
+        Return list of QueueTask IDS that should be canceled.
+        """
+        _subclass_can_use = (self)
+        return []
+
+    def canceled_task_id(self, task_id):
+        """
+        Report back to Frontend that this task was canceled.  By default this
+        isn't called, so it is NO-OP by default.
+        """
+
     def _print_added_jobs(self, tasks):
         job_ids = {task.id for task in tasks}
         new_job_ids = job_ids - self._previous_task_fetch_ids
@@ -96,6 +109,11 @@ class Dispatcher(multiprocessing.Process):
             self._print_added_jobs(tasks)
             for task in tasks:
                 worker_manager.add_task(task)
+
+            self._update_process_title("getting cancel requests")
+            for task_id in self.get_cancel_requests_ids():
+                worker_manager.cancel_task_id(task_id)
+                self.canceled_task_id(task_id)
 
             # process the tasks
             self._update_process_title("processing tasks")

@@ -225,6 +225,14 @@ class TestWorkerManager(BaseTestWorkerManager):
         msg = "Missing 'allocated' flag for worker " + fake_worker_name
         assert ('root', logging.INFO, msg) in caplog.record_tuples
 
+    def test_cancel_task(self):
+        self.redis.hset('worker:4', 'allocated', 1)
+        self.worker_manager.cancel_task_id(3)
+        self.worker_manager.cancel_task_id(4)
+        self.worker_manager.cancel_task_id(666)
+        assert self.redis.hgetall('worker:3') == {}
+        assert "cancel_request" in self.redis.hgetall('worker:4')
+
 def wait_pid_exit(pid):
     """ wait till pid stops responding to no-op kill 0 """
     while True:
