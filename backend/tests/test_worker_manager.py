@@ -205,7 +205,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         assert len(workers) == 1
         assert workers[0] == self.w0
 
-        args = self.wait_field(self.w0, 'started')
+        args = self.wait_field(self.w0, 'status')
         assert 'status' in args
         assert 'PID' in args
         assert 'started' in args
