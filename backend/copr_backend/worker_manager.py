@@ -1,8 +1,190 @@
+import os
 import time
 from heapq import heappop, heappush
 import itertools
 import redis
 import logging
+
+
+class WorkerLimit:
+    """
+    Limit for the number of tasks being processed concurrently
+
+    WorkerManager expects that it's caller fills the task queue only with tasks
+    that should be processed.  Then WorkerManager is completely responsible for
+    sorting out the queue, and behave -> respect the given limits.
+
+    WorkerManager implements really stupid algorithm to respect the limits;  we
+    simply drop the task from queue (and continue to the next task) if it was
+    about to exceed any given limit.  This is the only option at this moment
+    because JobQueue doesn't allow us to skip some task, and return to it later.
+    It is not a problem for Copr dispatchers though because we re-add the
+    dropped tasks to JobQueue anyways -- after the next call to the
+    Dispatcher.get_frontend_tasks() method (see "sleeptime" configuration
+    option).
+
+    Each Limit object works as a statistic counter for the list of _currently
+    processed_ tasks (i.e. not queued tasks!).  And we may want to query the
+    statistics anytime we want to.  Both calculating and querying the statistics
+    must be as fast as possible, therefore the interface only re-calculates the
+    stats when WorkerManager starts/stops working on some task.
+
+    One may wonder why to bother with limits, and why not to delegate this
+    responsibility on WorkerManager caller (IOW don't put the task to queue if
+    it is not yet the right time process it..).  That would be ideal case, but
+    at the time of filling the queue caller has no idea about the currently
+    running BackgroundWorker instances (those need to be calculated to
+    statistics, too).
+    """
+
+    def __init__(self, name=None):
+        self._name = name
+
+    def worker_added(self, worker_id, task):
+        """ Add worker and it's task to statistics.  """
+        raise NotImplementedError
+
+    def worker_dropped(self, worker_id):
+        """ Remove the worker from statistics. """
+        raise NotImplementedError
+
+    def check(self, task):
+        """ Check if the task can be added without crossing the limit. """
+        raise NotImplementedError
+
+    def clear(self):
+        """ Clear the statistics. """
+        raise NotImplementedError
+
+    def info(self):
+        """ Get the user-readable info about the limit object """
+        if self._name:
+            return "'{}'".format(self._name)
+        return "Unnamed '{}' limit".format(type(self).__name__)
+
+
+class PredicateWorkerLimit(WorkerLimit):
+    """
+    Calculate how many tasks being processed by currently running workers match
+    the given predicate.
+    """
+    def __init__(self, predicate, limit, name=None):
+        """
+        :param predicate: function object taking one QueueTask argument, and
+            returning True or False
+        :param limit: how many tasks matching the ``predicate`` are allowed to
+            be processed concurrently.
+        """
+        super().__init__(name)
+        self._limit = limit
+        self._predicate = predicate
+        self.clear()
+
+    def clear(self):
+        self._refs = {}
+
+    def worker_added(self, worker_id, task):
+        if not self._predicate(task):
+            return
+        self._refs[worker_id] = True
+
+    def worker_dropped(self, worker_id):
+        if worker_id not in self._refs:
+            # we calculate reference only the positive matches
+            return
+        del self._refs[worker_id]
+
+    def check(self, task):
+        if not self._predicate(task):
+            return True
+        return len(self._refs) < self._limit
+
+    def info(self):
+        text = super().info()
+        matching = ', '.join(self._refs.keys())
+        if not matching:
+            return text
+        return "{}, matching: {}".format(text, matching)
+
+
+class StringCounter:
+    """
+    Counter for string occurrences.  When string is None, we don't count it
+    """
+    def __init__(self):
+        self._counter = {}
+
+    def add(self, string):
+        """ Add string to counter """
+        if string is None:
+            return
+        if string in self._counter:
+            self._counter[string] += 1
+        else:
+            self._counter[string] = 1
+
+    def drop(self, string):
+        """ Drop string from counter """
+        if string is None:
+            return
+        assert string in self._counter
+        self._counter[string] -= 1
+        if self._counter[string] == 0:
+            # avoid memory leaks!
+            del self._counter[string]
+
+    def count(self, string):
+        """ Return number ``string`` occurrences """
+        return self._counter.get(string, 0)
+
+    def __str__(self):
+        items = ["{}={}".format(key, value)
+                 for key, value in self._counter.items()]
+        return ", ".join(items)
+
+
+class GroupWorkerLimit(WorkerLimit):
+    """
+    Assign task to groups, and set maximum number of workers per each group.
+    """
+    def __init__(self, hasher, limit, name=None):
+        """
+        :param hasher: function object taking one QueueTask argument, and
+            returning string key (name of the ``group``).
+        :param limit: how many tasks in the ``group`` are allowed to be
+            processed at the same time.
+        """
+        super().__init__(name)
+        self._limit = limit
+        self._hasher = hasher
+        self.clear()
+
+    def clear(self):
+        self._groups = StringCounter()
+        self._refs = {}
+
+    def worker_added(self, worker_id, task):
+        # remember it
+        group_name = self._refs[worker_id] = self._hasher(task)
+        # count it
+        self._groups.add(group_name)
+
+    def worker_dropped(self, worker_id):
+        group = self._refs.get(worker_id)
+        assert group
+        # de-count the worker
+        self._groups.drop(group)
+        # forget about the worker
+        del self._refs[worker_id]
+
+    def check(self, task):
+        group_name = self._hasher(task)
+        return self._groups.count(group_name) < self._limit
+
+    def info(self):
+        text = super().info()
+        return "{}, counter: {}".format(text, str(self._groups))
+
 
 class JobQueue():
     """
@@ -90,12 +272,14 @@ class WorkerManager():
     worker_timeout_deadcheck = 60
 
     def __init__(self, redis_connection=None, max_workers=8, log=None,
-                 frontend_client=None):
+                 frontend_client=None, limits=None):
         self.tasks = JobQueue()
         self.log = log if log else logging.getLogger()
         self.redis = redis_connection
         self.max_workers = max_workers
         self.frontend_client = frontend_client
+        self._tracked_workers = set()
+        self._limits = limits or []
 
     def start_task(self, worker_id, task):
         """
@@ -178,15 +362,33 @@ class WorkerManager():
         assert prefix == self.worker_prefix
         return task_id
 
+    def _start_tracking_worker(self, worker_id, task):
+        if worker_id in self._tracked_workers:
+            return
+        self._tracked_workers.add(worker_id)
+        for limit in self._limits:
+            limit.worker_added(worker_id, task)
+
+    def _stop_tracking_worker(self, worker_id):
+        if worker_id not in self._tracked_workers:
+            return
+        for limit in self._limits:
+            limit.worker_dropped(worker_id)
+        self._tracked_workers.remove(worker_id)
+
     def add_task(self, task):
         task_id = repr(task)
         worker_id = self.get_worker_id(task_id)
+
+        # TODO: We now track workers in-memory, no need to re-query Redis for
+        # self.worker_ids() all the time (we can cache it for one run)
         if worker_id in self.worker_ids():
             # No need to re-add this to queue.
-            self.log.warning("Task %s has worker, skipped", task_id)
+            self._start_tracking_worker(worker_id, task)
+            self.log.debug("Task %s already has a worker process", task_id)
             return
 
-        self.log.info("Adding task %s to queue", task_id)
+        self.log.debug("Adding task %s to queue", task_id)
         self.tasks.add_task(task, task.priority)
 
     def worker_ids(self):
@@ -228,12 +430,25 @@ class WorkerManager():
                 # to do.  Just simply wait till the end of the cycle.
                 break
 
+            break_on_limit = False
+            for limit in self._limits:
+                # just skip this task, it will be processed in the next
+                # run because we keep re-filling the queue
+                if not limit.check(task):
+                    self.log.debug("Task '%s' skipped, limit info: %s",
+                                   task.id, limit.info())
+                    break_on_limit = True
+                    break
+            if break_on_limit:
+                continue
+
             self._start_worker(task, now)
 
     def _start_worker(self, task, time_now):
         worker_id = self.get_worker_id(repr(task))
         self.redis.hset(worker_id, 'allocated', time_now)
         self.log.info("Starting worker %s", worker_id)
+        self._start_tracking_worker(worker_id, task)
         self.start_task(worker_id, task)
 
     def clean_tasks(self):
@@ -242,6 +457,7 @@ class WorkerManager():
 
     def _delete_worker(self, worker_id):
         self.redis.delete(worker_id)
+        self._stop_tracking_worker(worker_id)
 
     def _cleanup_workers(self, now):
         for worker_id in self.worker_ids():

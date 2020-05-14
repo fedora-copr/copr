@@ -69,6 +69,15 @@ sleeptime=30
 # be taken at the same time.
 #builds_max_workers=60
 
+# Maximum number of concurrently running tasks per architecture.
+#builds_max_workers_arch=x86_64=10,ppc64le=12
+
+# Maximum number of concurrently running tasks per project owner.
+#builds_max_workers_owner=20
+
+# Maximum number of concurrently running tasks per build sandbox.
+#builds_max_workers_sandbox=10
+
 # Maximum number of concurrent background processes spawned for handling
 # actions.
 #actions_max_workers=10

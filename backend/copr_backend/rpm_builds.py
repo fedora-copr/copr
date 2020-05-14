@@ -4,8 +4,12 @@ Abstraction for RPM and SRPM builds on backend.
 
 import subprocess
 
-from copr_backend.worker_manager import QueueTask, WorkerManager
-
+from copr_backend.helpers import get_chroot_arch
+from copr_backend.worker_manager import (
+    PredicateWorkerLimit,
+    QueueTask,
+    WorkerManager,
+)
 
 class BuildQueueTask(QueueTask):
     """
@@ -46,6 +50,27 @@ class BuildQueueTask(QueueTask):
         return task_chroot
 
     @property
+    def owner(self):
+        """ Owner of the project this build belongs to """
+        return self._task["project_owner"]
+
+    @property
+    def requested_arch(self):
+        """
+        What is the requested "native" builder architecture for which this
+        build task will be done.  We use this for limiting the build queue
+        (i.e. separate limit for armhfp, even though such build process is
+        emulated on x86_64).
+        """
+        if self.chroot == "srpm-builds":
+            return None
+        arch = get_chroot_arch(self.chroot)
+        if arch.endswith("86"):
+            # i386, i586, ...
+            return "x86_64"
+        return arch
+
+    @property
     def sandbox(self):
         """
         Unique ID of "sandbox" to put the VM worker into.  Multiple builds can
@@ -58,6 +83,16 @@ class BuildQueueTask(QueueTask):
         task is processed).
         """
         return self._task.get('sandbox')
+
+
+class ArchitectureWorkerLimit(PredicateWorkerLimit):
+    """
+    Limit the amount of concurrently running builds for the same architecture.
+    """
+    def __init__(self, architecture, limit):
+        def predicate(x):
+            return x.requested_arch == architecture
+        super().__init__(predicate, limit, name="arch_{}".format(architecture))
 
 
 class RPMBuildWorkerManager(WorkerManager):

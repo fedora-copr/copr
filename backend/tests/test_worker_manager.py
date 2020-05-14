@@ -14,7 +14,9 @@ from copr_common.enums import DefaultActionPriorityEnum
 
 from copr_backend.helpers import get_redis_connection
 from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action
-from copr_backend.worker_manager import JobQueue, WorkerManager, QueueTask
+from copr_backend.worker_manager import (
+    JobQueue, PredicateWorkerLimit, QueueTask, WorkerManager
+)
 
 WORKDIR = os.path.dirname(__file__)
 
@@ -51,6 +53,9 @@ class ToyWorkerManager(WorkerManager):
 
         subprocess.check_call(list(map(str, cmd)), env=environ)
 
+    def finish_task(self, _w_id, _tinfo):
+        pass
+
 
 class ToyActionWorkerManager(ToyWorkerManager, ActionWorkerManager):
     pass
@@ -63,6 +68,11 @@ class ToyQueueTask(QueueTask):
     @property
     def id(self):
         return self._id
+
+    @property
+    def is_odd(self):
+        """ return True if the self.id is odd number """
+        return bool(int(self.id) % 2)
 
 
 class TestPrioQueue(object):
@@ -142,6 +152,54 @@ class BaseTestWorkerManager:
                 break
         return count
 
+
+class TestLimitedWorkerManager(BaseTestWorkerManager):
+    limits = []
+    def setup_worker_manager(self):
+        self.limits = [
+            PredicateWorkerLimit(lambda x: x.is_odd, 3, name="odd"),
+            PredicateWorkerLimit(lambda x: not x.is_odd, 2, name="even"),
+        ]
+        self.worker_manager = ToyWorkerManager(
+            redis_connection=self.redis,
+            max_workers=50,
+            log=log,
+            limits=self.limits)
+
+    @patch('copr_backend.worker_manager.time.sleep')
+    @patch('copr_backend.worker_manager.time.time')
+    def test_that_limits_are_respected(self, mc_time, _mc_sleep, caplog):
+        # each time.time() call incremented by 1
+        self.worker_manager.task_sleep = 5
+        self.worker_manager.worker_timeout_start = 1000
+        mc_time.side_effect = range(1000)
+        self.worker_manager.run(timeout=150)
+        messages = [
+            "Task '4' skipped, limit info: 'even', "
+            "matching: worker:0, worker:2",
+            "Task '6' skipped, limit info: 'even', "
+            "matching: worker:0, worker:2",
+            "Task '7' skipped, limit info: 'odd', "
+            "matching: worker:1, worker:3, worker:5",
+            "Task '8' skipped, limit info: 'even', "
+            "matching: worker:0, worker:2",
+            "Task '9' skipped, limit info: 'odd', "
+            "matching: worker:1, worker:3, worker:5",
+        ]
+        for msg in messages:
+            assert ('root', logging.DEBUG, msg) in caplog.record_tuples
+        # Even though the "even" limit kicked-out task 4, the task 5 is still
+        # successfully started because that's the third "odd" task.  The rest of
+        # tasks is just skipped.
+        assert ('root', logging.INFO, "Starting worker worker:5") \
+                in caplog.record_tuples
+        # finish the task sooner, and check the limit is downgraded
+        self.redis.hset("worker:5", "status", "0")
+        assert 'worker:5' in self.limits[0].info()
+        self.worker_manager.run(timeout=1)
+        assert ('root', logging.INFO, "Finished worker worker:5") \
+                in caplog.record_tuples
+        assert 'worker:5' not in self.limits[0].info()
 
 class TestWorkerManager(BaseTestWorkerManager):
     def test_worker_starts(self):
@@ -296,7 +354,8 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         queue = copy.deepcopy(self.worker_manager.tasks)
         self.worker_manager.add_task(ToyQueueTask(0))
         assert len(queue.prio_queue) == len(self.worker_manager.tasks.prio_queue)
-        assert ('root', logging.WARNING, "Task 0 has worker, skipped") in caplog.record_tuples
+        assert ('root', logging.DEBUG,
+                "Task 0 already has a worker process") in caplog.record_tuples
 
     def test_empty_queue_but_workers_running(self):
         'check that sleep(1) is done if queue is empty, but some workers exist'

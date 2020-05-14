@@ -136,6 +136,36 @@ def _get_conf(cp, section, option, default, mode=None):
     return default
 
 
+def _get_limits_conf(parser):
+    err1 = ("Unexpected format of 'builds_max_workers_arch' configuration "
+            "option.  Please use format: "
+            "builds_max_workers_arch = ARCH1=COUNT,ARCH2=COUNT")
+    err2 = ("Duplicate arch {} in 'builds_max_workers_arch' configuration")
+    limits = {"arch": {},}
+
+    raw = _get_conf(parser, "backend", "builds_max_workers_arch", None)
+    if raw:
+        raw_arches = raw.split(',')
+        for arch_spec in raw_arches:
+            try:
+                arch, count = arch_spec.split("=")
+                arch = arch.strip()
+                count = int(count.strip())
+                if not arch or not count:
+                    raise CoprBackendError("Empty builds_max_workers_arch spec")
+                if arch in limits["arch"]:
+                    raise CoprBackendError(err2.format(arch))
+                limits["arch"][arch] = count
+            except ValueError:
+                raise CoprBackendError(err1)
+
+    limits['sandbox'] = _get_conf(
+        parser, "backend", "builds_max_workers_sandbox", 10, mode="int")
+    limits['owner'] = _get_conf(
+        parser, "backend", "builds_max_workers_owner", 20, mode="int")
+    return limits
+
+
 class BackendConfigReader(object):
     def __init__(self, config_file=None, ext_opts=None):
         self.config_file = config_file or "/etc/copr/copr-be.conf"
@@ -274,6 +304,7 @@ class BackendConfigReader(object):
         opts.builds_max_workers = _get_conf(
             cp, "backend", "builds_max_workers",
             default=60, mode="int")
+        opts.builds_limits = _get_limits_conf(cp)
 
         opts.actions_max_workers = _get_conf(
             cp, "backend", "actions_max_workers",

@@ -46,7 +46,8 @@ class Dispatcher(multiprocessing.Process):
         logger_redis_who = '{}_dispatcher'.format(self.task_type)
         self.log = get_redis_logger(self.opts, logger_name, logger_redis_who)
         self.frontend_client = FrontendClient(self.opts, self.log)
-
+        # list of applied WorkerLimit instances
+        self.limits = []
 
     @classmethod
     def _update_process_title(cls, msg=None):
@@ -82,6 +83,7 @@ class Dispatcher(multiprocessing.Process):
             log=self.log,
             max_workers=self.max_workers,
             frontend_client=self.frontend_client,
+            limits=self.limits,
         )
 
         timeout = self.sleeptime
