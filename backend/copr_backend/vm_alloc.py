@@ -6,6 +6,10 @@ import time
 from resalloc.client import Connection as ResallocConnection
 
 
+class RemoteHostAllocationTerminated(Exception):
+    """ raised when something happened during VM allocation """
+
+
 class RemoteHost:
     """
     Remote host allowing us to ssh.
@@ -21,6 +25,7 @@ class RemoteHost:
         """
         Check that the host is ready (usually it means that it is ready to talk
         over ssh layer).
+        :raises RemoteHostAllocationTerminated exception.
         """
         raise NotImplementedError
 
@@ -59,12 +64,18 @@ class RemoteHost:
 
     def wait_ready(self):
         """
-        Passively wait till self.is_ready is true.
+        Passively wait till self.is_ready is true.  Return True if we
+        successfully waited for the VM.
         """
         sleep = self._incremental_sleep()
-        while not self._check_ready():
-            next(sleep)
-        return True
+        try:
+            while True:
+                if self._check_ready():
+                    return True
+                next(sleep)
+        except RemoteHostAllocationTerminated:
+            pass
+        return False
 
 
 class ResallocHost(RemoteHost):
@@ -76,10 +87,14 @@ class ResallocHost(RemoteHost):
     ticket = None
 
     def check_ready(self):
-        if self.ticket.collect():
-            self.hostname = str(self.ticket.output).strip()
-            return True
-        return False
+        self.ticket.collect()
+        if self.ticket.closed:
+            # canceled, or someone else closed the ticket
+            raise RemoteHostAllocationTerminated
+        if not self.ticket.ready:
+            return False
+        self.hostname = str(self.ticket.output).strip()
+        return True
 
     def release(self):
         self.ticket.close()

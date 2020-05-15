@@ -12,6 +12,15 @@ from copr_backend.background_worker import BackgroundWorker
 from copr_backend.job import BuildJob
 from copr_backend.daemons.worker import Worker
 from copr_backend.vm_alloc import ResallocHostFactory
+from copr_backend.cancellable_thread import CancellableThreadTask
+from copr_backend.sshcmd import SSHConnection, SSHConnectionError
+
+
+class BuildCanceled(Exception):
+    """ asynchronous cancel request received """
+
+class DeadWorker(Exception):
+    """ this VM needs to be recycled """
 
 
 class BuildBackgroundWorker(BackgroundWorker):
@@ -22,6 +31,8 @@ class BuildBackgroundWorker(BackgroundWorker):
     redis_logger_id = 'worker'
     job = None
     host = None
+    ssh = None
+    canceled = False
 
     @classmethod
     def adjust_arg_parser(cls, parser):
@@ -71,27 +82,86 @@ class BuildBackgroundWorker(BackgroundWorker):
         self.host.release()
         self.host = None
 
-    def _handle_task(self):
-        self.get_build_job()
-        self.mark_starting()
+    def _cancel_task_check_request(self):
+        self.canceled = bool(self.redis_get_worker_flag("cancel_request"))
+        return self.canceled
+
+    def _alloc_host(self):
+        """
+        Set self.host with ready RemoteHost, and return True.  Keep re-trying
+        upon allocation failure.  Return False if the request was canceled.
+        """
         tags = []
         if self.job.arch:
             tags.append("arch_{}".format(self.job.arch))
+
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
-        self.host = vm_factory.get_host(tags, self.job.sandbox)
-        self.host.wait_ready()
+        while True:
+            self.host = vm_factory.get_host(tags, self.job.sandbox)
+            success = CancellableThreadTask(
+                self.host.wait_ready,
+                self._cancel_task_check_request,
+                self._drop_host,
+            ).run()
+            if self.canceled:
+                raise BuildCanceled
+            if success:
+                return True
+
+    def _alloc_ssh_connections(self):
+        self.ssh = SSHConnection(
+            user=self.opts.build_user,
+            host=self.host.hostname,
+            config_file=self.opts.ssh.builder_config
+        )
+
+    def _cancel_running_worker(self):
+        try:
+            cmd = "cat /var/lib/copr-rpmbuild/pid"
+            rc, out, err = self.ssh.run_expensive(cmd)
+            if rc:
+                if "No such file" in err:
+                    self.log.warning("no PID file to cancel")
+                    return
+                msg = "Can't get PID file to cancel {}".format(err)
+                raise DeadWorker(msg)
+            pid = int(out.strip())
+            # TODO: kill -9 can keep mock around
+            self.log.info("killing PID %s on worker", pid)
+            self.ssh.run_expensive("kill -9 -{}".format(pid))
+        except ValueError:
+            raise DeadWorker("Can't parse PID to cancel")
+        except SSHConnectionError:
+            raise DeadWorker("Can't ssh to cancel build.")
+
+    def _handle_task(self):
+        self.get_build_job()
+        self.mark_starting()
+        self._alloc_host()
+        self._alloc_ssh_connections()
         worker = Worker(self.opts, self.worker_id, self.host, self.job)
-        worker.run()
+        CancellableThreadTask(
+            worker.run,
+            self._cancel_task_check_request,
+            self._cancel_running_worker,
+        ).run()
+        if self.canceled:
+            raise BuildCanceled
 
     def handle_task(self):
         result = StatusEnum("failed")
+
         try:
             result = self._handle_task()
+        except BuildCanceled:
+            self.log.error("build was canceled")
+            self.redis_set_worker_flag("fail_reason", "Build was canceled.")
         except Exception:  # pylint: disable=broad-except
             self.log.exception("unexpected exception")
+            self.redis_set_worker_flag("fail_reason", "Unexpected exception.")
         finally:
             self._drop_host()
-            self.redis_hset('status', str(result))
+            self.redis_set_worker_flag('status', str(result))
 
 
 if __name__ == "__main__":

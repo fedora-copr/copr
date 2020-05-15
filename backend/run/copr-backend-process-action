@@ -45,7 +45,7 @@ class ActionBackgroundWorker(BackgroundWorker):
         finally:
             self.log.info("Action %s ended with status=%s", action_id,
                           ActionResult(int(result)))
-            self.redis_hset('status', str(result))
+            self.redis_set_worker_flag('status', str(result))
 
 
 if __name__ == "__main__":

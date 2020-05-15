@@ -43,10 +43,23 @@ class BackgroundWorker:
             self._redis_conn = get_redis_connection(self.opts)
         return self._redis_conn
 
-    def redis_hset(self, key, val):
+    def redis_set_worker_flag(self, flag, value=1):
+        """
+        Set flag in Reids DB for corresponding worker.  NO-OP if there's no
+        redis connection (when run manually).
+        """
         if not self.has_wm:
             return
-        self._redis.hset(self.args.worker_id, key, val)
+        self._redis.hset(self.args.worker_id, flag, value)
+
+    def redis_get_worker_flag(self, flag):
+        """
+        Get flag from Redis DB entry of corresponding worker.  If there's no
+        Redis connection (manual run) return None
+        """
+        if not self.has_wm:
+            return None
+        return self._redis.hget(self.args.worker_id, flag)
 
     @classmethod
     def _get_argparser(cls):
@@ -100,8 +113,8 @@ class BackgroundWorker:
         if not self.has_wm:
             return True
 
-        self.redis_hset('started', 1)
-        self.redis_hset('PID', os.getpid())
+        self.redis_set_worker_flag('started', 1)
+        self.redis_set_worker_flag('PID', os.getpid())
 
         data = self._redis.hgetall(self.args.worker_id)
         if 'allocated' not in data:
