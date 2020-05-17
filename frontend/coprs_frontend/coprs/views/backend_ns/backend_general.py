@@ -121,6 +121,9 @@ def get_build_record(task, short=False):
             array = [{'enable': m} for m in copr_chroot.module_toggle_array]
             build_record["modules"] = {'toggle': array}
 
+        if task.build.is_background:
+            build_record['background'] = True
+
         if short:
             return build_record
 

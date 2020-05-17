@@ -12,6 +12,24 @@ from copr_backend.worker_manager import GroupWorkerLimit
 from ..exceptions import FrontendClientException
 
 
+class _PriorityCounter:
+    def __init__(self):
+        self._counter = {}
+
+    def get_priority(self, task):
+        """ calculate task by counter, and return calculated priority """
+        self._counter.setdefault(task.owner, {})
+        owner = self._counter[task.owner]
+        arch = task.requested_arch or 'srpm'
+        owner.setdefault(arch, 0)
+        owner[arch] += 1
+        priority = owner[arch]
+        if not task.requested_arch:
+            # prioritize srpm builds a bit
+            priority -= 10
+        return priority
+
+
 class BuildDispatcher(Dispatcher):
     """
     Kick-off build dispatcher daemon.
@@ -46,8 +64,10 @@ class BuildDispatcher(Dispatcher):
             return []
 
         tasks = []
+        priority = _PriorityCounter()
         for raw in raw_tasks:
             task = BuildQueueTask(raw)
+            task.backend_priority = priority.get_priority(task)
             tasks.append(task)
         return tasks
 

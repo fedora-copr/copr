@@ -24,10 +24,23 @@ class BuildQueueTask(QueueTask):
     """
     def __init__(self, task):
         self._task = task
+        self._backend_priority = 0
 
     @property
     def frontend_priority(self):
-        return self._task.get('priority', 0)
+        priority = self._task.get('priority', 0)
+        if self._task.get('background'):
+            # background jobs are less prioritized
+            priority += 10
+        return priority
+
+    @property
+    def backend_priority(self):
+        return self._backend_priority
+
+    @backend_priority.setter
+    def backend_priority(self, value):
+        self._backend_priority = value
 
     @property
     def id(self):
