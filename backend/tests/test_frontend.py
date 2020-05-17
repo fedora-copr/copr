@@ -148,15 +148,6 @@ class TestFrontendClient(object):
         assert mc_time.sleep.called
         assert len(caplog.records) == 100
 
-    def test_reschedule_300(self, mask_frontend_request, post_req):
-        response = Response()
-        response.status_code = 302
-        response.reason = 'whatever'
-        post_req.side_effect = response
-        with pytest.raises(FrontendClientException) as ex:
-            self.fc.reschedule_all_running()
-        assert 'Failed to reschedule builds' in str(ex)
-
     def test_update(self):
         ptfr = MagicMock()
         self.fc._post_to_frontend_repeatedly = ptfr

@@ -236,7 +236,8 @@ def pending_jobs():
     srpm_tasks = [build for build in BuildsLogic.get_pending_srpm_build_tasks() if not build.blocked]
     build_records = (
         [get_srpm_build_record(task) for task in srpm_tasks] +
-        [get_build_record(task, short=True) for task in BuildsLogic.get_pending_build_tasks()]
+        [get_build_record(task, short=True)
+         for task in BuildsLogic.get_pending_build_tasks(for_backend=True)]
     )
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
@@ -323,30 +324,6 @@ def starting_build():
     BuildsLogic.update_state_from_dict(build, data)
     db.session.commit()
     return flask.jsonify({"can_start": True})
-
-
-@backend_ns.route("/reschedule_all_running/", methods=["POST", "PUT"])
-@misc.backend_authenticated
-def reschedule_all_running():
-    to_reschedule = \
-        BuildsLogic.get_build_tasks(StatusEnum("starting")).all() + \
-        BuildsLogic.get_build_tasks(StatusEnum("running")).all()
-
-    for build_chroot in to_reschedule:
-        build_chroot.status = StatusEnum("pending")
-        db.session.add(build_chroot)
-
-    to_reschedule = \
-        BuildsLogic.get_srpm_build_tasks(StatusEnum("starting")).all() + \
-        BuildsLogic.get_srpm_build_tasks(StatusEnum("running")).all()
-
-    for build in to_reschedule:
-        build.source_status = StatusEnum("pending")
-        db.session.add(build)
-
-    db.session.commit()
-
-    return "OK", 200
 
 
 @backend_ns.route("/reschedule_build_chroot/", methods=["POST", "PUT"])

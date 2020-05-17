@@ -6,7 +6,6 @@ import time
 
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
-from coprs import app
 
 from copr_common.enums import StatusEnum
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, \
@@ -113,20 +112,20 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(data) == 0
 
     def test_build_queue_4(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        time_now = int(time.time())
+        """ test that pending/running tasks are returned as pending """
+        counter = 0
         for build_chroots in [self.b1_bc, self.b2_bc]:
             for build_chroot in build_chroots:
-                build_chroot.status = StatusEnum("running")
-                build_chroot.started_on = time_now - 2 * app.config["MAX_BUILD_TIMEOUT"]
                 build_chroot.ended_on = None
+                build_chroot.status = StatusEnum("starting") if counter % 2 else StatusEnum("running")
+                counter += 1
         for build_chroots in [self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:
                 build_chroot.status = StatusEnum("failed")
-                build_chroot.started_on = time_now - 2 * app.config["MAX_BUILD_TIMEOUT"]
                 build_chroot.ended_on = None
 
         self.db.session.commit()
-        data = BuildsLogic.get_pending_build_tasks().all()
+        data = BuildsLogic.get_pending_build_tasks(for_backend=True).all()
 
         assert len(data) == 2
         assert set([data[0], data[1]]) == set([self.b1_bc[0], self.b2_bc[0]])

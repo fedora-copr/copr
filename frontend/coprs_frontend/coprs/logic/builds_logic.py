@@ -9,8 +9,6 @@ import requests
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import not_
 from sqlalchemy.orm import joinedload, selectinload
-from sqlalchemy import or_
-from sqlalchemy import and_
 from sqlalchemy import func, desc
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
@@ -282,14 +280,18 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_pending_build_tasks(cls, background=None):
+    def get_pending_build_tasks(cls, background=None, for_backend=False):
         """
         Get list of BuildChroot objects that are to be (re)processed.
         """
 
-        # Also add too-long running tasks, those are probably staled.
-        # TODO: Is this still needed?
-        restart_older = int(time.time() - 1.1 * app.config["MAX_BUILD_TIMEOUT"])
+        todo_states = ["pending"]
+        if for_backend:
+            # In case of accident and backend VM reboot, the background build
+            # workers are abruptly terminated.  We list them here too so backend
+            # can re-process them after reboot so they don't stay in "running"
+            # state forever.
+            todo_states += ["starting", "running"]
 
         query = (
             models.BuildChroot.query
@@ -303,10 +305,7 @@ class BuildsLogic(object):
             .options(joinedload('build').joinedload('copr_dir'),
                      joinedload('build').joinedload('package'))
             .filter(models.Build.canceled == false())
-            .filter(or_(models.BuildChroot.status == StatusEnum("pending"),
-                        and_(models.BuildChroot.status == StatusEnum("running"),
-                             models.BuildChroot.started_on < restart_older,
-                             models.BuildChroot.ended_on.is_(None))))
+            .filter(models.BuildChroot.status.in_(StatusEnum(x) for x in todo_states))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))

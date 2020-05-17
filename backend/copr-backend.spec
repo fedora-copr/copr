@@ -147,7 +147,7 @@ touch %{buildroot}%{_var}/log/copr-backend/prune_old.log
 
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
-cp -a units/*.service %{buildroot}/%{_unitdir}/
+cp -a units/*.{target,service} %{buildroot}/%{_unitdir}/
 install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
 
@@ -174,13 +174,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 /usr/bin/passwd -l copr >/dev/null
 
 %post
-%systemd_post copr-backend.service
+%systemd_post copr-backend.target
 
 %preun
-%systemd_preun copr-backend.service
+%systemd_preun copr-backend.target
 
 %postun
-%systemd_postun_with_restart copr-backend.service
+%systemd_postun_with_restart copr-backend.target
 
 %files
 %license LICENSE
@@ -203,6 +203,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/*.service
+%{_unitdir}/*.target
 %{_tmpfilesdir}/copr-backend.conf
 %{_bindir}/*
 %{_sbindir}/*

@@ -1,7 +1,7 @@
 [Unit]
 Description=Copr Backend service, Build Dispatcher component
 After=syslog.target network.target auditd.service
-PartOf=copr-backend.service
+PartOf=copr-backend.target
 Wants=logrotate.timer
 
 [Service]

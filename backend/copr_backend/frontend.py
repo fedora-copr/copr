@@ -147,8 +147,3 @@ class FrontendClient(object):
         """
         data = {"build_id": build_id, "task_id": task_id, "chroot": chroot_name}
         self._post_to_frontend_repeatedly(data, "reschedule_build_chroot")
-
-    def reschedule_all_running(self):
-        response = self._post_to_frontend_repeatedly({}, "reschedule_all_running")
-        if response.status_code != 200:
-            raise FrontendClientException("Failed to reschedule builds")
