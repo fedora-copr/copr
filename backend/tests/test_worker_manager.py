@@ -191,8 +191,9 @@ class TestLimitedWorkerManager(BaseTestWorkerManager):
         # Even though the "even" limit kicked-out task 4, the task 5 is still
         # successfully started because that's the third "odd" task.  The rest of
         # tasks is just skipped.
-        assert ('root', logging.INFO, "Starting worker worker:5") \
-                in caplog.record_tuples
+        assert ('root', logging.INFO,
+                "Starting worker worker:5, task.priority=0") in \
+            caplog.record_tuples
         # finish the task sooner, and check the limit is downgraded
         self.redis.hset("worker:5", "status", "0")
         assert 'worker:5' in self.limits[0].info()
@@ -352,7 +353,9 @@ class TestActionWorkerManager(BaseTestWorkerManager):
     def test_all_passed(self, caplog):
         self.worker_manager.run(timeout=100)
         for i in range(0, 10):
-            assert ('root', 20, 'Starting worker {}{}'.format(self.wprefix, i)) in caplog.record_tuples
+            smsg = "Starting worker {}{}, task.priority=0"
+            assert ('root', 20, smsg.format(self.wprefix, i)) in \
+                caplog.record_tuples
             assert ('root', 20, 'Finished worker {}{}'.format(self.wprefix, i)) in caplog.record_tuples
 
     def test_add_task_for_running_worker(self, caplog):

@@ -479,7 +479,8 @@ class WorkerManager():
     def _start_worker(self, task, time_now):
         worker_id = self.get_worker_id(repr(task))
         self.redis.hset(worker_id, 'allocated', time_now)
-        self.log.info("Starting worker %s", worker_id)
+        self.log.info("Starting worker %s, task.priority=%s", worker_id,
+                      task.priority)
         self._start_tracking_worker(worker_id, task)
         self.start_task(worker_id, task)
 

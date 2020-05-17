@@ -82,6 +82,11 @@ class BuildBackgroundWorker(BackgroundWorker):
         self.host.release()
         self.host = None
 
+    def _title(self, text):
+        text = "Builder for task {}: {}".format(self.job.task_id, text)
+        self.log.debug("setting title: %s", text)
+        self.setproctitle(text)
+
     def _cancel_task_check_request(self):
         self.canceled = bool(self.redis_get_worker_flag("cancel_request"))
         return self.canceled
@@ -98,6 +103,7 @@ class BuildBackgroundWorker(BackgroundWorker):
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
         while True:
             self.host = vm_factory.get_host(tags, self.job.sandbox)
+            self._title("Waiting for VM, info: {}".format(self.host.info))
             success = CancellableThreadTask(
                 self.host.wait_ready,
                 self._cancel_task_check_request,
@@ -116,6 +122,7 @@ class BuildBackgroundWorker(BackgroundWorker):
         )
 
     def _cancel_running_worker(self):
+        self._title("Canceling running task...")
         try:
             cmd = "cat /var/lib/copr-rpmbuild/pid"
             rc, out, err = self.ssh.run_expensive(cmd)
@@ -139,6 +146,8 @@ class BuildBackgroundWorker(BackgroundWorker):
         self.mark_starting()
         self._alloc_host()
         self._alloc_ssh_connections()
+        self._title("Job {}, host info: {}".format(self.job.task_id,
+                                                   self.host.info))
         worker = Worker(self.opts, self.worker_id, self.host, self.job)
         CancellableThreadTask(
             worker.run,

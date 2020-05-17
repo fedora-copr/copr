@@ -42,6 +42,11 @@ class RemoteHost:
         self._is_ready = self.check_ready()
         return self._is_ready
 
+    @property
+    def info(self):
+        """ user-readable info about the host """
+        return "no info"
+
     @staticmethod
     def _incremental_sleep(sleeptimes=None):
         """
@@ -98,6 +103,15 @@ class ResallocHost(RemoteHost):
 
     def release(self):
         self.ticket.close()
+
+    @property
+    def info(self):
+        message = "ResallocHost"
+        if self.ticket:
+            message += ", ticket_id={}".format(self.ticket.id)
+        if self.hostname:
+            message += ", hostname={}".format(self.hostname)
+        return message
 
 
 class HostFactory:

@@ -9,6 +9,8 @@ import contextlib
 import logging
 import daemon
 
+import setproctitle
+
 from copr_backend.frontend import FrontendClient
 from copr_backend.helpers import (BackendConfigReader, get_redis_logger,
                                   get_redis_connection)
@@ -36,6 +38,12 @@ class BackgroundWorker:
         self.args = self._get_argparser().parse_args()
         be_cfg = self.args.backend_config or '/etc/copr/copr-be.conf'
         self.opts = BackendConfigReader(be_cfg).read()
+
+    @staticmethod
+    def setproctitle(text):
+        """ set the process title, beginning with the script name """
+        command = " ".join(sys.argv)
+        setproctitle.setproctitle("{} (command: {})".format(text, command))
 
     @property
     def _redis(self):
