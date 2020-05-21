@@ -45,7 +45,7 @@ def for_all_methods(cls, decorator):
     """
     Apply a given decorator to all class methods
     """
-    for attr in cls.__dict__:
+    for attr in list(cls.__dict__):
         if callable(getattr(cls, attr)):
             setattr(cls, attr, decorator(getattr(cls, attr)))
 
