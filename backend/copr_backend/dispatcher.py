@@ -70,7 +70,7 @@ class Dispatcher(multiprocessing.Process):
         _subclass_can_use = (self)
         return []
 
-    def canceled_task_id(self, task_id):
+    def report_canceled_task_id(self, task_id):
         """
         Report back to Frontend that this task was canceled.  By default this
         isn't called, so it is NO-OP by default.
@@ -113,7 +113,7 @@ class Dispatcher(multiprocessing.Process):
             self._update_process_title("getting cancel requests")
             for task_id in self.get_cancel_requests_ids():
                 worker_manager.cancel_task_id(task_id)
-                self.canceled_task_id(task_id)
+                self.report_canceled_task_id(task_id)
 
             # process the tasks
             self._update_process_title("processing tasks")
