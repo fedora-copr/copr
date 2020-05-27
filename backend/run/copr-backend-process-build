@@ -19,9 +19,6 @@ from copr_backend.sshcmd import SSHConnection, SSHConnectionError
 class BuildCanceled(Exception):
     """ asynchronous cancel request received """
 
-class DeadWorker(Exception):
-    """ this VM needs to be recycled """
-
 
 class BuildBackgroundWorker(BackgroundWorker):
     """
@@ -131,15 +128,15 @@ class BuildBackgroundWorker(BackgroundWorker):
                     self.log.warning("no PID file to cancel")
                     return
                 msg = "Can't get PID file to cancel {}".format(err)
-                raise DeadWorker(msg)
+                raise Exception(msg)
             pid = int(out.strip())
             # TODO: kill -9 can keep mock around
             self.log.info("killing PID %s on worker", pid)
             self.ssh.run_expensive("kill -9 -{}".format(pid))
         except ValueError:
-            raise DeadWorker("Can't parse PID to cancel")
+            raise Exception("Can't parse PID to cancel")
         except SSHConnectionError:
-            raise DeadWorker("Can't ssh to cancel build.")
+            raise Exception("Can't ssh to cancel build.")
 
     def _handle_task(self):
         self.get_build_job()

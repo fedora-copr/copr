@@ -28,9 +28,12 @@ class CancellableThreadTask:
         self.check_period = check_period
         self.log = log or _stderr_logger()
 
-    @staticmethod
-    def _background_run_wrapper(call, result, *args, **kwargs):
-        result.result = call(*args, **kwargs)
+    def _background_run_wrapper(self, call, result, *args, **kwargs):
+        try:
+            result.result = call(*args, **kwargs)
+        except Exception:  # pylint: disable=broad-except
+            # No exceptions to avoid de-synchronization of the threads
+            self.log.exception("Exception during cancellable method")
 
     def run(self, *args, **kwargs):
         """ execute the self.method with args/kwargs """
@@ -50,7 +53,11 @@ class CancellableThreadTask:
 
             if self.check(*args, **kwargs):
                 self.log.debug("calling cancel callback, and waiting")
-                self.cancel(*args, **kwargs)
+                try:
+                    self.cancel(*args, **kwargs)
+                except Exception:  # pylint: disable=broad-except
+                    # No exceptions to avoid de-synchronization of the threads
+                    self.log.exception("Exception during cancel request")
                 thread.join()
                 break
 
