@@ -14,7 +14,7 @@ from wtforms import ValidationError
 
 import gi
 gi.require_version('Modulemd', '1.0')
-from gi.repository import Modulemd
+from gi.repository import Modulemd, GLib
 
 
 class ModulesLogic(object):
@@ -51,15 +51,24 @@ class ModulesLogic(object):
 
     @classmethod
     def yaml2modulemd(cls, yaml):
-        mmd = Modulemd.ModuleStream()
-        mmd.import_from_string(yaml)
-        return mmd
+        try:
+            mmd = Modulemd.ModuleStream()
+            mmd.import_from_string(yaml)
+            return mmd
+        except GLib.GError as ex:
+            # pylint: disable=no-member
+            raise exceptions.BadRequest("Invalid modulemd yaml - {0}" .format(ex.message))
 
     @classmethod
     def from_modulemd(cls, mmd):
-        yaml_b64 = base64.b64encode(mmd.dumps().encode("utf-8")).decode("utf-8")
-        return models.Module(name=mmd.get_name(), stream=mmd.get_stream(), version=mmd.get_version(),
-                             summary=mmd.get_summary(), description=mmd.get_description(), yaml_b64=yaml_b64)
+        try:
+            yaml_b64 = base64.b64encode(mmd.dumps().encode("utf-8")).decode("utf-8")
+            return models.Module(name=mmd.get_name(), stream=mmd.get_stream(),
+                                 version=mmd.get_version(), summary=mmd.get_summary(),
+                                 description=mmd.get_description(), yaml_b64=yaml_b64)
+        except GLib.GError as ex:
+            raise exceptions.BadRequest("Unsupported or malformed modulemd yaml - {0}"
+                                        .format(ex.message))  # pylint: disable=no-member
 
     @classmethod
     def validate(cls, mmd):

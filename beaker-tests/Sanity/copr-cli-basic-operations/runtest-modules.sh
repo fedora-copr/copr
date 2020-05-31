@@ -102,6 +102,12 @@ rlJournalStart
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
 
+        # Test submitting a wrong modulemd
+        OUTPUT=`mktemp`
+        touch "/tmp/emptyfile.yaml"
+        rlRun "copr-cli build-module --yaml /tmp/emptyfile.yaml $PROJECT &> $OUTPUT" 1
+        rlAssertEquals "Module in wrong format" `cat $OUTPUT | grep "Invalid modulemd yaml" |wc -l` 1
+
         # Test module duplicity
         # @FIXME the request sometimes hangs for some obscure reason
         OUTPUT=`mktemp`

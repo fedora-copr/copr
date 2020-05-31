@@ -66,6 +66,48 @@ class TestModulesLogic(CoprsTestCase):
             ModulesLogic.get_by_nsv_str(self.c1, "notenough-dashes").one()
         assert "not a valid NSV" in str(ex)
 
+    def test_yaml2modulemd(self):
+        # Test that valid yaml can be sucessfully converted to modulemd object
+        generator = ModulemdGenerator(name="testmodule", stream="master",
+                                      version=123, summary="some summary")
+        valid_yaml = generator.generate()
+        modulemd = ModulesLogic.yaml2modulemd(valid_yaml)
+        assert isinstance(modulemd, Modulemd.ModuleStream)
+
+        # Test a yaml with syntax error
+        invalid_yaml = valid_yaml.replace("name:", "name")
+        with pytest.raises(BadRequest) as ex:
+            ModulesLogic.yaml2modulemd(invalid_yaml)
+        assert "Invalid modulemd yaml - Parser error" in ex.value.message
+
+        # There is no validation in the yaml2modulemd method, therefore even yaml that
+        # doesn't contain all the necessary fields can be converted to the modulemd object
+        incomplete_yaml = valid_yaml.replace("  summary: some summary\n", "")
+        modulemd2 = ModulesLogic.yaml2modulemd(incomplete_yaml)
+        assert isinstance(modulemd2, Modulemd.ModuleStream)
+
+        # Test an empty string
+        with pytest.raises(BadRequest) as ex:
+            ModulesLogic.yaml2modulemd("")
+        assert ("Invalid modulemd yaml - "
+                "Provided YAML did not begin with a module document") in ex.value.message
+
+    def test_from_modulemd(self):
+        # Test that valid yaml can be sucessfully converted to modulemd object
+        generator = ModulemdGenerator(name="testmodule", stream="master",
+                                      version=123, summary="some summary")
+        valid_yaml = generator.generate()
+        modulemd = ModulesLogic.yaml2modulemd(valid_yaml)
+        mod1 = ModulesLogic.from_modulemd(modulemd)
+        assert isinstance(mod1, models.Module)
+
+        # Test a modulemd that is missing some required parameters
+        modulemd.set_summary(None)
+        with pytest.raises(BadRequest) as ex:
+            ModulesLogic.from_modulemd(modulemd)
+        assert ("Unsupported or malformed modulemd yaml - "
+                "Missing required option data.summary") in ex.value.message
+
 
 class TestModuleBuildFacade(CoprsTestCase):
     def test_get_build_batches(self):
