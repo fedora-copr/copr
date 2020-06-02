@@ -378,10 +378,13 @@ Fetch only selected chroots. Can be specified multiple times.
 `copr-cli delete-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr delete-build [-h] build_id
+usage: copr delete-build [-h] build_id [build_id ...]
 
 build_id::
-ID of the build to be deleted.
+ID of the build to be deleted. Can be specified multiple times.
+Note that specifying multiple build_id is much faster than calling
+`copr delete-build` multiple times, because in the first case
+`createrepo` is called only once.
 
 
 EXAMPLES

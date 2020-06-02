@@ -17,7 +17,7 @@ sudo dnf copr disable your_name/test-project
 copr-cli status <build_id>
 
 # to delete a build
-copr delete-build <build_id>
+copr delete-build <build_id> [<build_id> ...]
 
 # to list packages in test-project
 copr list-packages test-project
