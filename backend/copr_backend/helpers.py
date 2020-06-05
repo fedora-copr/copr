@@ -565,7 +565,7 @@ def pkg_name_evr(srpm_path):
         raise CoprBackendSrpmError(str(e))
 
     if result.returncode != 0:
-        raise CoprBackendSrpmError('Error querying srpm: %s' % error)
+        raise CoprBackendSrpmError('Error querying srpm: %s' % result.stderr)
 
     try:
         name, epoch, version, release = result.stdout.split(" ")
