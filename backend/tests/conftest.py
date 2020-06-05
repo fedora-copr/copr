@@ -12,6 +12,9 @@ from unittest import mock
 
 from copr_backend.helpers import call_copr_repo
 
+# We intentionally let fixtures depend on other fixtures.
+# pylint: disable=redefined-outer-name
+
 class CoprTestFixtureContext():
     pass
 

@@ -3,6 +3,8 @@ import string
 
 from six import with_metaclass
 
+# We don't know how to define the enums without `class`.
+# pylint: disable=too-few-public-methods
 
 class EnumType(type):
     def _wrap(cls, attr=None):
