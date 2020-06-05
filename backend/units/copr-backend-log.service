@@ -2,7 +2,7 @@
 Description=Copr Backend service, Log Handler component
 After=syslog.target network.target auditd.service
 PartOf=copr-backend.target
-Before=copr-backend-vmm.service copr-backend-build.service copr-backend-action.service
+Before=copr-backend-build.service copr-backend-action.service
 Wants=logrotate.timer
 
 [Service]
@@ -14,4 +14,4 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
-RequiredBy=copr-backend.target copr-backend-vmm.service copr-backend-build.service copr-backend-action.service
+RequiredBy=copr-backend.target copr-backend-build.service copr-backend-action.service

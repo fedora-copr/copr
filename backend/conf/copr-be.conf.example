@@ -13,38 +13,6 @@ frontend_auth=backend_password_from_fe_config
 
 dist_git_url=distgitvm.example.com
 
-# Set a number of build groups (default is 1)
-build_groups=1
-
-# For each build group set:
-#   name - name of the group (will be shown in the worker process name)
-#   archs - architectures to build by this group
-#   spawn_playbook - path to an ansible playbook which spawns a builder
-#   terminate_playbook - path to an ansible playbook to terminate the builder
-#   max_vm_total - maximum number of VM which can run in parallel
-#   max_vm_per_user - maximum number of VM which can use one user in parallel
-#   max_spawn_processes=2 - max number of spawning playbooks run in parallel
-#   vm_spawn_min_interval=30 - after you spin up one VM wait this number of seconds
-#   vm_dirty_terminating_timeout=12 - if user do not reuse VM within this number second then VM is terminated
-#   vm_health_check_period=120 - every X seconds try to check if VM is still alive
-#   vm_health_check_max_time=300 - after this number seconds is not alive it is marked as failed
-#   vm_max_check_fails=2 - when machine is consequently X times marked as failed then it is terminated
-#   vm_terminating_timeout=600 - when machine was terminated and terminate PB did not finish within this number of second, we will run the PB once again.
-#
-#   Use prefix groupX where X is number of group starting from zero.
-#   Warning: any arch should be used once, so no two groups to build the same arch
-# 
-# Example: (and also default values)
-#   group0_name=PC
-#   group0_archs=i386,x86_64
-#   group0_spawn_playbook=/srv/copr-work/provision/builderpb-PC.yml
-#   group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
-group0_name=PC
-group0_archs=i386,x86_64
-group0_spawn_playbook=/srv/copr-work/provision/builderpb-PC.yml
-group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
-group0_max_vm_total=2
-
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL
 # no default
