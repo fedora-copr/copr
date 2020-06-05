@@ -77,7 +77,4 @@ RUN chmod o+w /var/lock
 # using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
 RUN rngd -r /dev/urandom
 
-# Required for Copr VMM service to run spawn_local.yml
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
 CMD ["/bin/run.sh"]
