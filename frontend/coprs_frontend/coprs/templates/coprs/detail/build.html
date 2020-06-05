@@ -173,9 +173,11 @@
       <div class="panel-body">
         <dl class="dl-horizontal">
         {{ describe_failure(build) }}
-        <dt>SRPM build log:</dt>
+        <dt>Source state:</dt>
+            <dd>{{ build_state_text(build.source_state) }} </dd>
+        <dt>Source build log:</dt>
         {% if build.source_status | state_from_num in ['pending', 'starting'] %}
-          <dd> Build has not started yet</dd>
+          <dd> Source build has not started yet</dd>
         {% else %}
           {% if build.resubmitted_from_id and build.source_is_uploaded %}
             <dd>Build resubmitted from build
@@ -186,7 +188,7 @@
               {% endif %}
             </dd>
           {% else %}
-            {% for url in build.get_import_log_urls(g.user.admin) %}
+            {% for url in build.get_source_log_urls(g.user.admin) %}
               <dd>
                 <a href="{{ url }}">{{ url | basename }}</a>
                 {{ "," if not loop.last }}
@@ -216,6 +218,7 @@
               <th>Chroot Name</th>
               <th>Dist Git Source</th>
               <th>Build Time</th>
+              <th>Logs</th>
               <th>State</th>
             </tr>
           </thead>
@@ -248,11 +251,15 @@
                 {{ chroot.started_on|time_ago(chroot.ended_on) }}
               </td>
               <td>
-                {% if chroot.live_log_link %}
-                    <a href="{{ chroot.live_log_link }}">{{ build_state_text(chroot.state) }}</a>
+                {% for log in chroot.rpm_live_logs %}
+                <a href="{{ log }}"> {{ log | basename }} </a>
+                {{ "," if not loop.last }}
                 {% else %}
-                  {{ build_state_text(chroot.state) }}
-                {% endif %}
+                RPM build has not started yet
+                {% endfor %}
+              </td>
+              <td>
+                {{ build_state_text(chroot.state) }}
               </td>
             </tr>
           {% endfor %}

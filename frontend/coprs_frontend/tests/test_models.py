@@ -1,5 +1,7 @@
 import pytest
 
+import coprs
+
 from copr_common.enums import StatusEnum
 from tests.coprs_test_case import CoprsTestCase
 
@@ -87,3 +89,96 @@ class TestBuildModel(CoprsTestCase):
         self.b1.canceled = False
         self.b1.source_status = StatusEnum("canceled")
         assert bch.finished
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_build_logs(self):
+        config = coprs.app.config
+        config["COPR_DIST_GIT_LOGS_URL"] = "http://example-dist-git/url"
+
+        # no matter state,  result_dir none implies log None
+        self.b1.result_dir = None
+        assert self.b1.source_live_log_url is None
+        assert self.b1.source_backend_log_url is None
+
+        def _pfxd(basename):
+            pfx = ("http://copr-be-dev.cloud.fedoraproject.org/results/"
+                   "user1/foocopr/srpm-builds/00000001")
+            return "/".join([pfx, basename])
+
+        # pending state
+        self.b1.source_status = StatusEnum("pending")
+        assert self.b1.source_live_log_url is None
+        assert self.b1.source_backend_log_url is None
+
+        # starting state
+        self.b1.result_dir = "001"
+        self.b1.source_status = StatusEnum("starting")
+        assert self.b1.source_live_log_url is None
+        assert self.b1.source_backend_log_url == _pfxd("backend.log")
+
+        # running state
+        self.b1.source_status = StatusEnum("running")
+        assert self.b1.source_live_log_url == _pfxd("builder-live.log")
+        assert self.b1.source_backend_log_url == _pfxd("backend.log")
+
+        # importing state
+        self.b1.source_status = StatusEnum("importing")
+        assert self.b1.get_source_log_urls(admin=True) == [
+            _pfxd("builder-live.log.gz"),
+            _pfxd("backend.log.gz"),
+            "http://example-dist-git/url/1.log",
+        ]
+
+        for state in ["failed", "succeeded", "canceled", "importing"]:
+            self.b1.source_status = StatusEnum(state)
+            assert self.b1.source_live_log_url == _pfxd("builder-live.log.gz")
+            assert self.b1.source_backend_log_url == _pfxd("backend.log.gz")
+
+        for state in ["skipped", "forked", "waiting", "unknown"]:
+            self.b1.source_status = StatusEnum(state)
+            assert self.b1.source_live_log_url is None
+            assert self.b1.source_backend_log_url is None
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_buildchroot_logs(self):
+        build = self.b1_bc[0]
+
+        # no matter state,  result_dir none implies log None
+        build.result_dir = None
+        assert build.rpm_live_log_url is None
+        assert build.rpm_backend_log_url is None
+
+        def _pfxd(basename):
+            pfx = ("http://copr-be-dev.cloud.fedoraproject.org/results/"
+                   "user1/foocopr/fedora-18-x86_64/bar")
+            return "/".join([pfx, basename])
+
+        # pending state
+        build.status = StatusEnum("pending")
+        assert build.rpm_live_log_url is None
+        assert build.rpm_backend_log_url is None
+
+        # starting state
+        build.result_dir = "bar"
+        build.status = StatusEnum("starting")
+        assert build.rpm_live_log_url is None
+        assert build.rpm_backend_log_url == _pfxd("backend.log")
+
+        # running state
+        build.status = StatusEnum("running")
+        assert build.rpm_live_logs == [
+            _pfxd("backend.log"),
+            _pfxd("builder-live.log"),
+        ]
+
+        for state in ["failed", "succeeded", "canceled"]:
+            build.status = StatusEnum(state)
+            assert build.rpm_live_log_url == _pfxd("builder-live.log.gz")
+            assert build.rpm_backend_log_url == _pfxd("backend.log.gz")
+
+        for state in ["skipped", "forked", "waiting", "unknown"]:
+            build.status = StatusEnum(state)
+            assert build.rpm_live_log_url is None
+            assert build.rpm_backend_log_url is None

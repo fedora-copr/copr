@@ -35,7 +35,7 @@ def to_dict(build):
 def to_source_chroot(build):
     return {
         "state": StatusEnum(build.source_status),
-        "result_url": os.path.dirname(build.import_log_url_backend),
+        "result_url": os.path.dirname(build.source_live_log_url),
         #  @TODO Do we have such information stored?
         # "started_on": None,
         # "ended_on": None

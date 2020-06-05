@@ -949,8 +949,12 @@ class Build(db.Model, helpers.Serializer):
     def id_fixed_width(self):
         return "{:08d}".format(self.id)
 
-    def get_import_log_urls(self, admin=False):
-        logs = [self.import_log_url_backend]
+    def get_source_log_urls(self, admin=False):
+        """
+        Return a list of URLs to important build _source_ logs.  The list is
+        changing as the state of build is changing.
+        """
+        logs = [self.source_live_log_url, self.source_backend_log_url]
         if admin:
             logs.append(self.import_log_url_distgit)
         return list(filter(None, logs))
@@ -963,13 +967,47 @@ class Build(db.Model, helpers.Serializer):
         return None
 
     @property
-    def import_log_url_backend(self):
-        parts = ["results", self.copr.owner_name, self.copr_dirname,
-                 "srpm-builds", self.id_fixed_width,
-                 "builder-live.log" if self.source_status == StatusEnum("running")
-                                    else "builder-live.log.gz"]
+    def result_dir_url(self):
+        """
+        URL for the result-directory on backend (the source/SRPM build).
+        """
+        if not self.result_dir:
+            return None
+        parts = [
+            "results", self.copr.owner_name, self.copr_dirname,
+            # TODO: we should use self.result_dir instead of id_fixed_width
+            "srpm-builds", self.id_fixed_width,
+        ]
         path = os.path.normpath(os.path.join(*parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
+
+    def _compressed_log_variant(self, basename, states_raw_log):
+        if not self.result_dir:
+            return None
+        if self.source_state in states_raw_log:
+            return "/".join([self.result_dir_url, basename])
+        if self.source_state in ["failed", "succeeded", "canceled",
+                                 "importing"]:
+            return "/".join([self.result_dir_url, basename + ".gz"])
+        return None
+
+    @property
+    def source_live_log_url(self):
+        """
+        Full URL to the builder-live.log(.gz) for the source (SRPM) build.
+        """
+        return self._compressed_log_variant(
+            "builder-live.log", ["running"]
+        )
+
+    @property
+    def source_backend_log_url(self):
+        """
+        Full URL to the builder-live.log(.gz) for the source (SRPM) build.
+        """
+        return self._compressed_log_variant(
+            "backend.log", ["starting", "running"]
+        )
 
     @property
     def source_json_dict(self):
@@ -1047,6 +1085,13 @@ class Build(db.Model, helpers.Serializer):
     @property
     def chroots_dict_by_name(self):
         return {b.name: b for b in self.build_chroots}
+
+    @property
+    def source_state(self):
+        """
+        Return text representation of status of this build
+        """
+        return StatusEnum(self.source_status)
 
     @property
     def status(self):
@@ -1509,19 +1554,42 @@ class BuildChroot(db.Model, helpers.Serializer):
         return urljoin(app.config["BACKEND_BASE_URL"], os.path.join(
             "results", self.build.copr_dir.full_name, self.name, self.result_dir, ""))
 
-    @property
-    def live_log_link(self):
+    def _compressed_log_variant(self, basename, states_raw_log):
+        if not self.result_dir:
+            return None
         if not self.build.package:
+            # no source build done, yet
             return None
+        if self.state in states_raw_log:
+            return os.path.join(self.result_dir_url,
+                                basename)
+        if self.state in ["failed", "succeeded", "canceled", "importing"]:
+            return os.path.join(self.result_dir_url,
+                                basename + ".gz")
+        return None
 
-        if not (self.finished or self.state == "running"):
-            return None
+    @property
+    def rpm_live_log_url(self):
+        """ Full URL to the builder-live.log.gz for RPM build.  """
+        return self._compressed_log_variant("builder-live.log", ["running"])
 
-        if not self.result_dir_url:
-            return None
+    @property
+    def rpm_backend_log_url(self):
+        """ Link to backend.log[.gz] related to RPM build.  """
+        return self._compressed_log_variant("backend.log",
+                                            ["starting", "running"])
 
-        return os.path.join(self.result_dir_url,
-                            "builder-live.log" if self.state == 'running' else "builder-live.log.gz")
+    @property
+    def rpm_live_logs(self):
+        """ return list of live log URLs """
+        logs = []
+        log = self.rpm_backend_log_url
+        if log:
+            logs.append(log)
+        log = self.rpm_live_log_url
+        if log:
+            logs.append(log)
+        return logs
 
 
 class LegalFlag(db.Model, helpers.Serializer):
