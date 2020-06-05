@@ -434,6 +434,12 @@ class RedisPublishHandler(logging.Handler):
 
     def emit(self, record):
         # copr specific semantics
+
+        # Alternative to copy.deepcopy().  If we edit the original record
+        # object, any other following log handler would get the modified
+        # variant.
+        record = logging.makeLogRecord(record.__dict__)
+
         record.who = self.who
 
         # First argument to 'log.exception()' should be 'str' type.  If it is
