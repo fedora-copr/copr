@@ -27,13 +27,9 @@ from copr_backend.worker_manager import WorkerManager, QueueTask
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
-                      get_chroot_arch, cmd_debug, format_filename,
+                      get_chroot_arch, format_filename,
                       uses_devel_repo, call_copr_repo, build_chroot_log_name)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
-
-from .vm_manage.manager import VmManager
-
-from .sshcmd import SSHConnectionError, SSHConnection
 
 
 class Action(object):
@@ -69,7 +65,6 @@ class Action(object):
             ActionType.RAWHIDE_TO_RELEASE: RawhideToRelease,
             ActionType.FORK: Fork,
             ActionType.BUILD_MODULE: BuildModule,
-            ActionType.CANCEL_BUILD: CancelBuild,
             ActionType.DELETE: Delete,
         }.get(action_type, None)
 
@@ -439,54 +434,6 @@ class RawhideToRelease(Action):
             result = ActionResult.FAILURE
 
         return result
-
-
-class CancelBuild(Action):
-    def run(self):
-        data = json.loads(self.data["data"])
-        task_id = data["task_id"]
-
-        vmm = VmManager(self.opts)
-        vmd = vmm.get_vm_by_task_id(task_id)
-        if vmd:
-            self.log.info("Found VM %s for task %s", vmd.vm_ip, task_id)
-        else:
-            self.log.error("No VM found for task %s", task_id)
-            return ActionResult.FAILURE
-
-        conn = SSHConnection(
-            user=self.opts.build_user,
-            host=vmd.vm_ip,
-            config_file=self.opts.ssh.builder_config
-        )
-
-        cmd = "cat /var/lib/copr-rpmbuild/pid"
-        try:
-            rc, out, err = conn.run_expensive(cmd)
-        except SSHConnectionError:
-            self.log.exception("Error running cmd: %s", cmd)
-            return ActionResult.FAILURE
-
-        cmd_debug(cmd, rc, out, err, self.log)
-
-        if rc != 0:
-            return ActionResult.FAILURE
-
-        try:
-            pid = int(out.strip())
-        except ValueError:
-            self.log.exception("Invalid pid %s received", out)
-            return ActionResult.FAILURE
-
-        cmd = "kill -9 -{}".format(pid)
-        try:
-            rc, out, err = conn.run_expensive(cmd)
-        except SSHConnectionError:
-            self.log.exception("Error running cmd: %s", cmd)
-            return ActionResult.FAILURE
-
-        cmd_debug(cmd, rc, out, err, self.log)
-        return ActionResult.SUCCESS
 
 
 class BuildModule(Action):
