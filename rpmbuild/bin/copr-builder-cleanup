@@ -1,0 +1,42 @@
+#! /bin/bash
+
+# Cleanup Copr builder machine before re-using it for other build(s)
+#
+# This is executed when the builder VM is released from ticket by Resalloc
+# server, before it can be re-assigned to other ticket.  Any non-zero exit
+# status here makes the VM non-reusable (VM will be shut-down).  Concrete
+# deployments can also run this script right after the VM is started.
+#
+# Copyright (C) 2020 Red Hat, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+set -x
+set -e
+
+# We need to be root! https://pagure.io/copr/copr/issue/1258
+
+test "$UID" -eq 0
+
+su - mockbuilder -c "/usr/bin/copr-rpmbuild-cancel"
+rm -f /var/lib/copr-rpmbuild/pid
+rm -f /var/lib/copr-rpmbuild/main.log
+rm -rf /var/lib/copr-rpmbuild/results
+
+shopt -s nullglob
+set -- /etc/copr-builder/hooks/cleanup/*.sh
+for arg; do
+    source "$arg"
+done

@@ -30,7 +30,7 @@ from copr_backend.vm_alloc import ResallocHostFactory
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "0.38"
+MIN_BUILDER_VERSION = "0.39"
 CANCEL_CHECK_PERIOD = 5
 
 MESSAGES = {
@@ -400,21 +400,14 @@ class BuildBackgroundWorker(BackgroundWorker):
         self._proctitle("Canceling running task...")
         self.redis_set_worker_flag("canceling", 1)
         try:
-            cmd = "cat /var/lib/copr-rpmbuild/pid"
-            rc, out, err = self.ssh.run_expensive(cmd)
+            cmd = "copr-rpmbuild-cancel"
+            rc, out, err = self.ssh.run_expensive(cmd, max_retries=3)
             if rc:
-                if "No such file" in err:
-                    self.log.warning("no PID file to cancel")
-                    return
-                self.log.warning("Can't get PID file to cancel: %s", err)
+                self.log.warning("Can't cancel build\nout:\n%s\nerr:\n%s",
+                                 out, err)
                 return
-
-            pid = int(out.strip())
-            # TODO: kill -9 can keep mock around
-            self.log.info("killing PID %s on worker", pid)
-            self.ssh.run_expensive("kill -9 -{}".format(pid))
-        except ValueError:
-            self.log.error("Can't parse PID to cancel")
+            self.log.info("Cancel request succeeded\nout:\n%serr:\n%s",
+                          out, err)
         except SSHConnectionError:
             self.log.error("Can't ssh to cancel build.")
 
@@ -441,10 +434,7 @@ class BuildBackgroundWorker(BackgroundWorker):
 
     def _tail_log_file(self):
         """ Return None if OK, or failure reason as str """
-        live_cmd = "/usr/bin/tail -F -n +0 --pid={pid} {log}".format(
-            pid=self.builder_pid,
-            log=self.builder_livelog,
-        )
+        live_cmd = "copr-rpmbuild-log"
         with open(self.job.builder_log, 'w') as logfile:
             # We can not use 'max_retries' here because that would concatenate
             # the attempts to the same log file.

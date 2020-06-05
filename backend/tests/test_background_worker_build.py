@@ -25,7 +25,7 @@ from copr_backend.background_worker_build import (
 from copr_backend.job import BuildJob
 from copr_backend.exceptions import CoprSignError
 from copr_backend.vm_alloc import ResallocHost, RemoteHostAllocationTerminated
-from copr_backend.background_worker_build import COMMANDS
+from copr_backend.background_worker_build import COMMANDS, MIN_BUILDER_VERSION
 from copr_backend.sshcmd import SSHConnectionError
 from copr_backend.exceptions import CoprBackendSrpmError
 
@@ -507,8 +507,7 @@ def test_cancel_build_on_tail_log_no_ssh(f_build_rpm_sign_on, caplog):
     worker = config.bw
 
     config.ssh.set_command(
-        "/usr/bin/tail -F -n +0 --pid=666 "
-        "/var/lib/copr-rpmbuild/main.log",
+        "copr-rpmbuild-log",
         0, "canceled stdout\n", "canceled stderr\n",
         _CancelFunction(worker),
     )
@@ -535,8 +534,6 @@ def test_cancel_build_on_tail_log_no_ssh(f_build_rpm_sign_on, caplog):
 def test_build_retry(f_build_rpm_sign_on):
     config = f_build_rpm_sign_on
     worker = config.bw
-    min_ver = "0.38"
-
     class _SideEffect():
         counter = 0
         def __call__(self):
@@ -544,8 +541,8 @@ def test_build_retry(f_build_rpm_sign_on):
             if self.counter < 2:
                 return (1, "out", "err")
             if self.counter < 3:
-                return (0, "0.37", "")
-            return (0, min_ver, "")
+                return (0, "0.38", "")
+            return (0, MIN_BUILDER_VERSION, "")
 
     config.ssh.set_command(
         COMMANDS["rpm_q_builder"],
@@ -556,7 +553,7 @@ def test_build_retry(f_build_rpm_sign_on):
     log = _get_log_content(worker.job)
     find_msgs = {
         MESSAGES["copr_rpmbuild_missing"].format("err"),
-        "Minimum version for builder is " + min_ver,
+        "Minimum version for builder is " + MIN_BUILDER_VERSION,
         "Allocating ssh connection to builder",
         "Finished build: id=848963 failed=False",
     }
@@ -633,50 +630,24 @@ def test_fe_failed_start(f_build_rpm_sign_on, caplog):
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
-def test_cancel_build_PID_malformed(f_build_rpm_sign_on, caplog):
+def test_cancel_script_failure(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
     config.ssh.set_command(
-        "/usr/bin/tail -F -n +0 --pid=666 "
-        "/var/lib/copr-rpmbuild/main.log",
+        "copr-rpmbuild-log",
         0, "canceled stdout\n", "canceled stderr\n",
         _CancelFunction(worker),
     )
     config.ssh.set_command(
-        "cat /var/lib/copr-rpmbuild/pid",
-        0, "6a66\n", "",
+        "copr-rpmbuild-cancel",
+        1, "output", "err output",
     )
     worker.process()
     assert_logs_exist([
-        "Can't parse PID to cancel",
+        "Can't cancel build\nout:\noutput\nerr:\nerr output",
         "Build was canceled",
         COMMON_MSGS["not finished"],
         "Worker failed build, took",
-    ], caplog)
-
-@pytest.mark.parametrize("stderr, logexpect", [
-    ["No such file", "no PID file to cancel"],
-    ["Other error", "Can't get PID file to cancel: Other error"],
-])
-@_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-def test_cancel_invalid_pidfile(stderr, logexpect, f_build_rpm_sign_on, caplog):
-    config = f_build_rpm_sign_on
-    worker = config.bw
-    config.ssh.set_command(
-        "/usr/bin/tail -F -n +0 --pid=666 "
-        "/var/lib/copr-rpmbuild/main.log",
-        0, "canceled stdout\n", "canceled stderr\n",
-        _CancelFunction(worker),
-    )
-    config.ssh.set_command(
-        "cat /var/lib/copr-rpmbuild/pid",
-        1, "", stderr,
-    )
-    worker.process()
-    assert_logs_exist([
-        logexpect,
-        "Worker failed build, took",
-        "Build was canceled",
     ], caplog)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
@@ -684,18 +655,15 @@ def test_cancel_invalid_pidfile(stderr, logexpect, f_build_rpm_sign_on, caplog):
 def test_cancel_build_during_log_download(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
-
     config.ssh.set_command(
-        "/usr/bin/tail -F -n +0 --pid=666 "
-        "/var/lib/copr-rpmbuild/main.log",
+        "copr-rpmbuild-log",
         0, "canceled stdout\n", "canceled stderr\n",
         _CancelFunction(worker),
     )
-    config.ssh.set_command("cat /var/lib/copr-rpmbuild/pid", 0, "54321\n", "")
-    config.ssh.set_command("kill -9 -{}".format(54321), 0, "", "")
+    config.ssh.set_command("copr-rpmbuild-cancel", 0, "out", "err")
     worker.process()
     assert_logs_exist([
-        "killing PID 54321 on worker",
+        "Cancel request succeeded\nout:\nouterr:\nerr",
         "Build was canceled",
         COMMON_MSGS["not finished"],
     ], caplog)
@@ -738,8 +706,7 @@ def test_retry_for_ssh_tail_failure(mc_time, f_build_rpm_case, caplog):
             raise SSHConnectionError("test failure")
     config = f_build_rpm_case
     ssh = config.ssh
-    ssh.set_command("/usr/bin/tail -F -n +0 --pid=666 "
-                    "/var/lib/copr-rpmbuild/main.log",
+    ssh.set_command("copr-rpmbuild-log",
                     0, "", "", return_action=_SideEffect())
     worker = config.bw
     worker.process()
@@ -809,8 +776,7 @@ def test_tail_f_nonzero_exit(f_build_rpm_case, caplog):
                 return (0, "ok\n", "ok\n")
             return (1, "fail out\n", "fail err\n")
     config.ssh.set_command(
-        "/usr/bin/tail -F -n +0 --pid=666 "
-        "/var/lib/copr-rpmbuild/main.log",
+        "copr-rpmbuild-log",
         0, "failed stdout\n", "failed stderr\n",
         return_action=_SideEffect(),
     )

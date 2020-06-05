@@ -124,8 +124,7 @@ class FakeSSHConnection(SSHConnection):
                          0, "666\n", "")
         self.set_command("/usr/bin/test -f /etc/mock/fedora-30-x86_64.cfg",
                          0, "", "")
-        self.set_command("/usr/bin/tail -F -n +0 --pid=666 "
-                         "/var/lib/copr-rpmbuild/main.log",
+        self.set_command("copr-rpmbuild-log",
                          0, "build log stdout\n", "build log stderr\n")
 
     def set_command(self, cmd, exit_code, stdout, stderr, action=None,

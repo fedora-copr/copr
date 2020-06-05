@@ -193,7 +193,6 @@ install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
 
 install -d %{buildroot}%{_bindir}
 install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
-sed -i '1 s|#.*|#! /usr/bin/%python|' %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
@@ -208,11 +207,27 @@ EOF
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 755 bin/copr-builder-cleanup %buildroot%_bindir
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
+install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
+install -p -m 755 bin/copr-rpmbuild-log %buildroot%_bindir
+
+for script in %buildroot/%{_bindir}/copr-rpmbuild*; do
+    sed -i '1 s|#.*|#! /usr/bin/%python|' "$script"
+done
 
 name="%{name}" version="%{version}" summary="%{summary}" %py_install
 
 install -p -m 755 copr-update-builder %buildroot%_bindir
+
+(
+  cd builder-hooks
+  find -name README | while read line; do
+    dir=%buildroot%_sysconfdir"/copr-builder/hooks/$(dirname "$line")"
+    mkdir -p "$dir"
+    install -p -m 644 "$line" "$dir"
+  done
+)
 
 
 %files
@@ -221,7 +236,7 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 %{expand:%%%{python}_sitelib}/*
 
-%{_bindir}/copr-rpmbuild
+%{_bindir}/copr-rpmbuild*
 %{_bindir}/copr-sources-custom
 %{_mandir}/man1/copr-rpmbuild.1*
 
@@ -237,6 +252,8 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 %files -n copr-builder
 %license LICENSE
 %_bindir/copr-update-builder
+%_bindir/copr-builder-cleanup
+%_sysconfdir/copr-builder
 %dir %mock_config_overrides
 %doc %mock_config_overrides/README
 
