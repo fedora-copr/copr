@@ -1,17 +1,4 @@
-class MockRemoteError(Exception):
-    pass
-
-class BuilderError(MockRemoteError):
-    pass
-
-class RemoteCmdError(BuilderError):
-    def __init__(self, msg, cmd, rc, stderr, stdout):
-        self.msg = "{}\nCMD:{}\nRC:{}\nSTDERR:{}\nSTDOUT:{}".format(
-            msg, cmd, rc, stderr, stdout
-        )
-        super(RemoteCmdError, self).__init__(self.msg)
-
-class CoprSignError(MockRemoteError):
+class CoprSignError(Exception):
     """
     Related to invocation of /bin/sign
 
@@ -45,7 +32,7 @@ class CoprSignNoKeyError(CoprSignError):
     pass
 
 
-class CoprKeygenRequestError(MockRemoteError):
+class CoprKeygenRequestError(Exception):
     """
     Errors during request to copr-keygen service
 

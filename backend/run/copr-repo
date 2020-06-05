@@ -9,16 +9,19 @@ We expect that this script can be run concurrently, so we acquire lock to not
 mess up everything around.
 """
 
-import os
-import sys
-
 import argparse
 import contextlib
 import logging
-import oslo_concurrency.lockutils
+import os
 import pipes
 import shutil
 import subprocess
+import sys
+
+import oslo_concurrency.lockutils
+
+from copr_backend.helpers import get_redis_logger, BackendConfigReader
+
 
 class CommandException(Exception):
     pass
@@ -82,10 +85,10 @@ def unlink_unsafe(path):
 
 
 def process_backend_config(opts):
-    # obtain backend options
     try:
-        from copr_backend.helpers import get_redis_logger, BackendConfigReader
         config = "/etc/copr/copr-be.conf"
+        if "COPR_BE_CONFIG" in os.environ:
+            config = os.environ["COPR_BE_CONFIG"]
         opts.backend_opts = BackendConfigReader(config).read()
         opts.results_baseurl = opts.backend_opts.results_baseurl
     except:

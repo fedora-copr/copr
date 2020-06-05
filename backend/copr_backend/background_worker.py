@@ -35,7 +35,7 @@ class BackgroundWorker:
             self.log.error("this needs to be run as 'copr' user")
             sys.exit(1)
 
-        self.args = self._get_argparser().parse_args()
+        self.args = self._get_argparser().parse_args(sys.argv[1:])
         be_cfg = self.args.backend_config or '/etc/copr/copr-be.conf'
         self.opts = BackendConfigReader(be_cfg).read()
 
@@ -81,6 +81,11 @@ class BackgroundWorker:
             "--daemon",
             action='store_true',
             help="execute the task on background, as daemon process"
+        )
+        parser.add_argument(
+            "--silent",
+            action='store_true',
+            help="don't print logs, even when run without --daemon",
         )
         parser.add_argument(
             "--backend-config",
@@ -147,7 +152,7 @@ class BackgroundWorker:
 
         self.log = get_redis_logger(self.opts, logger_name,
                                     self.redis_logger_id)
-        if not self.args.daemon:
+        if not self.args.daemon and not self.args.silent:
             # when executing from commandline - on foreground - we want to
             # print something to stderr as well
             self.log.addHandler(logging.StreamHandler())

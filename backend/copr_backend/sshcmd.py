@@ -1,4 +1,6 @@
+import logging
 import os
+import time
 import subprocess
 
 class SSHConnectionError(Exception):
@@ -42,10 +44,19 @@ class SSHConnection(object):
         the default ssh configuration is used /etc/ssh_config and ~/.ssh/config.
     """
 
-    def __init__(self, user=None, host=None, config_file=None):
+    def __init__(self, user=None, host=None, config_file=None, log=None):
+        # TODO: Some of the calling code places heavily re-try the ssh
+        # connection..  There's a some small chance that the host goes down, and
+        # some other host is started with the same hostname (or IP address).
+        # Therefore we should remember the host's SSH fingerprint here and check
+        # it when reconnecting.
         self.config_file = config_file
         self.user = user or 'root'
         self.host = host or 'localhost'
+        if log:
+            self.log = log
+        else:
+            self.log = logging.getLogger()
 
     def _ssh_base(self):
         cmd = ['ssh']
@@ -66,7 +77,7 @@ class SSHConnection(object):
 
         return retval
 
-    def run(self, user_command, stdout=None, stderr=None):
+    def run(self, user_command, stdout=None, stderr=None, max_retries=0):
         """
         Run user_command (blocking) and redirect stdout and/or stderr into
         pre-opened python file descriptor.  When stdout/stderr is not set, the
@@ -75,6 +86,12 @@ class SSHConnection(object):
         :param user_command:
             Command (string) to be executed (note: use pipes.quote).
 
+        :param max_retries:
+            When there is ssh connection problem, re-try the action at most
+            ``max_retries`` times.  Default is no re-try.  Note that we write
+            the output from all the re-tries to the stdout/stderr descriptors
+            (when specified).
+
         :param stdout:
             File descriptor to write standard output into.
 
@@ -82,8 +99,7 @@ class SSHConnection(object):
             File descriptor to write standard error output into.
 
         :returns:
-            Triple (rc, stdout, stderr).  Stdout and stderr are of type str,
-            and might be pretty large.
+            Exit status of remote program, or -1 when unexpected failure occurs.
 
         :type command: str
         :type stdout: file or None
@@ -93,10 +109,11 @@ class SSHConnection(object):
         """
         rc = -1
         with open(os.devnull, "w") as devnull:
-            rc = self._run(user_command, stdout or devnull, stderr or devnull)
+            rc = self._retry(self._run, max_retries,
+                             user_command, stdout or devnull, stderr or devnull)
         return rc
 
-    def run_expensive(self, user_command):
+    def run_expensive(self, user_command, max_retries=0):
         """
         Run user_command (blocking) and return exit status together with
         standard outputs in string variables.  Note that this can pretty easily
@@ -105,10 +122,17 @@ class SSHConnection(object):
         :param user_command:
             Command (string) to be run as string (note: use pipes.quote).
 
+        :param max_retries:
+            When there is ssh connection problem, re-try the action at most
+            ``max_retries`` times.  Default is no re-try.
+
         :returns:
             Tripple (rc, stdout, stderr).  Stdout and stderr are strings, those
             might be pretty large.
         """
+        return self._retry(self._run_expensive, max_retries, user_command)
+
+    def _run_expensive(self, user_command):
         real_command = self._ssh_base() + [user_command]
         proc = subprocess.Popen(real_command, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, encoding="utf-8")
@@ -123,3 +147,74 @@ class SSHConnection(object):
                     stdout, stderr))
 
         return proc.returncode, stdout, stderr
+
+    def _retry(self, method, retries, *args, **kwargs):
+        """ Do ``times`` when SSHConnectionError is raised """
+        attempt = 0
+        while attempt < retries + 1:
+            attempt += 1
+            try:
+                return method(*args, **kwargs)
+            except SSHConnectionError as exc:
+                sleep = 10
+                self.log.error("SSH connection lost on #%s attempt, "
+                               "let's retry after %ss, %s", attempt, sleep, exc)
+                time.sleep(sleep)
+                continue
+        raise SSHConnectionError("Unable to finish after {} SSH attempts"
+                                 .format(attempt))
+
+    def _full_source_path(self, src):
+        """ for easier unittesting """
+        return "{}@{}:{}".format(self.user, self.host, src)
+
+    def rsync_download(self, src, dest, logfile=None, max_retries=0):
+        """
+        Run rsync over pre-allocated socket (by the config)
+
+        :param src:
+            Source path on self.host to copy.
+
+        :param dest:
+            Destination path on backend to copy ``src` content to.
+
+        :param max_retries:
+            When there is ssh connection problem, re-try the action at most
+            ``max_retries`` times.  Default is no re-try.
+
+        Store the logs to ``logfile`` within ``dest`` directory.  The dest
+        directory needs to exist.
+        """
+        self._retry(self._rsync_download, max_retries, src, dest, logfile)
+
+    def _rsync_download(self, src, dest, logfile=None):
+        ssh_opts = "ssh"
+        if self.config_file:
+            ssh_opts += " -F " + self.config_file
+
+        full_source_path = self._full_source_path(src)
+
+        log_filepath = "/dev/null"
+        if logfile:
+            log_filepath = os.path.join(dest, logfile)
+        command = "/usr/bin/rsync -rlptDvH -e '{}' {} {}/ &> {}".format(
+            ssh_opts, full_source_path, dest, log_filepath)
+
+        try:
+            self.log.info("rsyncing of %s to %s started", full_source_path, dest)
+            cmd = subprocess.Popen(command, shell=True)
+            cmd.wait()
+            self.log.info("rsyncing finished.")
+        except Exception as error:
+            self.log.error(
+                "Failed to download data from builder due to Popen error, "
+                "original error: %s", error)
+            raise SSHConnectionError("POpen failure in rsync.")
+
+        if cmd.returncode != 0:
+            err_msg = (
+                "Failed to download data from builder due to rsync error, "
+                "see the rsync log file for details."
+            )
+            self.log.error(err_msg)
+            raise SSHConnectionError(err_msg)

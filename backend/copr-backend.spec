@@ -16,8 +16,8 @@ URL:        https://pagure.io/copr/copr
 # Source is created by:
 # git clone %%url && cd copr
 # tito build --tgz --tag %%name-%%version-%%release
-Source0:    %name-%version.tar.gz
-Source1:    https://github.com/fedora-copr/%tests_tar/archive/v%tests_version/%tests_tar-%tests_version.tar.gz
+Source0:    %{name}-%{version}.tar.gz
+Source1:    https://github.com/fedora-copr/%{tests_tar}/archive/v%{tests_version}/%{tests_tar}-%{tests_version}.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -27,6 +27,7 @@ BuildRequires: libmodulemd < 2
 BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: libxslt
 BuildRequires: redis
+BuildRequires: rsync
 BuildRequires: systemd
 BuildRequires: util-linux
 
@@ -42,6 +43,7 @@ BuildRequires: python3-gobject
 BuildRequires: python3-humanize
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
+BuildRequires: python3-packaging
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-pytz
@@ -78,6 +80,7 @@ Requires:   python3-munch
 Requires:   python3-netaddr
 Requires:   python3-novaclient
 Requires:   python3-oslo-concurrency
+Requires:   python3-packaging
 Requires:   python3-pytz
 Requires:   python3-requests
 Requires:   python3-resalloc >= 3.0

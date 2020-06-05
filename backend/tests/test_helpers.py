@@ -4,7 +4,7 @@ from munch import Munch
 import json
 import logging
 
-from copr_backend.exceptions import BuilderError
+from copr_backend.background_worker_build import BackendError
 from copr_backend.helpers import get_redis_logger, get_chroot_arch, \
         format_filename, get_redis_connection
 from copr_backend.constants import LOG_REDIS_FIFO
@@ -34,7 +34,7 @@ class TestHelpers(object):
     def test_redis_logger_exception(self):
         log = get_redis_logger(self.opts, "copr_backend.test", "test")
         try:
-            raise BuilderError("foobar")
+            raise BackendError("foobar")
         except Exception as err:
             log.exception("error occurred: {}".format(err))
 
@@ -42,7 +42,8 @@ class TestHelpers(object):
         data = json.loads(raw_message)
         assert data.get("who") == "test"
         assert data.get("levelno") == logging.ERROR
-        assert 'copr_backend.exceptions.BuilderError: foobar\n' in data['msg']
+        assert "error occurred: Backend process error: foobar\n" in data["msg"]
+        assert 'raise BackendError("foobar")' in data["msg"]
 
     def test_get_chroot_arch(self):
         assert get_chroot_arch("fedora-26-x86_64") == "x86_64"

@@ -1,0 +1,5 @@
+#! /bin/bash
+
+if test x"$1" = "x-u"; then
+    echo "fake pub key content"
+fi

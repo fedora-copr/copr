@@ -326,3 +326,36 @@ class MsgBusFedoraMessaging(MsgBus):
     def _send_message(self, message):
         from fedora_messaging import api as fm_api, exceptions as fm_ex
         fm_api.publish(message)
+
+
+class MessageSender:
+    """
+    Automatically send messages to all configured buses.
+    """
+    def __init__(self, backend_opts, name, log):
+        self.log = log
+        self.name = name
+
+        msg_buses = []
+        for bus_config in backend_opts.msg_buses:
+            if bus_config.bus_type == 'stomp':
+                msg_buses.append(MsgBusStomp(bus_config, log))
+            elif bus_config.bus_type == 'fedora-messaging':
+                msg_buses.append(MsgBusFedoraMessaging(bus_config, log))
+
+        if backend_opts.fedmsg_enabled:
+            msg_buses.append(MsgBusFedmsg(log))
+
+        self.msg_buses = msg_buses
+        self.pid = os.getpid()
+
+    def announce(self, topic, job, host):
+        """ Send message to all configured buses """
+        for bus in self.msg_buses:
+            self.log.debug("Sending %s message", topic)
+            bus.announce_job(
+                topic, job,
+                who=self.name,
+                ip=host,
+                pid=self.pid
+            )

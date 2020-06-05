@@ -1,7 +1,7 @@
 import copy
 import os
 
-from copr_backend.helpers import build_target_dir, build_chroot_log_name
+from copr_backend.helpers import build_target_dir
 
 
 class BuildJob(object):
@@ -89,6 +89,9 @@ class BuildJob(object):
             task_data["project_dirname"],
         )
 
+        # TODO: We should rename this attribute.  This one is used by Frontend
+        # to store updated "target_dir_name" to BuildChroot database.  But the
+        # name is terrible, and clashes with self.results_dir (plural).
         self.result_dir = self.target_dir_name
 
         self.built_packages = ""
@@ -110,12 +113,19 @@ class BuildJob(object):
         return build_target_dir(self.build_id, self.package_name)
 
     @property
-    def chroot_log_name(self):
-        return build_chroot_log_name(self.build_id, self.package_name)
+    def backend_log(self):
+        """
+        The log file which is "live" appended to build resultdir by copr
+        backend background process.
+        """
+        return os.path.join(self.results_dir, "backend.log")
 
     @property
-    def chroot_log_path(self):
-        return os.path.join(self.results_dir, self.chroot_log_name)
+    def builder_log(self):
+        """
+        The live log continuously transferred from builder.
+        """
+        return os.path.join(self.results_dir, "builder-live.log")
 
     @property
     def rsync_log_name(self):
@@ -171,3 +181,10 @@ class BuildJob(object):
     def __unicode__(self):
         return u"BuildJob<id: {build_id}, owner: {project_owner}, project: {project_name}, project_dir: {project_dirname}" \
                u"git branch: {git_branch}, git hash: {git_hash}, status: {status} >".format(**self.__dict__)
+
+    @property
+    def took_seconds(self):
+        """ Number of seconds spent on building this package """
+        if self.ended_on is None or self.started_on is None:
+            return None
+        return self.ended_on - self.started_on
