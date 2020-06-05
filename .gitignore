@@ -35,3 +35,7 @@ _redis.log
 
 # Exuberant Ctags
 tags
+
+# External tearballs for unittesting.
+test-data-*.tar.gz
+test-data-*/

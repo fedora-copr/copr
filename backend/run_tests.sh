@@ -3,6 +3,21 @@
 set -x
 set -e
 
+srcdir=$(dirname "$0")
+
+test_tarball_version=$(grep -E '%global[[:space:]]*tests_version' < "$srcdir"/copr-backend.spec | awk '{ print $3 }')
+test_tarball_name=$(grep -E '%global[[:space:]]*tests_tar' < "$srcdir"/copr-backend.spec | awk '{ print $3 }')
+test_tarball_extracted=$test_tarball_name-$test_tarball_version
+test_tarball=$test_tarball_extracted.tar.gz
+
+test -d "$test_tarball_extracted" || (
+    cd "$srcdir" || exit 1
+    spectool -S copr-backend.spec --get-files
+    tar -xf "$test_tarball"
+)
+export TEST_DATA_DIRECTORY
+TEST_DATA_DIRECTORY=$(readlink -f "$test_tarball_extracted")
+
 REDIS_PORT=7777
 redis-server --port $REDIS_PORT &> _redis.log &
 

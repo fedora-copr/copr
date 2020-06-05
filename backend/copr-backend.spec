@@ -2,6 +2,9 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
+%global tests_version 1
+%global tests_tar test-data-copr-backend
+
 Name:       copr-backend
 Version:    1.132
 Release:    1%{?dist}
@@ -14,6 +17,7 @@ URL:        https://pagure.io/copr/copr
 # git clone %%url && cd copr
 # tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
+Source1:    https://github.com/fedora-copr/%tests_tar/archive/v%tests_version/%tests_tar-%tests_version.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -106,7 +110,7 @@ only.
 
 
 %prep
-%setup -q
+%setup -q -a 1
 
 
 %build
