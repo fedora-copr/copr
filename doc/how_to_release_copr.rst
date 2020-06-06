@@ -36,7 +36,7 @@ Build all the updated packages into ``@copr/copr`` copr project::
 Upgrade -dev machines
 ---------------------
 
-Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
+Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
     sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org \
                        manual/copr/copr-backend-upgrade.yml
@@ -194,7 +194,7 @@ Upgrade production machines
 It is advised to stop ``copr-backend.service`` before upgrading production machines to avoid failing
 builds due to temporarily having installed incompatible versions of Copr packages.
 
-Run on batcave01.phx2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
+Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
     sudo rbac-playbook -l copr-be.aws.fedoraproject.org \
                        manual/copr/copr-backend-upgrade.yml

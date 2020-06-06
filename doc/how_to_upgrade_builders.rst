@@ -25,7 +25,7 @@ Requirements
 * and ``python3-openstackclient`` package installed
 * ssh access to the main aarch64 hypervisor
   ``copr@virthost-aarch64-os01.fedorainfracloud.org``
-* ssh access to ``batcave01.phx2.fedoraproject.org``, and sudo access there
+* ssh access to ``batcave01.iad2.fedoraproject.org``, and sudo access there
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
 
 
@@ -302,7 +302,7 @@ the ``copr_builder_images`` option in ``inventory/group_vars/copr_back_dev`` so
 it points to correct image names.  Once the changes are pushed upstream, you
 should re-provision the backend configuration from batcave::
 
-    $ ssh batcave01.phx2.fedoraproject.org
+    $ ssh batcave01.iad2.fedoraproject.org
     $ sudo rbac-playbook \
         -l copr-be-dev.cloud.fedoraproject.org groups/copr-backend.yml \
         -t provision_config
