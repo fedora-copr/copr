@@ -25,6 +25,11 @@ class BuildQueueTask(QueueTask):
     def __init__(self, task):
         self._task = task
         self._backend_priority = 0
+        try:
+            int(self.id)
+            self.source_build = True
+        except ValueError:
+            self.source_build = False
 
     @property
     def frontend_priority(self):
@@ -57,10 +62,7 @@ class BuildQueueTask(QueueTask):
         The chroot this task will be built in.  We return 'source' if this is
         source RPM build - in such case the build should be arch agnostic.
         """
-        task_chroot = self._task.get('chroot')
-        if not task_chroot:
-            task_chroot = 'srpm-builds'
-        return task_chroot
+        return self._task.get('chroot')
 
     @property
     def owner(self):
@@ -73,9 +75,10 @@ class BuildQueueTask(QueueTask):
         What is the requested "native" builder architecture for which this
         build task will be done.  We use this for limiting the build queue
         (i.e. separate limit for armhfp, even though such build process is
-        emulated on x86_64).
+        emulated on x86_64).  Note that source builds also may require specific
+        chroot (and thus architecture).
         """
-        if self.chroot == "srpm-builds":
+        if not self.chroot:
             return None
         arch = get_chroot_arch(self.chroot)
         if arch.endswith("86"):
@@ -120,7 +123,7 @@ class RPMBuildWorkerManager(WorkerManager):
             "copr-backend-process-build",
             "--daemon",
             "--build-id", str(task.build_id),
-            "--chroot", task.chroot,
+            "--chroot", "srpm-builds" if task.source_build else task.chroot,
             "--worker-id", worker_id,
         ]
         self.log.info("running worker: %s", " ".join(command))
