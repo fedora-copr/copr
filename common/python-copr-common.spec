@@ -14,7 +14,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.7
+Version:    0.8
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -104,6 +104,9 @@ version=%version %py2_install
 
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 0.8-1
+- non-devel version 0.8
+
 * Tue May 05 2020 Jakub Kadlcik <frostyx@email.cz> 0.7-1
 - add ActionResult (moved from backend package)
 - add DefaultActionPriorityEnum
