@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.101
+Version:    1.102
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -236,6 +236,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.102-1
+- fix large recursion problem
+- enable deleting multiple builds from cli
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.101-1
 - allow to pick dist-git instance when building modules
 - fix traceback when wrong url to frontend is specified
