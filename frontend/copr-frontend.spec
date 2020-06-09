@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.164
+Version:    1.165
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -376,6 +376,37 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.165-1
+- enable cov by default in testsute
+- more obvious links to the live logs
+- return a user friendly error when modulemd is not ok
+- basic build task priority implemented
+- droped the reschedule-all builds idiom
+- new build cancel implementation
+- WorkerManager used for builds, too
+- enable deleting multiple builds from cli
+- drop RequestCannotBeExecuted and BuildInProgressException
+- re-assign BuildChroots to re-enabled CoprChroot
+- not finished build_chroots to disallow copr_chroot removal
+- models: link BuildChroot(s) with corresponding CoprChroot(s)
+- fix repo generation for modules with dash in their name
+- added support for project runtime dependencies
+- return user friendly error when build chroot was not found
+- large sync of model with migrations
+- require the newest version of copr-common
+- fix for the new werkzeug in rawhide
+- use flask caching instead of flask cache
+- prioritize initial createrepo action, set lower priority for some actions
+- make ActionsLogic.send_* methods to return the generated action
+- minimalize the transfered amount of action information to BE
+- disable group build delete checkboxes if js is not enabled
+- provide status information for build chroots in APIv3
+- fix application context error for add-user command
+- move some constants to copr.conf so we can tweak them
+- disallow creating modules without any packages
+- don't show builds table when there are none of them
+- fix pagure-events so it submits correct packages
+
 * Mon Feb 24 2020 Pavel Raiskup <praiskup@redhat.com> 1.164-1
 - rawhide-to-release should create the chroots deactivated
 - new rawhide-to-release --retry-forked option
