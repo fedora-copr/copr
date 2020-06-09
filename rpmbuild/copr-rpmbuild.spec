@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.38
+Version: 0.39
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -259,6 +259,11 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 0.39-1
+- more work delegate to builder scripts from backend
+- don't delete the "old" .rpmnew files
+- fix macro in comment (rpmlint)
+
 * Fri Apr 03 2020 Pavel Raiskup <praiskup@redhat.com> 0.38-1
 - do not scrub mock caches, to re-use dnf/yum caches
 - scrub chroot and bootstrap chroot when build is done
