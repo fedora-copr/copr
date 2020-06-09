@@ -26,11 +26,6 @@ except ImportError:
     StompConnectionListener = object
 
 
-class _LogAdapter(logging.LoggerAdapter):
-    def process(self, msg, kwargs):
-        return "[BUS '{0}'] {1}".format(self.extra['bus_id'], msg), kwargs
-
-
 def message_from_worker_job(style, topic, job, who, ip, pid):
     """
     Compat wrapper generating message object for messages defined before we
@@ -140,8 +135,8 @@ class MsgBus(object):
     An "abstract" message bus class, don't instantiate!
     """
     messages = {}
-
     style = 'v1'
+    bus_type = "msgbus"
 
     def __init__(self, opts, log=None):
         self.opts = opts
@@ -150,11 +145,10 @@ class MsgBus(object):
 
         self.opts.bus_publish_retries = getattr(self.opts, 'bus_publish_retries', 5)
 
+        self.log = log
         if not log:
-            log = logging
+            self.log = logging
             logging.basicConfig(level=logging.DEBUG)
-
-        self.log = _LogAdapter(log, {'bus_id': self.opts.bus_id})
 
         self.log.info("initializing bus")
         if hasattr(self.opts, 'messages'):
@@ -194,6 +188,11 @@ class MsgBus(object):
         msg = message_from_worker_job(self.style, msg_type, job, who, ip, pid)
         self.send_message(msg)
 
+    @property
+    def info(self):
+        """ string info about the bus """
+        return "{} bus".format(self.bus_type)
+
 
 class StompListener(StompConnectionListener):
     def __init__(self, msgbus):
@@ -215,6 +214,7 @@ class MsgBusStomp(MsgBus):
     """
 
     style = 'v1stomp'
+    bus_type = "stomp"
 
     def connect(self):
         """
@@ -301,6 +301,9 @@ class MsgBusFedmsg(MsgBus):
     """
     Connect to fedmsg and send messages over it.
     """
+
+    bus_type = "fedmsg"
+
     def __init__(self, log=None):
         # Hack to not require opts argument for now.
         opts = type('', (), {})
@@ -318,6 +321,9 @@ class MsgBusFedoraMessaging(MsgBus):
     """
     Connect to fedora-messaging AMQP bus and send messages over it.
     """
+
+    bus_type = "fedora-messaging"
+
     def __init__(self, opts, log=None):
         super(MsgBusFedoraMessaging, self).__init__(opts, log)
         # note this is not thread safe, only one bus of this type!
@@ -352,7 +358,7 @@ class MessageSender:
     def announce(self, topic, job, host):
         """ Send message to all configured buses """
         for bus in self.msg_buses:
-            self.log.debug("Sending %s message", topic)
+            self.log.info("Sending %s message in %s", bus.info, topic)
             bus.announce_job(
                 topic, job,
                 who=self.name,

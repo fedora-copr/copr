@@ -115,7 +115,7 @@ class BuildBackgroundWorker(BackgroundWorker):
 
     def __init__(self):
         super().__init__()
-        self.sender = MessageSender(self.opts, self.name, self.log)
+        self.sender = None
         self.builder_pid = None
         self.builder_dir = "/var/lib/copr-rpmbuild"
         self.builder_livelog = os.path.join(self.builder_dir, "main.log")
@@ -725,6 +725,7 @@ class BuildBackgroundWorker(BackgroundWorker):
 
     def handle_build(self):
         """ Do the build """
+        self.sender = MessageSender(self.opts, self.name, self.log)
         self._get_build_job()
         self._setup_resultdir_and_logging()
         self._mark_starting()
