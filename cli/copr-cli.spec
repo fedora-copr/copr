@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.86
+Version:    1.87
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -123,6 +123,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.87-1
+- enable deleting multiple builds from cli
+
 * Wed Mar 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.86-1
 - add script to list package build order in copr or koji
 - fix `copr mock-config` to use `dnf.conf/yum.conf` automatically
