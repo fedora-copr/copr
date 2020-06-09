@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.132
+Version:    1.133
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -229,6 +229,25 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.133-1
+- better build task priority processing
+- dump attempt to send message to backend.log
+- drop the VMM concept, replaced with resalloc
+- delegate more work to the builder code
+- external blob tarball for unittests
+- buggy error handler in pkg_name_evr()
+- basic build task priority
+- the reschedule-all builds idiom removed
+- fix the build cancelation
+- drop duplicate BuildRequire on python-requests
+- require the newest version of copr-common
+- minimalize the transfered amount of information about actions from FE
+- process actions in regard to their priority
+- move backend's code to standard PYTHONPATH
+- move ActionResult to copr_common.enums
+- actions/builds use the same WorkerManager logic
+- more verbose rawhide to release action processing
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.132-1
 - better handle invalid options in copr-repo --add/--delete
 - copr-repo: optimize-out useless createrepo_c runs
