@@ -548,6 +548,9 @@ class BuildsLogic(object):
         :type batch: models.Batch
         :rtype: models.Build
         """
+        if not copr.active_copr_chroots:
+            raise BadRequest("Can't create build - project {} has no active chroots".format(copr.full_name))
+
         chroots = None
         if chroot_names:
             chroots = []

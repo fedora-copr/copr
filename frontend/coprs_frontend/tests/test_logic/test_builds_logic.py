@@ -366,3 +366,13 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(self.db.session.query(models.Build).all()) == 4
         BuildsLogic.clean_old_builds()
         assert len(self.db.session.query(models.Build).all()) == 3
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_no_active_chroot(self):
+        self.c1.copr_chroots.clear()
+        self.db.session.commit()
+        with pytest.raises(BadRequest) as error:
+            BuildsLogic.create_new(self.u1, self.c1, 0, '{}')
+
+        assert "has no active chroots" in str(error.value)
+        assert len(self.c1.active_copr_chroots) == 0

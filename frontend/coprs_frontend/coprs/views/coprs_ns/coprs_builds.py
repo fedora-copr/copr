@@ -125,7 +125,7 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
         try:
             create_new_build_factory(**build_options)
             db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException) as e:
+        except (ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException, BadRequest) as e:
             db.session.rollback()
             flask.flash(str(e), "error")
         else:
