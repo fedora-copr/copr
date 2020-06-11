@@ -180,7 +180,7 @@ class BuildBackgroundWorker(BackgroundWorker):
     def _setup_resultdir_and_logging(self):
         """ Prepare the result directory and log file ASAP """
         self._prepare_result_directory(self.job)
-        handler = logging.handlers.WatchedFileHandler(
+        handler = logging.FileHandler(
             filename=self.job.backend_log,
         )
         handler.setLevel(logging.INFO)
