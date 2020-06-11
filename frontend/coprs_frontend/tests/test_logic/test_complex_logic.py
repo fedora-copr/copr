@@ -7,7 +7,11 @@ import pytest
 from coprs import models, helpers, app
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.complex_logic import ComplexLogic, ProjectForking
+from coprs.logic.complex_logic import (
+    BuildConfigLogic,
+    ComplexLogic,
+    ProjectForking,
+)
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 
@@ -173,6 +177,28 @@ class TestProjectForking(CoprsTestCase):
         assert ComplexLogic.get_copr_by_repo_safe("copr:///user1/foocopr") == None
         assert ComplexLogic.get_copr_by_repo_safe("copr://user1//foocopr") == None
 
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_generate_build_config_with_dep_mistake(self):
+        bcl = BuildConfigLogic
+        main_repo = {
+            "id": "copr_base",
+            "name": "Copr repository",
+            "baseurl": "http://copr-be-dev.cloud.fedoraproject.org"
+                       "/results/user1/foocopr/fedora-18-x86_64/",
+        }
+        build_config = bcl.generate_build_config(self.c1, "fedora-18-x86_64")
+        assert build_config["repos"] == [main_repo]
+
+        self.c1.repos = "copr://non/existing"
+        build_config = bcl.generate_build_config(self.c1, "fedora-18-x86_64")
+
+        # We put the link there, even though baseurl points to 404.  The build
+        # will later fail on downloading the repository and user will be
+        # notified.
+        assert len(build_config["repos"]) == 2
+        assert build_config["repos"][1]["id"] == "copr_non_existing"
 
 class FooModel(object):
     """

@@ -394,7 +394,6 @@ class BuildConfigLogic(object):
                 "name": "Copr buildroot",
             })
 
-
         repos.extend(cls.get_additional_repo_views(copr.repos_list, chroot_id))
         repos.extend(cls.get_additional_repo_views(chroot.repos_list, chroot_id))
 
@@ -419,7 +418,16 @@ class BuildConfigLogic(object):
                 "name": "Additional repo " + helpers.generate_repo_name(repo),
             }
 
-            copr = ComplexLogic.get_copr_by_repo_safe(repo)
+            # We ask get_copr_by_repo_safe() here only to resolve the
+            # module_hotfixes attribute.  If the asked project doesn't exist, we
+            # still adjust the 'repos' variable -- the build will eventually
+            # fail on repo downloading, but at least the copr maintainer will be
+            # notified about the misconfiguration.  Better than just skip the
+            # repo.
+            try:
+                copr = ComplexLogic.get_copr_by_repo_safe(repo)
+            except ObjectNotFound:
+                copr = None
             if copr and copr.module_hotfixes:
                 params["module_hotfixes"] = True
 
