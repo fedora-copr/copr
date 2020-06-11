@@ -913,13 +913,13 @@ class BuildsLogic(object):
             raise InsufficientRightsException(
                 "You are not allowed to cancel this build.")
         if not build.cancelable:
-            if build.status == StatusEnum("starting"):
-                # this is not intuitive, that's why we provide more specific message
-                err_msg = "Cannot cancel build {} in state 'starting'".format(build.id)
-            else:
-                err_msg = "Cannot cancel build {}".format(build.id)
+            err_msg = "Cannot cancel build {}".format(build.id)
             raise ConflictingRequest(err_msg)
 
+        # No matter the state, we tell backend to cancel this build.  Even when
+        # the build is in pending state (worker manager may be already handling
+        # this build ATM, and creating an asynchronous worker which needs to be
+        # canceled).
         ActionsLogic.send_cancel_build(build)
 
         build.canceled = True

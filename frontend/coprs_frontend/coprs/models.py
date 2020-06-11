@@ -1148,7 +1148,7 @@ class Build(db.Model, helpers.Serializer):
         """
         Find out if this build is cancelable.
         """
-        return not self.finished and self.status != StatusEnum("starting")
+        return not self.finished
 
     @property
     def repeatable(self):

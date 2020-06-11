@@ -350,6 +350,18 @@ class BuildBackgroundWorker(BackgroundWorker):
         self.canceled = bool(self.redis_get_worker_flag("cancel_request"))
         return self.canceled
 
+    def _cancel_if_requested(self):
+        """
+        Raise BuildCanceled exception if there's already a request for
+        cancellation.  This is useful as "quick and cheap check" before starting
+        some expensive task that would have to be later canceled anyways.
+        We can call this multiple times, anytime we feel it is appropriate.
+        """
+        if self._cancel_task_check_request():
+            self.log.warning("Canceling the build early")
+            self._drop_host()
+            raise BuildCanceled
+
     def _cancel_vm_allocation(self):
         self.redis_set_worker_flag("canceling", 1)
         self._drop_host()
@@ -659,10 +671,12 @@ class BuildBackgroundWorker(BackgroundWorker):
         failed = True
 
         self._wait_for_repo()
+        self._cancel_if_requested()
         self._alloc_host()
         self._alloc_ssh_connection()
         self._check_vm()
         self._fill_build_info_file()
+        self._cancel_if_requested()
         self._mark_running(attempt)
         self._start_remote_build()
         transfer_failure = CancellableThreadTask(

@@ -534,6 +534,42 @@ def test_cancel_build_on_tail_log_no_ssh(f_build_rpm_sign_on, caplog):
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+def test_cancel_before_vm(f_build_rpm_sign_on, caplog):
+    config = f_build_rpm_sign_on
+    worker = config.bw
+    # set this early
+    worker.redis_set_worker_flag("cancel_request", 1)
+    worker.process()
+    assert_logs_exist([
+        "Build was canceled",
+        "Canceling the build early",
+        COMMON_MSGS["not finished"],
+        "Worker failed build",
+    ], caplog)
+    assert_logs_dont_exist(["Releasing VM back to pool"], caplog)
+
+@_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
+@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+def test_cancel_before_start(f_build_rpm_sign_on, caplog):
+    config = f_build_rpm_sign_on
+    worker = config.bw
+
+    # cancel request right before starting the build
+    worker._fill_build_info_file = mock.MagicMock()
+    worker._fill_build_info_file.side_effect = \
+        lambda: worker.redis_set_worker_flag("cancel_request", 1)
+
+    worker.process()
+    assert_logs_exist([
+        "Build was canceled",
+        "Releasing VM back to pool",
+        "Canceling the build early",
+        COMMON_MSGS["not finished"],
+        "Worker failed build",
+    ], caplog)
+
+@_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
+@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_build_retry(f_build_rpm_sign_on):
     config = f_build_rpm_sign_on
     worker = config.bw
