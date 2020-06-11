@@ -243,7 +243,10 @@ class Delete(Action):
                 result = ActionResult.FAILURE
                 continue
 
+            self.log.info("Deleting subdirs [%s] in %s",
+                          ", ".join(subdirs), chroot_path)
             if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
+                self.log.error("createrepo_c failed in %s", chroot_path)
                 result = ActionResult.FAILURE
 
             for build_id in build_ids or []:

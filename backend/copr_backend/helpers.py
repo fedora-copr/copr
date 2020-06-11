@@ -582,7 +582,8 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
     return "{}-{}-{}.{}".format(name, version, release, arch)
 
 
-def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None):
+def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None,
+                   logger=None):
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
@@ -604,6 +605,8 @@ def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None):
         cmd += ['--devel']
 
     try:
+        if logger:
+            logger.info("Running %s", " ".join(cmd))
         return not subprocess.call(cmd, timeout=timeout)
     except subprocess.TimeoutExpired:
         return False
