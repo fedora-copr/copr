@@ -1,3 +1,6 @@
+# This is very complicated module.  TODO: drop the ignores
+# pylint: disable=wrong-import-order,wrong-import-position
+
 from __future__ import with_statement
 
 import os
@@ -101,8 +104,14 @@ from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.webhooks_ns import webhooks_general
 from coprs.views.rss_ns import rss_ns
 from coprs.views.rss_ns import rss_general
-
-from coprs.exceptions import ObjectNotFound, AccessRestricted, BadRequest, CoprHttpException, MalformedArgumentException
+from coprs.exceptions import (
+    AccessRestricted,
+    BadRequest,
+    CoprHttpException,
+    ConflictingRequest,
+    MalformedArgumentException,
+    ObjectNotFound,
+)
 from .context_processors import include_banner, inject_fedmenu, counter_processor
 
 setup_log()
@@ -153,6 +162,12 @@ def handle_400(error):
     error_handler = get_error_handler()
     return error_handler.handle_400(error)
 
+@app.errorhandler(409)
+@app.errorhandler(ConflictingRequest)
+def handle_409(error):
+    """ Handle the 409 nicely """
+    error_handler = get_error_handler()
+    return error_handler.handle_409(error)
 
 @app.errorhandler(500)
 @app.errorhandler(CoprHttpException)

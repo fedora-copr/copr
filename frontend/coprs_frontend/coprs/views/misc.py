@@ -100,6 +100,7 @@ def generic_error(message, code=500, title=None):
 
 server_error_handler = partial(generic_error, code=500, title="Internal Server Error")
 bad_request_handler = partial(generic_error, code=400, title="Bad Request")
+conflict_request_handler = partial(generic_error, code=409, title="Conflict")
 
 misc = flask.Blueprint("misc", __name__)
 

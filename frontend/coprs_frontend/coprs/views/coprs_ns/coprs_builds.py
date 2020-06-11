@@ -15,10 +15,13 @@ from coprs.views.misc import (login_required, req_with_copr,
         req_with_copr, send_build_icon)
 from coprs.views.coprs_ns import coprs_ns
 
-from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException,
-                              UnrepeatableBuildException,
-                              BadRequest)
+from coprs.exceptions import (
+    ActionInProgressException,
+    BadRequest,
+    ConflictingRequest,
+    InsufficientRightsException,
+    UnrepeatableBuildException,
+)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -433,7 +436,7 @@ def process_copr_repeat_build(build_id, copr):
 def process_cancel_build(build):
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
-    except InsufficientRightsException as e:
+    except (InsufficientRightsException, ConflictingRequest) as e:
         flask.flash(str(e), "error")
     else:
         db.session.commit()

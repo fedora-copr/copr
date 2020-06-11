@@ -2,13 +2,23 @@
 
 import flask
 
-from coprs.views.misc import page_not_found, access_restricted, bad_request_handler, server_error_handler
+from coprs.views.misc import (
+    access_restricted,
+    bad_request_handler,
+    conflict_request_handler,
+    page_not_found,
+    server_error_handler,
+)
+
 from coprs.exceptions import CoprHttpException
 
 coprs_ns = flask.Blueprint("coprs_ns", __name__, url_prefix="/coprs")
 
 
 class UIErrorHandler(object):
+    def handle_409(self, error):
+        return conflict_request_handler(self.message(error))
+
     def handle_404(self, error):
         return page_not_found(self.message(error))
 

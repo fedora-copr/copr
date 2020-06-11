@@ -21,6 +21,9 @@ DELETE = ["POST", "DELETE"]
 
 
 class APIErrorHandler(object):
+    def handle_409(self, error):
+        return self.handle_xxx(error)
+
     def handle_404(self, error):
         if isinstance(error, ObjectNotFound):
             return self.respond(str(error), 404)
