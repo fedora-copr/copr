@@ -182,3 +182,11 @@ class TestBuildModel(CoprsTestCase):
             build.status = StatusEnum(state)
             assert build.rpm_live_log_url is None
             assert build.rpm_backend_log_url is None
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds")
+    def test_source_state_translation(self):
+        """ test the very old builds that don't have the source_status set """
+        self.b1.source_status = None
+        assert self.b1.source_state == "unknown"
+        self.b1.source_status = 0
+        assert self.b1.source_state == "failed"

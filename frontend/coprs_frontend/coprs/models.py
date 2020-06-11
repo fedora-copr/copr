@@ -1091,6 +1091,8 @@ class Build(db.Model, helpers.Serializer):
         """
         Return text representation of status of this build
         """
+        if self.source_status is None:
+            return "unknown"
         return StatusEnum(self.source_status)
 
     @property
