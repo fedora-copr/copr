@@ -175,27 +175,24 @@
         {{ describe_failure(build) }}
         <dt>Source state:</dt>
             <dd>{{ build_state_text(build.source_state) }} </dd>
-        <dt>Source build log:</dt>
-        {% if build.source_status | state_from_num in ['pending', 'starting'] %}
-          <dd> Source build has not started yet</dd>
-        {% else %}
-          {% if build.resubmitted_from_id and build.source_is_uploaded %}
-            <dd>Build resubmitted from build
-              {% if build.resubmitted_from %}
-                <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.resubmitted_from.id) }}">#{{ build.resubmitted_from.id }}</a>
-              {% else %}
-                #{{ build.resubmitted_from_id }}
-              {% endif %}
-            </dd>
+        <dt>Source build logs:</dt>
+        <dd>
+        {% if build.resubmitted_from_id and build.source_is_uploaded %}
+          Build resubmitted from build
+          {% if build.resubmitted_from %}
+            <a href="{{ copr_url('coprs_ns.copr_build', build.copr, build_id=build.resubmitted_from.id) }}">#{{ build.resubmitted_from.id }}</a>
           {% else %}
-            {% for url in build.get_source_log_urls(g.user.admin) %}
-              <dd>
-                <a href="{{ url }}">{{ url | basename }}</a>
-                {{ "," if not loop.last }}
-              </dd>
-            {% endfor %}
+            #{{ build.resubmitted_from_id }}
           {% endif %}
+        {% else %}
+          {% for url in build.get_source_log_urls(g.user.admin) %}
+            <a href="{{ url }}">{{ url | basename }}</a> {{ "," if not loop.last }}
+          {% else %}
+            Source build has not started yet
+          {% endfor %}
         {% endif %}
+        </dd>
+
         <dt> Built Packages:</dt>
         {% if build.built_packages %}
           {% for pkg in build.built_packages.split("\n"): %}
