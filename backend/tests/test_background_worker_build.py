@@ -334,7 +334,10 @@ def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
                        "example-1.0.14-1.fc30.x86_64.rpm")
     srpm = os.path.join(worker.job.results_dir,
                         "example-1.0.14-1.fc30.src.rpm")
-    assert mc_sign_one.call_args_list == [mock.call(rpm, mail), mock.call(srpm, mail)]
+    expected_calls = [mock.call(rpm, mail), mock.call(srpm, mail)]
+    for call in expected_calls:
+        assert call in mc_sign_one.call_args_list
+    assert len(mc_sign_one.call_args_list) == 2
     for record in caplog.record_tuples:
         _, level, _ = record
         assert level <= logging.INFO
