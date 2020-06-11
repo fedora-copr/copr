@@ -202,9 +202,6 @@ class BackendConfigReader(object):
         opts.frontend_base_url = _get_conf(
             cp, "backend", "frontend_base_url", "http://copr-fe")
 
-        opts.dist_git_url = _get_conf(
-            cp, "backend", "dist_git_url", "http://dist-git")
-
         opts.frontend_auth = _get_conf(
             cp, "backend", "frontend_auth", "PASSWORDHERE")
 
@@ -287,8 +284,6 @@ class BackendConfigReader(object):
 
         opts.destdir = _get_conf(cp, "backend", "destdir", None, mode="path")
 
-        opts.exit_on_worker = _get_conf(
-            cp, "backend", "exit_on_worker", False, mode="bool")
         opts.fedmsg_enabled = _get_conf(
             cp, "backend", "fedmsg_enabled", False, mode="bool")
         opts.sleeptime = _get_conf(
@@ -316,8 +311,6 @@ class BackendConfigReader(object):
             cp, "backend", "log_level", "info")
         opts.log_format = _get_conf(
             cp, "backend", "log_format", default_log_format)
-        opts.verbose = _get_conf(
-            cp, "backend", "verbose", False, mode="bool")
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 

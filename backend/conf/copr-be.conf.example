@@ -1,17 +1,16 @@
 [backend]
-
 # URL where are results visible
-# default is http://copr
+# default is http://copr-be
 results_baseurl=https://copr-be.cloud.fedoraproject.org/results
 
-# default is http://coprs/rest/api
+# Mandatory http address of running Copr Frontend instance.  Backend talks to
+# Frontend e.g. over <frontend_base_url>/backend/ URL.
+# default is http://copr-fe
 frontend_base_url=http://copr-fe-dev.cloud.fedoraproject.org
 
 # must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
 # default is PASSWORDHERE but you really should change it. really.
 frontend_auth=backend_password_from_fe_config
-
-dist_git_url=distgitvm.example.com
 
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL
@@ -50,39 +49,42 @@ sleeptime=30
 # actions.
 #actions_max_workers=10
 
-# exit on worker failure
-# default is false
-#exit_on_worker=false
-
 # publish fedmsg notifications from workers if true
-# default is false
 #fedmsg_enabled=false
-
 
 # enable package signing, require configured
 # signer host and correct /etc/sign.conf
-# do_sign=false
+#do_sign=false
 
 # host or ip of machine with copr-keygen
 # usually the same as in /etc/sign.conf
-# keygen_host=example.com
+#keygen_host=example.com
 
 # minimum age for builds to be pruned
 prune_days=14
 
 # logging settings
-# log_dir=/var/log/copr-backend/
-# log_level=info
-# log_format=[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s
+#log_dir=/var/log/copr-backend/
+#log_level=info
+#log_format=[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s
 
-# verbose=False
-
+# Configure the mandatory access to a running Redis DB instance.
 #redis_host=127.0.0.1
 #redis_port=6379
 #redis_db=0
+
 
 [builder]
 # default is 1800
 timeout=3600
 
-# consecutive_failure_threshold=10
+# Number if build failures needed to happen "in row" before we start reporting
+# an issue by the script /usr/bin/check_consecutive_build_fails.py
+#consecutive_failure_threshold=10
+
+
+[ssh]
+# SSH config file which is used by backend when communicating with allocated
+# builders.  By default this is not set so we let the decision on the ssh
+# implementation itself (usually it uses '<home directory>/.ssh/config' file).
+#builder_config=/home/copr/.ssh/config
