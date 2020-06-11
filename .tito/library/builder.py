@@ -34,3 +34,4 @@ class CustomBuilder(Builder):
             # TODO: check md5sum somehow
             info_out("Downloading %s into %s" % (source, target))
             urllib.request.urlretrieve(source, target)
+            self.sources.append(target)
