@@ -28,7 +28,7 @@ def main():
     logging.basicConfig(
         filename=os.path.join(opts.log_dir, "main.log"),
         level=logging.DEBUG,
-        format='[%(asctime)s][%(levelname)s][%(name)s][%(module)s:%(lineno)d] %(message)s',
+        format='[%(asctime)s][%(levelname)s][%(name)s][%(module)s:%(lineno)d][pid:%(process)d] %(message)s',
         datefmt='%H:%M:%S'
     )
 
