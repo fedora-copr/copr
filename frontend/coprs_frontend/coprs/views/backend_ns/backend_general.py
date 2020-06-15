@@ -92,7 +92,6 @@ def get_build_record(task, short=False):
 
     build_record = None
     try:
-        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
         build_record = {
             "task_id": task.task_id,
             "build_id": task.build.id,
@@ -117,15 +116,17 @@ def get_build_record(task, short=False):
             "uses_devel_repo": task.build.copr.devel_mode,
         }
 
-        if copr_chroot.module_toggle_array:
-            array = [{'enable': m} for m in copr_chroot.module_toggle_array]
-            build_record["modules"] = {'toggle': array}
 
         if task.build.is_background:
             build_record['background'] = True
 
         if short:
             return build_record
+
+        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+        if copr_chroot.module_toggle_array:
+            array = [{'enable': m} for m in copr_chroot.module_toggle_array]
+            build_record["modules"] = {'toggle': array}
 
         build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
         build_record["repos"] = build_config.get("repos")
