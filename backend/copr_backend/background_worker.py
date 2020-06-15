@@ -164,7 +164,8 @@ class BackgroundWorker:
         # setup logging early, to have as complete logs as possible
         self._switch_logger_to_redis()
 
-        self.frontend_client = FrontendClient(self.opts, self.log)
+        self.frontend_client = FrontendClient(self.opts, self.log,
+                                              try_indefinitely=True)
 
         try:
             self.handle_task()
