@@ -400,7 +400,8 @@ class WorkerManager():
             self.log.debug("Task %s already has a worker process", task_id)
             return
 
-        self.log.debug("Adding task %s to queue", task_id)
+        self.log.debug("Adding task %s to queue, priority %s", task_id,
+                       task.priority)
         self.tasks.add_task(task, task.priority)
 
     def _drop_task_id_safe(self, task_id):
