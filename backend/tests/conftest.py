@@ -112,3 +112,20 @@ def f_second_build(f_first_build):
         shutil.copy(source, chdir)
 
     yield ctx
+
+@fixture
+def f_third_build(f_second_build):
+    """
+    Same as ``f_second_build``, but one more build.
+    """
+    ctx = f_second_build
+    source = os.path.join(os.environ["TEST_DATA_DIRECTORY"],
+                          "build_results", "00848963-example",
+                          "example-1.0.14-1.fc30.x86_64.rpm")
+    build = '00000003-example'
+    ctx.builds.append(build)
+    for chroot in ctx.chroots:
+        chdir = os.path.join(ctx.empty_dir, chroot, build)
+        os.mkdir(chdir)
+        shutil.copy(source, chdir)
+    yield ctx

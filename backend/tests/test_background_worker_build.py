@@ -30,6 +30,7 @@ from copr_backend.sshcmd import SSHConnectionError
 from copr_backend.exceptions import CoprBackendSrpmError
 
 import testlib
+from testlib import assert_logs_exist, assert_logs_dont_exist
 from testlib.repodata import load_primary_xml
 
 # pylint: disable=redefined-outer-name,protected-access
@@ -614,34 +615,6 @@ def assert_messages_sent(topics, sender):
             if topic == call[0][0]:
                 found = True
         assert (found, topic) == (True, topic)
-
-def assert_logs_exist(messages, caplog):
-    """
-    Search through caplog entries for log records having all the messages in
-    ``messages`` list.
-    """
-    search_for = set(messages)
-    found = set()
-    for record in caplog.record_tuples:
-        _, _, msg = record
-        for search in search_for:
-            if search in msg:
-                found.add(search)
-    assert found == search_for
-
-def assert_logs_dont_exist(messages, caplog):
-    """
-    Search through caplog entries for log records having all the messages in
-    ``messages`` list.
-    """
-    search_for = set(messages)
-    found = set()
-    for record in caplog.record_tuples:
-        _, _, msg = record
-        for search in search_for:
-            if search in msg:
-                found.add(search)
-    assert found == set({})
 
 def test_fe_disallowed_start(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on

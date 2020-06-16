@@ -587,7 +587,7 @@ def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None,
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
-    cmd = ['copr-repo', directory]
+    cmd = ["copr-repo", "--batched", directory]
     def subdirs(option, subdirs):
         args = []
         if not subdirs:

@@ -11,7 +11,7 @@ from copr_backend.background_worker_build import COMMANDS
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError
 
 
-def minimal_be_config(where):
+def minimal_be_config(where, overrides=None):
     """
     Create minimal be config which is parseable by BackendConfigReader.
     """
@@ -22,12 +22,17 @@ def minimal_be_config(where):
     except FileExistsError:
         pass
 
-    minimal_config_snippet = (
-        "[backend]\n"
-        "destdir={}\n"
-        "redis_port=7777\n"
-        "results_baseurl=https://example.com/results\n"
-    ).format(destdir)
+    setup = {
+        "redis_port": "7777",
+        "results_baseurl": "https://example.com/results",
+        "destdir": destdir,
+    }
+    if overrides:
+        setup.update(overrides)
+
+    minimal_config_snippet = "[backend]\n"
+    for key, value in setup.items():
+        minimal_config_snippet += "{}={}\n".format(key, value)
 
     be_config_file = os.path.join(where, "copr-be.conf")
     with open(be_config_file, "w") as cfg_fd:
@@ -186,3 +191,64 @@ class FakeSSHConnection(SSHConnection):
 
         if "PROJECT_2" in dest:
             os.unlink(os.path.join(dest, "example-1.0.14-1.fc30.x86_64.rpm"))
+
+def assert_logs_exist(messages, caplog):
+    """
+    Search through caplog entries for log records having all the messages in
+    ``messages`` list.
+    """
+    search_for = set(messages)
+    found = set()
+    for record in caplog.record_tuples:
+        _, _, msg = record
+        for search in search_for:
+            if search in msg:
+                found.add(search)
+    assert found == search_for
+
+def assert_logs_dont_exist(messages, caplog):
+    """
+    Search through caplog entries for log records having all the messages in
+    ``messages`` list.
+    """
+    search_for = set(messages)
+    found = set()
+    for record in caplog.record_tuples:
+        _, _, msg = record
+        for search in search_for:
+            if search in msg:
+                found.add(search)
+    assert found == set({})
+
+def assert_files_in_dir(directory, exist, dont_exist):
+    """
+    Check for (non-)existence of files in directory
+    """
+    for subdir in exist + dont_exist:
+        filename = os.path.join(directory, subdir)
+        expected_to_exist = subdir in exist
+        assert expected_to_exist == os.path.exists(filename)
+
+class AsyncCreaterepoRequestFactory:
+    """ Generator for asynchronous craeterepo requests """
+    def __init__(self, redis):
+        self.pid = os.getpid()
+        self.redis = redis
+
+    def get(self, dirname, overrides=None, done=False):
+        """ put new request to redis """
+        task = {
+            "no_appstream": False,
+            "devel": False,
+            "add": ["add_1"],
+            "delete": [],
+            "full": False,
+        }
+        self.pid += 1
+        if overrides:
+            task.update(overrides)
+        key = "createrepo_batched::{}::{}".format(dirname, self.pid)
+        task_json = json.dumps(task)
+        self.redis.hset(key, "task", task_json)
+        if done:
+            self.redis.hset(key, "status", "success")

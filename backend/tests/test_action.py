@@ -191,7 +191,7 @@ class TestAction(object):
         for call in mc_call.call_args_list:
             args = call[0][0]
             assert args[0] == 'copr-repo'
-            dirs.add(args[1])
+            dirs.add(args[2])
 
         for chroot in ['srpm-builds', 'fedora-17-i386', 'fedora-17-x86_64']:
             dir = '/var/lib/copr/public_html/results/thrnciar/destination-copr/' + chroot
@@ -764,7 +764,7 @@ class TestAction(object):
         assert test_action.run() == ActionResult.SUCCESS
 
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
-            cmd = ['copr-repo',
+            cmd = ["copr-repo", "--batched",
                    os.path.join(self.test_project_dir, chroot)]
             exp_call = mock.call(cmd, timeout=None)
             assert exp_call in mc_sp_call.call_args_list

@@ -1,5 +1,7 @@
 import os
 import copy
+import json
+import logging
 import tarfile
 import tempfile
 import shutil
@@ -9,8 +11,21 @@ import pytest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from copr_backend.createrepo import createrepo, createrepo_unsafe, add_appdata, run_cmd_unsafe
+from copr_backend.createrepo import (
+    BatchedCreaterepo,
+    createrepo,
+    createrepo_unsafe,
+    MAX_IN_BATCH,
+    run_cmd_unsafe,
+)
+
+from copr_backend.helpers import BackendConfigReader, get_redis_connection
 from copr_backend.exceptions import CreateRepoError
+
+import testlib
+from testlib import assert_logs_exist, AsyncCreaterepoRequestFactory
+
+# pylint: disable=attribute-defined-outside-init
 
 @mock.patch('copr_backend.createrepo.createrepo_unsafe')
 @mock.patch('copr_backend.createrepo.add_appdata')
@@ -235,3 +250,196 @@ class TestCreaterepo(object):
 
             createrepo_unsafe(path, base_url=self.base_url, dest_dir="devel")
             assert os.path.exists(os.path.join(path, "devel"))
+
+
+class TestBatchedCreaterepo:
+    def setup_method(self):
+        self.workdir = tempfile.mkdtemp(prefix="copr-batched-cr-test-")
+        self.config_file = testlib.minimal_be_config(self.workdir, {
+            "redis_db": 9,
+            "redis_port": 7777,
+        })
+        self.config = BackendConfigReader(self.config_file).read()
+        self.redis = get_redis_connection(self.config)
+        self.request_createrepo = AsyncCreaterepoRequestFactory(self.redis)
+        self.redis.flushdb()
+        self._pid = os.getpid()
+
+    def teardown_method(self):
+        shutil.rmtree(self.workdir)
+        self.redis.flushdb()
+
+    def _prep_batched_repo(self, some_dir, full=False, add=None, delete=None):
+        self.bcr = BatchedCreaterepo(
+            some_dir,
+            full,
+            add if add is not None else ["subdir_add_1", "subdir_add_2"],
+            delete if delete is not None else ["subdir_del_1", "subdir_del_2"],
+            logging.getLogger(),
+            backend_opts=self.config,
+        )
+        return self.bcr
+
+    def test_batched_createrepo_normal(self):
+        some_dir = "/some/dir/name:pr:135"
+        bcr = self._prep_batched_repo(some_dir)
+        bcr.make_request()
+
+        keys = self.redis.keys()
+        assert len(keys) == 1
+        assert keys[0].startswith("createrepo_batched::{}::".format(some_dir))
+        redis_dict = self.redis.hgetall(keys[0])
+        redis_task = json.loads(redis_dict["task"])
+        assert len(redis_dict) == 1
+        assert redis_task == {
+            "no_appstream": False,
+            "devel": False,
+            "add": ["subdir_add_1", "subdir_add_2"],
+            "delete": ["subdir_del_1", "subdir_del_2"],
+            "full": False,
+        }
+        self.request_createrepo.get(some_dir)
+        # no_appstream=True has no effect, others beat it
+        self.request_createrepo.get(some_dir, {"add": ["add_2"], "no_appstream": True})
+        self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_1"]})
+        self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_2"]})
+        assert not bcr.check_processed()
+        assert bcr.options() == (False, False,
+                                 set(["add_1", "add_2"]),
+                                 set(["del_1", "del_2"]))
+        assert len(bcr.notify_keys) == 4
+
+        our_key = keys[0]
+
+        bcr.commit()
+        keys = self.redis.keys()
+        for key in keys:
+            assert key != our_key
+            task_dict = self.redis.hgetall(key)
+            assert task_dict["status"] == "success"
+
+    def test_batched_createrepo_already_done(self):
+        some_dir = "/some/dir/name"
+        bcr = self._prep_batched_repo(some_dir)
+        key = bcr.make_request()
+        self.request_createrepo.get(some_dir)
+        self.redis.hset(key, "status", "success")
+        assert bcr.check_processed()
+        assert self.redis.hgetall(key) == {}
+        assert bcr.notify_keys == []  # nothing to commit()
+
+    def test_batched_createrepo_other_already_done(self, caplog):
+        some_dir = "/some/dir/name:pr:3"
+        bcr = self._prep_batched_repo(some_dir)
+        key = bcr.make_request()
+
+        # create two other requests, one is not to be processed
+        self.request_createrepo.get(some_dir)
+        self.request_createrepo.get(some_dir, {"add": ["add_2"]}, done=True)
+
+        # nobody processed us
+        assert not bcr.check_processed()
+
+        # we only process the first other request
+        assert bcr.options() == (False, False, set(["add_1"]), set())
+        assert len(bcr.notify_keys) == 1  # still one to notify
+        assert self.redis.hgetall(key) == {}
+        assert len(caplog.record_tuples) == 2
+        assert_logs_exist("already processed, skip", caplog)
+
+    def test_batched_createrepo_devel_mismatch(self, caplog):
+        some_dir = "/some/dir/name:pr:5"
+        bcr = self._prep_batched_repo(some_dir)
+        key = bcr.make_request()
+
+        # create two other requests, one is not to be processed
+        self.request_createrepo.get(some_dir, {"add": ["add_2"], "devel": True})
+        self.request_createrepo.get(some_dir)
+
+        # nobody processed us
+        assert not bcr.check_processed()
+
+        # we only process the first other request
+        assert bcr.options() == (False, False, set(["add_1"]), set())
+        assert len(bcr.notify_keys) == 1  # still one to notify
+        assert self.redis.hgetall(key) == {}
+        assert len(caplog.record_tuples) == 2
+        assert_logs_exist("'devel' attribute doesn't match", caplog)
+
+    def test_batched_createrepo_full_we_take_others(self):
+        some_dir = "/some/dir/name:pr:take_others"
+        bcr = self._prep_batched_repo(some_dir, full=True, add=[], delete=[])
+        key = bcr.make_request()
+
+        task = self.redis.hgetall(key)
+        task_json = json.loads(task["task"])
+        assert task_json["full"]
+        assert task_json["add"] == [] == task_json["delete"]
+
+        # create three other requests, one is not to be processed
+        self.request_createrepo.get(some_dir, {"add": ["add_2"], "devel": True})
+        self.request_createrepo.get(some_dir)
+        self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_1"]})
+
+        assert len(self.redis.keys()) == 4
+        assert not bcr.check_processed()
+        assert len(self.redis.keys()) == 3
+
+        assert bcr.options() == (False, False, {"add_1"}, {"del_1"})
+        assert len(bcr.notify_keys) == 2
+
+    def test_batched_createrepo_full_others_take_us(self):
+        some_dir = "/some/dir/name:pr:others_take_us"
+        bcr = self._prep_batched_repo(some_dir)
+        key = bcr.make_request()
+        task = self.redis.hgetall(key)
+        task_json = json.loads(task["task"])
+        assert not task_json["full"]
+        assert not bcr.check_processed()
+
+        # create four other requests, one is not to be processed
+        self.request_createrepo.get(some_dir, {"add": ["add_2"]})
+        self.request_createrepo.get(some_dir, done=True)
+        self.request_createrepo.get(some_dir, {"add": [], "delete": [], "full": True})
+        self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_1"]})
+
+        assert bcr.options() == (True, False, set(), {"del_1"})
+        assert len(bcr.notify_keys) == 3
+
+    def test_batched_createrepo_task_limit(self, caplog):
+        some_dir = "/some/dir/name:pr:limit"
+        bcr = self._prep_batched_repo(some_dir)
+        key = bcr.make_request()
+
+        # create limit +2 other requests, one is not to be processed, once
+        # skipped
+        self.request_createrepo.get(some_dir)
+        self.request_createrepo.get(some_dir, {"add": ["add_2"], "devel": True})
+        for i in range(3, 3 + MAX_IN_BATCH):
+            add_dir = "add_{}".format(i)
+            self.request_createrepo.get(some_dir, {"add": [add_dir]})
+
+        # nobody processed us
+        assert not bcr.check_processed()
+
+        expected = {"add_{}".format(i) for i in range(1, MAX_IN_BATCH + 2)}
+        expected.remove("add_2")
+        assert len(expected) == MAX_IN_BATCH
+
+        full, no_appstream, add, remove = bcr.options()
+        assert (full, no_appstream, remove) == (False, False, set())
+        assert len(add) == MAX_IN_BATCH
+
+        # The redis.keys() isn't sorted, and even if it was - PID would make the
+        # order.  Therefore we don't know which one is skipped, but only one is.
+        assert len(add - expected) == 1
+        assert len(expected - add) == 1
+
+        assert len(bcr.notify_keys) == MAX_IN_BATCH
+        assert self.redis.hgetall(key) == {}
+        assert len(caplog.record_tuples) == 3
+        assert_logs_exist({
+            "'devel' attribute doesn't match",
+            "Batch copr-repo limit",
+            "Checking if we have to start actually",
+        }, caplog)

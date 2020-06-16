@@ -21,7 +21,7 @@ import sys
 import oslo_concurrency.lockutils
 
 from copr_backend.helpers import get_redis_logger, BackendConfigReader
-
+from copr_backend.createrepo import BatchedCreaterepo
 
 class CommandException(Exception):
     pass
@@ -73,6 +73,10 @@ def get_arg_parser():
     parser.add_argument('--no-appstream-metadata', action='store_true',
                         default=False)
     parser.add_argument('--log-to-stdout', action='store_true')
+    parser.add_argument("--batched", action="store_true",
+                        help="Try try to batch this request with requests "
+                             "from other processes.  When specified, the "
+                             "process needs an access to Redis DB.")
     parser.add_argument('directory')
     return parser
 
@@ -94,6 +98,7 @@ def process_backend_config(opts):
     except:
         # Useful if copr-backend isn't correctly configured, or when
         # copr-backend isn't installed (mostly developing and unittesting).
+        opts.backend_opts = None
         opts.results_baseurl = 'https://example.com/results'
 
     # obtain logger object
@@ -116,9 +121,9 @@ def filter_existing(opts, subdirs):
     """ Return items from ``subdirs`` that exist """
     new_subdirs = []
     for subdir in subdirs:
-        full_path = os.path.join(opts.directory, subdirs)
+        full_path = os.path.join(opts.directory, subdir)
         if not os.path.exists(full_path):
-            opts.log.warning("Subdirectory %s doesn't exist", subdirs)
+            opts.log.warning("Subdirectory %s doesn't exist", subdir)
             continue
         new_subdirs.append(subdir)
     return new_subdirs
@@ -293,7 +298,40 @@ def lock(opts):
         yield
 
 
-def main_locked(opts, log):
+def main_locked(opts, batch, log):
+    if batch.check_processed():
+        log.info("Task processed by other process")
+        return
+
+    # Merge others' tasks with ours (if any).
+    (batch_full, batch_no_appstream, batch_add, batch_delete) = batch.options()
+
+    if batch_full:
+        log.info("Others requested full createrepo")
+        opts.full = True
+        # There's no point in searching for directories to be added, but we
+        # still want to delete!
+        opts.add = []
+
+    if not batch_no_appstream:
+        log.info("Appstream metadata requested (also?) by others")
+        opts.no_appstream_metadata = False
+
+    if batch_add:
+        if opts.full:
+            log.info("Ignoring subdirs %s requested to --add by others",
+                     ", ".join(batch_add))
+        else:
+            opts.add += list(batch_add)
+
+    opts.delete += list(batch_delete)
+
+    dont_add = set(opts.delete).intersection(opts.add)
+    if dont_add:
+        log.info("Subdirs %s are requested to both added and removed, "
+                 "so we only remove them", ", ".join(dont_add))
+        opts.add = list(set(opts.add) - dont_add)
+
     # (re)create the repository
     if not run_createrepo(opts):
         opts.log.warning("no-op")
@@ -307,6 +345,9 @@ def main_locked(opts, log):
     # possible we should move those two things before 'delete_builds' call.
     add_appdata(opts)
     add_modular_metadata(opts)
+
+    # while we still hold the lock, notify others we processed their task
+    batch.commit()
 
     log.info("%s run successful", sys.argv[0])
 
@@ -337,9 +378,28 @@ def main():
 
     assert_new_createrepo()
 
+    # Initialize the batch structure.  It's methods are "no-op"s when
+    # the --batch option isn't specified.
+    batch = BatchedCreaterepo(
+        opts.directory,
+        opts.full,
+        opts.add,
+        opts.delete,
+        log=opts.log,
+        devel=opts.devel,
+        no_appstream_metadata=opts.no_appstream_metadata,
+        backend_opts=opts.backend_opts,
+        noop=not opts.batched)
+
+    # If appropriate, put our task to Redis DB and allow _others_ to process our
+    # own task.  This needs to be run _before_ the lock() call.
+    batch.make_request()
+
     try:
         with lock(opts):
-            main_locked(opts, opts.log)
+            main_locked(opts, batch, opts.log)
+            # skip commit if main_locked() raises exception
+            batch.commit()
 
     except CommandException:
         opts.log.error("Sub-command failed")
