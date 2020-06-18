@@ -639,6 +639,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   <script>
   // Initialize Datatables
   $(document).ready(function() {
+    $(".show-me-javascript").removeClass("hidden");
     $('.datatable').dataTable({
       "order": [[ 0, '{{ order }}' ]],
       "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, 'All']], 
