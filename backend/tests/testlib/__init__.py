@@ -238,7 +238,7 @@ class AsyncCreaterepoRequestFactory:
     def get(self, dirname, overrides=None, done=False):
         """ put new request to redis """
         task = {
-            "no_appstream": False,
+            "appstream": True,
             "devel": False,
             "add": ["add_1"],
             "delete": [],

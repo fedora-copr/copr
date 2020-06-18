@@ -70,8 +70,8 @@ def get_arg_parser():
     parser.add_argument('--add', action='append', metavar='SUBDIR', default=[],
                         type=arg_parser_subdir_type)
     parser.add_argument('--devel', action='store_true', default=False)
-    parser.add_argument('--no-appstream-metadata', action='store_true',
-                        default=False)
+    parser.add_argument('--no-appstream-metadata', dest="appstream",
+                        action='store_false', default=True)
     parser.add_argument('--log-to-stdout', action='store_true')
     parser.add_argument("--batched", action="store_true",
                         help="Try try to batch this request with requests "
@@ -214,7 +214,7 @@ def run_createrepo(opts):
 
 
 def add_appdata(opts):
-    if opts.devel or opts.no_appstream_metadata:
+    if opts.devel or not opts.appstream:
         opts.log.info("appstream-builder skipped, /devel subdir or "
                       "--no-appstream-metadata specified")
         return
@@ -304,7 +304,7 @@ def main_locked(opts, batch, log):
         return
 
     # Merge others' tasks with ours (if any).
-    (batch_full, batch_no_appstream, batch_add, batch_delete) = batch.options()
+    (batch_full, batch_add, batch_delete) = batch.options()
 
     if batch_full:
         log.info("Others requested full createrepo")
@@ -312,10 +312,6 @@ def main_locked(opts, batch, log):
         # There's no point in searching for directories to be added, but we
         # still want to delete!
         opts.add = []
-
-    if not batch_no_appstream:
-        log.info("Appstream metadata requested (also?) by others")
-        opts.no_appstream_metadata = False
 
     if batch_add:
         if opts.full:
@@ -387,7 +383,7 @@ def main():
         opts.delete,
         log=opts.log,
         devel=opts.devel,
-        no_appstream_metadata=opts.no_appstream_metadata,
+        appstream=opts.appstream,
         backend_opts=opts.backend_opts,
         noop=not opts.batched)
 

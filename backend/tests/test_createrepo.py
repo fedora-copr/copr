@@ -292,31 +292,38 @@ class TestBatchedCreaterepo:
         redis_task = json.loads(redis_dict["task"])
         assert len(redis_dict) == 1
         assert redis_task == {
-            "no_appstream": False,
+            "appstream": True,
             "devel": False,
             "add": ["subdir_add_1", "subdir_add_2"],
             "delete": ["subdir_del_1", "subdir_del_2"],
             "full": False,
         }
         self.request_createrepo.get(some_dir)
-        # no_appstream=True has no effect, others beat it
-        self.request_createrepo.get(some_dir, {"add": ["add_2"], "no_appstream": True})
+        # appstream=False has no effect, others beat it, appstream=False
+        # makes it non-matching.
+        self.request_createrepo.get(some_dir, {"add": ["add_2"], "appstream": False})
         self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_1"]})
         self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_2"]})
         assert not bcr.check_processed()
-        assert bcr.options() == (False, False,
-                                 set(["add_1", "add_2"]),
+        assert bcr.options() == (False,
+                                 set(["add_1"]),
                                  set(["del_1", "del_2"]))
-        assert len(bcr.notify_keys) == 4
+        assert len(bcr.notify_keys) == 3
 
         our_key = keys[0]
 
         bcr.commit()
         keys = self.redis.keys()
+        count_non_finished = 0
         for key in keys:
             assert key != our_key
             task_dict = self.redis.hgetall(key)
-            assert task_dict["status"] == "success"
+            if "status" in task_dict:
+                assert task_dict["status"] == "success"
+            else:
+                count_non_finished += 1
+        assert count_non_finished == 1
+
 
     def test_batched_createrepo_already_done(self):
         some_dir = "/some/dir/name"
@@ -341,7 +348,7 @@ class TestBatchedCreaterepo:
         assert not bcr.check_processed()
 
         # we only process the first other request
-        assert bcr.options() == (False, False, set(["add_1"]), set())
+        assert bcr.options() == (False, set(["add_1"]), set())
         assert len(bcr.notify_keys) == 1  # still one to notify
         assert self.redis.hgetall(key) == {}
         assert len(caplog.record_tuples) == 2
@@ -360,7 +367,7 @@ class TestBatchedCreaterepo:
         assert not bcr.check_processed()
 
         # we only process the first other request
-        assert bcr.options() == (False, False, set(["add_1"]), set())
+        assert bcr.options() == (False, set(["add_1"]), set())
         assert len(bcr.notify_keys) == 1  # still one to notify
         assert self.redis.hgetall(key) == {}
         assert len(caplog.record_tuples) == 2
@@ -385,7 +392,7 @@ class TestBatchedCreaterepo:
         assert not bcr.check_processed()
         assert len(self.redis.keys()) == 3
 
-        assert bcr.options() == (False, False, {"add_1"}, {"del_1"})
+        assert bcr.options() == (False, {"add_1"}, {"del_1"})
         assert len(bcr.notify_keys) == 2
 
     def test_batched_createrepo_full_others_take_us(self):
@@ -403,7 +410,7 @@ class TestBatchedCreaterepo:
         self.request_createrepo.get(some_dir, {"add": [], "delete": [], "full": True})
         self.request_createrepo.get(some_dir, {"add": [], "delete": ["del_1"]})
 
-        assert bcr.options() == (True, False, set(), {"del_1"})
+        assert bcr.options() == (True, set(), {"del_1"})
         assert len(bcr.notify_keys) == 3
 
     def test_batched_createrepo_task_limit(self, caplog):
@@ -426,8 +433,8 @@ class TestBatchedCreaterepo:
         expected.remove("add_2")
         assert len(expected) == MAX_IN_BATCH
 
-        full, no_appstream, add, remove = bcr.options()
-        assert (full, no_appstream, remove) == (False, False, set())
+        full, add, remove = bcr.options()
+        assert (full, remove) == (False, set())
         assert len(add) == MAX_IN_BATCH
 
         # The redis.keys() isn't sorted, and even if it was - PID would make the

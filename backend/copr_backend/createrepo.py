@@ -223,13 +223,15 @@ class BatchedCreaterepo:
 
     def __init__(self, dirname, full, add, delete, log,
                  devel=False,
-                 no_appstream_metadata=False,
+                 appstream=True,
                  backend_opts=None,
                  noop=False):
         self.noop = noop
         self.log = log
         self.dirname = dirname
         self.devel = devel
+        self.appstream = appstream
+
 
         if not backend_opts:
             self.log.error("can't get access to redis, batch disabled")
@@ -238,7 +240,7 @@ class BatchedCreaterepo:
 
         self._pid = os.getpid()
         self._json_redis_task = json.dumps({
-            "no_appstream": no_appstream_metadata,
+            "appstream": appstream,
             "devel": devel,
             "add": add,
             "delete": delete,
@@ -306,11 +308,10 @@ class BatchedCreaterepo:
         """
         add = set()
         delete = set()
-        no_appstream = True
         full = False
 
         if self.noop:
-            return (full, no_appstream, add, delete)
+            return (full, add, delete)
 
         for key in self.redis.keys(self.key_pattern):
             assert key != self.key
@@ -322,10 +323,17 @@ class BatchedCreaterepo:
                 continue
 
             task_opts = json.loads(task_dict["task"])
-            if task_opts["devel"] != self.devel:
-                # don't mixup devel/non-devel runs
-                self.log.info("'devel' attribute doesn't match: %s/%s",
-                              task_opts["devel"], self.devel)
+
+            skip = False
+            for attr in ["devel", "appstream"]:
+                our_value = getattr(self, attr)
+                if task_opts[attr] != our_value:
+                    self.log.info("'%s' attribute doesn't match: %s/%s",
+                                  attr, task_opts[attr], our_value)
+                    skip = True
+                    break
+
+            if skip:
                 continue
 
             # we can process this task!
@@ -340,11 +348,6 @@ class BatchedCreaterepo:
             if not full:
                 add.update(task_opts["add"])
 
-            # if appstream-builder run is requested at least for one task, run
-            # it for the whole batch
-            if not task_opts["no_appstream"]:
-                no_appstream = False
-
             # always process the delete requests
             delete.update(task_opts["delete"])
 
@@ -353,7 +356,7 @@ class BatchedCreaterepo:
                               MAX_IN_BATCH)
                 break
 
-        return (full, no_appstream, add, delete)
+        return (full, add, delete)
 
     def commit(self):
         """
