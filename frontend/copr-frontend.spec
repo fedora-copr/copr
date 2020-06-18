@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.165
+Version:    1.166
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -376,6 +376,16 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Jun 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.166-1
+- show _all_ build-delete checkboxes when javascript is on
+- don't submit builds when there are no CoprChroot(s) assigned
+- make pending-jobs faster again
+- allow canceling also "starting" builds
+- don't traceback on invalid cancel requests
+- build.source_status None accepted for old builds
+- don't raise 500 on misconfigured build-time repos
+- print source build.log in starting state
+
 * Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.165-1
 - enable cov by default in testsute
 - more obvious links to the live logs
