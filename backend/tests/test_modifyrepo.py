@@ -394,3 +394,24 @@ class TestModifyRepo(object):
         repodata = os.path.join(old_chrootdir, 'repodata')
         repoinfo = load_primary_xml(repodata)
         assert repoinfo["packages"]["prunerepo"]["chksum_type"] == "sha256"
+
+    def test_copr_repo_noop(self, f_second_build):
+        """
+        When anyone requests removal (or addition) of directories which do not
+        exist, there's no point in running the createrepo_c at all.
+        """
+        ctx = f_second_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        self.request_createrepo.get(chrootdir, {
+            "add": [],
+            "delete": ["non-existing-dir"],
+        })
+        assert call_copr_repo(chrootdir, add=["non-existing-dir-2"])
+        repodata = os.path.join(chrootdir, 'repodata')
+        repoinfo = load_primary_xml(repodata)
+        assert repoinfo["hrefs"] == set()
+        keys = self.redis.keys("createrepo_batch*")
+        assert len(keys) == 1
+        task_dict = self.redis.hgetall(keys[0])
+        assert task_dict["status"] == "success"
