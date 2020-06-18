@@ -112,6 +112,18 @@ def process_backend_config(opts):
     opts.log = get_redis_logger(opts.backend_opts, logger_name, "modifyrepo")
 
 
+def filter_existing(opts, subdirs):
+    """ Return items from ``subdirs`` that exist """
+    new_subdirs = []
+    for subdir in subdirs:
+        full_path = os.path.join(opts.directory, subdirs)
+        if not os.path.exists(full_path):
+            opts.log.warning("Subdirectory %s doesn't exist", subdirs)
+            continue
+        new_subdirs.append(subdir)
+    return new_subdirs
+
+
 def run_createrepo(opts):
     createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                       '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8',
@@ -124,7 +136,7 @@ def run_createrepo(opts):
     # we assume that we could skip the call at the beginning
     createrepo_run_needed = False
 
-    if opts.delete or opts.add:
+    if not opts.full:
         # request for modification, is the repo actually initialized?  Otherwise
         # we do full createrepo_c run.
         repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
@@ -133,21 +145,17 @@ def run_createrepo(opts):
         else:
             # Either --add or --delete was specified, but there are no metadata,
             # yet.  This would be bug in most cases (most likely the initial
-            # createrepo run after project creation failed).  But would be wrong
-            # to not run "full" createrepo in such case.
+            # createrepo run after project creation failed).  But it would be
+            # wrong to not run "full" createrepo in such case.
             createrepo_run_needed = True
     else:
         # full createrepo run requested
         createrepo_run_needed = True
 
+    opts.add = filter_existing(opts, opts.add)
+    opts.delete = filter_existing(opts, opts.delete)
+
     for subdir in opts.delete:
-        subdir_full = os.path.join(opts.directory, subdir)
-
-        # if the sub-directory doesn't exist (removed by prunerepo, e.g.) it is
-        # better to save one argument and perhaps save one whole createrepo run.
-        if not os.path.exists(subdir_full):
-            continue
-
         # something is going to be deleted
         createrepo_run_needed = True
         createrepo_cmd += ['--excludes', '*{}/*'.format(subdir)]
@@ -316,6 +324,9 @@ def process_directory_path(opts):
 
 def main():
     opts = get_arg_parser().parse_args()
+
+    # neither --add nor --delete means we do full createrepo run
+    opts.full = not(opts.add or opts.delete)
 
     # try to setup logging based on copr-be.conf
     process_backend_config(opts)
