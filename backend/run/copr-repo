@@ -349,7 +349,7 @@ def main_locked(opts, batch, log):
 
 
 def process_directory_path(opts):
-    helper_path = os.path.abspath(opts.directory)
+    helper_path = opts.directory = os.path.realpath(opts.directory)
     helper_path, opts.chroot = os.path.split(helper_path)
     opts.projectdir = helper_path
     helper_path, opts.dirname = os.path.split(helper_path)

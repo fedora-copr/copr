@@ -57,7 +57,7 @@ class TestModifyRepo(object):
         self.redis.flushdb()
 
     def test_copr_modifyrepo_locks(self):
-        with _lock() as opts:
+        with _lock(self.workdir) as opts:
             cmd = [modifyrepo, opts.directory, '--log-to-stdout']
             proc = subprocess.Popen(cmd,
                                     stdout=subprocess.PIPE,
