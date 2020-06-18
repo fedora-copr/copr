@@ -23,8 +23,9 @@ def load_primary_xml(dirname):
 
     for d_package in dom.getElementsByTagName('package'):
         name = d_package.getElementsByTagName('name')[0].firstChild.nodeValue
+        checksum = d_package.getElementsByTagName('checksum')[0].getAttribute('type')
         names.add(name)
-        packages[name] = {'name': name}
+        packages[name] = {'name': name, 'chksum_type': checksum}
         package = packages[name]
         package['href'] = d_package.getElementsByTagName('location')[0].getAttribute('href')
         package['xml:base'] = d_package.getElementsByTagName('location')[0].getAttribute('xml:base')

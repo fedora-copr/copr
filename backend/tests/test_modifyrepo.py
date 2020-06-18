@@ -361,3 +361,36 @@ class TestModifyRepo(object):
         assert len(call.call_args_list) == 1
         call = call.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--add', 'xxx']
+
+    def test_copr_repo_el5(self, f_third_build):
+        """
+        Test that special createrepo_c arguments are used when creating
+        el5 repositories.
+        """
+        _unused = self
+        ctx = f_third_build
+        chroot = ctx.chroots[0]
+        old_chrootdir = os.path.join(ctx.empty_dir, chroot)
+        # assure that it looks like el5 directory
+        chrootdir = os.path.join(ctx.empty_dir, "rhel-5-x86_64")
+        repodata = os.path.join(chrootdir, 'repodata')
+        subprocess.check_call(["cp", "-r", old_chrootdir, chrootdir])
+        assert call_copr_repo(old_chrootdir, add=[ctx.builds[0]],
+                              delete=[ctx.builds[2]])
+        assert call_copr_repo(chrootdir, add=[ctx.builds[0]],
+                              delete=[ctx.builds[2]])
+        repoinfo = load_primary_xml(repodata)
+        assert repoinfo['hrefs'] == {
+            '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
+        }
+
+        # rhel-5 contains md5 checksums
+        assert_files_in_dir(chrootdir,
+                            ["00000002-example", "00000001-prunerepo"],
+                            ["00000003-example"])
+        assert repoinfo["packages"]["prunerepo"]["chksum_type"] == "md5"
+
+        # other chroots are sha256
+        repodata = os.path.join(old_chrootdir, 'repodata')
+        repoinfo = load_primary_xml(repodata)
+        assert repoinfo["packages"]["prunerepo"]["chksum_type"] == "sha256"
