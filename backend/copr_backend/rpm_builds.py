@@ -11,6 +11,8 @@ from copr_backend.worker_manager import (
     WorkerManager,
 )
 
+PRIORITY_SECTION_SIZE = 1000000
+
 class BuildQueueTask(QueueTask):
     """
     Build-task abstraction.  Needed for build our build scheduler (the
@@ -33,11 +35,30 @@ class BuildQueueTask(QueueTask):
 
     @property
     def frontend_priority(self):
+        """
+        Set the "static" task priority, which can be determined purely from the
+        Frontend task info.  We make sure that background builds are less
+        prioritized (higher priority number) than non-background jobs, and
+        source builds are more prioritized than RPM builds.  So we divide tasks
+        to those categories:
+
+        1. Source builds (priority > 0)
+        2. Source background builds (priority > 1M)
+        3. RPM builds (priority > 2M)
+        4. RPM background builds (priority > 3M)
+        """
         priority = self._task.get('priority', 0)
-        if self._task.get('background'):
-            # background jobs are less prioritized
-            priority += 10
+
+        if self.background:
+            priority += PRIORITY_SECTION_SIZE
+        if not self.source_build:
+            priority += 2*PRIORITY_SECTION_SIZE
         return priority
+
+    @property
+    def background(self):
+        """ True if this is "background" job (less priority) """
+        return self._task.get("background", False)
 
     @property
     def backend_priority(self):

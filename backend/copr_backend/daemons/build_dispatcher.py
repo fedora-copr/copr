@@ -17,17 +17,23 @@ class _PriorityCounter:
         self._counter = {}
 
     def get_priority(self, task):
-        """ calculate task by counter, and return calculated priority """
-        self._counter.setdefault(task.owner, {})
-        owner = self._counter[task.owner]
+        """
+        Calculate the "dynamic" task priority, based on the queue size on
+        backend.  We have a matrix of counters
+            '_counter["background"]["user"]["arch"]',
+        This is because we want to have separate counteres for normal and
+        background builds, and each architecture (including source builds).
+        According to the counter - simply - the later tasks is submitted (higher
+        build ID) the less priority (higher priority number).
+        """
+        self._counter.setdefault(task.background, {})
+        background = self._counter[task.background]
+        background.setdefault(task.owner, {})
+        owner = background[task.owner]
         arch = task.requested_arch or 'srpm'
         owner.setdefault(arch, 0)
         owner[arch] += 1
-        priority = owner[arch]
-        if not task.requested_arch:
-            # prioritize srpm builds a bit
-            priority -= 10
-        return priority
+        return owner[arch]
 
 
 class BuildDispatcher(Dispatcher):

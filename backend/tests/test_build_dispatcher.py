@@ -2,7 +2,7 @@
 
 import pytest
 
-from copr_backend.rpm_builds import BuildQueueTask
+from copr_backend.rpm_builds import BuildQueueTask, PRIORITY_SECTION_SIZE
 from copr_backend.daemons.build_dispatcher import _PriorityCounter
 
 
@@ -12,12 +12,18 @@ def test_priority_numbers():
         "build_id": "7",
         "task_id": "7",
         "project_owner": "cecil",
-    })) == -9
+    })) == 1
     assert prio.get_priority(BuildQueueTask({
         "build_id": "8",
         "task_id": "8",
         "project_owner": "cecil",
-    })) == -8
+    })) == 2
+    assert prio.get_priority(BuildQueueTask({
+        "build_id": "88",
+        "task_id": "88",
+        "project_owner": "cecil",
+        "background": True,
+    })) == 1  # background jobs have separate counters
 
     assert prio.get_priority(BuildQueueTask({
         "build_id": "9",
@@ -48,7 +54,8 @@ def test_priority_numbers():
         "background": True,
     })) == 1
 
-@pytest.mark.parametrize('background,result', [(True, 10), (False, 0)])
+@pytest.mark.parametrize('background,result',
+                         [(True, PRIORITY_SECTION_SIZE), (False, 0)])
 def test_frontend_priority(background, result):
     task = BuildQueueTask({
         "build_id": "9",
@@ -57,3 +64,10 @@ def test_frontend_priority(background, result):
         "background": background,
     })
     assert task.frontend_priority == result
+    task = BuildQueueTask({
+        "build_id": "9",
+        "task_id": "9-fedora-rawhide-x86_64",
+        "project_owner": "cecil",
+        "background": background,
+    })
+    assert task.frontend_priority == result + 2*PRIORITY_SECTION_SIZE
