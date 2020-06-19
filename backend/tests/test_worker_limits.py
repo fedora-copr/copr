@@ -2,6 +2,8 @@
 Test classes which inherit from WorkerLimit
 """
 
+# pylint: disable=protected-access
+
 from copr_backend.worker_manager import (
     GroupWorkerLimit,
     PredicateWorkerLimit,
@@ -65,15 +67,13 @@ def test_predicate_worker_limit():
     assert wl.check(_QT(3))
     wl.worker_added("3", _QT(3))
     assert wl.check(_QT(4)) is False
-    wl.worker_dropped("2")
+    wl.clear()
     assert wl.check(_QT(4))
-    # double drop succeeds
-    for worker in ["1", "2", "3", "4"]:
-        wl.worker_dropped(worker)
+    wl.worker_added("4", _QT(4))
     # check memory leaks
-    assert wl._refs == {}
+    assert wl._refs.keys() == set(["4"])
     wl.worker_added("3", _QT(3))
-    assert set(wl._refs.keys()) == set(["3"])
+    assert set(wl._refs.keys()) == set(["3", "4"])
     wl.clear()
     assert set(wl._refs.keys()) == set([])
 
@@ -88,24 +88,18 @@ def test_predicate_worker_limit_sometimes():
 
 def test_group_worker_limit():
     wl = GroupWorkerLimit(lambda x: x.group, 2)
-    for task in [0, 1, 2]:
-        wl.worker_added(str(task), _QT(str(task)))
+    for _ in ["first", "cleared", "cleared"]:
+        for task in [0, 1, 2]:
+            wl.worker_added(str(task), _QT(str(task)))
 
-    for task in [3, 4, 5]:
-        qt = _QT(str(task))
-        assert wl.check(qt)
-        wl.worker_added(str(task), qt)
+        for task in [3, 4, 5]:
+            qt = _QT(str(task))
+            assert wl.check(qt)
+            wl.worker_added(str(task), qt)
 
-    for task in [6, 7, 8]:
-        qt = _QT(str(task))
+        qt = _QT("6")
         assert not wl.check(qt)  # limit raised
-        wl.worker_dropped(str(task - 3))
-        assert wl.check(qt)  # limit OK again
-        wl.worker_added(str(task), qt)
-
-    # pylint: disable=protected-access
-    for task in [0, 1, 2, 6, 7, 8]:
-        wl.worker_dropped(str(task))
+        wl.clear()
 
     # check mem leaks
     assert wl._groups._counter == {}
@@ -138,7 +132,6 @@ def test_worker_limit_info():
 def test_string_counter():
     counter = StringCounter()
     counter2 = StringCounter()
-    counter.drop(None)
     counter.add(None)
     counter2.add(None)
     assert str(counter) == ""

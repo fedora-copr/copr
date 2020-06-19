@@ -44,10 +44,6 @@ class WorkerLimit:
         """ Add worker and it's task to statistics.  """
         raise NotImplementedError
 
-    def worker_dropped(self, worker_id):
-        """ Remove the worker from statistics. """
-        raise NotImplementedError
-
     def check(self, task):
         """ Check if the task can be added without crossing the limit. """
         raise NotImplementedError
@@ -88,12 +84,6 @@ class PredicateWorkerLimit(WorkerLimit):
             return
         self._refs[worker_id] = True
 
-    def worker_dropped(self, worker_id):
-        if worker_id not in self._refs:
-            # we calculate reference only the positive matches
-            return
-        del self._refs[worker_id]
-
     def check(self, task):
         if not self._predicate(task):
             return True
@@ -122,16 +112,6 @@ class StringCounter:
             self._counter[string] += 1
         else:
             self._counter[string] = 1
-
-    def drop(self, string):
-        """ Drop string from counter """
-        if string is None:
-            return
-        assert string in self._counter
-        self._counter[string] -= 1
-        if self._counter[string] == 0:
-            # avoid memory leaks!
-            del self._counter[string]
 
     def count(self, string):
         """ Return number ``string`` occurrences """
@@ -168,14 +148,6 @@ class GroupWorkerLimit(WorkerLimit):
         group_name = self._refs[worker_id] = self._hasher(task)
         # count it
         self._groups.add(group_name)
-
-    def worker_dropped(self, worker_id):
-        group = self._refs.get(worker_id)
-        assert group
-        # de-count the worker
-        self._groups.drop(group)
-        # forget about the worker
-        del self._refs[worker_id]
 
     def check(self, task):
         group_name = self._hasher(task)
@@ -375,13 +347,6 @@ class WorkerManager():
         for limit in self._limits:
             limit.worker_added(worker_id, task)
 
-    def _stop_tracking_worker(self, worker_id):
-        if worker_id not in self._tracked_workers:
-            return
-        for limit in self._limits:
-            limit.worker_dropped(worker_id)
-        self._tracked_workers.remove(worker_id)
-
     def cancel_request_done(self, task):
         """ Report back to frontend that the cancel request was finished. """
 
@@ -436,6 +401,7 @@ class WorkerManager():
         """
         now = None
         start_time = time.time()
+        self.log.debug("Worker.run() start at time %s", start_time)
 
         while True:
             now = start_time if now is None else time.time()
@@ -477,6 +443,8 @@ class WorkerManager():
 
             self._start_worker(task, now)
 
+        self.log.debug("Worker.run() stop at time %s", time.time())
+
     def _start_worker(self, task, time_now):
         worker_id = self.get_worker_id(repr(task))
         self.redis.hset(worker_id, 'allocated', time_now)
@@ -486,12 +454,16 @@ class WorkerManager():
         self.start_task(worker_id, task)
 
     def clean_tasks(self):
-        'remove all tasks from queue'
+        """
+        Remove all tasks from queue.
+        """
         self.tasks = JobQueue()
+        for limit in self._limits:
+            limit.clear()
+        self._tracked_workers = set()
 
     def _delete_worker(self, worker_id):
         self.redis.delete(worker_id)
-        self._stop_tracking_worker(worker_id)
 
     def _cleanup_workers(self, now):
         for worker_id in self.worker_ids():

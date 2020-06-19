@@ -21,10 +21,10 @@ class _PriorityCounter:
         Calculate the "dynamic" task priority, based on the queue size on
         backend.  We have a matrix of counters
             '_counter["background"]["user"]["arch"]',
-        This is because we want to have separate counteres for normal and
+        This is because we want to have separate counters for normal and
         background builds, and each architecture (including source builds).
         According to the counter - simply - the later tasks is submitted (higher
-        build ID) the less priority (higher priority number).
+        build ID) the less priority it has (higher priority number).
         """
         self._counter.setdefault(task.background, {})
         background = self._counter[task.background]

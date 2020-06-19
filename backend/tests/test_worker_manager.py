@@ -133,9 +133,14 @@ class BaseTestWorkerManager:
             max_workers=5,
             log=log)
 
-    def setup_tasks(self):
+    def setup_tasks(self, exclude=None):
+        """ Fill the task list """
+        if exclude is None:
+            exclude = []
         raw_actions = [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
-        actions = [ToyQueueTask(action) for action in raw_actions]
+        actions = [ToyQueueTask(action) for action in raw_actions
+                   if not action in exclude]
+        self.worker_manager.clean_tasks()
         for action in actions:
             self.worker_manager.add_task(action)
 
@@ -188,19 +193,37 @@ class TestLimitedWorkerManager(BaseTestWorkerManager):
         ]
         for msg in messages:
             assert ('root', logging.DEBUG, msg) in caplog.record_tuples
+
         # Even though the "even" limit kicked-out task 4, the task 5 is still
         # successfully started because that's the third "odd" task.  The rest of
         # tasks is just skipped.
         assert ('root', logging.INFO,
                 "Starting worker worker:5, task.priority=0") in \
             caplog.record_tuples
-        # finish the task sooner, and check the limit is downgraded
+
+        # finish the task now
         self.redis.hset("worker:5", "status", "0")
-        assert 'worker:5' in self.limits[0].info()
-        self.worker_manager.run(timeout=1)
+
+        self.setup_tasks()  # re-calculate limits
+        self.worker_manager.run(timeout=150)
+
+        # check worker manager recognized the finished task
         assert ('root', logging.INFO, "Finished worker worker:5") \
                 in caplog.record_tuples
-        assert 'worker:5' not in self.limits[0].info()
+
+        # worker 7 is not yet started, it waits for next run() because run()
+        # doesn't free the limit quota when removing worker from Redis (see
+        # issue #1415)
+        worker_7_started = "Starting worker worker:7, task.priority=0"
+        assert ('root', logging.INFO, worker_7_started) not in \
+            caplog.record_tuples
+
+        # another run finally takes the task 7, because 5 is done
+        self.setup_tasks(exclude=[5])
+        self.worker_manager.run(timeout=150)
+        assert ('root', logging.INFO, worker_7_started) in \
+            caplog.record_tuples
+
 
 class TestWorkerManager(BaseTestWorkerManager):
     def test_worker_starts(self):
@@ -260,8 +283,12 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         self.w1 = prefix + '1'
         self.worker_manager.frontend_client = MagicMock()
 
-    def setup_tasks(self):
-        raw_actions = [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
+    def setup_tasks(self, exclude=None):
+        if exclude is None:
+            exclude = []
+        raw_actions = [x for x in [0, 1, 2, 3, 3, 3, 4, 5, 6, 7, 8, 9]
+                       if x not in exclude]
+        self.worker_manager.clean_tasks()
         for action in raw_actions:
             action = ToyQueueTask(action)
             self.worker_manager.add_task(action)
@@ -451,8 +478,8 @@ class TestActionWorkerManagerPriorities(BaseTestWorkerManager):
             max_workers=5,
             log=log)
 
-    def setup_tasks(self):
-        pass
+    def setup_tasks(self, exclude=None):
+        _unused = (self, exclude)
 
     def pop(self):
         return self.worker_manager.tasks.pop_task()

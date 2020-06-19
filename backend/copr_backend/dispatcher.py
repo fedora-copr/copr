@@ -106,6 +106,9 @@ class Dispatcher(multiprocessing.Process):
             start = time.time()
 
             tasks = self.get_frontend_tasks()
+            if tasks:
+                worker_manager.clean_tasks()
+
             self._print_added_jobs(tasks)
             for task in tasks:
                 worker_manager.add_task(task)
