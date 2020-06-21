@@ -8,11 +8,13 @@ is used to allow packagers to create third party repositories.
 
 This part is a command line interface to use copr.
 
+
 About this project:
 -------------------
 - Website: https://pagure.io/copr/copr
 - Git: http://git.fedorahosted.org/cgit/copr.git
-- Test instance: http://copr-fe.cloud.fedoraproject.org/
+- Production Fedora instance: https://copr.fedorainfracloud.org/
+- Development Fedora instance: http://copr-fe-dev.cloud.fedoraproject.org/
 
 
 Dependencies:
