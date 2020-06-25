@@ -23,8 +23,6 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: createrepo_c
 BuildRequires: libappstream-glib-builder
-BuildRequires: libmodulemd < 2
-BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: libxslt
 BuildRequires: redis
 BuildRequires: rsync
@@ -41,6 +39,7 @@ BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
 BuildRequires: python3-gobject
 BuildRequires: python3-humanize
+BuildRequires: python3-libmodulemd1 >= 1.7.0
 BuildRequires: python3-munch
 BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-packaging
@@ -60,8 +59,6 @@ Requires:   createrepo_c
 Requires:   crontabs
 Requires:   gawk
 Requires:   libappstream-glib-builder
-Requires:   libmodulemd < 2
-Requires:   libmodulemd >= 1.7.0
 Requires:   lighttpd
 Recommends: logrotate
 Requires:   mock
@@ -76,6 +73,7 @@ Requires:   python3-dateutil
 Requires:   python3-fedmsg
 Requires:   python3-gobject
 Requires:   python3-humanize
+Requires:   python3-libmodulemd1 >= 1.7.0
 Requires:   python3-munch
 Requires:   python3-netaddr
 Requires:   python3-novaclient

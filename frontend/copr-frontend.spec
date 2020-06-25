@@ -69,8 +69,6 @@ BuildRequires: python3-devel
 
 %if %{with check}
 BuildRequires: fedora-messaging
-BuildRequires: libmodulemd < 2
-BuildRequires: libmodulemd >= 1.7.0
 BuildRequires: python3-click
 BuildRequires: python3-CommonMark
 BuildRequires: python3-blinker
@@ -92,6 +90,7 @@ BuildRequires: python3-gobject
 BuildRequires: python3-html2text
 BuildRequires: python3-html5-parser
 BuildRequires: python3-humanize
+BuildRequires: python3-libmodulemd1 >= 1.7.0
 BuildRequires: python3-lxml
 BuildRequires: python3-markdown
 BuildRequires: python3-marshmallow >= 2.0.0
@@ -127,8 +126,6 @@ Requires: fedora-messaging
 Requires: js-html5shiv
 Requires: js-jquery1
 Requires: js-respond
-Requires: libmodulemd < 2
-Requires: libmodulemd >= 1.7.0
 Requires: python3-click
 Requires: python3-CommonMark
 Requires: python3-alembic
@@ -152,6 +149,7 @@ Requires: python3-gobject
 Requires: python3-html2text
 Requires: python3-html5-parser
 Requires: python3-humanize
+Requires: python3-libmodulemd1 >= 1.7.0
 Requires: python3-lxml
 Requires: python3-markdown
 Requires: python3-marshmallow
