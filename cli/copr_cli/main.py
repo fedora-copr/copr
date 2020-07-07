@@ -624,7 +624,9 @@ class Commands(object):
 
     def action_list_packages(self, args):
         ownername, projectname = self.parse_name(args.copr)
-        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
+        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname,
+                                                      with_latest_build=args.with_latest_build,
+                                                      with_latest_succeeded_build=args.with_latest_succeeded_build)
         packages_with_builds = [self._package_with_builds(p, args) for p in packages]
         print(json_dumps(packages_with_builds))
 
@@ -643,19 +645,10 @@ class Commands(object):
     def _package_with_builds(self, package, args):
         ownername, projectname = self.parse_name(args.copr)
         kwargs = {"ownername": ownername, "projectname": projectname, "packagename": package.name}
-        pagination = {"limit": 1, "order": "id", "order_type": "DESC"}
-
-        if args.with_latest_build:
-            builds = self.client.build_proxy.get_list(pagination=pagination, **kwargs)
-            package["latest_build"] = builds[0] if builds else None
-
-        if args.with_latest_succeeded_build:
-            builds = self.client.build_proxy.get_list(status="succeeded", pagination=pagination, **kwargs)
-            package["latest_succeeded_build"] = builds[0] if builds else None
 
         if args.with_all_builds:
             builds = self.client.build_proxy.get_list(**kwargs)
-            package["builds"] = builds
+            package["builds"]["all"] = builds
 
         return package
 

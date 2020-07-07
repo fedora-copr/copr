@@ -35,7 +35,7 @@ class PackagesLogic(object):
                 .filter(models.Package.copr_id == copr_id))
 
     @classmethod
-    def get_packages_with_latest_builds_for_dir(cls, copr_dir_id):
+    def get_packages_with_latest_builds_for_dir(cls, copr_dir_id, small_build=True):
         packages = (models.Package.query.filter_by(copr_dir_id=copr_dir_id)
                                         .order_by(models.Package.name).all())
         pkg_ids = [package.id for package in packages]
@@ -58,15 +58,19 @@ class PackagesLogic(object):
             if not build.package_id:
                 continue
 
-            small_build_object = SmallBuild()
-            for param in ['state', 'status', 'pkg_version',
-                          'submitted_on']:
-                # we don't want to keep all the attributes here in memory, and
-                # also we don't need any further info about assigned
-                # build_chroot(s).  So we only pick the info we need, and throw
-                # the expensive objects away.
-                setattr(small_build_object, param, getattr(build, param))
-            packages_map[build.package_id].latest_build = small_build_object
+            if small_build:
+                small_build_object = SmallBuild()
+                for param in ['state', 'status', 'pkg_version',
+                              'submitted_on']:
+                    # we don't want to keep all the attributes here in memory, and
+                    # also we don't need any further info about assigned
+                    # build_chroot(s).  So we only pick the info we need, and throw
+                    # the expensive objects away.
+                    setattr(small_build_object, param, getattr(build, param))
+                packages_map[build.package_id].latest_build = small_build_object
+            else:
+                packages_map[build.package_id].latest_build = build
+
 
         return packages
 

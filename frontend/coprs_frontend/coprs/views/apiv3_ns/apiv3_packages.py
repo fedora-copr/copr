@@ -1,5 +1,5 @@
 import flask
-from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
+from . import query_params, pagination, get_copr, ListPaginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data, get_input, without_empty_fields
 from coprs.exceptions import (ObjectNotFound, BadRequest)
 from coprs.views.misc import api_login_required
@@ -14,10 +14,21 @@ from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 
-def to_dict(package):
+def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False):
     source_dict = package.source_json_dict
     if "srpm_build_method" in source_dict:
         source_dict["source_build_method"] = source_dict.pop("srpm_build_method")
+
+    latest = None
+    if with_latest_build:
+        latest = package.last_build()
+        latest = build_to_dict(latest) if latest else None
+
+    latest_succeeded = None
+    if with_latest_succeeded_build:
+        latest_succeeded = package.last_build(successful=True)
+        latest_succeeded = build_to_dict(latest_succeeded) if latest_succeeded else None
+
     return {
         "id": package.id,
         "name": package.name,
@@ -26,6 +37,10 @@ def to_dict(package):
         "source_type": package.source_type_text,
         "source_dict": source_dict,
         "auto_rebuild": package.webhook_rebuild,
+        "builds": {
+            "latest": latest,
+            "latest_succeeded": latest_succeeded,
+        }
     }
 
 
@@ -60,10 +75,16 @@ def get_package(ownername, projectname, packagename):
 @apiv3_ns.route("/package/list/", methods=GET)
 @pagination()
 @query_params()
-def get_package_list(ownername, projectname, **kwargs):
+def get_package_list(ownername, projectname, with_latest_build=False,
+                     with_latest_succeeded_build=False, **kwargs):
+    with_latest_build = with_latest_build != "False"
+    with_latest_succeeded_build = with_latest_succeeded_build != "False"
+
     copr = get_copr(ownername, projectname)
-    paginator = Paginator(PackagesLogic.get_all(copr.main_dir.id), models.Package, **kwargs)
-    packages = paginator.map(to_dict)
+    packages = PackagesLogic.get_packages_with_latest_builds_for_dir(copr.main_dir.id, small_build=False)
+    paginator = ListPaginator(packages, models.Package, **kwargs)
+
+    packages = paginator.map(lambda x: to_dict(x, with_latest_build, with_latest_succeeded_build))
     return flask.jsonify(items=packages, meta=paginator.meta)
 
 

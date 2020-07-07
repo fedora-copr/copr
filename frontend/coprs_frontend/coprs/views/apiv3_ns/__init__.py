@@ -165,6 +165,34 @@ class Paginator(object):
     def to_dict(self):
         return [x.to_dict() for x in self.get()]
 
+
+class ListPaginator(Paginator):
+    """
+    The normal `Paginator` class works with a SQLAlchemy query object and
+    therefore can do limits and ordering on database level, which is ideal.
+    However, in some special cases, we already have a list of objects fetched
+    from database and need to adjust it based on user pagination preferences,
+    hence this special case of `Paginator` class.
+
+    It isn't efficient, it isn't pretty. Please use `Paginator` if you can.
+    """
+    def get(self):
+        objects = self.query
+        reverse = self.order_type != "ASC"
+
+        if not hasattr(self.model, self.order):
+            raise CoprHttpException("Can order by: {}".format(self.order))
+
+        if self.order:
+            objects.sort(key=lambda x: getattr(x, self.order), reverse=reverse)
+
+        limit = None
+        if self.limit:
+            limit = self.offset + self.limit
+
+        return objects[self.offset : limit]
+
+
 def editable_copr(f):
     @wraps(f)
     def wrapper(ownername, projectname, **kwargs):

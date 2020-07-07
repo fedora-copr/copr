@@ -25,19 +25,27 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
-    def get_list(self, ownername, projectname, pagination=None):
+    def get_list(self, ownername, projectname, pagination=None,
+                 with_latest_build=False, with_latest_succeeded_build=False):
         """
         Return a list of packages
 
         :param str ownername:
         :param str projectname:
         :param pagination:
+        :param bool with_latest_build: The result will contain "builds" dictionary with the latest
+                                       submitted build of this particular package within the project
+        :param bool with_latest_succeeded_build: The result will contain "builds" dictionary with
+                                                 the latest successful build of this particular
+                                                 package within the project.
         :return: Munch
         """
         endpoint = "/package/list"
         params = {
             "ownername": ownername,
             "projectname": projectname,
+            "with_latest_build": with_latest_build,
+            "with_latest_succeeded_build": with_latest_succeeded_build,
         }
         params.update(pagination or {})
 
