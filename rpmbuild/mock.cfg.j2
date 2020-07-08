@@ -14,6 +14,9 @@ config_opts['use_host_resolv'] = False
 
 config_opts['macros']['%copr_username'] = '{{ copr_username }}'
 config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'
+# Build-system's (or build) ID
+config_opts['macros']['%buildtag'] = '.copr{{ copr_build_id }}'
+
 config_opts['use_bootstrap'] = {{ 'True' if use_bootstrap_container else 'False' }}
 
 {% if use_bootstrap_container %}

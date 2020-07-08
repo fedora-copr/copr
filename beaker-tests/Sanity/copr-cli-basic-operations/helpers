@@ -2,6 +2,7 @@
 
 HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/hello-2.8-1.src.rpm
 EVIL_HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/evilhello-2.8-2.src.rpm
+SRPM_BUILDTAG=https://pagure.io/copr/copr-test-sources/raw/master/f/buildtag-0-0.src.rpm
 COPR_HELLO_GIT=https://pagure.io/copr/copr-hello.git
 COPR_HELLO_2_GIT=https://pagure.io/copr/copr-hello-2.git
 DNF_COPR_ID=tested-copr
@@ -35,7 +36,30 @@ cleanAction()
     fi
 }
 
+# cleanProject [PROJECTNAME]
+# --------------------------
+# When called without PROJECTNAME, project with name $PROJECT is deleted.
 cleanProject()
 {
-    cleanAction copr-cli delete "$1"
+    _to_delete=$1
+    test $# -eq 0 && _to_delete=$PROJECT
+    cleanAction copr-cli delete "$_to_delete"
+}
+
+workdirSetup()
+{
+    rlRun "WORKDIR=\$(mktemp -d)" 0 'Creating working directory'
+    rlRun "pushd $WORKDIR"
+}
+
+workdirCleanup()
+{
+    rlRun 'popd'
+    rlRun "rm -r \$WORKDIR" 0 "Removing working directory"
+}
+
+setupProjectName()
+{
+    _name=$NAME_PREFIX-$1
+    rlRun "PROJECT=$_name" 0 "Setting project name to $_name"
 }

@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import logging
@@ -14,6 +15,7 @@ MOCK_CALL = ['unbuffer', 'mock']
 class MockBuilder(object):
     def __init__(self, task, sourcedir, resultdir, config):
         self.task_id = task.get("task_id")
+        self.build_id = re.sub("-.*", "", self.task_id)
         self.chroot = task.get("chroot")
         self.buildroot_pkgs = task.get("buildroot_pkgs")
         self.enable_net = task.get("enable_net")
@@ -66,7 +68,8 @@ class MockBuilder(object):
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
                                repos=self.repos,
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
-                               modules=self.enable_modules)
+                               modules=self.enable_modules,
+                               copr_build_id=self.build_id)
 
     def produce_srpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [

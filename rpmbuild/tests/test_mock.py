@@ -150,6 +150,9 @@ config_opts['use_host_resolv'] = True
 
 config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'
+# Build-system's (or build) ID
+config_opts['macros']['%buildtag'] = '.copr10'
+
 config_opts['use_bootstrap'] = False
 
 
