@@ -33,6 +33,7 @@ import copr.exceptions as copr_exceptions
 
 from copr.v3 import (Client, config_from_file, CoprException, CoprRequestException, CoprNoConfigException,
                      CoprConfigException, CoprNoResultException)
+from copr.v3.pagination import next_page
 
 from .util import ProgressBar, json_dumps, serializable
 from .build_config import MockProfile
@@ -420,6 +421,23 @@ class Commands(object):
         else:
             print("Updating packages in {0} from {1}/{2}.\nPlease be aware that it may take a few minutes "
                   "to duplicate backend data.".format(project.full_name, srcownername, srcprojectname))
+
+    def action_list_builds(self, args):
+        """ Method called when the 'list-builds' action has been selected by
+        the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        ownername, projectname = self.parse_name(args.project)
+        pagination = {"limit": 100}
+
+        builds_list = self.client.build_proxy.get_list(ownername, projectname,
+                                                       pagination=pagination)
+        while builds_list:
+            for build in builds_list:
+                print("{0}\t{1}\t{2}".format(build["id"], build["source_package"]["name"],
+                                             build["state"]))
+            builds_list = next_page(builds_list)
 
     def action_mock_config(self, args):
         """ Method called when the 'mock-config' action has been selected by the
@@ -890,6 +908,12 @@ def setup_parser():
     parser_delete.add_argument("dst", help="Name of the new project")
     parser_delete.add_argument("--confirm", action="store_true", help="Confirm forking into existing project")
     parser_delete.set_defaults(func="action_fork")
+
+    parser_builds = subparsers.add_parser("list-builds", help="List all builds in the project")
+    parser_builds.add_argument("project", help="Which project's builds should be listed.\
+                               Can be just a name of the project or even in format\
+                               username/project or @groupname/project.")
+    parser_builds.set_defaults(func="action_list_builds")
 
     #########################################################
     ###             Source-type related options           ###

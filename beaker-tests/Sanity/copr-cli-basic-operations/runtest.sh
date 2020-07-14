@@ -75,6 +75,12 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO"
         # build - FAIL  (syntax error in source code)
         rlRun "copr-cli build ${NAME_PREFIX}Project1 $EVIL_HELLO" 4
+        # check all builds are listed
+        OUTPUT=`mktemp`
+        rlRun "copr-cli list-builds ${NAME_PREFIX}Project1 > $OUTPUT" 0
+        rlAssertEquals "Three builds listed" `cat $OUTPUT | wc -l` 3
+        rlAssertEquals "Two failed builds" `grep -r 'failed' $OUTPUT | wc -l` 2
+        rlAssertEquals "One succeeded build" `grep -r 'succeeded' $OUTPUT | wc -l` 1
         # enable Project1 repo
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project1 $CHROOT"
         # install hello package
