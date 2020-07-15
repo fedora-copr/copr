@@ -53,6 +53,11 @@ class APIErrorHandler(object):
 
     def message(self, error):
         if isinstance(error, CoprHttpException):
+            # Ideally we want to return a custom message that was passed to the
+            # exception when initializing its object. In case there is no custom
+            # message, all descendants of `CoprHttpException` define some
+            # reasonable default, such as "You don't have required permission",
+            # "Requested object was not found" or "Generic copr exception"
             return error.message or error._default
         if hasattr(error, "description"):
             return error.description

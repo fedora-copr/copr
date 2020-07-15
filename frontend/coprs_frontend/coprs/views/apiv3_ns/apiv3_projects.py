@@ -9,7 +9,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
-                              InsufficientRightsException, BadRequest, ObjectNotFound, AccessRestricted)
+                              InsufficientRightsException, BadRequest, ObjectNotFound)
 
 
 def to_dict(copr):
@@ -56,6 +56,14 @@ def validate_chroots(input, allowed_chroots):
 
 
 def owner2tuple(ownername):
+    """
+    This function takes `ownername` on its input. That can be either some
+    username or a group name starting with @ character. Then it returns a tuple
+    of two objects - `models.User` and `models.Group`.
+
+    Every project (even a group one) needs to have some user assigned to it, so
+    this value will always be some user object. Group can obviously be `None`.
+    """
     user = flask.g.user
     group = None
     if ownername[0] == "@":
@@ -114,10 +122,6 @@ def add_project(ownername):
     user, group = owner2tuple(ownername)
     data = rename_fields(get_form_compatible_data())
     form = forms.CoprFormFactory.create_form_cls(user=user, group=group)(data, meta={'csrf': False})
-
-    if not flask.g.user.admin and flask.g.user != user:
-        raise AccessRestricted("You were authorized as `{0}' and don't have permissions to access "
-                               "project of `{1}' user".format(flask.g.user.name, user.name))
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)

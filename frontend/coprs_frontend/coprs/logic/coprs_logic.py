@@ -220,6 +220,11 @@ class CoprsLogic(object):
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
             auto_prune=True, use_bootstrap_container=False, follow_fedora_branching=False, **kwargs):
 
+        if not flask.g.user.admin and flask.g.user != user:
+            msg = ("You were authorized as `{0}' and don't have permissions to access "
+                   "project of `{1}' user".format(flask.g.user.name, user.name))
+            raise exceptions.AccessRestricted(msg)
+
         if not flask.g.user.admin and persistent:
             raise exceptions.NonAdminCannotCreatePersistentProject()
 
