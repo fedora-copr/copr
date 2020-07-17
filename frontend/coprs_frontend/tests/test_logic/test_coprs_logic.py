@@ -264,13 +264,13 @@ class TestPinnedCoprsLogic(CoprsTestCase):
 
 class TestCoprsLogicAdminFeatures(CoprsTestCase):
     @pytest.mark.usefixtures("f_users", "f_db")
-    def test_add(self, f_users, f_db):
+    def test_add(self):
         with app.app_context():
             flask.g.user = self.u2
             CoprsLogic.add(name="foo", user=self.u2, selected_chroots=["fedora-rawhide-x86_64"])
 
     @pytest.mark.usefixtures("f_users", "f_db")
-    def test_add_someone_else_project(self, f_users, f_db):
+    def test_add_someone_else_project(self):
         with app.app_context():
             # Non-admin user must be forbidden to do so
             with pytest.raises(InsufficientRightsException) as ex:
