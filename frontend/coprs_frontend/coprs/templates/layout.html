@@ -162,7 +162,11 @@
         'mimeType': 'application/javascript',
         'position': 'bottom-right',
         {% if copr is defined %}
-        'user': '{{copr.user.name}}',
+          {% if copr.is_a_group_project %}
+            'user': '{{copr.group.fas_name}}',
+          {% else %}
+            'user': '{{copr.user.name}}',
+          {% endif %}
         {% endif %}
     });
   </script>
