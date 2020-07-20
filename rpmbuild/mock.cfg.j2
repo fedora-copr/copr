@@ -18,6 +18,8 @@ config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'
 config_opts['macros']['%buildtag'] = '.copr{{ copr_build_id }}'
 
 config_opts['use_bootstrap'] = {{ 'True' if use_bootstrap_container else 'False' }}
+config_opts['use_bootstrap_image'] = {{ 'True' if use_bootstrap_container == 'image' else 'False' }}
+config_opts['bootstrap_image'] = {{ bootstrap_image if use_bootstrap_container == 'custom_image' else '' }}
 
 {% if use_bootstrap_container %}
 config_opts['bootstrap_chroot_additional_packages'] = []

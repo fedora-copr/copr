@@ -34,6 +34,23 @@
   {% endif %}
 {% endmacro %}
 
+{% macro render_dropdown_field(field, values) %}
+  {{ values }}
+  <div class="form-group">
+    <label class="col-sm-2 control-label">
+      {{ field.label }}:
+    </label>
+    <div class="col-sm-10" id="bootstrap_config">
+      <select name="value" class="input">
+        {% for value in values %}
+          {% set selected = 'selected' %}
+          <option value="{{ value }}">{{ value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+{% endmacro %}
+
 {% macro render_checkbox_field(title, items) %}
 <div class="form-group">
   <label class="col-sm-2 control-label" for="textInput-markup">
@@ -579,6 +596,15 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       </li>
     </div>
   </div>
+
+  {{ render_field(form.bootstrap_config, rows=1, cols=35, placeholder='default') }}
+  <div style="display:none" id="bootstrap_image">
+    {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
+  </div>
+  <noscript>
+    {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
+  </noscript>
+
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
     Other Options
@@ -591,6 +617,23 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       </div>
     </div>
   </div>
+
+
+  <script>
+    $(document).ready(function() {
+      if ($("#bootstrap_config").value == "custom_image") {
+        $("#bootstrap_image").show();
+      }
+      $("#bootstrap_config").change(function() {
+        if (this.value == "custom_image") {
+          $("#bootstrap_image").show();
+        }
+        else {
+          $("#bootstrap_image").hide();
+        }
+      });
+    });
+  </script>
 {% endmacro %}
 
 

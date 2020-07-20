@@ -30,7 +30,9 @@ def render_chroot_edit(copr, chroot_name):
 
     form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs, repos=chroot.repos,
                             module_toggle=chroot.module_toggle, with_opts=chroot.with_opts,
-                            without_opts=chroot.without_opts)
+                            without_opts=chroot.without_opts,
+                            bootstrap_config=chroot.bootstrap_config,
+                            bootstrap_image=chroot.bootstrap_image)
     # FIXME - test if chroot belongs to copr
     if flask.g.user.can_build_in(copr):
         return render_template("coprs/detail/edit_chroot.html",
@@ -75,7 +77,9 @@ def process_chroot_update(copr, chroot_name):
                     form.repos.data,
                     comps=comps_xml, comps_name=comps_name,
                     with_opts=form.with_opts.data, without_opts=form.without_opts.data,
-                    module_toggle=form.module_toggle.data
+                    module_toggle=form.module_toggle.data,
+                    bootstrap_config=form.bootstrap_config.data,
+                    bootstrap_image=form.bootstrap_image.data,
                 )
 
             elif action == "delete_comps":

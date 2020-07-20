@@ -417,7 +417,8 @@ class BuildConfigLogic(object):
             'additional_packages': packages.split(),
             'repos': repos,
             'chroot': chroot_id,
-            'use_bootstrap_container': copr.use_bootstrap_container,
+            'bootstrap_config': copr.bootstrap_config,
+            'bootstrap_image': copr.bootstrap_image,
             'with_opts': chroot.with_opts.split(),
             'without_opts': chroot.without_opts.split(),
         }

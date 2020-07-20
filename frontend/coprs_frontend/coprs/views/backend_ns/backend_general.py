@@ -125,7 +125,8 @@ def get_build_record(task, short=False):
         build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
         build_record["repos"] = build_config.get("repos")
         build_record["buildroot_pkgs"] = build_config.get("additional_packages")
-        build_record["use_bootstrap_container"] = build_config.get("use_bootstrap_container")
+        build_record["bootstrap_container"] = build_config.get("bootstrap_config")
+        build_record["bootstrap_image"] = build_config.get("bootstrap_image")
         build_record["with_opts"] = build_config.get("with_opts")
         build_record["without_opts"] = build_config.get("without_opts")
 

@@ -191,11 +191,12 @@ def copr_new(username=None, group_name=None):
                 group=group,
                 persistent=form.persistent.data,
                 auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
-                use_bootstrap_container=form.use_bootstrap_container.data,
                 follow_fedora_branching=form.follow_fedora_branching.data,
                 delete_after_days=form.delete_after_days.data,
                 multilib=form.multilib.data,
                 runtime_dependencies=form.runtime_dependencies.data.replace("\n", " "),
+                bootstrap_config=form.bootstrap_config.data,
+                bootstrap_image=form.bootstrap_image.data,
             )
 
             db.session.commit()
@@ -503,12 +504,13 @@ def process_copr_update(copr, form):
     copr.disable_createrepo = form.disable_createrepo.data
     copr.build_enable_net = form.build_enable_net.data
     copr.unlisted_on_hp = form.unlisted_on_hp.data
-    copr.use_bootstrap_container = form.use_bootstrap_container.data
     copr.follow_fedora_branching = form.follow_fedora_branching.data
     copr.delete_after_days = form.delete_after_days.data
     copr.multilib = form.multilib.data
     copr.module_hotfixes = form.module_hotfixes.data
     copr.runtime_dependencies = form.runtime_dependencies.data.replace("\n", " ")
+    copr.bootstrap_config = form.bootstrap_config.data
+    copr.bootstrap_image = form.bootstrap_image.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

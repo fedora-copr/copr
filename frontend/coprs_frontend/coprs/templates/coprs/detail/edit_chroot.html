@@ -56,6 +56,26 @@
        )
     }}
 
+    {{ render_field(
+        form.bootstrap_config, rows=1, cols=35, placeholder='default'
+       )
+    }}
+
+    <div style="display:none" id="bootstrap_image">
+      {{ render_field(
+          form.bootstrap_image, rows=5, cols=50,
+          placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)'
+         )
+      }}
+    </div>
+    <noscript>
+      {{ render_field(
+          form.bootstrap_image, rows=5, cols=50,
+          placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)'
+         )
+      }}
+    </noscript>
+
     <div class="form-group">
       <label class="col-sm-2 control-label" for="textInput-markup">
         comps.xml
@@ -86,6 +106,21 @@
     <input class="btn btn-primary" type="submit" name="submit" value="update">
     <a class="btn btn-default" href="{{ copr_url('coprs_ns.copr_edit', copr) }}">Cancel</a>
   </form>
-
+  <script>
+    $(document).ready(function() {
+      if ($("#bootstrap_config").value == "custom_image") {
+        $("#bootstrap_image").show();
+      }
+      $("#bootstrap_config").change(function() {
+        if (this.value == "custom_image") {
+          $("#bootstrap_image").show();
+        }
+        else {
+          $("#bootstrap_image").hide();
+        }
+      });
+    });
+  </script>
+{
 
 {% endblock %}

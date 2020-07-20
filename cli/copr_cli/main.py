@@ -55,6 +55,14 @@ ON_OFF_MAP = {
     None: None,
 }
 
+BOOTSTRAP_MAP = {
+    "default": "default",
+    "on": "enabled",
+    "off": "disabled",
+    "image": "image",
+    None: "default",
+}
+
 no_config_warning = """
 ================= WARNING: =======================
 File '{0}' is missing or incorrect.
@@ -414,7 +422,9 @@ class Commands(object):
             enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
             auto_prune=ON_OFF_MAP[args.auto_prune],
-            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
+            use_bootstrap="image" if args.bootstrap_image else \
+                          BOOTSTRAP_MAP[args.use_bootstrap],
+            bootstrap_image=args.bootstrap_image,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
@@ -436,7 +446,9 @@ class Commands(object):
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             auto_prune=ON_OFF_MAP[args.auto_prune],
-            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
+            use_bootstrap="image" if args.bootstrap_image else \
+                          BOOTSTRAP_MAP[args.use_bootstrap],
+            bootstrap_image=args.bootstrap_image,
             chroots=args.chroots,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
@@ -937,8 +949,12 @@ def setup_parser():
     parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
                                help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
                                This option can only be specified by a COPR admin.")
-    parser_create.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+    parser_create.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
+                               dest="use_bootstrap",
                                help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_create.add_argument("--bootstrap-image", dest="bootstrap_image",
+                               help="Which image is set for bootstrap container.\
+                               (Implies --use-bootstrap=image)")
     parser_create.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help="Delete the project after the specfied period of time")
     parser_create.add_argument("--module-hotfixes", choices=["on", "off"], default="off",
@@ -974,8 +990,12 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
-    parser_modify.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+    parser_modify.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
+                               dest="use_bootstrap",
                                help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_modify.add_argument("--bootstrap-image", dest="bootstrap_image",
+                               help="Which image is set for bootstrap container.\
+                               (Implies --use-bootstrap=image)")
     parser_modify.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help=("Delete the project after the specfied "
                                      "period of time, empty or -1 disables, "
@@ -1114,6 +1134,12 @@ def setup_parser():
                                          help="Build packages to a specified copr")
     parser_build.add_argument("pkgs", nargs="+",
                               help="filename of SRPM or URL of packages to build")
+    parser_build.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
+                              dest="use_bootstrap",
+                              help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_build.add_argument("--bootstrap-image", dest="bootstrap_image",
+                              help="Which image is set for bootstrap container.\
+                              (Implies --use-bootstrap=image)")
     parser_build.set_defaults(func="action_build")
 
     # create the parser for the "buildpypi" command
@@ -1208,6 +1234,12 @@ def setup_parser():
                                       help="space separated string of package names to be added to buildroot")
     parser_edit_chroot.add_argument("--repos",
                                       help="space separated string of additional repo urls for chroot")
+    parser_edit_chroot.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
+                                    dest="use_bootstrap",
+                                    help="If mock bootstrap container is used to initialize the buildroot.")
+    parser_edit_chroot.add_argument("--bootstrap-image", dest="bootstrap_image",
+                                    help="Which image is set for bootstrap container.\
+                                    (Implies --use-bootstrap=image)")
     parser_edit_chroot.set_defaults(func="action_edit_chroot")
 
     parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")

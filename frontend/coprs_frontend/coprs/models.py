@@ -296,8 +296,8 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # if backend deletion script should be run for the project's builds
     auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
-    # use mock's bootstrap container feature
-    use_bootstrap_container = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+    bootstrap_config = db.Column(db.Text, default="default")
+    bootstrap_image = db.Column(db.Text, default="default")
 
     # if chroots for the new branch should be auto-enabled and populated from rawhide ones
     follow_fedora_branching = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
@@ -921,6 +921,9 @@ class Build(db.Model, helpers.Serializer):
     source_status = db.Column(db.Integer, default=StatusEnum("waiting"))
     srpm_url = db.Column(db.Text)
 
+    bootstrap_config = db.Column(db.Text)
+    bootstrap_image = db.Column(db.Text)
+
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     user = db.relationship("User", backref=db.backref("builds"))
@@ -1451,6 +1454,9 @@ class CoprChroot(db.Model, helpers.Serializer):
     # if their owner doesn't extend their time span
     delete_after = db.Column(db.DateTime, index=True)
     delete_notify = db.Column(db.DateTime, index=True)
+
+    bootstrap_config = db.Column(db.Text)
+    bootstrap_image = db.Column(db.Text)
 
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):

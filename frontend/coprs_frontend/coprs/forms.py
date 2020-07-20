@@ -59,6 +59,33 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
 
+def create_mock_bootstrap_config_field(description=""):
+    return wtforms.SelectField(
+        "Mock bootstrap",
+        choices=[
+            ('default', 'Default mock-core-configs configuration'),
+            ('disabled', 'Bootstrap chroot disabled'),
+            ('enabled', 'Bootstrap chroot enabled'),
+            ('image', 'Bootstrap image enabled.'),
+            ('custom_image', 'Custom bootstrap image (specified in "Mock ' +
+             'bootstrap image" field)')],
+        description=description,
+    )
+
+
+def create_mock_bootstrap_image_field(description=""):
+    return wtforms.TextField(
+        "Mock bootstrap image",
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.Regexp(
+                r"^\w+:\w+$",
+                message=("Enter valid bootstrap image id "
+                         "(<distribution>:<version>)."))],
+        description=description,
+    )
+
+
 class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
@@ -367,14 +394,8 @@ class CoprFormFactory(object):
                     newer build (with respect to package version) and it is
                     older than 14 days""")
 
-            use_bootstrap_container = wtforms.BooleanField(
-                    "Enable mock's use_bootstrap_container experimental feature",
-                    description="""This will make the build slower but it has an
-                    advantage that the dnf _from_ the given chroot will be used
-                    to setup the chroot (otherwise host system dnf and rpm is
-                    used)""",
-                    default=False,
-                    false_values=FALSE_VALUES)
+            bootstrap_config = create_mock_bootstrap_config_field()
+            bootstrap_image = create_mock_bootstrap_image_field()
 
             follow_fedora_branching = wtforms.BooleanField(
                     "Follow Fedora branching",
@@ -1139,6 +1160,10 @@ class BuildFormUrlFactory(object):
                 UrlListValidator(),
                 UrlSrpmListValidator()],
             filters=[StringListFilter()])
+
+        form.bootstrap_config = create_mock_bootstrap_config_field()
+        form.bootstrap_image = create_mock_bootstrap_image_field()
+
         return form
 
 
@@ -1198,6 +1223,9 @@ class ChrootForm(FlaskForm):
 
     with_opts = wtforms.StringField("With options")
     without_opts = wtforms.StringField("Without options")
+
+    bootstrap_config = create_mock_bootstrap_config_field()
+    bootstrap_image = create_mock_bootstrap_image_field()
 
 
 class CoprChrootExtend(FlaskForm):
@@ -1288,7 +1316,8 @@ class CoprModifyForm(FlaskForm):
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    bootstrap_config = create_mock_bootstrap_config_field()
+    bootstrap_image = create_mock_bootstrap_image_field()
     follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     follow_fedora_branching = wtforms.BooleanField(default=True, false_values=FALSE_VALUES)
     delete_after_days = wtforms.IntegerField(

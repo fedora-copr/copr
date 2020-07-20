@@ -24,7 +24,7 @@ def build_config(build_chroot):
         "repos": config.get("repos"),
         "additional_repos": BuildConfigLogic.generate_additional_repos(copr_chroot),
         "additional_packages": config.get("additional_packages"),
-        "use_bootstrap_container": config.get("use_bootstrap_container"),
+        "bootstrap_config": config.get("bootstrap_config"),
         "with_opts": config.get("with_opts"),
         "without_opts": config.get("without_opts"),
         "memory_limit": build_chroot.build.memory_reqs,
