@@ -10,7 +10,7 @@ services:
     command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_be.py
     depends_on:
       - backend-log
-      - backend-vmm
+      - resalloc
     stdin_open: true
     tty: true
     volumes:
@@ -29,29 +29,15 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results
-      - backend-etc:/etc
-
-  backend-vmm:
-    build:
-      context: docker/backend
-    hostname: backend-vmm
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_vmm.py
-    depends_on:
-      - backend-log
-    stdin_open: true
-    tty: true
-    volumes:
-      - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
 
   backend-build:
     build:
       context: docker/backend
     hostname: backend-build
-    command: /usr/sbin/runuser -u copr -g copr -G obsrun -- /usr/bin/copr_run_build_dispatcher.py
+    command: /usr/sbin/runuser -u copr -g copr -G obsrun -- /usr/bin/copr-run-dispatcher builds
     depends_on:
       - backend-log
-      - backend-vmm
+      - resalloc
     stdin_open: true
     tty: true
     volumes:
@@ -62,10 +48,10 @@ services:
     build:
       context: docker/backend
     hostname: backend-action
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_action_dispatcher.py
+    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr-run-dispatcher actions
     depends_on:
       - backend-log
-      - backend-vmm
+      - resalloc
     stdin_open: true
     tty: true
     volumes:
@@ -82,6 +68,16 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results
+
+  resalloc:
+    build:
+      context: docker/resalloc
+    hostname: resalloc
+    depends_on:
+      - database
+    command: /usr/bin/resalloc-server
+    stdin_open: true
+    tty: true
 
   redis:
     image: centos/redis-32-centos7

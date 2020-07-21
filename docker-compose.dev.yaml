@@ -18,11 +18,6 @@ services:
       - PYTHONPATH=/opt/copr/backend
     command: /usr/sbin/runuser -u copr -g copr -- /opt/copr/backend/run/copr_run_logger.py
 
-  backend-vmm:
-    environment:
-      - PYTHONPATH=/opt/copr/backend
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_vmm.py
-
   backend-build:
     environment:
       - PYTHONPATH=/opt/copr/backend

@@ -22,6 +22,7 @@ RUN dnf -y update && \
                    git \
                    sudo \
                    openssh-server \
+                   resalloc \
                    psmisc \
                    nginx \
                    python3-ipdb \

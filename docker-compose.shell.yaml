@@ -15,9 +15,6 @@ services:
   backend-log:
     command: /bin/bash
 
-  backend-vmm:
-    command: /bin/bash
-
   backend-build:
     command: /bin/bash
 
