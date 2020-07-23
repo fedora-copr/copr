@@ -212,10 +212,12 @@ def fork_project(ownername, projectname):
             if flask.g.user.name != form.owner.data and not dstgroup:
                 return ObjectNotFound("There is no such group: {}".format(form.owner.data))
 
-            fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
-            if not created and form.confirm.data != True:
+            dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+            if dst_copr and form.confirm.data != True:
                 raise BadRequest("You are about to fork into existing project: {}\n"
-                                 "Please use --confirm if you really want to do this".format(fcopr.full_name))
+                                 "Please use --confirm if you really want to do this".format(form.name.data))
+            fcopr, _ = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data,
+                                              dstgroup=dstgroup)
             db.session.commit()
 
         except (ActionInProgressException, InsufficientRightsException) as err:

@@ -13,7 +13,11 @@ from coprs.logic.complex_logic import (
     ProjectForking,
 )
 from coprs.logic.coprs_logic import CoprChrootsLogic
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import (
+    CoprsTestCase,
+    new_app_context,
+    TransactionDecorator,
+)
 
 
 class TestComplexLogic(CoprsTestCase):
@@ -163,6 +167,37 @@ class TestProjectForking(CoprsTestCase):
                 assert fc1.name == "new-name"
                 assert fc1.forked_from_id == self.c1.id
                 assert fc1.mock_chroots == self.c1.mock_chroots
+
+    @TransactionDecorator("u2")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_forking_into_existing_project(self):
+        self.db.session.add_all([self.c1, self.c3, self.u1, self.u2])
+
+        src_copr = self.c1
+        src_user = self.u1
+        dest_copr = self.c3
+        dest_user = self.u2
+
+        assert len(dest_copr.builds) == 0
+
+        data = {
+            "name": dest_copr.name,
+            "ownername": dest_user.name,
+            "source": "{0}/{1}".format(dest_user.name, dest_copr.name)
+        }
+        self.tc.post("/coprs/{0}/{1}/fork/".format(src_user.name, src_copr.name),
+                     data=data)
+
+        # No builds should be forked when confirm==False
+        dest_copr = models.Copr.query.filter_by(id=dest_copr.id).one()
+        assert len(dest_copr.builds) == 0
+
+        data["confirm"] = "y"
+        self.tc.post("/coprs/{0}/{1}/fork/".format(src_user.name, src_copr.name),
+                     data=data)
+
+        dest_copr = models.Copr.query.filter_by(id=dest_copr.id).one()
+        assert len(dest_copr.builds) == 1
 
     def test_copr_by_repo_safe(self, f_users, f_coprs, f_mock_chroots, f_builds,
                                f_db):

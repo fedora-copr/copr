@@ -1043,15 +1043,19 @@ def copr_fork_post(copr):
         if flask.g.user.name != form.owner.data and not dstgroup:
             return generic_error("There is no such group: {}".format(form.owner.data))
 
-        fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
+        dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+        if dst_copr and not form.confirm.data:
+            return render_copr_fork(copr, form, confirm=True)
+
+        fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data,
+                                                dstgroup=dstgroup)
+
         if created:
             msg = ("Forking project {} for you into {}. Please be aware that it may take a few minutes "
                    "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
-        elif not created and form.confirm.data == True:
+        else:
             msg = ("Updating packages in {} from {}. Please be aware that it may take a few minutes "
                    "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
-        else:
-            return render_copr_fork(copr, form, confirm=True)
 
         db.session.commit()
         flask.flash(msg)

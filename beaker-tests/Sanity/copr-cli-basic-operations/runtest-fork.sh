@@ -52,11 +52,15 @@ rlJournalStart
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork &> $OUTPUT" 1
         rlAssertEquals "Error existing project" `grep -r 'Error: You are about to fork into existing project' $OUTPUT |wc -l` 1
         rlAssertEquals "Use --confirm" `grep -r 'Please use --confirm if you really want to do this' $OUTPUT |wc -l` 1
+        rlRun "copr-cli list-builds ${NAME_PREFIX}Project10Fork > $OUTPUT"
+        rlAssertEquals "No build was forked" `cat $OUTPUT | wc -l` 1
 
         # fork into existing project
         OUTPUT=`mktemp`
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork --confirm > $OUTPUT"
         rlAssertEquals "Updating packages" `grep -r 'Updating packages in' $OUTPUT |wc -l` 1
+        rlRun "copr-cli list-builds ${NAME_PREFIX}Project10Fork > $OUTPUT"
+        rlAssertEquals "A build was forked" `cat $OUTPUT | wc -l` 2
 
         # give backend some time to fork the data
         echo "sleep 60 seconds to give backend enough time to fork data"
