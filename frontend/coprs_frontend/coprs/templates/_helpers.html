@@ -754,3 +754,44 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     </span>
 </a>
 {% endmacro %}
+
+{% macro render_project_voting(copr) %}
+{% set score = g.user.score_for_copr(copr) if g.user else 0 %}
+
+{% set score_color = 'text-default' %}
+{% if score > 0 %}
+  {% set score_color = 'text-green' %}
+{% elif score < 0 %}
+  {% set score_color = 'text-danger' %}
+{% endif %}
+
+<div id="project-score" class="pull-left">
+  <form action="{{ copr_url('coprs_ns.copr_detail', copr) }}" method="POST">
+    <ul class="nav nav-pills nav-stacked">
+      <li role="presentation" class="{% if score > 0 %}{{ score_color }}{% endif %}">
+        {% if score > 0 %}
+        <button name="reset" type="submit" value="reset">
+        {% else %}
+        <button name="upvote" type="submit" value="upvote">
+        {% endif %}
+          <i class="fa fa-chevron-up fa-lg"></i>
+        </button>
+      </li>
+      <li role="presentation">
+        <span class="text-lg {{ score_color }}" title="{{ copr.upvotes }} upvotes and {{ copr.downvotes }} downvotes">
+          {{ copr.score }}
+        </span>
+      </li>
+      <li role="presentation" class="{% if score < 0 %}{{ score_color }}{% endif %}">
+        {% if score < 0 %}
+        <button name="reset" type="submit" value="reset">
+        {% else %}
+        <button name="downvote" type="submit" value="downvote">
+        {% endif %}
+          <i class="fa fa-chevron-down fa-lg"></i>
+        </button>
+      </li>
+    </ul>
+  </form>
+</div>
+{% endmacro %}

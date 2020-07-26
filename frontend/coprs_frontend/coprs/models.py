@@ -198,6 +198,18 @@ class User(db.Model, helpers.Serializer):
         except IOError:
             return ""
 
+    def score_for_copr(self, copr):
+        """
+        Check if the `user` has voted for this `copr` and return 1 if it was
+        upvoted, -1 if it was downvoted and 0 if the `user` haven't voted for
+        it yet.
+        """
+        query = db.session.query(CoprScore)
+        query = query.filter(CoprScore.copr_id == copr.id)
+        query = query.filter(CoprScore.user_id == self.id)
+        score = query.first()
+        return score.score if score else 0
+
 
 class PinnedCoprs(db.Model, helpers.Serializer):
     """
@@ -213,6 +225,24 @@ class PinnedCoprs(db.Model, helpers.Serializer):
     copr = db.relationship("Copr")
     user = db.relationship("User")
     group = db.relationship("Group")
+
+
+class CoprScore(db.Model, helpers.Serializer):
+    """
+    Users can upvote or downvote projects
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    score = db.Column(db.Integer, nullable=False)
+
+    copr = db.relationship("Copr")
+    user = db.relationship("User")
+
+    __table_args__ = (
+        db.UniqueConstraint("copr_id", "user_id",
+                            name="copr_score_copr_id_user_id_uniq"),
+    )
 
 
 class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
@@ -566,6 +596,25 @@ class Copr(db.Model, helpers.Serializer):
                 dependencies.add(dep)
 
         return list(dependencies)
+
+    @property
+    def votes(self):
+        query = db.session.query(CoprScore)
+        query = query.filter(CoprScore.copr_id == self.id)
+        return query
+
+    @property
+    def upvotes(self):
+        return self.votes.filter(CoprScore.score == 1).count()
+
+    @property
+    def downvotes(self):
+        return self.votes.filter(CoprScore.score == -1).count()
+
+    @property
+    def score(self):
+        return sum([self.upvotes, self.downvotes * -1])
+
 
 class CoprPermission(db.Model, helpers.Serializer):
     """

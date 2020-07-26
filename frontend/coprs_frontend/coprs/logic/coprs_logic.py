@@ -811,6 +811,42 @@ class CoprChrootsLogic(object):
         return query.filter(models.CoprChroot.delete_after < datetime.datetime.now())
 
 
+class CoprScoreLogic:
+    """
+    Class for logic regarding upvoting and downvoting projects
+    """
+
+    @classmethod
+    def get(cls, copr, user):
+        query = db.session.query(models.CoprScore)
+        query = query.filter(models.CoprScore.copr_id == copr.id)
+        query = query.filter(models.CoprScore.user_id == user.id)
+        return query
+
+    @classmethod
+    def upvote(cls, copr):
+        return cls.vote(copr, 1)
+
+    @classmethod
+    def downvote(cls, copr):
+        return cls.vote(copr, -1)
+
+    @classmethod
+    def vote(cls, copr, value):
+        """
+        Low-level function for giving score to projects. The `value` should be
+        a negative number for downvoting or a positive number for upvoting.
+        """
+        score = models.CoprScore(copr_id=copr.id, user_id=flask.g.user.id,
+                                 score=(1 if value > 0 else -1))
+        db.session.add(score)
+        return score
+
+    @classmethod
+    def reset(cls, copr):
+        cls.get(copr, flask.g.user).delete()
+
+
 class MockChrootsLogic(object):
     @classmethod
     def get(cls, os_release, os_version, arch, active_only=False, noarch=False):

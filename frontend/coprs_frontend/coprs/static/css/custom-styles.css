@@ -47,4 +47,14 @@ input.short-input-field {
 	border-left: 1px #d1d1d1 solid;
 	border-right: 1px #d1d1d1 solid;
 	border-bottom: 1px #d1d1d1 solid;
-} 
+}
+
+#project-score button {
+    border: none;
+}
+
+#project-score {
+    text-align: center;
+    margin-top: 10px;
+    margin-right: 20px;
+}

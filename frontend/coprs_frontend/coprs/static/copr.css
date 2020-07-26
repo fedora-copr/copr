@@ -266,3 +266,11 @@ table.permissions {
 .highlight .vi { color: #19177C } /* Name.Variable.Instance */
 .highlight .vm { color: #19177C } /* Name.Variable.Magic */
 .highlight .il { color: #666666 } /* Literal.Number.Integer.Long */
+
+#project-score button {
+  background: none !important;
+}
+
+.text-green {
+  color: #00A000;
+}

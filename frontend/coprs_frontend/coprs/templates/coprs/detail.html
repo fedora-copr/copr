@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import copr_title, copr_url, render_crumb, copr_name %}
+{% from "_helpers.html" import copr_title, copr_url, render_crumb, copr_name, render_project_voting %}
 
 {% block title %}{{ copr_name(copr) }} Copr{% endblock %}
 {% block main_menu_projects %}active{% endblock %}
@@ -25,6 +25,11 @@
 {% if copr.forked_from and copr.still_forking %}
   {{ alert('Forked project is still being prepared for you. It may take a few minutes to duplicate backend data.', 'warning') }}
 {% endif %}
+
+
+<!-- Upvote or downvote the project -->
+{{ render_project_voting(copr) }}
+
 
 <!-- PROJECT NAME -->
 <div style="margin-bottom:22px;margin-top:22px">

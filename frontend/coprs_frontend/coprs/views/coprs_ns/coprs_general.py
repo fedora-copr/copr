@@ -331,6 +331,36 @@ def render_copr_detail(copr):
     )
 
 
+@coprs_ns.route("/<username>/<coprname>/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/", methods=["POST"])
+@req_with_copr
+@login_required
+def copr_detail_post(copr):
+    form = forms.VoteForCopr(meta={'csrf': False})
+    if not form.validate_on_submit():
+        flask.flash(form.errors, "error")
+        return render_copr_detail(copr)
+
+    # Always reset the current vote
+    coprs_logic.CoprScoreLogic.reset(copr)
+
+    if form.upvote.data:
+        coprs_logic.CoprScoreLogic.upvote(copr)
+    if form.downvote.data:
+        coprs_logic.CoprScoreLogic.downvote(copr)
+    db.session.commit()
+
+    # Return to the previous site. The vote could be sent from
+    # packages/builds/settings/etc page, so we don't want to just
+    # `render_copr_detail` but return to the previous page instead
+    if flask.request.referrer:
+        return flask.redirect(flask.request.referrer)
+
+    # HTTP referrer is unreliable so as a fallback option,
+    # we just render the project overview page
+    return flask.redirect(helpers.copr_url("coprs_ns.copr_detail", copr))
+
+
 @coprs_ns.route("/<username>/<coprname>/permissions/")
 @coprs_ns.route("/g/<group_name>/<coprname>/permissions/")
 @req_with_copr

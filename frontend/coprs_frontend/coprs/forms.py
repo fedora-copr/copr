@@ -1226,6 +1226,15 @@ class PinnedCoprsForm(FlaskForm):
         return True
 
 
+class VoteForCopr(FlaskForm):
+    """
+    Form for upvoting and downvoting projects
+    """
+    upvote = wtforms.SubmitField("Upvote")
+    downvote = wtforms.SubmitField("Downvote")
+    reset = wtforms.SubmitField("Reset vote")
+
+
 class AdminPlaygroundForm(FlaskForm):
     playground = wtforms.BooleanField("Playground", false_values=FALSE_VALUES)
 

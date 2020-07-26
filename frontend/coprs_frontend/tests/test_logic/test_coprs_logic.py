@@ -12,7 +12,8 @@ from copr_common.enums import ActionTypeEnum, StatusEnum
 from coprs import app
 from coprs.forms import PinnedCoprsForm, ChrootForm, ModuleEnableNameValidator
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, PinnedCoprsLogic
+from coprs.logic.coprs_logic import (CoprsLogic, CoprChrootsLogic,
+                                     PinnedCoprsLogic, CoprScoreLogic)
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -326,3 +327,24 @@ class TestChrootFormLogic(CoprsTestCase):
 
             form.module_toggle.data = "module: stream"
             assert False == form.validate()
+
+
+class TestCoprScoreLogic(CoprsTestCase):
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_score_math(self):
+        assert self.c1.score == 0
+
+        flask.g.user = self.u1
+        CoprScoreLogic.upvote(self.c1)
+
+        flask.g.user = self.u2
+        CoprScoreLogic.downvote(self.c1)
+
+        flask.g.user = self.u3
+        CoprScoreLogic.downvote(self.c1)
+
+        assert self.c1.upvotes == 1
+        assert self.c1.downvotes == 2
+        assert self.c1.score == -1
