@@ -3,20 +3,6 @@ services:
 
   # @TODO Probably not all backend services should use the same Dockerfile
 
-  backend:
-    build:
-      context: docker/backend
-    hostname: backend
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_be.py
-    depends_on:
-      - backend-log
-      - resalloc
-    stdin_open: true
-    tty: true
-    volumes:
-      - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
-
   backend-log:
     build:
       context: docker/backend
