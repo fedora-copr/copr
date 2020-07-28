@@ -1,3 +1,7 @@
+.. warning::
+    Client version 2 is obsolete, please use Client version 3 instead.
+
+
 Resources
 =========
 
@@ -55,6 +59,3 @@ Operation result
 ----------------
 .. autoclass:: copr.client_v2.resources.OperationResult
    :members:
-
-
-

@@ -1,3 +1,6 @@
+.. warning::
+    Client version 2 is obsolete, please use Client version 3 instead.
+
 
 .. _project-chroot-info:
 
@@ -82,5 +85,3 @@ Disable project chroot
 
 
 .. _comps.xml: https://fedorahosted.org/comps/
-
-

@@ -1,3 +1,7 @@
+.. warning::
+    Client version 2 is obsolete, please use Client version 3 instead.
+
+
 Resources
 ~~~~~~~~~
 
@@ -51,4 +55,3 @@ Individual resource allows to directly access entity properties and also provide
         >>> p.description = u"Hello world!"
         >>> p.update()
         # instead of cl.projects.update(p._entity)
-

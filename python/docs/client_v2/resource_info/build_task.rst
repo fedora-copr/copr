@@ -1,3 +1,7 @@
+.. warning::
+    Client version 2 is obsolete, please use Client version 3 instead.
+
+
 .. _build-task-info:
 
 Build task
@@ -90,4 +94,3 @@ Get single build task
     >>> bt = cl.build_tasks.get_one(106897, "epel-6-i386")
     >>> print(bt.state, bt.result_dir_url)
     (u'succeeded', u'http://copr-be-dev.cloud.fedoraproject.org/results/rineau/libQGLViewer-qt5/epel-6-i386/libQGLViewer-2.5.1-5.fc21')
-

@@ -1,9 +1,9 @@
-Client version 2
-================
-
 .. warning::
     Client version 2 is obsolete, please use Client version 3 instead.
 
+
+Client version 2
+================
 
 New package copr.ClientV2 supports APIv2 and should  eventually replace older one.
 New API and Client_v2 provides more simple and uniform approach for communication with the Copr service.

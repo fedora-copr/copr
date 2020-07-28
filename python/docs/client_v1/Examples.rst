@@ -1,3 +1,7 @@
+.. warning::
+    Legacy client is obsolete, please use Client version 3 instead. :ref:`This document <migration>` describes the migration process.
+
+
 Create client
 -------------
 ::

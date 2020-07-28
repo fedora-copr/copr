@@ -1,3 +1,7 @@
+.. warning::
+    Client version 2 is obsolete, please use Client version 3 instead.
+
+
 .. _`mock-chroot-info`:
 
 Mock chroot
