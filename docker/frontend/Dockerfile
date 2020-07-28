@@ -4,7 +4,7 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
 ENV LANG=en_US.UTF-8
-ENV REDIS_HOST=redis-32-centos7
+ENV REDIS_HOST=redis
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
