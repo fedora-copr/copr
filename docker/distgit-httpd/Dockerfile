@@ -13,7 +13,6 @@ RUN dnf -y update && \
                    which \
                    wget \
                    vim \
-                   copr-selinux \
                    cgit
 
 RUN dnf -y install copr-dist-git && \

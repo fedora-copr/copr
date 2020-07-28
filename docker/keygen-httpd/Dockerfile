@@ -25,7 +25,6 @@ RUN dnf -y update && \
                    yum \
                    sudo \
                    supervisor \
-                   copr-selinux \
                    python3-alembic \
                    postgresql-server \
                    redis \

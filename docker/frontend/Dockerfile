@@ -19,7 +19,6 @@ RUN dnf -y update && \
                    vim \
                    yum \
                    sudo \
-                   copr-selinux \
                    python3-alembic \
                    python3-ipdb \
                    postgresql-server \

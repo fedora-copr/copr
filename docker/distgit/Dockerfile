@@ -13,7 +13,6 @@ RUN dnf -y update && \
                    which \
                    wget \
                    vim \
-                   copr-selinux \
                    cgit \
                    python3-rpkg \
                    python3-ipdb
