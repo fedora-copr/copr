@@ -1,3 +1,17 @@
+# Port-layout
+# ===========
+#
+# Rootless podman-compose doesn't allow us to start multiple containers in one
+# pod that listen on the same port.  Therefore we start httpd servers on ports
+# (host:pod):
+#   5000:5000 -- Frontend Apache (API/WebUI)
+#   5001:80   -- DistGit Apache
+#   5002:5002 -- Backend Nginx
+#     --:5003 -- Keygen Apache (obtaining keys)
+#
+# Other ports:
+#   5009:5432 -- PostgreSQL database
+
 version: '3'
 services:
 
