@@ -61,6 +61,8 @@ services:
   backend_httpd:
     build:
       context: docker/backend_httpd
+    depends_on:
+      - backend-log
     hostname: backend_httpd
     ports:
       - "5002:5002"
