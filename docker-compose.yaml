@@ -44,17 +44,6 @@ services:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results
 
-  backend-signd:
-    build:
-      context: docker/backend
-    hostname: backend-signd
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/sbin/signd
-    stdin_open: true
-    tty: true
-    volumes:
-      - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
-
   resalloc:
     build:
       context: docker/resalloc
