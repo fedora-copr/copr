@@ -74,9 +74,6 @@ services:
     stdin_open: true
     tty: true
     privileged: true
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
     volumes:
       - .:/opt/copr:z
 
