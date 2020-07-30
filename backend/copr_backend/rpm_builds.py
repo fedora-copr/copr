@@ -50,9 +50,9 @@ class BuildQueueTask(QueueTask):
         priority = self._task.get('priority', 0)
 
         if self.background:
-            priority += PRIORITY_SECTION_SIZE
-        if not self.source_build:
             priority += 2*PRIORITY_SECTION_SIZE
+        if not self.source_build:
+            priority += PRIORITY_SECTION_SIZE
         return priority
 
     @property

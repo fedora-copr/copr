@@ -55,7 +55,7 @@ def test_priority_numbers():
     })) == 1
 
 @pytest.mark.parametrize('background,result',
-                         [(True, PRIORITY_SECTION_SIZE), (False, 0)])
+                         [(True, 2*PRIORITY_SECTION_SIZE), (False, 0)])
 def test_frontend_priority(background, result):
     task = BuildQueueTask({
         "build_id": "9",
@@ -70,4 +70,4 @@ def test_frontend_priority(background, result):
         "project_owner": "cecil",
         "background": background,
     })
-    assert task.frontend_priority == result + 2*PRIORITY_SECTION_SIZE
+    assert task.frontend_priority == result + PRIORITY_SECTION_SIZE
