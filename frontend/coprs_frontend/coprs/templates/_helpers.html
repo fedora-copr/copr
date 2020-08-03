@@ -321,6 +321,10 @@
         <span class="badge">{{ tasks_info.pending }}</span>
         Pending
       </a>
+      <a href="{{url_for('status_ns.starting')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.starting }}</span>
+        Starting
+      </a>
       <a href="{{url_for('status_ns.running')}}" class="list-group-item">
         <span class="badge">{{ tasks_info.running }}</span>
         Running
@@ -669,6 +673,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
               Waiting
             {% elif type == 'pending' %}
               Pending
+            {% elif type == 'starting' %}
+              Starting
             {% else %}
               Running
             {% endif %}

@@ -28,7 +28,13 @@
           <span class="badge">{{ queue_sizes['pending'] }}</span>
       </a>
   </li>
-  <li class="{% block running_selected %}{% endblock %}">
+  <li class="{% block starting_selected %}{% endblock %}">
+      <a href="{{ url_for('status_ns.starting') }}">
+          Starting
+          <span class="badge">{{ queue_sizes['starting'] }}</span>
+      </a>
+  </li>
+   <li class="{% block running_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.running') }}">
           Running
           <span class="badge">{{ queue_sizes['running'] }}</span>

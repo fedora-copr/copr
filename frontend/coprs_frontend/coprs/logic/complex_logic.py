@@ -255,11 +255,13 @@ class ComplexLogic(object):
         importing = BuildsLogic.get_build_importing_queue(background=False).count()
         pending = BuildsLogic.get_pending_build_tasks(background=False).count()
         running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
+        starting = BuildsLogic.get_build_tasks(StatusEnum("starting")).count()
 
         return dict(
             importing=importing,
             pending=pending,
             running=running,
+            starting=starting,
         )
 
     @classmethod

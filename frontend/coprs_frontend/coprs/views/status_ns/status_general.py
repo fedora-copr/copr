@@ -33,6 +33,12 @@ def importing():
     return render_status("importing", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
+@status_ns.route("/starting/")
+def starting():
+    tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("starting")).all()
+    return render_status("starting", tasks=tasks)
+
+
 def render_status(build_status, tasks, bg_tasks_cnt=None):
     return flask.render_template("status/{}.html".format(build_status), number=len(tasks),
                                  tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
