@@ -27,31 +27,31 @@
 {% endif %}
 
 
-<!-- Upvote or downvote the project -->
-{{ render_project_voting(copr) }}
+<div class="clearfix">
+  <!-- Upvote or downvote the project -->
+  {{ render_project_voting(copr) }}
+
+  <!-- PROJECT NAME -->
+  <div style="margin-bottom:22px;margin-top:22px">
+    <h1 class="project-name" style="display:inline;">{{ copr_title(copr) }}</h1>
+    {% if copr.delete_after %}
+    <small><i>temporary project: {{ copr.delete_after_msg }}</i></small>
+    {% endif %}
+    {% if copr.forked_from %}
+    <small><i>( forked from {{ copr_title(copr.forked_from) }})</i></small>
+    {% endif %}
+    <p class="text-muted">Project ID: {{ copr.id }}</p>
+  </div>
 
 
-<!-- PROJECT NAME -->
-<div style="margin-bottom:22px;margin-top:22px">
-  <h1 class="project-name" style="display:inline;">{{ copr_title(copr) }}</h1>
-  {% if copr.delete_after %}
-  <small><i>temporary project: {{ copr.delete_after_msg }}</i></small>
-  {% endif %}
-  {% if copr.forked_from %}
-  <small><i>( forked from {{ copr_title(copr.forked_from) }})</i></small>
-  {% endif %}
-  <p class="text-muted">Project ID: {{ copr.id }}</p>
+  {% macro nav_element(tab_name, tab_title, icon,  href) %}
+  <li class="{% if selected_tab == tab_name %}active{% endif %}">
+    <a href="{{ href }}"> <span class="{{icon}}"></span>{% if "pficon" not in icon %}&nbsp;{%endif%}
+      {{ tab_title }}
+    </a>
+  </li>
+  {% endmacro %}
 </div>
-
-
-{% macro nav_element(tab_name, tab_title, icon,  href) %}
-<li class="{% if selected_tab == tab_name %}active{% endif %}">
-  <a href="{{ href }}"> <span class="{{icon}}"></span>{% if "pficon" not in icon %}&nbsp;{%endif%}
-    {{ tab_title }}
-  </a>
-</li>
-{% endmacro %}
-
 
 
 <!-- MENU -->
