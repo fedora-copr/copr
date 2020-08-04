@@ -40,8 +40,9 @@ def starting():
 
 
 def render_status(build_status, tasks, bg_tasks_cnt=None):
-    return flask.render_template("status/{}.html".format(build_status), number=len(tasks),
-                                 tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
+    return flask.render_template("status.html", number=len(tasks),
+                                 tasks=tasks, bg_tasks_cnt=bg_tasks_cnt,
+                                 state_of_tasks=build_status)
 
 
 @status_ns.route("/stats/")

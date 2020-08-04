@@ -1,4 +1,7 @@
 {% extends "layout.html" %}
+
+{% from "_helpers.html" import status_info, initialize_datatables, build_state_text  %}
+
 {% block title %} Task queue - Copr {% endblock %}
 {% block header %} Task queue - Copr {% endblock %}
 {%block main_menu_status %}active{% endblock %}
@@ -16,33 +19,34 @@
 {% block body %}
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
-  <li class="{% block importing_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.importing') }}">
-          Importing
-          <span class="badge">{{ queue_sizes['importing'] }}</span>
+  {% for state in ["importing", "pending", "starting", "running"] %}
+  <li {% if state_of_tasks == state %}class="active"{% endif %}>
+      <a href="{{ url_for('status_ns.' + state ) }}">
+          {{ state|capitalize }}
+          <span class="badge">{{ queue_sizes[state] }}</span>
       </a>
   </li>
-  <li class="{% block pending_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.pending') }}">
-          Pending
-          <span class="badge">{{ queue_sizes['pending'] }}</span>
-      </a>
-  </li>
-  <li class="{% block starting_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.starting') }}">
-          Starting
-          <span class="badge">{{ queue_sizes['starting'] }}</span>
-      </a>
-  </li>
-   <li class="{% block running_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.running') }}">
-          Running
-          <span class="badge">{{ queue_sizes['running'] }}</span>
-      </a>
-  </li>
+  {% endfor %}
+
   <li class="{% block stats_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.stats') }}">Statistics</a>
   </li>
 </ul>
-{% block status_body %}{% endblock %}
+
+{% block status_body %}
+{% set bg = "" if not bg_tasks_cnt else "(+ {} others with lower priority)".format(bg_tasks_cnt) %}
+<h2>
+    {% if number == 0 %}
+      No tasks {{ bg }} are
+    {% elif number == 1 %}
+      {{ number }} task {{ bg }} is
+    {% else %}
+      {{ number }} tasks {{ bg}} are
+    {% endif %}
+    in the {{ state_of_tasks }} state.
+</h2>
+<p>{{ build_state_text(state_of_tasks) }} - {{ state_of_tasks|build_state_description }}</p>
+{{ status_info(type=state_of_tasks, tasks=tasks) }}
+{{ initialize_datatables(order="desc") }}
+{% endblock %}
 {% endblock %}
