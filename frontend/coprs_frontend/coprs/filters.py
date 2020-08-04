@@ -194,12 +194,12 @@ def build_state_decoration(state):
         "succeeded": "Successfully built.",
         "canceled": "The build has been cancelled manually.",
         "running": "Build in progress.",
-        "pending": "Your build is waiting for a builder.",
+        "pending": "Build is waiting in queue for a backend worker.",
         "skipped": "This package has already been built previously.",
-        "starting": "Trying to acquire and configure builder for task.",
-        "importing": "Package content is being imported into DistGit.",
+        "starting": "Backend worker is trying to acquire a builder machine.",
+        "importing": "Package sources are being imported into Copr DistGit.",
         "waiting": "Task is waiting for something else to finish.",
-        "imported": "Package was successfully imported into DistGit.",
+        "imported": "Package was successfully imported into Copr DistGit.",
         "forked": "Build has been forked from another build.",
     }
 
