@@ -45,7 +45,7 @@ class UsersLogic(object):
     def raise_if_not_in_group(cls, user, group):
         if not user.admin and group.fas_name not in user.user_teams:
             raise exceptions.InsufficientRightsException(
-                "User '{}' doesn't have access to group {}({})"
+                "User '{}' doesn't have access to the copr group '{}' (fas_name='{}')"
                 .format(user.username, group.name, group.fas_name))
 
     @classmethod

@@ -277,8 +277,8 @@ class TestCoprsLogicAdminFeatures(CoprsTestCase):
             with pytest.raises(InsufficientRightsException) as ex:
                 flask.g.user = self.u2
                 CoprsLogic.add(name="foo", user=self.u3, selected_chroots=["fedora-rawhide-x86_64"])
-            assert "You were authorized as `user2'" in ex.value.message
-            assert "don't have permissions to access project of `user3' user" in ex.value.message
+            assert "You were authorized as 'user2'" in ex.value.message
+            assert "without permissions to access projects of user 'user3'" in ex.value.message
 
             # Admin should be allowed to create such project
             flask.g.user = self.u1
@@ -298,7 +298,7 @@ class TestCoprsLogicAdminFeatures(CoprsTestCase):
             self.u1.openid_groups = None
             with pytest.raises(AccessRestricted) as ex:
                 CoprsLogic.add(name="p2", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
-            assert "User 'user1' doesn't have access to group group1(fas_1)" in ex.value.message
+            assert "User 'user1' doesn't have access to the copr group 'group1' (fas_name='fas_1')" in ex.value.message
 
             # Admin can create a whatever group project
             self.u1.admin = True
