@@ -20,7 +20,7 @@ class ProjectSchema(Schema):
     name = fields.Str()
 
     owner = fields.Str()
-    # is_a_group_project = fields.Bool()
+    is_a_group_project = fields.Bool(allow_none=True)
     group = fields.Str(allow_none=True)
 
     description = fields.Str()
