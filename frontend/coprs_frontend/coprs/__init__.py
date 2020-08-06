@@ -205,7 +205,7 @@ def system_static(filename, component=""):
     """
     :param component: name of the javascript component provided by a RPM package
                       do not confuse with a name of the RPM package itself
-                      (e.g. 'jquery' component is provided by 'js-jquery1' package)
+                      (e.g. 'jquery' component is provided by 'js-jquery' package)
     :param filename: path to a file relative to the component root directory
     :return: content of a static file
     """
