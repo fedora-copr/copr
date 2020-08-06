@@ -138,7 +138,6 @@ Requires: python3-flask-caching
 %else
 Requires: python3-flask-cache
 %endif
-Requires: python3-flask-cache
 Requires: python3-flask-openid
 Requires: python3-flask-restful
 Requires: python3-flask-sqlalchemy
