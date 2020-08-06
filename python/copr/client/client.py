@@ -11,6 +11,7 @@ import sys
 import os
 import logging
 import io
+import warnings
 
 import requests
 import six
@@ -101,6 +102,10 @@ class CoprClient(UnicodeMixin):
         self.copr_url = copr_url or "https://copr.fedorainfracloud.org/"
 
         self.no_config = no_config
+        warnings.warn("You are using Copr's deprecated APIv1. "
+                      "Please migrate to APIv3. "
+                      "See https://fedora-copr.github.io/posts/EOL-APIv1-APIv2",
+                      DeprecationWarning)
 
     def __unicode__(self):
         return (
