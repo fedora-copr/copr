@@ -275,6 +275,8 @@ class BuildProxy(BaseProxy):
         """
         endpoint = "/build/delete/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
+        response = request.send()
+        return munchify(response)
 
     def delete_list(self, build_ids):
         """
