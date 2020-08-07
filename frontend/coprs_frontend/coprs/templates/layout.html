@@ -4,8 +4,6 @@
 <html>
 <head>
   <title>{% block title %}Coprs Build System{% endblock %}</title>
-  <script src="{{ url_for('system_static', component='jquery', filename='3/jquery.min.js') }}"></script>
-  <script src="{{ url_for('system_static', component='jquery_ui', filename='jquery-ui.min.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('system_static', component='jquery_ui', filename='jquery-ui.min.css') }}" />
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/vnd.microsoft.icon">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
@@ -18,6 +16,7 @@
   <script src="{{ url_for('system_static', filename='respond.min.js') }}"></script>
   <![endif]-->
   <script src="{{ url_for('system_static', component='jquery', filename='3/jquery.min.js') }}"></script>
+  <script src="{{ url_for('system_static', component='jquery_ui', filename='jquery-ui.min.js') }}"></script>
   <script src="{{ url_for('system_static', component='bootstrap_scss', filename='js/bootstrap.min.js') }}"></script>
   <script src="{{ url_for('system_static', component='datatables', filename='js/jquery.dataTables.min.js') }}"></script>
   <script src="{{ url_for('system_static', component='patternfly', filename='js/patternfly.min.js') }}"></script>
