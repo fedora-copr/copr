@@ -8,8 +8,12 @@ from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
 
 from copr_common.enums import StatusEnum
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException, \
-                             MalformedArgumentException, BadRequest
+from coprs.exceptions import (ActionInProgressException,
+                              InsufficientRightsException,
+                              MalformedArgumentException,
+                              BadRequest,
+                              InsufficientStorage)
+
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -376,3 +380,16 @@ class TestBuildsLogic(CoprsTestCase):
 
         assert "has no active chroots" in str(error.value)
         assert len(self.c1.active_copr_chroots) == 0
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_create_new_from_upload_no_space_left(self):
+        def f_uploader(file_path):
+            raise OSError("[Errno 28] No space left on device")
+
+        with pytest.raises(InsufficientStorage) as error:
+            BuildsLogic.create_new_from_upload(self.u1, self.c1, f_uploader,
+                                               "fake.src.rpm",
+                                               chroot_names=["fedora-18-x86_64"],
+                                               copr_dirname=None)
+        assert "Can not create storage directory for uploaded file" in str(error.value)
+        assert "[Errno 28] No space left on device" in str(error.value)
