@@ -52,6 +52,7 @@ BuildRequires: python3-retask
 BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
 BuildRequires: python3-tabulate
+BuildRequires: modulemd-tools >= 0.4
 
 Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
@@ -88,6 +89,7 @@ Requires:   python3-tabulate
 Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
+Requires:   modulemd-tools >= 0.4
 
 Requires(post): systemd
 Requires(preun): systemd

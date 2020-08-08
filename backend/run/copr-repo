@@ -130,9 +130,8 @@ def filter_existing(opts, subdirs):
 
 
 def run_createrepo(opts):
-    createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                      '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8',
-                      opts.directory]
+    createrepo_cmd = ['/usr/bin/createrepo_mod', opts.directory, '--database', '--ignore-lock',
+                      '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8']
 
     if "epel-5" in opts.directory or "rhel-5" in opts.directory:
         # this is because rhel-5 doesn't know sha256
@@ -257,16 +256,6 @@ def add_appdata(opts):
     # fix them, so that lighttpd could serve appdata dir
     run_cmd(['chmod', '-R', '+rX', os.path.join(path, 'appdata')], opts)
 
-def add_modular_metadata(opts):
-    if not os.path.exists(os.path.join(opts.directory, "modules.yaml")):
-        return
-    run_cmd(
-        ["/usr/bin/modifyrepo_c",
-         "--mdtype", "modules",
-         "--compress-type", "gz",
-         os.path.join(opts.directory, 'modules.yaml'),
-         os.path.join(opts.directory, 'repodata')], opts)
-
 
 def delete_builds(opts):
     # To avoid race conditions, remove the directories _after_ we have
@@ -340,7 +329,6 @@ def main_locked(opts, batch, log):
     # TODO: racy, these info aren't available for some time, once it is
     # possible we should move those two things before 'delete_builds' call.
     add_appdata(opts)
-    add_modular_metadata(opts)
 
     # while we still hold the lock, notify others we processed their task
     batch.commit()

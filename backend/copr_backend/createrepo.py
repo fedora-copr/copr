@@ -109,13 +109,6 @@ INCLUDE_ICONS = \
 {packages_dir}/repodata
 """
 
-INCLUDE_MODULES = \
-    """/usr/bin/modifyrepo_c \
---mdtype modules \
---compress-type gz \
-{packages_dir}/modules.yaml \
-{packages_dir}/repodata
-"""
 
 def add_appdata(path, username, projectname, lock=None):
     out = ""
@@ -160,14 +153,6 @@ def add_appdata(path, username, projectname, lock=None):
     return out
 
 
-def add_modules(path):
-    if os.path.exists(os.path.join(path, "modules.yaml")):
-        return run_cmd_unsafe(
-            INCLUDE_MODULES.format(packages_dir=path), os.path.join(path, "createrepo.lock")
-        )
-    return ""
-
-
 def createrepo(path, username, projectname, devel=False, base_url=None):
     """
     Creates repodata.  Depending on the "auto_createrepo" parameter it either
@@ -185,8 +170,7 @@ def createrepo(path, username, projectname, devel=False, base_url=None):
     if not devel:
         out_cr = createrepo_unsafe(path)
         out_ad = add_appdata(path, username, projectname)
-        out_md = add_modules(path)
-        return "\n".join([out_cr, out_ad, out_md])
+        return "\n".join([out_cr, out_ad])
 
     # Automatic createrepo disabled.  Even so, we still need to createrepo in
     # special "devel" directory so we can later build packages against it.
