@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.102
+Version:    1.103
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -236,6 +236,13 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.103-1
+- fix APIv3 build deletion
+- warn about deprecated APIv1
+- fix v2 client is_a_group_project usage
+- show obsolete warning on all APIv1 and APIv2 pages
+- more effective query of packages with their latest builds
+
 * Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.102-1
 - fix large recursion problem
 - enable deleting multiple builds from cli
