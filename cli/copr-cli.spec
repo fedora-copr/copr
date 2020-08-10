@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.87
+Version:    1.88
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -123,6 +123,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.88-1
+- add command to list all builds of a project
+- more effective query of packages with their latest builds
+- point docs to the correct Fedora Copr instances
+
 * Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 1.87-1
 - enable deleting multiple builds from cli
 
