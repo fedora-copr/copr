@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.134
+Version:    1.135
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -227,6 +227,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.135-1
+- prioritize all non-background jobs
+- fix up libmodulemd dependency
+
 * Fri Jun 19 2020 Pavel Raiskup <praiskup@redhat.com> 1.134-1
 - fix copr-repo to work with absolute paths
 - automatically batch the createrepo requests
