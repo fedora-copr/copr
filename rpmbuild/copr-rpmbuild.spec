@@ -18,7 +18,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.39
+Version: 0.40
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -259,6 +259,10 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 0.40-1
+- provide the "dynamic" %%buildtag
+- define config_opts['root'] mock config for make srpm method
+
 * Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 0.39-1
 - more work delegate to builder scripts from backend
 - don't delete the "old" .rpmnew files
