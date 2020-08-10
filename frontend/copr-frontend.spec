@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.166
+Version:    1.167
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -373,6 +373,22 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.167-1
+- catch OSError when srpm_storage is full
+- drop the duplicate jquery-ui.min.js reference from html layout
+- move to jQuery 3
+- drop redundant dependency on python3-flask-cache
+- more understandable permissions error messages
+- allow users to upvote or downvote projects
+- more understandable build state descriptions in web UI
+- add new overview tab showing starting builds
+- fix avatars for copr groups
+- validate package name input
+- more effective query of packages with their latest builds
+- return user-friedly error message for non-admin exceptions
+- admins can now create projects for others via API
+- fix up libmodulemd dependency
+
 * Thu Jun 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.166-1
 - show _all_ build-delete checkboxes when javascript is on
 - don't submit builds when there are no CoprChroot(s) assigned
