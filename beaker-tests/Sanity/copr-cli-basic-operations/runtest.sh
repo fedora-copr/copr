@@ -331,9 +331,9 @@ rlJournalStart
         cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
         cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
 
-        rlAssertEquals "Builds are empty" `cat $BUILDS` '[]'
-        rlAssertEquals "There is no latest build." `cat $LATEST_BUILD` 'null'
-        rlAssertEquals "And there is no latest succeeded build." `cat $LATEST_SUCCEEDED_BUILD` 'null'
+        rlAssertEquals "Builds are empty" "`cat $BUILDS`" '[]'
+        rlAssertEquals "There is no latest build." "`cat $LATEST_BUILD`" 'null'
+        rlAssertEquals "And there is no latest succeeded build." "`cat $LATEST_SUCCEEDED_BUILD`" 'null'
 
         TMP=`mktemp -d`
         # run the build and wait
