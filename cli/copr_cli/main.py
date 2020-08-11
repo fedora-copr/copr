@@ -675,7 +675,13 @@ class Commands(object):
 
     def action_get_package(self, args):
         ownername, projectname = self.parse_name(args.copr)
-        package = self.client.package_proxy.get(ownername=ownername, projectname=projectname, packagename=args.name)
+        package = self.client.package_proxy.get(
+            ownername=ownername,
+            projectname=projectname,
+            packagename=args.name,
+            with_latest_build=args.with_latest_build,
+            with_latest_succeeded_build=args.with_latest_succeeded_build,
+        )
         package = self._package_with_builds(package, args)
         print(json_dumps(package))
 

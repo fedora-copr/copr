@@ -61,15 +61,32 @@ def rename_fields(input):
     return output
 
 
+def get_arg_to_bool(argument):
+    """
+    Through GET, we send requests like '/?with_latest_build=True', so the
+    argument is passed down as "string".  But by default, as function argument,
+    the value may be boolean, too.
+    """
+    if not argument:
+        return argument
+    if argument in [True, "True", "true", 1, "1"]:
+        return True
+    return False
+
+
 @apiv3_ns.route("/package", methods=GET)
 @query_params()
-def get_package(ownername, projectname, packagename):
+def get_package(ownername, projectname, packagename,
+                with_latest_build=False, with_latest_succeeded_build=False):
+    with_latest_build = get_arg_to_bool(with_latest_build)
+    with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
+
     copr = get_copr(ownername, projectname)
     try:
         package = PackagesLogic.get(copr.main_dir.id, packagename)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
-    return flask.jsonify(to_dict(package))
+    return flask.jsonify(to_dict(package, with_latest_build, with_latest_succeeded_build))
 
 
 @apiv3_ns.route("/package/list/", methods=GET)
@@ -77,8 +94,9 @@ def get_package(ownername, projectname, packagename):
 @query_params()
 def get_package_list(ownername, projectname, with_latest_build=False,
                      with_latest_succeeded_build=False, **kwargs):
-    with_latest_build = with_latest_build != "False"
-    with_latest_succeeded_build = with_latest_succeeded_build != "False"
+
+    with_latest_build = get_arg_to_bool(with_latest_build)
+    with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
 
     copr = get_copr(ownername, projectname)
     packages = PackagesLogic.get_packages_with_latest_builds_for_dir(copr.main_dir.id, small_build=False)

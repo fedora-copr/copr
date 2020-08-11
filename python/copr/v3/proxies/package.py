@@ -6,13 +6,19 @@ from ..requests import Request, munchify, POST
 
 class PackageProxy(BaseProxy):
 
-    def get(self, ownername, projectname, packagename):
+    def get(self, ownername, projectname, packagename,
+            with_latest_build=False, with_latest_succeeded_build=False):
         """
         Return a package
 
         :param str ownername:
         :param str projectname:
         :param str packagename:
+        :param bool with_latest_build: The result will contain "builds" dictionary with the latest
+                                       submitted build of this particular package within the project
+        :param bool with_latest_succeeded_build: The result will contain "builds" dictionary with
+                                                 the latest successful build of this particular
+                                                 package within the project.
         :return: Munch
         """
         endpoint = "/package"
@@ -20,6 +26,8 @@ class PackageProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "packagename": packagename,
+            "with_latest_build": with_latest_build,
+            "with_latest_succeeded_build": with_latest_succeeded_build,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
