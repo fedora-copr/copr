@@ -170,11 +170,6 @@ developers only.
 %prep
 %setup -q
 
-%if %{with python3}
-rm -rf %{py3dir}
-cp -a . %{py3dir}
-%endif
-# with python3
 
 %build
 %if %{with python3}
