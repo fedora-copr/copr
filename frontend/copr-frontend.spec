@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.167
+Version:    1.168
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -373,6 +373,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.168-1
+- get-package API to support with_latest* args
+
 * Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.167-1
 - catch OSError when srpm_storage is full
 - drop the duplicate jquery-ui.min.js reference from html layout
