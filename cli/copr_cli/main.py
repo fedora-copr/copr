@@ -1,18 +1,32 @@
 # -*- coding: UTF-8 -*-
+
+# pylint: disable=too-many-lines
+
+import argparse
+import datetime
+import logging
 import os
 import re
 import subprocess
-
-import argparse
 import sys
-import datetime
 import time
-import six
-import simplejson
-import requests
 from collections import defaultdict
 
-import logging
+import six
+import pkg_resources
+import requests
+
+from copr import CoprClient
+import copr.exceptions as copr_exceptions
+from copr.v3 import (
+    Client, config_from_file, CoprException, CoprRequestException,
+    CoprNoConfigException, CoprConfigException, CoprNoResultException,
+)
+from copr.v3.pagination import next_page
+from .util import ProgressBar, json_dumps, serializable
+from .build_config import MockProfile
+
+
 if six.PY2:
     from urlparse import urljoin, urlparse
 else:
@@ -28,17 +42,6 @@ else:
 log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
-from copr import CoprClient
-import copr.exceptions as copr_exceptions
-
-from copr.v3 import (Client, config_from_file, CoprException, CoprRequestException, CoprNoConfigException,
-                     CoprConfigException, CoprNoResultException)
-from copr.v3.pagination import next_page
-
-from .util import ProgressBar, json_dumps, serializable
-from .build_config import MockProfile
-
-import pkg_resources
 
 ON_OFF_MAP = {
     'on': True,
