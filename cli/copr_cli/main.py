@@ -62,6 +62,22 @@ try:
 except NameError:
     pass
 
+
+class FrontendOutdatedCliException(Exception):
+    """
+    If Frontend is too old to process this cli request, error out with an
+    informative text rather than some ugly traceback.
+
+    :param minimal_version: string minimal copr-frontend version
+    """
+    def __init__(self, minimal_version):
+        super(FrontendOutdatedCliException, self).__init__(
+            "The Copr Frontend server you run against is older than {0}. "
+            "Please contact the server administrator and request "
+            "an update.".format(minimal_version)
+        )
+
+
 class Commands(object):
     def __init__(self, config_path):
         self.config_path = config_path or '~/.config/copr'
@@ -663,6 +679,10 @@ class Commands(object):
     def _package_with_builds(self, package, args):
         ownername, projectname = self.parse_name(args.copr)
         kwargs = {"ownername": ownername, "projectname": projectname, "packagename": package.name}
+
+        # Avoid raising a KeyError here
+        if not "builds" in package:
+            raise FrontendOutdatedCliException("1.167")
 
         # Keep output of copr-cli compatible with copr-cli <= 1.87.
         api_provided_builds = package["builds"]
@@ -1387,6 +1407,9 @@ def main(argv=sys.argv[1:]):
     except CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
+    except FrontendOutdatedCliException as e:
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.exit(5)
 
         # except Exception as e:
         # print "Error: {0}".format(e)

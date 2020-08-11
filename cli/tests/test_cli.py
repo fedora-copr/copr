@@ -6,7 +6,7 @@ from munch import Munch
 
 import copr
 from copr.exceptions import CoprUnknownResponseException, CoprBuildException
-from copr_cli.main import no_config_warning
+from copr_cli.main import no_config_warning, FrontendOutdatedCliException
 
 from cli_tests_lib import mock, MagicMock, config as mock_config
 
@@ -50,6 +50,16 @@ def test_error_keyboard_interrupt(config_from_file, build_proxy_get, capsys):
     stdout, stderr = capsys.readouterr()
     assert "Interrupted by user" in stderr
 
+@mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr_cli.main.config_from_file')
+def test_error_old_frontend(config_from_file, build_proxy_get, capsys):
+    config_from_file.return_value = mock_config
+    build_proxy_get.side_effect = FrontendOutdatedCliException("XXX")
+    with pytest.raises(SystemExit) as err:
+        main.main(argv=["status", "123"])
+    assert exit_wrap(err.value) == 5
+    _, stderr = capsys.readouterr()
+    assert "is older than XXX" in stderr
 
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
