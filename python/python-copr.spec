@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.104
+Version:    1.105
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -231,6 +231,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.105-1
+- drop a redundant %%py3dir use
+
 * Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.104-1
 - copr-cli API for get-package to support with_latest* args again
 
