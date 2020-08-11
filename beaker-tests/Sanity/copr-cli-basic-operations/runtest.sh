@@ -317,55 +317,6 @@ rlJournalStart
         ## Package listing
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
-        ## Test package listing attributes
-        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project5"
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project5 --name example --clone-url $COPR_HELLO_GIT"
-
-        BUILDS=`mktemp`
-        LATEST_BUILD=`mktemp`
-        LATEST_SUCCEEDED_BUILD=`mktemp`
-
-        # run the tests before build
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
-        cat $OUTPUT | jq '.builds' > $BUILDS
-        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
-        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
-
-        rlAssertEquals "Builds are empty" "`cat $BUILDS`" '[]'
-        rlAssertEquals "There is no latest build." "`cat $LATEST_BUILD`" 'null'
-        rlAssertEquals "And there is no latest succeeded build." "`cat $LATEST_SUCCEEDED_BUILD`" 'null'
-
-        TMP=`mktemp -d`
-        # run the build and wait
-        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/succeeded_example_build_id"
-
-        # This build should fail (but still we have to be able to create source
-        # RPM from git, so no artificial commit hashes here).  The commit hash
-        # 3b4bbd3b8fb7e220946171915e4f31db4542ab4e contains sources _before_ we
-        # added gcc to BuildRequires;  so on F30+ this build fails since there's
-        # no gcc compiler.
-        rlRun "copr-cli buildscm --clone-url $COPR_HELLO_GIT --commit 3b4bbd3b8fb7e220946171915e4f31db4542ab4e ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/failed_example_build_id"
-
-        # run the tests after build
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
-        cat $OUTPUT | jq '.builds' > $BUILDS
-        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
-        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
-
-        rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
-        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat $TMP/failed_example_build_id`
-        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat $TMP/succeeded_example_build_id`
-
-        # run the same tests for list-packages cmd and its first (should be the only one) result
-        rlRun "copr-cli list-packages ${NAME_PREFIX}Project5 --with-all-builds --with-latest-build --with-latest-succeeded-build | jq '.[0]' > $OUTPUT"
-        cat $OUTPUT | jq '.builds' > $BUILDS
-        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
-        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
-
-        rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
-        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat $TMP/failed_example_build_id`
-        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat $TMP/succeeded_example_build_id`
-
         ## test package building
         # create special repo for our test
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project6"
@@ -538,7 +489,6 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}Project2"
         cleanProject "${NAME_PREFIX}Project3"
         cleanProject "${NAME_PREFIX}Project4"
-        cleanProject "${NAME_PREFIX}Project5"
         cleanProject "${NAME_PREFIX}Project6"
         cleanProject "${NAME_PREFIX}Project7"
         cleanProject "${NAME_PREFIX}Project8"
