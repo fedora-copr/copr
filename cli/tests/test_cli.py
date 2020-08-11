@@ -604,38 +604,8 @@ class TestCreateBuild(object):
 
 @mock.patch('copr_cli.main.Commands.action_permissions_edit',
             new_callable=MagicMock())
-def test_edit_permissions_output(action):
-    def test_me(args, expected_output):
-        main.main(['edit-permissions'] + args)
-        args = action.call_args[0][0]
-        assert args.permissions == expected_output
-
-
-    with pytest.raises(SystemExit) as err:
-        main.main(['edit-permissions'])
-    assert err.value.code == 2
-    assert len(action.call_args_list) == 0
-
-    test_me(['some/project'], None)
-    test_me(
-        ['some/project', '--admin', 'a', '--admin', 'b'],
-        {'a': {'admin': 'approved'},
-         'b': {'admin': 'approved'}}
-    )
-    test_me(
-        ['some/project', '--admin', 'praiskup=nothing', '--admin', 'b'],
-        {'b': {'admin': 'approved'},
-         'praiskup': {'admin': 'nothing'}}
-    )
-    test_me(
-        ['some/project', '--builder', 'praiskup', '--admin', 'praiskup'],
-        {'praiskup': {'admin': 'approved', 'builder': 'approved'}}
-    )
-
-@mock.patch('copr_cli.main.Commands.action_permissions_edit',
-            new_callable=MagicMock())
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
-def test_edit_permissions_output(ocnfig, action):
+def test_edit_permissions_output(_config, action):
     def test_me(args, expected_output):
         main.main(['edit-permissions'] + args)
         args = action.call_args[0][0]
