@@ -7,7 +7,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.88
+Version:    1.89
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -123,6 +123,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.89-1
+- copr get-package supports with_latest* args again
+- testsuite fixes for el6
+- useful error message when new client runs against old frontend
+
 * Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.88-1
 - add command to list all builds of a project
 - more effective query of packages with their latest builds
