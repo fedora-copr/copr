@@ -664,9 +664,16 @@ class Commands(object):
         ownername, projectname = self.parse_name(args.copr)
         kwargs = {"ownername": ownername, "projectname": projectname, "packagename": package.name}
 
+        # Keep output of copr-cli compatible with copr-cli <= 1.87.
+        api_provided_builds = package["builds"]
+        del package["builds"]
+        for key in ["latest_succeeded", "latest"]:
+            if key in api_provided_builds:
+                package[key + "_build"] = api_provided_builds[key]
+
         if args.with_all_builds:
             builds = self.client.build_proxy.get_list(**kwargs)
-            package["builds"]["all"] = builds
+            package["builds"] = builds
 
         return package
 
