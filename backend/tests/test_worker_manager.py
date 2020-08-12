@@ -336,12 +336,12 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         assert self.workers() == [self.w1]
 
     def wait_field(self, worker, field):
-        for _ in range(0, 10):
+        for _ in range(0, 100):
             time.sleep(0.25)
             params = self.redis.hgetall(self.w0)
             if field in params:
                 return params
-        return params
+        raise Exception("Unsuccessful wait for {} in {}".format(worker, field))
 
     @pytest.mark.parametrize('fail', ['FAIL_STARTED_PID', 'FAIL_STARTED'])
     @patch('copr_backend.worker_manager.time.time')
