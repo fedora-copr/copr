@@ -16,7 +16,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name='copr-backend',
-    version="1.135",
+    version="1.136",
     description=__description__,
     long_description=long_description,
     author=__author__,

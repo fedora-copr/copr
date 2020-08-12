@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.135
+Version:    1.136
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -227,6 +227,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Aug 12 2020 Pavel Raiskup <praiskup@redhat.com> 1.136-1
+- testsuite: give more time to the slow Koji builders
+
 * Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 1.135-1
 - prioritize all non-background jobs
 - fix up libmodulemd dependency
