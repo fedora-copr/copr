@@ -143,48 +143,23 @@ def get_error_handler():
     return coprs_ns.UIErrorHandler()
 
 
-@app.errorhandler(404)
-@app.errorhandler(ObjectNotFound)
-def handle_404(error):
-    error_handler = get_error_handler()
-    return error_handler.handle_404(error)
-
-
+@app.errorhandler(400)
+@app.errorhandler(BadRequest)
+@app.errorhandler(MalformedArgumentException)
 @app.errorhandler(403)
 @app.errorhandler(AccessRestricted)
 @app.errorhandler(NonAdminCannotCreatePersistentProject)
 @app.errorhandler(NonAdminCannotDisableAutoPrunning)
-def handle_403(error):
-    error_handler = get_error_handler()
-    return error_handler.handle_403(error)
-
-
-@app.errorhandler(400)
-@app.errorhandler(BadRequest)
-@app.errorhandler(MalformedArgumentException)
-def handle_400(error):
-    error_handler = get_error_handler()
-    return error_handler.handle_400(error)
-
+@app.errorhandler(404)
+@app.errorhandler(ObjectNotFound)
 @app.errorhandler(409)
 @app.errorhandler(ConflictingRequest)
-def handle_409(error):
-    """ Handle the 409 nicely """
-    error_handler = get_error_handler()
-    return error_handler.handle_409(error)
-
 @app.errorhandler(500)
 @app.errorhandler(CoprHttpException)
-def handle_500(error):
-    error_handler = get_error_handler()
-    app.logger.error(error)
-    return error_handler.handle_500(error)
-
-
 @app.errorhandler(504)
-def handle_504(error):
+def handle_exceptions(error):
     error_handler = get_error_handler()
-    return error_handler.handle_504(error)
+    return error_handler.handle_error(error)
 
 
 app.jinja_env.trim_blocks = True

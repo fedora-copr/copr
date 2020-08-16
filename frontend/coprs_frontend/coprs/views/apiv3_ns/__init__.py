@@ -5,6 +5,7 @@ import sqlalchemy
 import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.exceptions import NotFound, GatewayTimeout
 from coprs import app
 from coprs.exceptions import (
     AccessRestricted,
@@ -27,32 +28,21 @@ DELETE = ["POST", "DELETE"]
 
 
 class APIErrorHandler(object):
-    def handle_409(self, error):
-        return self.handle_xxx(error)
-
-    def handle_404(self, error):
-        if isinstance(error, ObjectNotFound):
-            return self.respond(str(error), 404)
-        return self.respond("Such API endpoint doesn't exist", 404)
-
-    def handle_403(self, error):
-        return self.handle_xxx(error)
-
-    def handle_400(self, error):
-        return self.handle_xxx(error)
-
-    def handle_500(self, error):
-        if isinstance(error, InsufficientStorage):
-            return self.handle_xxx(error)
-        if isinstance(error, ActionInProgressException):
-            return self.handle_xxx(error)
-        return self.respond("Request wasn't successful, there is probably a bug in the API code.", 500)
-
-    def handle_504(self, error):
-        return self.respond("The API request timeouted", 504)
-
-    def handle_xxx(self, error):
-        return self.respond(self.message(error), error.code)
+    def handle_error(self, error):
+        # In the majority of cases, we want to return the message that was
+        # passed through an exception, but occasionally we want to redefine the
+        # message to some API-related one. Please try to keep it simple and
+        # do this only if necessary.
+        errors = {
+            NotFound: "Such API endpoint doesn't exist",
+            CoprHttpException: "Request wasn't successful, "
+                               "there is probably a bug in the API code.",
+            GatewayTimeout: "The API request timeouted",
+        }
+        message = self.message(error)
+        if error.__class__ in errors:
+            message = errors[error.__class__]
+        return self.respond(message, error.code)
 
     def respond(self, message, code):
         response = flask.jsonify(error=message)

@@ -3,6 +3,7 @@
 import flask
 
 from coprs.views.misc import (
+    generic_error,
     access_restricted,
     bad_request_handler,
     conflict_request_handler,
@@ -16,23 +17,20 @@ coprs_ns = flask.Blueprint("coprs_ns", __name__, url_prefix="/coprs")
 
 
 class UIErrorHandler(object):
-    def handle_409(self, error):
-        return conflict_request_handler(self.message(error))
-
-    def handle_404(self, error):
-        return page_not_found(self.message(error))
-
-    def handle_403(self, error):
-        return access_restricted(self.message(error))
-
-    def handle_400(self, error):
-        return bad_request_handler(self.message(error))
-
-    def handle_500(self, error):
-        return server_error_handler(self.message(error))
-
-    def handle_504(self, error):
-        return server_error_handler(self.message(error))
+    def handle_error(self, error):
+        # The most common error has their own custom error pages. When catching
+        # a new exception, try to keep it simple and just the the generic one.
+        # Create it's own view only if necessary.
+        error_views = {
+            400: bad_request_handler,
+            403: access_restricted,
+            404: page_not_found,
+            409: conflict_request_handler,
+        }
+        message = self.message(error)
+        if error.code in error_views:
+            return error_views[error.code](message)
+        return generic_error(self.message(error), error.code)
 
     def message(self, error):
         if isinstance(error, CoprHttpException):
