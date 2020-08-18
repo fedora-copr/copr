@@ -11,15 +11,15 @@ def slice_query(query, limit=100, offset=0):
     return query.limit(limit).offset(offset)
 
 def get_graph_parameters(type):
-    if type is "10min":
+    if type == "10min":
         # 24 hours with 10 minute intervals
         step = 600
         steps = 144
-    elif type is "30min":
+    elif type == "30min":
         # 24 hours with 30 minute intervals
         step = 1800
         steps = 48
-    elif type is "24h":
+    elif type == "24h":
         # 90 days with 24 hour intervals
         step = 86400
         steps = 90
