@@ -1411,7 +1411,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     which means that there's only one configuration at any time.
     """
 
-    id_ = db.Column('id', db.Integer, primary_key=True)
+    id = db.Column('id', db.Integer, primary_key=True)
 
     __table_args__ = (
         # For now we don't allow adding multiple CoprChroots having the same
@@ -1524,7 +1524,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                             name="build_chroot_mock_chroot_id_build_id_uniq"),
     )
 
-    id_ = db.Column('id', db.Integer, primary_key=True)
+    id = db.Column('id', db.Integer, primary_key=True)
 
     # The copr_chrot field needs to be nullable because we don't remove
     # BuildChroot when we delete CoprChroot.

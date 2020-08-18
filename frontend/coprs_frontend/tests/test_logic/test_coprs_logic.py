@@ -207,7 +207,7 @@ class TestCoprChrootsLogic(CoprsTestCase):
         assert len(self.c2.copr_chroots) == 2
         assert self.mc3 in self.c2.mock_chroots
         old_copr_chroot = self.c2.copr_chroots[1]
-        old_bch_ids = [bch.id_ for bch in old_copr_chroot.build_chroots]
+        old_bch_ids = [bch.id for bch in old_copr_chroot.build_chroots]
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
         assert len(self.c2.copr_chroots) == 1
         assert self.mc3 not in self.c2.mock_chroots
@@ -218,7 +218,7 @@ class TestCoprChrootsLogic(CoprsTestCase):
 
         new_copr_chroot = self.c2.copr_chroots[1]
         assert old_copr_chroot != new_copr_chroot
-        assert old_bch_ids == [bch.id_ for bch in new_copr_chroot.build_chroots]
+        assert old_bch_ids == [bch.id for bch in new_copr_chroot.build_chroots]
 
 
 class TestPinnedCoprsLogic(CoprsTestCase):

@@ -342,7 +342,7 @@ class ProjectForking(object):
         fbuild.result_dir = '{:08}'.format(fbuild.id)
         fbuild.build_chroots = [
             self.create_object(models.BuildChroot, c,
-                               exclude=["id_", "build_id", "result_dir",
+                               exclude=["id", "build_id", "result_dir",
                                         "copr_chroot_id"])
             for c in build_chroots
         ]
