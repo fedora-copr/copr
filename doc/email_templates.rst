@@ -36,6 +36,7 @@ Disable chroots
     - fedora-<VERSION>-ppc64le
     - fedora-<VERSION>-aarch64
     - fedora-<VERSION>-armhfp
+    - fedora-<VERSION>-s390x
 
     Additionally, according to Outdated chroots removal policy [2], Copr is
     going to preserve existing build results in those chroots for another
