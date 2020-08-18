@@ -124,9 +124,9 @@ rlJournalStart
 
         # Test URL submit
         PROJECT=module-testmoduleurl-beakertest-$DATE
-        # meh, the testmodule is hardwired to f30 so we can not simply rely on
+        # meh, the testmodule is hardwired to f33 so we can not simply rely on
         # $CHROOT variable
-        copr-cli create $PROJECT --chroot=fedora-30-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386
+        rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
         rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 600 $PACKAGES
