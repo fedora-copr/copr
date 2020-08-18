@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.168
+Version:    1.169
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -373,6 +373,10 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Aug 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.169-1
+- fix rawhide-to-release command
+- simplify API and UI error handlers
+
 * Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.168-1
 - get-package API to support with_latest* args
 
