@@ -53,6 +53,8 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         .options(joinedload('copr_chroots').joinedload('mock_chroot'))
     )
 
+    mock_chroot.comment = mock_rawhide_chroot.comment
+
     for copr in coprs_query:
         print("Handling builds in copr '{}', chroot '{}'".format(
             copr.full_name, mock_rawhide_chroot.name))
