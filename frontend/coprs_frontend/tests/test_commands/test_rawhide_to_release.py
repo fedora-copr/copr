@@ -7,8 +7,9 @@ import pytest
 from coprs import db, models
 from coprs.logic import coprs_logic
 from tests.coprs_test_case import CoprsTestCase, new_app_context
-from commands.branch_fedora import branch_fedora_function
 from copr_common.enums import StatusEnum
+# pylint: disable=wrong-import-order
+from commands.branch_fedora import branch_fedora_function
 
 
 @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")

@@ -8,6 +8,19 @@ from coprs import models
 from coprs.logic import coprs_logic, actions_logic, builds_logic, packages_logic
 
 
+def option_retry_forked(f):
+    """ Shortcut to --retry-forked option definition, to avoid C&P """
+    method = click.option(
+        "--retry-forked/--no-retry-forked",
+        default=False,
+        help=(
+            "Generate actions for backend also for already forked builds, useful "
+            "e.g. when previous run of this command failed."
+        )
+    )
+    return method(f)
+
+
 @click.command()
 @click.argument(
     "rawhide_chroot",
@@ -17,14 +30,7 @@ from coprs.logic import coprs_logic, actions_logic, builds_logic, packages_logic
     "dest_chroot",
     required=True
 )
-@click.option(
-    "--retry-forked/--no-retry-forked",
-    default=False,
-    help=(
-        "Generate actions for backend also for already forked builds, useful "
-        "e.g. when previous run of this command failed."
-    )
-)
+@option_retry_forked
 def rawhide_to_release(rawhide_chroot, dest_chroot, retry_forked):
     """
     Branching

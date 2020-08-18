@@ -1,8 +1,12 @@
 import click
 from coprs.logic import coprs_logic
 
+# pylint: disable=wrong-import-order
 from commands.create_chroot import create_chroot_function
-from commands.rawhide_to_release import rawhide_to_release_function
+from commands.rawhide_to_release import (
+    option_retry_forked,
+    rawhide_to_release_function,
+)
 
 
 @click.command()
@@ -10,14 +14,7 @@ from commands.rawhide_to_release import rawhide_to_release_function
     "fedora_version",
     type=int
 )
-@click.option(
-    "--retry-forked/--no-retry-forked",
-    default=False,
-    help=(
-        "Generate actions for backend also for already forked builds, useful "
-        "e.g. when previous run of this command failed."
-    )
-)
+@option_retry_forked
 @click.option(
     "--dist-git-branch", "-b", "branch",
     help="Branch name for this set of new chroots"
