@@ -27,6 +27,13 @@ def branch_fedora(fedora_version, retry_forked, branch=None):
     Branch fedora-rawhide-* chroots to fedora-N* and execute rawhide-to-release
     on them
     """
+    branch_fedora_function(fedora_version, retry_forked, branch)
+
+
+def branch_fedora_function(fedora_version, retry_forked, branch=None):
+    """
+    Logic for branch_fedora, separated for the purpose of unit-testing.
+    """
     rawhide_chroots = coprs_logic.MockChrootsLogic.get_from_name(
         "fedora-rawhide",
         active_only=True,

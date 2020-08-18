@@ -359,7 +359,7 @@ def foo():
         self.p2 = models.Package(
             copr=self.c2, copr_dir=self.c2_dir, name="whatsupthere-world", source_type=0)
         self.p3 = models.Package(
-            copr=self.c2, copr_dir=self.c3_dir, name="goodbye-world", source_type=0)
+            copr=self.c3, copr_dir=self.c3_dir, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
             copr=self.c1, copr_dir=self.c1_dir, package=self.p1,

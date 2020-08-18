@@ -574,7 +574,9 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
 
 class BranchesLogic(object):
     @classmethod
-    def get_or_create(cls, name, session=db.session):
+    def get_or_create(cls, name, session=None):
+        if not session:
+            session = db.session
         item = session.query(models.DistGitBranch).filter_by(name=name).first()
         if item:
             return item
