@@ -15,7 +15,7 @@ trap cleanup EXIT
 
 ./build_aux/check-alembic-revisions
 
-COVPARAMS=(--cov-report term-missing --cov run --cov coprs)
+COVPARAMS=(--cov-report term-missing --cov run --cov coprs --cov commands)
 
 common_path=$(readlink -f ../common)
 export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
