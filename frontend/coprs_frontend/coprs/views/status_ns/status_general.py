@@ -15,14 +15,31 @@ def inject_common_blueprint_variables():
 @status_ns.route("/")
 @status_ns.route("/pending/")
 def pending():
-    tasks = builds_logic.BuildsLogic.get_pending_build_tasks(background=False).all()
+    rpm_tasks = builds_logic.BuildsLogic.get_pending_build_tasks(background=False).all()
     bg_tasks_cnt = builds_logic.BuildsLogic.get_pending_build_tasks(background=True).count()
+    tasks = list(zip(["rpm"] * len(rpm_tasks),
+                     [x.build.submitted_on for x in rpm_tasks],
+                     rpm_tasks))
+    srpm_tasks = builds_logic.BuildsLogic.get_pending_srpm_build_tasks(background=False).all()
+    bg_tasks_cnt += builds_logic.BuildsLogic.get_pending_srpm_build_tasks(background=True).count()
+    srpm_tasks = list(zip(["srpm"] * len(srpm_tasks),
+                          [x.submitted_on for x in srpm_tasks],
+                          srpm_tasks))
+    tasks.extend(srpm_tasks)
     return render_status("pending", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
 @status_ns.route("/running/")
 def running():
-    tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).all()
+    rpm_tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).all()
+    tasks = list(zip(["rpm"] * len(rpm_tasks),
+                     [x.started_on for x in rpm_tasks],
+                     rpm_tasks))
+    srpm_tasks = builds_logic.BuildsLogic.get_srpm_build_tasks(StatusEnum("running")).all()
+    srpm_tasks = list(zip(["srpm"] * len(srpm_tasks),
+                          [x.submitted_on for x in srpm_tasks],
+                          srpm_tasks))
+    tasks.extend(srpm_tasks)
     return render_status("running", tasks=tasks)
 
 
@@ -30,12 +47,23 @@ def running():
 def importing():
     tasks = builds_logic.BuildsLogic.get_build_importing_queue(background=False).all()
     bg_tasks_cnt = builds_logic.BuildsLogic.get_build_importing_queue(background=True).count()
+    tasks = list(zip(["rpm"] * len(tasks),
+                     [x.submitted_on for x in tasks],
+                     tasks))
     return render_status("importing", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
 @status_ns.route("/starting/")
 def starting():
     tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("starting")).all()
+    tasks = list(zip(["rpm"] * len(tasks),
+                     [x.build.submitted_on for x in tasks],
+                     tasks))
+    srpm_tasks = builds_logic.BuildsLogic.get_srpm_build_tasks(StatusEnum("starting")).all()
+    srpm_tasks = list(zip(["srpm"] * len(srpm_tasks),
+                          [x.submitted_on for x in srpm_tasks],
+                          srpm_tasks))
+    tasks.extend(srpm_tasks)
     return render_status("starting", tasks=tasks)
 
 

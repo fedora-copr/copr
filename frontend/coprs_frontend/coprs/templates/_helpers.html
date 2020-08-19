@@ -689,28 +689,38 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
         </tr>
       </thead>
       <tbody>
-        {% for task in tasks %}
-          {% set build_chroot = task if type == 'importing' else task.build %}
+        {% for task_type, time, task in tasks %}
+          {% set build_chroot = task if type == 'importing' or task_type == 'srpm' else task.build %}
           <tr>
-            {% if type != 'running' %}
-              <td data-order="{{ build_chroot.submitted_on }}">{{ build_chroot.submitted_on | time_ago }}</td>
-            {% else %}
-              <td data-order="{{ build_chroot.started_on }}">{{ build_chroot.started_on | time_ago }}</td>
-            {% endif %}
-              <td data-order="{{ copr_name(build_chroot.copr) }}">
-                <a href="{{ copr_details_href(build_chroot.copr) }}">
-                  {{ copr_name(build_chroot.copr) }}
-                </a>
-              </td>
-              <td data-order="{{ build_chroot.id }}">
-                <a href="{{ build_href(build_chroot) }}">
-                  {{ build_chroot.id }}
-                </a>
-              </td>
+            <td data-order="{{ time }}">{{ time | time_ago }}</td>
+            <td data-order="{{ copr_name(build_chroot.copr) }}">
+              <a href="{{ copr_details_href(build_chroot.copr) }}">
+                {{ copr_name(build_chroot.copr) }}
+              </a>
+            </td>
+            <td data-order="{{ build_chroot.id }}">
+              <a href="{{ build_href(build_chroot) }}">
+                {{ build_chroot.id }}
+              </a>
+            </td>
             {% if type != 'importing' %}
-              <td data-order="{{ task.build.package.name }}">{{ task.build.package.name }} </td>
-              <td data-order="{{ task.build.pkg_version }}">{{ task.build.pkg_version }} </td>
-              <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
+              {% if task_type == 'srpm' %}
+                {% if (task.package is not none) and (task.package.name is not none) %}
+                  <td data-order="{{ task.package.name }}">{{ task.package.name }} </td>
+                {% else %}
+                  <td data-order="-">-</td>
+                {% endif %}
+                {% if task.pkg_version is not none %}
+                  <td data-order="{{ task.pkg_version }}">{{ task.pkg_version }} </td>
+                {% else %}
+                  <td data-order="-">-</td>
+                {% endif %}
+                <td data-order="srpm build">srpm build</td>
+              {% else %}
+                <td data-order="{{ task.build.package.name }}">{{ task.build.package.name }} </td>
+                <td data-order="{{ task.build.pkg_version }}">{{ task.build.pkg_version }} </td>
+                <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
+              {% endif %}
             {% endif %}
           </tr>
         {% endfor %}

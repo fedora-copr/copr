@@ -253,9 +253,12 @@ class ComplexLogic(object):
     @staticmethod
     def get_queue_sizes():
         importing = BuildsLogic.get_build_importing_queue(background=False).count()
-        pending = BuildsLogic.get_pending_build_tasks(background=False).count()
-        running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
-        starting = BuildsLogic.get_build_tasks(StatusEnum("starting")).count()
+        pending = BuildsLogic.get_pending_build_tasks(background=False).count() +\
+            BuildsLogic.get_pending_srpm_build_tasks(background=False).count()
+        running = BuildsLogic.get_build_tasks(StatusEnum("running")).count() +\
+            BuildsLogic.get_srpm_build_tasks(StatusEnum("running")).count()
+        starting = BuildsLogic.get_build_tasks(StatusEnum("starting")).count() +\
+            BuildsLogic.get_srpm_build_tasks(StatusEnum("starting")).count()
 
         return dict(
             importing=importing,
