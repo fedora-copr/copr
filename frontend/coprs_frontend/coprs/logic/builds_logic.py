@@ -35,6 +35,7 @@ from coprs.exceptions import (
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic.actions_logic import ActionsLogic
+from coprs.logic.dist_git_logic import DistGitLogic
 from coprs.models import BuildChroot
 from .coprs_logic import MockChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
@@ -495,6 +496,24 @@ class BuildsLogic(object):
 
         return cls.create_new(user, copr, source_type, json.dumps(source_dict),
                               chroot_names, copr_dirname=copr_dirname, **kwargs)
+
+    @classmethod
+    def create_new_from_distgit(cls, user, copr, package_name,
+                                distgit_name=None, distgit_namespace=None,
+                                committish=None, chroot_names=None,
+                                copr_dirname=None, **build_options):
+        """ Request build of package from DistGit repository """
+        source_type = helpers.BuildSourceEnum("distgit")
+        source_dict = {
+            "clone_url": DistGitLogic.get_clone_url(distgit_name, package_name,
+                                                    distgit_namespace),
+        }
+        if committish:
+            source_dict["committish"] = committish
+
+        return cls.create_new(
+            user, copr, source_type, json.dumps(source_dict), chroot_names,
+            copr_dirname=copr_dirname, **build_options)
 
     @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,

@@ -11,8 +11,7 @@ from coprs.logic import builds_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import (login_required, req_with_copr,
-        req_with_copr, send_build_icon)
+from coprs.views.misc import (login_required, req_with_copr, send_build_icon)
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (
@@ -182,6 +181,51 @@ def process_new_build_scm(copr, add_view, url_on_success):
     form = forms.BuildFormScmFactory(copr.active_chroots)()
     return process_new_build(copr, form, factory, render_add_build_scm, add_view, url_on_success)
 
+################################ DistGit builds ################################
+
+@coprs_ns.route("/<username>/<coprname>/add_build_distgit/")
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_distgit/")
+@login_required
+@req_with_copr
+def copr_add_build_distgit(copr, form=None):
+    """ GET request for distgit build """
+    return render_add_build_distgit(
+        copr, form, view='coprs_ns.copr_new_build_distgit')
+
+@coprs_ns.route("/<username>/<coprname>/new_build_distgit/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_distgit/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_distgit(copr):
+    """ POST request for distgit build """
+    view = 'coprs_ns.copr_new_build_distgit'
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
+    return process_new_build_distgit(copr, view, url_on_success)
+
+def render_add_build_distgit(copr, form, view, package=None):
+    """ Render the distgit build form """
+    if not form:
+        # pylint: disable=not-callable
+        form = forms.BuildFormDistGitSimpleFactory(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/distgit.html",
+                                 copr=copr, form=form, view=view, package=package)
+
+def process_new_build_distgit(copr, add_view, url_on_success):
+    """ Handle the POST data from distgit build form """
+    def factory(**build_options):
+        BuildsLogic.create_new_from_distgit(
+            flask.g.user,
+            copr,
+            package_name=form.package_name.data,
+            distgit_name=form.distgit.data,
+            distgit_namespace=form.namespace.data,
+            committish=form.committish.data,
+            chroot_names=form.selected_chroots,
+            **build_options
+        )
+    # pylint: disable=not-callable
+    form = forms.BuildFormDistGitSimpleFactory(copr.active_chroots)()
+    return process_new_build(copr, form, factory, render_add_build_distgit, add_view, url_on_success)
 
 ################################ PyPI builds ################################
 

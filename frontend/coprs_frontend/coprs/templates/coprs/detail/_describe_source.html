@@ -66,4 +66,14 @@
   <dd>{{ source_json_dict["gem_name"] }}</dd>
   {% endif %}
 
+{% if source_type_text == "distgit" %}
+  {% for info in ["distgit", "committish", "clone_url"] %}
+  {% if source_json_dict.get(info) %}
+  <dt>{{ info.title() }}:</dt>
+  <dd>{{ source_json_dict[info] }}</dd>
+  {% endif %}
+  {% endfor %}
+{% endif %}
+
+
 {% endmacro %}

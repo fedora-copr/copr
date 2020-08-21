@@ -6,6 +6,8 @@
 %global with_python2 1
 %endif
 
+%global min_python_copr_version 1.105.1.dev
+
 Name:       copr-cli
 Version:    1.89
 Release:    1%{?dist}
@@ -28,7 +30,7 @@ BuildRequires: libxslt
 BuildRequires: util-linux
 
 %if %{with python3}
-Requires:      python3-copr >= 1.89
+Requires:      python3-copr >= %min_python_copr_version
 Requires:      python3-jinja2
 Requires:      python3-simplejson
 Requires:      python3-humanize
@@ -36,7 +38,7 @@ Requires:      python3-koji
 
 Recommends:    python3-progress
 
-BuildRequires: python3-copr >= 1.89
+BuildRequires: python3-copr >= %min_python_copr_version
 BuildRequires: python3-devel
 BuildRequires: python3-jinja2
 BuildRequires: python3-humanize
@@ -45,13 +47,13 @@ BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 BuildRequires: python3-munch
 %else
-Requires:      python-copr >= 1.89
+Requires:      python-copr >= %min_python_copr_version
 Requires:      python-jinja2
 Requires:      python-simplejson
 Requires:      python-humanize
 
 BuildRequires: pytest
-BuildRequires: python-copr >= 1.89
+BuildRequires: python-copr >= %min_python_copr_version
 BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-humanize

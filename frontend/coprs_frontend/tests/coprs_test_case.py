@@ -24,6 +24,9 @@ from unittest import mock
 
 class CoprsTestCase(object):
 
+    # made available by TransactionDecorator
+    test_client = None
+
     original_config = coprs.app.config.copy()
 
     @classmethod
@@ -706,7 +709,13 @@ def foo():
             clone_package_uri='some/other/uri/{pkgname}/git',
             priority='120',
         )
-        self.db.session.add_all([self.dg1, self.dg2])
+        self.dg3 = models.DistGitInstance(
+            name='namespaced',
+            clone_url='https://namespaced.org',
+            clone_package_uri='some/other/uri/{namespace}/{pkgname}/git',
+            priority='30',
+        )
+        self.db.session.add_all([self.dg1, self.dg2, self.dg3])
 
     @pytest.fixture
     def f_copr_chroots_assigned(self, f_users, f_coprs, f_mock_chroots,

@@ -4,6 +4,7 @@
    copr_package_form_pypi,
    copr_package_form_rubygems,
    copr_package_form_custom,
+   copr_package_form_distgit,
 with context %}
 
 
@@ -19,6 +20,7 @@ with context %}
   {# kwargs: pass package_name='...' when editing the package #}
   <ul class="nav nav-tabs nav-tabs-pf">
     {{ nav_element("scm", "SCM", copr_url(view, copr, source_type_text="scm", **kwargs)) }}
+    {{ nav_element("distgit", "DistGit", copr_url(view, copr, source_type_text="distgit", **kwargs)) }}
     {{ nav_element("pypi", "PyPI", copr_url(view, copr, source_type_text="pypi", **kwargs)) }}
     {{ nav_element("rubygems", "RubyGems", copr_url(view, copr, source_type_text="rubygems", **kwargs)) }}
     {{ nav_element("custom", "Custom", copr_url(view, copr, source_type_text="custom", **kwargs)) }}
@@ -28,6 +30,9 @@ with context %}
 {% macro show_package_form(source_type_text, package) %}
   {% if source_type_text == "scm" %}
     {{ copr_package_form_scm(form_scm, view, copr, package) }}
+
+  {% elif source_type_text == "distgit" %}
+    {{ copr_package_form_distgit(form_distgit, view, copr, package) }}
 
   {% elif source_type_text == "pypi" %}
     {{ copr_package_form_pypi(form_pypi, view, copr, package) }}

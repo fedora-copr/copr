@@ -1,3 +1,4 @@
+import errno
 import logging
 import munch
 import subprocess
@@ -25,6 +26,7 @@ class SourceType:
     RUBYGEMS = 6
     SCM = 8
     CUSTOM = 9
+    DISTGIT = 10
 
 
 def cmd_debug(result):
@@ -272,3 +274,41 @@ class GentlyTimeoutedPopen(subprocess.Popen):
     def done(self):
         for timer in self.timers:
             timer.cancel()
+
+def git_clone_url_basepath(clone_url):
+    """
+    Given the clone URL, get the last part of the URL, without the git suffix.
+    """
+    last_part = clone_url.rstrip("/").split("/")[-1]
+    if last_part.endswith(".git"):
+        return last_part[:-4]
+    return last_part
+
+def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
+    """
+    Clone given URL (SCM_TYPE=svn/git) into REPO_PATH, and checkout the
+    COMMITTISH reference.
+    """
+    if scm_type == 'git':
+        clone_cmd = ['git', 'clone', url,
+                     repo_path, '--depth', '500',
+                     '--no-single-branch']
+    else:
+        clone_cmd = ['git', 'svn', 'clone', url,
+                     repo_path]
+
+    try:
+        run_cmd(clone_cmd)
+    except RuntimeError as e:
+        log.error(str(e))
+        if scm_type == 'git':
+            # re-try with deep-full clone
+            run_cmd(['git', 'clone', url, repo_path])
+        else:
+            raise e
+
+    if not committish:
+        committish = "master"
+
+    checkout_cmd = ['git', 'checkout', committish]
+    run_cmd(checkout_cmd, cwd=repo_path)

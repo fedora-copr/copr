@@ -3,7 +3,6 @@ import sqlalchemy
 
 from copr_common.enums import StatusEnum
 from coprs import db, app
-from coprs import helpers
 from coprs import models
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
@@ -16,7 +15,6 @@ from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
-import json
 import logging
 
 log = logging.getLogger(__name__)
@@ -105,12 +103,8 @@ def get_build_record(task, short=False):
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
-            "git_repo": task.build.package.dist_git_repo,
+            "git_repo": task.build.package.dist_git_clone_url,
             "git_hash": task.git_hash,
-            "source_type": helpers.BuildSourceEnum("scm"),
-            "source_json": json.dumps(
-                {'clone_url': task.build.package.dist_git_clone_url, 'committish': task.git_hash}),
-            "fetch_sources_only": True,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "uses_devel_repo": task.build.copr.devel_mode,

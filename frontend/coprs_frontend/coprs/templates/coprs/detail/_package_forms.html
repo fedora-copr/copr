@@ -115,6 +115,29 @@
 {% endmacro %}
 
 
+{% macro copr_package_form_distgit(form, view, copr, package) %}
+  {{ copr_package_form_begin(form, view, copr, package) }}
+
+  {{ render_field(form.distgit) }}
+  {{ render_field(form.committish) }}
+  {{ render_field(form.namespace) }}
+
+  {{ render_generic_pkg_form(form) }}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="textInput-markup">
+      Auto-rebuild
+    </label>
+    <div class="col-sm-10">
+      <input type="checkbox" name="webhook_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
+      Auto-rebuild the package on commits/PRs (currently supported only for
+      fedora distgit packages) | See also
+      <a href="{{ copr_url('coprs_ns.copr_integrations', copr) }}">Pagure Integration</a>
+    </div>
+  </div>
+  {{ copr_package_form_end(form, package, 'disgit') }}
+{% endmacro %}
+
+
 {% macro copr_package_form_scm(form, view, copr, package) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
 

@@ -186,6 +186,30 @@ def create_from_scm():
         )
     return process_creating_new_build(copr, form, create_new_build)
 
+@apiv3_ns.route("/build/create/distgit", methods=POST)
+@api_login_required
+def create_from_distgit():
+    """
+    route for v3.proxies.create_from_distgit() call
+    """
+    copr = get_copr()
+    data = rename_fields(get_form_compatible_data())
+    # pylint: disable=not-callable
+    form = forms.BuildFormDistGitSimpleFactory(copr.active_chroots)(data, meta={'csrf': False})
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_distgit(
+            flask.g.user,
+            copr,
+            package_name=form.package_name.data,
+            distgit_name=form.distgit.data,
+            distgit_namespace=form.namespace.data,
+            committish=form.committish.data,
+            chroot_names=form.selected_chroots,
+            copr_dirname=form.project_dirname.data,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
 
 @apiv3_ns.route("/build/create/pypi", methods=POST)
 @api_login_required

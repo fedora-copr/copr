@@ -1910,15 +1910,28 @@ class DistGitInstance(db.Model):
     # e.g. 'https://src.fedoraproject.org'
     clone_url = db.Column(db.String(100), nullable=False)
 
-    # e.g. 'rpms/{pkgname}', needs to contain {pkgname} to be expanded later
+    # e.g. 'rpms/{pkgname}', needs to contain {pkgname} to be expanded later,
+    # may contain '{namespace}'.
     clone_package_uri = db.Column(db.String(100), nullable=False)
 
     # for UI form ordering, higher number means higher priority
     priority = db.Column(db.Integer, default=100, nullable=False)
 
-    def package_clone_url(self, pkgname):
+    def package_clone_url(self, pkgname, namespace=None):
+        """
+        Get the right git clone url for the package hosted in this dist git
+        instance.
+        """
         url = '/'.join([self.clone_url, self.clone_package_uri])
-        return url.format(pkgname=pkgname)
+        try:
+            if namespace:
+                return url.format(pkgname=pkgname, namespace=namespace)
+
+            return url.format(pkgname=pkgname)
+        except KeyError as k:
+            raise KeyError("DistGit '{}' requires {} specified".format(
+                self.name, k
+            ))
 
 
 class CancelRequest(db.Model):

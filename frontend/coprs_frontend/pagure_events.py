@@ -23,7 +23,10 @@ from coprs import helpers
 
 from urllib.parse import urlparse
 
-SCM_SOURCE_TYPE = helpers.BuildSourceEnum("scm")
+SUPPORTED_SOURCE_TYPES = [
+    helpers.BuildSourceEnum("scm"),
+    helpers.BuildSourceEnum("distgit"),
+]
 
 log = logging.getLogger(__name__)
 if os.getenv('PAGURE_EVENTS_TESTONLY'):
@@ -79,7 +82,7 @@ class ScmPackage(object):
     def get_candidates_for_rebuild(cls, clone_url):
         rows = models.Package.query \
             .join(models.CoprDir) \
-            .filter(models.Package.source_type == SCM_SOURCE_TYPE) \
+            .filter(models.Package.source_type.in_(SUPPORTED_SOURCE_TYPES)) \
             .filter(models.Package.webhook_rebuild) \
             .filter(models.CoprDir.main) \
             .filter(models.Package.source_json.ilike('%' + clone_url + '%'))

@@ -318,6 +318,18 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
     @requires_api_auth
+    def action_build_distgit_simple(self, args):
+        """ build-distgit method """
+        data = {
+            "packagename": args.pkgname,
+            "distgit": args.instance,
+            "namespace": args.namespace,
+            "committish": args.committish,
+        }
+        return self.process_build(
+            args, self.client.build_proxy.create_from_distgit, data)
+
+    @requires_api_auth
     def action_build_rubygems(self, args):
         """
         Method called when the 'buildgem' action has been selected by the user.
@@ -650,6 +662,26 @@ class Commands(object):
             package = self.client.package_proxy.add(ownername, projectname, args.name, "scm", data)
         else:
             package = self.client.package_proxy.edit(ownername, projectname, args.name, "scm", data)
+        print("Create or edit operation was successful.")
+
+    @requires_api_auth
+    def action_add_or_edit_package_distgit(self, args):
+        """ process 'add/edit-package-distgit' requests """
+        data = {
+            # package name (args.name) is not needed in data
+            "distgit": args.instance,
+            "namespace": args.namespace,
+            "committish": args.committish,
+            "max_builds": args.max_builds,
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
+        }
+        ownername, projectname = self.parse_name(args.copr)
+        if args.create:
+            self.client.package_proxy.add(ownername, projectname, args.name,
+                                          "distgit", data)
+        else:
+            self.client.package_proxy.edit(ownername, projectname, args.name,
+                                           "distgit", data)
         print("Create or edit operation was successful.")
 
     @requires_api_auth
@@ -1008,6 +1040,27 @@ def setup_parser():
                                         choices=["rpkg", "tito", "tito_test", "make_srpm"],
                                         help="Srpm build method. Default is 'rpkg'.")
 
+    parser_distgit_simple_parent = argparse.ArgumentParser(add_help=False)
+    parser_distgit_simple_parent.add_argument(
+        "--commit", dest="committish", default=None,
+        help="Branch name, tag name, or git hash to built the package from")
+    parser_distgit_simple_parent.add_argument(
+        "--namespace", dest="namespace", default=None,
+        help=(
+            "Some DistGit instances (e.g. the Fedora Copr dist-git) use "
+            "a namespaced clone/lookaside URLs.  Typically it meas that "
+            "one package may be hosted in the same DistGit instance "
+            "multiple times, in multiple namespaces.  Specify the NAMESPACE "
+            "here (e.g. @copr/copr for @copr/copr/copr-cli package)."),
+    )
+    parser_distgit_simple_parent.add_argument(
+        "--distgit", dest="instance", default=None,
+        help=(
+            "Dist-git instance to build the package from, for example "
+            "'fedora'."
+        ),
+    )
+
     parser_rubygems_args_parent = argparse.ArgumentParser(add_help=False)
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
@@ -1089,6 +1142,22 @@ def setup_parser():
     parser_build_scm = subparsers.add_parser("buildscm", parents=[parser_scm_args_parent, parser_build_parent],
                                               help="Builds package from Git/DistGit/SVN repository.")
     parser_build_scm.set_defaults(func="action_build_scm")
+
+    # create the parser for the "build-distgit" command
+    parser_build_distgit_simple = subparsers.add_parser(
+        "build-distgit",
+        parents=[parser_distgit_simple_parent, parser_build_parent],
+        help="Builds a package from a DistGit repository",
+        description=(
+            "Build a package from a DistGit repository. "
+            "For more info about DistGit build method see the description "
+            "'add-package-distgit' command."),
+    )
+    parser_build_distgit_simple.add_argument(
+        "--name", dest="pkgname", required=True,
+        help=("Package name to build from the DistGit instance"),
+    )
+    parser_build_distgit_simple.set_defaults(func="action_build_distgit_simple")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
@@ -1190,6 +1259,43 @@ def setup_parser():
                                                         help="Edits an existing SCM package.",
                                                         parents=[parser_scm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_scm.set_defaults(func="action_add_or_edit_package_scm", create=False)
+
+    # DistGit edit/create package
+    parser_add_package_distgit = subparsers.add_parser(
+        "add-package-distgit",
+        help="Creates a new DistGit package",
+        description=(
+            "DistGit (Distribution Git) is Git with additional data "
+            "storage (so called \"lookaside cache\"). It is designed to hold "
+            "content of source RPMs. For more info, see the "
+            "https://github.com/release-engineering/dist-git documentation."
+            "\n\n"
+            "To build a package for a particular distribution, you need "
+            "clone the correct git repository, and download corresponding "
+            "sources files from the lookaside cache.  Each distribution though "
+            "uses a different hostname for DistGit server and may store the "
+            "git repositories and source files on a little bit different "
+            "URIs (or even in NAMESPACEs).  That's why Copr has this "
+            "build method pre-configured as \"DistGit instances\" (one "
+            "instance per one distribution)."
+        ),
+        parents=[parser_distgit_simple_parent,
+                 parser_add_or_edit_package_parent])
+    parser_add_package_distgit.set_defaults(
+        func="action_add_or_edit_package_distgit",
+        create=True)
+    parser_edit_package_distgit = subparsers.add_parser(
+        "edit-package-distgit",
+        help="Edits an existing DistGit package",
+        description=(
+            "Edit an existing DistGit package.  For more info about DistGit "
+            "build method see the description of 'add-package-distgit' "
+            "command."),
+        parents=[parser_distgit_simple_parent,
+                 parser_add_or_edit_package_parent])
+    parser_edit_package_distgit.set_defaults(
+        func="action_add_or_edit_package_distgit",
+        create=False)
 
     # Rubygems edit/create
     parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",

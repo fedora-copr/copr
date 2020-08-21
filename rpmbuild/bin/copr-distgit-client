@@ -1,0 +1,10 @@
+#! /usr/bin/python
+
+"""
+From within a git checkout, try to download files from dist-git lookaside cache.
+"""
+
+from copr_distgit_client import main
+
+if __name__ == "__main__":
+    main()

@@ -112,6 +112,7 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
             "rubygems": 6, # gem_name
             "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
             "custom": 9, # user-provided script to build sources
+            "distgit": 10, # distgit_instance, package_name, committish
            }
 
 

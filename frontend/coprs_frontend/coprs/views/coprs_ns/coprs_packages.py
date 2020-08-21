@@ -7,8 +7,13 @@ from coprs import db
 from coprs import forms
 from coprs import helpers
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi, render_add_build_custom
-from coprs.views.misc import login_required, req_with_copr, req_with_copr, send_build_icon
+from coprs.views.coprs_ns.coprs_builds import (
+    render_add_build_scm,
+    render_add_build_pypi,
+    render_add_build_custom,
+    render_add_build_distgit,
+)
+from coprs.views.misc import login_required, req_with_copr, send_build_icon
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
@@ -106,6 +111,11 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormCustomFactory
         f = render_add_build_custom
         view_suffix = "_custom"
+    elif package.source_type_text == "distgit":
+        form = forms.BuildFormDistGitSimpleFactory
+        f = render_add_build_distgit
+        view_suffix = "_distgit"
+        data["package_name"] = package_name
     else:
         flask.flash(
             # TODO: sync this with the API error NoPackageSourceException
@@ -130,6 +140,7 @@ def copr_add_package(copr, source_type_text="scm", **kwargs):
         "pypi": forms.PackageFormPyPI(),
         "rubygems": forms.PackageFormRubyGems(),
         "custom": forms.PackageFormCustom(),
+        "distgit": forms.PackageFormDistGitSimple(),
     }
 
     if "form" in kwargs:
@@ -139,6 +150,7 @@ def copr_add_package(copr, source_type_text="scm", **kwargs):
                                  source_type_text=source_type_text, view="coprs_ns.copr_new_package",
                                  form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"],
+                                 form_distgit=form['distgit'],
                                  form_custom=form['custom'])
 
 
@@ -174,6 +186,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
         "pypi": forms.PackageFormPyPI,
         "rubygems": forms.PackageFormRubyGems,
         "custom": forms.PackageFormCustom,
+        "distgit": forms.PackageFormDistGitSimple,
     }
     form = {k: v(formdata=None) for k, v in form_classes.items()}
 
@@ -186,6 +199,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
                                  source_type_text=source_type_text, view="coprs_ns.copr_edit_package",
                                  form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"],
+                                 form_distgit=form["distgit"],
                                  form_custom=form['custom'])
 
 

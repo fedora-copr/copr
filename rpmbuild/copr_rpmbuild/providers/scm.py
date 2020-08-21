@@ -111,7 +111,11 @@ class ScmProvider(Provider):
                 mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
     def produce_srpm(self):
-        self.clone_and_checkout()
+        helpers.git_clone_and_checkout(
+            self.clone_url,
+            self.committish,
+            self.repo_path,
+            self.scm_type)
         cmd = {
             'rpkg': self.get_rpkg_command,
             'tito': self.get_tito_command,
@@ -122,34 +126,3 @@ class ScmProvider(Provider):
             raise RuntimeError("The user-defined SCM subdirectory `{}' doesn't exist within this repository {}"
                                .format(self.repo_subdir, self.clone_url))
         return run_cmd(cmd, cwd=self.repo_subpath)
-
-    def produce_sources(self):
-        self.clone_and_checkout()
-
-        copy_cmd = ['cp', '-r', '.', self.outdir]
-        run_cmd(copy_cmd, cwd=self.repo_subpath)
-
-        cmd = ['rpkg', '-C', self.generate_rpkg_config(),
-               'sources', '--outdir', self.outdir]
-        return run_cmd(cmd, cwd=self.repo_subpath)
-
-    def clone_and_checkout(self):
-        if self.scm_type == 'git':
-            clone_cmd = ['git', 'clone', self.clone_url,
-                         self.repo_path, '--depth', '500',
-                         '--no-single-branch']
-        else:
-            clone_cmd = ['git', 'svn', 'clone', self.clone_url,
-                         self.repo_path]
-
-        try:
-            helpers.run_cmd(clone_cmd)
-        except RuntimeError as e:
-            log.error(str(e))
-            if self.scm_type == 'git':
-                helpers.run_cmd(['git', 'clone', self.clone_url, self.repo_path])
-            else:
-                raise e
-
-        checkout_cmd = ['git', 'checkout', self.committish]
-        helpers.run_cmd(checkout_cmd, cwd=self.repo_path)

@@ -4,6 +4,7 @@ from .pypi import PyPIProvider
 from .spec import UrlProvider
 from .scm import ScmProvider
 from .custom import CustomProvider
+from .distgit import DistGitProvider
 
 
 __all__ = [RubyGemsProvider, PyPIProvider,
@@ -19,6 +20,7 @@ def factory(source_type):
             SourceType.PYPI: PyPIProvider,
             SourceType.SCM: ScmProvider,
             SourceType.CUSTOM: CustomProvider,
+            SourceType.DISTGIT: DistGitProvider,
         }[source_type]
     except KeyError:
         raise RuntimeError("No provider associated with this source type")

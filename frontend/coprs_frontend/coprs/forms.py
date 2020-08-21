@@ -1,3 +1,4 @@
+import os
 import re
 from six.moves.urllib.parse import urlparse
 
@@ -39,6 +40,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     BasePackageForm child
         based on source_type_text input
     """
+    # pylint: disable=too-many-return-statements
     if source_type_text == 'scm':
         return PackageFormScm
     elif source_type_text == 'pypi':
@@ -51,6 +53,8 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormMock # deprecated
     elif source_type_text == "custom":
         return PackageFormCustom
+    elif source_type_text == "distgit":
+        return PackageFormDistGitSimple
     else:
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
@@ -890,6 +894,123 @@ class PackageFormCustom(BasePackageForm):
         })
 
 
+class DistGitValidator(object):
+    def __call__(self, form, field):
+        if field.data not in field.distgit_choices:
+            message = "DistGit ID must be one of: {}".format(
+                ", ".join(field.distgit_choices))
+            raise wtforms.ValidationError(message)
+
+
+class NoneFilter():
+    def __init__(self, default):
+        self.default = default
+
+    def __call__(self, value):
+        if value in [None, 'None']:
+            return self.default
+        return value
+
+
+class DistGitSelectField(wtforms.SelectField):
+    """ Select-box for picking (default) dist git instance """
+
+    # pylint: disable=too-few-public-methods
+    def __init__(self, validators=None, filters=None, **kwargs):
+        if not validators:
+            validators = []
+        if not filters:
+            filters = []
+
+        self.distgit_choices = [x.name for x in DistGitLogic.ordered().all()]
+        self.distgit_default = self.distgit_choices[0]
+
+        validators.append(DistGitValidator())
+        filters.append(NoneFilter(self.distgit_default))
+
+        super().__init__(
+            label="DistGit instance",
+            validators=validators,
+            filters=filters,
+            choices=[(x, x) for x in self.distgit_choices],
+            **kwargs,
+        )
+
+
+class PackageFormDistGitSimple(BasePackageForm):
+    """
+    This represents basically a variant of the SCM method, but with a very
+    trivial user interface.
+    """
+    distgit = DistGitSelectField()
+
+    committish = wtforms.StringField(
+        "Committish",
+        validators=[wtforms.validators.Optional()],
+        render_kw={
+            "placeholder": "Optional - Specific branch, tag, or commit that "
+                           "you want to build from"},
+    )
+
+    namespace = wtforms.StringField(
+        "DistGit namespace",
+        validators=[wtforms.validators.Optional()],
+        default=None,
+        filters=[lambda x: None if not x else os.path.normpath(x)],
+        description=(
+            "Some dist-git instances have the git repositories "
+            "namespaced - e.g. you need to specify '@copr/copr' for "
+            "the <a href='https://copr-dist-git.fedorainfracloud.org/"
+            "cgit/@copr/copr/copr-cli.git/tree/copr-cli.spec'>"
+            "@copr/copr/copr-cli</a> Fedora Copr package"),
+        render_kw={
+            "placeholder": "Optional - string, e.g. '@copr/copr'"},
+    )
+
+    build_requires_package_name = True
+
+    @property
+    def source_json(self):
+        """ Source json stored in DB in Package.source_json """
+        data = {
+            "clone_url": self.clone_url(),
+        }
+
+        if self.distgit.data:
+            data["distgit"] = self.distgit.data
+
+        for field_name in ["distgit", "namespace", "committish"]:
+            field = getattr(self, field_name)
+            if field.data:
+                data[field_name] = field.data
+
+        return json.dumps(data)
+
+    def clone_url(self):
+        """ One-time generate the clone_url from the form data """
+        return DistGitLogic.get_clone_url(self.distgit.data,
+                                          self.package_name.data,
+                                          self.namespace.data)
+
+    def validate(self):
+        """
+        Try to check that we can generate clone_url from distgit, namespace and
+        package.  This can not be done by single-field-context validator.
+        """
+        if not super().validate():
+            return False
+
+        try:
+            self.clone_url()
+        except Exception as e:  # pylint: disable=broad-except
+            self.distgit.errors.append(
+                "Can not validate DistGit input: {}".format(str(e))
+            )
+            return False
+
+        return True
+
+
 class RebuildAllPackagesFormFactory(object):
     def __new__(cls, active_chroots, package_names):
         form_cls = BaseBuildFormFactory(active_chroots, FlaskForm)
@@ -934,8 +1055,10 @@ class BaseBuildFormFactory(object):
         F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
         F.project_dirname = wtforms.StringField(default=None)
 
-        # overrides BasePackageForm.package_name and is unused for building
-        F.package_name = wtforms.StringField()
+        # Overrides BasePackageForm.package_name, it is usually unused for
+        # building
+        if not getattr(F, "build_requires_package_name", None):
+            F.package_name = wtforms.StringField()
 
         # fill chroots based on project settings
         F.chroots_list = [x.name for x in active_chroots]
@@ -1006,6 +1129,14 @@ class BuildFormCustomFactory(object):
         return BaseBuildFormFactory(active_chroots, PackageFormCustom, package)
 
 
+class BuildFormDistGitSimpleFactory:
+    """
+    Transform DistGitSimple package form into build form
+    """
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormDistGitSimple,
+                                    package)
+
 class BuildFormUrlFactory(object):
     def __new__(cls, active_chroots):
         form = BaseBuildFormFactory(active_chroots, FlaskForm)
@@ -1029,39 +1160,13 @@ class ModuleFormUploadFactory(FlaskForm):
     build = wtforms.BooleanField("build", default=True, false_values=FALSE_VALUES)
 
 
-class DistGitValidator(object):
-    def __call__(self, form, field):
-        if field.data not in form.distgit_choices:
-            message = "DistGit ID must be one of: {}".format(
-                ", ".join(form.distgit_choices))
-            raise wtforms.ValidationError(message)
-
-
-class NoneFilter():
-    def __init__(self, default):
-        self.default = default
-
-    def __call__(self, value):
-        if value in [None, 'None']:
-            return self.default
-        return value
-
-
 def get_module_build_form(*args, **kwargs):
     class ModuleBuildForm(FlaskForm):
-        distgit_choices = [x.name for x in DistGitLogic.ordered().all()]
-        distgit_default = distgit_choices[0]
-
         modulemd = FileField("modulemd")
         scmurl = wtforms.StringField()
         branch = wtforms.StringField()
 
-        distgit = wtforms.SelectField(
-            'Build against DistGit instance',
-            choices=[(x, x) for x in distgit_choices],
-            validators=[DistGitValidator()],
-            filters=[NoneFilter(distgit_default)],
-        )
+        distgit = DistGitSelectField()
 
     return ModuleBuildForm(*args, **kwargs)
 

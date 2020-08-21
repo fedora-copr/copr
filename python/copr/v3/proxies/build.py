@@ -173,6 +173,38 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
+    def create_from_distgit(self, ownername, projectname, packagename,
+                            committish=None, namespace=None, distgit=None,
+                            buildopts=None, project_dirname=None):
+        """
+        Create a build from a DistGit repository
+
+        :param str ownername:
+        :param str projectname:
+        :param str packagename: the DistGit package name to build
+        :param str committish: name of a branch, tag, or a git hash
+        :param str namespace: DistGit namespace, e.g. '@copr/copr' for
+            the '@copr/copr/copr-cli' package
+        :param str distgit: the DistGit instance name we build against,
+            for example 'fedora'.  Optional, and the default is deployment
+            specific.
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
+        :return: Munch
+        """
+        endpoint = "/build/create/distgit"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "distgit": distgit,
+            "namespace": namespace,
+            "package_name": packagename,
+            "committish": committish,
+            "project_dirname": project_dirname,
+        }
+        return self._create(endpoint, data, buildopts=buildopts)
+
+
     def create_from_pypi(self, ownername, projectname, pypi_package_name, pypi_package_version=None,
                          spec_template='', python_versions=None, buildopts=None, project_dirname=None):
         """

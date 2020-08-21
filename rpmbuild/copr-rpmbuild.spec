@@ -3,11 +3,13 @@
 %global python          python3
 %global python_pfx      python3
 %global rpm_python      python3-rpm
+%global sitelib         %python3_sitelib
 %else
 %global __python        %__python2
 %global python          python2
 %global python_pfx      python
 %global rpm_python      rpm-python
+%global sitelib         %python_sitelib
 %endif
 
 # do not build debuginfo sub-packages
@@ -18,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.40
+Version: 0.40.1.dev
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -36,12 +38,16 @@ BuildRequires: %{python}-httmock
 %endif
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
+BuildRequires: git
 BuildRequires: %{python}-setuptools
 BuildRequires: %{python}-pytest
 BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
 
+%if 0%{?fedora} || 0%{?rhel} > 7
+BuildRequires: argparse-manpage
+%endif
 BuildRequires: python-rpm-macros
 
 %if "%{?python}" == "python2"
@@ -80,6 +86,19 @@ build build-id 12345 for chroot epel-7-x86_64.
 %package -n copr-builder
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
+Requires: copr-distgit-client = %{version}-%{release}
+
+
+%package -n copr-distgit-client
+Summary: Utility to download sources from dist-git
+
+%description -n copr-distgit-client
+A simple, configurable python utility that is able to download sources from
+various dist-git instances, and generate source RPMs.
+
+The utility is able to automatically map the .git/config clone URL into
+the corresponding dist-git instance configuration.
+
 
 %if 0%{?fedora}
 # replacement for yum/yum-utils, to be able to work with el* chroots
@@ -141,6 +160,11 @@ This package contains all optional modules for building SRPM.
 
 %prep
 %setup -q
+for script in bin/copr-rpmbuild* \
+              bin/copr-distgit*
+do
+    sed -i '1 s|#.*|#! /usr/bin/%python|' "$script"
+done
 
 
 %check
@@ -212,10 +236,6 @@ install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-log %buildroot%_bindir
 
-for script in %buildroot/%{_bindir}/copr-rpmbuild*; do
-    sed -i '1 s|#.*|#! /usr/bin/%python|' "$script"
-done
-
 name="%{name}" version="%{version}" summary="%{summary}" %py_install
 
 install -p -m 755 copr-update-builder %buildroot%_bindir
@@ -229,12 +249,27 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
   done
 )
 
+install -p -m 755 bin/copr-distgit-client %buildroot%_bindir
+%if 0%{?fedora} || 0%{?rhel} > 7
+argparse-manpage --pyfile copr_distgit_client.py \
+    --function _get_argparser \
+    --author "Copr Team" \
+    --author-email "copr-team@redhat.com" \
+    --url %url --project-name Copr \
+> %{buildroot}%{_mandir}/man1/copr-distgit-client.1
+%endif
+mkdir -p %{buildroot}%{_sysconfdir}/copr-distgit-client
+install -p -m 644 etc/copr-distgit-client/default.ini \
+    %{buildroot}%{_sysconfdir}/copr-distgit-client
+mkdir -p %{buildroot}%{sitelib}
+install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_sitelib}
+
 
 %files
 %{!?_licensedir:%global license %doc}
 %license LICENSE
 
-%{expand:%%%{python}_sitelib}/*
+%sitelib/copr_rpmbuild*
 
 %{_bindir}/copr-rpmbuild*
 %{_bindir}/copr-sources-custom
@@ -256,6 +291,20 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 %_sysconfdir/copr-builder
 %dir %mock_config_overrides
 %doc %mock_config_overrides/README
+
+
+%files -n copr-distgit-client
+%license LICENSE
+%_bindir/copr-distgit-client
+%if 0%{?fedora} || 0%{?rhel} > 7
+%_mandir/man1/copr-distgit-client.1*
+%endif
+%dir %_sysconfdir/copr-distgit-client
+%config %_sysconfdir/copr-distgit-client/default.ini
+%sitelib/copr_distgit_client.*
+%if "%{?python}" != "python2"
+%sitelib/__pycache__/copr_distgit_client*
+%endif
 
 
 %changelog

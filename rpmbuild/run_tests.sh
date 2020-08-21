@@ -12,4 +12,8 @@ for arg; do
     esac
 done
 
-PYTHONPATH=".:$PYTHONPATH" "${PYTHON:-python3}" -m pytest -s tests "${coverage[@]}" "${args[@]}"
+abspath=$(readlink -f .)
+common_path=$(readlink -f "$abspath"/../common)
+export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path:$abspath"
+export PATH=$(readlink -f bin):$PATH
+"${PYTHON:-python3}" -m pytest -s tests "${coverage[@]}" "${args[@]}"

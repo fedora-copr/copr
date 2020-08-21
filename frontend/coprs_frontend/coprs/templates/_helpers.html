@@ -603,7 +603,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     <div class="panel-body">
       <div class="list-group" style="margin-bottom: 0px">
         {% set srpm_build_methods = [
-        ('rpkg', 'rpkg', 'Uses <a href="https://pagure.io/rpkg-client">rpkg</a> utility to build an srpm. Supports unpacked (plain sources + .spec) as well as packed (tarballs + patches + .spec) content. Supports also building directly from DistGit.'),
+        ('rpkg', 'rpkg', 'Uses <a href="https://pagure.io/rpkg-client">rpkg</a> utility to build an srpm. Supports unpacked (plain sources + .spec) as well as packed (tarballs + patches + .spec) content.'),
         ('tito', 'tito', 'This method can be used for projects that are managed with <a href="https://github.com/dgoodwin/tito">Tito</a> packaging tool.'),
         ('tito test', 'tito_test', 'Same as previous Tito method, but passes <code>--test</code> parameter to use current branch HEAD instead of the last package tag. Also extends Release of the built package with Git versioning information.'),
         ('make srpm', 'make_srpm', 'This method allows unlimited customization. You need to provide .copr/Makefile with srpm target in your project and this target will be invoked inside a mock chroot to build the srpm. You can read more <a href="https://docs.pagure.org/copr.copr/user_documentation.html#make-srpm">here</a>.'),

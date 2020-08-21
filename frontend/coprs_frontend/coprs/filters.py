@@ -216,6 +216,7 @@ def build_source_description(state):
         "pypi": "Build from PyPI",
         "rubygems": "Build from RubyGems",
         "custom": "Custom build method",
+        "distgit": "Build from DistGit",
     }
 
     return description_map.get(state, "")

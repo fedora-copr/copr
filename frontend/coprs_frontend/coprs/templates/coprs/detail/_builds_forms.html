@@ -133,6 +133,22 @@
 {% endmacro %}
 
 
+{% macro copr_build_form_distgit(form, view, copr) %}
+  {{ copr_build_form_begin(form, view, copr) }}
+
+  {{ source_description('Build package from a '
+                        '<a href="https://github.com/release-engineering/dist-git">DistGit</a>'
+                        ' repository' )}}
+
+  {{ render_field(form.package_name) }}
+  {{ render_field(form.distgit) }}
+  {{ render_field(form.committish) }}
+  {{ render_field(form.namespace) }}
+
+  {{ copr_build_form_end(form, view, copr) }}
+{% endmacro %}
+
+
 {% macro copr_build_form_pypi(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 

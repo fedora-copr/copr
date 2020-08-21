@@ -23,9 +23,8 @@ except ImportError:
 
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
-from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
-     SourceType, parse_copr_name, dump_live_log, copr_chroot_to_task_id
-
+from copr_rpmbuild.helpers import read_config, \
+     parse_copr_name, dump_live_log, copr_chroot_to_task_id
 from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
@@ -252,16 +251,13 @@ def build_rpm(args, config):
 
     sourcedir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
     try:
-        scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
-        if task.get("fetch_sources_only"):
-            scm_provider.produce_sources()
-        else:
-            scm_provider.produce_srpm()
-            built_srpm = locate_srpm(sourcedir)
-            extract_srpm(built_srpm, sourcedir)
-
+        distgit = providers.DistGitProvider(
+            {"clone_url": task["git_repo"], "committish": task["git_hash"]},
+            sourcedir, config,
+        )
+        distgit.produce_sources()
         resultdir = config.get("main", "resultdir")
-        builder = MockBuilder(task, sourcedir, resultdir, config)
+        builder = MockBuilder(task, distgit.clone_to, resultdir, config)
         builder.run()
         builder.touch_success_file()
     finally:
