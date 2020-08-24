@@ -106,7 +106,7 @@ rlJournalStart
         OUTPUT=`mktemp`
         touch "/tmp/emptyfile.yaml"
         rlRun "copr-cli build-module --yaml /tmp/emptyfile.yaml $PROJECT &> $OUTPUT" 1
-        rlAssertEquals "Module in wrong format" `cat $OUTPUT | grep "Invalid modulemd yaml" |wc -l` 1
+        rlAssertEquals "Module in wrong format" `cat $OUTPUT | grep "Missing modulemd version" |wc -l` 1
 
         # Test module duplicity
         # @FIXME the request sometimes hangs for some obscure reason
@@ -130,6 +130,16 @@ rlJournalStart
         rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 $PACKAGES
+        test_successful_packages "perl-List-Compare" $PACKAGES
+
+        # Test building modulemd in v2 format
+        PROJECT=module-testmodulev2-beakertest-$DATE
+        # meh, the testmodule is hardwired to f33 so we can not simply rely on
+        # $CHROOT variable
+        rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
+        rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/master/f/testmodule.yaml $PROJECT"
+        PACKAGES=`mktemp`
+        wait_for_finished_module "module-testmodulev2-beakertest-$DATE" 1 $PACKAGES
         test_successful_packages "perl-List-Compare" $PACKAGES
 
         # @TODO Test that module succeeded

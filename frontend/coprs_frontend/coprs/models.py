@@ -5,6 +5,7 @@ import json
 import base64
 import uuid
 from fnmatch import fnmatch
+import modulemd_tools.yaml
 
 from sqlalchemy import outerjoin
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -26,9 +27,6 @@ import itertools
 import operator
 from coprs.helpers import JSONEncodedDict
 
-import gi
-gi.require_version('Modulemd', '1.0')
-from gi.repository import Modulemd
 
 # Pylint Specifics for models.py:
 # - too-few-public-methods: models are often very trivial classes
@@ -2002,9 +2000,8 @@ class Module(db.Model, helpers.Serializer):
 
     @property
     def modulemd(self):
-        mmd = Modulemd.ModuleStream()
-        mmd.import_from_string(self.yaml.decode("utf-8"))
-        return mmd
+        # We would like to not access private member here
+        return modulemd_tools.yaml._yaml2stream(self.yaml.decode("utf-8"))
 
     @property
     def nsv(self):
@@ -2051,7 +2048,12 @@ class Module(db.Model, helpers.Serializer):
 
     @property
     def profiles(self):
-        return {k: v.get_rpms().get() for k, v in self.modulemd.get_profiles().items()}
+        return {name: self.modulemd.get_profile(name).get_rpms()
+                for name in self.modulemd.get_profile_names()}
+    @property
+    def components(self):
+        return {name: self.modulemd.get_rpm_component(name)
+                for name in self.modulemd.get_rpm_component_names()}
 
 
 class BuildsStatistics(db.Model):

@@ -14,10 +14,7 @@ from copr.exceptions import CoprRequestException
 from requests import RequestException
 from munch import Munch
 
-import gi
-gi.require_version('Modulemd', '1.0')
-# pylint: disable=wrong-import-position
-from gi.repository import Modulemd
+import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
 from copr_common.enums import ActionResult
@@ -447,20 +444,24 @@ class BuildModule(Action):
             ownername = data["ownername"]
             projectname = data["projectname"]
             chroots = data["chroots"]
-            modulemd_data = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
-            self.log.info(modulemd_data)
+
+            mmd_yaml = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
+            mmd_yaml = modulemd_tools.yaml.upgrade(mmd_yaml, 2)
+            self.log.info(mmd_yaml)
 
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
-                mmd = Modulemd.ModuleStream()
-                mmd.import_from_string(modulemd_data)
-                mmd.set_arch(arch)
-                artifacts = Modulemd.SimpleSet()
-
+                mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, arch=arch)
+                artifacts = set()
                 srcdir = os.path.join(project_path, chroot)
-                module_tag = "{}+{}-{}-{}".format(chroot, mmd.get_name(), (mmd.get_stream() or ''),
+
+                # This should be dealt with in the `modulemd_tools` library
+                mmd = modulemd_tools.yaml._yaml2stream(mmd_yaml)
+                module_tag = "{}+{}-{}-{}".format(chroot, mmd.get_module_name(),
+                                                  (mmd.get_stream_name() or ''),
                                                   (str(mmd.get_version()) or '1'))
+
                 module_relpath = os.path.join(module_tag, "latest", arch)
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
@@ -483,9 +484,9 @@ class BuildModule(Action):
                             artifact = format_filename(zero_epoch=True, *splitFilename(f))
                             artifacts.add(artifact)
 
-                    mmd.set_rpm_artifacts(artifacts)
-                    self.log.info("Module artifacts: %s", mmd.get_rpm_artifacts())
-                    Modulemd.dump([mmd], os.path.join(destdir, "modules.yaml"))
+                    mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, rpms_nevras=artifacts)
+                    self.log.info("Module artifacts: %s", artifacts)
+                    modulemd_tools.yaml.dump(mmd_yaml, destdir)
                     if not call_copr_repo(destdir):
                         result = ActionResult.FAILURE
 

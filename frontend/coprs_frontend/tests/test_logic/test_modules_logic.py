@@ -1,6 +1,7 @@
 import yaml
 from unittest import mock
 import pytest
+import modulemd_tools.yaml
 
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.modules_logic import ModulesLogic, ModuleBuildFacade, ModulemdGenerator
@@ -10,7 +11,7 @@ from coprs.exceptions import BadRequest
 from coprs import models, db
 
 import gi
-gi.require_version('Modulemd', '1.0')
+gi.require_version('Modulemd', '2.0')
 from gi.repository import Modulemd
 
 
@@ -78,19 +79,14 @@ class TestModulesLogic(CoprsTestCase):
         invalid_yaml = valid_yaml.replace("name:", "name")
         with pytest.raises(BadRequest) as ex:
             ModulesLogic.yaml2modulemd(invalid_yaml)
-        assert "Invalid modulemd yaml - Parser error" in ex.value.message
-
-        # There is no validation in the yaml2modulemd method, therefore even yaml that
-        # doesn't contain all the necessary fields can be converted to the modulemd object
-        incomplete_yaml = valid_yaml.replace("  summary: some summary\n", "")
-        modulemd2 = ModulesLogic.yaml2modulemd(incomplete_yaml)
-        assert isinstance(modulemd2, Modulemd.ModuleStream)
+        assert ("Invalid modulemd yaml - modulemd-yaml-error-quark: "
+                "Unexpected YAML event in document stream") in ex.value.message
 
         # Test an empty string
         with pytest.raises(BadRequest) as ex:
             ModulesLogic.yaml2modulemd("")
         assert ("Invalid modulemd yaml - "
-                "Provided YAML did not begin with a module document") in ex.value.message
+                "YAML didn't begin with STREAM_START.") in ex.value.message
 
     def test_from_modulemd(self):
         # Test that valid yaml can be sucessfully converted to modulemd object
@@ -106,7 +102,7 @@ class TestModulesLogic(CoprsTestCase):
         with pytest.raises(BadRequest) as ex:
             ModulesLogic.from_modulemd(modulemd)
         assert ("Unsupported or malformed modulemd yaml - "
-                "Missing required option data.summary") in ex.value.message
+                "Could not validate stream to emit: Summary is missing") in ex.value.message
 
 
 class TestModuleBuildFacade(CoprsTestCase):
@@ -175,8 +171,11 @@ class TestModuleBuildFacade(CoprsTestCase):
         # Test excluding platform chroots
         CoprChrootsLogic.update_from_names(self.u1, self.c1, fedora_chroots)
         generator = ModulemdGenerator(name="testmodule", stream="master", version=123, summary="some summary")
-        generator.mmd.set_buildrequires({"platform": "-f22"})
-        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
+        mod_yaml = generator.generate()
+        mod_yaml = modulemd_tools.yaml.update(mod_yaml, buildrequires={"platform": ["-f22"]})
+
+        # generator.mmd.set_buildrequires({"platform": "-f22"})
+        facade = ModuleBuildFacade(self.u1, self.c1, mod_yaml, "testmodule.yaml")
         assert {chroot.name for chroot in self.c1.active_chroots} == set(fedora_chroots)
         assert ("fedora-22-i386" not in facade.platform_chroots) and ("fedora-22-x86_64" in fedora_chroots)
         assert ("fedora-22-x86_64" not in facade.platform_chroots) and ("fedora-22-x86_64" in fedora_chroots)
@@ -184,8 +183,9 @@ class TestModuleBuildFacade(CoprsTestCase):
         # Test setting platform chroots from scratch
         CoprChrootsLogic.update_from_names(self.u1, self.c1, fedora_chroots)
         generator = ModulemdGenerator(name="testmodule", stream="master", version=123, summary="some summary")
-        generator.mmd.set_buildrequires({"platform": "f22"})
-        facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
+        mod_yaml = generator.generate()
+        mod_yaml = modulemd_tools.yaml.update(mod_yaml, buildrequires={"platform": ["f22"]})
+        facade = ModuleBuildFacade(self.u1, self.c1, mod_yaml, "testmodule.yaml")
         assert {chroot.name for chroot in self.c1.active_chroots} == set(fedora_chroots)
         assert set(facade.platform_chroots) == {"fedora-22-i386", "fedora-22-x86_64"}
 
@@ -218,8 +218,8 @@ class TestModulemdGenerator(CoprsTestCase):
     def test_basic_mmd_attrs(self):
         generator = ModulemdGenerator(name="testmodule", stream="master",
                                       version=123, summary="Some testmodule summary")
-        assert generator.mmd.get_name() == "testmodule"
-        assert generator.mmd.get_stream() == "master"
+        assert generator.mmd.get_module_name() == "testmodule"
+        assert generator.mmd.get_stream_name() == "master"
         assert generator.mmd.get_version() == 123
         assert generator.mmd.get_summary() == "Some testmodule summary"
         assert generator.nsv == "testmodule-master-123"
@@ -228,52 +228,46 @@ class TestModulemdGenerator(CoprsTestCase):
         packages = {"foo", "bar", "baz"}
         generator = ModulemdGenerator()
         generator.add_api(packages)
-        assert set(generator.mmd.get_rpm_api().get()) == packages
+        assert set(generator.mmd.get_rpm_api()) == packages
 
     def test_filter(self):
         packages = {"foo", "bar", "baz"}
         generator = ModulemdGenerator()
         generator.add_filter(packages)
-        assert set(generator.mmd.get_rpm_filter().get()) == packages
+        assert set(generator.mmd.get_rpm_filters()) == packages
 
     def test_profiles(self):
         profile_names = ["default", "debug"]
         profile_pkgs = [["pkg1", "pkg2"], ["pkg3"]]
-        profiles = enumerate(zip(profile_names, profile_pkgs))
+        profiles = zip(profile_names, profile_pkgs)
         generator = ModulemdGenerator()
         generator.add_profiles(profiles)
-        assert set(generator.mmd.get_profiles().keys()) == set(profile_names)
-        assert set(generator.mmd.get_profiles()["default"].peek_rpms().get()) == {"pkg1", "pkg2"}
-        assert set(generator.mmd.get_profiles()["debug"].peek_rpms().get()) == {"pkg3"}
-        assert len(generator.mmd.get_profiles()) == 2
 
-    def test_add_component(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        chroot = self.b1.build_chroots[0]
-        generator = ModulemdGenerator(config=self.config)
-        generator.add_component(self.b1.package_name, self.b1, chroot,
-                                "A reason why package is in the module", buildorder=1)
-        assert len(generator.mmd.get_rpm_components()) == 1
+        # A workaround to not duplicate logic for obtaining profiles here
+        profiles = ModulesLogic.from_modulemd(generator.mmd).profiles
 
-        component = generator.mmd.get_rpm_components()[self.b1.package_name]
-        assert component.get_buildorder() == 1
-        assert component.peek_name() == self.b1.package_name
-        assert component.peek_rationale() == "A reason why package is in the module"
-
-        with mock.patch("coprs.app.config", self.config):
-            assert component.peek_repository().startswith("http://distgiturl.org")
-            assert component.peek_repository().endswith(".git")
-        assert component.peek_ref() == chroot.git_hash
+        assert set(profiles.keys()) == set(profile_names)
+        assert set(profiles["default"]) == {"pkg1", "pkg2"}
+        assert set(profiles["debug"]) == {"pkg3"}
+        assert len(profiles) == 2
 
     def test_components(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         packages = [self.p1.name, self.p2.name, self.p3.name]
         filter_packages = [self.p1.name, self.p2.name]
         builds = [self.b1.id, self.b3.id]
         generator = ModulemdGenerator(config=self.config)
+        generator.add_components(packages, filter_packages, builds)
 
-        with mock.patch("coprs.logic.modules_logic.ModulemdGenerator.add_component") as add_component:
-            generator.add_components(packages, filter_packages, builds)
-            add_component.assert_called_with(self.p2.name, self.b3, self.b3.build_chroots[-1], mock.ANY, 1)
-            assert add_component.call_count == 2
+        # A workaround to not duplicate logic for obtaining components here
+        components = ModulesLogic.from_modulemd(generator.mmd).components
+        assert len(components) == 2
+
+        component = components["hello-world"]
+        assert component.get_name() == "hello-world"
+        assert component.get_rationale() == "User selected the package as a part of the module"
+        assert component.get_repository() == "http://distgiturl.org/user1/foocopr/hello-world.git"
+        assert component.get_ref() == "12345"
+        assert component.get_buildorder() == 0
 
     def test_components_different_chroots(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1444433
@@ -284,11 +278,6 @@ class TestModulemdGenerator(CoprsTestCase):
         builds = [self.b1.id, self.b3.id]
         generator = ModulemdGenerator(config=self.config)
         generator.add_components(packages, filter_packages, builds)
-
-    def test_add_component_none_build_chroot(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1444433
-        generator = ModulemdGenerator(config=self.config)
-        generator.add_component(self.p1.name, self.b1, None, "Some reason")
 
     def test_generate(self):
         generator = ModulemdGenerator("testmodule", "master", 123, "Some testmodule summary", self.config)

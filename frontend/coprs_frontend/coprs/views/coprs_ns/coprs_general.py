@@ -1157,7 +1157,7 @@ def build_module(copr, form):
     generator = ModulemdGenerator(str(copr.name), summary=summary, config=app.config)
     generator.add_filter(form.filter.data)
     generator.add_api(form.api.data)
-    generator.add_profiles(enumerate(zip(form.profile_names.data, form.profile_pkgs.data)))
+    generator.add_profiles(dict(zip(form.profile_names.data, form.profile_pkgs.data)))
     generator.add_components(form.packages.data, form.filter.data, form.builds.data)
     yaml = generator.generate()
 

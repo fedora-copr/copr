@@ -5,16 +5,13 @@ import requests
 from collections import defaultdict
 from sqlalchemy import and_
 from datetime import datetime
+import modulemd_tools.yaml
 from coprs import models
 from coprs import db
 from coprs import exceptions
 from coprs.logic import builds_logic
 from coprs.logic.dist_git_logic import DistGitLogic
 from wtforms import ValidationError
-
-import gi
-gi.require_version('Modulemd', '1.0')
-from gi.repository import Modulemd, GLib
 
 
 class ModulesLogic(object):
@@ -52,27 +49,29 @@ class ModulesLogic(object):
     @classmethod
     def yaml2modulemd(cls, yaml):
         try:
-            mmd = Modulemd.ModuleStream()
-            mmd.import_from_string(yaml)
+            modulemd_tools.yaml.validate(yaml)
+            mmd = modulemd_tools.yaml._yaml2stream(yaml)
             return mmd
-        except GLib.GError as ex:
-            # pylint: disable=no-member
-            raise exceptions.BadRequest("Invalid modulemd yaml - {0}" .format(ex.message))
+        except (RuntimeError, ValueError) as ex:
+            raise exceptions.BadRequest("Invalid modulemd yaml - {0}" .format(str(ex)))
 
     @classmethod
     def from_modulemd(cls, mmd):
         try:
-            yaml_b64 = base64.b64encode(mmd.dumps().encode("utf-8")).decode("utf-8")
-            return models.Module(name=mmd.get_name(), stream=mmd.get_stream(),
-                                 version=mmd.get_version(), summary=mmd.get_summary(),
-                                 description=mmd.get_description(), yaml_b64=yaml_b64)
-        except GLib.GError as ex:
+            yaml = modulemd_tools.yaml._stream2yaml(mmd)
+            modulemd_tools.yaml.validate(yaml)
+        except RuntimeError as ex:
             raise exceptions.BadRequest("Unsupported or malformed modulemd yaml - {0}"
-                                        .format(ex.message))  # pylint: disable=no-member
+                                        .format(str(ex)))  # pylint: disable=no-member
+
+        yaml_b64 = base64.b64encode(yaml.encode("utf-8")).decode("utf-8")
+        return models.Module(name=mmd.get_module_name(), stream=mmd.get_stream_name(),
+                                version=mmd.get_version(), summary=mmd.get_summary(),
+                                description=mmd.get_description(), yaml_b64=yaml_b64)
 
     @classmethod
     def validate(cls, mmd):
-        if not all([mmd.get_name(), mmd.get_stream(), mmd.get_version()]):
+        if not all([mmd.get_module_name(), mmd.get_stream_name(), mmd.get_version()]):
             raise ValidationError("Module should contain name, stream and version")
 
     @classmethod
@@ -88,22 +87,28 @@ class ModulesLogic(object):
         return module
 
     @classmethod
-    def set_defaults_for_optional_params(cls, mmd, filename=None):
-        mmd.set_name(mmd.get_name() or str(os.path.splitext(filename)[0]))
-        mmd.set_stream(mmd.get_stream() or "master")
-        mmd.set_version(mmd.get_version() or int(datetime.now().strftime("%Y%m%d%H%M%S")))
+    def set_defaults_for_optional_params(cls, mmd, yaml, filename=None):
+        name = mmd.get_module_name() or str(os.path.splitext(filename)[0])
+        stream = mmd.get_stream_name() or "master"
+        version = mmd.get_version() or int(datetime.now().strftime("%Y%m%d%H%M%S"))
+        return modulemd_tools.yaml.update(yaml, name, stream, version)
 
 
 class ModuleBuildFacade(object):
     def __init__(self, user, copr, yaml, filename=None, distgit_name=None):
         self.user = user
         self.copr = copr
-        self.yaml = yaml
         self.filename = filename
         self.distgit = DistGitLogic.get_with_default(distgit_name)
 
-        self.modulemd = ModulesLogic.yaml2modulemd(yaml)
-        ModulesLogic.set_defaults_for_optional_params(self.modulemd, filename=filename)
+        try:
+            yaml = modulemd_tools.yaml.upgrade(yaml, 2)
+        except ValueError as ex:
+            raise exceptions.BadRequest("Invalid modulemd yaml - {0}" .format(str(ex)))
+
+        modulemd = modulemd_tools.yaml._yaml2stream(yaml)
+        self.yaml = ModulesLogic.set_defaults_for_optional_params(modulemd, yaml, filename)
+        self.modulemd = modulemd_tools.yaml._yaml2stream(self.yaml)
         ModulesLogic.validate(self.modulemd)
 
     def submit_build(self):
@@ -111,7 +116,9 @@ class ModuleBuildFacade(object):
         if not self.platform_chroots:
             raise ValidationError("Module platform is {} which doesn't match to any chroots enabled in {} project"
                                   .format(self.platform, self.copr.full_name))
-        self.add_builds(self.modulemd.get_rpm_components(), module)
+        components = {name: self.modulemd.get_rpm_component(name)
+                      for name in self.modulemd.get_rpm_component_names()}
+        self.add_builds(components, module)
         return module
 
     @classmethod
@@ -129,8 +136,15 @@ class ModuleBuildFacade(object):
 
     @property
     def platform(self):
-        platform = self.modulemd.get_buildrequires().get("platform", [])
-        return platform if isinstance(platform, list) else [platform]
+        if not self.modulemd.get_dependencies():
+            return []
+
+        streams = set()
+        for dependencies in self.modulemd.get_dependencies():
+            if not "platform" in dependencies.get_buildtime_modules():
+                continue
+            streams.update(dependencies.get_buildtime_streams("platform"))
+        return list(streams)
 
     @property
     def platform_chroots(self):
@@ -180,7 +194,7 @@ class ModuleBuildFacade(object):
             for pkgname, rpm in group.items():
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
-                                                                     clone_url=clone_url, committish=rpm.peek_ref(),
+                                                                     clone_url=clone_url, committish=rpm.get_ref(),
                                                                      chroot_names=self.platform_chroots)
                 build.batch = batch
                 build.batch_id = batch.id
@@ -191,8 +205,8 @@ class ModuleBuildFacade(object):
             blocked_by_id = batch.id
 
     def get_clone_url(self, pkgname, rpm):
-        if rpm.peek_repository():
-            return rpm.peek_repository()
+        if rpm.get_repository():
+            return rpm.get_repository()
 
         return self.distgit.package_clone_url(pkgname)
 
@@ -200,45 +214,51 @@ class ModuleBuildFacade(object):
 class ModulemdGenerator(object):
     def __init__(self, name="", stream="", version=0, summary="", config=None):
         self.config = config
-        licenses = Modulemd.SimpleSet()
-        licenses.add("unknown")
-        self.mmd = Modulemd.ModuleStream(mdversion=1, name=name, stream=stream, version=version, summary=summary,
-                                         description="", content_licenses=licenses, module_licenses=licenses)
+        self.yaml = modulemd_tools.yaml.create(name, stream)
+        self.yaml = modulemd_tools.yaml.update(self.yaml, version=version, summary=summary,
+                                               module_licenses=["unknown"])
 
     @property
     def nsv(self):
-        return "{}-{}-{}".format(self.mmd.get_name(), self.mmd.get_stream(), self.mmd.get_version())
+        return "{}-{}-{}".format(self.mmd.get_module_name(),
+                                 self.mmd.get_stream_name(),
+                                 self.mmd.get_version())
+
+    @property
+    def mmd(self):
+        return modulemd_tools.yaml._yaml2stream(self.yaml)
 
     def add_api(self, packages):
-        mmd_set = Modulemd.SimpleSet()
-        for package in packages:
-            mmd_set.add(str(package))
-        self.mmd.set_rpm_api(mmd_set)
+        self.yaml = modulemd_tools.yaml.update(self.yaml, api=packages)
 
     def add_filter(self, packages):
-        mmd_set = Modulemd.SimpleSet()
-        for package in packages:
-            mmd_set.add(str(package))
-        self.mmd.set_rpm_filter(mmd_set)
+        self.yaml = modulemd_tools.yaml.update(self.yaml, filters=packages)
 
     def add_profiles(self, profiles):
-        for i, values in profiles:
-            name, packages = values
-            profile = Modulemd.Profile(name=name)
-            for package in packages:
-                profile.add_rpm(str(package))
-            self.mmd.add_profile(profile)
+        self.yaml = modulemd_tools.yaml.update(self.yaml, profiles=dict(profiles))
 
     def add_components(self, packages, filter_packages, builds):
+        components = []
         build_ids = sorted(list(set([int(id) for p, id in zip(packages, builds)
                                      if p in filter_packages])))
         for package in filter_packages:
             build_id = builds[packages.index(package)]
             build = builds_logic.BuildsLogic.get_by_id(build_id).first()
-            build_chroot = self._build_chroot(build)
-            buildorder = build_ids.index(int(build.id))
-            rationale = "User selected the package as a part of the module"
-            self.add_component(package, build, build_chroot, rationale, buildorder)
+            chroot = self._build_chroot(build)
+
+            repository = os.path.join(self.config["DIST_GIT_CLONE_URL"],
+                                      build.copr.full_name,
+                                      "{}.git".format(build.package.name))
+
+            components.append({
+                "name": package,
+                "rationale": "User selected the package as a part of the module",
+                "repository": repository,
+                "ref": chroot.git_hash if chroot else "",
+                "buildorder": build_ids.index(int(build.id)),
+
+            })
+        self.yaml = modulemd_tools.yaml.update(self.yaml, components=components)
 
     def _build_chroot(self, build):
         chroot = None
@@ -247,16 +267,8 @@ class ModulemdGenerator(object):
                 break
         return chroot
 
-    def add_component(self, package_name, build, chroot, rationale, buildorder=1):
-        ref = str(chroot.git_hash) if chroot else ""
-        distgit_url = self.config["DIST_GIT_CLONE_URL"]
-        url = os.path.join(distgit_url, build.copr.full_name, "{}.git".format(build.package.name))
-        component = Modulemd.ComponentRpm(name=str(package_name), rationale=rationale,
-                                          repository=url, ref=ref, buildorder=1)
-        self.mmd.add_rpm_component(component)
-
     def generate(self):
-        return self.mmd.dumps()
+        return self.yaml
 
 
 class ModuleProvider(object):

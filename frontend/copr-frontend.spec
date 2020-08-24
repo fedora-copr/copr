@@ -113,6 +113,7 @@ BuildRequires: python3-whoosh
 BuildRequires: python3-wtforms >= 2.2.1
 BuildRequires: python3-yaml
 BuildRequires: redis
+BuildRequires: modulemd-tools >= 0.6
 %endif
 
 Requires: crontabs
@@ -171,6 +172,7 @@ Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
 Requires: xstatic-jquery-ui-common
 Requires: xstatic-patternfly-common
+Requires: modulemd-tools >= 0.6
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
