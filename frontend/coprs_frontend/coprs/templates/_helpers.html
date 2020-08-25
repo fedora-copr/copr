@@ -569,10 +569,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   </div>
   {{ form.csrf_token }}
   {% if g.user.proven %}
-    {{ render_field(form.memory_reqs) }}
     {{ render_field(form.timeout) }}
   {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
-    {{ render_field(form.memory_reqs, hidden = True) }}
     {{ render_field(form.timeout, hidden = True) }}
   {% endif %}
   <div class="form-group">
