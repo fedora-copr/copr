@@ -568,11 +568,17 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     </div>
   </div>
   {{ form.csrf_token }}
-  {% if g.user.proven %}
-    {{ render_field(form.timeout) }}
-  {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
-    {{ render_field(form.timeout, hidden = True) }}
-  {% endif %}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
+      Timeout
+    </label>
+    <div class="col-sm-6">
+      <input id="timeout" class="form-control" name="timeout" type="text" value="{{ form.timeout.default }}" >
+      <li class="help-block">
+        <small class="text-muted pficon pficon-info"></small> {{form.timeout.description|safe}}
+      </li>
+    </div>
+  </div>
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
     Other Options

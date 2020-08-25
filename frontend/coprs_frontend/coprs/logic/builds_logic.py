@@ -600,9 +600,8 @@ class BuildsLogic(object):
             copr_dirname=copr_dirname,
         )
 
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
+        if "timeout" in build_options:
+            build.timeout = build_options["timeout"]
 
         return build
 

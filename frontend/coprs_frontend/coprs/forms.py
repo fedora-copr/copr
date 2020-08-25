@@ -502,6 +502,11 @@ class CoprDeleteForm(FlaskForm):
 class APICoprDeleteForm(CoprDeleteForm):
     verify = wtforms.BooleanField("Confirm deleting", false_values=FALSE_VALUES)
 
+def seconds_to_pretty_hours(sec):
+    minutes = round(sec / 60)
+    hours = minutes // 60
+    minutes = minutes % 60
+    return hours if not minutes else "{}:{:02d}".format(hours, minutes)
 
 # @TODO jkadlcik - rewrite via BaseBuildFormFactory after fe-dev-cloud is back online
 class BuildFormRebuildFactory(object):
@@ -518,6 +523,8 @@ class BuildFormRebuildFactory(object):
 
             timeout = wtforms.IntegerField(
                 "Timeout",
+                description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
+                    app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
                 validators=[
                     wtforms.validators.NumberRange(
                         min=app.config["MIN_BUILD_TIMEOUT"],
@@ -1027,6 +1034,8 @@ class BaseBuildFormFactory(object):
 
         F.timeout = wtforms.IntegerField(
             "Timeout",
+            description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
+                app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
             validators=[
                 wtforms.validators.Optional(),
                 wtforms.validators.NumberRange(
