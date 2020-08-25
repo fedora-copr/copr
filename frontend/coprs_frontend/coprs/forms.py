@@ -557,7 +557,7 @@ class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[wtforms.validators.Regexp(
-                        re.compile(r"^[-+_:a-zA-Z0-9]+$"),
+                        re.compile(r"^[-+_.a-zA-Z0-9]+$"),
                         message="Please enter a valid package name.")])
     webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
     chroot_blacklist = wtforms.StringField(

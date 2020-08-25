@@ -280,8 +280,14 @@ rlJournalStart
         rlAssertEquals "package.source_type == \"rubygems\"" `cat $OUTPUT | jq '.source_type'` '"rubygems"'
         rlAssertEquals "package.source_dict.gem_name == \"zzz\"" `cat $SOURCE_DICT | jq '.gem_name'` '"zzz"'
 
-        # Package having all sort of symbols in name.
-        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name C-c+:9 --gem yyy"
+        # Packages having all sort of symbols in name, these succeed ..
+        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name gcc-c++ --gem yyy"
+        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name python3-ndg_httpsclient --gem yyy"
+        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name python-boolean.py --gem yyy"
+
+        # .. and these fail.
+        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name x:x --gem yyy" 1
+        rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name x@x --gem yyy" 1
 
         ## Package listing
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
