@@ -8,11 +8,6 @@ services:
   # Use this configuration by running
   #    docker-compose -f docker-compose.dev.yaml up <service>
 
-  backend:
-    environment:
-      - PYTHONPATH=/opt/copr/backend
-    command: /usr/sbin/runuser -u copr -g copr -- /opt/copr/backend/run/copr_be.py
-
   backend-log:
     environment:
       - PYTHONPATH=/opt/copr/backend

@@ -9,9 +9,6 @@ services:
   # Use this configuration by running
   #    docker-compose -f docker-compose.shell.yaml up <service>
 
-  backend:
-    command: /bin/bash
-
   backend-log:
     command: /bin/bash
 
