@@ -144,7 +144,7 @@ This package contains all optional modules for building SRPM.
 
 
 %check
-PYTHON=%{python} ./run_tests.sh
+PYTHON=%{python} ./run_tests.sh --no-coverage
 
 
 %build
