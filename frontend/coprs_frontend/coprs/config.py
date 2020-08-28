@@ -108,9 +108,9 @@ class Config(object):
     MIN_BUILD_MEMORY = 2048
     MAX_BUILD_MEMORY = 4096
     # in seconds
-    DEFAULT_BUILD_TIMEOUT = 3600 * 24
+    DEFAULT_BUILD_TIMEOUT = 3600 * 5
     MIN_BUILD_TIMEOUT = 0
-    MAX_BUILD_TIMEOUT = 86400
+    MAX_BUILD_TIMEOUT = 108000
 
 class ProductionConfig(Config):
     DEBUG = False
