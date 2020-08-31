@@ -203,7 +203,7 @@ If you don't need this build for all the project's chroots. You can use it sever
 Override memory for this build. This is actually not used and it have no effect.
 
 --timeout::
-Override timeout for this build. This is actually not used and it have no effect.
+Override timeout for this build.
 
 --nowait::
 Don't wait for build completion.

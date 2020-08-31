@@ -139,6 +139,7 @@ def create_from_url():
             chroot_names=form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         ) for pkg in pkgs]
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -159,6 +160,7 @@ def create_from_upload():
             chroot_names=form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -183,6 +185,7 @@ def create_from_scm():
             chroot_names=form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -233,6 +236,7 @@ def create_from_pypi():
             form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -252,6 +256,7 @@ def create_from_rubygems():
             form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -274,6 +279,7 @@ def create_from_custom():
             chroot_names=form.selected_chroots,
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
+            timeout=form.timeout.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
