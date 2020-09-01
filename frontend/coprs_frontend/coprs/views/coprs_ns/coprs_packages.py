@@ -107,8 +107,11 @@ def copr_rebuild_package(copr, package_name):
         f = render_add_build_custom
         view_suffix = "_custom"
     else:
-        flask.flash("Package {} has not the default source which is required for rebuild. Please configure some source"
-                    .format(package_name, copr.full_name))
+        flask.flash(
+            # TODO: sync this with the API error NoPackageSourceException
+            "Package {} doesn't have the default source method set, but it is "
+            "required for the rebuild request.  Please configure some source "
+            "method first".format(package_name))
         return flask.redirect(helpers.copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
 
     form = form(copr.active_chroots, package)(data=data)
