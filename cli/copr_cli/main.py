@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import time
+import warnings
 from collections import defaultdict
 
 import six
@@ -79,6 +80,15 @@ class FrontendOutdatedCliException(Exception):
             "Please contact the server administrator and request "
             "an update.".format(minimal_version)
         )
+
+
+class ActionDeprecated(argparse.Action):
+    """ automate deprecation warnings for options """
+    def __call__(self, parser, namespace, values, option_string=None):
+        options = ", ".join(self.option_strings)
+        warnings.warn("Use of DEPRECATED option: {0}".format(options))
+        # keep the normal "store" behavior
+        setattr(namespace, self.dest, values)
 
 
 class Commands(object):
@@ -1019,7 +1029,8 @@ def setup_parser():
                                      help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project. "
                                      "It can also be in the form project:<tag>, which will put the build into a side repository with the user-chosen tag in its name.")
     parser_build_parent.add_argument("--memory", dest="memory",
-                                     help="")
+                                     help=argparse.SUPPRESS,
+                                     action=ActionDeprecated)
     parser_build_parent.add_argument("--timeout", dest="timeout",
                                      help="")
     parser_build_parent.add_argument("--nowait", action="store_true", default=False,
