@@ -585,11 +585,17 @@ def validate_chroot_blacklist(form, field):
 
 
 class BasePackageForm(FlaskForm):
+    package_name_regex = r"^[-+_.a-zA-Z0-9]+$"
+
     package_name = wtforms.StringField(
         "Package name",
-        validators=[wtforms.validators.Regexp(
-                        re.compile(r"^[-+_.a-zA-Z0-9]+$"),
-                        message="Please enter a valid package name.")])
+        validators=[
+            wtforms.validators.Regexp(
+                re.compile(package_name_regex),
+                message="Please enter a valid package name in " \
+                       + package_name_regex)]
+    )
+
     webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
     chroot_blacklist = wtforms.StringField(
         "Chroot blacklist",
