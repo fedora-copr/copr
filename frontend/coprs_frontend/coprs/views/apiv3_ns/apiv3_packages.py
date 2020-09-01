@@ -1,7 +1,10 @@
 import flask
-from . import query_params, pagination, get_copr, ListPaginator, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data, get_input, without_empty_fields
-from coprs.exceptions import (ObjectNotFound, BadRequest)
+
+from coprs.exceptions import (
+        BadRequest,
+        ObjectNotFound,
+        NoPackageSourceException
+)
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
@@ -13,6 +16,8 @@ from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 # @TODO Don't import things from APIv1
 from coprs.views.api_ns.api_general import process_package_add_or_edit
 
+from . import query_params, pagination, get_copr, ListPaginator, GET, POST, PUT, DELETE
+from .json2form import get_form_compatible_data
 
 def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False):
     source_dict = package.source_json_dict
@@ -161,8 +166,12 @@ def package_build():
                              .format(name=form.package_name.data, copr=copr.name))
     if form.validate_on_submit():
         buildopts = {k: v for k, v in form.data.items() if k in data}
-        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots,
-                                            copr_dirname=form.project_dirname.data, **buildopts)
+        try:
+            build = PackagesLogic.build_package(
+                flask.g.user, copr, package, form.selected_chroots,
+                copr_dirname=form.project_dirname.data, **buildopts)
+        except NoPackageSourceException as e:
+            raise BadRequest(str(e))
         db.session.commit()
     else:
         raise BadRequest(form.errors)
