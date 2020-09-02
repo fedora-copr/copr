@@ -143,20 +143,7 @@ def get_error_handler():
     return coprs_ns.UIErrorHandler()
 
 
-@app.errorhandler(400)
-@app.errorhandler(BadRequest)
-@app.errorhandler(MalformedArgumentException)
-@app.errorhandler(403)
-@app.errorhandler(AccessRestricted)
-@app.errorhandler(NonAdminCannotCreatePersistentProject)
-@app.errorhandler(NonAdminCannotDisableAutoPrunning)
-@app.errorhandler(404)
-@app.errorhandler(ObjectNotFound)
-@app.errorhandler(409)
-@app.errorhandler(ConflictingRequest)
-@app.errorhandler(500)
-@app.errorhandler(CoprHttpException)
-@app.errorhandler(504)
+@app.errorhandler(Exception)
 def handle_exceptions(error):
     error_handler = get_error_handler()
     return error_handler.handle_error(error)
