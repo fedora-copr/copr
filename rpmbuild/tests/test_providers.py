@@ -1,10 +1,10 @@
 import unittest
 import pytest
 
+from copr_common.enums import BuildSourceEnum
+
 from copr_rpmbuild.providers import (factory, RubyGemsProvider, PyPIProvider,
                                      UrlProvider)
-
-from copr_rpmbuild.helpers import SourceType
 
 
 class TestProvidersFactory(unittest.TestCase):
@@ -12,8 +12,8 @@ class TestProvidersFactory(unittest.TestCase):
         self.not_existing_source_type = 99
 
     def test_factory(self):
-        self.assertEqual(factory(SourceType.RUBYGEMS), RubyGemsProvider)
-        self.assertEqual(factory(SourceType.PYPI), PyPIProvider)
-        self.assertEqual(factory(SourceType.LINK), UrlProvider)
+        self.assertEqual(factory(BuildSourceEnum.rubygems), RubyGemsProvider)
+        self.assertEqual(factory(BuildSourceEnum.pypi), PyPIProvider)
+        self.assertEqual(factory(BuildSourceEnum.link), UrlProvider)
         with pytest.raises(RuntimeError):
             factory(self.not_existing_source_type)

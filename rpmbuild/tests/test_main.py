@@ -3,8 +3,10 @@ import pytest
 import unittest
 import shutil
 
+from copr_common.enums import BuildSourceEnum
+
 from main import produce_srpm
-from copr_rpmbuild.helpers import SourceType
+
 
 try:
      from unittest import mock
@@ -19,7 +21,7 @@ class TestTmpCleanup(unittest.TestCase):
 
     config = {}
     resultdir = "/path/to/non/existing/directory"
-    task = {"source_type": SourceType.UPLOAD,
+    task = {"source_type": BuildSourceEnum.upload,
             "source_json": {"url": "http://foo.ex/somepackage.spec"}}
 
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.produce_srpm")

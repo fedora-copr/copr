@@ -19,16 +19,6 @@ log = logging.getLogger("__main__")
 CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
 
 
-class SourceType:
-    LINK = 1
-    UPLOAD = 2
-    PYPI = 5
-    RUBYGEMS = 6
-    SCM = 8
-    CUSTOM = 9
-    DISTGIT = 10
-
-
 def cmd_debug(result):
     log.debug("")
     log.debug("cmd: {0}".format(result.cmd))

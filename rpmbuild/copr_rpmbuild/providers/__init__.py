@@ -1,4 +1,5 @@
-from ..helpers import SourceType
+from copr_common.enums import BuildSourceEnum
+
 from .rubygems import RubyGemsProvider
 from .pypi import PyPIProvider
 from .spec import UrlProvider
@@ -14,13 +15,13 @@ __all__ = [RubyGemsProvider, PyPIProvider,
 def factory(source_type):
     try:
         return {
-            SourceType.LINK: UrlProvider,
-            SourceType.UPLOAD: UrlProvider,
-            SourceType.RUBYGEMS: RubyGemsProvider,
-            SourceType.PYPI: PyPIProvider,
-            SourceType.SCM: ScmProvider,
-            SourceType.CUSTOM: CustomProvider,
-            SourceType.DISTGIT: DistGitProvider,
+            BuildSourceEnum.link: UrlProvider,
+            BuildSourceEnum.upload: UrlProvider,
+            BuildSourceEnum.rubygems: RubyGemsProvider,
+            BuildSourceEnum.pypi: PyPIProvider,
+            BuildSourceEnum.scm: ScmProvider,
+            BuildSourceEnum.custom: CustomProvider,
+            BuildSourceEnum.distgit: DistGitProvider,
         }[source_type]
     except KeyError:
         raise RuntimeError("No provider associated with this source type")

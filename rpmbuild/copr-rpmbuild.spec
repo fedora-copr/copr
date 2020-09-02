@@ -31,6 +31,7 @@ License: GPLv2+
 # tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
 
+BuildRequires: %{python}-copr-common
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
 %if 0%{?rhel} == 0 || 0%{?rhel} != 6
@@ -57,6 +58,7 @@ Requires: python2-configparser
 %endif
 
 Requires: %python
+Requires: %{python}-copr-common
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
