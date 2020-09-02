@@ -1,23 +1,26 @@
 import math
 import random
 import string
-import html5_parser
-
+import json
 from os.path import normpath
-from six import with_metaclass
-from six.moves.urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+import posixpath
 import re
 
+import html5_parser
+
+from six import with_metaclass
+from six.moves.urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+
 import flask
-import posixpath
 from flask import url_for
-from dateutil import parser as dt_parser
-from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
 from sqlalchemy.types import TypeDecorator, VARCHAR
-import json
+from sqlalchemy.engine.default import DefaultDialect
+from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
 from copr_common.enums import EnumType
+# TODO: don't import BuildSourceEnum from helpers, use copr_common.enum instead
+from copr_common.enums import BuildSourceEnum # pylint: disable=unused-import
 from copr_common.rpm import splitFilename
 from coprs import app
 
@@ -102,18 +105,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
     @classmethod
     def choices_list(cls, without=-1):
         return [(n, k) for k, n in cls.vals.items() if n != without]
-
-
-class BuildSourceEnum(with_metaclass(EnumType, object)):
-    vals = {"unset": 0,
-            "link": 1,  # url
-            "upload": 2,  # pkg, tmp, url
-            "pypi": 5, # package_name, version, python_versions
-            "rubygems": 6, # gem_name
-            "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
-            "custom": 9, # user-provided script to build sources
-            "distgit": 10, # distgit_instance, package_name, committish
-           }
 
 
 class JSONEncodedDict(TypeDecorator):
@@ -421,9 +412,6 @@ def url_for_copr_view(view, group_view, copr, **kwargs):
 def url_for_copr_builds(copr):
     return copr_url("coprs_ns.copr_builds", copr)
 
-
-from sqlalchemy.engine.default import DefaultDialect
-from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
 # python2/3 compatible.
 PY3 = str is not bytes
