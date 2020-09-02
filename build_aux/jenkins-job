@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -x
+set +x
 set -e
 
 # only PRs now
@@ -86,9 +86,39 @@ EOF
     )
     container=$(docker run --rm -v "$PWD":/workdir:Z -d "$image" sleep 1800)
     cleanup_actions+=( "docker kill $container" )
+    failed_packages=()
+    success=true
     for package; do
-      docker exec "$container" bash -c "cd /workdir/$package && ../build_aux/linter --print-fixed-errors --compare-against $DIFF_AGAINST"
+        echo "==== Testing package $package modified by this PR ===="
+        if ! docker exec "$container" bash -c "cd /workdir/$package && ../build_aux/linter --print-fixed-errors --compare-against $DIFF_AGAINST"; then
+            failed_packages+=( "$package" )
+            success=false
+        fi
     done
+
+    echo "=================="
+    echo "=================="
+    echo "=================="
+    echo
+
+    if test "${#failed_packages}" -ne 0; then
+        echo "Those packages failed the PyLint diff testing:"
+        echo
+        for package in "${failed_packages[@]}"; do
+            echo " ==>  $package"
+        done
+        echo
+        echo "See the logs above."
+    else
+        echo "All these modified packages succeeded the PyLint tests: $*"
+    fi
+
+    echo
+    echo "=================="
+    echo "=================="
+    echo "=================="
+
+    $success
 }
 
 run_linter $changed_packages
