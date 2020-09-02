@@ -8,7 +8,7 @@ log = logging.getLogger("__main__")
 
 
 class Provider(object):
-    def __init__(self, source_json, outdir, config):
+    def __init__(self, source_dict, outdir, config):
         self.outdir = outdir
         self.config = config
 
@@ -30,3 +30,10 @@ class Provider(object):
             enabled_protocols = string2list(self.config.get("main", "enabled_source_protocols"))
             rpmmacros.write("%__urlhelper_localopts --proto -all,{0}\n"
                             .format(','.join(["+"+protocol for protocol in enabled_protocols])))
+
+    def produce_srpm(self):
+        """
+        Using the TASK dict and the CONFIG, generate a source RPM in the
+        RESULTDIR.  Each method needs to override this one.
+        """
+        raise NotImplementedError

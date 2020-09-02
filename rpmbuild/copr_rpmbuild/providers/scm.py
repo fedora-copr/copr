@@ -16,14 +16,14 @@ log = logging.getLogger("__main__")
 
 
 class ScmProvider(Provider):
-    def __init__(self, source_json, outdir, config):
-        super(ScmProvider, self).__init__(source_json, outdir, config)
-        self.scm_type = source_json.get('type') or 'git'
-        self.clone_url = source_json.get('clone_url')
-        self.committish = source_json.get('committish') or 'master'
-        self.repo_subdir = source_json.get('subdirectory') or ''
-        self.spec_relpath = source_json.get('spec') or ''
-        self.srpm_build_method = source_json.get('srpm_build_method') or 'rpkg'
+    def __init__(self, source_dict, outdir, config):
+        super(ScmProvider, self).__init__(source_dict, outdir, config)
+        self.scm_type = source_dict.get('type') or 'git'
+        self.clone_url = source_dict.get('clone_url')
+        self.committish = source_dict.get('committish') or 'master'
+        self.repo_subdir = source_dict.get('subdirectory') or ''
+        self.spec_relpath = source_dict.get('spec') or ''
+        self.srpm_build_method = source_dict.get('srpm_build_method') or 'rpkg'
         self.repo_dirname = os.path.splitext(os.path.basename(
             self.clone_url.rstrip('/')))[0]
         self.repo_path = helpers.path_join(self.workdir, self.repo_dirname)
