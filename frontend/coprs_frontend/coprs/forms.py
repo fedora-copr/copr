@@ -1206,21 +1206,31 @@ class ModifyChrootForm(ChrootForm):
     delete_comps = wtforms.BooleanField("Delete comps.xml", false_values=FALSE_VALUES)
 
 
+class SelectMultipleFieldNoValidation(wtforms.SelectMultipleField):
+    """
+    Otherwise choices are required and in some cases we don't know them beforehand
+    """
+    def pre_validate(self, form):
+        pass
+
+
 class PinnedCoprsForm(FlaskForm):
-    copr_ids = wtforms.SelectMultipleField(wtforms.IntegerField("Pinned Copr ID"))
+    copr_ids = SelectMultipleFieldNoValidation(wtforms.IntegerField("Pinned Copr ID"))
 
     def validate(self):
+        super().validate()
+
         if any([i and not i.isnumeric() for i in self.copr_ids.data]):
-            self.errors["coprs"] = ["Unexpected value selected"]
+            self.copr_ids.errors.append("Unexpected value selected")
             return False
 
         limit = app.config["PINNED_PROJECTS_LIMIT"]
         if len(self.copr_ids.data) > limit:
-            self.errors["coprs"] = ["Too many pinned projects. Limit is {}!".format(limit)]
+            self.copr_ids.errors.append("Too many pinned projects. Limit is {}!".format(limit))
             return False
 
         if len(list(filter(None, self.copr_ids.data))) != len(set(filter(None, self.copr_ids.data))):
-            self.errors["coprs"] = ["You can pin a particular project only once"]
+            self.copr_ids.errors.append("You can pin a particular project only once")
             return False
 
         return True

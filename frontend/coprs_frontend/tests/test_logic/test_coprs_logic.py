@@ -237,21 +237,19 @@ class TestPinnedCoprsLogic(CoprsTestCase):
     def test_limit(self):
         app.config["PINNED_PROJECTS_LIMIT"] = 1
         with app.app_context():
-            form = PinnedCoprsForm()
-            form.copr_ids.data = ["1"]
+            form = PinnedCoprsForm(copr_ids=["1"])
             assert form.validate()
 
-            form.copr_ids.data = ["1", "2"]
+            form = PinnedCoprsForm(copr_ids=["1", "2"])
             assert not form.validate()
-            assert "Too many" in form.errors["coprs"][0]
+            assert "Too many" in form.errors["copr_ids"][0]
 
     def test_unique_coprs(self):
         app.config["PINNED_PROJECTS_LIMIT"] = 2
         with app.app_context():
-            form = PinnedCoprsForm()
-            form.copr_ids.data = ["1", "1"]
+            form = PinnedCoprsForm(copr_ids=["1", "1"])
             assert not form.validate()
-            assert "only once" in form.errors["coprs"][0]
+            assert "only once" in form.errors["copr_ids"][0]
 
     def test_delete_project_that_is_pinned(self, f_users, f_coprs, f_db):
         pc1 = models.PinnedCoprs(id=1, copr_id=self.c2.id, user_id=self.u2.id, position=1)
