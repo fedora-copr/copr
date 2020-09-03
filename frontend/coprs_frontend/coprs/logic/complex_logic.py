@@ -282,6 +282,16 @@ class ComplexLogic(object):
 
         return set(coprs)
 
+    @classmethod
+    def get_coprs_pinnable_by_owner(cls, owner):
+        if isinstance(owner, models.Group):
+            UsersLogic.raise_if_not_in_group(flask.g.user, owner)
+            coprs = CoprsLogic.get_multiple_by_group_id(owner.id)
+            coprs = coprs.filter(models.Copr.unlisted_on_hp.is_(False)).all()
+        else:
+            coprs = ComplexLogic.get_coprs_permissible_by_user(owner)
+        return sorted(coprs, key=lambda copr: copr.full_name)
+
 
 class ProjectForking(object):
     def __init__(self, user, group=None):

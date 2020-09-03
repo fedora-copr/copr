@@ -19,6 +19,7 @@ from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
+from coprs.logic.complex_logic import ComplexLogic
 from coprs import exceptions
 
 from wtforms import ValidationError
@@ -1217,10 +1218,15 @@ class SelectMultipleFieldNoValidation(wtforms.SelectMultipleField):
 class PinnedCoprsForm(FlaskForm):
     copr_ids = SelectMultipleFieldNoValidation(wtforms.IntegerField("Pinned Copr ID"))
 
+    def __init__(self, owner, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.owner = owner
+
     def validate(self):
         super().validate()
 
-        if any([i and not i.isnumeric() for i in self.copr_ids.data]):
+        choices = [str(c.id) for c in ComplexLogic.get_coprs_pinnable_by_owner(self.owner)]
+        if any([i and i not in choices for i in self.copr_ids.data]):
             self.copr_ids.errors.append("Unexpected value selected")
             return False
 

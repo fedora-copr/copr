@@ -53,12 +53,7 @@ def pinned_projects(group_name=None):
 
 def render_pinned_projects(owner, form=None):
     pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_owner(owner)]
-    if isinstance(owner, models.Group):
-        UsersLogic.raise_if_not_in_group(flask.g.user, owner)
-        coprs = CoprsLogic.get_multiple_by_group_id(owner.id).filter(models.Copr.unlisted_on_hp.is_(False)).all()
-    else:
-        coprs = ComplexLogic.get_coprs_permissible_by_user(owner)
-    coprs = sorted(coprs, key=lambda copr: copr.full_name)
+    coprs = ComplexLogic.get_coprs_pinnable_by_owner(owner)
     selected = [copr.id for copr in pinned]
     selected += (app.config["PINNED_PROJECTS_LIMIT"] - len(pinned)) * [None]
     for i, copr_id in enumerate(form.copr_ids.data if form else []):
@@ -88,7 +83,7 @@ def process_pinned_projects_post(owner, url_on_success):
     if isinstance(owner, models.Group):
         UsersLogic.raise_if_not_in_group(flask.g.user, owner)
 
-    form = PinnedCoprsForm()
+    form = PinnedCoprsForm(owner)
     if not form.validate_on_submit():
         return render_pinned_projects(owner, form=form)
 
