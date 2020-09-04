@@ -17,6 +17,11 @@ import six
 import pkg_resources
 import requests
 
+try:
+    import argcomplete
+except ImportError:
+    argcomplete = None
+
 from copr import CoprClient
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
@@ -1364,6 +1369,8 @@ def setup_parser():
             help=request_help.format('builder'))
     parser_permissions_request.set_defaults(func='action_permissions_request')
 
+    if argcomplete:
+        argcomplete.autocomplete(parser)
     return parser
 
 
