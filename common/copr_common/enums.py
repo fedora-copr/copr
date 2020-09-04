@@ -97,10 +97,17 @@ class StatusEnum(with_metaclass(EnumType, object)):
     }
 
 
+def _filtered_status_enum(keys):
+    new_values = {}
+    for key, value in StatusEnum.vals.items():
+        if key in keys:
+            new_values[key] = value
+    return new_values
+
+
 class ModuleStatusEnum(StatusEnum):
-    vals = {k: v for k, v in StatusEnum.vals.items()
-            if k in ["canceled", "running", "starting", "pending",
-                      "failed", "succeeded", "waiting", "unknown"]}
+    vals = _filtered_status_enum(["canceled", "running", "starting", "pending",
+                                  "failed", "succeeded", "waiting", "unknown"])
 
 
 class BuildSourceEnum(with_metaclass(EnumType, object)):
