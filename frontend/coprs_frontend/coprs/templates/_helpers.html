@@ -214,7 +214,7 @@
       <span class="pficon pficon-close"></span>
     </button>
     <span class="pficon {{ alert_icon_map.get(type, 'pficon-info') }}"></span>
-  {{ message }}
+  {{ message |safe }}
   </div>
 {% endmacro %}
 

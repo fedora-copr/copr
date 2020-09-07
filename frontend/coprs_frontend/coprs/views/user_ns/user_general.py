@@ -6,6 +6,7 @@ from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import PinnedCoprsLogic
+from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 from coprs.views.coprs_ns.coprs_general import process_copr_repositories
 from . import user_ns
 
@@ -106,6 +107,8 @@ def render_repositories(*_args, **_kwargs):
     owner = flask.g.user
     projects = ComplexLogic.get_coprs_permissible_by_user(owner)
     projects = sorted(projects, key=lambda p: p.full_name)
+    OutdatedChrootsLogic.make_review(owner)
+    db.session.commit()
     return flask.render_template("repositories.html",
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  graph=BuildsLogic.get_small_graph_data('30min'),

@@ -35,6 +35,7 @@ from coprs.rmodels import TimedStatEvents
 from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
 
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 
 from coprs.views.misc import (login_required, page_not_found, req_with_copr,
                               generic_error, req_with_copr_dir)
@@ -690,12 +691,12 @@ def process_copr_repositories(copr, on_success):
         return flask.redirect(url_for_copr_details(copr))
 
     if form.extend.data:
-        delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+        update_fun = OutdatedChrootsLogic.extend
         chroot_name = form.extend.data
         flask.flash("Repository for {} will be preserved for another {} days from now"
                     .format(chroot_name, app.config["DELETE_EOL_CHROOTS_AFTER"]))
     elif form.expire.data:
-        delete_after_days = 0
+        update_fun = OutdatedChrootsLogic.expire
         chroot_name = form.expire.data
         flask.flash("Repository for {} is scheduled to be removed."
                     "If you changed your mind, click 'Extend` to revert your decision."
@@ -704,9 +705,7 @@ def process_copr_repositories(copr, on_success):
         raise ValidationError("Copr chroot needs to be either extended or expired")
 
     copr_chroot = coprs_logic.CoprChrootsLogic.get_by_name(copr, chroot_name, active_only=False).one()
-    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(days=delete_after_days)
-    coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
-                                               delete_after=delete_after_timestamp)
+    update_fun(copr_chroot)
     db.session.commit()
     return on_success(copr)
 

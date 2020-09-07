@@ -2047,6 +2047,31 @@ class CancelRequest(db.Model):
     what = db.Column(db.String(100), nullable=False, primary_key=True)
 
 
+class ReviewedOutdatedChroot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id"),
+        nullable=False,
+        index=True,
+    )
+    copr_chroot_id = db.Column(
+        db.Integer,
+        db.ForeignKey("copr_chroot.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref("reviewed_outdated_chroots"),
+    )
+    copr_chroot = db.relationship(
+        "CoprChroot",
+        backref=db.backref("reviewed_outdated_chroots")
+    )
+
+
 @listens_for(DistGitInstance.__table__, 'after_create')
 def insert_fedora_distgit(*args, **kwargs):
     db.session.add(DistGitInstance(
