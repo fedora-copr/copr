@@ -1301,6 +1301,8 @@ class ChrootForm(FlaskForm):
 class CoprChrootExtend(FlaskForm):
     extend = wtforms.StringField("Chroot name")
     expire = wtforms.StringField("Chroot name")
+    ownername = wtforms.HiddenField("Owner name")
+    projectname = wtforms.HiddenField("Project name")
 
 
 class CoprLegalFlagForm(FlaskForm):

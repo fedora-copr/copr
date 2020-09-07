@@ -1,12 +1,13 @@
 import flask
-from . import user_ns
 from coprs import app, db, models, helpers
 from coprs.forms import PinnedCoprsForm
 from coprs.views.misc import login_required
 from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
+from coprs.logic.coprs_logic import PinnedCoprsLogic
+from coprs.views.coprs_ns.coprs_general import process_copr_repositories
+from . import user_ns
 
 
 def render_user_info(user):
@@ -93,3 +94,26 @@ def process_pinned_projects_post(owner, url_on_success):
     db.session.commit()
 
     return flask.redirect(url_on_success)
+
+
+@user_ns.route("/repositories/")
+@login_required
+def repositories():
+    return render_repositories()
+
+
+def render_repositories(*_args, **_kwargs):
+    owner = flask.g.user
+    projects = ComplexLogic.get_coprs_permissible_by_user(owner)
+    projects = sorted(projects, key=lambda p: p.full_name)
+    return flask.render_template("repositories.html",
+                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 graph=BuildsLogic.get_small_graph_data('30min'),
+                                 owner=owner,
+                                 projects=projects)
+
+
+@user_ns.route("/repositories/", methods=["POST"])
+@login_required
+def repositories_post():
+    return process_copr_repositories(copr=None, on_success=render_repositories)

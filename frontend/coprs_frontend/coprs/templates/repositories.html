@@ -1,0 +1,85 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import copr_url, render_form_errors %}
+{% block title %}Outdated repositories{% endblock %}
+{% block header %}Outdated repositories{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+    </li>
+    <li>
+        {% if owner.at_name is defined %}
+        <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=owner.name) }}">{{ owner.at_name }}</a>
+        {% else %}
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=owner.name) }}">{{ owner.name }}</a>
+        {% endif %}
+    </li>
+    <li class="active">
+        {{ owner.name }} repositories
+    </li>
+</ol>
+{% endblock %}
+
+
+{% block content %}
+<h1 style="margin-bottom:22px;margin-top:22px">Outdated repositories</h1>
+<p>
+    These projects have available repositories for at least some outdated chroots.
+    Unless you periodically take an action and extend the time for they should be preserved,
+    they are going to be removed in the future. Please see
+    <a href="#">Outdated repos removal policy</a>
+    in the Copr Documentation.
+</p>
+
+{% if form %}
+{{ render_form_errors(form=form) }}
+{% endif %}
+
+{% for project in projects %}
+{% if project.outdated_chroots %}
+<form action="" method="POST">
+    <h3><a href="{{ copr_url('coprs_ns.copr_detail', project) }}">{{ project.full_name }}</a></h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th class="col-md-2">Release</th>
+                <th class="col-md-2">Architecture</th>
+                <th>Remaining time</th>
+                <th class="col-md-3">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for chroot in project.outdated_chroots %}
+            <tr>
+                <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
+                <td>{{ chroot.mock_chroot.arch }}</td>
+                <td>
+                    {% if not chroot.delete_after_days %}
+                    To be removed in next cleanup
+                    {% else %}
+                    {% set color = 'danger' if chroot.delete_after_days < 20 else 'secondary' %}
+                    <span class="text-{{ color }}">
+                        {{ chroot.delete_after_days }} days
+                    </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">
+                        Extend
+                    </button>
+                    <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
+                        {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <input type="hidden" name="ownername" value="{{ project.owner_name }}">
+    <input type="hidden" name="projectname" value="{{ project.name }}">
+</form>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

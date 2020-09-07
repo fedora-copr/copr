@@ -674,11 +674,21 @@ def render_copr_repositories(copr):
 @login_required
 @req_with_copr
 def copr_repositories_post(copr):
+    return process_copr_repositories(copr, render_copr_repositories)
+
+
+def process_copr_repositories(copr, on_success):
+    form = forms.CoprChrootExtend()
+    if not copr and not (form.ownername.data or form.projectname.data):
+        raise ValidationError("Ambiguous to what project the chroot belongs")
+
+    if not copr:
+        copr = ComplexLogic.get_copr_by_owner_safe(form.ownername.data,
+                                                   form.projectname.data)
     if not flask.g.user.can_edit(copr):
         flask.flash("You don't have access to this page.", "error")
         return flask.redirect(url_for_copr_details(copr))
 
-    form = forms.CoprChrootExtend()
     if form.extend.data:
         delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
         chroot_name = form.extend.data
@@ -698,7 +708,7 @@ def copr_repositories_post(copr):
     coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
                                                delete_after=delete_after_timestamp)
     db.session.commit()
-    return render_copr_repositories(copr)
+    return on_success(copr)
 
 
 @coprs_ns.route("/id/<copr_id>/createrepo/", methods=["POST"])
