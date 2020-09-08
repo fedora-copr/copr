@@ -41,13 +41,16 @@ def config_from_file(path=None):
     return config
 
 
-def for_all_methods(cls, decorator):
+def for_all_methods(decorator):
     """
     Apply a given decorator to all class methods
     """
-    for attr in list(cls.__dict__):
-        if callable(getattr(cls, attr)):
-            setattr(cls, attr, decorator(getattr(cls, attr)))
+    def decorate(cls):
+        for attr in list(cls.__dict__):
+            if callable(getattr(cls, attr)):
+                setattr(cls, attr, decorator(getattr(cls, attr)))
+        return cls
+    return decorate
 
 
 def bind_proxy(func):

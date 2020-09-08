@@ -4,13 +4,13 @@ from ..requests import Request, munchify
 from ..helpers import for_all_methods, bind_proxy
 
 
+@for_all_methods(bind_proxy)
 class BaseProxy(object):
     """
     Parent class for all other proxies
     """
 
     def __init__(self, config):
-        for_all_methods(self.__class__, bind_proxy)
         self.config = config
 
     @classmethod

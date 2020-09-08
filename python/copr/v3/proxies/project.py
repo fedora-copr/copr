@@ -2,8 +2,10 @@ from __future__ import absolute_import
 
 from . import BaseProxy
 from ..requests import Request, munchify, POST, GET, PUT
+from ..helpers import for_all_methods, bind_proxy
 
 
+@for_all_methods(bind_proxy)
 class ProjectProxy(BaseProxy):
 
     def get(self, ownername, projectname):

@@ -4,8 +4,10 @@ import os
 from . import BaseProxy
 from ..requests import Request, FileRequest, munchify, POST
 from ..exceptions import CoprValidationException
+from ..helpers import for_all_methods, bind_proxy
 
 
+@for_all_methods(bind_proxy)
 class BuildProxy(BaseProxy):
     def get(self, build_id):
         """

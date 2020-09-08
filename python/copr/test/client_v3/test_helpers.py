@@ -40,7 +40,7 @@ class TestWait(object):
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait_custom_list(self, mock_get):
         builds = List([Munch(id=1, state="succeeded"), Munch(id=2, state="failed")], proxy=BuildProxy({}))
-        mock_get.side_effect = lambda self, id: builds[id-1]
+        mock_get.side_effect = lambda id: builds[id-1]
         assert wait(builds)
 
     @mock.patch("time.time")

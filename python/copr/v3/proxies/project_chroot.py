@@ -3,8 +3,10 @@ from __future__ import absolute_import
 import os
 from . import BaseProxy
 from ..requests import Request, FileRequest, munchify, POST
+from ..helpers import for_all_methods, bind_proxy
 
 
+@for_all_methods(bind_proxy)
 class ProjectChrootProxy(BaseProxy):
 
     def get(self, ownername, projectname, chrootname):

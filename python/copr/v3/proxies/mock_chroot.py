@@ -3,8 +3,10 @@ from __future__ import absolute_import
 import os
 from . import BaseProxy
 from ..requests import Request, munchify
+from ..helpers import for_all_methods, bind_proxy
 
 
+@for_all_methods(bind_proxy)
 class MockChrootProxy(BaseProxy):
 
     def get_list(self, pagination=None):
