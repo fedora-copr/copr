@@ -234,37 +234,6 @@ class TestPinnedCoprsLogic(CoprsTestCase):
         assert set(PinnedCoprsLogic.get_by_owner(self.u2)) == {pc1, pc2}
         assert set(CoprsLogic.get_multiple_by_username(self.u2.name)) == {self.c2, self.c3}
 
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
-    def test_limit(self):
-        app.config["PINNED_PROJECTS_LIMIT"] = 1
-        with app.app_context():
-            flask.g.user = self.u2
-
-            form = PinnedCoprsForm(self.u2, copr_ids=["2"])
-            assert form.validate()
-
-            form = PinnedCoprsForm(self.u2, copr_ids=["2", "3"])
-            assert not form.validate()
-            assert "Too many" in form.errors["copr_ids"][0]
-
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
-    def test_unique_coprs(self):
-        app.config["PINNED_PROJECTS_LIMIT"] = 2
-        with app.app_context():
-            flask.g.user = self.u2
-            form = PinnedCoprsForm(self.u2, copr_ids=["2", "2"])
-            assert not form.validate()
-            assert "only once" in form.errors["copr_ids"][0]
-
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
-    def test_invalid_choice(self):
-        app.config["PINNED_PROJECTS_LIMIT"] = 2
-        with app.app_context():
-            flask.g.user = self.u2
-            form = PinnedCoprsForm(self.u2, copr_ids=["1"])
-            assert not form.validate()
-            assert "Unexpected value selected" in form.errors["copr_ids"][0]
-
     def test_delete_project_that_is_pinned(self, f_users, f_coprs, f_db):
         pc1 = models.PinnedCoprs(id=1, copr_id=self.c2.id, user_id=self.u2.id, position=1)
         pc2 = models.PinnedCoprs(id=2, copr_id=self.c3.id, user_id=self.u2.id, position=2)

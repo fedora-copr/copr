@@ -419,7 +419,7 @@ class CoprFormFactory(object):
                     return False
 
                 if not self.validate_mock_chroots_not_empty():
-                    self.errors["chroots"] = ["At least one chroot must be selected"]
+                    self.form_errors = ["At least one chroot must be selected"]
                     return False
 
                 if self.persistent.data and self.delete_after_days.data:
@@ -428,6 +428,36 @@ class CoprFormFactory(object):
                     return False
 
                 return True
+
+            @property
+            def errors(self):
+                """
+                Current stable version of WTForms's `Form` doesn't allow to set
+                form-level errors. Let's workaround it in a way, that is
+                implemented in the development branch.
+
+                2.2.1 (Fedora 31/32)
+                  `form.errors["whatever"] = ["Some message"]` could be done
+
+                2.3.1 (Fedora 33)
+                  The previous solution does nothing and there is no way to
+                  have form-level errors. The only way to set errors is via
+                  `form.some_field.errors.append("Some message")`. We are
+                  reimplementing `errors` property to behave like in 3.0.0
+
+                3.0.0 (Fedora ??)
+                  The `form.form_errors` field can be set. This list will be
+                  added to the resulting `errors` value and accessible as
+                  `form.errors[None]`.
+
+                  RFE: https://github.com/wtforms/wtforms/issues/55
+                  PR: https://github.com/wtforms/wtforms/pull/595
+                  Release notes: https://github.com/wtforms/wtforms/blob/master/CHANGES.rst#version-300
+                """
+                errors = super().errors.copy()
+                if hasattr(self, "form_errors"):
+                    errors[None] = self.form_errors
+                return errors
 
             def validate_mock_chroots_not_empty(self):
                 have_any = False
@@ -1304,7 +1334,7 @@ class CreateModuleForm(FlaskForm):
         # Profile names should be unique
         names = [x for x in self.profile_names.data if x]
         if len(set(names)) < len(names):
-            self.errors["profiles"] = ["Profile names must be unique"]
+            self.profile_names.errors.append("Profile names must be unique")
             return False
 
         # WORKAROUND
@@ -1314,7 +1344,7 @@ class CreateModuleForm(FlaskForm):
             # If profile name is not set, then there should not be any packages in this profile
             if not flask.request.form["profile_names-{}".format(i)]:
                 if [j for j in range(0, len(self.profile_names)) if "profile_pkgs-{}-{}".format(i, j) in flask.request.form]:
-                    self.errors["profiles"] = ["Missing profile name"]
+                    self.profile_names.errors.append("Missing profile name")
                     return False
         return True
 
