@@ -50,9 +50,12 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
         (stdout, stderr) = process.communicate()
-    except FileNotFoundError:
-        raise RuntimeError("Package with `{}` command is not installed".format(cmd[0]))
     except OSError as e:
+        if e.errno == errno.ENOENT:
+            raise RuntimeError(
+                "Command '{0}' can not be executed.  Either the command "
+                "itself isn't installed, or it's interpreter (shebang) is "
+                "missing on the system".format(cmd[0]))
         raise RuntimeError(str(e))
 
     result = munch.Munch(
