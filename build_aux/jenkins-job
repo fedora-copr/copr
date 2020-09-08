@@ -26,7 +26,16 @@ for member in d['members']:
 print()
 "
 
-echo "Checking whether we want to run against $REPO/$BRANCH"
+visible_info()
+{
+    echo
+    echo
+    echo "===> $*"
+    echo
+    echo
+}
+
+visible_info "Checking whether we want to run against $REPO/$BRANCH"
 
 # only copr-team for now
 members=$(curl https://pagure.io/api/0/group/copr \
@@ -42,7 +51,11 @@ for member in $members; do
             ;;
     esac
 done
-$copr_sig_member || exit 0  # silently skip non-copr people
+
+if ! $copr_sig_member; then
+    visible_info "$REPO doesn't belong to anyone from Copr Team members"
+    exit 0
+fi
 
 git remote rm proposed || true
 git remote add proposed "$REPO"
