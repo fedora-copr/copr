@@ -9,9 +9,7 @@ bld: build
 
 run:
 	docker run \
-		--privileged \
 		-dit \
-		-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 		-v $(mkfile_path)/../../../copr:/root/copr \
 		--name="test-env" \
 		-h test-env \

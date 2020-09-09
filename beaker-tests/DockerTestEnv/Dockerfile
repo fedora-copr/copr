@@ -1,28 +1,21 @@
 FROM fedora:32
+ARG COPR_PACKAGES=devel
 MAINTAINER copr-devel@lists.fedorahosted.org
-
 ENV container docker
-RUN dnf -y update
-RUN dnf -y install systemd
-RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-rm -f /lib/systemd/system/multi-user.target.wants/*;\
-rm -f /etc/systemd/system/*.wants/*;\
-rm -f /lib/systemd/system/local-fs.target.wants/*; \
-rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-rm -f /lib/systemd/system/basic.target.wants/*;\
-rm -f /lib/systemd/system/anaconda.target.wants/*;
-VOLUME ["/sys/fs/cgroup"]
 
-RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
-RUN dnf -y install htop wget net-tools iputils vim mlocate git sudo openssh-server psmisc python-jedi procps-ng findutils tmux expect
+RUN dnf -y update \
+    && dnf -y install dnf-plugins-core wget \
+    && wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d \
+    && dnf -y copr enable @copr/copr \
+    && if test "$COPR_PACKAGES" = devel; then dnf -y copr enable @copr/copr-dev; fi \
+    && dnf -y install htop net-tools iputils vim mlocate git sudo \
+              openssh-server psmisc python-jedi procps-ng findutils tmux \
+              expect \
+    && dnf -y install rhts-test-env beakerlib \
+    && dnf -y clean all
+
 RUN for repo in fedora updates updates-testing; do \
     dnf -y config-manager --save --setopt $repo.excludepkgs=hello ; done
-
-# Sanity tests
-RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
-
-RUN dnf -y install rhts-test-env beakerlib
 
 RUN echo "LANG=en_US.UTF-8" >> /etc/locale
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
