@@ -155,6 +155,17 @@ class Commands(object):
             owner = self.config["username"]
         return owner, name
 
+    def parse_chroot_path(self, path):
+        """
+        Take a `path` in an `owner/project/chroot` format and return a tuple of
+        the corresponding values, i.e. `(owner, project, chroot)`
+        """
+        m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
+        if m:
+            owner = m.group(2) or self.config["username"]
+            return owner, m.group(3), m.group(4)
+        raise CoprException("Unexpected chroot path format")
+
     def _watch_builds(self, build_ids):
         """
         :param build_ids: list of build IDs
@@ -566,7 +577,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        owner, copr, chroot = self.parse_chroot_path(args.coprchroot)
         project_chroot = self.client.project_chroot_proxy.edit(
             ownername=owner, projectname=copr, chrootname=chroot,
             comps=args.upload_comps, delete_comps=args.delete_comps,
@@ -580,7 +591,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        owner, copr, chroot = self.parse_chroot_path(args.coprchroot)
         project_chroot = self.client.project_chroot_proxy.get(
             ownername=owner, projectname=copr, chrootname=chroot
         )
@@ -1372,13 +1383,6 @@ def setup_parser():
     if argcomplete:
         argcomplete.autocomplete(parser)
     return parser
-
-
-def parse_chroot_path(path):
-    m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
-    if m:
-        return m.group(2), m.group(3), m.group(4)
-    return None
 
 
 def enable_debug():
