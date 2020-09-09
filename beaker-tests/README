@@ -83,6 +83,7 @@ to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
 - rpm-build
 - jq
 - python3-copr and copr-cli (tested version)
+- python3-behave and python3-hamcrest (for the BDD tests)
 
 Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh which needs
 a root access for many tasks.  That's why you might want to run the test inside

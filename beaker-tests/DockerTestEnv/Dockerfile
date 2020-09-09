@@ -10,7 +10,7 @@ RUN dnf -y update \
     && if test "$COPR_PACKAGES" = devel; then dnf -y copr enable @copr/copr-dev; fi \
     && dnf -y install htop net-tools iputils vim mlocate git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
-              expect \
+              expect python3-behave python3-hamcrest \
     && dnf -y install python3-copr rpm-build copr-cli jq \
     && dnf -y install rhts-test-env beakerlib \
     && dnf -y clean all

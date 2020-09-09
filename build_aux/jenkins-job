@@ -66,6 +66,7 @@ git checkout "proposed/$BRANCH"
 
 subdirs=(
     -e ^backend$
+    -e ^behave$
     -e ^frontend$
     -e ^distgit$
     -e ^cli$

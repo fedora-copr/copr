@@ -46,7 +46,8 @@ disable=import-error
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
-dummy-variables-rgx=_|dummy
+# - "step_impl" is used for all the behave steps
+dummy-variables-rgx=_|dummy|step_impl
 
 
 [BASIC]

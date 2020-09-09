@@ -29,6 +29,10 @@ def transform_functions(function):
         # ignore missing-function-docstring in migrations
         function.doc = "fake docs"
 
+    if function.name == "step_impl":
+        # behave step definition
+        function.doc = "fake docs"
+
     if is_test_method(function):
         function.doc = "fake docs"
 
