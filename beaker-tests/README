@@ -80,7 +80,10 @@ to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
 
 - rhts-test-env
 - beakerlib
+- rpm-build
+- jq
+- python3-copr and copr-cli (tested version)
 
-Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh without first running
-Install/Config-copr-cli/runtest.sh which needs root access to setup the system into the
-required state. That's why you might want to run the test inside a container or vm.
+Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh which needs
+a root access for many tasks.  That's why you might want to run the test inside
+a container or vm (see DockerTestEnv docs above).

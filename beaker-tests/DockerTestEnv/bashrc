@@ -1,0 +1,19 @@
+# This file is sourced in /root/.bashrc inside the container
+
+if ! test -f "$HOME/.config/copr"; then
+    echo
+    echo "Please obtain your personal API config from"
+    echo "https://YOUR_COPR_HOST/api/"
+    echo "and paste it to the ~/.config/copr"
+    echo
+    mkdir -p "$HOME/.config"
+else
+    echo
+    echo "There's $HOME/.config/copr pre-configured, may need edits."
+fi
+
+echo "There's /etc/dnf/plugins/copr.d/tested-copr.conf, may need manual edits"
+echo
+
+# most of the time we want to be in this directory
+cd /root/copr/beaker-tests/Sanity/copr-cli-basic-operations || :

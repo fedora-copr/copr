@@ -11,6 +11,7 @@ RUN dnf -y update \
     && dnf -y install htop net-tools iputils vim mlocate git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect \
+    && dnf -y install python3-copr rpm-build copr-cli jq \
     && dnf -y install rhts-test-env beakerlib \
     && dnf -y clean all
 
@@ -25,5 +26,12 @@ RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 RUN echo 'root:passwd' | chpasswd
 RUN echo 'export LANG=en_US.UTF-8' >> /root/.bashrc
 RUN echo 'set -g history-limit 40960' > /root/.tmux.conf
+
+COPY bashrc /root/.bashrc_copr
+
+RUN echo "source /root/.bashrc_copr" >> /root/.bashrc
+
+RUN echo -e "[tested-copr]\nhostname = copr-fe-dev.cloud.fedoraproject.org\nprotocol = https\nport = 443\n" \
+    >  /etc/dnf/plugins/copr.d/tested-copr.conf
 
 CMD ["/usr/bin/sleep", "infinity"]

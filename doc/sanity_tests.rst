@@ -37,10 +37,6 @@ Now we are going to operate in the container.
 
 ::
 
-    # Install dependencies and configure copr-cli
-    [root@test-env ~] cd ~/copr/beaker-tests/Install/Config-copr-cli
-    [root@test-env Config-copr-cli] ./runtest.sh
-
     # Set your API token and Copr URL
     [root@test-env ~] vim ~/.config/copr
 
