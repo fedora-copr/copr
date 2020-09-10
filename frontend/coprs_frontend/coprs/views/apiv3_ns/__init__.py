@@ -27,57 +27,6 @@ PUT = ["POST", "PUT"]
 DELETE = ["POST", "DELETE"]
 
 
-class APIErrorHandler(object):
-    def handle_error(self, error):
-        code = self.code(error)
-        message = self.message(error)
-
-        # In the majority of cases, we want to return the message that was
-        # passed through an exception, but occasionally we want to redefine the
-        # message to some API-related one. Please try to keep it simple and
-        # do this only if necessary.
-        errors = {
-            NotFound: "Such API endpoint doesn't exist",
-            GatewayTimeout: "The API request timeouted",
-        }
-        if error.__class__ in errors:
-            message = errors[error.__class__]
-
-        # Every `CoprHttpException` and `HTTPException` failure has valuable
-        # message for the end user. It holds information that e.g. some value is
-        # missing or incorrect, something cannot be done, something doesn't
-        # exist. Eveything else should really be an uncaught exception caused by
-        # either not properly running all frontend requirements (PostgreSQL,
-        # Redis), or having a bug in the code.
-        if not any([isinstance(error, CoprHttpException),
-                    isinstance(error, HTTPException)]):
-            message = ("Request wasn't successful, "
-                       "there is probably a bug in the API code.")
-        return self.respond(message, code)
-
-    def respond(self, message, code):
-        response = flask.jsonify(error=message)
-        response.status_code = code
-        return response
-
-    def code(self, error):
-        return getattr(error, "code", 500)
-
-    def message(self, error):
-        if isinstance(error, CoprHttpException):
-            # Ideally we want to return a custom message that was passed to the
-            # exception when initializing its object. In case there is no custom
-            # message, all descendants of `CoprHttpException` define some
-            # reasonable default, such as "You don't have required permission",
-            # "Requested object was not found" or "Generic copr exception"
-            return error.message or error._default
-        if hasattr(error, "description"):
-            # The exceptions having this attribute are descendants of the
-            # `werkzeug.exceptions.HTTPException`
-            return error.description
-        return str(error)
-
-
 def query_params():
     def query_params_decorator(f):
         @wraps(f)

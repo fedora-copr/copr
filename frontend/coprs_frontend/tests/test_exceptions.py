@@ -95,6 +95,16 @@ class TestExceptionHandling(CoprsTestCase):
         assert "Whatever unspecified error" in data["error"]
 
     @new_app_context
+    def test_api_500_default_message(self):
+        def raise_exception():
+            raise CoprHttpException
+        app.view_functions["apiv3_ns.home"] = raise_exception
+        r1 = self.tc.get("/api_3/", follow_redirects=True)
+        assert r1.status_code == 500
+        data = json.loads(r1.data)
+        assert "Generic copr exception" in data["error"]
+
+    @new_app_context
     def test_api_500_runtime_error(self):
         def raise_exception():
             raise RuntimeError("Whatever unspecified error")

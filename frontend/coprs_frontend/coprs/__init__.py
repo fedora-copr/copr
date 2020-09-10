@@ -114,6 +114,7 @@ from coprs.exceptions import (
     NonAdminCannotCreatePersistentProject,
     NonAdminCannotDisableAutoPrunning,
 )
+from coprs.error_handlers import get_error_handler
 from .context_processors import include_banner, inject_fedmenu, counter_processor
 
 setup_log()
@@ -134,13 +135,6 @@ app.register_blueprint(webhooks_ns)
 app.register_blueprint(rss_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
-
-
-def get_error_handler():
-    # http://flask.pocoo.org/docs/1.0/blueprints/#error-handlers
-    if flask.request.path.startswith('/api_3/'):
-        return apiv3_ns.APIErrorHandler()
-    return coprs_ns.UIErrorHandler()
 
 
 @app.errorhandler(Exception)
