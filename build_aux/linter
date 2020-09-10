@@ -133,14 +133,16 @@ class PylintLinter(_Linter):
         return cmd, env
 
 
-def get_rename_map(options):
+def get_rename_map(options, subdir):
     """
     Using the os.getcwd() and 'git diff --namestatus', generate list of
     files to analyze with possible overrides.  The returned format is
     dict of format 'new_file' -> 'old_file'.
     """
     cmd = ['git', 'diff', '--name-status', '-C', options.compare_against,
-           '--numstat','--relative', '.']
+           '--numstat', '--relative', os.path.join(".", subdir)]
+
+    log.debug("running: %s", " ".join(cmd))
     # current file -> old_name
     return_map = {}
     output = check_output(cmd).decode('utf-8')
@@ -159,6 +161,7 @@ def get_rename_map(options):
             log.debug("new: %s", parts[1])
             return_map[parts[1]] = None
         elif mode == 'M':
+            log.debug("modified: %s", parts[1])
             return_map[parts[1]] = parts[1]
         else:
             log.info("skipping diff mode %s for file %s", mode, parts[1])
@@ -170,6 +173,7 @@ class _Worker:  # pylint: disable=too-few-public-methods
     gitroot = None
     # relative path within gitroot to the sub-project
     projectdir = None
+    projectsubdir = None
     workdir = None
     checkout = None
     linters = [PylintLinter]
@@ -189,10 +193,12 @@ class _Worker:  # pylint: disable=too-few-public-methods
         def rel_projdir(projdir):
             gitroot_a = os.path.realpath(self.gitroot)
             gitproj_a = os.path.realpath(projdir)
-            rel_projdir = gitproj_a.replace(gitroot_a + '/', '')
-            log.debug("relative projectdir: %s", rel_projdir)
-            return rel_projdir
-
+            cwd_a = os.path.realpath(os.getcwd())
+            self.projectdir = gitproj_a.replace(gitroot_a + '/', '')
+            self.projectsubdir = (cwd_a + "/").replace(
+                "{}/{}/".format(gitroot_a, self.projectdir), "")
+            log.debug("relative projectdir: %s", self.projectdir)
+            log.debug("project subdir: %s", self.projectsubdir)
 
         path = os.getcwd()
         while True:
@@ -200,16 +206,16 @@ class _Worker:  # pylint: disable=too-few-public-methods
             if os.path.realpath(path) == '/':
                 raise Exception("project dir not found")
             if os.path.isdir(os.path.join(path, '.git')):
-                self.projectdir = rel_projdir(path)
+                rel_projdir(path)
                 return
             if glob.glob(os.path.join(path, '*.spec')):
-                self.projectdir = rel_projdir(path)
+                rel_projdir(path)
                 return
             path = os.path.normpath(os.path.join(path, '..'))
 
     def _run_linters(self, old_report_fd, new_report_fd):
         # pylint: disable=too-many-locals
-        lookup = get_rename_map(self.options)
+        lookup = get_rename_map(self.options, self.projectsubdir)
         if not lookup:
             return
 
@@ -269,6 +275,7 @@ class _Worker:  # pylint: disable=too-few-public-methods
                 oldcwd = os.getcwd()
                 try:
                     pd = os.path.join(self.gitroot, self.projectdir)
+                    log.debug("Switching to project directory %s", pd)
                     os.chdir(pd)
                     self._run_linters(old, new)
                 finally:
