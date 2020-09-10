@@ -63,7 +63,7 @@ class BuildsLogic(object):
 
     @classmethod
     def get_srpm_build_tasks(cls, status, background=None):
-        """ Returns srpm build tasks with given status. If background is
+        """ Returns source build tasks with given status. If background is
             specified then returns normal jobs (false) or background jobs (true)
         """
         result = models.Build.query\

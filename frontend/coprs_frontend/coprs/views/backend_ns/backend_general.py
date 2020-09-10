@@ -348,7 +348,7 @@ def reschedule_build_chroot():
 
     if task_id == build.task_id:
         if build.source_status in run_statuses:
-            log.info("rescheduling srpm build {}".format(build.id))
+            log.info("rescheduling source build %s", build.id)
             BuildsLogic.update_state_from_dict(build, {
                 "task_id": task_id,
                 "status": StatusEnum("pending")

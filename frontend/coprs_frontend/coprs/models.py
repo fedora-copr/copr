@@ -900,7 +900,7 @@ class Build(db.Model, helpers.Serializer):
     # the three below represent time of important events for this build
     # as returned by int(time.time())
     submitted_on = db.Column(db.Integer, nullable=False)
-    # directory name on backend with the srpm build results
+    # directory name on backend with the source build results
     result_dir = db.Column(db.Text, default='', server_default='', nullable=False)
     # memory requirements for backend builder
     memory_reqs = db.Column(db.Integer, default=app.config["DEFAULT_BUILD_MEMORY"])
