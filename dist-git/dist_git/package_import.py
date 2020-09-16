@@ -180,7 +180,7 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
                         gitbaseurl=opts.git_base_url,
                         anongiturl="",
                         branchre="",
-                        kojiconfig="",
+                        kojiprofile="",
                         build_client="")
 
     # rpkg gets module_name as a basename of git url
