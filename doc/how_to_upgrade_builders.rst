@@ -304,7 +304,7 @@ should re-provision the backend configuration from batcave::
 
     $ ssh batcave01.iad2.fedoraproject.org
     $ sudo rbac-playbook \
-        -l copr-be-dev.cloud.fedoraproject.org groups/copr-backend.yml \
+        -l copr-be-dev.aws.fedoraproject.org groups/copr-backend.yml \
         -t provision_config
 
 You might well want to stop here for now, and try to test for a week or so that
@@ -329,7 +329,7 @@ points to the same image names as development instance does.  And re-run
 playbook from batcave::
 
     $ sudo rbac-playbook \
-        -l copr-be.cloud.fedoraproject.org groups/copr-backend.yml \
+        -l copr-be.aws.fedoraproject.org groups/copr-backend.yml \
         -t provision_config
 
 Optionally, when you need to propagate the builders quickly, you can terminate
