@@ -48,7 +48,7 @@ def rename_fields(input):
 
 
 def validate_chroots(input, allowed_chroots):
-    inserted = set(input["chroots"] or [])
+    inserted = set(input.get("chroots") or [])
     allowed = {x.name for x in allowed_chroots}
     unexpected = inserted - allowed
     if unexpected:
