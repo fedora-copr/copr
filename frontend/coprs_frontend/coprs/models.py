@@ -1367,6 +1367,7 @@ class MockChroot(db.Model, helpers.Serializer):
                 .filter(cls.is_active == True)
                 .filter(cls.os_release == 'fedora')
                 .filter(cls.os_version != 'rawhide')
+                .filter(cls.os_version != 'eln')
                 .filter(cls.arch == arch)
                 .order_by(cls.os_version.desc())
                 .first())
