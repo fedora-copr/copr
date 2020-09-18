@@ -114,7 +114,7 @@ class TestDistGitMethodPackage(object):
 
         call = f_patch_package_distgit[0].call_args_list[0]
         assert call == mock.call(
-            call[0][0], None, "project", "package", "distgit",
+            None, "project", "package", "distgit",
             {'distgit': None,
              'namespace': None,
              'committish': None,
@@ -132,7 +132,7 @@ class TestDistGitMethodPackage(object):
 
         call = f_patch_package_distgit[1].call_args_list[0]
         assert call == mock.call(
-            call[0][0], "@owner", "project", "package", "distgit",
+            "@owner", "project", "package", "distgit",
             {'distgit': "centos",
              'namespace': "ns",
              'committish': "master",
