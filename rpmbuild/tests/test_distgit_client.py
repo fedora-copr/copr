@@ -170,4 +170,5 @@ class TestDistGitDownload(object):
             '--define', 'dist %nil',
             '--define', '_sourcedir ' + self.workdir + '/SOURCES',
             '--define', '_srcrpmdir ' + self.workdir + '/result',
+            '--define', '_disable_source_fetch 1',
         ]

@@ -256,6 +256,7 @@ def srpm(args, config):
             "--define", "dist %nil",
             "--define", "_sourcedir {0}".format(sources_dir),
             "--define", "_srcrpmdir {0}".format(args.outputdir),
+            "--define", "_disable_source_fetch 1",
         ]
 
     if args.dry_run or 'COPR_DISTGIT_CLIENT_DRY_RUN' in os.environ:
