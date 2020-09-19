@@ -91,7 +91,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 
 %check
-./run_tests.sh
+./run_tests.sh -vv
 
 %post
 %systemd_post copr-dist-git.service

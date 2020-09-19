@@ -172,7 +172,7 @@ cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 
 
 %check
-./run_tests.sh
+./run_tests.sh -vv
 
 %pre
 getent group copr >/dev/null || groupadd -r copr

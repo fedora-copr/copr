@@ -202,11 +202,11 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 
 %check
 %if %{with python3}
-%{__python3} -m pytest copr/test
+%{__python3} -m pytest -vv copr/test
 %endif
 
 %if %{with python2}
-%{__python2} -m pytest copr/test
+%{__python2} -m pytest -vv copr/test
 %endif
 
 

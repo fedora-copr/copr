@@ -106,7 +106,7 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %check
-%{__python} -m pytest tests
+%{__python} -m pytest -vv tests
 
 
 %files

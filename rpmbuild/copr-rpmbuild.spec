@@ -170,7 +170,7 @@ done
 
 
 %check
-PYTHON=%{python} ./run_tests.sh --no-coverage
+PYTHON=%{python} ./run_tests.sh -vv --no-coverage
 
 
 %build

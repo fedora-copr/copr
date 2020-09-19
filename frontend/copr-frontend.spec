@@ -44,7 +44,7 @@
 
 Name:       copr-frontend
 Version:    1.169
-Release:    1%{?dist}
+Release:    0.1%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPLv2+
@@ -289,7 +289,7 @@ EOF
 
 %check
 %if %{with check}
-./run_tests.sh
+./run_tests.sh -vv
 %endif
 
 %pre

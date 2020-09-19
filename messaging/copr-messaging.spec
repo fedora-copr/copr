@@ -70,7 +70,7 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %check
-./runtests.sh
+./runtests.sh -vv
 
 
 %files -n python3-%name

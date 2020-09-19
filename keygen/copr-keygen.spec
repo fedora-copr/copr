@@ -120,8 +120,7 @@ cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_sign
 cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 
 %check
-
-PYTHONPATH=./src:$PYTHONPATH %{__python3} -B -m pytest  --cov-report term-missing --cov ./src tests
+PYTHONPATH=./src:$PYTHONPATH %{__python3} -B -m pytest -vv --cov-report term-missing --cov ./src tests
 
 
 %pre
