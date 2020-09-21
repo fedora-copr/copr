@@ -28,7 +28,7 @@ Requires: httpd
 Requires: dist-git
 Requires: python3-copr-common
 Requires: python3-requests
-Requires: python3-rpkg
+Requires: python3-rpkg >= 1.61
 Requires: python3-munch
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
