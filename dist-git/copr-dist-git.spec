@@ -21,6 +21,8 @@ BuildRequires: python3-rpkg
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-copr-common
+BuildRequires: python3-oslo-concurrency
+BuildRequires: python3-setproctitle
 
 Recommends: logrotate
 Requires: systemd
@@ -30,6 +32,8 @@ Requires: python3-copr-common
 Requires: python3-requests
 Requires: python3-rpkg >= 1.61
 Requires: python3-munch
+Requires: python3-oslo-concurrency
+Requires: python3-setproctitle
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
 Requires: crontabs
@@ -68,6 +72,7 @@ install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_sysconfdir}/httpd/conf.d/
 install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
+install -d %{buildroot}%{_tmpfilesdir}
 install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
 install -d %{buildroot}%{_bindir}/
 install -d %{buildroot}%{_sysconfdir}/cron.monthly
@@ -77,6 +82,7 @@ install -p -m 755 conf/cron.monthly/copr-dist-git %{buildroot}%{_sysconfdir}/cro
 cp -a dist_git/* %{buildroot}%{_datadir}/copr/dist_git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
 cp -a conf/httpd/copr-dist-git.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
+cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
 cp -a run/* %{buildroot}%{_bindir}/
 
@@ -122,6 +128,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
 %attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
 %ghost %{_var}/log/copr-dist-git/*.log
+%{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 0.47-1

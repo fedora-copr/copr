@@ -29,3 +29,12 @@ class ImportTask(object):
     @property
     def repo_namespace(self):
         return "{}/{}".format(self.owner, self.project)
+
+    @property
+    def reponame(self):
+        return "{}/{}".format(self.repo_namespace, self.pkg_name)
+
+    def __str__(self):
+        return "{}({}, #{})".format(self.__class__.__name__,
+                                    self.reponame,
+                                    self.build_id)

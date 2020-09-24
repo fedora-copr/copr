@@ -26,9 +26,6 @@ from . import helpers
 
 log = logging.getLogger(__name__)
 
-# lock for a case when the same package in the same project
-# is imported at the same time (possibly in two different versions)
-import_lock = multiprocessing.Lock()
 
 def my_upload_fabric(opts):
     def my_upload(repo_dir, reponame, abs_filename, filehash, offline=False):
@@ -152,7 +149,6 @@ def cleanup_repo(repo_path):
             ['git', 'rm', '-r'] + to_remove)
 
 
-@helpers.single_run(import_lock)
 def import_package(opts, namespace, branches, srpm_path, pkg_name):
     """
     Import package into a DistGit repo for the given branches.

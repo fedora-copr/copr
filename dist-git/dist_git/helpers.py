@@ -3,33 +3,33 @@ import logging
 import subprocess
 import munch
 
+from oslo_concurrency import lockutils
+from setproctitle import getproctitle, setproctitle
 from .exceptions import FileDownloadException, RunCommandException, SrpmQueryException
 
+from contextlib import contextmanager
 from configparser import ConfigParser
 from munch import Munch
 from requests import get
 from functools import wraps
 
 log = logging.getLogger(__name__)
+LOCK_PATH = "/var/lock/copr-dist-git"
 
 
-def single_run(lock):
+@contextmanager
+def lock(name):
     """
-    Decorator to be used if you want to ensure
-    a function is not run in parallel from within
-    multiple threads.
-
-    :param lock: lock to be used for locking
-
-    :returns: wrapped function
+    Create a lock file that can be accessed only by one thread at the time.
+    A practical use-case for this is to lock a repository so multiple versions
+    of the same package cannot be imported in paralel.
     """
-    def upper_wrapper(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            with lock:
-                return f(*args, **kwargs)
-        return wrapper
-    return upper_wrapper
+    title = getproctitle()
+    setproctitle("{0} [locked]".format(title))
+    with lockutils.lock(name=name, external=True, lock_path=LOCK_PATH,
+                        fair=True, delay=0):
+        yield
+    setproctitle(title)
 
 
 def _get_conf(cp, section, option, default, mode=None):

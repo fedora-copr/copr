@@ -76,13 +76,18 @@ class Importer(object):
                 task.srpm_url,
                 workdir
             )
-            result.update(import_package(
-                self.opts,
-                task.repo_namespace,
-                task.branches,
-                srpm_path,
-                task.pkg_name,
-            ))
+
+            repo = os.path.join(self.opts.lookaside_location, task.reponame)
+            lockfile = os.path.join(repo, "import.lock")
+            with helpers.lock(lockfile):
+                result.update(import_package(
+                    self.opts,
+                    task.repo_namespace,
+                    task.branches,
+                    srpm_path,
+                    task.pkg_name,
+                ))
+
         except PackageImportException as e:
             log.exception("Exception raised during package import.")
         finally:
