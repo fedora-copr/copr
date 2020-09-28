@@ -6,6 +6,7 @@ from __future__ import with_statement
 import os
 import flask
 
+from werkzeug.routing import RequestRedirect
 from flask_sqlalchemy import SQLAlchemy
 from contextlib import contextmanager
 try:
@@ -135,6 +136,11 @@ app.register_blueprint(webhooks_ns)
 app.register_blueprint(rss_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
+
+
+@app.errorhandler(RequestRedirect)
+def handle_request_redirect(error):
+    return error.get_response(None)
 
 
 @app.errorhandler(Exception)
