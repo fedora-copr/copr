@@ -379,15 +379,18 @@ class WorkerManager():
         """
         Using task_id, cancel corresponding task, and request worker
         shut-down (when already started)
+
+        :return: True if worker is running on background, False otherwise
         """
         self._drop_task_id_safe(task_id)
         worker_id = self.get_worker_id(task_id)
         if worker_id not in self.worker_ids():
             self.log.info("Cancel request, worker %s is not running", worker_id)
-            return
+            return False
         self.log.info("Cancel request, worker %s requested to cancel",
                       worker_id)
         self.redis.hset(worker_id, 'cancel_request', 1)
+        return True
 
     def worker_ids(self):
         """

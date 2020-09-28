@@ -85,5 +85,6 @@ class BuildDispatcher(Dispatcher):
                                self.opts.frontend_base_url, error)
             return []
 
-    def report_canceled_task_id(self, task_id):
-        self.frontend_client.post('build-tasks/canceled/{}'.format(task_id), None)
+    def report_canceled_task_id(self, task_id, was_running):
+        self.frontend_client.post('build-tasks/canceled/{}'.format(task_id),
+                                  data=None if not was_running else was_running)

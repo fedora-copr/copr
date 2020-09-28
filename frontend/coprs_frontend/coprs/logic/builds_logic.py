@@ -964,10 +964,6 @@ class BuildsLogic(object):
         build.canceled = True
         cls.process_update_callback(build)
 
-        for chroot in build.build_chroots:
-            chroot.status = 2  # canceled
-            if chroot.ended_on is not None:
-                chroot.ended_on = time.time()
 
     @classmethod
     def check_build_to_delete(cls, user, build):
