@@ -598,6 +598,7 @@ class BuildsLogic(object):
             batch=batch,
             srpm_url=srpm_url,
             copr_dirname=copr_dirname,
+            bootstrap=build_options.get("bootstrap"),
         )
 
         if "timeout" in build_options:
@@ -609,7 +610,7 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
-            srpm_url=None, copr_dirname=None):
+            srpm_url=None, copr_dirname=None, bootstrap=None):
 
         if chroots is None:
             chroots = []
@@ -660,6 +661,7 @@ class BuildsLogic(object):
             batch=batch,
             srpm_url=srpm_url,
             copr_dir=copr_dir,
+            bootstrap=bootstrap,
         )
 
         if timeout:

@@ -47,8 +47,10 @@ class ProjectChrootProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
+    # pylint: disable=too-many-arguments
     def edit(self, ownername, projectname, chrootname, additional_packages=None, additional_repos=None,
-             comps=None, delete_comps=False, with_opts=None, without_opts=None):
+             comps=None, delete_comps=False, with_opts=None, without_opts=None,
+             bootstrap=None, bootstrap_image=None):
         """
         Edit a chroot configuration in a project
 
@@ -61,6 +63,9 @@ class ProjectChrootProxy(BaseProxy):
         :param bool delete_comps: if True, current comps.xml will be removed
         :param list with_opts: Mock --with option
         :param list without_opts: Mock --without option
+        :param str bootstrap: Allowed values 'on', 'off', 'image', 'default',
+                              'untouched' (equivalent to None)
+        :param str bootstrap_image: Implies 'bootstrap=image'.
         :return: Munch
         """
         endpoint = "/project-chroot/edit/{ownername}/{projectname}/{chrootname}"
@@ -69,12 +74,18 @@ class ProjectChrootProxy(BaseProxy):
             "projectname": projectname,
             "chrootname": chrootname,
         }
+
+        if bootstrap_image:
+            bootstrap = 'custom_image'
+
         data = {
             "additional_repos": additional_repos,
             "additional_packages": additional_packages,
             "delete_comps": delete_comps,
             "with_opts": with_opts,
             "without_opts": without_opts,
+            "bootstrap": bootstrap,
+            "bootstrap_image": bootstrap_image,
         }
         files = {}
         if comps:

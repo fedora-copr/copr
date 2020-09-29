@@ -57,8 +57,8 @@ ON_OFF_MAP = {
 
 BOOTSTRAP_MAP = {
     "default": "default",
-    "on": "enabled",
-    "off": "disabled",
+    "on": "on",
+    "off": "off",
     "image": "image",
     None: "default",
 }
@@ -422,9 +422,7 @@ class Commands(object):
             enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
             auto_prune=ON_OFF_MAP[args.auto_prune],
-            use_bootstrap="image" if args.bootstrap_image else \
-                          BOOTSTRAP_MAP[args.use_bootstrap],
-            bootstrap_image=args.bootstrap_image,
+            bootstrap=BOOTSTRAP_MAP[args.bootstrap],
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
@@ -446,9 +444,7 @@ class Commands(object):
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             auto_prune=ON_OFF_MAP[args.auto_prune],
-            use_bootstrap="image" if args.bootstrap_image else \
-                          BOOTSTRAP_MAP[args.use_bootstrap],
-            bootstrap_image=args.bootstrap_image,
+            bootstrap=BOOTSTRAP_MAP[args.bootstrap],
             chroots=args.chroots,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
@@ -601,11 +597,15 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
+
+        if args.bootstrap_image:
+            args.bootstrap = 'image'
         owner, copr, chroot = self.parse_chroot_path(args.coprchroot)
-        project_chroot = self.client.project_chroot_proxy.edit(
+        self.client.project_chroot_proxy.edit(
             ownername=owner, projectname=copr, chrootname=chroot,
             comps=args.upload_comps, delete_comps=args.delete_comps,
-            additional_packages=args.packages, additional_repos=args.repos
+            additional_packages=args.packages, additional_repos=args.repos,
+            bootstrap=args.bootstrap, bootstrap_image=args.bootstrap_image,
         )
         print("Edit chroot operation was successful.")
 
@@ -949,12 +949,20 @@ def setup_parser():
     parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
                                help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
                                This option can only be specified by a COPR admin.")
-    parser_create.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
-                               dest="use_bootstrap",
-                               help="If mock bootstrap container is used to initialize the buildroot.")
-    parser_create.add_argument("--bootstrap-image", dest="bootstrap_image",
-                               help="Which image is set for bootstrap container.\
-                               (Implies --use-bootstrap=image)")
+
+    parser_create.add_argument(
+        "--bootstrap",
+        choices=["default", "on", "off", "image"],
+        help=(
+            "Configure Mock's bootstrap feature (consult 'man mock' for more "
+            "info).  'on'/'off' enables/disables bootstrap.  The 'default' "
+            "variant uses pre-configured setup from mock-core-configs.  The "
+            "'image' variant enforces the bootstrap initialization from "
+            "the pre-configured container image (defined in "
+            "mock-core-configs.rpm)."
+        ),
+    )
+
     parser_create.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help="Delete the project after the specfied period of time")
     parser_create.add_argument("--module-hotfixes", choices=["on", "off"], default="off",
@@ -990,12 +998,13 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
-    parser_modify.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
-                               dest="use_bootstrap",
-                               help="If mock bootstrap container is used to initialize the buildroot.")
-    parser_modify.add_argument("--bootstrap-image", dest="bootstrap_image",
-                               help="Which image is set for bootstrap container.\
-                               (Implies --use-bootstrap=image)")
+
+    parser_modify.add_argument(
+        "--bootstrap",
+        choices=["default", "on", "off", "image"],
+        help=("Configure Mock's bootstrap feature, "
+              "See 'create --help' for more info."))
+
     parser_modify.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help=("Delete the project after the specfied "
                                      "period of time, empty or -1 disables, "
@@ -1134,12 +1143,17 @@ def setup_parser():
                                          help="Build packages to a specified copr")
     parser_build.add_argument("pkgs", nargs="+",
                               help="filename of SRPM or URL of packages to build")
-    parser_build.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
-                              dest="use_bootstrap",
-                              help="If mock bootstrap container is used to initialize the buildroot.")
-    parser_build.add_argument("--bootstrap-image", dest="bootstrap_image",
-                              help="Which image is set for bootstrap container.\
-                              (Implies --use-bootstrap=image)")
+
+    parser_build.add_argument(
+        "--bootstrap",
+        choices=["unchanged", "default", "on", "off", "image"],
+        help=("Configure Mock's bootstrap feature, "
+              "default is 'unchanged' so the configuration from Copr project "
+              "and Copr chroot is used for this build. "
+              "The 'default' variant resets the project/chroot configuration "
+              "to the pre-configured setup from mock-core-configs. "
+              "See 'create --help' for more info."))
+
     parser_build.set_defaults(func="action_build")
 
     # create the parser for the "buildpypi" command
@@ -1234,12 +1248,22 @@ def setup_parser():
                                       help="space separated string of package names to be added to buildroot")
     parser_edit_chroot.add_argument("--repos",
                                       help="space separated string of additional repo urls for chroot")
-    parser_edit_chroot.add_argument("--use-bootstrap", choices=["default", "on", "off", "image"],
-                                    dest="use_bootstrap",
-                                    help="If mock bootstrap container is used to initialize the buildroot.")
-    parser_edit_chroot.add_argument("--bootstrap-image", dest="bootstrap_image",
-                                    help="Which image is set for bootstrap container.\
-                                    (Implies --use-bootstrap=image)")
+
+    parser_edit_chroot.add_argument(
+        "--bootstrap",
+        choices=["unchanged", "default", "on", "off", "image"],
+        help=("Configure Mock's bootstrap feature, "
+              "default is 'unchanged' so the configuration from Copr project "
+              "is used for this chroot. "
+              "The 'default' variant resets the project configuration "
+              "to the pre-configured setup from mock-core-configs. "
+              "See 'create --help' for more info."))
+
+    parser_edit_chroot.add_argument(
+        "--bootstrap-image",
+        help=("Use a custom container image for initializing Mock's "
+              "bootstrap (Implies --bootstrap=image)"))
+
     parser_edit_chroot.set_defaults(func="action_edit_chroot")
 
     parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")

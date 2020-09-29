@@ -20,11 +20,10 @@ def to_dict(build_chroot):
 def build_config(build_chroot):
     config = BuildConfigLogic.generate_build_config(build_chroot.build.copr, build_chroot.name)
     copr_chroot = CoprChrootsLogic.get_by_name_safe(build_chroot.build.copr, build_chroot.name)
-    return {
+    dict_data = {
         "repos": config.get("repos"),
         "additional_repos": BuildConfigLogic.generate_additional_repos(copr_chroot),
         "additional_packages": config.get("additional_packages"),
-        "bootstrap_config": config.get("bootstrap_config"),
         "with_opts": config.get("with_opts"),
         "without_opts": config.get("without_opts"),
         "memory_limit": build_chroot.build.memory_reqs,
@@ -32,6 +31,9 @@ def build_config(build_chroot):
         "enable_net": build_chroot.build.enable_net,
         "is_background": build_chroot.build.is_background,
     }
+    dict_data.update(
+        BuildConfigLogic.build_bootstrap_setup(config, build_chroot.build))
+    return dict_data
 
 
 @apiv3_ns.route("/build-chroot/<int:build_id>/<chrootname>", methods=GET)

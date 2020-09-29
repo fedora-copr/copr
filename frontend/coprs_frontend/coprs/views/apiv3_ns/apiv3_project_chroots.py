@@ -25,17 +25,19 @@ def to_dict(project_chroot):
 
 def to_build_config_dict(project_chroot):
     config = BuildConfigLogic.generate_build_config(project_chroot.copr, project_chroot.name)
-    return {
+    config_dict = {
         "chroot": project_chroot.name,
         "repos": config["repos"],
         "additional_repos": BuildConfigLogic.generate_additional_repos(project_chroot),
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
-        "bootstrap_config": project_chroot.copr.bootstrap_config,
-        "bootstrap_inmage": project_chroot.copr.bootstrap_image,
         "enable_net": project_chroot.copr.enable_net,
         "with_opts":  str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
     }
+    for option in ['bootstrap', 'bootstrap_image']:
+        if option in config:
+            config_dict[option] = config[option]
+    return config_dict
 
 
 def rename_fields(input):
@@ -102,6 +104,8 @@ def edit_project_chroot(ownername, projectname, chrootname):
         CoprChrootsLogic.remove_comps(flask.g.user, chroot)
     CoprChrootsLogic.update_chroot(
         flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name,
-        with_opts=with_opts, without_opts=without_opts)
+        with_opts=with_opts, without_opts=without_opts,
+        bootstrap=form.bootstrap.data,
+        bootstrap_image=form.bootstrap_image.data)
     db.session.commit()
     return flask.jsonify(to_dict(chroot))

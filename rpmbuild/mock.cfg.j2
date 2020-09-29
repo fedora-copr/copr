@@ -17,15 +17,19 @@ config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'
 # Build-system's (or build) ID
 config_opts['macros']['%buildtag'] = '.copr{{ copr_build_id }}'
 
-config_opts['use_bootstrap'] = {{ 'True' if use_bootstrap_container else 'False' }}
-config_opts['use_bootstrap_image'] = {{ 'True' if use_bootstrap_container == 'image' else 'False' }}
-config_opts['bootstrap_image'] = {{ bootstrap_image if use_bootstrap_container == 'custom_image' else '' }}
-
-{% if use_bootstrap_container %}
-config_opts['bootstrap_chroot_additional_packages'] = []
-config_opts['bootstrap_module_enable'] = []
-config_opts['bootstrap_module_install'] = []
-{% endif %}
+{%- if bootstrap == "on" %}
+config_opts['use_bootstrap'] = True
+config_opts['use_bootstrap_image'] = False
+{%- elif bootstrap == "off" %}
+config_opts['use_bootstrap'] = False
+config_opts['use_bootstrap_image'] = False
+{%- elif bootstrap in ["image", "custom_image"] %}
+config_opts['use_bootstrap'] = True
+config_opts['use_bootstrap_image'] = True
+{%- if bootstrap_image %}
+config_opts['bootstrap_image'] = "{{ bootstrap_image }}"
+{%- endif %}
+{%- endif %}
 {% for module in modules %}
 config_opts["module_enable"] += ["{{ module }}"]
 {%- endfor %}

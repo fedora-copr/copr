@@ -296,8 +296,7 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # if backend deletion script should be run for the project's builds
     auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
-    bootstrap_config = db.Column(db.Text, default="default")
-    bootstrap_image = db.Column(db.Text, default="default")
+    bootstrap = db.Column(db.Text, default="default")
 
     # if chroots for the new branch should be auto-enabled and populated from rawhide ones
     follow_fedora_branching = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
@@ -921,8 +920,7 @@ class Build(db.Model, helpers.Serializer):
     source_status = db.Column(db.Integer, default=StatusEnum("waiting"))
     srpm_url = db.Column(db.Text)
 
-    bootstrap_config = db.Column(db.Text)
-    bootstrap_image = db.Column(db.Text)
+    bootstrap = db.Column(db.Text)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
@@ -1318,6 +1316,13 @@ class Build(db.Model, helpers.Serializer):
     def source_is_uploaded(self):
         return self.source_type == helpers.BuildSourceEnum('upload')
 
+    @property
+    def bootstrap_set(self):
+        """ Is bootstrap config from project/chroot overwritten by build? """
+        if not self.bootstrap:
+            return False
+        return self.bootstrap != "unchanged"
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
@@ -1455,7 +1460,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     delete_after = db.Column(db.DateTime, index=True)
     delete_notify = db.Column(db.DateTime, index=True)
 
-    bootstrap_config = db.Column(db.Text)
+    bootstrap = db.Column(db.Text)
     bootstrap_image = db.Column(db.Text)
 
     def update_comps(self, comps_xml):
@@ -1519,6 +1524,20 @@ class CoprChroot(db.Model, helpers.Serializer):
         d["mock_chroot"] = self.mock_chroot.name
         return d
 
+    @property
+    def bootstrap_setup(self):
+        """ Get Copr+CoprChroot consolidated bootstrap configuration """
+        settings = {}
+        settings['bootstrap'] = self.copr.bootstrap
+
+        if self.bootstrap and self.bootstrap != 'unchanged':
+            # overwrite project default with chroot config
+            settings['bootstrap'] = self.bootstrap
+            if settings['bootstrap'] == 'custom_image':
+                settings['bootstrap_image'] = self.bootstrap_image
+        if settings['bootstrap'] in [None, "default"]:
+            return {}
+        return settings
 
 class BuildChroot(db.Model, helpers.Serializer):
     """

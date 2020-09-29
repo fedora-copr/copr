@@ -59,30 +59,58 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
 
-def create_mock_bootstrap_config_field(description=""):
+def create_mock_bootstrap_field(level):
+    """
+    Select-box for the bootstrap configuration in chroot/project form
+    """
+
+    choices = []
+    default_choices = [
+        ('default', 'Use default configuration from mock-core-configs.rpm'),
+        ('off', 'Disable'),
+        ('on', 'Enable'),
+        ('image', 'Initialize by default pre-configured container image'),
+    ]
+
+    if level == 'chroot':
+        choices.append(("unchanged", "Use project settings"))
+        choices.extend(default_choices)
+        choices.append(('custom_image',
+                        'Initialize by custom bootstrap image (specified '
+                        'in the "Mock bootstrap image" field below)'))
+
+    elif level == 'build':
+        choices.append(("unchanged", "Use project/chroot settings"))
+        choices.extend(default_choices)
+
+    else:
+        choices.extend(default_choices)
+
     return wtforms.SelectField(
         "Mock bootstrap",
-        choices=[
-            ('default', 'Default mock-core-configs configuration'),
-            ('disabled', 'Bootstrap chroot disabled'),
-            ('enabled', 'Bootstrap chroot enabled'),
-            ('image', 'Bootstrap image enabled.'),
-            ('custom_image', 'Custom bootstrap image (specified in "Mock ' +
-             'bootstrap image" field)')],
-        description=description,
+        choices=choices,
+        validators=[wtforms.validators.Optional()],
+        # Replace "None" with None (needed on Fedora <= 32)
+        filters=[NoneFilter(None)],
     )
 
 
-def create_mock_bootstrap_image_field(description=""):
+def create_mock_bootstrap_image_field():
+    """
+    Mandatory bootstrap-image field when the bootstrap select-box is set to a
+    custom image option.
+    """
     return wtforms.TextField(
         "Mock bootstrap image",
         validators=[
             wtforms.validators.Optional(),
             wtforms.validators.Regexp(
-                r"^\w+:\w+$",
+                r"^\w+(:\w+)?$",
                 message=("Enter valid bootstrap image id "
-                         "(<distribution>:<version>)."))],
-        description=description,
+                         "(<name>[:<tag>], e.g. fedora:33)."))],
+        filters=[
+            lambda x: None if not x else x
+        ],
     )
 
 
@@ -304,6 +332,12 @@ class ValueToPermissionNumberFilter(object):
             return helpers.PermissionEnum("request")
         return helpers.PermissionEnum("nothing")
 
+def _optional_checkbox_filter(data):
+    if data in [True, 'true']:
+        return True
+    if data in [False, 'false']:
+        return False
+    return None
 
 class CoprFormFactory(object):
 
@@ -394,8 +428,12 @@ class CoprFormFactory(object):
                     newer build (with respect to package version) and it is
                     older than 14 days""")
 
-            bootstrap_config = create_mock_bootstrap_config_field()
-            bootstrap_image = create_mock_bootstrap_image_field()
+            use_bootstrap_container = wtforms.StringField(
+                "backward-compat-only: old bootstrap",
+                validators=[wtforms.validators.Optional()],
+                filters=[_optional_checkbox_filter])
+
+            bootstrap = create_mock_bootstrap_field("project")
 
             follow_fedora_branching = wtforms.BooleanField(
                     "Follow Fedora branching",
@@ -555,6 +593,7 @@ class BuildFormRebuildFactory(object):
             enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
             background = wtforms.BooleanField(false_values=FALSE_VALUES)
             project_dirname = wtforms.StringField(default=None)
+            bootstrap = create_mock_bootstrap_field("build")
 
         F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
@@ -1067,6 +1106,7 @@ class BaseBuildFormFactory(object):
         F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
         F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
         F.project_dirname = wtforms.StringField(default=None)
+        F.bootstrap = create_mock_bootstrap_field("build")
 
         # Overrides BasePackageForm.package_name, it is usually unused for
         # building
@@ -1160,10 +1200,6 @@ class BuildFormUrlFactory(object):
                 UrlListValidator(),
                 UrlSrpmListValidator()],
             filters=[StringListFilter()])
-
-        form.bootstrap_config = create_mock_bootstrap_config_field()
-        form.bootstrap_image = create_mock_bootstrap_image_field()
-
         return form
 
 
@@ -1224,8 +1260,19 @@ class ChrootForm(FlaskForm):
     with_opts = wtforms.StringField("With options")
     without_opts = wtforms.StringField("Without options")
 
-    bootstrap_config = create_mock_bootstrap_config_field()
+    bootstrap = create_mock_bootstrap_field("chroot")
     bootstrap_image = create_mock_bootstrap_image_field()
+
+    def validate(self, *args, **kwargs):  # pylint: disable=signature-differs
+        """ We need to special-case custom_image configuration """
+        result = super().validate(*args, **kwargs)
+        if self.bootstrap.data != "custom_image":
+            return result
+        if not self.bootstrap_image.data:
+            self.bootstrap_image.errors.append(
+                "Custom image is selected, but not specified")
+            return False
+        return result
 
 
 class CoprChrootExtend(FlaskForm):
@@ -1316,8 +1363,8 @@ class CoprModifyForm(FlaskForm):
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    bootstrap_config = create_mock_bootstrap_config_field()
-    bootstrap_image = create_mock_bootstrap_image_field()
+    bootstrap = create_mock_bootstrap_field("project")
+    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     follow_fedora_branching = wtforms.BooleanField(default=True, false_values=FALSE_VALUES)
     delete_after_days = wtforms.IntegerField(

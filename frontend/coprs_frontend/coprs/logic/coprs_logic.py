@@ -218,8 +218,8 @@ class CoprsLogic(object):
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
-            auto_prune=True, bootstrap_config="default", follow_fedora_branching=False,
-            bootstrap_image=None, **kwargs):
+            auto_prune=True, bootstrap=None, follow_fedora_branching=False,
+            **kwargs):
 
         if not flask.g.user.admin and flask.g.user != user:
             msg = ("You were authorized as '{0}' user without permissions to access "
@@ -243,8 +243,7 @@ class CoprsLogic(object):
                            created_on=int(time.time()),
                            persistent=persistent,
                            auto_prune=auto_prune,
-                           bootstrap_config=bootstrap_config,
-                           bootstrap_image=bootstrap_image,
+                           bootstrap=bootstrap,
                            follow_fedora_branching=follow_fedora_branching,
                            **kwargs)
 
@@ -654,7 +653,8 @@ class CoprChrootsLogic(object):
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="",
-                      delete_after=None, delete_notify=None, module_toggle=""):
+                      delete_after=None, delete_notify=None, module_toggle="",
+                      bootstrap=None, bootstrap_image=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -669,7 +669,8 @@ class CoprChrootsLogic(object):
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
-                           with_opts, without_opts, delete_after, delete_notify, module_toggle)
+                           with_opts, without_opts, delete_after, delete_notify,
+                           module_toggle, bootstrap, bootstrap_image)
 
         # reassign old build_chroots, if the chroot is re-created
         get_old = logic.builds_logic.BuildChrootsLogic.by_copr_and_mock_chroot
@@ -681,7 +682,7 @@ class CoprChrootsLogic(object):
     @classmethod
     def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="", delete_after=None, delete_notify=None, module_toggle="",
-                      bootstrap_config="", bootstrap_image=""):
+                      bootstrap=None, bootstrap_image=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -692,13 +693,13 @@ class CoprChrootsLogic(object):
 
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name,
                            copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle,
-                           bootstrap_config, bootstrap_image)
+                           bootstrap, bootstrap_image)
         return copr_chroot
 
     @classmethod
     def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name,
                        copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle,
-                       bootstrap_config, bootstrap_image):
+                       bootstrap, bootstrap_image):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
 
@@ -725,10 +726,14 @@ class CoprChrootsLogic(object):
         if module_toggle is not None:
             copr_chroot.module_toggle = module_toggle
 
-        if bootstrap_config is not None:
-            copr_chroot.bootstrap_config = bootstrap_config
+        if bootstrap is not None:
+            copr_chroot.bootstrap = bootstrap
 
         if bootstrap_image is not None:
+            # By CLI/API we can set custom_image, and keep bootstrap unset.  In
+            # such case set also bootstrap to correct value.
+            if not bootstrap:
+                copr_chroot.bootstrap = 'custom_image'
             copr_chroot.bootstrap_image = bootstrap_image
 
         db.session.add(copr_chroot)

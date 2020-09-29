@@ -412,16 +412,35 @@ class BuildConfigLogic(object):
         repos.extend(cls.get_additional_repo_views(copr.repos_list, chroot_id))
         repos.extend(cls.get_additional_repo_views(chroot.repos_list, chroot_id))
 
-        return {
+        config_dict = {
             'project_id': copr.repo_id,
             'additional_packages': packages.split(),
             'repos': repos,
             'chroot': chroot_id,
-            'bootstrap_config': copr.bootstrap_config,
-            'bootstrap_image': copr.bootstrap_image,
             'with_opts': chroot.with_opts.split(),
             'without_opts': chroot.without_opts.split(),
         }
+        config_dict.update(chroot.bootstrap_setup)
+        return config_dict
+
+    @classmethod
+    def build_bootstrap_setup(cls, build_config, build):
+        """ Get bootstrap setup from build_config, and override it by build """
+        build_record = {}
+        build_record["bootstrap"] = build_config.get("bootstrap", "default")
+        build_record["bootstrap_image"] = build_config.get("bootstrap_image")
+
+        # config overrides per-build
+        if build.bootstrap_set:
+            build_record["bootstrap"] = build.bootstrap
+
+        # drop unnecessary (default) fields
+        if build_record["bootstrap"] == "default":
+            del build_record['bootstrap']
+            del build_record['bootstrap_image']
+        elif build_record["bootstrap"] != "custom_image":
+            del build_record['bootstrap_image']
+        return build_record
 
     @classmethod
     def get_additional_repo_views(cls, repos_list, chroot_id):

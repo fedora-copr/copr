@@ -1,11 +1,11 @@
 import json
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 from coprs.models import User, Copr
 
-from tests.coprs_test_case import CoprsTestCase
-
-from coprs.views.apiv3_ns import apiv3_projects
+from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 class TestApiV3Permissions(CoprsTestCase):
@@ -224,3 +224,16 @@ class TestApiV3Permissions(CoprsTestCase):
         r = self.auth_post('/request/user2/barcopr', permissions, u)
         assert r.status_code == 200
         assert len(calls) == 2
+
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    @pytest.mark.parametrize("store, read", [(True, "on"), (False, "off")])
+    def test_compat_bootstrap_config(self, store, read):
+        route = "/api_3/project/add/{}".format(self.transaction_username)
+        self.api3.post(route, {
+            "name": "test-compat-bootstrap",
+            "chroots": ["fedora-rawhide-i386"],
+            "use_bootstrap_container": store,
+        })
+        assert Copr.query.one().bootstrap == read

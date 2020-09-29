@@ -69,7 +69,6 @@ class TestMockBuilder(object):
             "submitter": "clime",
             "task_id": "10-fedora-24-x86_64",
             "timeout": 21600,
-            "use_bootstrap_container": False,
             "with_opts": [],
             "without_opts": [],
         }
@@ -104,7 +103,8 @@ class TestMockBuilder(object):
         assert builder.buildroot_pkgs == ["pkg1", "pkg2", "pkg3"]
         assert builder.enable_net
         assert builder.repos == []
-        assert not builder.use_bootstrap_container
+        assert not builder.bootstrap
+        assert not builder.bootstrap_image
 
     def test_render_config_template(self):
         confdirs = [dirname(dirname(realpath(__file__)))]
@@ -123,7 +123,9 @@ class TestMockBuilder(object):
 
         assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
         assert config_opts["rpmbuild_networking"]
-        assert not config_opts["use_bootstrap"]
+        assert "use_bootstrap" not in config_opts
+        assert "bootstrap" not in config_opts
+        assert "bootstrap_image" not in config_opts
         assert config_opts["macros"]["%copr_username"] == "@copr"
         assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
         assert config_opts["yum.conf"] == []
@@ -152,10 +154,6 @@ config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'
 # Build-system's (or build) ID
 config_opts['macros']['%buildtag'] = '.copr10'
-
-config_opts['use_bootstrap'] = False
-
-
 
 """  # TODO: make the output nicer
 
@@ -223,9 +221,7 @@ config_opts['use_bootstrap'] = False
         assert call[0][0] == self.mock_rpm_call
 
         part_of_expected_output = (
-            "config_opts['use_bootstrap'] = False\n"
-            "\n"
-            "\n"
+            "config_opts['macros']['%buildtag'] = '.copr10'\n"
             "\n"
             "{0}\n"
         ).format('\n'.join(

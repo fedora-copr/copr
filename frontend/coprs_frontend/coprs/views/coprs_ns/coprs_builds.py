@@ -119,6 +119,7 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
         build_options = {
             "enable_net": form.enable_net.data,
             "timeout": form.timeout.data,
+            "bootstrap": form.bootstrap.data,
         }
 
         try:

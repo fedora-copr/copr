@@ -195,8 +195,7 @@ def copr_new(username=None, group_name=None):
                 delete_after_days=form.delete_after_days.data,
                 multilib=form.multilib.data,
                 runtime_dependencies=form.runtime_dependencies.data.replace("\n", " "),
-                bootstrap_config=form.bootstrap_config.data,
-                bootstrap_image=form.bootstrap_image.data,
+                bootstrap=form.bootstrap.data,
             )
 
             db.session.commit()
@@ -509,8 +508,7 @@ def process_copr_update(copr, form):
     copr.multilib = form.multilib.data
     copr.module_hotfixes = form.module_hotfixes.data
     copr.runtime_dependencies = form.runtime_dependencies.data.replace("\n", " ")
-    copr.bootstrap_config = form.bootstrap_config.data
-    copr.bootstrap_image = form.bootstrap_image.data
+    copr.bootstrap = form.bootstrap.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

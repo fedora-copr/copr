@@ -72,6 +72,7 @@ BuildRequires: fedora-messaging
 BuildRequires: python3-click
 BuildRequires: python3-CommonMark
 BuildRequires: python3-blinker
+BuildRequires: python3-beautifulsoup4
 BuildRequires: python3-copr-common >= 0.7
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator

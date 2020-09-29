@@ -6,6 +6,7 @@ import time
 from functools import wraps
 import datetime
 import uuid
+from unittest import mock
 
 import pytest
 import decorator
@@ -19,13 +20,14 @@ from coprs import cache
 from coprs.logic.coprs_logic import BranchesLogic, CoprChrootsLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 
-from unittest import mock
-
+from tests.request_test_api import WebUIRequests, API3Requests
 
 class CoprsTestCase(object):
 
-    # made available by TransactionDecorator
+    # These are made available by TransactionDecorator() decorator
     test_client = None
+    transaction_user = None
+    transaction_username = None
 
     original_config = coprs.app.config.copy()
 
@@ -69,6 +71,9 @@ class CoprsTestCase(object):
         self.rmodel_TSE_coprs_general_mc = self.rmodel_TSE_coprs_general_patcher.start()
         self.rmodel_TSE_coprs_general_mc.return_value.get_count.return_value = 0
         self.rmodel_TSE_coprs_general_mc.return_value.add_event.return_value = None
+
+        self.web_ui = WebUIRequests(self)
+        self.api3 = API3Requests(self)
 
     def teardown_method(self, method):
         # delete just data, not the tables
@@ -842,10 +847,12 @@ class TransactionDecorator(object):
     def __call__(self, fn):
         @wraps(fn)
         def wrapper(fn, fn_self, *args):
-            username = getattr(fn_self, self.user).username
+            user = getattr(fn_self, self.user)
+            fn_self.transaction_user = user
+            fn_self.transaction_username = user.username
             with fn_self.tc as fn_self.test_client:
                 with fn_self.test_client.session_transaction() as session:
-                    session["openid"] = username
+                    session["openid"] = user.username
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)
 

@@ -1,5 +1,6 @@
 {% from "_helpers.html" import render_field, render_checkbox_field,
-render_form_errors, copr_details_href, copr_url, render_dropdown_field %}
+render_form_errors, copr_details_href, copr_url, render_dropdown_field,
+render_bootstrap_options %}
 
 {% macro copr_form(form, view, copr = None, username = None, group = None, comments = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
@@ -153,13 +154,8 @@ render_form_errors, copr_details_href, copr_url, render_dropdown_field %}
             placeholder='Optional',
             info='Delete the project after the specfied period of time (empty = disabled)') }}
 
-    {{ render_field(form.bootstrap_config, rows=1, cols=35, placeholder='default') }}
-    <div style="display:none" id="bootstrap_image">
-      {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
-    </div>
-    <noscript>
-    {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
-    </noscript>
+
+    {{ render_bootstrap_options(form) }}
 
     {{ render_field(form.runtime_dependencies, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used as runtime dependencies. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
     </div>
@@ -167,21 +163,6 @@ render_form_errors, copr_details_href, copr_url, render_dropdown_field %}
 
     <input class="btn btn-primary" type="submit" value="{% if copr %}Update{% else %}Create{% endif %}">
   </form>
-  <script> 
-    $(document).ready(function() {
-      if ($("#bootstrap_config").value == "custom_image") {
-        $("#bootstrap_image").show();
-      }
-      $("#bootstrap_config").change(function() {
-        if (this.value == "custom_image") {
-          $("#bootstrap_image").show();
-        }
-        else {
-          $("#bootstrap_image").hide();
-        }
-      });
-    });
-  </script>
 {% endmacro %}
 
 {% macro copr_delete_form(form, copr) %}

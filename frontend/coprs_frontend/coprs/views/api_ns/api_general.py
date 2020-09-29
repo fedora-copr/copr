@@ -139,9 +139,14 @@ def api_new_copr(username):
         if "auto_prune" in flask.request.form:
             auto_prune = form.auto_prune.data
 
-        bootstrap_config = "default"
-        if "bootstrap_config" in flask.request.form:
-            bootstrap_config = form.bootstrap_config.data
+        # This is old route (apiv1) which nobody should use, so we don't
+        # implement the 'bootstrap' and 'bootstrap_image' options here.
+        use_bootstrap_container = None
+        if "use_bootstrap_container" in flask.request.form:
+            use_bootstrap_container = form.use_bootstrap_container.data
+        bootstrap = None
+        if use_bootstrap_container is not None:
+            bootstrap = "on" if use_bootstrap_container else "off"
 
         try:
             copr = CoprsLogic.add(
@@ -158,8 +163,7 @@ def api_new_copr(username):
                 group=group,
                 persistent=form.persistent.data,
                 auto_prune=auto_prune,
-                bootstrap_config=bootstrap_config,
-                bootstrap_image=form.bootstrap_image.data,
+                bootstrap=bootstrap,
             )
             infos.append("New project was successfully created.")
 
@@ -345,8 +349,7 @@ def api_coprs_by_owner_detail(copr):
         "persistent": copr.persistent,
         "unlisted_on_hp": copr.unlisted_on_hp,
         "auto_prune": copr.auto_prune,
-        "bootstrap_config": copr.bootstrap_config,
-        "bootstrap_image": copr.bootstrap_image,
+        "use_bootstrap_container": copr.bootstrap == "on",
     }
     return flask.jsonify(output)
 
@@ -698,8 +701,8 @@ def copr_modify(copr):
         copr.build_enable_net = form.build_enable_net.data
     if "auto_prune" in flask.request.form:
         copr.auto_prune = form.auto_prune.data
-    if "bootstrap_config" in flask.request.form:
-        copr.bootstrap_config = form.bootstrap_config.data
+    if "use_bootstrap_container" in flask.request.form:
+        copr.bootstrap = "on" if form.use_bootstrap_container.data else "off"
     if "chroots" in  flask.request.form:
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.chroots.data)

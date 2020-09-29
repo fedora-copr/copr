@@ -472,16 +472,6 @@ rlJournalStart
         rlRun "find . -type f | grep 'build.log'" 0
         cd - && rm -r $MYTMPDIR
 
-        # test use_bootstrap_container setting
-        rlRun "copr-cli create ${NAME_PREFIX}BootstrapProject --use-bootstrap on --chroot $CHROOT"
-        rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.bootstrap_config'` true
-        rlRun -s "copr-cli build ${NAME_PREFIX}BootstrapProject $HELLO --nowait"
-        rlRun "parse_build_id"
-        rlRun "copr watch-build $BUILD_ID"
-        rlRun "curl $BACKEND_URL/results/${NAME_PREFIX}BootstrapProject/$CHROOT/`printf %08d $BUILD_ID`-hello/configs.tar.gz | tar xz -O '*configs/child.cfg' | grep \"config_opts\['use_bootstrap'\] = True\""
-        rlRun "copr-cli modify ${NAME_PREFIX}BootstrapProject --use-bootstrap off"
-        rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.bootstrap_config'` false
-
         ## test building in copr dirs
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}CoprDirTest"
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT" 0

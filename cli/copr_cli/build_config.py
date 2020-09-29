@@ -11,6 +11,21 @@ template_string = """\
 include('/etc/mock/{{chroot}}.cfg')
 
 config_opts['root'] = '{{ rootdir }}'
+
+{%- if bootstrap == "on" %}
+config_opts['use_bootstrap'] = True
+config_opts['use_bootstrap_image'] = False
+{%- elif bootstrap == "off" %}
+config_opts['use_bootstrap'] = False
+config_opts['use_bootstrap_image'] = False
+{%- elif bootstrap in ["image", "custom_image"] %}
+config_opts['use_bootstrap'] = True
+config_opts['use_bootstrap_image'] = True
+{%- if bootstrap_image %}
+config_opts['bootstrap_image'] = "{{ bootstrap_image }}"
+{%- endif %}
+{%- endif %}
+
 {%- if additional_packages %}
 config_opts['chroot_additional_packages'] = '
 {%- for pkg in additional_packages -%}

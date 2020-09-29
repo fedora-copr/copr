@@ -140,6 +140,7 @@ def create_from_url():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         ) for pkg in pkgs]
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -161,6 +162,7 @@ def create_from_upload():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -186,6 +188,7 @@ def create_from_scm():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -211,6 +214,7 @@ def create_from_distgit():
             chroot_names=form.selected_chroots,
             copr_dirname=form.project_dirname.data,
             background=form.background.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -237,6 +241,7 @@ def create_from_pypi():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -257,6 +262,7 @@ def create_from_rubygems():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -280,6 +286,7 @@ def create_from_custom():
             background=form.background.data,
             copr_dirname=form.project_dirname.data,
             timeout=form.timeout.data,
+            bootstrap=form.bootstrap.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 

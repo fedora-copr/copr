@@ -29,8 +29,7 @@ def to_dict(copr):
         "chroot_repos": CoprsLogic.get_yum_repos(copr, empty=True),
         "additional_repos": copr.repos_list,
         "enable_net": copr.build_enable_net,
-        "bootstrap_config": copr.bootstrap_config,
-        "bootstrap_image": copr.bootstrap_image,
+        "bootstrap": copr.bootstrap,
         "module_hotfixes": copr.module_hotfixes,
     }
 
@@ -128,6 +127,14 @@ def add_project(ownername):
         raise BadRequest(form.errors)
     validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
+    bootstrap = None
+    # backward compatibility
+    use_bootstrap_container = form.use_bootstrap_container.data
+    if use_bootstrap_container is not None:
+        bootstrap = "on" if use_bootstrap_container else "off"
+    if form.bootstrap.data is not None:
+        bootstrap = form.bootstrap.data
+
     try:
         copr = CoprsLogic.add(
             name=form.name.data.strip(),
@@ -142,7 +149,7 @@ def add_project(ownername):
             group=group,
             persistent=form.persistent.data,
             auto_prune=form.auto_prune.data,
-            bootstrap_config=form.bootstrap_config.data,
+            bootstrap=bootstrap,
             homepage=form.homepage.data,
             contact=form.contact.data,
             disable_createrepo=form.disable_createrepo.data,
@@ -162,8 +169,6 @@ def add_project(ownername):
 @apiv3_ns.route("/project/edit/<ownername>/<projectname>", methods=PUT)
 @api_login_required
 def edit_project(ownername, projectname):
-    import ipdb;
-    ipdb.set_trace()
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data())
     form = forms.CoprModifyForm(data, meta={'csrf': False})
@@ -178,8 +183,6 @@ def edit_project(ownername, projectname):
         if field.name not in data.keys():
             continue
         setattr(copr, field.name, field.data)
-
-    ipdb.set_trace()
 
     if form.chroots.data:
         CoprChrootsLogic.update_from_names(

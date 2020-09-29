@@ -34,23 +34,6 @@
   {% endif %}
 {% endmacro %}
 
-{% macro render_dropdown_field(field, values) %}
-  {{ values }}
-  <div class="form-group">
-    <label class="col-sm-2 control-label">
-      {{ field.label }}:
-    </label>
-    <div class="col-sm-10" id="bootstrap_config">
-      <select name="value" class="input">
-        {% for value in values %}
-          {% set selected = 'selected' %}
-          <option value="{{ value }}">{{ value }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
-{% endmacro %}
-
 {% macro render_checkbox_field(title, items) %}
 <div class="form-group">
   <label class="col-sm-2 control-label" for="textInput-markup">
@@ -563,11 +546,35 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 </table>
 {% endmacro %}
 
+{% macro render_bootstrap_options(form, build=False) %}
+{{ render_field(form.bootstrap, placeholder='default') }}
+{% if form.bootstrap_image %}
+<div id="bootstrap_image_wrapper">
+{{ render_field(form.bootstrap_image, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
+</div>
+<script>
+  $(document).ready(function() {
+    if ($("#bootstrap").val() != "custom_image") {
+      $("#bootstrap_image_wrapper").hide();
+    }
+    $("#bootstrap").change(function() {
+      if (this.value == "custom_image") {
+        $("#bootstrap_image_wrapper").show();
+      }
+      else {
+        $("#bootstrap_image_wrapper").hide();
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endmacro %}
+
 
 {% macro render_additional_build_options(form, copr) %}
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
-      Chroots
+    <label class="col-sm-2 control-label" for="textInput-markup">
+      Chroots:
     </label>
     <div class="col-sm-10" id="chroots">
     {% for group_set, chs in form.chroots_sets.items() %}
@@ -586,8 +593,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   </div>
   {{ form.csrf_token }}
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
-      Timeout
+    <label class="col-sm-2 control-label" for="textInput-markup" >
+      Timeout:
     </label>
     <div class="col-sm-6">
       <input id="timeout" class="form-control" name="timeout" type="text" value="{{ form.timeout.default }}" >
@@ -597,17 +604,11 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     </div>
   </div>
 
-  {{ render_field(form.bootstrap_config, rows=1, cols=35, placeholder='default') }}
-  <div style="display:none" id="bootstrap_image">
-    {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
-  </div>
-  <noscript>
-    {{ render_field(form.bootstrap_image, rows=5, cols=50, placeholder='Used when "custom image" is set in Mock Bootstrap. Enter in <distribution>:<version> format (e.g. fedora:32)') }}
-  </noscript>
+  {{ render_field(form.bootstrap, placeholder='default') }}
 
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
-    Other Options
+    <label class="col-sm-2 control-label" for="textInput-markup">
+    Other options:
     </label>
     <div class="col-sm-10">
       <div class="checkbox">
@@ -617,23 +618,6 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       </div>
     </div>
   </div>
-
-
-  <script>
-    $(document).ready(function() {
-      if ($("#bootstrap_config").value == "custom_image") {
-        $("#bootstrap_image").show();
-      }
-      $("#bootstrap_config").change(function() {
-        if (this.value == "custom_image") {
-          $("#bootstrap_image").show();
-        }
-        else {
-          $("#bootstrap_image").hide();
-        }
-      });
-    });
-  </script>
 {% endmacro %}
 
 

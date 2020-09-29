@@ -20,7 +20,7 @@ class MockBuilder(object):
         self.buildroot_pkgs = task.get("buildroot_pkgs")
         self.enable_net = task.get("enable_net")
         self.repos = task.get("repos")
-        self.use_bootstrap_container = task.get("use_bootstrap_container")
+        self.bootstrap = task.get("bootstrap")
         self.bootstrap_image = task.get("bootstrap_image")
         self.timeout = task.get("timeout", 3600)
         self.with_opts = task.get("with_opts", [])
@@ -66,7 +66,8 @@ class MockBuilder(object):
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
-                               enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
+                               enable_net=self.enable_net,
+                               bootstrap=self.bootstrap,
                                bootstrap_image=self.bootstrap_image,
                                repos=self.repos,
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
@@ -102,11 +103,12 @@ class MockBuilder(object):
             raise RuntimeError("Mock build failed")
 
     def mock_clean(self):
-        """ Do best effort /var/mock/cache cleanup. """
+        """ Do a best effort Mock cleanup. """
         cmd = MOCK_CALL + [
             "-r", self.mock_config_file,
             "--scrub", "bootstrap",
             "--scrub", "chroot",
+            "--scrub", "root-cache",
             "--quiet",
         ]
         subprocess.call(cmd) # ignore failure here, if any

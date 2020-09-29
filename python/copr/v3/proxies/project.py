@@ -1,9 +1,18 @@
 from __future__ import absolute_import
 
+import warnings
+
 from . import BaseProxy
 from ..requests import Request, munchify, POST, GET, PUT
 from ..helpers import for_all_methods, bind_proxy
 
+
+def _compat_use_bootstrap_container(data, value):
+    if value is None:
+        return
+    data["bootstrap"] = "on" if value else "off"
+    warnings.warn("The 'use_bootstrap_container' argument is obsoleted by "
+                  "'bootstrap' and 'bootstrap_image'")
 
 @for_all_methods(bind_proxy)
 class ProjectProxy(BaseProxy):
@@ -61,9 +70,9 @@ class ProjectProxy(BaseProxy):
 
     def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
-            auto_prune=True, use_bootstrap="default", devel_mode=False,
+            auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
-            bootstrap_image=None):
+            bootstrap=None, bootstrap_image=None):
         """
         Create a project
 
@@ -79,16 +88,18 @@ class ProjectProxy(BaseProxy):
         :param bool enable_net: if builder can access net for builds in this project
         :param bool persistent: if builds and the project are undeletable
         :param bool auto_prune: if backend auto-deletion script should be run for the project
-        :param str use_bootstrap: if mock bootstrap container is used to initialize the buildroot.
-                                  Possible values: default, on, off, image
+        :param bool use_bootstrap_container: obsoleted, use the 'bootstrap'
+            argument and/or the 'bootstrap_image'.
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
         :param bool module_hotfixes: make packages from this project available
                                      on along with packages from the active module streams.
-        :param str bootstrap_image: name of an image for bootstrap container.
+        :param str bootstrap: Mock bootstrap feature setup.
+            Possible values are 'default', 'on', 'off', 'image'.
+        :param str bootstrap_image: Name of the container image to initialize
+            the bootstrap chroot from.  This also implies 'bootstrap=image'.
         :return: Munch
         """
-        import ipdb; ipdb.set_trace()
         endpoint = "/project/add/{ownername}"
         params = {
             "ownername": ownername,
@@ -105,13 +116,16 @@ class ProjectProxy(BaseProxy):
             "enable_net": enable_net,
             "persistent": persistent,
             "auto_prune": auto_prune,
-            "bootstrap_config": use_bootstrap,
+            "bootstrap": bootstrap,
             "bootstrap_image": bootstrap_image,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
         }
+
+        _compat_use_bootstrap_container(data, use_bootstrap_container)
+
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
@@ -119,9 +133,9 @@ class ProjectProxy(BaseProxy):
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
-             auto_prune=None, use_bootstrap="default", devel_mode=None,
+             auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
-             bootstrap_image=None):
+             bootstrap=None, bootstrap_image=None):
         """
         Edit a project
 
@@ -136,16 +150,18 @@ class ProjectProxy(BaseProxy):
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
         :param bool auto_prune: if backend auto-deletion script should be run for the project
-        :param str use_bootstrap: if mock bootstrap container is used to initialize the buildroot.
-                                            Possible values: default, on, off, image.
+        :param bool use_bootstrap_container: obsoleted, use the 'bootstrap'
+            argument and/or the 'bootstrap_image'.
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
         :param bool module_hotfixes: make packages from this project available
                                      on along with packages from the active module streams.
-        :param str bootstrap_image: name of an image for bootstrap container.
+        :param str bootstrap: Mock bootstrap feature setup.
+            Possible values are 'default', 'on', 'off', 'image'.
+        :param str bootstrap_image: Name of the container image to initialize
+            the bootstrap chroot from.  This also implies 'bootstrap=image'.
         :return: Munch
         """
-        import ipdb; ipdb.set_trace()
         endpoint = "/project/edit/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
@@ -161,13 +177,16 @@ class ProjectProxy(BaseProxy):
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
             "auto_prune": auto_prune,
-            "bootstrap_config": use_bootstrap,
+            "bootstrap": bootstrap,
             "bootstrap_image": bootstrap_image,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
         }
+
+        _compat_use_bootstrap_container(data, use_bootstrap_container)
+
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()

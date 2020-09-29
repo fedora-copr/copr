@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.105.1.dev
+Version:    1.105.2.dev
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
