@@ -2,6 +2,8 @@
 A place for exception-handling logic
 """
 
+import logging
+
 import flask
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from coprs.exceptions import CoprHttpException
@@ -12,6 +14,8 @@ from coprs.views.misc import (
     conflict_request_handler,
     page_not_found,
 )
+
+LOG = logging.getLogger(__name__)
 
 
 def get_error_handler():
@@ -75,7 +79,9 @@ class UIErrorHandler(BaseErrorHandler):
         }
         if code in error_views:
             return error_views[code](message)
-        return generic_error(message, code)
+
+        LOG.exception("Admin-only exception")
+        return generic_error("Server error, contact admin", code)
 
 
 class APIErrorHandler(BaseErrorHandler):
@@ -108,6 +114,7 @@ class APIErrorHandler(BaseErrorHandler):
                     isinstance(error, HTTPException)]):
             message = ("Request wasn't successful, "
                        "there is probably a bug in the API code.")
+            LOG.exception("Admin-only exception")
         return self.respond(message, code)
 
     def respond(self, message, code):  # pylint: disable=no-self-use

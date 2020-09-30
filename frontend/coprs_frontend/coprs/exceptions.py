@@ -4,7 +4,7 @@ class CoprHttpException(Exception):
     _code = 500
 
     def __init__(self, message=None, code=None, **kwargs):
-        self.message = message
+        self.message = str(message) if message else None
         self.code = code or self._code
         self.kwargs = kwargs
 
