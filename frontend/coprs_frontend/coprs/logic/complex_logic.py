@@ -388,6 +388,7 @@ class BuildConfigLogic(object):
         for i in copr.copr_chroots:
             if i.mock_chroot.name == chroot_id:
                 chroot = i
+                break
         if not chroot:
             return {}
 
