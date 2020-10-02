@@ -527,6 +527,10 @@ def copr_new_build_custom(copr):
 @api_req_with_copr
 def copr_new_build_scm(copr):
     form = forms.BuildFormScmFactory(copr.active_chroots)(meta={'csrf': False})
+    # We just want 'disable=duplicate-code' because this is a C&P with APIv3,
+    # though it doesn't actually work with PyLint, see
+    # https://github.com/PyCQA/pylint/issues/214
+    # pylint: disable=all
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(

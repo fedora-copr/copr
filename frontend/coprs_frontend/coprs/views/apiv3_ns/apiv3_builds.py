@@ -130,17 +130,13 @@ def create_from_url():
     data = get_form_compatible_data()
     form = forms.BuildFormUrlFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         # create separate build for each package
         pkgs = form.pkgs.data.split("\n")
         return [BuildsLogic.create_new_from_url(
             flask.g.user, copr,
             url=pkg,
-            chroot_names=form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         ) for pkg in pkgs]
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -153,16 +149,12 @@ def create_from_upload():
     data = get_form_compatible_data()
     form = forms.BuildFormUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_upload(
             flask.g.user, copr,
             f_uploader=lambda path: form.pkgs.data.save(path),
             orig_filename=secure_filename(form.pkgs.data.filename),
-            chroot_names=form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -174,7 +166,7 @@ def create_from_scm():
     data = rename_fields(get_form_compatible_data())
     form = forms.BuildFormScmFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_scm(
             flask.g.user,
             copr,
@@ -184,11 +176,7 @@ def create_from_scm():
             subdirectory=form.subdirectory.data,
             spec=form.spec.data,
             srpm_build_method=form.srpm_build_method.data,
-            chroot_names=form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -203,7 +191,7 @@ def create_from_distgit():
     # pylint: disable=not-callable
     form = forms.BuildFormDistGitSimpleFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_distgit(
             flask.g.user,
             copr,
@@ -211,10 +199,7 @@ def create_from_distgit():
             distgit_name=form.distgit.data,
             distgit_namespace=form.namespace.data,
             committish=form.committish.data,
-            chroot_names=form.selected_chroots,
-            copr_dirname=form.project_dirname.data,
-            background=form.background.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -229,7 +214,7 @@ def create_from_pypi():
     if not form.python_versions.data:
         form.python_versions.data = form.python_versions.default
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_pypi(
             flask.g.user,
             copr,
@@ -237,11 +222,7 @@ def create_from_pypi():
             form.pypi_package_version.data,
             form.spec_template.data,
             form.python_versions.data,
-            form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -253,16 +234,12 @@ def create_from_rubygems():
     data = get_form_compatible_data()
     form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_rubygems(
             flask.g.user,
             copr,
             form.gem_name.data,
-            form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -274,7 +251,7 @@ def create_from_custom():
     data = get_form_compatible_data()
     form = forms.BuildFormCustomFactory(copr.active_chroots)(data, meta={'csrf': False})
 
-    def create_new_build():
+    def create_new_build(options):
         return BuildsLogic.create_new_from_custom(
             flask.g.user,
             copr,
@@ -282,11 +259,7 @@ def create_from_custom():
             form.chroot.data,
             form.builddeps.data,
             form.resultdir.data,
-            chroot_names=form.selected_chroots,
-            background=form.background.data,
-            copr_dirname=form.project_dirname.data,
-            timeout=form.timeout.data,
-            bootstrap=form.bootstrap.data,
+            **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -299,9 +272,17 @@ def process_creating_new_build(copr, form, create_new_build):
         raise AccessRestricted("User {} is not allowed to build in the copr: {}"
                                .format(flask.g.user.username, copr.full_name))
 
+    generic_build_options = {
+        'chroot_names': form.selected_chroots,
+        'background': form.background.data,
+        'copr_dirname': form.project_dirname.data,
+        'timeout': form.timeout.data,
+        'bootstrap': form.bootstrap.data,
+    }
+
     # From URLs it can be created multiple builds at once
     # so it can return a list
-    build = create_new_build()
+    build = create_new_build(generic_build_options)
     db.session.commit()
 
     if type(build) == list:
