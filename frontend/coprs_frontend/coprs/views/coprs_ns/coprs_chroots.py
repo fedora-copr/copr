@@ -48,11 +48,7 @@ def render_chroot_edit(copr, chroot_name):
 @login_required
 @req_with_copr
 def chroot_update(copr, chrootname):
-    return process_chroot_update(copr, chrootname)
-
-
-def process_chroot_update(copr, chroot_name):
-
+    chroot_name = chrootname
     form = forms.ChrootForm()
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
 
