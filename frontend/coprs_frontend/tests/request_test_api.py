@@ -38,7 +38,7 @@ class _RequestsInterface:
         raise NotImplementedError
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None):
+                    bootstrap_image=None, owner=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -76,10 +76,10 @@ class WebUIRequests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None):
+                    bootstrap_image=None, owner=None):
         """ Change CoprChroot using the web-UI """
         route = "/coprs/{user}/{project}/update_chroot/{chroot}/".format(
-            user=self.transaction_username,
+            user=owner or self.transaction_username,
             project=project,
             chroot=chroot,
         )
@@ -94,7 +94,8 @@ class WebUIRequests(_RequestsInterface):
             data["bootstrap_image"] = bootstrap_image
 
         resp = self.client.post(route, data=data)
-        assert resp.status_code == 302
+        if self.success_expected:
+            assert resp.status_code == 302
         return resp
 
     def create_distgit_package(self, project, pkgname):
@@ -170,9 +171,9 @@ class API3Requests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None):
+                    bootstrap_image=None, owner=None):
         route = "/api_3/project-chroot/edit/{owner}/{project}/{chroot}".format(
-            owner=self.transaction_username,
+            owner=owner or self.transaction_username,
             project=project,
             chroot=chroot,
         )
