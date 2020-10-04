@@ -469,7 +469,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 {% endmacro %}
 
 
-{% macro render_monitor_table(copr, monitor, oses, archs, status_enum_func, simple=True) %}
+{% macro render_monitor_table(copr, monitor, oses, archs, simple=True) %}
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
@@ -520,10 +520,10 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
           <td>
             <a href="{{ copr_url("coprs_ns.copr_build", copr, build_id=row.build_id) }}">
               {% if simple %}
-                {{ build_state_text(status_enum_func(row.build_chroot_status)) }}
+                {{ build_state_text(row.build_chroot_status|state_from_num) }}
               {% else %}
                 <small> {{ row.build_id }} </small> <br>
-                {{ build_state_text(status_enum_func(row.build_chroot_status)) }}<br>
+                {{ build_state_text(row.build_chroot_status|state_from_num) }}<br>
                 <small class="text-muted"> {{ row.build_pkg_version }} </small>
               {% endif %}
             </a>
