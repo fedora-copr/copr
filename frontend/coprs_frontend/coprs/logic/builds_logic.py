@@ -560,7 +560,7 @@ class BuildsLogic(object):
     @classmethod
     def create_new(cls, user, copr, source_type, source_json, chroot_names=None, pkgs="",
                    git_hashes=None, skip_import=False, background=False, batch=None,
-                   srpm_url=None, copr_dirname=None, **build_options):
+                   srpm_url=None, copr_dirname=None, package=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -586,6 +586,7 @@ class BuildsLogic(object):
 
         build = cls.add(
             user=user,
+            package=package,
             pkgs=pkgs,
             copr=copr,
             chroots=chroots,
@@ -610,7 +611,8 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
-            srpm_url=None, copr_dirname=None, bootstrap=None):
+            srpm_url=None, copr_dirname=None, bootstrap=None,
+            package=None):
 
         if chroots is None:
             chroots = []
@@ -649,6 +651,7 @@ class BuildsLogic(object):
 
         build = models.Build(
             user=user,
+            package=package,
             pkgs=pkgs,
             copr=copr,
             repos=repos,
@@ -688,6 +691,11 @@ class BuildsLogic(object):
     def rebuild_package(cls, package, source_dict_update={}, copr_dir=None, update_callback=None,
                         scm_object_type=None, scm_object_id=None,
                         scm_object_url=None, submitted_by=None):
+        """
+        Rebuild a concrete package by a webhook.  This is different from
+        create_new() because we don't have a concrete 'user' who submits this
+        (only submitted_by string).
+        """
 
         source_dict = package.source_json_dict
         source_dict.update(source_dict_update)

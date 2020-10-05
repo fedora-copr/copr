@@ -4,6 +4,8 @@ Library that simplifies interacting with Frontend routes.
 
 from bs4 import BeautifulSoup
 
+from coprs import models
+
 
 def parse_web_form_error(html_text):
     """ return the list of form errors from failed form page """
@@ -140,6 +142,24 @@ class WebUIRequests(_RequestsInterface):
         assert resp.status_code == 302
         return resp
 
+    def rebuild_all_packages(self, project_id, package_names=None):
+        """ There's a button "rebuild-all" in web-UI, hit that button """
+        copr = models.Copr.query.get(project_id)
+        if not package_names:
+            packages = copr.main_dir.packages
+            package_names = [p.name for p in packages]
+
+        chroots = [mch.name for mch in copr.mock_chroots]
+        route = "/coprs/{}/packages/rebuild-all/".format(copr.full_name)
+        form_data = {
+            "packages": package_names,
+        }
+        for ch in chroots:
+            form_data[ch] = 'y'
+        resp = self.client.post(route, data=form_data)
+        return resp
+
+
 class API3Requests(_RequestsInterface):
     """
     Mimic python-copr API requests
@@ -212,3 +232,13 @@ class API3Requests(_RequestsInterface):
             self.transaction_username, project, pkgname)
         resp = self.post(route, {"package_name": pkgname})
         return resp
+
+    def rebuild_package(self, project, pkgname):
+        """ Rebuild one package in a given project using API """
+        route = "/api_3/package/build"
+        rebuild_data = {
+            "ownername": self.transaction_username,
+            "projectname": project,
+            "package_name": pkgname,
+        }
+        return self.post(route, rebuild_data)

@@ -17,7 +17,7 @@ from coprs.exceptions import (ActionInProgressException,
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 
-from tests.coprs_test_case import CoprsTestCase
+from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 class TestBuildsLogic(CoprsTestCase):
@@ -393,3 +393,27 @@ class TestBuildsLogic(CoprsTestCase):
                                                copr_dirname=None)
         assert "Can not create storage directory for uploaded file" in str(error.value)
         assert "[Errno 28] No space left on device" in str(error.value)
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_package_assigned_to_build_initially(self):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"],
+                                bootstrap="on")
+        self.web_ui.create_distgit_package("test", "tar")
+        self.api3.rebuild_package("test", "tar")
+        build = models.Build.query.get(1)
+        assert build.package.name == "tar"
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_rebuild_all_packages(self):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"],
+                                bootstrap="on")
+        self.web_ui.create_distgit_package("test", "tar")
+        self.web_ui.create_distgit_package("test", "cpio")
+        copr = models.Copr.query.get(1)
+        self.web_ui.rebuild_all_packages(copr.id)
+
+        builds = models.Build.query.all()
+        assert len(builds) == 2
+        assert {b.package.name for b in builds} == {"tar", "cpio"}

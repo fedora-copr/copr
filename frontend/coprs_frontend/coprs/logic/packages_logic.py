@@ -217,8 +217,11 @@ class PackagesLogic(object):
     def build_package(cls, user, copr, package, chroot_names=None, copr_dirname=None, **build_options):
         if not package.has_source_type_set or not package.source_json:
             raise exceptions.NoPackageSourceException('Unset default source for package {0}'.format(package.name))
-        return builds_logic.BuildsLogic.create_new(user, copr, package.source_type, package.source_json,
-                                                   chroot_names, copr_dirname=copr_dirname, **build_options)
+
+        build = builds_logic.BuildsLogic.create_new(
+            user, copr, package.source_type, package.source_json, chroot_names,
+            copr_dirname=copr_dirname, package=package, **build_options)
+        return build
 
 
     @classmethod
@@ -251,6 +254,7 @@ class PackagesLogic(object):
                 package.source_type,
                 package.source_json,
                 chroot_names,
+                package=package,
                 git_hashes=git_hashes,
                 skip_import=skip_import,
                 batch=batch,
