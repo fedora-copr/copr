@@ -1138,13 +1138,7 @@ def setup_parser():
     parser_build_parent.add_argument("--background", dest="background", action="store_true", default=False,
                                      help="Mark the build as a background job. It will have lesser priority than regular builds.")
 
-    # create the parser for the "build" (url/upload) command
-    parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
-                                         help="Build packages to a specified copr")
-    parser_build.add_argument("pkgs", nargs="+",
-                              help="filename of SRPM or URL of packages to build")
-
-    parser_build.add_argument(
+    parser_build_parent.add_argument(
         "--bootstrap",
         choices=["unchanged", "default", "on", "off", "image"],
         help=("Configure Mock's bootstrap feature, "
@@ -1153,6 +1147,12 @@ def setup_parser():
               "The 'default' variant resets the project/chroot configuration "
               "to the pre-configured setup from mock-core-configs. "
               "See 'create --help' for more info."))
+
+    # create the parser for the "build" (url/upload) command
+    parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
+                                         help="Build packages to a specified copr")
+    parser_build.add_argument("pkgs", nargs="+",
+                              help="filename of SRPM or URL of packages to build")
 
     parser_build.set_defaults(func="action_build")
 
