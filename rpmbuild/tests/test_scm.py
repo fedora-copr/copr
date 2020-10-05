@@ -124,7 +124,7 @@ class TestScmProvider(TestCase):
         make_srpm_cmd_part = 'cd /mnt{0}/somerepo/subpkg; make -f /mnt{1}/somerepo/.copr/Makefile srpm '\
                              'outdir="/mnt{2}" spec="/mnt{3}/somerepo/subpkg/pkg.spec"'\
                              .format(provider.workdir, provider.workdir, self.resultdir, provider.workdir)
-        assert_cmd = ['mock', '--uniqueext', '2', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
+        assert_cmd = ['mock', '--uniqueext', '2', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
                       bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
         self.assertEqual(provider.get_make_srpm_command(), assert_cmd)

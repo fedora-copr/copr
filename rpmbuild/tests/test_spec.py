@@ -46,9 +46,13 @@ class TestUrlProvider(TestCase):
     def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd, mock_get):
         provider = UrlProvider(self.source_json, self.resultdir, self.config)
         provider.produce_srpm()
-        run_cmd.assert_called_with(["rpkg", "srpm", "--outdir", self.resultdir,
-                                    "--spec", '{0}/somepackage.spec'.format(provider.workdir)],
-                                   cwd=provider.workdir)
+        args = [
+            'mock', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
+            '--srpmbuild',
+            '--spec', '{0}/somepackage.spec'.format(provider.workdir),
+            '--define', '_disable_source_fetch 0',
+            '--resultdir', self.resultdir]
+        run_cmd.assert_called_with(args, cwd=provider.workdir)
 
     @mock.patch('requests.get')
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())

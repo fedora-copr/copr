@@ -107,7 +107,7 @@ class ScmProvider(Provider):
             .format(mock_cwd, makefile_path, mock_outdir, mock_spec_path)
 
         return ['mock', '--uniqueext', get_mock_uniqueext(),
-                '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
+                '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
                 mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
     def produce_srpm(self):
