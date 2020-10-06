@@ -131,7 +131,7 @@ class Importer(object):
                 continue
 
             for mb_task in mb_tasks:
-                p = worker_cls(target=self.do_import, args=[mb_task], id=mb_task.build_id, timeout=3600)
+                p = worker_cls(target=self.do_import, args=[mb_task], id=mb_task.build_id, timeout=3600 * 3)
                 pool.append(p)
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
                          .format(p.name, mb_task.build_id, p.timeout))
