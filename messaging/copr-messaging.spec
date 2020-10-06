@@ -32,6 +32,7 @@ BuildRequires: python3-copr-common
 BuildRequires: python3-devel
 BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pytest
+BuildRequires: python3-setuptools
 BuildRequires: python3-sphinx
 
 %description %_description
