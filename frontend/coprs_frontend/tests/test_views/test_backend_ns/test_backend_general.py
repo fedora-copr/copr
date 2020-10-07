@@ -241,6 +241,42 @@ class TestUpdateBuilds(CoprsTestCase):
         assert ended.result_dir == "00000002"
         assert ended.chroots_ended_on == {'fedora-18-x86_64': 1390866440}
 
+    def test_build_task_canceled_waiting_build(
+            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.db.session.add(self.b3)
+        self.db.session.commit()
+
+        r = self.tc.post("/backend/build-tasks/canceled/{}/".format(self.b3.id),
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=json.dumps(False))
+        assert r.status_code == 200
+        assert json.loads(r.data.decode("utf-8")) == "success"
+
+        build = self.models.Build.query.filter(self.models.Build.id == 3).one()
+        assert build.source_status == StatusEnum("canceled")
+
+    def test_build_task_canceled_running_build(
+            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.b4.build_chroots.pop()
+        self.b4.build_chroots[0].status = StatusEnum("running")
+        self.db.session.add(self.b4)
+        self.db.session.commit()
+
+        r = self.tc.post("/backend/build-tasks/canceled/{}/".format(self.b4.id),
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=json.dumps(True))
+
+        assert r.status_code == 200
+        assert json.loads(r.data.decode("utf-8")) == "success"
+
+        build = self.models.Build.query.filter(self.models.Build.id == 4).one()
+        assert build.canceled == False
+        assert build.build_chroots[0].status == StatusEnum("running")
+
 
 class TestWaitingActions(CoprsTestCase):
 
