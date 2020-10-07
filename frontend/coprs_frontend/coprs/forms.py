@@ -567,51 +567,19 @@ def seconds_to_pretty_hours(sec):
     minutes = minutes % 60
     return hours if not minutes else "{}:{:02d}".format(hours, minutes)
 
-# @TODO jkadlcik - rewrite via BaseBuildFormFactory after fe-dev-cloud is back online
+
 class BuildFormRebuildFactory(object):
+    # TODO: drop, and use BaseBuildFormFactory directly
     @staticmethod
     def create_form_cls(active_chroots):
-        class F(FlaskForm):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
-
-            timeout = wtforms.IntegerField(
-                "Timeout",
-                description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
-                    app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
-                validators=[
-                    wtforms.validators.NumberRange(
-                        min=app.config["MIN_BUILD_TIMEOUT"],
-                        max=app.config["MAX_BUILD_TIMEOUT"])],
-                default=app.config["DEFAULT_BUILD_TIMEOUT"])
-
-            enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
-            background = wtforms.BooleanField(false_values=FALSE_VALUES)
-            project_dirname = wtforms.StringField(default=None)
-            bootstrap = create_mock_bootstrap_field("build")
-
-        F.chroots_list = list(map(lambda x: x.name, active_chroots))
-        F.chroots_list.sort()
-        F.chroots_sets = {}
-        for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True, false_values=FALSE_VALUES))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
-
-        return F
+        return BaseBuildFormFactory(active_chroots, FlaskForm)
 
 
 class RebuildPackageFactory(object):
     @staticmethod
     def create_form_cls(active_chroots):
         form = BuildFormRebuildFactory.create_form_cls(active_chroots)
+        # pylint: disable=attribute-defined-outside-init
         form.package_name = wtforms.StringField(
             "Package name",
             validators=[wtforms.validators.DataRequired()])
