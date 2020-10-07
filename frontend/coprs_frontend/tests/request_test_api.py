@@ -124,7 +124,7 @@ class WebUIRequests(_RequestsInterface):
             for ch in chroots:
                 form_data[ch] = 'y'
 
-        for attr in ["bootstrap"]:
+        for attr in ["bootstrap", "with_build_id", "after_build_id"]:
             value = build_options.get(attr)
             if value is None:
                 continue
@@ -214,7 +214,7 @@ class API3Requests(_RequestsInterface):
         if not build_options:
             build_options = {}
         form_data = {}
-        for arg in ["chroots", "bootstrap"]:
+        for arg in ["chroots", "bootstrap", "with_build_id", "after_build_id"]:
             if arg not in build_options:
                 continue
             if build_options[arg] is None:

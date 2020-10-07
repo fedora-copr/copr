@@ -1,11 +1,11 @@
-{% macro render_field(field, label=None, class=None, info=None) %}
+{% macro render_field(field, label=None, class=None, info=None, width=None) %}
   {% if not kwargs['hidden'] %}
 
     <div class="form-group {% if field.errors %} has-error {% endif %} ">
       <label class="col-sm-2 control-label">
         {{ label or field.label }}:
       </label>
-      <div class="col-sm-10">
+      <div class="col-sm-{{ width if width else 10 }}">
         {{ field(class="form-control" + (" " + class if class else ""), **kwargs)|safe }}
         <ul class="list-unstyled">
         {% if info %}
@@ -313,6 +313,10 @@
       <h3 class="panel-title"> Task Queue </h3>
     </div>
     <div class="list-group">
+      <a href="{{url_for('status_ns.batches')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.batches }}</span>
+        Build Batches
+      </a>
       <a href="{{url_for('status_ns.importing')}}" class="list-group-item">
         <span class="badge">{{ tasks_info.importing}}</span>
         Importing
@@ -606,6 +610,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 
   {{ render_field(form.bootstrap, placeholder='default') }}
 
+  {{ render_field(form.with_build_id, class="input-field-12em") }}
+  {{ render_field(form.after_build_id, class="input-field-12em") }}
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup">
     Other options:

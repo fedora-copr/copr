@@ -114,8 +114,10 @@ def buildopts_from_args(args, progress_callback):
         "background": args.background,
         "progress_callback": progress_callback,
     }
-    if args.bootstrap is not None:
-        buildopts["bootstrap"] = args.bootstrap
+    for opt in ["bootstrap", "after_build_id", "with_build_id"]:
+        value = getattr(args, opt)
+        if value is not None:
+            buildopts[opt] = value
     return buildopts
 
 
@@ -1154,6 +1156,17 @@ def setup_parser():
               "The 'default' variant resets the project/chroot configuration "
               "to the pre-configured setup from mock-core-configs. "
               "See 'create --help' for more info."))
+
+    batch_build_opts = parser_build_parent.add_mutually_exclusive_group()
+    batch_build_opts.add_argument(
+        "--after-build-id", metavar="BUILD_ID",
+        help=("Build after the batch containing the BUILD_ID build."),
+    )
+
+    batch_build_opts.add_argument(
+        "--with-build-id", metavar="BUILD_ID",
+        help=("Build in the same batch with the BUILD_ID build."),
+    )
 
     # create the parser for the "build" (url/upload) command
     parser_build = subparsers.add_parser("build", parents=[parser_build_parent],

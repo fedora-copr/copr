@@ -1101,6 +1101,57 @@ class BaseBuildFormFactory(object):
                 F.chroots_sets[ch[0]].append(ch)
             else:
                 F.chroots_sets[ch[0]] = [ch]
+
+        F.after_build_id = wtforms.IntegerField(
+            "Batch-build after",
+            description=(
+                "Optional - Build after the batch containing "
+                "the Build ID build."
+            ),
+            validators=[
+                wtforms.validators.Optional()],
+            render_kw={'placeholder': 'Build ID'},
+            filters=[NoneFilter(None)],
+        )
+
+        F.with_build_id = wtforms.IntegerField(
+            "Batch-build with",
+            description=(
+                "Optional - Build in the same batch with the Build ID build"
+            ),
+            render_kw={'placeholder': 'Build ID'},
+            validators=[
+                wtforms.validators.Optional()],
+            filters=[NoneFilter(None)],
+        )
+
+        def _validate_batch_opts(form, field):
+            counterpart = form.with_build_id
+            modifies = False
+            if counterpart == field:
+                counterpart = form.after_build_id
+                modifies = True
+
+            if counterpart.data:
+                raise wtforms.ValidationError(
+                    "Only one batch option can be specified")
+
+            build_id = field.data
+            if not build_id:
+                return
+
+            build_id = int(build_id)
+            build = models.Build.query.get(build_id)
+            if not build:
+                raise wtforms.ValidationError(
+                    "Build {} not found".format(build_id))
+            batch_error = build.batching_user_error(flask.g.user, modifies)
+            if batch_error:
+                raise wtforms.ValidationError(batch_error)
+
+        F.validate_with_build_id = _validate_batch_opts
+        F.validate_after_build_id = _validate_batch_opts
+
         return F
 
 

@@ -1,0 +1,43 @@
+{% from "coprs/detail/_builds_table.html" import builds_table %}
+
+{% extends "layout.html" %}
+{% block title %}Build detail{% endblock %}
+{% block header %}Build detail{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('status_ns.batches') }}">Batches</a>
+  </li>
+  <li>
+    Batch {{ batch.id }}
+  </li>
+</ol>
+{% endblock %}
+{% block body %}
+
+{% macro batch_print(batch) %}
+<a href="{{ url_for('batches_ns.coprs_batch_detail', batch_id=batch.id) }}">
+Batch {{ batch.id }}
+</a>
+({{ batch.state }})
+{% endmacro %}
+
+<h1>Batch {{ batch.id }} detail ({{ batch.state }})</h1>
+
+{% for dep in deps %}
+{% if loop.first %}
+<p> Depends on:
+{% else %}
+<i class="fa fa-angle-double-right"></i>
+{% endif %}
+{{ batch_print(dep) }}
+{% if loop.last %}<p>{% endif %}
+{% endfor %}
+
+{{ builds_table(batch.builds) }}
+
+{% endblock %}

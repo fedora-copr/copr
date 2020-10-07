@@ -1,0 +1,48 @@
+{% macro render_tree(node, depth=0, parent=None) %}
+{% set batch = node.name %}
+<tr id="batch_row_{{ batch.id }}" {% if parent %}data-parent="#batch_row_{{parent}}"{% endif %}>
+<td class="treegrid-node">
+  <span class="icon node-icon fa fa-tasks"></span>
+  <a href="{{ url_for('batches_ns.coprs_batch_detail', batch_id=node.name.id) }}">Batch {{ node.name.id }}</a>
+</td>
+<td>
+  {{ node.name.state }}
+</td>
+</tr>
+{% for child in node.children|sort(attribute='name.id', reverse=True) %}
+{{ render_tree(child, depth+1, parent=batch.id) }}
+{% endfor %}
+{% endmacro %}
+
+{% set state_of_tasks = "batches" %}
+{% extends "status.html" %}
+{% block title %}List of processing batches{% endblock %}
+{% block header %}List of processing batches{% endblock %}
+{% block status_breadcrumb %}
+<li>Batches</li>
+{%endblock%}
+{% block status_body %}
+<h1>Currently {{ queue_sizes["batches"] }} active build batches</h1>
+{% for root_node in batch_trees|sort(attribute='name.id', reverse=True) %}
+{% if loop.first %}
+<div class="table-responsive">
+  <table class="table table-bordered table-hover table-treegrid">
+    <thead>
+      <th>Batch ID</th>
+      <th>Batch state</th>
+    </thead>
+    <tbody>
+{% endif %}
+{{ render_tree(root_node) }}
+{% if loop.last %}
+    </tbody>
+  </table>
+</div>
+<script>
+  $('.table-treegrid').treegrid();
+</script>
+{% endif %}
+{% else %}
+<p>No batches being currently processed.</p>
+{% endfor %}
+{% endblock %}

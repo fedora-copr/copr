@@ -1,5 +1,6 @@
 # pylint: disable=attribute-defined-outside-init
 import base64
+from contextlib import contextmanager
 import json
 import os
 import time
@@ -26,7 +27,6 @@ class CoprsTestCase(object):
 
     # These are made available by TransactionDecorator() decorator
     test_client = None
-    transaction_user = None
     transaction_username = None
 
     original_config = coprs.app.config.copy()
@@ -749,6 +749,34 @@ def foo():
         for bch in self.b4_bc:
             bch.status = StatusEnum("succeeded")
 
+    @contextmanager
+    def setup_user_session(self, user):
+        """
+        Setup session cookie, according to Flask docs:
+        https://flask.palletsprojects.com/en/1.1.x/testing/#accessing-and-modifying-sessions
+        """
+        self.transaction_user = user
+        self.transaction_username = user.username
+        with self.tc as self.test_client:
+            # create one fake request that will setup the session value,
+            # and keep the value in the next requests ...
+            with self.test_client.session_transaction() as session:
+                session["openid"] = user.username
+            # ... as long as the self.test_client variable lives
+            yield
+
+    @pytest.fixture
+    def f_u1_ts_client(self, f_users, f_users_api, f_db):
+        """
+        This is alternative for the per-test @TransactionDecorator("u1")
+        decorator.  And can be used also on a per-class level.  Note that
+        we need to commit the session, otherwise the user is unknown to
+        the client.
+        """
+        _just_fixtures = f_users, f_users_api, f_db
+        with self.setup_user_session(self.u1):
+            yield
+
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,
                                    content=None, method="GET",
@@ -849,11 +877,7 @@ class TransactionDecorator(object):
         @wraps(fn)
         def wrapper(fn, fn_self, *args):
             user = getattr(fn_self, self.user)
-            fn_self.transaction_user = user
-            fn_self.transaction_username = user.username
-            with fn_self.tc as fn_self.test_client:
-                with fn_self.test_client.session_transaction() as session:
-                    session["openid"] = user.username
+            with fn_self.setup_user_session(user):
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)
 

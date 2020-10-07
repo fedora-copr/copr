@@ -1323,6 +1323,49 @@ class Build(db.Model, helpers.Serializer):
             return False
         return self.bootstrap != "unchanged"
 
+    def batching_user_error(self, user, modify=False):
+        """
+        Check if the USER can operate with this build in batches, eg create a
+        new batch for it, or add other builds to the existing batch.  Return the
+        error message (or None, if everything is OK).
+        """
+        # pylint: disable=too-many-return-statements
+        if self.batch:
+            if not modify:
+                # Anyone can create a new batch which **depends on** an already
+                # existing batch (even if it is owned by someone else)
+                return None
+
+            if self.batch.finished:
+                return "Batch {} is already finished".format(self.batch.id)
+
+            if self.batch.can_assign_builds(user):
+                # user can modify an existing project...
+                return None
+
+            project_names = [c.full_name for c in self.batch.assigned_projects]
+            projects = helpers.pluralize("project", project_names)
+            return (
+                "The batch {} belongs to {}.  You are not allowed to "
+                "build there, so you neither can edit the batch."
+            ).format(self.batch.id, projects)
+
+        # a new batch is needed ...
+        msgbase = "Build {} is not yet in any batch, and ".format(self.id)
+        if not user.can_build_in(self.copr):
+            return msgbase + (
+                "user '{}' doesn't have the build permissions in project '{}' "
+                "to create a new one"
+            ).format(user.username, self.copr.full_name)
+
+        if self.finished:
+            return msgbase + (
+                "new batch can not be created because the build has "
+                "already finished"
+            )
+
+        return None  # new batch can be safely created
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
@@ -1826,8 +1869,43 @@ class Batch(db.Model):
 
     @property
     def finished(self):
+        if not self.builds:
+            # no builds assigned to this batch (yet)
+            return False
         return all([b.finished for b in self.builds])
 
+    @property
+    def state(self):
+        if self.blocked_by and not self.blocked_by.finished:
+            return "blocked"
+        return "finished" if self.finished else "processing"
+
+    @property
+    def assigned_projects(self):
+        """ Get a list (generator) of assigned projects """
+        seen = set()
+        for build in self.builds:
+            copr = build.copr
+            if copr in seen:
+                continue
+            seen.add(copr)
+            yield copr
+
+    def can_assign_builds(self, user):
+        """
+        Check if USER has permissions to assign builds to this batch.  Since we
+        support cross-project batches, user is allowed to add a build to this
+        batch as long as:
+        - the batch has no builds yet (user has created a new batch now)
+        - the batch has at least one build which belongs to project where the
+          user has build access
+        """
+        if not self.builds:
+            return True
+        for copr in self.assigned_projects:
+            if user.can_build_in(copr):
+                return True
+        return False
 
 class Module(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)

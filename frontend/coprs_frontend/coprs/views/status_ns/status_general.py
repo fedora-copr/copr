@@ -3,6 +3,7 @@ from time import time
 
 from copr_common.enums import StatusEnum
 from coprs.views.status_ns import status_ns
+from coprs.logic import batches_logic
 from coprs.logic import builds_logic
 from coprs.logic import complex_logic
 
@@ -71,6 +72,22 @@ def render_status(build_status, tasks, bg_tasks_cnt=None):
     return flask.render_template("status.html", number=len(tasks),
                                  tasks=tasks, bg_tasks_cnt=bg_tasks_cnt,
                                  state_of_tasks=build_status)
+
+
+@status_ns.route("/batches/")
+def batches():
+    """ Print the list (tree) of batches """
+    trees = batches_logic.BatchesLogic.pending_batch_trees()
+    return flask.render_template("status/batch_list.html", batch_trees=trees)
+
+
+@status_ns.route("/batches/detail/<int:batch_id>/")
+def coprs_batch_detail(batch_id):
+    """ Print the list (tree) of batches """
+    chain = batches_logic.BatchesLogic.batch_chain(batch_id)
+    batch = chain[0]
+    deps = chain[1:]
+    return flask.render_template("batches/detail.html", batch=batch, deps=deps)
 
 
 @status_ns.route("/stats/")

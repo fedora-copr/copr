@@ -17,7 +17,7 @@
           <th>Build Time</th>
           <th>Status</th>
 
-          {% if g.user and g.user.can_edit(copr) %}
+          {% if copr and g.user and g.user.can_edit(copr) %}
           <th data-orderable="false" class="show-me-javascript hidden"><a href="#" onclick="$('tr.build-row :checkbox').prop('checked', $('tr.build-row :checkbox').length != $('tr.build-row :checkbox:checked').length); return false;">Mark all</a></th>
           {% endif %}
         </tr>
@@ -52,7 +52,7 @@
             {{ build_state(build) }}
           </td>
 
-          {% if g.user and g.user.can_edit(copr) %}
+          {% if copr and g.user and g.user.can_edit(copr) %}
           <td class="show-me-javascript hidden">
             <input type="checkbox" name="build_ids" value="{{ build.id }}"></input>
           </td>

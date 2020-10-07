@@ -12,6 +12,7 @@ from coprs import models
 from coprs import exceptions
 from coprs.exceptions import ObjectNotFound, ActionInProgressException
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.batches_logic import BatchesLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.actions_logic import ActionsLogic
 
@@ -265,6 +266,7 @@ class ComplexLogic(object):
             pending=pending,
             running=running,
             starting=starting,
+            batches=len(BatchesLogic.pending_batches()),
         )
 
     @classmethod

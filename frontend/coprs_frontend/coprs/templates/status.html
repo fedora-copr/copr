@@ -19,7 +19,7 @@
 {% block body %}
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
-  {% for state in ["importing", "pending", "starting", "running"] %}
+  {% for state in ["importing", "pending", "starting", "running", "batches"] %}
   <li {% if state_of_tasks == state %}class="active"{% endif %}>
       <a href="{{ url_for('status_ns.' + state ) }}">
           {{ state|capitalize }}

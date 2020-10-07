@@ -9,7 +9,7 @@ import requests
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import not_
 from sqlalchemy.orm import joinedload, selectinload
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_, and_
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import bindparam, Integer, String
@@ -37,11 +37,17 @@ from coprs.logic import users_logic
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 from coprs.models import BuildChroot
-from .coprs_logic import MockChrootsLogic
+from coprs.logic.coprs_logic import MockChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.batches_logic import BatchesLogic
 
 from .helpers import get_graph_parameters
 log = app.logger
+
+
+PROCESSING_STATES = [StatusEnum(s) for s in [
+    "running", "pending", "starting", "importing", "waiting",
+]]
 
 
 class BuildsLogic(object):
@@ -600,6 +606,8 @@ class BuildsLogic(object):
             srpm_url=srpm_url,
             copr_dirname=copr_dirname,
             bootstrap=build_options.get("bootstrap"),
+            after_build_id=build_options.get("after_build_id"),
+            with_build_id=build_options.get("with_build_id"),
         )
 
         if "timeout" in build_options:
@@ -608,11 +616,29 @@ class BuildsLogic(object):
         return build
 
     @classmethod
+    def _setup_batch(cls, batch, after_build_id, with_build_id, user):
+        # those three are exclusive!
+        if sum([bool(x) for x in
+                [batch, with_build_id, after_build_id]]) > 1:
+            raise BadRequest("Multiple build batch specifiers")
+
+        if with_build_id:
+            batch = BatchesLogic.get_batch_or_create(with_build_id, user, True)
+
+        if after_build_id:
+            old_batch = BatchesLogic.get_batch_or_create(after_build_id, user)
+            batch = models.Batch()
+            batch.blocked_by = old_batch
+            db.session.add(batch)
+
+        return batch
+
+    @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None, copr_dirname=None, bootstrap=None,
-            package=None):
+            package=None, after_build_id=None, with_build_id=None):
 
         if chroots is None:
             chroots = []
@@ -622,6 +648,8 @@ class BuildsLogic(object):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr,
             "You don't have permissions to build in this copr.")
+
+        batch = cls._setup_batch(batch, after_build_id, with_build_id, user)
 
         if not repos:
             repos = copr.repos
@@ -1142,6 +1170,26 @@ class BuildsLogic(object):
 
         if counter > 0:
             db.session.commit()
+
+    @classmethod
+    def processing_builds(cls):
+        """
+        Query for all the builds which are not yet finished, it means all the
+        builds that have non-finished source status, or any non-finished
+        existing build chroot.
+        """
+        build_ids_with_bch = db.session.query(BuildChroot.build_id).filter(
+            BuildChroot.status.in_(PROCESSING_STATES),
+        )
+        # skip waiting state, we need to fix issue #1539
+        source_states = set(PROCESSING_STATES)-{StatusEnum("waiting")}
+        return models.Build.query.filter(and_(
+            not_(models.Build.canceled),
+            or_(
+                models.Build.id.in_(build_ids_with_bch),
+                models.Build.source_status.in_(source_states),
+            ),
+        ))
 
 
 class BuildChrootsLogic(object):

@@ -82,6 +82,9 @@ from coprs.views import apiv3_ns
 from coprs.views.apiv3_ns import (apiv3_general, apiv3_builds, apiv3_packages, apiv3_projects, apiv3_project_chroots,
                                   apiv3_modules, apiv3_build_chroots, apiv3_mock_chroots,
                                   apiv3_permissions)
+
+from coprs.views import batches_ns
+from coprs.views.batches_ns import coprs_batches
 from coprs.views import coprs_ns
 from coprs.views.coprs_ns import coprs_builds
 from coprs.views.coprs_ns import coprs_general
@@ -123,6 +126,7 @@ setup_log()
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(apiv3_ns.apiv3_ns)
 app.register_blueprint(admin_ns.admin_ns)
+app.register_blueprint(batches_ns.batches_ns)
 app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)

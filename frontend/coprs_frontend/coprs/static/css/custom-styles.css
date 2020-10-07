@@ -39,6 +39,10 @@ input.short-input-field {
     width: 6em;
 }
 
+input.input-field-12em {
+    width: 12em;
+}
+
 .table_footer {
 	padding: 7px 0 0 0;
 	background: #f5f5f5;

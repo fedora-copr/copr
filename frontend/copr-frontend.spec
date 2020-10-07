@@ -69,6 +69,7 @@ BuildRequires: python3-devel
 
 %if %{with check}
 BuildRequires: fedora-messaging
+BuildRequires: python3-anytree
 BuildRequires: python3-click
 BuildRequires: python3-CommonMark
 BuildRequires: python3-blinker
@@ -127,6 +128,7 @@ Requires: fedora-messaging
 Requires: js-html5shiv
 Requires: js-jquery
 Requires: js-respond
+Requires: python3-anytree
 Requires: python3-click
 Requires: python3-CommonMark
 Requires: python3-alembic
