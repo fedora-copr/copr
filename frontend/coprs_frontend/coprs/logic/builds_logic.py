@@ -797,10 +797,11 @@ class BuildsLogic(object):
         """
         log.info("Updating build {} by: {}".format(build.id, upd_dict))
 
-        # create the package if it doesn't exist
         pkg_name = upd_dict.get('pkg_name', None)
-        if pkg_name:
+        if not build.package and pkg_name:
+            # assign the package if it isn't already
             if not PackagesLogic.get(build.copr_dir.id, pkg_name).first():
+                # create the package if it doesn't exist
                 try:
                     package = PackagesLogic.add(
                         build.copr.user, build.copr_dir,

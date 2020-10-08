@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
+
 import json
+import time
 
 import pytest
-import time
 
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
@@ -21,6 +22,8 @@ from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 class TestBuildsLogic(CoprsTestCase):
+    # pylint: disable=too-many-public-methods
+
     data = """
 {
   "builds":[
@@ -417,3 +420,64 @@ class TestBuildsLogic(CoprsTestCase):
         builds = models.Build.query.all()
         assert len(builds) == 2
         assert {b.package.name for b in builds} == {"tar", "cpio"}
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_package_not_updated_after_source_ready(self):
+        # create a package and submit a build
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"])
+        self.web_ui.create_distgit_package("test", "copr-cli")
+        self.api3.rebuild_package("test", "copr-cli")
+
+        build = models.Build.query.get(1)
+        assert build.status == StatusEnum("pending")
+
+        form_data = {
+            "builds": [{
+                "id": 1,
+                "task_id": "1",
+                "srpm_url": "http://foo",
+                "status": 1,
+                "pkg_name": "foo",  # not a 'copr-cli'!
+                "pkg_version": 1
+            }],
+        }
+
+        self.backend.update(form_data)
+
+        importing = self.backend.importing_queue()
+        assert len(importing) == 1
+        assert importing[0]['pkg_name'] == "copr-cli"
+
+        build = models.Build.query.get(1)
+        assert build.status == StatusEnum("importing")
+        assert build.package.name == "copr-cli"
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_package_set_when_source_ready(self):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"])
+        self.web_ui.submit_url_build("test")
+
+        build = models.Build.query.get(1)
+        assert len(build.build_chroots) == 0
+        assert build.source_status == StatusEnum("pending")
+        assert build.package is None
+
+        # define the package name to foo
+        form_data = {
+            "builds": [{
+                "id": 1,
+                "task_id": "1",
+                "srpm_url": "http://foo",
+                "status": 1,
+                "pkg_name": "foo",  # not a 'copr-cli'!
+                "pkg_version": 1
+            }],
+        }
+
+        self.backend.update(form_data)
+        build = models.Build.query.get(1)
+        assert len(build.build_chroots) == 1
+        assert build.source_status == StatusEnum("importing")
+        assert build.package.name == "foo"

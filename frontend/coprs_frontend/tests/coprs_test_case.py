@@ -20,7 +20,7 @@ from coprs import cache
 from coprs.logic.coprs_logic import BranchesLogic, CoprChrootsLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 
-from tests.request_test_api import WebUIRequests, API3Requests
+from tests.request_test_api import WebUIRequests, API3Requests, BackendRequests
 
 class CoprsTestCase(object):
 
@@ -74,6 +74,7 @@ class CoprsTestCase(object):
 
         self.web_ui = WebUIRequests(self)
         self.api3 = API3Requests(self)
+        self.backend = BackendRequests(self)
 
     def teardown_method(self, method):
         # delete just data, not the tables

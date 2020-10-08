@@ -2,6 +2,8 @@
 Library that simplifies interacting with Frontend routes.
 """
 
+import json
+
 from bs4 import BeautifulSoup
 
 from coprs import models
@@ -114,6 +116,8 @@ class WebUIRequests(_RequestsInterface):
 
     @staticmethod
     def _form_data_from_build_options(build_options):
+        if build_options is None:
+            build_options = {}
         form_data = {}
         chroots = build_options.get("chroots")
         if chroots:
@@ -207,6 +211,8 @@ class API3Requests(_RequestsInterface):
 
     @staticmethod
     def _form_data_from_build_options(build_options):
+        if not build_options:
+            build_options = {}
         form_data = {}
         for arg in ["chroots", "bootstrap"]:
             if arg not in build_options:
@@ -242,3 +248,33 @@ class API3Requests(_RequestsInterface):
             "package_name": pkgname,
         }
         return self.post(route, rebuild_data)
+
+
+class BackendRequests:
+    """ Requests on /backend/ namespace """
+    def __init__(self, test_class_object):
+        self.test_class_object = test_class_object
+
+    @property
+    def client(self):
+        """ Initialized flask http client """
+        return self.test_class_object.test_client
+
+    def update(self, data):
+        """ Post to the "/backend/update/" using a dict """
+        self.client.post(
+            "/backend/update/",
+            content_type="application/json",
+            headers=self.test_class_object.auth_header,
+            data=json.dumps(data),
+        )
+
+    def importing_queue(self):
+        """ return the dict with importing tasks """
+        resp = self.client.get(
+            "/backend/importing/",
+            content_type="application/json",
+            headers=self.test_class_object.auth_header,
+        )
+        assert resp.status_code == 200
+        return json.loads(resp.data)
