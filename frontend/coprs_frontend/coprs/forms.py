@@ -1050,6 +1050,10 @@ class RebuildAllPackagesFormFactory(object):
 
 
 class BaseBuildFormFactory(object):
+    # TODO: Change this to just 'def get_build_form(...)'.  The __new__
+    #       hack confuses not only PyLint (on each calling place it claims
+    #       that the return value is not callable.  __new__ isn't supposed
+    #       to return classes, but instances.
     def __new__(cls, active_chroots, form, package=None):
         class F(form):
             @property

@@ -420,6 +420,7 @@ def process_rebuild(copr, build_id, view, url_on_success):
             chroot_names=form.selected_chroots,
             **build_options
         )
+    # pylint: disable=not-callable
     form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)()
     return process_new_build(copr, form, factory, render_add_build, view, url_on_success)
 
@@ -449,6 +450,7 @@ def process_copr_repeat_build(build_id, copr):
         # and proceed with import.
         available_chroots = copr.active_chroots
 
+    # pylint: disable=not-callable
     form = forms.BuildFormRebuildFactory.create_form_cls(available_chroots)(
         build_id=build_id, enable_net=build.enable_net)
 
