@@ -8,6 +8,28 @@ from coprs.models import User, Copr
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
+class TestApiv3Projects(CoprsTestCase):
+    def test_get_project_list_order(self, f_users, f_coprs, f_mock_chroots,
+                                    f_copr_more_permissions, f_users_api, f_db):
+
+
+        url = "/api_3/project/list?order=id&order_type=DESC"
+        response = self.tc.get(url)
+        projects1 = response.json["items"]
+        assert [p["id"] for p in projects1] == [3, 2, 1]
+
+        url = "/api_3/project/list?order=name&order_type=DESC"
+        response = self.tc.get(url)
+        projects2 = response.json["items"]
+        assert [p["id"] for p in projects2] == [2, 1, 3]
+
+        url = "/api_3/project/list?order=name&order_type=ASC"
+        response = self.tc.get(url)
+        projects3 = response.json["items"]
+        assert [p["id"] for p in projects3] == [3, 1, 2]
+        assert projects3 == list(reversed(projects2))
+
+
 class TestApiV3Permissions(CoprsTestCase):
 
     def auth_get(self, path, user):

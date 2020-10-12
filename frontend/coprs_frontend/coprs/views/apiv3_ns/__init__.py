@@ -116,7 +116,9 @@ class Paginator(object):
         elif self.order_type == 'DESC':
             order_fun = sqlalchemy.desc
 
-        return self.query.order_by(order_fun(self.order)).limit(self.limit).offset(self.offset)
+        return (self.query.order_by(order_fun(getattr(self.model, self.order)))
+                .limit(self.limit)
+                .offset(self.offset))
 
     @property
     def meta(self):
