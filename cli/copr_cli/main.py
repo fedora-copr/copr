@@ -104,6 +104,21 @@ class ActionDeprecated(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+def buildopts_from_args(args, progress_callback):
+    """
+    For all the build commands, parse the common set of build options.
+    """
+    buildopts = {
+        "timeout": args.timeout,
+        "chroots": args.chroots,
+        "background": args.background,
+        "progress_callback": progress_callback,
+    }
+    if args.bootstrap is not None:
+        buildopts["bootstrap"] = args.bootstrap
+    return buildopts
+
+
 class Commands(object):
     def __init__(self, config_path):
         self.config_path = config_path or '~/.config/copr'
@@ -377,9 +392,7 @@ class Commands(object):
         projectname = project_dirname.split(':')[0]
 
         try:
-            buildopts = {"memory": args.memory, "timeout": args.timeout, "chroots": args.chroots,
-                         "background": args.background, "progress_callback": progress_callback}
-
+            buildopts = buildopts_from_args(args, progress_callback)
             result = build_function(ownername=username, projectname=projectname,
                                     project_dirname=project_dirname, buildopts=buildopts, **data)
 
@@ -789,13 +802,7 @@ class Commands(object):
     def action_build_package(self, args):
         ownername, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
-
-        buildopts = {
-            "chroots": args.chroots,
-            #"memory": args.memory,
-            "timeout": args.timeout,
-            "background": args.background,
-        }
+        buildopts = buildopts_from_args(args, None)
         try:
             build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
                                                     packagename=args.name, buildopts=buildopts,

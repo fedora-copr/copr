@@ -37,7 +37,6 @@ class TestDistGitMethodBuild(object):
         'projectname': 'project',
         'project_dirname': 'project',
         'buildopts': {
-            'memory': None,
             'timeout': None,
             'chroots': None,
             'background': False,
@@ -86,7 +85,6 @@ class TestDistGitMethodBuild(object):
             "distgit": "centos",
             "namespace": "rpms",
             "buildopts": {
-                "memory": None,
                 "timeout": "3600",
                 "chroots": ['fedora-rawhide-x86_64'],
                 "background": True,
