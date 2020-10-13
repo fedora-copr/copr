@@ -1,5 +1,5 @@
 # This is very complicated module.  TODO: drop the ignores
-# pylint: disable=wrong-import-order,wrong-import-position
+# pylint: disable=wrong-import-order,wrong-import-position,cyclic-import
 
 from __future__ import with_statement
 
@@ -58,7 +58,6 @@ whooshee = Whooshee(app)
 import coprs.filters
 import coprs.log
 from coprs.log import setup_log
-import coprs.models
 import coprs.whoosheers
 
 from coprs.helpers import RedisConnectionProvider
