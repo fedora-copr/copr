@@ -13,7 +13,11 @@
   <li>
     <a href="{{ url_for('status_ns.pending') }}">Status</a>
   </li>
-  {%block status_breadcrumb %}{%endblock%}
+{%block status_breadcrumb %}
+  <li>
+      {{ state_of_tasks }}
+  </li>
+{%endblock%}
 </ol>
 {% endblock %}
 {% block body %}
