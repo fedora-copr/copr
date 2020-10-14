@@ -1,13 +1,14 @@
 import contextlib
 import os
-import importlib
 import logging
-from unittest import mock
-import pytest
 import runpy
 import shutil
 import subprocess
 import tempfile
+from unittest import mock
+
+import pytest
+from packaging import version
 import munch
 
 from copr_backend.helpers import (
@@ -309,13 +310,17 @@ class TestModifyRepo(object):
         assert call_copr_repo(chrootdir, add=[ctx.builds[1]])
 
         repoinfo = load_primary_xml(repodata)
-        # TODO: the output should be empty
-        # https://github.com/rpm-software-management/createrepo_c/issues/222
-        # assert repoinfo['hrefs'] == set()
-        assert repoinfo['hrefs'] == set([
-            '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
-            '00000003-example/example-1.0.14-1.fc30.x86_64.rpm',
-        ])
+        output = subprocess.check_output(["createrepo_c", "--version"],
+                                         universal_newlines=True)
+        expected_hrefs = set()
+        if version.parse(output.split()[1]) < version.parse("0.16.1"):
+            # https://github.com/rpm-software-management/createrepo_c/issues/222
+            expected_hrefs = set([
+                '00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm',
+                '00000003-example/example-1.0.14-1.fc30.x86_64.rpm',
+            ])
+        assert repoinfo['hrefs'] == expected_hrefs
+
 
     @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
     def test_copr_repo_add_subdir_devel(self, f_acr_on_and_first_build):
