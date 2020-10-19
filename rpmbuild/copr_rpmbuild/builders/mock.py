@@ -32,6 +32,7 @@ class MockBuilder(object):
         self.copr_username = task.get("project_owner")
         self.copr_projectname = task.get("project_name")
         self.modules = task.get("modules")
+        self.isolation = task.get("isolation")
         rpm_vendor_copr_name = self.config.get("main", "rpm_vendor_copr_name")
         self.vendor = "{0} - {1} {2}".format(
             rpm_vendor_copr_name,
@@ -79,7 +80,7 @@ class MockBuilder(object):
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
                                modules=self.enable_modules,
                                copr_build_id=self.build_id,
-                               vendor=self.vendor)
+                               vendor=self.vendor, isolation=self.isolation)
 
     def produce_srpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [

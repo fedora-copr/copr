@@ -108,6 +108,7 @@ def get_build_record(task, short=False):
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "uses_devel_repo": task.build.copr.devel_mode,
+            "isolation": task.build.isolation,
         }
 
 
@@ -131,6 +132,9 @@ def get_build_record(task, short=False):
         bch_bootstrap = BuildConfigLogic.build_bootstrap_setup(
             build_config, task.build)
         build_record.update(bch_bootstrap)
+        bch_isolation = BuildConfigLogic.get_build_isolation(
+            build_config, task.build)
+        build_record.update(bch_isolation)
 
     except Exception as err:
         app.logger.exception(err)

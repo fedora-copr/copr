@@ -11,6 +11,11 @@ config_opts['use_host_resolv'] = True
 config_opts['rpmbuild_networking'] = False
 config_opts['use_host_resolv'] = False
 {% endif %}
+{%- if isolation == "default" %}
+config_opts['isolation'] = 'auto'
+{%- elif isolation %}
+config_opts['isolation'] = '{{ isolation }}'
+{%- endif %}
 
 config_opts['macros']['%copr_username'] = '{{ copr_username }}'
 config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'

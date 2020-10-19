@@ -305,6 +305,8 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # if backend deletion script should be run for the project's builds
     auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
+    isolation = db.Column(db.Text, default="default")
+
     bootstrap = db.Column(db.Text, default="default")
 
     # if chroots for the new branch should be auto-enabled and populated from rawhide ones
@@ -930,6 +932,8 @@ class Build(db.Model, helpers.Serializer):
     source_status = db.Column(db.Integer, default=StatusEnum("waiting"))
     srpm_url = db.Column(db.Text)
 
+    isolation = db.Column(db.Text, default="default")
+
     bootstrap = db.Column(db.Text)
 
     # relations
@@ -1332,6 +1336,13 @@ class Build(db.Model, helpers.Serializer):
         if not self.bootstrap:
             return False
         return self.bootstrap != "unchanged"
+
+    @property
+    def isolation_set(self):
+        """ Is isolation config from project overwritten by build? """
+        if not self.isolation:
+            return False
+        return self.isolation != "unchanged"
 
     def batching_user_error(self, user, modify=False):
         """

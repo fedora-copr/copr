@@ -423,6 +423,7 @@ class BuildConfigLogic(object):
             'chroot': chroot_id,
             'with_opts': chroot.with_opts.split(),
             'without_opts': chroot.without_opts.split(),
+            'isolation': copr.isolation,
         }
         config_dict.update(chroot.bootstrap_setup)
         return config_dict
@@ -445,6 +446,18 @@ class BuildConfigLogic(object):
         elif build_record["bootstrap"] != "custom_image":
             del build_record['bootstrap_image']
         return build_record
+
+    @classmethod
+    def get_build_isolation(cls, build_config, build):
+        """ Get isolation setup from build_config, and override it by build """
+        isolation = {"isolation": build_config.get("isolation", "default")}
+
+        if build.isolation_set:
+            isolation["isolation"] = build.isolation
+
+        if isolation["isolation"] == "default":
+            del isolation['isolation']
+        return isolation
 
     @classmethod
     def get_additional_repo_views(cls, repos_list, chroot_id):

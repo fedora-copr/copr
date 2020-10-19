@@ -95,6 +95,32 @@ def create_mock_bootstrap_field(level):
     )
 
 
+def create_isolation_field(level):
+    """
+    Select-box for the isolation option configuration in build/project form
+    """
+
+    choices = []
+    default_choices = [
+        ('default', 'Use default configuration from mock-core-configs.rpm'),
+        ('nspawn', 'systemd-nspawn'),
+        ('simple', 'simple chroot'),
+    ]
+
+    if level == 'build':
+        choices.append(("unchanged", "Use project settings"))
+
+    choices.extend(default_choices)
+
+    return wtforms.SelectField(
+        "Build isolation",
+        choices=choices,
+        validators=[wtforms.validators.Optional()],
+        filters=[NoneFilter(None)],
+        description="Choose the isolation method for running commands in buildroot"
+    )
+
+
 def create_mock_bootstrap_image_field():
     """
     Mandatory bootstrap-image field when the bootstrap select-box is set to a
@@ -434,6 +460,8 @@ class CoprFormFactory(object):
                 filters=[_optional_checkbox_filter])
 
             bootstrap = create_mock_bootstrap_field("project")
+
+            isolation = create_isolation_field("project")
 
             follow_fedora_branching = wtforms.BooleanField(
                     "Follow Fedora branching",
@@ -1079,6 +1107,7 @@ class BaseBuildFormFactory(object):
         F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
         F.project_dirname = wtforms.StringField(default=None)
         F.bootstrap = create_mock_bootstrap_field("build")
+        F.isolation = create_isolation_field("build")
 
         # Overrides BasePackageForm.package_name, it is usually unused for
         # building
@@ -1285,6 +1314,7 @@ class ChrootForm(FlaskForm):
 
     bootstrap = create_mock_bootstrap_field("chroot")
     bootstrap_image = create_mock_bootstrap_image_field()
+    isolation = create_isolation_field("build")
 
     def validate(self, *args, **kwargs):  # pylint: disable=signature-differs
         """ We need to special-case custom_image configuration """
@@ -1390,6 +1420,7 @@ class CoprModifyForm(FlaskForm):
     auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     bootstrap = create_mock_bootstrap_field("project")
     use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    isolation = create_isolation_field("project")
     follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     follow_fedora_branching = wtforms.BooleanField(default=True, false_values=FALSE_VALUES)
     delete_after_days = wtforms.IntegerField(

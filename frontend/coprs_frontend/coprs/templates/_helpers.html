@@ -608,6 +608,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     </div>
   </div>
 
+  {{ render_field(form.isolation, placeholder='default') }}
+
   {{ render_field(form.bootstrap, placeholder='default') }}
 
   {{ render_field(form.with_build_id, class="input-field-12em") }}

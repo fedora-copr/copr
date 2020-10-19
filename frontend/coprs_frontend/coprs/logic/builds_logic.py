@@ -606,6 +606,7 @@ class BuildsLogic(object):
             srpm_url=srpm_url,
             copr_dirname=copr_dirname,
             bootstrap=build_options.get("bootstrap"),
+            isolation=build_options.get("isolation"),
             after_build_id=build_options.get("after_build_id"),
             with_build_id=build_options.get("with_build_id"),
         )
@@ -637,7 +638,7 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
-            srpm_url=None, copr_dirname=None, bootstrap=None,
+            srpm_url=None, copr_dirname=None, bootstrap=None, isolation=None,
             package=None, after_build_id=None, with_build_id=None):
 
         if chroots is None:
@@ -693,6 +694,7 @@ class BuildsLogic(object):
             srpm_url=srpm_url,
             copr_dir=copr_dir,
             bootstrap=bootstrap,
+            isolation=isolation,
         )
 
         if timeout:
