@@ -1,6 +1,7 @@
 import json
 
 from unittest import mock, skip
+import pytest
 
 from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
@@ -276,6 +277,22 @@ class TestUpdateBuilds(CoprsTestCase):
         build = self.models.Build.query.filter(self.models.Build.id == 4).one()
         assert build.canceled == False
         assert build.build_chroots[0].status == StatusEnum("running")
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_build_task_canceled_deleted_build(self):
+
+        self.models.Build.query.filter_by(id=self.b3.id).delete()
+        self.db.session.commit()
+
+        r = self.tc.post("/backend/build-tasks/canceled/{}/".format(self.b3.id),
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=json.dumps(False))
+        assert r.status_code == 200
+        assert json.loads(r.data.decode("utf-8")) == "success"
+
+        cancel_request_table = self.models.CancelRequest.query.all()
+        assert len(cancel_request_table) == 0
 
 
 class TestWaitingActions(CoprsTestCase):

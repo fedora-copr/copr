@@ -201,10 +201,12 @@ def build_task_canceled(task_id):
     if not was_running:
         if '-' in task_id:
             build_chroot = BuildsLogic.get_build_task(task_id)
-            build_chroot.status = StatusEnum("canceled")
+            if build_chroot:
+                build_chroot.status = StatusEnum("canceled")
         else:
             build = models.Build.query.filter_by(id=task_id).first()
-            build.source_status = StatusEnum("canceled")
+            if build:
+                build.source_status = StatusEnum("canceled")
     db.session.commit()
     return flask.jsonify("success")
 
