@@ -392,7 +392,7 @@ class DeleteChroot(Delete):
 
         if not os.path.isdir(chroot_path):
             self.log.error("Directory %s not found", chroot_path)
-            return
+            return ActionResult.SUCCESS
         shutil.rmtree(chroot_path)
         return ActionResult.SUCCESS
 

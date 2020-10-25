@@ -870,3 +870,53 @@ class TestAction(object):
             test_action.run()
         except Exception as e:
             assert False
+
+    @mock.patch("copr_backend.actions.uses_devel_repo")
+    def test_delete_chroot(self, mc_devel, mc_time):
+        mc_devel.return_value = False
+        mc_time.time.return_value = self.test_time
+        mc_front_cb = MagicMock()
+
+        tmp_dir = self.make_temp_dir()
+
+        proj_dir = os.path.join(tmp_dir, "foo", "bar")
+        chroot_1_dir = os.path.join(proj_dir, "fedora20")
+        chroot_2_dir = os.path.join(proj_dir, "epel7")
+        foo_pkg_dir = os.path.join(chroot_1_dir, "00001-foo")
+
+        os.makedirs(chroot_2_dir)
+        os.makedirs(foo_pkg_dir)
+
+        with open(os.path.join(foo_pkg_dir, "foo.src.rpm"), "w") as fh:
+            fh.write("foo\n")
+
+        log_path = os.path.join(chroot_1_dir, "build-{:08d}.log".format(42))
+        with open(log_path, "w") as fh:
+            fh.write(self.test_content)
+        self.opts.destdir = tmp_dir
+
+        data = json.dumps({
+            "ownername": "foo",
+            "projectname": "bar",
+            "chrootname": "fedora20",
+        })
+        test_action = Action.create_from(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "chroot",
+                "id": None,
+                "old_value": None,
+                "data": data,
+                "object_id": None,
+            },
+        )
+
+        assert os.path.exists(foo_pkg_dir)
+        assert os.path.exists(chroot_1_dir)
+        assert test_action.run() == ActionResult.SUCCESS
+        assert not os.path.exists(foo_pkg_dir)
+        assert not os.path.exists(chroot_1_dir)
+
+        # The action shouldn't fail even when the directory doesn't exist anymore
+        assert test_action.run() == ActionResult.SUCCESS
