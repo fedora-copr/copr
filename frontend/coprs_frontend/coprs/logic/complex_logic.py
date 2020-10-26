@@ -273,7 +273,7 @@ class ComplexLogic(object):
     def get_coprs_permissible_by_user(cls, user):
         coprs = CoprsLogic.filter_without_group_projects(
                     CoprsLogic.get_multiple_owned_by_username(
-                        flask.g.user.username, include_unlisted_on_hp=False)).all()
+                        user.username, include_unlisted_on_hp=False)).all()
 
         for group in user.user_groups:
             coprs.extend(CoprsLogic.get_multiple_by_group_id(group.id).all())
