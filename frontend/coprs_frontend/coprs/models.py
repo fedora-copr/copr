@@ -1456,8 +1456,10 @@ class CoprChroot(db.Model, helpers.Serializer):
     without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
 
     # Once mock_chroot gets EOL, copr_chroots are going to be deleted
-    # if their owner doesn't extend their time span
+    # if their admins don't extend their time span
     delete_after = db.Column(db.DateTime, index=True)
+    # The last time when we successfully sent the notification e-mail about this
+    # chroot, we'll not re-send before another EOL_CHROOTS_NOTIFICATION_PERIOD.
     delete_notify = db.Column(db.DateTime, index=True)
 
     bootstrap = db.Column(db.Text)
