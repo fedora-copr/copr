@@ -20,3 +20,4 @@ This section contains information about maintenance topics. You may also be inte
    email_templates
    createrepo
    aws_tips_and_tricks
+   enlarge_disk_copr_be
