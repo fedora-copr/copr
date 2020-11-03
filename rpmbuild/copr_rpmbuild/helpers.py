@@ -153,6 +153,7 @@ def read_config(config_path=None):
         "logfile": "/var/lib/copr-rpmbuild/main.log",
         "pidfile": "/var/lib/copr-rpmbuild/pid",
         "enabled_source_protocols": "https ftps",
+        "rpm_vendor_copr_name": "Unknown Copr",
     })
     config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
     config.read(config_path or reversed(config_paths))

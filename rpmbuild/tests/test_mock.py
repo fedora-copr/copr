@@ -92,6 +92,7 @@ class TestMockBuilder(object):
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
         self.config.set('main', 'logfile', '/dev/null')
+        self.config.set('main', 'rpm_vendor_copr_name', 'Copr Testsuite')
 
     def teardown_method(self, method):
         shutil.rmtree(self.resultdir)
@@ -144,7 +145,7 @@ include('/etc/mock/fedora-24-x86_64.cfg')
 
 config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'
 
-
+config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True

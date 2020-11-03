@@ -3,7 +3,7 @@ include('/etc/mock/{{ chroot }}.cfg')
 {% if buildroot_pkgs %}
 config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
 {% endif %}
-
+config_opts['macros']['%vendor'] = '{{ vendor }}'
 {% if enable_net %}
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True

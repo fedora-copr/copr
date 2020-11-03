@@ -32,6 +32,12 @@ class MockBuilder(object):
         self.copr_username = task.get("project_owner")
         self.copr_projectname = task.get("project_name")
         self.modules = task.get("modules")
+        rpm_vendor_copr_name = self.config.get("main", "rpm_vendor_copr_name")
+        self.vendor = "{0} - {1} {2}".format(
+            rpm_vendor_copr_name,
+            "group" if self.copr_username.startswith("@") else "user",
+            self.copr_username,
+        )
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -72,7 +78,8 @@ class MockBuilder(object):
                                repos=self.repos,
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
                                modules=self.enable_modules,
-                               copr_build_id=self.build_id)
+                               copr_build_id=self.build_id,
+                               vendor=self.vendor)
 
     def produce_srpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [
