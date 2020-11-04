@@ -21,3 +21,4 @@ This section contains information about maintenance topics. You may also be inte
    createrepo
    aws_tips_and_tricks
    enlarge_disk_copr_be
+   fedora_magazine
