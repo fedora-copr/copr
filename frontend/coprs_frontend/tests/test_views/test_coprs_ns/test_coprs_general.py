@@ -212,6 +212,21 @@ class TestCoprNew(CoprsTestCase):
                    .all()) == 2
         assert self.success_string.encode("utf-8") in r.data
 
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
+    def test_copr_new_contains_isolation(self):
+        r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
+                                  data={"name": "foo",
+                                        "fedora-rawhide-i386": "y",
+                                        "arches": ["i386"],
+                                        "isolation": "simple"},
+                                  follow_redirects=True)
+        assert r.status_code == 200
+        copr = self.models.Copr.query \
+            .order_by(desc(models.Copr.created_on)) \
+            .filter(self.models.Copr.name == "foo").first()
+        assert copr.isolation == "simple"
+
 
 class TestCoprDetail(CoprsTestCase):
 

@@ -7,9 +7,10 @@ import json
 
 import pytest
 
+from bs4 import BeautifulSoup
 from copr_common.enums import BuildSourceEnum
 
-from tests.coprs_test_case import CoprsTestCase
+from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 # Items are
@@ -144,6 +145,7 @@ class TestAPIv3Builds(CoprsTestCase):
         timeout = buildopts.get("timeout")
         if timeout:
             assert build.timeout == timeout
+        assert build.isolation == "default"
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_other_distgit", "f_db")
@@ -158,3 +160,24 @@ class TestAPIv3Builds(CoprsTestCase):
         error_message = response.json['error']
         for error in errors:
             assert error in error_message
+
+
+class TestWebUIBuilds(CoprsTestCase):
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_isolation_option_set(self):
+        chroot = "fedora-rawhide-i386"
+        project = "test"
+        self.web_ui.new_project(project, [chroot], isolation="simple")
+        route = "/coprs/{username}/{coprname}/edit/".format(
+            username=self.transaction_username, coprname=project
+        )
+
+        def get_selected(html):
+            soup = BeautifulSoup(html, "html.parser")
+            return (soup.find("select", id="isolation")
+                    .find("option", attrs={'selected': True}))
+
+        resp = self.test_client.get(route)
+        assert get_selected(resp.data)["value"] == "simple"

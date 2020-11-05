@@ -71,6 +71,7 @@ class TestMockBuilder(object):
             "timeout": 21600,
             "with_opts": [],
             "without_opts": [],
+            "isolation": "nspawn",
         }
 
         self.sourcedir = "/path/to/sourcedir"
@@ -124,6 +125,7 @@ class TestMockBuilder(object):
 
         assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
         assert config_opts["rpmbuild_networking"]
+        assert config_opts["isolation"] == "nspawn"
         assert "use_bootstrap" not in config_opts
         assert "bootstrap" not in config_opts
         assert "bootstrap_image" not in config_opts
@@ -150,6 +152,7 @@ config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True
 
+config_opts['isolation'] = 'nspawn'
 
 config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'

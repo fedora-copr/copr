@@ -37,7 +37,7 @@ class _RequestsInterface:
         """
         return self.test_class_object.transaction_username
 
-    def new_project(self, name, chroots, bootstrap=None):
+    def new_project(self, name, chroots, bootstrap=None, isolation=None):
         """ Request Copr project creation.  Return the resonse. """
         raise NotImplementedError
 
@@ -63,12 +63,14 @@ class _RequestsInterface:
 class WebUIRequests(_RequestsInterface):
     """ Mimic Web UI request behavior """
 
-    def new_project(self, name, chroots, bootstrap=None):
+    def new_project(self, name, chroots, bootstrap=None, isolation=None):
         data = {"name": name}
         for ch in chroots:
             data[ch] = 'y'
         if bootstrap is not None:
             data["bootstrap"] = bootstrap
+        if isolation is not None:
+            data["isolation"] = isolation
         resp = self.client.post(
             "/coprs/{0}/new/".format(self.transaction_username),
             data=data,
@@ -124,7 +126,7 @@ class WebUIRequests(_RequestsInterface):
             for ch in chroots:
                 form_data[ch] = 'y'
 
-        for attr in ["bootstrap", "with_build_id", "after_build_id"]:
+        for attr in ["bootstrap", "with_build_id", "after_build_id", "isolation"]:
             value = build_options.get(attr)
             if value is None:
                 continue
@@ -183,7 +185,7 @@ class API3Requests(_RequestsInterface):
         return self.test_class_object.get_api3_with_auth(
             url, content, self.test_class_object.transaction_user)
 
-    def new_project(self, name, chroots, bootstrap=None):
+    def new_project(self, name, chroots, bootstrap=None, isolation=None):
         route = "/api_3/project/add/{}".format(self.transaction_username)
         data = {
             "name": name,
@@ -191,6 +193,8 @@ class API3Requests(_RequestsInterface):
         }
         if bootstrap is not None:
             data["bootstrap"] = bootstrap
+        if isolation is not None:
+            data["isolation"] = isolation
         resp = self.post(route, data)
         return resp
 
@@ -214,7 +218,7 @@ class API3Requests(_RequestsInterface):
         if not build_options:
             build_options = {}
         form_data = {}
-        for arg in ["chroots", "bootstrap", "with_build_id", "after_build_id"]:
+        for arg in ["chroots", "bootstrap", "with_build_id", "after_build_id", "isolation"]:
             if arg not in build_options:
                 continue
             if build_options[arg] is None:

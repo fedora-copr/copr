@@ -259,3 +259,18 @@ class TestApiV3Permissions(CoprsTestCase):
             "use_bootstrap_container": store,
         })
         assert Copr.query.one().bootstrap == read
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    @pytest.mark.parametrize("store, read", [("nspawn", "nspawn"), ("simple", "simple"), (None, "default")])
+    def test_isolation_config(self, store, read):
+        route = "/api_3/project/add/{}".format(self.transaction_username)
+        data = {
+            "name": "test-isolation",
+            "chroots": ["fedora-rawhide-i386"],
+            "isolation": store,
+        }
+        if store is None:
+            del data["isolation"]
+        self.api3.post(route, data)
+        assert Copr.query.one().isolation == read

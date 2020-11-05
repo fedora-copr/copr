@@ -74,6 +74,23 @@ VALID_BOOTSTRAP_CONFIG_CASES = [{
     }
 }]
 
+VALID_ISOLATION_CONFIG_CASES = [{
+    "project": None,
+    "chroot": "fedora-rawhide-i386",
+    "build": "default",
+    "expected": "default",
+}, {
+    "project": "simple",
+    "chroot": "fedora-rawhide-i386",
+    "build": "default",
+    "expected": "default",
+}, {
+    "project": "nspawn",
+    "chroot": "fedora-rawhide-i386",
+    "build": "simple",
+    "expected": "simple",
+}]
+
 
 class TestConfigOverrides(CoprsTestCase):
 
@@ -127,3 +144,40 @@ class TestConfigOverrides(CoprsTestCase):
 
                 assert result_dict.get("bootstrap") == bootstrap
                 assert result_dict.get("bootstrap_image") == bootstrap_image
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    @pytest.mark.parametrize("request_type", ["api", "webui"])
+    @pytest.mark.parametrize("case", VALID_ISOLATION_CONFIG_CASES)
+    def test_isolation_override(self, case, request_type):
+        client = self.api3 if request_type == "api" else self.web_ui
+        client.new_project("test-isolation", [case["chroot"]],
+                           isolation=case["project"])
+        project = models.Copr.query.one()
+
+        if case["project"]:
+            assert project.isolation == case["project"]
+        else:
+            assert project.isolation == "default"
+
+        # create package so we can assign the build to that
+        client.create_distgit_package("test-isolation", "tar")
+        client.submit_url_build("test-isolation",
+                                build_options={
+                                    "chroots": [case["chroot"]],
+                                    "isolation": case["build"]})
+
+        # Assign Package to Build, so we can query the build configs
+        build = models.Build.query.one()
+        build.package = models.Package.query.one()
+        self.db.session.add(build)
+        self.db.session.commit()
+
+        isolation = case["expected"]
+        response = self.test_client.get("/backend/get-build-task/1-{}".format(case["chroot"]))
+        assert response.status_code == 200
+        result_dict = json.loads(response.data)
+
+        if not isolation:
+            assert "isolation" not in result_dict
+        assert result_dict.get("isolation") == isolation

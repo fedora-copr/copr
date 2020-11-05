@@ -371,11 +371,30 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "additional_repos": ["repo1", "repo2"],
         "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
         "bootstrap": "default",
+        'isolation': 'default',
         "delete_after_days": None,
         "multilib": False,
         "module_hotfixes": False,
     }
     assert stdout == "New project was successfully created.\n"
+
+
+@mock.patch('copr.v3.proxies.project.ProjectProxy.add')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_create_project_with_isolation(_config_from_file, project_proxy_add, capsys):
+    main.main(argv=[
+        "create", "foo",
+        "--chroot", "f20", "--chroot", "f21",
+        "--isolation", "simple",
+    ])
+    stdout, stderr = capsys.readouterr()
+
+    project_proxy_add.assert_called_once()
+    kwargs = project_proxy_add.call_args[1]
+    assert stderr == ''
+    assert kwargs["isolation"] == "simple"
+    assert stdout == "New project was successfully created.\n"
+
 
 @mock.patch('copr.v3.proxies.project.ProjectProxy.add')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -402,6 +421,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "additional_repos": ["repo1", "repo2"],
         "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
         'bootstrap': 'default',
+        'isolation': 'default',
         "delete_after_days": None,
         "multilib": True,
         "module_hotfixes": False,
