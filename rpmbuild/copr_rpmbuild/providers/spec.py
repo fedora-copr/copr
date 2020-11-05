@@ -25,7 +25,7 @@ class UrlProvider(Provider):
     def build_srpm_from_spec(self):
         spec_path = self.save_spec()
         cmd = ["mock", "-r", "/etc/copr-rpmbuild/mock-source-build.cfg",
-               "--srpmbuild", "--spec", spec_path,
+               "--buildsrpm", "--spec", spec_path,
                "--define", "_disable_source_fetch 0",
                "--resultdir", self.outdir]
         return run_cmd(cmd, cwd=self.workdir)

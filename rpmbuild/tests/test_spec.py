@@ -48,7 +48,7 @@ class TestUrlProvider(TestCase):
         provider.produce_srpm()
         args = [
             'mock', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
-            '--srpmbuild',
+            '--buildsrpm',
             '--spec', '{0}/somepackage.spec'.format(provider.workdir),
             '--define', '_disable_source_fetch 0',
             '--resultdir', self.resultdir]
