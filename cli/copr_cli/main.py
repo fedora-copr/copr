@@ -114,7 +114,7 @@ def buildopts_from_args(args, progress_callback):
         "background": args.background,
         "progress_callback": progress_callback,
     }
-    for opt in ["bootstrap", "after_build_id", "with_build_id"]:
+    for opt in ["bootstrap", "after_build_id", "with_build_id", "isolation"]:
         value = getattr(args, opt)
         if value is not None:
             buildopts[opt] = value
@@ -438,6 +438,7 @@ class Commands(object):
             persistent=args.persistent,
             auto_prune=ON_OFF_MAP[args.auto_prune],
             bootstrap=BOOTSTRAP_MAP[args.bootstrap],
+            isolation=args.isolation,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
@@ -460,6 +461,7 @@ class Commands(object):
             enable_net=ON_OFF_MAP[args.enable_net],
             auto_prune=ON_OFF_MAP[args.auto_prune],
             bootstrap=BOOTSTRAP_MAP[args.bootstrap],
+            isolation=args.isolation,
             chroots=args.chroots,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
@@ -958,6 +960,8 @@ def setup_parser():
     parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
                                help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
                                This option can only be specified by a COPR admin.")
+    parser_create.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="default",
+                               help="Choose the isolation method for running commands in buildroot.")
 
     parser_create.add_argument(
         "--bootstrap",
@@ -1007,6 +1011,8 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
+    parser_modify.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="default",
+                               help="Choose the isolation method for running commands in buildroot.")
 
     parser_modify.add_argument(
         "--bootstrap",
@@ -1149,6 +1155,8 @@ def setup_parser():
                                      help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
     parser_build_parent.add_argument("--background", dest="background", action="store_true", default=False,
                                      help="Mark the build as a background job. It will have lesser priority than regular builds.")
+    parser_build_parent.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="default",
+                                     help="Choose the isolation method for running commands in buildroot.")
 
     parser_build_parent.add_argument(
         "--bootstrap",

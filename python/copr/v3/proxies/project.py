@@ -72,7 +72,7 @@ class ProjectProxy(BaseProxy):
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
-            bootstrap=None, bootstrap_image=None):
+            bootstrap=None, bootstrap_image=None, isolation=None):
         """
         Create a project
 
@@ -98,6 +98,8 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'on', 'off', 'image'.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
+        :param str isolation: Mock isolation feature setup.
+            Possible values are 'default', 'simple', 'nspawn'.
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -118,6 +120,7 @@ class ProjectProxy(BaseProxy):
             "auto_prune": auto_prune,
             "bootstrap": bootstrap,
             "bootstrap_image": bootstrap_image,
+            "isolation": isolation,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
@@ -135,7 +138,7 @@ class ProjectProxy(BaseProxy):
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
-             bootstrap=None, bootstrap_image=None):
+             bootstrap=None, bootstrap_image=None, isolation=None):
         """
         Edit a project
 
@@ -178,6 +181,7 @@ class ProjectProxy(BaseProxy):
             "enable_net": enable_net,
             "auto_prune": auto_prune,
             "bootstrap": bootstrap,
+            "isolation": isolation,
             "bootstrap_image": bootstrap_image,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,

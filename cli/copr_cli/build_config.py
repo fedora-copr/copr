@@ -12,6 +12,12 @@ include('/etc/mock/{{chroot}}.cfg')
 
 config_opts['root'] = '{{ rootdir }}'
 
+{%- if isolation == "default" %}
+config_opts['isolation'] = 'auto'
+{%- elif isolation %}
+config_opts['isolation'] = '{{ isolation }}'
+{%- endif %}
+
 {%- if bootstrap == "on" %}
 config_opts['use_bootstrap'] = True
 config_opts['use_bootstrap_image'] = False

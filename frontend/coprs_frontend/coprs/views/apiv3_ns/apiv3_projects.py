@@ -30,6 +30,7 @@ def to_dict(copr):
         "additional_repos": copr.repos_list,
         "enable_net": copr.build_enable_net,
         "bootstrap": copr.bootstrap,
+        "isolation": copr.isolation,
         "module_hotfixes": copr.module_hotfixes,
     }
 
@@ -149,6 +150,7 @@ def add_project(ownername):
             persistent=form.persistent.data,
             auto_prune=form.auto_prune.data,
             bootstrap=bootstrap,
+            isolation=form.isolation.data,
             homepage=form.homepage.data,
             contact=form.contact.data,
             disable_createrepo=form.disable_createrepo.data,

@@ -164,6 +164,7 @@ def api_new_copr(username):
                 persistent=form.persistent.data,
                 auto_prune=auto_prune,
                 bootstrap=bootstrap,
+                isolation=form.isolation.data,
             )
             infos.append("New project was successfully created.")
 
@@ -350,6 +351,7 @@ def api_coprs_by_owner_detail(copr):
         "unlisted_on_hp": copr.unlisted_on_hp,
         "auto_prune": copr.auto_prune,
         "use_bootstrap_container": copr.bootstrap == "on",
+        "isolation": copr.isolation,
     }
     return flask.jsonify(output)
 
@@ -707,6 +709,8 @@ def copr_modify(copr):
         copr.auto_prune = form.auto_prune.data
     if "use_bootstrap_container" in flask.request.form:
         copr.bootstrap = "on" if form.use_bootstrap_container.data else "off"
+    if "isolation" in flask.request.form:
+        copr.isolation = form.isolation.data
     if "chroots" in  flask.request.form:
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.chroots.data)
