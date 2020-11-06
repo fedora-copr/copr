@@ -97,6 +97,15 @@ class User(db.Model, helpers.Serializer):
 
         return self.username
 
+    @property
+    def copr_permissions(self):
+        """
+        Filter-out the permissions for deleted projects from
+        self.copr_permissions_unfiltered.
+        """
+        return [perm for perm in self.copr_permissions_unfiltered
+                if not perm.copr.deleted]
+
     def permissions_for_copr(self, copr):
         """
         Get permissions of this user for the given copr.
@@ -628,7 +637,8 @@ class CoprPermission(db.Model, helpers.Serializer):
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
-    user = db.relationship("User", backref=db.backref("copr_permissions"))
+    user = db.relationship("User",
+                           backref=db.backref("copr_permissions_unfiltered"))
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True,
                         index=True)
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
