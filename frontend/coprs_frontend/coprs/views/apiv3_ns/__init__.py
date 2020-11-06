@@ -6,6 +6,7 @@ import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 from coprs import app
 from coprs.exceptions import (
     AccessRestricted,
@@ -107,8 +108,16 @@ class Paginator(object):
 
 
     def get(self):
-        if not hasattr(self.model, self.order):
-            raise CoprHttpException("Can order by: {}".format(self.order))
+        order_attr = getattr(self.model, self.order, None)
+        if not order_attr:
+            msg = "Cannot order by {}, {} doesn't have such property".format(
+                self.order, self.model.__tablename__)
+            raise CoprHttpException(msg)
+
+        # This will happen when trying to sort by a property instead of
+        # a real database column
+        if not isinstance(order_attr, InstrumentedAttribute):
+            raise CoprHttpException("Cannot order by {}".format(self.order))
 
         order_fun = (lambda x: x)
         if self.order_type == 'ASC':
@@ -116,7 +125,7 @@ class Paginator(object):
         elif self.order_type == 'DESC':
             order_fun = sqlalchemy.desc
 
-        return (self.query.order_by(order_fun(getattr(self.model, self.order)))
+        return (self.query.order_by(order_fun(order_attr))
                 .limit(self.limit)
                 .offset(self.offset))
 
@@ -146,7 +155,9 @@ class ListPaginator(Paginator):
         reverse = self.order_type != "ASC"
 
         if not hasattr(self.model, self.order):
-            raise CoprHttpException("Can order by: {}".format(self.order))
+            msg = "Cannot order by {}, {} doesn't have such property".format(
+                self.order, self.model.__tablename__)
+            raise CoprHttpException(msg)
 
         if self.order:
             objects.sort(key=lambda x: getattr(x, self.order), reverse=reverse)

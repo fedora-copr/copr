@@ -36,7 +36,6 @@ class BuildChrootProxy(BaseProxy):
         endpoint = "/build-chroot/list/{build_id}"
         params = {
             "build_id": build_id,
-            "order": "name",
         }
         params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
