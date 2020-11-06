@@ -21,6 +21,7 @@ RUN dnf -y update && \
                    sudo \
                    python3-alembic \
                    python3-ipdb \
+                   python3-anytree \
                    postgresql-server \
                    redis \
                    mock-core-configs \
