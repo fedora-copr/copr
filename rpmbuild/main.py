@@ -161,7 +161,11 @@ def produce_srpm(task, config, resultdir):
         for item in os.listdir(tempdir):
             if item in ["obtain-sources"]:
                 continue
-            shutil.copy(os.path.join(tempdir, item), resultdir)
+            src = os.path.join(tempdir, item)
+            if os.path.isdir(src):
+                shutil.copytree(src, os.path.join(resultdir, item))
+            else:
+                shutil.copy(src, resultdir)
     finally:
         try:
             shutil.rmtree(tempdir)
