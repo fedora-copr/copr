@@ -45,17 +45,16 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Timeout"
         rlRun -s "copr-cli build --timeout 72500 ${NAME_PREFIX}Timeout $HELLO"
         rlRun "parse_build_id"
-        rlRun "copr watch-build $BUILD_ID"
         rlRun "curl $FRONTEND_URL/backend/get-build-task/$BUILD_ID-$CHROOT | jq .timeout"
         rlRun "BUILD_TIMEOUT=$(curl "$FRONTEND_URL"/backend/get-build-task/"$BUILD_ID"-"$CHROOT" | jq .timeout)"
         rlAssertEquals "Test that timeout is set to 72500" "$BUILD_TIMEOUT" 72500
 
         rlRun "SRPM=$(rpmbuild -bs "$HERE"/files/test-timeout.spec |grep Wrote: |cut -d ' ' -f2)"
-        rlRun -s "copr-cli build --timeout 10 ${NAME_PREFIX}Timeout $SRPM"
+        rlRun -s "copr-cli build --timeout 10 ${NAME_PREFIX}Timeout $SRPM" 4
         rlRun "parse_build_id"
-        rlRun "copr watch-build $BUILD_ID"
-        rlRun "LOG=$(curl "$BACKEND_URL/results/${NAME_PREFIX}Timeout/$CHROOT/00$BUILD_ID-test-timeout/builder-live.log.gz" | gunzip)"
-        rlAssertEquals "timeout in log" `echo $LOG | grep 'sending INT'` 0
+        LOG=`mktemp`
+        curl "$BACKEND_URL/results/${NAME_PREFIX}Timeout/$CHROOT/00$BUILD_ID-test-timeout/builder-live.log.gz" | gunzip > $LOG
+        rlAssertEquals "timeout in log" `cat $LOG | grep 'sending INT' |wc -l` 1
     rlPhaseEnd
 
     rlPhaseStartCleanup
