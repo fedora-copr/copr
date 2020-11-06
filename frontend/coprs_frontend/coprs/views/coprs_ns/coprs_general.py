@@ -124,6 +124,14 @@ def coprs_by_user(username=None, page=1):
 @coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):
     fulltext = flask.request.args.get("fulltext", "")
+
+    if fulltext.isnumeric():
+        build = builds_logic.BuildsLogic.get(int(fulltext)).first()
+        if build:
+            url = helpers.copr_url("coprs_ns.copr_build",
+                                   build.copr, build_id=build.id)
+            return flask.redirect(url)
+
     try:
         query = coprs_logic.CoprsLogic.get_multiple_fulltext(fulltext)
     except ValueError as e:
