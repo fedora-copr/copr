@@ -857,12 +857,16 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
         {% endif %}
     </td>
     <td>
+        {% if g.user.can_edit(chroot.copr) %}
         <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">
             Extend
         </button>
         <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
             {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now
         </button>
+        {% else %}
+            Missing admin permissions
+        {% endif %}
     </td>
 </tr>
 {% endmacro %}
