@@ -1,8 +1,9 @@
 {% extends "coprs/detail/settings.html" %}
 
+{% from "_helpers.html" import render_repository_line %}
+
 {% set selected_monitor_tab = "repositories" %}
 {%block settings_breadcrumb %}Repositores{% endblock %}
-
 
 {% block tab_content %}
 
@@ -25,25 +26,9 @@
     <form action="" method="POST">
         <table class="table table-bordered">
             <thead><tr><th>Release</th><th>Architecture</th><th>Remaining time</th><th>Action</th></tr></thead>
+            {% for chroot in outdated_chroots %}
             <tbody>
-                {% for chroot in outdated_chroots %}
-                <tr>
-                    <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
-                    <td>{{ chroot.mock_chroot.arch }}</td>
-                    <td>
-                        {% if not chroot.delete_after_days %}
-                            To be removed in next cleanup
-                        {% else %}
-                            {% set color = 'danger' if chroot.delete_after_days < 20 else 'secondary' %}
-                            <span class="text-{{ color }}">{{ chroot.delete_after_days }} days</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">Extend</button>
-                        <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
-                            {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now</button>
-                    </td>
-                </tr>
+                {{ render_repository_line(chroot) }}
             </tbody>
             {% endfor %}
         </table>

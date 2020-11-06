@@ -1,5 +1,7 @@
 {% extends "coprs/show.html" %}
-{% from "_helpers.html" import copr_url, render_form_errors %}
+{% from "_helpers.html" import
+    copr_url, render_form_errors, render_repository_line %}
+
 {% block title %}Outdated repositories{% endblock %}
 {% block header %}Outdated repositories{% endblock %}
 {% block breadcrumbs %}
@@ -50,26 +52,7 @@
         </thead>
         <tbody>
             {% for chroot in project.outdated_chroots %}
-            {% set color = 'danger' if chroot.delete_after_days < config.EOL_CHROOTS_NOTIFICATION_PERIOD else 'secondary' %}
-            <tr class="text-{{ color }}">
-                <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
-                <td>{{ chroot.mock_chroot.arch }}</td>
-                <td>
-                    {% if not chroot.delete_after_days %}
-                    To be removed in next cleanup
-                    {% else %}
-                    {{ chroot.delete_after_days }} days
-                    {% endif %}
-                </td>
-                <td>
-                    <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">
-                        Extend
-                    </button>
-                    <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
-                        {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now
-                    </button>
-                </td>
-            </tr>
+            {{ render_repository_line(chroot) }}
             {% endfor %}
         </tbody>
     </table>
