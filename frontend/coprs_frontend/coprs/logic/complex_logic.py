@@ -184,7 +184,8 @@ class ComplexLogic(object):
     def get_build_safe(build_id):
         try:
             return BuildsLogic.get_by_id(build_id).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except (sqlalchemy.orm.exc.NoResultFound,
+                sqlalchemy.exc.DataError):
             raise ObjectNotFound(
                 message="Build {} does not exist.".format(build_id))
 
