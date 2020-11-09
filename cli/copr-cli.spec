@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.89
+Version:    1.90
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -125,6 +125,20 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.90-1
+- cli, frontend: custom build batches
+- cli: propagate build --bootstrap value to API call
+- cli: move the build --bootstrap option to a correct parser
+- frontend, cli, python, rpmbuild: better bootstrap config
+- beaker-tests, cli, frontend, python, rpmbuild: add option to config bootstrap
+- all: run pytest with -vv in package build
+- cli: fix timeout option to allow change timeout for build
+- cli: fix dist-git unit tests
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- cli: support project/chroot format for getting/editting chroots
+- cli: do bash-completion when argcomplete is installed
+- cli: formally deprecate --memory option
+
 * Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.89-1
 - copr get-package supports with_latest* args again
 - testsuite fixes for el6
