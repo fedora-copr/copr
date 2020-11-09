@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.4
+Version:    0.5
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -86,6 +86,12 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.5-1
+- explicitely requires python3-setuptools
+- all: run pytest with -vv in package build
+- pylint: sync all the pylintrc files
+- pylint: run pylint in all run*tests.sh files
+
 * Thu Oct 03 2019 Pavel Raiskup <praiskup@redhat.com> 0.4-1
 - rename 'stomp_consumer' module to 'stomp'
 - fix macros in comments
