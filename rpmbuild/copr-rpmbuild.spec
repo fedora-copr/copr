@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.40.1.dev
+Version: 0.40.2.dev
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -310,6 +310,21 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.40.2.dev-1
+- rpmbuild: fix chroot_scan copying
+- rpmbuild: fix mock --buildsrpm option
+- rpmbuild: set Vendor metadata for builds
+- rpmbuild: use mock --srpmbuild for spec file uploads
+- frontend, cli, python, rpmbuild: better bootstrap config
+- beaker-tests, cli, frontend, python, rpmbuild: add option to config bootstrap
+- all: run pytest with -vv in package build
+- rpmbuild: disable source fetch for the dist-git method
+- rpmbuild: catch FileNotFound on el6 correctly
+- rpmbuild: drop SourceType and rely on BuildSourceEnum
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- rpmbuild: fix Provider class design
+- rpmbuild: inform about testsuite coverage
+
 * Mon Aug 10 2020 Pavel Raiskup <praiskup@redhat.com> 0.40-1
 - provide the "dynamic" %%buildtag
 - define config_opts['root'] mock config for make srpm method
