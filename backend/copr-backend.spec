@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.136
+Version:    1.137
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -229,6 +229,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.137-1
+- backend: test action for deleting chroot
+- backend: fix testsuite for the new createrepo_c
+- frontend: don't set ended_on for canceled builds
+- all: run pytest with -vv in package build
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- backend: use createrepo_mod tool for generating module repodata
+
 * Wed Aug 12 2020 Pavel Raiskup <praiskup@redhat.com> 1.136-1
 - testsuite: give more time to the slow Koji builders
 
