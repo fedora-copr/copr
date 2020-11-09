@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.105.2.dev
+Version:    1.105.3.dev
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -231,6 +231,15 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.105.3.dev-1
+- frontend, python: we cannot order chroots by name
+- python: synchronize the docs for build options
+- frontend, cli, python, rpmbuild: better bootstrap config
+- beaker-tests, cli, frontend, python, rpmbuild: add option to config bootstrap
+- all: run pytest with -vv in package build
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- python: Don't apply bind_proxy in BaseProxy __init__()
+
 * Tue Aug 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.105-1
 - drop a redundant %%py3dir use
 
