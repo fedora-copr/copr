@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.77
+Version:    1.78
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -168,6 +168,12 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.78-1
+- all: run pytest with -vv in package build
+- all: add Makefile symlink to sub-dirs
+- pylint: run pylint in all run*tests.sh files
+- keygen: describe how to prolong already expired keys
+
 * Wed Feb 05 2020 Pavel Raiskup <praiskup@redhat.com> 1.77-1
 - add cron-job to automate prolonging gpg-keys
 
