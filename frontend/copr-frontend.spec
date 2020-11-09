@@ -43,8 +43,8 @@
 }
 
 Name:       copr-frontend
-Version:    1.169
-Release:    0.1%{?dist}
+Version:    1.170
+Release:    1%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPLv2+
@@ -376,6 +376,69 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.170-1
+- frontend: hide buttons in repositories pages for non-admins
+- frontend: fix User.copr_permission relationship
+- frontend: de-dup the rendering html code for repositories
+- frontend: sync flash about EOL repos with the listing indent
+- frontend, python: we cannot order chroots by name
+- frontend: show a warning that user should visit their EOL repositories page
+- frontend: add EOL repositories page for user (in opposite to project)
+- frontend: not access flask.g.user, user parameter instead
+- frontend: put the "running/starting/..." text to breadcrumb
+- frontend: silence cyclic-import warnings
+- cli, frontend: custom build batches
+- frontend: silence warnings from confused PyLint
+- frontend: de-duplicate forms
+- frontend: fix canceling builds
+- frontend: document the attributes related to EOLed chroots
+- frontend: fix APIv3 ordering
+- frontend: test: adding tests for canceling builds
+- frontend: don't set ended_on for canceled builds
+- frontend: don't re-set Build.package value
+- frontend: assign package ASAP with rebuilds
+- frontend: test chroot-edit 403 and form errors
+- frontend: fix-up the CoprChroot form rendering
+- frontend: de-duplicate work with build form
+- frontend: merge two methods which were split needlessly
+- frontend: short-cut the loop in build_config chroot search
+- frontend, cli, python, rpmbuild: better bootstrap config
+- beaker-tests, cli, frontend, python, rpmbuild: add option to config bootstrap
+- frontend: fix the monitor page
+- frontend: exception handlers fix once more
+- Revert "frontend: fix exception tests for F31"
+- frontend: redirect to URLs with trailing slashes
+- all: run pytest with -vv in package build
+- cli: fix timeout option to allow change timeout for build
+- frontend: reduce the timeout to 5 hours
+- frontend: input field for setting timeout for builds
+- frontend: remove setting memory requirements
+- frontend: access chroots more safely to avoid KeyError
+- frontend: don't mark ELN as fedora latest version
+- frontend: use "source build" collocation, not "srpm build"
+- frontend: don't duplicate enums.BuildSourceEnum
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- frontend: nicer message in package name validator
+- frontend: nicer web-UI error message on missing default source method
+- frontend: catch NoPackageSourceException in apiv3 on rebuild
+- frontend: move error handlers to the same file
+- frontend: fix exception tests for F31
+- frontend: improve APIv3 exception handling for better messages
+- frontend: fix custom form errors also for CoprFormFactory and
+  CreateModuleForm
+- frontend: make sure user cannot pin projects that he doesn't have permissions
+  to
+- frontend: fix PinnedCoprsForm validation
+- frontend: count srpm builds in statistics
+- frontend: allow . and disallow : in package name
+- frontend: allow '+' symbol in package name
+- frontend: enable coverage for ./commands
+- frontend: silence pylint issues
+- frontend: fix testsuite stderr warnings
+- frontend: test branch-fedora command
+- frontend: fix rawhide-to-release to inherit comment
+- frontend: fix forking into an existing project
+
 * Tue Aug 18 2020 Pavel Raiskup <praiskup@redhat.com> 1.169-1
 - fix rawhide-to-release command
 - simplify API and UI error handlers
