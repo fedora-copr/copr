@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.47
+Version:    0.48
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -131,6 +131,16 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.48-1
+- distgit: extend the timeout limit for importing packages
+- distgit: allow `import_package` function to run in parallel
+- distgit: require up2date python3-rpkg
+- distgit: use kojiprofile instead of deprecated kojiconfig
+- all: run pytest with -vv in package build
+- distgit: each log entry to contain PID
+- all: add Makefile symlink to sub-dirs
+- pylint: run pylint in all run*tests.sh files
+
 * Wed Dec 04 2019 Pavel Raiskup <praiskup@redhat.com> 0.47-1
 - new releases done with tito again
 - avoid making more than the predetermined number of workers
