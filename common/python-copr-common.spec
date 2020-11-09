@@ -14,7 +14,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.8.1.dev
+Version:    0.8.2.dev
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -104,6 +104,10 @@ version=%version %py2_install
 
 
 %changelog
+* Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.8.2.dev-1
+- common, cli, python, rpmbuild, frontend, backend: DistGit source method
+- common: RHEL6 fix for ModuleStatusEnum
+
 * Tue Jun 09 2020 Pavel Raiskup <praiskup@redhat.com> 0.8-1
 - non-devel version 0.8
 
