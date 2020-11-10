@@ -14,11 +14,21 @@ Run::
 
     tito report --untagged-commits
 
-and walk the directories of packages listed. In each directory, call::
+and walk the directories of packages listed, and tag them. During development,
+we sometimes put `.dev` suffix into our packages versions. See what packages has
+such version::
+
+    cat ../.tito/packages/* |grep .dev
+
+If a package has `.dev` suffix, manually increment its version::
+
+    tito tag --use-version X.Y
+
+For others, new version can be bumped automatically::
 
     tito tag
 
-push them::
+Push all new tags at once::
 
     git push --follow-tags origin
 
