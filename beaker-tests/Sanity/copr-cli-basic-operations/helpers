@@ -36,9 +36,9 @@ cleanAction()
     fi
 }
 
-# cleanProject [PROJECTNAME]
-# --------------------------
-# When called without PROJECTNAME, project with name $PROJECT is deleted.
+# cleanProject [PROJECT]
+# ----------------------
+# When called without PROJECT, project with name $PROJECT is deleted.
 cleanProject()
 {
     _to_delete=$1
@@ -61,5 +61,7 @@ workdirCleanup()
 setupProjectName()
 {
     _name=$NAME_PREFIX-$1
+    _project=$NAME_VAR-$1
     rlRun "PROJECT=$_name" 0 "Setting project name to $_name"
+    rlRun "PROJECTNAME=$_project" 0 "Setting project name to $_project"
 }
