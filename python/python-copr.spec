@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.106.1
+Version:    1.106
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -231,8 +231,8 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
-* Tue Nov 10 2020 Jakub Kadlcik <frostyx@email.cz> 1.106.1-1
-- 
+* Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.106-1
+- bump to non-devel version
 
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.105.3.dev-1
 - frontend, python: we cannot order chroots by name
