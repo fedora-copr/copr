@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.41.1
+Version: 0.41
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -310,8 +310,8 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
-* Tue Nov 10 2020 Jakub Kadlcik <frostyx@email.cz> 0.41.1-1
-- 
+* Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 0.41-1
+- non-dev version and release
 
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.40.2.dev-1
 - rpmbuild: fix chroot_scan copying
