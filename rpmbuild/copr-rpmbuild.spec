@@ -90,18 +90,6 @@ Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
 Requires: copr-distgit-client = %{version}-%{release}
 
-
-%package -n copr-distgit-client
-Summary: Utility to download sources from dist-git
-
-%description -n copr-distgit-client
-A simple, configurable python utility that is able to download sources from
-various dist-git instances, and generate source RPMs.
-
-The utility is able to automatically map the .git/config clone URL into
-the corresponding dist-git instance configuration.
-
-
 %if 0%{?fedora}
 # replacement for yum/yum-utils, to be able to work with el* chroots
 # bootstrap_container.
@@ -158,6 +146,21 @@ Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
 build build-id 12345 for chroot epel-7-x86_64.
 
 This package contains all optional modules for building SRPM.
+
+
+%package -n copr-distgit-client
+Summary: Utility to download sources from dist-git
+
+Requires: %{_bindir}/git
+Requires: curl
+
+
+%description -n copr-distgit-client
+A simple, configurable python utility that is able to download sources from
+various dist-git instances, and generate source RPMs.
+
+The utility is able to automatically map the .git/config clone URL into
+the corresponding dist-git instance configuration.
 
 
 %prep
