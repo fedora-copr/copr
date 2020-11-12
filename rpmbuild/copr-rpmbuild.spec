@@ -111,6 +111,7 @@ Requires: nosync
 Requires: nosync(x86-32)
 %endif
 Requires: openssh-clients
+Requires: podman
 Requires: pyp2rpm
 # We need %%pypi_source defined, which is in 3-29+
 Requires: python-srpm-macros >= 3-29
