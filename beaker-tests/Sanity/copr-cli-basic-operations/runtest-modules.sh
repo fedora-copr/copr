@@ -44,8 +44,8 @@ function wait_for_finished_module()
     # $4 - temporary file for output
     local project=$1
     local packages=$2
-    local timeout=$3
-    local tmp=$4
+    local tmp=$3
+    local timeout=1800
     local started=$(date +%s)
     while :; do
         now=$(date +%s)
@@ -119,7 +119,7 @@ rlJournalStart
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 1000 $PACKAGES
+        wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
 
         # Test URL submit
@@ -129,7 +129,7 @@ rlJournalStart
         rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
         rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 600 $PACKAGES
+        wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 $PACKAGES
         test_successful_packages "perl-List-Compare" $PACKAGES
 
         # @TODO Test that module succeeded
@@ -144,7 +144,7 @@ rlJournalStart
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/test-macros-module.yaml
         copr-cli build-module --yaml /tmp/test-macros-module.yaml $PROJECT
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 600 $PACKAGES
+        wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 $PACKAGES
 
         SRPM=`rpmbuild -bs $HERE/files/test-macros.spec |grep Wrote: |cut -d ' ' -f2`
         copr-cli build "module-test-macros-module-beakertest-$DATE" $SRPM
@@ -170,7 +170,7 @@ rlJournalStart
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
-        wait_for_finished_module "$OWNER/TestModule$DATE$SUFFIX" 2 600 $PACKAGES
+        wait_for_finished_module "$OWNER/TestModule$DATE$SUFFIX" 2 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
 
         # Test that it is possible to build module with package from copr
@@ -183,7 +183,7 @@ rlJournalStart
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 1 600 $PACKAGES
+        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 1 $PACKAGES
         test_successful_packages "ed" $PACKAGES
 
         # @TODO Test that it is possible to build module
