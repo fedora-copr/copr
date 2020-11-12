@@ -508,7 +508,6 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}MockConfig"
         cleanProject "${NAME_PREFIX}MockConfigParent"
         cleanProject "${NAME_PREFIX}TestBug1444804"
-        cleanProject "${NAME_PREFIX}BootstrapProject"
         cleanProject "${NAME_PREFIX}CoprDirTest"
         cleanProject "${NAME_PREFIX}ArmhfpBuild"
 
