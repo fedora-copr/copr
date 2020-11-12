@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.41
+Version: 0.42
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -314,6 +314,11 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Thu Nov 12 2020 Pavel Raiskup <praiskup@redhat.com> 0.42-1
+- require podman on all builders
+- move the whole copr-distgit-client below copr-builder
+- git module name to define the lookaside download url
+
 * Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 0.41-1
 - non-dev version and release
 
