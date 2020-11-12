@@ -174,7 +174,9 @@ def sources(args, config):
     parsed_url, distgit_config = get_distgit_config(config)
     namespace = parsed_url.path.lstrip('/').split('/')
     # drop the last {name}.git part
-    namespace.pop()
+    repo_name = namespace.pop()
+    if repo_name.endswith(".git"):
+        repo_name = repo_name[:-4]
     namespace = list(reversed(namespace))
 
     output = check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
@@ -197,7 +199,7 @@ def sources(args, config):
                 break
 
             kwargs = {
-                "name": name,
+                "name": repo_name,
                 "refspec": refspec,
                 "namespace": namespace,
             }

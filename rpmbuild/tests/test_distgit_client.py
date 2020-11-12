@@ -70,6 +70,7 @@ class TestDistGitDownload(object):
     @mock.patch('copr_distgit_client.download_file_and_check')
     def test_copr_distgit(self, download):
         init_git([
+            # <foo>.spec in <bar>.git, in Copr it is possible
             ("test.spec", ""),
             ("sources", "2102fd0602de72e58765adcbf92349d8 retrace-server-git-955.3e4742a.tar.gz\n"),
         ])
@@ -78,7 +79,7 @@ class TestDistGitDownload(object):
         assert len(download.call_args_list) == 1
         assert download.call_args_list[0][0][0] == (
             "https://copr-dist-git.fedorainfracloud.org/repo/pkgs/"
-            "@abrt/retrace-server-devel/test/retrace-server-git-955.3e4742a.tar.gz/"
+            "@abrt/retrace-server-devel/retrace-server/retrace-server-git-955.3e4742a.tar.gz/"
             "md5/2102fd0602de72e58765adcbf92349d8/retrace-server-git-955.3e4742a.tar.gz"
         )
 
