@@ -13,6 +13,15 @@ nowadays has much stricter `crypto-policies`_.  This could break some builds
 with your hosting providers this situation so they start using up2date crypto,
 and your build processes aren't interrupted in the future.
 
+Copr-cli Bash completion
+------------------------
+
+To enable bash completion, you have to install the `python3-argcomplete`
+package, and execute something equivalent to::
+
+    $ register-python-argcomplete copr >> ~/.bashrc
+    $ register-python-argcomplete copr-cli >> ~/.bashrc
+
 Per-build timeout implemented
 -----------------------------
 
