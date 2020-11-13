@@ -1,0 +1,144 @@
+.. _release_notes_2020_11_13:
+
+Highlights from 2020-11-13 release
+==================================
+
+Updated client packages are shipped in `Fedora 33`_, `Fedora 32`_, `Fedora 31`_,
+`EPEL 8`_, `EPEL 7`_, and `EPEL 6`_ Bodhi updates.
+
+Warning:  We moved both the builders and the infrastructure to Fedora 33 which
+nowadays has much stricter `crypto-policies`_.  This could break some builds
+(if the builds depend on some non-complying hostname in the wild) so we
+**temporarily** reverted the policy settings to ``FEDORA32``.  Please communicate
+with your hosting providers this situation so they start using up2date crypto,
+and your build processes aren't interrupted in the future.
+
+Per-build timeout implemented
+-----------------------------
+
+The default build timeout is newly decreased **from 30 hours to just 5**, but
+users can still opt-in for a longer or shorter timeout, up to 30 hours.  For
+example::
+
+    copr build <project> <srpm> --timeout 360
+
+This would terminate the build after 10 minutes if it were still running.
+
+EOL chroot repositories
+-----------------------
+
+The overall processes around the end-of-life chroots (e.g. fedora-19-\*
+currently, and soon to be fedora-30-\*) was revamped and enhanced.  There's a
+new page that shows `all your EOL repositories`_.  Please review that page
+periodically to ensure that we don't garbage-collect content you still want
+to keep (and preferably expire the content sooner to save the storage).  On top
+of that, we show a new warning message in the web-UI about upcoming chroot
+removals, and we still periodically send the warning e-mails about EOL chroots.
+
+The EOL garbage collector was disabled in the last few weeks, and now it is
+enabled again -- so we prolonged all the existing EOL chroots for the next
+45 days.  Please make sure you review them in that time period.
+
+More fine-grained Mock bootstrap configuration (bootstrap on by default)
+------------------------------------------------------------------------
+
+Newly you can enable or disable `bootstrap chroot`_, or initialize it by a
+`podman image`_.  This can be set per project and per chroot -- and can be
+overridden per build.
+
+Since the configuration is now more granular, we finally turned the bootstrap
+feature ON by default for **newly created projects**.
+
+The bootstrap feature is not marked as "experimental" anymore, as it has been
+stabilized in Mock for quite some time (and ON by default).
+
+
+Build batches
+-------------
+
+We implemented a build batches feature so you can in advance define the order of
+your builds.  This feature is also available in the web-UI, but it is more
+convenient from the command-line::
+
+    $ copr build <project> --no-wait <first.src.rpm>
+    Created builds: 101010
+    $ copr build <project> --no-wait <second.src.rpm> --after-build-id 101010
+    Created builds: 101020
+    $ copr build <project> --no-wait <third.src.rpm> --with-build-id 101020
+    Created builds: 101030
+
+This will create two batches (first with one build 101010 and second
+with two builds 101020 and 101030), where second batch isn't started till Copr
+finishes the first one.  This way, you can build a tree of dependant build
+batches according to your project needs.
+
+Simplified builds from DistGit
+------------------------------
+
+There's a new option to build from existing DistGit instances in Copr (e.g.,
+from Fedora or CentOS DistGit). To build the `foo` package from
+CentOS 8, one can do::
+
+    $ copr build-distgit <project> --name foo --distgit centos --commit c8
+
+It's even easier for a Fedora Rawhide package::
+
+    $ copr build-distgit <project> --name foo
+
+because 'fedora' distgit is the default, and we automatically pick the default
+branch.
+
+Source builds are shown in running, starting, pending, etc. tabs
+----------------------------------------------------------------
+
+Previously we used to show the numbers only for binary RPM builds.  Even though the
+source builds were running and consuming resources -- they weren't shown in the
+"running" tab previously.  This has been changed now; you can observe your builds in
+the web-UI much sooner.
+
+Modularity logic is being slowly moved to modulemd-tools
+--------------------------------------------------------
+
+Reproducing the modularity build tasks locally (which are normally done on
+copr-backend) is becoming more easy.  We are moving the logic to the
+`modulemd-tools`_ project.
+
+Copr DistGit proxy fixes
+------------------------
+
+The dist-git was fixed so it correctly imports large source RPMs like
+``texlive`` on background, in parallel with other import tasks.  So users should
+observe more fluent import queue processing.
+
+New copr-distgit-client subpackage
+----------------------------------
+
+The new package copr-distgit-client (a subpackage of `copr-rpmbuild`_) provides
+a small convenience script which is able to download sources from DistGit
+lookaside cache, for pre-configured dist-git instances (currently Fedora, CentOS
+and Copr).  It is enough to just call `copr-distgit-client` script inside a
+cloned package directory.
+
+This small helper is meant to be a generic alternative for scripts like
+`fedpkg-minimal`, `centpkg-minimal`, `rhpkg-simple`, etc. in Copr, but it may be
+useful elsewhere, too.
+
+Project Forking
+---------------
+
+Forking (or in this case rather "merging") a project into another -- already
+existing -- project has been fixed (`rhbz 1851827`_).
+
+.. _`all your EOL repositories`: https://copr.fedorainfracloud.org/user/repositories/
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2020-b9d29463b5
+.. _`Fedora 32`: https://bodhi.fedoraproject.org/updates/FEDORA-2020-b1f52c409e
+.. _`Fedora 31`: https://bodhi.fedoraproject.org/updates/FEDORA-2020-af3ff8862f
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2020-41f50e1f34
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2020-631b1eae2b
+.. _`EPEL 6`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2020-2051d3e8cc
+.. _`modulemd-tools`: https://github.com/rpm-software-management/modulemd-tools
+.. _`crypto-policies`: https://fedoraproject.org/wiki/Changes/StrongCryptoSettings2
+.. _`bootstrap chroot`: https://github.com/rpm-software-management/mock/wiki/Feature-bootstrap
+.. _`podman image`: https://github.com/rpm-software-management/mock/wiki/Feature-container-for-bootstrap
+.. _`copr-rpmbuild`: https://pagure.io/copr/copr/blob/master/f/rpmbuild
+.. _`rhbz 1851827`: https://bugzilla.redhat.com/1851827

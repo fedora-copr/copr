@@ -11,6 +11,7 @@ Content
    :maxdepth: 2
 
    user_documentation
+   release_notes
    developer_documentation
    maintenance_documentation
    downloads
