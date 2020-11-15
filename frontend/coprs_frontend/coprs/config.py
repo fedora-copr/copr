@@ -84,6 +84,13 @@ class Config(object):
     # Days between notification emails about a chroot
     EOL_CHROOTS_NOTIFICATION_PERIOD = 80
 
+    # When clicking to the "expire" button, how long it should take before we
+    # actually delete the data. When setting this option to 0, then the data is
+    # immediatelly ready to be removed, and it will be done on next cron-triggered
+    # cleanup. It is probably better to expire the chroot and leave e.g. 12 hours
+    # remaining, in case the user changes his mind.
+    EOL_CHROOTS_EXPIRE_PERIOD = 0.5
+
     # We may have a (temporary) chroot that doesn't correspond with /etc/os-release
     # on a client system, e.g. "rhelbeta-8" chroots in Copr which doesn't match to
     # any real system, instead it is a temporary alias for "epel-8". In such case,

@@ -77,7 +77,7 @@ class OutdatedChrootsLogic:
         A `user` decided to expire some EOL chroot,
         i.e. its data should be deleted ASAP
         """
-        delete_after_days = 0
+        delete_after_days = app.config["EOL_CHROOTS_EXPIRE_PERIOD"]
         cls._update_copr_chroot(copr_chroot, delete_after_days)
 
     @classmethod

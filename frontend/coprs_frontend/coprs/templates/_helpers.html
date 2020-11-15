@@ -849,20 +849,15 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 <tr class="text-{{ color }}">
     <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
     <td>{{ chroot.mock_chroot.arch }}</td>
-    <td>
-        {% if not chroot.delete_after_days %}
-        To be removed in next cleanup
-        {% else %}
-        {{ chroot.delete_after_days }} days
-        {% endif %}
-    </td>
+    <td>{{ chroot.delete_after_humanized }}</td>
     <td>
         {% if g.user.can_edit(chroot.copr) %}
-        <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}">
-            Extend
+        <button name="extend" class="btn btn-primary" type="submit" value="{{ chroot.mock_chroot.name }}"
+            {% if chroot.delete_after_expired %} disabled="disabled" {% endif %}>Extend
         </button>
         <button name="expire" class="btn btn-danger" type="submit" value="{{ chroot.mock_chroot.name }}"
-            {% if not chroot.delete_after_days %} disabled="disabled" {% endif %}>Expire now
+            {% if not chroot.delete_after_days > config["EOL_CHROOTS_EXPIRE_PERIOD"] %} disabled="disabled" {% endif %}
+            >Expire now
         </button>
         {% else %}
             Missing admin permissions

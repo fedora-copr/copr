@@ -1554,12 +1554,46 @@ class CoprChroot(db.Model, helpers.Serializer):
         return self.mock_chroot.is_active
 
     @property
+    def delete_after_expired(self):
+        """
+        Is the chroot going to expire in the future or it has already expired?
+        Using `delete_after_days` as a boolean is not sufficient because that
+        would return wrong results for the last 24 hours.
+        """
+        if not self.delete_after:
+            return None
+        return self.delete_after < datetime.datetime.now()
+
+    @property
     def delete_after_days(self):
         if not self.delete_after:
             return None
         now = datetime.datetime.now()
         days = (self.delete_after - now).days
         return days if days > 0 else 0
+
+    @property
+    def delete_after_humanized(self):
+        """
+        Return how soon the chroot is going to be deleted (expired).
+        The largest unit we use is a day and the smallest is an hour. When the
+        remaining time is just a couple of minutes or seconds, we just say that
+        it is "less then an hour".
+        """
+        if self.delete_after is None:
+            return None
+
+        if self.delete_after_expired:
+            return "To be removed in next cleanup"
+
+        delta = self.delete_after - datetime.datetime.now()
+        if delta.days:
+            return "{0} days".format(delta.days)
+
+        hours = int(round(delta.seconds / 3600))
+        if hours:
+            return "{0} hours".format(hours)
+        return "less then an hour"
 
     @property
     def module_toggle_array(self):

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs import app
 
 
 class TestOutdatedChrootsLogic(CoprsTestCase):
@@ -127,5 +128,33 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
 
         # User changed his mind and expired the chroot instead
         OutdatedChrootsLogic.expire(self.c2.copr_chroots[0])
+        expected = (datetime.now() +
+                    timedelta(days=app.config["EOL_CHROOTS_EXPIRE_PERIOD"]))
         assert (self.c2.copr_chroots[0].delete_after.date()
-                == datetime.now().date())
+                == expected.date())
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_outdated_chroots_humanized(self):
+        chroot = self.c2.copr_chroots[0]
+        chroot.delete_after = datetime.now() + timedelta(days=35)
+        assert chroot.delete_after_humanized == "34 days"
+
+        chroot.delete_after = datetime.now() + timedelta(days=2)
+        assert chroot.delete_after_humanized == "1 days"
+
+        chroot.delete_after = datetime.now() + timedelta(hours=12)
+        assert chroot.delete_after_humanized == "12 hours"
+
+        chroot.delete_after = datetime.now() + timedelta(minutes=30)
+        assert chroot.delete_after_humanized == "less then an hour"
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_outdated_chroots_expired(self):
+        chroot = self.c2.copr_chroots[0]
+        chroot.delete_after = datetime.now() + timedelta(days=35)
+        assert not chroot.delete_after_expired
+
+        chroot.delete_after = datetime.now() + timedelta(days=-35)
+        assert chroot.delete_after_expired
