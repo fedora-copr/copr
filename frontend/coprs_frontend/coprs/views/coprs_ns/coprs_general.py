@@ -639,7 +639,7 @@ def copr_update_permissions(copr):
                     permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
                                        "new_builder": new_builder, "new_admin": new_admin}
                     msg = PermissionChangeMessage(copr, permission_dict)
-                    send_mail(perm.user.mail, msg)
+                    send_mail([perm.user.mail], msg)
         # for now, we don't check for actions here, as permissions operation
         # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
