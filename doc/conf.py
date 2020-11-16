@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import os
+import sys
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
@@ -93,61 +94,35 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ----------------------------------------------
 
-import cloud_sptheme as csp
+# Use readthedocs theme if it is installed
+# Otherwise fail, the production documentation is pushed from local _build
+# directory, therefore if something doesn't look as expected, it will be broken
+# also in production
+try:
+    import sphinx_rtd_theme
+    html_theme = "sphinx_rtd_theme"
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+except ImportError:
+    print("Please install the readthedocs theme with:")
+    print("dnf install python*-sphinx_rtd_theme")
+    sys.exit(1)
 
-html_style = 'site.css'
+
+html_css_files = [
+#     "site.css",
+]
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 #html_theme = 'default'
-html_theme = "cloud"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
 
-html_theme_options = {
-    "sidebarwidth": "280px",
-    "max_width": "1100px",
-    "compact_width": "900px",
-    "minimal_width": "800px",
-
-    # Style it like Fedora..
-    "bodyfont": "Cantarell",
-
-    "highlightcolor": "#79db32",  # First Green
-
-    "sidebarbgcolor": "#FEFEFE",
-    "sidebartrimcolor": "#FEFEFE",
-
-    "sectionbgcolor": "#FEFEFE",
-    "sectiontrimcolor": "#FEFEFE",
-    "sectiontextcolor": "#444444",
-
-    "relbarbgcolor": "#FEFEFE",
-    "relbartextcolor": "#444444",
-    "relbarlinkcolor": "#444444",
-
-    "bgcolor": "#FEFEFE",
-    "textcolor": "#444444",
-    #"linkcolor": "#79db32",  # First Green
-    "linkcolor": "#00009d",
-
-    "headtextcolor": "#444444",
-    "headlinkcolor": "#444444",
-
-    #"codebgcolor"
-    #"codetextcolor"
-    "codetrimcolor": "#79db32",  # First Green
-
-    "footerbgcolor": "#FEFEFE",
-
-    "fontcssurl": "_static/site.css"
-}
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
-html_theme_path = [csp.get_theme_dir()]
 
 # The name for this set of Sphinx documents. If None, it defaults to
 # "<project> v<release> documentation".
