@@ -1,0 +1,8 @@
+include LICENSE
+include MANIFEST.in
+include copr/README.rst
+include python-copr-common.spec
+include requirements.txt
+include run_tests.sh
+recursive-include docs/ *.rst *.py Makefile README*
+recursive-include copr/test/ *.rst *.py *.json README*
