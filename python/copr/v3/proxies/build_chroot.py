@@ -15,7 +15,7 @@ class BuildChrootProxy(BaseProxy):
         :param str chrootname:
         :return: Munch
         """
-        endpoint = "/build-chroot/{build_id}/{chrootname}"
+        endpoint = "/build-chroot"
         params = {
             "build_id": build_id,
             "chrootname": chrootname,
@@ -33,7 +33,7 @@ class BuildChrootProxy(BaseProxy):
         :param pagination:
         :return: Munch
         """
-        endpoint = "/build-chroot/list/{build_id}"
+        endpoint = "/build-chroot/list"
         params = {
             "build_id": build_id,
         }
@@ -50,7 +50,7 @@ class BuildChrootProxy(BaseProxy):
         :param str chrootname:
         :return: Munch
         """
-        endpoint = "/build-chroot/build-config/{build_id}/{chrootname}"
+        endpoint = "/build-chroot/build-config"
         params = {
             "build_id": build_id,
             "chrootname": chrootname,

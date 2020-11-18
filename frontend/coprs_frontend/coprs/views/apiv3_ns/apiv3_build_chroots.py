@@ -36,12 +36,15 @@ def build_config(build_chroot):
     return dict_data
 
 
-@apiv3_ns.route("/build-chroot/<int:build_id>/<chrootname>", methods=GET)
+@apiv3_ns.route("/build-chroot", methods=GET)
+@apiv3_ns.route("/build-chroot/<int:build_id>/<chrootname>", methods=GET)  # deprecated
+@query_params()
 def get_build_chroot(build_id, chrootname):
     chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
     return flask.jsonify(to_dict(chroot))
 
 
+@apiv3_ns.route("/build-chroot/list", methods=GET)
 @apiv3_ns.route("/build-chroot/list/<int:build_id>", methods=GET)
 @pagination()
 @query_params()
@@ -52,7 +55,9 @@ def get_build_chroot_list(build_id, **kwargs):
     return flask.jsonify(items=chroots, meta=paginator.meta)
 
 
-@apiv3_ns.route("/build-chroot/build-config/<int:build_id>/<chrootname>", methods=GET)
+@apiv3_ns.route("/build-chroot/build-config", methods=GET)
+@apiv3_ns.route("/build-chroot/build-config/<int:build_id>/<chrootname>", methods=GET)  # deprecated
+@query_params()
 def get_build_chroot_config(build_id, chrootname):
     chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
     return flask.jsonify(build_config(chroot))
