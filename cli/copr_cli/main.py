@@ -1138,8 +1138,11 @@ def setup_parser():
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help=argparse.SUPPRESS,
                                      action=ActionDeprecated)
-    parser_build_parent.add_argument("--timeout", dest="timeout",
-                                     help="")
+    parser_build_parent.add_argument(
+        "--timeout", dest="timeout",
+        help=("Specify build timeout (seconds), if the build takes "
+              "longer than that, it is terminated and fails.  The "
+              "default is usually set to 5 hours on Copr Frontend."))
     parser_build_parent.add_argument("--nowait", action="store_true", default=False,
                                      help="Don't wait for build")
     parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
