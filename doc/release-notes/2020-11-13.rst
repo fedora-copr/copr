@@ -31,7 +31,7 @@ example::
 
     copr build <project> <srpm> --timeout 360
 
-This would terminate the build after 10 minutes if it were still running.
+This would terminate the build after 6 minutes if it were still running.
 
 EOL chroot repositories
 -----------------------
