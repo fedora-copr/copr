@@ -65,6 +65,7 @@ git checkout "proposed/$BRANCH"
 : "${DIFF_AGAINST=origin/master}"
 
 subdirs=(
+    -e ^ansible$
     -e ^backend$
     -e ^behave$
     -e ^frontend$
