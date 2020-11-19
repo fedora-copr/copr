@@ -220,7 +220,6 @@ class MsgBusStomp(MsgBus):
         """
         connect (even repeatedly) to STOMP message bus
         """
-        self.conn.start()
         self.log.debug("connecting")
         self.conn.connect(
             # username/passcode can be None if ssl_key is used
