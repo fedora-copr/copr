@@ -5,7 +5,6 @@ import os
 import fcntl
 import sys
 import argparse
-import requests
 import json
 import logging
 import tempfile
@@ -21,6 +20,7 @@ try:
 except ImportError:
     JSONDecodeError = Exception
 
+from copr_common.request import SafeRequest
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, \
@@ -302,7 +302,8 @@ def dump_configs(args, config):
 
 def get_vanilla_build_config(url):
     try:
-        response = requests.get(url)
+        request = SafeRequest(log=log)
+        response = request.get(url)
         build_config = response.json()
         if not build_config:
             raise RuntimeError("No valid build_config at {0}".format(url))
