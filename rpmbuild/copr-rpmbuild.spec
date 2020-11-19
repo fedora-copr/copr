@@ -58,7 +58,7 @@ Requires: python2-configparser
 %endif
 
 Requires: %python
-Requires: %{python}-copr-common
+Requires: %{python}-copr-common >= 0.9
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
