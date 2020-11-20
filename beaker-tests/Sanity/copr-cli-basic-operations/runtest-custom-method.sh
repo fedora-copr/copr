@@ -42,7 +42,11 @@ check_resultdir ()
 
 check_http_status ()
 {
-   grep "HTTP/1.1 $1" "$rlRun_LOG"
+   grep "HTTP/1.1 $1" "$rlRun_LOG" || {
+       echo "failed"
+       grep "HTTP/1.1 " "$rlRun_LOG"
+       false
+   }
 }
 
 quick_package_script ()
