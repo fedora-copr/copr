@@ -133,7 +133,10 @@ def webhooks_git_push(copr_id, uuid):
 
     try:
         payload = flask.request.json
-        clone_url = payload['repository']['clone_url']
+        try:
+            clone_url = payload['repository']['clone_url']
+        except TypeError:
+            return "Missing clone_url in webhook", 400
         commits = []
         payload_commits = payload.get('commits', [])
         for payload_commit in payload_commits:
