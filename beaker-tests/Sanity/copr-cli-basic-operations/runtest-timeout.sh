@@ -53,7 +53,8 @@ rlJournalStart
         rlRun -s "copr-cli build --timeout 10 ${NAME_PREFIX}Timeout $SRPM" 4
         rlRun "parse_build_id"
         LOG=`mktemp`
-        curl "$BACKEND_URL/results/${NAME_PREFIX}Timeout/$CHROOT/00$BUILD_ID-test-timeout/builder-live.log.gz" | gunzip > $LOG
+        log_file="$BACKEND_URL/results/${NAME_PREFIX}Timeout/$CHROOT/$(build_id_with_leading_zeroes)-test-timeout/builder-live.log.gz"
+        curl "$log_file" | gunzip > "$LOG"
         rlAssertEquals "timeout in log" `cat $LOG | grep 'sending INT' |wc -l` 1
     rlPhaseEnd
 

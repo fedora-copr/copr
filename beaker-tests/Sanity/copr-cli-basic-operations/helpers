@@ -73,3 +73,8 @@ repo_owner()
     *) echo "$OWNER" ;;
     esac
 }
+
+build_id_with_leading_zeroes()
+{
+    printf "%08d" "$BUILD_ID"
+}
