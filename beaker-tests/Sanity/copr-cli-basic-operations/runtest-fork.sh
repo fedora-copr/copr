@@ -71,7 +71,7 @@ rlJournalStart
         rlRun "dnf install -y example"
 
         # check repo properties
-        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_URL//*\/\//}:group_copr:${NAME_VAR}
+        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_URL//*\/\//}:$(repo_owner):${NAME_VAR}
         REPOFILE=${REPOFILE_BASE}Project10Fork.repo
         rlAssertExists "$REPOFILE"
         rlAssertEquals "Baseurl should point to fork project" `grep -r "^baseurl=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1

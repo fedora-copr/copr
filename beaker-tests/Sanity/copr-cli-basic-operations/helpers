@@ -65,3 +65,11 @@ setupProjectName()
     rlRun "PROJECT=$_name" 0 "Setting project name to $_name"
     rlRun "PROJECTNAME=$_project" 0 "Setting project name to $_project"
 }
+
+repo_owner()
+{
+    case $OWNER in
+    *@*) echo "group_$OWNER" ;;
+    *) echo "$OWNER" ;;
+    esac
+}
