@@ -248,7 +248,9 @@ def pending_jobs():
     """
     Return the job queue.
     """
-    srpm_tasks = [build for build in BuildsLogic.get_pending_srpm_build_tasks() if not build.blocked]
+    srpm_tasks = [build for build in
+                  BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
+                  if not build.blocked]
     build_records = (
         [get_srpm_build_record(task) for task in srpm_tasks] +
         [get_build_record(task, short=True)

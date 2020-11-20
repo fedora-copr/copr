@@ -150,6 +150,17 @@ class TestBuildsLogic(CoprsTestCase):
         data = BuildsLogic.get_pending_build_tasks().all()
         assert len(data) == 0
 
+    @staticmethod
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_build_queue_7():
+        assert len(BuildsLogic.get_pending_srpm_build_tasks().all()) == 0
+        models.Build.query.get(1).source_status = StatusEnum("pending")
+        models.Build.query.get(2).source_status = StatusEnum("starting")
+        models.Build.query.get(3).source_status = StatusEnum("running")
+        assert len(BuildsLogic.get_pending_srpm_build_tasks().all()) == 1
+        assert len(BuildsLogic.get_pending_srpm_build_tasks(for_backend=True).all()) == 3
+
     def test_delete_build_exceptions(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         for bc in self.b4_bc:

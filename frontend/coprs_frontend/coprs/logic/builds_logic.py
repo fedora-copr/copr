@@ -278,11 +278,30 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_pending_srpm_build_tasks(cls, background=None):
-        query = (models.Build.query
-                .filter(models.Build.canceled == false())
-                .filter(models.Build.source_status == StatusEnum("pending"))
-                .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
+    def _todo_states(cls, for_backend):
+        """
+        When "for_backend" is False, we only return builds which are in
+        "pending" state.  That queries are used by the Frontend Web-UI/API and
+        that's what is the end-user interested in when looking at pending tasks.
+
+        From the Backend perspective though, "starting" and "running" tasks are
+        pending, too - because if something fails (e.g. backend VM restart,
+        which kills the BackgroundWorker processes) we have to "re-process" such
+        tasks too (otherwise they stay in starting/running states forever).
+        """
+        todo_states = ["pending"]
+        if for_backend:
+            todo_states += ["starting", "running"]
+        return [StatusEnum(x) for x in todo_states]
+
+    @classmethod
+    def get_pending_srpm_build_tasks(cls, background=None, for_backend=False):
+        query = (
+            models.Build.query
+            .filter(models.Build.canceled == false())
+            .filter(models.Build.source_status.in_(cls._todo_states(for_backend)))
+            .order_by(models.Build.is_background.asc(), models.Build.id.asc())
+        )
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
         return query
@@ -292,14 +311,6 @@ class BuildsLogic(object):
         """
         Get list of BuildChroot objects that are to be (re)processed.
         """
-
-        todo_states = ["pending"]
-        if for_backend:
-            # In case of accident and backend VM reboot, the background build
-            # workers are abruptly terminated.  We list them here too so backend
-            # can re-process them after reboot so they don't stay in "running"
-            # state forever.
-            todo_states += ["starting", "running"]
 
         query = (
             models.BuildChroot.query
@@ -313,7 +324,7 @@ class BuildsLogic(object):
             .options(joinedload('build').joinedload('copr_dir'),
                      joinedload('build').joinedload('package'))
             .filter(models.Build.canceled == false())
-            .filter(models.BuildChroot.status.in_(StatusEnum(x) for x in todo_states))
+            .filter(models.BuildChroot.status.in_(cls._todo_states(for_backend)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
