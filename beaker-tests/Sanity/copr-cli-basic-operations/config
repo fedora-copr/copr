@@ -5,16 +5,12 @@
 # copr-*-dev (e.g. having post-release test for prodution or running
 # tests against a local dev stack). For this reason, the following
 # settings are override-able from command line.
-if [[ ! $FRONTEND_URL ]]; then
-    FRONTEND_URL="https://copr-fe-dev.cloud.fedoraproject.org"
-fi
-if [[ ! $BACKEND_URL ]]; then
-    BACKEND_URL="https://copr-be-dev.cloud.fedoraproject.org"
-fi
 
+: "${FRONTEND_URL=https://copr-fe-dev.cloud.fedoraproject.org}"
+: "${BACKEND_URL=https://copr-be-dev.cloud.fedoraproject.org}"
+: "${OWNER=@copr}"
 
 # Owner and project
-OWNER="@copr"
 NAME_VAR="TEST$(date +%s%N)" # names should be unique
 NAME_PREFIX="$OWNER/$NAME_VAR"
 USER=`copr-cli whoami`
