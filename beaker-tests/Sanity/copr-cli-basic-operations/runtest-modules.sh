@@ -40,8 +40,7 @@ function wait_for_finished_module()
     # Wait until module packages are built or timeout
     # $1 - project name
     # $2 - expected number of packages
-    # $3 - timeout in seconds
-    # $4 - temporary file for output
+    # $3 - temporary file for output
     local project=$1
     local packages=$2
     local tmp=$3
