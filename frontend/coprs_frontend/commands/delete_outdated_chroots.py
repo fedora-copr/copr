@@ -28,7 +28,7 @@ def delete_outdated_chroots_function(dry_run):
 
         # This shouldn't happen but we should play it safe, not just hope
         if not chroot.delete_notify:
-            app.logger.error("Refusing to delete {0}/{1} because any notification was sent about its deletion",
+            app.logger.error("Refusing to delete %s/%s because any notification was sent about its deletion",
                              chroot.copr.full_name, chroot.name)
             continue
 
