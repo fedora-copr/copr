@@ -226,9 +226,9 @@ class HookContentStorage(object):
         self.tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
         log.debug("storing hook content under %s", self.tmp)
         try:
-            with open(os.path.join(self.tmp, 'hook_payload'), "w") as f:
+            with open(os.path.join(self.tmp, 'hook_payload'), "wb") as f:
                 # Do we need to dump http headers, too?
-                f.write(flask.request.data.decode(errors='replace'))
+                f.write(flask.request.data)
 
         except Exception:
             log.exception('can not store hook payload')
