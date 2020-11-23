@@ -49,6 +49,9 @@ def get_build_chroot(build_id, chrootname):
 @pagination()
 @query_params()
 def get_build_chroot_list(build_id, **kwargs):
+    # For the python3-copr <= 1.105
+    if kwargs.get("order") == "name":
+        kwargs.pop("order")
     query = BuildChrootsLogic.filter_by_build_id(BuildChrootsLogic.get_multiply(), build_id)
     paginator = Paginator(query, models.BuildChroot, **kwargs)
     chroots = paginator.map(to_dict)
