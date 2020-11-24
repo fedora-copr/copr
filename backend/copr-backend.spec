@@ -21,7 +21,7 @@ Source1:    https://github.com/fedora-copr/%{tests_tar}/archive/v%{tests_version
 
 BuildArch:  noarch
 BuildRequires: asciidoc
-BuildRequires: createrepo_c
+BuildRequires: createrepo_c >= 0.16.1
 BuildRequires: libappstream-glib-builder
 BuildRequires: libxslt
 BuildRequires: redis
@@ -56,7 +56,7 @@ BuildRequires: modulemd-tools >= 0.4
 
 Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
-Requires:   createrepo_c
+Requires:   createrepo_c >= 0.16.1
 Requires:   crontabs
 Requires:   gawk
 Requires:   libappstream-glib-builder

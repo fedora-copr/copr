@@ -130,7 +130,7 @@ def filter_existing(opts, subdirs):
 
 
 def run_createrepo(opts):
-    createrepo_cmd = ['/usr/bin/createrepo_mod', opts.directory, '--database', '--ignore-lock',
+    createrepo_cmd = ['/usr/bin/createrepo_c', opts.directory, '--database', '--ignore-lock',
                       '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8']
 
     if "epel-5" in opts.directory or "rhel-5" in opts.directory:
