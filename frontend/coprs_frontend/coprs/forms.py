@@ -365,6 +365,17 @@ def _optional_checkbox_filter(data):
         return False
     return None
 
+
+class EmptyStringToNone:
+    """ Transform empty text field to None value """
+    def __call__(self, value):
+        if value is None:
+            return None
+        if value.strip() == "":
+            return None
+        return value
+
+
 class CoprFormFactory(object):
 
     @staticmethod
@@ -389,13 +400,15 @@ class CoprFormFactory(object):
                 "Homepage",
                 validators=[
                     wtforms.validators.Optional(),
-                    wtforms.validators.URL()])
+                    wtforms.validators.URL()],
+                filters=[EmptyStringToNone()])
 
             contact = wtforms.StringField(
                 "Contact",
                 validators=[
                     wtforms.validators.Optional(),
-                    EmailOrURL()])
+                    EmailOrURL()],
+                filters=[EmptyStringToNone()])
 
             description = wtforms.TextAreaField("Description")
 
