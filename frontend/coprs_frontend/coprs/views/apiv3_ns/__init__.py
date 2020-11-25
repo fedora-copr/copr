@@ -37,6 +37,18 @@ def query_params():
             params = list(set(params) - {"args", "kwargs"})
             for arg in params:
                 if arg not in flask.request.args:
+                    # If parameter is present in the URL path, we can use its
+                    # value instead of failing that it is missing in query
+                    # parameters, e.g. let's have a view decorated with these
+                    # two routes:
+                    #     @foo_ns.route("/foo/bar/<int:build>/<chroot>")
+                    #     @foo_ns.route("/foo/bar") accepting ?build=X&chroot=Y
+                    #     @query_params()
+                    # Then we need the following condition to get the first
+                    # route working
+                    if arg in flask.request.view_args:
+                        continue
+
                     # If parameter has a default value, it is not required
                     if sig.parameters[arg].default == sig.parameters[arg].empty:
                         raise CoprHttpException("Missing argument {}".format(arg))

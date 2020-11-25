@@ -130,8 +130,15 @@ class TestConfigOverrides(CoprsTestCase):
         self.db.session.commit()
 
         for chroot in case["expected"]:
-            for url in ["/api_3/build-chroot/build-config/1/{0}".format(chroot),
-                        "/backend/get-build-task/1-{}".format(chroot)]:
+            urls = [
+                "/api_3/build-chroot/build-config/1/{0}".format(chroot),
+                "/api_3/build-chroot/build-config/1/{0}?build_id=1&chrootname={0}"\
+                    .format(chroot),
+                "/api_3/build-chroot/build-config?build_id=1&chrootname={0}"\
+                    .format(chroot),
+                "/backend/get-build-task/1-{}".format(chroot),
+            ]
+            for url in urls:
                 bootstrap, bootstrap_image = case["expected"][chroot]
                 response = self.test_client.get(url)
                 assert response.status_code == 200
