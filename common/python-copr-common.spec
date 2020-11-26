@@ -7,10 +7,12 @@
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 %global with_python3 1
+%global __python %_bindir/python3
 %endif
 
 %if 0%{?fedora} < 28 || 0%{?rhel} && 0%{?rhel} <= 7
 %global with_python2 1
+%global __python %_bindir/python2
 %endif
 
 Name:       python-copr-common
@@ -31,11 +33,16 @@ BuildArch: noarch
 %if %{with python2}
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
+BuildRequires: python-pytest
+BuildRequires: python-mock
+BuildRequires: python-requests
 %endif
 
 %if %{with python3}
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
+BuildRequires: python3-pytest
+BuildRequires: python3-requests
 %endif
 
 %global _description\
@@ -87,6 +94,10 @@ version=%version %py3_install
 %if %{with python2}
 version=%version %py2_install
 %endif
+
+
+%check
+%{__python} -m pytest -vv tests
 
 
 %if %{with python3}

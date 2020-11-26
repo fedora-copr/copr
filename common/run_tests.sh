@@ -1,3 +1,3 @@
 #! /bin/bash
 
-echo "TODO: no tests so far"
+python3 -B -m pytest --cov-report term-missing --cov ./copr_common/ $@
