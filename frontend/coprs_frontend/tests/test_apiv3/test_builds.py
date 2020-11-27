@@ -145,7 +145,7 @@ class TestAPIv3Builds(CoprsTestCase):
         timeout = buildopts.get("timeout")
         if timeout:
             assert build.timeout == timeout
-        assert build.isolation == "default"
+        assert build.isolation == "unchanged"
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_other_distgit", "f_db")

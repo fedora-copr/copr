@@ -106,6 +106,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--unlisted-on-hp {on,off}]
                        [--persistent]
                        [--auto-prune {on,off}]
+                       [--isolation {default, nspawn, simple}]
                        name
 
 --chroot::
@@ -138,6 +139,9 @@ Project and its builds will be undeletable. This option can only be specified by
 --auto-prune::
 If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
 
+--isolation ISOLATION::
+Choose the isolation method for running commands in buildroot
+
 name::
 Can be just name of the project or in form username/projectname or @groupname/projectname.
 
@@ -152,6 +156,7 @@ usage: copr-cli modify [-h] [--repo REPOS]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
                        [--auto-prune {on,off}]
+                       [--isolation {default, nspawn, simple}]
                        name
 
 Alters only specified project property.
@@ -183,6 +188,9 @@ This project will not be listed on COPR home page.
 --auto-prune::
 If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
 
+--isolation ISOLATION::
+Choose the isolation method for running commands in buildroot
+
 name::
 Can be just name of the project or in form username/projectname or @groupname/projectname.
 
@@ -193,7 +201,7 @@ BUILD ACTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--background]
+                      [--background] [--isolation {default, nspawn, simple}]
                       copr_repo PKG [PKG ...]
 
 -r, --chroot::
@@ -210,6 +218,9 @@ Don't wait for build completion.
 
 --background::
 Run the build at a lower priority.
+
+--isolation ISOLATION::
+Choose the isolation method for running commands in buildroot.
 
 copr_repo::
 The copr repository to build the package in. This can be a simple name of some of
@@ -402,7 +413,7 @@ CHROOT ACTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr edit-chroot [-h] [--upload-comps FILEPATH | --delete-comps]
-                        [--packages PACKAGES] [--repos REPOS]
+                        [--packages PACKAGES] [--repos REPOS] [--isolation {default, nspawn, simple}]
                         coprchroot
 
 Edit the specified coprchroot.
@@ -421,6 +432,9 @@ space separated string of package names to be added to buildroot (e.g. "gcc ghc"
 
 --repos REPOS::
 space separated string of additional repo urls for chroot (e.g. "http://foo http://bar")
+
+--isolation ISOLATION::
+Choose the isolation method for running commands in buildroot
 
 
 `copr-cli get-chroot coprchroot`

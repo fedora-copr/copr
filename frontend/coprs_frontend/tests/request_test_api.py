@@ -42,7 +42,7 @@ class _RequestsInterface:
         raise NotImplementedError
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None):
+                    bootstrap_image=None, owner=None, isolation=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -84,7 +84,7 @@ class WebUIRequests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None):
+                    bootstrap_image=None, owner=None, isolation=None):
         """ Change CoprChroot using the web-UI """
         route = "/coprs/{user}/{project}/update_chroot/{chroot}/".format(
             user=owner or self.transaction_username,
@@ -100,6 +100,8 @@ class WebUIRequests(_RequestsInterface):
             data["bootstrap"] = bootstrap
         if bootstrap_image is not None:
             data["bootstrap_image"] = bootstrap_image
+        if isolation is not None:
+            data["isolation"] = isolation
 
         resp = self.client.post(route, data=data)
         if self.success_expected:
@@ -204,7 +206,7 @@ class API3Requests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None):
+                    bootstrap_image=None, owner=None, isolation=None):
         route = "/api_3/project-chroot/edit/{owner}/{project}/{chroot}".format(
             owner=owner or self.transaction_username,
             project=project,
@@ -215,6 +217,8 @@ class API3Requests(_RequestsInterface):
             data["bootstrap"] = bootstrap
         if bootstrap_image is not None:
             data["bootstrap_image"] = bootstrap_image
+        if isolation is not None:
+            data["isolation"] = isolation
         resp = self.post(route, data)
         return resp
 

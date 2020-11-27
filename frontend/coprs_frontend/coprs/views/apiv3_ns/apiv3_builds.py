@@ -272,6 +272,7 @@ def process_creating_new_build(copr, form, create_new_build):
     if not flask.g.user.can_build_in(copr):
         raise AccessRestricted("User {} is not allowed to build in the copr: {}"
                                .format(flask.g.user.username, copr.full_name))
+    form.isolation.data = "unchanged" if form.isolation.data is None else form.isolation.data
 
     generic_build_options = {
         'chroot_names': form.selected_chroots,

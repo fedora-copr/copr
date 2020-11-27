@@ -396,6 +396,21 @@ def test_create_project_with_isolation(_config_from_file, project_proxy_add, cap
     assert stdout == "New project was successfully created.\n"
 
 
+@mock.patch('copr.v3.proxies.project_chroot.ProjectChrootProxy.edit')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_edit_chroot_with_isolation(_config_from_file, project_chroot_proxy_edit, capsys):
+    main.main(argv=[
+        "edit-chroot", "foo/f20",
+        "--isolation", "simple",
+    ])
+    stdout, stderr = capsys.readouterr()
+    project_chroot_proxy_edit.assert_called_once()
+    kwargs = project_chroot_proxy_edit.call_args[1]
+    assert stderr == ''
+    assert kwargs["isolation"] == "simple"
+    assert stdout == "Edit chroot operation was successful.\n"
+
+
 @mock.patch('copr.v3.proxies.project.ProjectProxy.add')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_multilib_project(config_from_file, project_proxy_add, capsys):

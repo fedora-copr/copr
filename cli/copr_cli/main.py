@@ -623,6 +623,7 @@ class Commands(object):
             comps=args.upload_comps, delete_comps=args.delete_comps,
             additional_packages=args.packages, additional_repos=args.repos,
             bootstrap=args.bootstrap, bootstrap_image=args.bootstrap_image,
+            isolation=args.isolation,
         )
         print("Edit chroot operation was successful.")
 
@@ -1011,7 +1012,7 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
-    parser_modify.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="default",
+    parser_modify.add_argument("--isolation", choices=["simple", "nspawn", "default"],
                                help="Choose the isolation method for running commands in buildroot.")
 
     parser_modify.add_argument(
@@ -1155,7 +1156,7 @@ def setup_parser():
                                      help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
     parser_build_parent.add_argument("--background", dest="background", action="store_true", default=False,
                                      help="Mark the build as a background job. It will have lesser priority than regular builds.")
-    parser_build_parent.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="default",
+    parser_build_parent.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",
                                      help="Choose the isolation method for running commands in buildroot.")
 
     parser_build_parent.add_argument(
@@ -1279,6 +1280,8 @@ def setup_parser():
                                       help="space separated string of package names to be added to buildroot")
     parser_edit_chroot.add_argument("--repos",
                                       help="space separated string of additional repo urls for chroot")
+    parser_edit_chroot.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",
+                                    help="Choose the isolation method for running commands in buildroot.")
 
     parser_edit_chroot.add_argument(
         "--bootstrap",

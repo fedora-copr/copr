@@ -74,6 +74,7 @@ best=1
             "use_bootstrap_container": False,
             "with_opts": [],
             "without_opts":[],
+            "isolation": "default"
         })
 
     @pytest.yield_fixture
@@ -160,7 +161,7 @@ best=1
             "config_opts['root'] = 'test-test_fedora-rawhide-x86_64'\n",
             "")
 
-    def test_no_repos(self, f_get_build_config, f_test_config, capsys):
+    def test_no_repos_with_additional(self, f_get_build_config, f_test_config, capsys):
         config = self.get_build_config_result()
         additional = {
             'id': 'x',

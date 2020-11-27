@@ -41,7 +41,7 @@ class TestDistGitMethodBuild(object):
             'chroots': None,
             'background': False,
             'progress_callback': None,
-            'isolation': 'default',
+            'isolation': 'unchanged',
         },
         'packagename': 'test',
         'distgit': None,
@@ -90,7 +90,7 @@ class TestDistGitMethodBuild(object):
                 "chroots": ['fedora-rawhide-x86_64'],
                 "background": True,
                 "progress_callback": None,
-                'isolation': 'default',
+                'isolation': 'unchanged',
             },
         })
         assert call[1] == result

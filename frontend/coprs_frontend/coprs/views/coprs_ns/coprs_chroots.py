@@ -25,7 +25,8 @@ def chroot_edit(copr, chrootname):
                             module_toggle=chroot.module_toggle, with_opts=chroot.with_opts,
                             without_opts=chroot.without_opts,
                             bootstrap=chroot.bootstrap,
-                            bootstrap_image=chroot.bootstrap_image)
+                            bootstrap_image=chroot.bootstrap_image,
+                            isolation=chroot.isolation)
     return render_chroot_edit(form, copr, chroot)
 
 
@@ -79,6 +80,7 @@ def chroot_update(copr, chrootname):
                 module_toggle=form.module_toggle.data,
                 bootstrap=form.bootstrap.data,
                 bootstrap_image=form.bootstrap_image.data,
+                isolation=form.isolation.data,
             )
 
         elif action == "delete_comps":

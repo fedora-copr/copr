@@ -107,7 +107,9 @@ def create_isolation_field(level):
         ('simple', 'simple chroot'),
     ]
 
-    if level == 'build':
+    if level == "build":
+        choices.append(("unchanged", "Use project/chroot settings"))
+    elif level == "chroot":
         choices.append(("unchanged", "Use project settings"))
 
     choices.extend(default_choices)
@@ -1327,7 +1329,7 @@ class ChrootForm(FlaskForm):
 
     bootstrap = create_mock_bootstrap_field("chroot")
     bootstrap_image = create_mock_bootstrap_image_field()
-    isolation = create_isolation_field("build")
+    isolation = create_isolation_field("chroot")
 
     def validate(self, *args, **kwargs):  # pylint: disable=signature-differs
         """ We need to special-case custom_image configuration """

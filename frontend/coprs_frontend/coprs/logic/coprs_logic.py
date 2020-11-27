@@ -218,7 +218,7 @@ class CoprsLogic(object):
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
-            auto_prune=True, bootstrap=None, follow_fedora_branching=False,
+            auto_prune=True, bootstrap=None, follow_fedora_branching=False, isolation=None,
             **kwargs):
 
         if not flask.g.user.admin and flask.g.user != user:
@@ -244,6 +244,7 @@ class CoprsLogic(object):
                            persistent=persistent,
                            auto_prune=auto_prune,
                            bootstrap=bootstrap,
+                           isolation=isolation,
                            follow_fedora_branching=follow_fedora_branching,
                            **kwargs)
 
@@ -654,7 +655,7 @@ class CoprChrootsLogic(object):
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="",
                       delete_after=None, delete_notify=None, module_toggle="",
-                      bootstrap=None, bootstrap_image=None):
+                      bootstrap=None, bootstrap_image=None, isolation=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -670,7 +671,7 @@ class CoprChrootsLogic(object):
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, chroot,
                            with_opts, without_opts, delete_after, delete_notify,
-                           module_toggle, bootstrap, bootstrap_image)
+                           module_toggle, bootstrap, bootstrap_image, isolation)
 
         # reassign old build_chroots, if the chroot is re-created
         get_old = logic.builds_logic.BuildChrootsLogic.by_copr_and_mock_chroot
@@ -682,7 +683,7 @@ class CoprChrootsLogic(object):
     @classmethod
     def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
                       with_opts="", without_opts="", delete_after=None, delete_notify=None, module_toggle="",
-                      bootstrap=None, bootstrap_image=None):
+                      bootstrap=None, bootstrap_image=None, isolation=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -693,13 +694,13 @@ class CoprChrootsLogic(object):
 
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name,
                            copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle,
-                           bootstrap, bootstrap_image)
+                           bootstrap, bootstrap_image, isolation)
         return copr_chroot
 
     @classmethod
     def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name,
                        copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle,
-                       bootstrap, bootstrap_image):
+                       bootstrap, bootstrap_image, isolation):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
 
@@ -728,6 +729,9 @@ class CoprChrootsLogic(object):
 
         if bootstrap is not None:
             copr_chroot.bootstrap = bootstrap
+
+        if isolation is not None:
+            copr_chroot.isolation = isolation
 
         if bootstrap_image is not None:
             # By CLI/API we can set custom_image, and keep bootstrap unset.  In

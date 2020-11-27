@@ -1536,6 +1536,8 @@ class CoprChroot(db.Model, helpers.Serializer):
     bootstrap = db.Column(db.Text)
     bootstrap_image = db.Column(db.Text)
 
+    isolation = db.Column(db.Text, default="unchanged")
+
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
             data = comps_xml.encode("utf-8")
@@ -1645,6 +1647,17 @@ class CoprChroot(db.Model, helpers.Serializer):
         if settings['bootstrap'] in [None, "default"]:
             return {}
         return settings
+
+    @property
+    def isolation_setup(self):
+        """ Is isolation config from project overwritten by chroot? """
+        settings = {'isolation': self.copr.isolation}
+        if self.isolation and self.isolation != 'unchanged':
+            settings['isolation'] = self.isolation
+        if settings['isolation'] in [None, "default"]:
+            return {}
+        return settings
+
 
 class BuildChroot(db.Model, helpers.Serializer):
     """

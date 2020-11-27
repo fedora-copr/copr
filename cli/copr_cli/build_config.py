@@ -12,9 +12,7 @@ include('/etc/mock/{{chroot}}.cfg')
 
 config_opts['root'] = '{{ rootdir }}'
 
-{%- if isolation == "default" %}
-config_opts['isolation'] = 'auto'
-{%- elif isolation %}
+{%- if isolation not in ["default", None] %}
 config_opts['isolation'] = '{{ isolation }}'
 {%- endif %}
 

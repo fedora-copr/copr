@@ -423,8 +423,8 @@ class BuildConfigLogic(object):
             'chroot': chroot_id,
             'with_opts': chroot.with_opts.split(),
             'without_opts': chroot.without_opts.split(),
-            'isolation': copr.isolation,
         }
+        config_dict.update(chroot.isolation_setup)
         config_dict.update(chroot.bootstrap_setup)
         return config_dict
 
@@ -455,8 +455,6 @@ class BuildConfigLogic(object):
         if build.isolation_set:
             isolation["isolation"] = build.isolation
 
-        if isolation["isolation"] == "default":
-            del isolation['isolation']
         return isolation
 
     @classmethod
