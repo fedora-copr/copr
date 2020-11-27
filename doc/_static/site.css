@@ -30,3 +30,7 @@ div.body hr {
 div.sphinxsidebar input, h1#search-documentation ~ form > input {
     border: 1px solid #b1a7a7;
 }
+
+thead tr th {
+    padding-bottom: 0px !important;
+}

@@ -109,7 +109,7 @@ except ImportError:
 
 
 html_css_files = [
-#     "site.css",
+    "site.css",
 ]
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
