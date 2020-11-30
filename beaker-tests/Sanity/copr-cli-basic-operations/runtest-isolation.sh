@@ -47,13 +47,13 @@ rlJournalStart
         rlRun "parse_build_id"
         rlRun "curl $FRONTEND_URL/backend/get-build-task/$BUILD_ID-$CHROOT | jq .isolation"
         rlRun "BUILD_ISOLATION=$(curl "$FRONTEND_URL"/backend/get-build-task/"$BUILD_ID"-"$CHROOT" | jq .isolation)"
-        rlAssertEquals "Test that isolation is set to simple" "BUILD_ISOLATION" "simple"
+        rlAssertEquals "Test that isolation is set to simple" "$BUILD_ISOLATION" "simple"
 
         rlRun -s "copr-cli build ${NAME_PREFIX}Isolation $HELLO"
         rlRun "parse_build_id"
         rlRun "curl $FRONTEND_URL/backend/get-build-task/$BUILD_ID-$CHROOT | jq .isolation"
         rlRun "BUILD_ISOLATION=$(curl "$FRONTEND_URL"/backend/get-build-task/"$BUILD_ID"-"$CHROOT" | jq .isolation)"
-        rlAssertEquals "Test that isolation is set to default" "BUILD_ISOLATION" "default"
+        rlAssertEquals "Test that isolation is set to default" "$BUILD_ISOLATION" "default"
     rlPhaseEnd
 
     rlPhaseStartCleanup
