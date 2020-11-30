@@ -71,7 +71,7 @@ class TestMockBuilder(object):
             "timeout": 21600,
             "with_opts": [],
             "without_opts": [],
-            "isolation": "nspawn",
+            "isolation": "default",
         }
 
         self.sourcedir = "/path/to/sourcedir"
@@ -125,10 +125,10 @@ class TestMockBuilder(object):
 
         assert config_opts["chroot_additional_packages"] == "pkg1 pkg2 pkg3"
         assert config_opts["rpmbuild_networking"]
-        assert config_opts["isolation"] == "nspawn"
         assert "use_bootstrap" not in config_opts
         assert "bootstrap" not in config_opts
         assert "bootstrap_image" not in config_opts
+        assert "isolation" not in config_opts
         assert config_opts["macros"]["%copr_username"] == "@copr"
         assert config_opts["macros"]["%copr_projectname"] == "copr-dev"
         assert config_opts["yum.conf"] == []
@@ -136,6 +136,7 @@ class TestMockBuilder(object):
     @mock.patch("copr_rpmbuild.builders.mock.subprocess.call")
     def test_mock_config(self, call, f_mock_calls):
         """ test that no module_enable statements are in config """
+        self.task["isolation"] = "nspawn"
         MockBuilder(self.task, self.sourcedir, self.resultdir,
                     self.config).run()
 

@@ -11,9 +11,7 @@ config_opts['use_host_resolv'] = True
 config_opts['rpmbuild_networking'] = False
 config_opts['use_host_resolv'] = False
 {% endif %}
-{%- if isolation == "default" %}
-config_opts['isolation'] = 'auto'
-{%- elif isolation %}
+{%- if isolation not in ["default", None] %}
 config_opts['isolation'] = '{{ isolation }}'
 {%- endif %}
 
