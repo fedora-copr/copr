@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.90
+Version:    1.91
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -125,6 +125,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.91-1
+- new --isolation option
+- add --help output for build --timeout option
+
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.90-1
 - cli, frontend: custom build batches
 - cli: propagate build --bootstrap value to API call
