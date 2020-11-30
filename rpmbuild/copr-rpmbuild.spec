@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.43
+Version: 0.44
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -314,6 +314,11 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 0.44-1
+- don't override isolation config by default
+- require appropriate common version
+- repeatedly send requests to frontend until they succeed
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 0.43-1
 - new --isolation copr option in Copr
 - require up2date copr-common
