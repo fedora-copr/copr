@@ -69,7 +69,7 @@ setupProjectName()
 repo_owner()
 {
     case $OWNER in
-    *@*) echo "group_$OWNER" ;;
+    *@*) echo "$OWNER" | sed 's/^@/group_/' ;;
     *) echo "$OWNER" ;;
     esac
 }
