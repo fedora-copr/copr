@@ -161,6 +161,33 @@ class TestAPIv3Builds(CoprsTestCase):
         for error in errors:
             assert error in error_message
 
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_other_distgit", "f_db")
+    def test_v3_get_build(self):
+        data = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "package_name": "mock",
+        }
+        form_data = copy.deepcopy(data)
+        form_data.update(dict(chroots=["fedora-17-x86_64"]))
+        endpoint1 = "/api_3/build/create/distgit"
+        user = self.models.User.query.filter_by(username='user2').first()
+        self.post_api3_with_auth(endpoint1, form_data, user)
+        build = self.models.Build.query.first()
+
+        endpoint2 = f"/api_3/build/{build.id}"
+        response1 = self.get_api3_with_auth(endpoint2, user)
+        endpoint3 = f"/api_3/build/{build.id}/"
+        response2 = self.get_api3_with_auth(endpoint3, user)
+
+        assert response1.status_code == 200
+        assert response1.json["ownername"] == "user2"
+        assert response1.json["projectname"] == "foocopr"
+        assert response2.status_code == 200
+        assert response2.json["ownername"] == "user2"
+        assert response2.json["projectname"] == "foocopr"
+
 
 class TestWebUIBuilds(CoprsTestCase):
 

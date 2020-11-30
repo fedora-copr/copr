@@ -69,6 +69,7 @@ def render_build(build):
 
 
 @apiv3_ns.route("/build/<int:build_id>/", methods=GET)
+@apiv3_ns.route("/build/<int:build_id>", methods=GET)
 def get_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     return render_build(build)
