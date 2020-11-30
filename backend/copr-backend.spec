@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.138
+Version:    1.139
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -229,6 +229,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.139-1
+- require appropriate common version
+- use common for repeatedly sends requests to frontend
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.138-1
 - get back to using standard createrepo_c command from createrepo_mod
 - drop call to stomp's conn.start() (it was dropped)
