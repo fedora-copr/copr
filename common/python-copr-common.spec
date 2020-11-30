@@ -14,7 +14,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.9
+Version:    0.10
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -104,6 +104,9 @@ version=%version %py2_install
 
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 0.10-1
+- ship LICENSE file in PyPI tarball
+
 * Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 0.9-1
 - bump to non-devel version
 
