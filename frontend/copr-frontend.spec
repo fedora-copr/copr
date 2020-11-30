@@ -43,7 +43,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.170
+Version:    1.171
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -376,6 +376,20 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.171-1
+- re-process killed SRPM tasks
+- backward compat APIv3 build-chroot fix
+- copr homepage/contact empty string converted to None
+- use URL path parameter (if there is such) instead of failing
+- fix custom webhook for binary payload
+- added new mock --isolation option in Copr
+- don't allow prolonging already expired chroots
+- try-except block for github webhook without clone_url
+- deduplicate APIv3 build-chroot parameters
+- don't traceback when the build ID larger than integer
+- allow searching builds by build ID
+- fix email recipient for permissions update
+
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.170-1
 - frontend: hide buttons in repositories pages for non-admins
 - frontend: fix User.copr_permission relationship
