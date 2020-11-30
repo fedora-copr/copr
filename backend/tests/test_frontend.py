@@ -134,7 +134,7 @@ class TestFrontendClient(object):
         ptfr = MagicMock()
         self.fc.post = ptfr
         self.fc.update(self.data)
-        assert ptfr.call_args == mock.call(self.data, "update")
+        assert ptfr.call_args == mock.call("update", self.data)
 
     def test_starting_build(self):
         ptfr = MagicMock()
@@ -163,6 +163,9 @@ class TestFrontendClient(object):
         ptfr = MagicMock()
         self.fc.post = ptfr
         self.fc.reschedule_build(self.build_id, self.task_id, self.chroot_name)
-        expected = mock.call({'build_id': self.build_id, 'task_id': self.task_id, 'chroot': self.chroot_name},
-                             'reschedule_build_chroot')
+        expected = mock.call('reschedule_build_chroot', {
+            'build_id': self.build_id,
+            'task_id': self.task_id,
+            'chroot': self.chroot_name,
+        })
         assert ptfr.call_args == expected

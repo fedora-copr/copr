@@ -59,7 +59,7 @@ class FrontendClient(object):
         """
         Send data to be updated in the frontend
         """
-        self.post(data, "update")
+        self.post("update", data)
 
     def starting_build(self, data):
         """
@@ -67,7 +67,7 @@ class FrontendClient(object):
 
         :return: True if the build can start or False if the build can not start (can be cancelled or deleted).
         """
-        response = self.post(data, "starting_build")
+        response = self.post("starting_build", data)
         if "can_start" not in response.json():
             raise FrontendClientException("Bad response from the frontend")
         return response.json()["can_start"]
@@ -77,4 +77,4 @@ class FrontendClient(object):
         Announce to the frontend that a build should be rescheduled (set pending state).
         """
         data = {"build_id": build_id, "task_id": task_id, "chroot": chroot_name}
-        self.post(data, "reschedule_build_chroot")
+        self.post("reschedule_build_chroot", data)
