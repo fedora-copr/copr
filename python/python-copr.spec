@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.106
+Version:    1.107
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -231,6 +231,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.107-1
+- new mock --isolation option
+- deduplicate APIv3 build-chroot parameters
+
 * Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 1.106-1
 - bump to non-devel version
 
