@@ -67,6 +67,8 @@ BuildRequires: python2-sphinx
 BuildRequires: python2-docutils
 %endif
 %endif
+#doc
+BuildRequires: make
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\

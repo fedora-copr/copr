@@ -24,6 +24,7 @@ BuildRequires: asciidoc
 BuildRequires: createrepo_c >= 0.16.1
 BuildRequires: libappstream-glib-builder
 BuildRequires: libxslt
+BuildRequires: make
 BuildRequires: redis
 BuildRequires: rsync
 BuildRequires: systemd

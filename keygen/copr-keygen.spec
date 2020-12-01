@@ -22,6 +22,9 @@ BuildRequires: python3-setuptools
 BuildRequires: python3-six
 BuildRequires: python3-flask
 
+# doc
+BuildRequires: make
+
 # for tests
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
