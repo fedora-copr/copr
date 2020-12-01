@@ -1,0 +1,64 @@
+.. _release_notes_2020_12_01:
+
+Highlights from 2020-12-01 release
+==================================
+
+Updated client packages are shipped in `Fedora 33`_, `Fedora 32`_, `EPEL 8`_ and
+`EPEL 7`_ Bodhi updates.
+
+New mock --isolation option
+---------------------------
+
+Users can newly specify if the systemd-nspawn or just a simple chroot is used
+on copr builders to isolate the build environment (see docs in `man mock` for the
+--isolation option).  The isolation can be now configured per-project, and per build,
+e.g.::
+
+    $ copr create <project-name> --chroot <chroot> ... --isolation simple
+    $ copr build <project-name> <source.rpm> ... --isolation nspawn
+
+By default we continue to use the default isolation configured in
+mock-core-configs package.  In addition to cli, isolation can also be set using
+the APIv3 or in the Web UI.
+
+EOL repository management
+-------------------------
+The page with `your EOL repositories`_ is now even more precise.  When the
+chroot is to be expired very soon, the remaining time is newly printed in hours
+(not days).
+
+Newly, to avoid race conditions with deleting cron job, the chroots which are
+expired can not be anymore prolonged.  Another update here is that the expire
+button doesn't expire the chroot immediately - but gives 12 hours more to users
+to take the decission back.
+
+
+Searching by build ID
+-----------------------
+
+The (nomally full-text) search bar in the web UI now also searches for build ID,
+but only if the search key represents an integer value.  When such build ID
+doesn't exist in database, copr falls back to a full text search.
+
+
+Bugfixes
+----------
+
+- The performance degradation on createrepo call in large repositories was
+  fixed, we now rely on the built-in modularity support in the `createrepo_c`
+  utility (newly in the version 1.16+).
+
+- The build-config APIv3 routes were fixed a backward compatible way so older
+  copr clients (python-copr version < 1.106) can still be used against the
+  updated frontend.
+
+- The project `homepage` and `contact` fields now can again be filled with empty
+  string without problems, previously copr returned http error 500.
+
+- The custom webhook accepts artificial (even binary) hook payload.
+
+.. _`your EOL repositories`: https://copr.fedorainfracloud.org/user/repositories/
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2020-83e001bd3f
+.. _`Fedora 32`: https://bodhi.fedoraproject.org/updates/FEDORA-2020-fe46a1c380
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2020-c12ae853a7
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2020-91149a4361
