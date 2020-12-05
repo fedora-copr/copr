@@ -902,7 +902,7 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
     searched_chroot = name_release if not arch else name_release + "-" + arch
 
     mock_chroot = None
-    for mc in copr.active_chroots:
+    for mc in copr.enable_permissible_chroots:
         if not mc.name.startswith(searched_chroot):
             continue
         mock_chroot = mc

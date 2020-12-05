@@ -422,6 +422,15 @@ class Copr(db.Model, helpers.Serializer):
         return filter(lambda x: x.is_active, self.mock_chroots)
 
     @property
+    def enable_permissible_chroots(self):
+        """
+        Return the list of not-yet-deleted (includes EOLed) mock_chroots
+        assigned to this copr.
+        """
+        return [cc.mock_chroot for cc in self.copr_chroots
+                if not cc.delete_after_expired]
+
+    @property
     def active_multilib_chroots(self):
         """
         Return list of active mock_chroots which have the 32bit multilib
