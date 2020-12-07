@@ -274,7 +274,7 @@ def render_copr_detail(copr):
     repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
     form = forms.CoprLegalFlagForm()
     repos_info = {}
-    for chroot in copr.active_chroots:
+    for chroot in copr.enable_permissible_chroots:
         chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
             copr_user=copr.owner_name,
             copr_project_name=copr.name,
