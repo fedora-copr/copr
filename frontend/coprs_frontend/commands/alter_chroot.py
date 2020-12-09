@@ -32,13 +32,13 @@ def alter_chroot(chroot_names, action):
                 mock_chroot = coprs_logic.MockChrootsLogic.edit_by_name(
                     chroot_name, activate)
 
-                if action != "eol":
+                if action == "deactivate":
                     continue
 
                 for copr_chroot in mock_chroot.copr_chroots:
-                    # Workarounding an auth here
-                    coprs_logic.CoprChrootsLogic.update_chroot(copr_chroot.copr.user, copr_chroot,
-                                                                delete_after=delete_after_timestamp)
+                    # reset EOL policy after re-activation
+                    copr_chroot.delete_after = None if activate else delete_after_timestamp
+
         except exceptions.MalformedArgumentException:
             print_invalid_format(chroot_name)
         except exceptions.NotFoundException:
