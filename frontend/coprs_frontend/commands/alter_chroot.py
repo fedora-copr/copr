@@ -22,6 +22,10 @@ from commands.create_chroot import print_invalid_format, print_doesnt_exist
 def alter_chroot(chroot_names, action):
     """Activates or deactivates a chroot"""
     activate = (action == "activate")
+
+    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(delete_after_days)
+
     for chroot_name in chroot_names:
         try:
             with db_session_scope():
@@ -32,8 +36,6 @@ def alter_chroot(chroot_names, action):
                     continue
 
                 for copr_chroot in mock_chroot.copr_chroots:
-                    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
-                    delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(delete_after_days)
                     # Workarounding an auth here
                     coprs_logic.CoprChrootsLogic.update_chroot(copr_chroot.copr.user, copr_chroot,
                                                                 delete_after=delete_after_timestamp)
