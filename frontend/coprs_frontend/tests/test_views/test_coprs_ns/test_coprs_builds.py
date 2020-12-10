@@ -1,6 +1,7 @@
 import json
+import pytest
 
-from copr_common.enums import StatusEnum
+from copr_common.enums import StatusEnum, BuildSourceEnum
 from coprs import models
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -392,6 +393,43 @@ class TestCoprRepeatBuild(CoprsTestCase):
             follow_redirects=True)
 
         assert b"You are not allowed to repeat this build." in r.data
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots",
+                             "f_builds", "f_db")
+    def test_rebuild_srpm_upload_generates_chroots(self):
+        """
+        Resubmitting SRPM-uploaded build is a special case because it skips the
+        import phase and goes directly to building RPMs.
+
+        We encountered an issue, that resubmitting a successfully built lead to
+        infinitely waiting state. This tests makes sure it doesn't happen
+        anymore. Please see RHBZ 1906062 for more information.
+        """
+        b1 = self.models.Build.query.filter(self.models.Build.id == 1).one()
+        b1.srpm_url = "http://foo.bar/baz.src.rpm"
+        b1.source_type = BuildSourceEnum("upload")
+        b1.pkgs = "baz"
+        for chroot in b1.build_chroots:
+            chroot.status = StatusEnum("succeeded")
+
+        self.db.session.add_all([self.u1, self.c1, b1])
+        self.db.session.commit()
+
+        r = self.test_client.post(
+            "/coprs/{0}/{1}/new_build_rebuild/{2}/"
+            .format(self.u1.name, self.c1.name, b1.id),
+            data={"fedora-18-x86_64": ""},
+            follow_redirects=True)
+        assert r.status_code == 200
+
+        builds = (self.models.Build.query
+                  .filter(self.models.Build.pkgs == "baz")
+                  .all())
+        assert len(builds) == 2
+        assert builds[-1].srpm_url == builds[0].srpm_url
+        assert builds[-1].chroots == builds[0].chroots
+        assert len(builds[-1].build_chroots) == len(builds[0].build_chroots)
 
     @TransactionDecorator("u1")
     def test_copr_build_package_urls(self, f_users,

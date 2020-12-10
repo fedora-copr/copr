@@ -594,12 +594,25 @@ class BuildsLogic(object):
         if not copr.active_copr_chroots:
             raise BadRequest("Can't create build - project {} has no active chroots".format(copr.full_name))
 
-        chroots = None
+        # If no chroots are specified by the user, we can submit the build
+        # without any build_chroots. Once the SRPM build is finished and backend
+        # requests update of its state in the databse, build chroots are
+        # generated
+        chroots = []
+
+        # If chroots are specified by the user, we should create the build only
+        # for them
         if chroot_names:
-            chroots = []
             for chroot in copr.active_chroots:
                 if chroot.name in chroot_names:
                     chroots.append(chroot)
+
+        # If we skip the importing phase (i.e. set SRPM build status directly to
+        # "succeeded"), there is no update from backend and therefore we would
+        # end up with no build_chroots at all. Let's generate them now
+        elif skip_import and srpm_url:
+            for chroot in copr.active_chroots:
+                chroots.append(chroot)
 
         build = cls.add(
             user=user,
