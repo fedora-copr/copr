@@ -35,7 +35,7 @@ def render_chroot_edit(form, copr, chroot):
     edit_chroot.html template.
     """
 
-    if flask.g.user.can_build_in(copr):
+    if flask.g.user.can_edit(copr):
         return render_template("coprs/detail/edit_chroot.html",
                                form=form, copr=copr, chroot=chroot)
     raise AccessRestricted(
@@ -52,7 +52,7 @@ def chroot_update(copr, chrootname):
     form = forms.ChrootForm()
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
 
-    if not flask.g.user.can_build_in(copr):
+    if not flask.g.user.can_edit(copr):
         raise AccessRestricted(
             "You are not allowed to modify chroots in project {0}."
             .format(copr.name))
