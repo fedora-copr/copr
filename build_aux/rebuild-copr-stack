@@ -1,0 +1,100 @@
+#! /usr/bin/python3
+
+"""
+Rebuild important Copr packages in given copr project - in proper order using
+build batches.
+"""
+
+import subprocess
+
+PROJECT = "@copr/copr-dev"
+
+CLONE_URL = "https://pagure.io/copr/copr.git"
+
+BATCHES = {
+    "common": {
+        "builds": [
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir common {PROJECT}",
+        ],
+    },
+    "python_api": {
+        "builds": [
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir python {PROJECT}",
+        ],
+        "depends_on": "common",
+    },
+    "servers": {
+        "depends_on": "common",
+        "builds": [
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir frontend {PROJECT}",
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir dist-git {PROJECT}",
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir keygen   {PROJECT}",
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir rpmbuild {PROJECT}",
+        ],
+    },
+    "be_requirements": {
+        "depends_on": "python_api",
+        "builds": [
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir cli     {PROJECT}",
+            f"copr buildscm --method tito_test --clone-url {CLONE_URL} --subdir backend {PROJECT}",
+        ],
+    },
+}
+
+def _execute_command(command):
+    print("{}".format(command))
+    return subprocess.check_output(command, shell=True, text=True)
+
+def _execute_batch(batch):
+    for build in batch["builds"]:
+        cmd = build + " --nowait"
+
+        if "build_id" in batch:
+            cmd += " --with-build-id {}".format(batch["build_id"])
+        elif "depends_on" in batch:
+            parent = BATCHES[batch["depends_on"]]
+            cmd += " --after-build-id {}".format(parent["build_id"])
+
+        # schedule the build
+        output = _execute_command(cmd)
+
+
+        # remember the reference build ID for this batch
+        build_id = None
+        for line in output.split("\n"):
+            pfx = "Created builds: "
+            if not pfx in line:
+                continue
+            build_id = line[len(pfx):]
+            break
+        assert build_id
+
+        print("Created build: {}".format(build_id))
+
+        if not "build_id" in batch:
+            batch["build_id"] = build_id
+
+    assert "build_id" in batch
+
+def _main():
+    executed_batches = set()
+    while True:
+        something_done = False
+
+        for batch_name in BATCHES:
+            if batch_name in executed_batches:
+                continue
+
+            batch = BATCHES[batch_name]
+            if "depends_on" in batch:
+                if not batch["depends_on"] in executed_batches:
+                    continue
+            something_done = True
+            _execute_batch(batch)
+            executed_batches.add(batch_name)
+
+        if not something_done:
+            break
+
+if __name__ == "__main__":
+    _main()
