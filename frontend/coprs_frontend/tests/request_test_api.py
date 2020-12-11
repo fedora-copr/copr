@@ -200,6 +200,7 @@ class API3Requests(_RequestsInterface):
             data[config] = kwargs[config]
 
         resp = self.post(route, data)
+        assert resp.status_code == 200 if self.success_expected else 400
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,

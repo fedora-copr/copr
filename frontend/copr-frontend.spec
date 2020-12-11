@@ -76,6 +76,7 @@ BuildRequires: python3-CommonMark
 BuildRequires: python3-blinker
 BuildRequires: python3-beautifulsoup4
 BuildRequires: python3-copr-common >= 0.7
+BuildRequires: python3-email-validator
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator
 BuildRequires: python3-flask
@@ -137,6 +138,7 @@ Requires: python3-alembic
 Requires: python3-blinker
 Requires: python3-copr-common >= 0.7
 Requires: python3-dateutil
+Requires: python3-email-validator
 Requires: python3-flask
 %if 0%{?fedora} >= 31
 Requires: python3-flask-caching
