@@ -13,7 +13,7 @@
 # changing the version we make the package explicitly incompatible and
 # third-party flavor providers are notified they have to update their packages,
 # too.
-%global flavor_guard      %name-flavor = 3
+%global flavor_guard      %name-flavor = 4
 %global flavor_provides   Provides: %flavor_guard
 %global flavor_files_list %_datadir/copr/copr-flavor-filelist
 %global flavor_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
@@ -25,6 +25,7 @@
 %staticdir/favicon.ico                          \
 %staticdir/copr_logo.png                        \
 %staticdir/css/copr-flavor.css                  \
+%templatedir/additional_token_info.html         \
 %templatedir/project_info.html                  \
 %templatedir/quick_enable.html                  \
 %templatedir/user_meta.html                     \

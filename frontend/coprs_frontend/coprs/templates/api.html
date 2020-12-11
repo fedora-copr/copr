@@ -28,7 +28,7 @@
     </p>
 
     {% if g.user %}
-    <p>Your information (you can directly paste this into ~/.config/copr):</p>
+    {% include 'additional_token_info.html' %}
     <pre style="font-size:120%">
 [copr-cli]
 login = {{ g.user.api_login }}
