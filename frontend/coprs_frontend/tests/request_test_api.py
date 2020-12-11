@@ -37,7 +37,7 @@ class _RequestsInterface:
         """
         return self.test_class_object.transaction_username
 
-    def new_project(self, name, chroots, bootstrap=None, isolation=None):
+    def new_project(self, name, chroots, **kwargs):
         """ Request Copr project creation.  Return the resonse. """
         raise NotImplementedError
 
@@ -63,14 +63,16 @@ class _RequestsInterface:
 class WebUIRequests(_RequestsInterface):
     """ Mimic Web UI request behavior """
 
-    def new_project(self, name, chroots, bootstrap=None, isolation=None):
+    def new_project(self, name, chroots, **kwargs):
         data = {"name": name}
         for ch in chroots:
             data[ch] = 'y'
-        if bootstrap is not None:
-            data["bootstrap"] = bootstrap
-        if isolation is not None:
-            data["isolation"] = isolation
+
+        for config in ['bootstrap', 'isolation', 'contact', 'homepage']:
+            if not config in kwargs:
+                continue
+            data[config] = kwargs[config]
+
         resp = self.client.post(
             "/coprs/{0}/new/".format(self.transaction_username),
             data=data,
@@ -185,16 +187,18 @@ class API3Requests(_RequestsInterface):
         return self.test_class_object.get_api3_with_auth(
             url, content, self.test_class_object.transaction_user)
 
-    def new_project(self, name, chroots, bootstrap=None, isolation=None):
+    def new_project(self, name, chroots, **kwargs):
         route = "/api_3/project/add/{}".format(self.transaction_username)
         data = {
             "name": name,
             "chroots": chroots,
         }
-        if bootstrap is not None:
-            data["bootstrap"] = bootstrap
-        if isolation is not None:
-            data["isolation"] = isolation
+
+        for config in ['bootstrap', 'isolation', 'contact', 'homepage']:
+            if not config in kwargs:
+                continue
+            data[config] = kwargs[config]
+
         resp = self.post(route, data)
         return resp
 
