@@ -78,3 +78,10 @@ build_id_with_leading_zeroes()
 {
     printf "%08d" "$BUILD_ID"
 }
+
+get_srpm_builder_log()
+{
+    _log_file="$BACKEND_URL/results/$PROJECT/srpm-builds/$(build_id_with_leading_zeroes)/builder-live.log.gz"
+    rlLog "downloading $_log_file"
+    curl "$_log_file" | gunzip
+}
