@@ -67,7 +67,7 @@ def get_chroot_map():
     return chroots
 
 
-def check_rpm_results(path):
+def check_rpm_results(path, known_dists):
     """
     Check whether a directory contains only one set of RPM packages (e.g. not
     fc30 and fc31 at the same time)
@@ -81,6 +81,7 @@ def check_rpm_results(path):
         releases.append(release)
 
     dists = {x.rsplit(".", 1)[-1] for x in releases}
+    dists = {x for x in dists if x in known_dists}
     if len(dists) > 1:
         sys.stderr.write("{0}   ({1})\n".format(path, " ".join(dists)))
 
@@ -116,7 +117,7 @@ def main():
                     if not os.path.isdir(build_path):
                         continue
 
-                    check_rpm_results(build_path)
+                    check_rpm_results(build_path, chroot_map.values())
 
 
 if __name__ == '__main__':
