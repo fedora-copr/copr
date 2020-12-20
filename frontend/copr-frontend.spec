@@ -128,9 +128,7 @@ Requires: %flavor_guard
 
 Requires: (copr-selinux if selinux-policy-targeted)
 Requires: fedora-messaging
-Requires: js-html5shiv
 Requires: js-jquery
-Requires: js-respond
 Requires: python3-anytree
 Requires: python3-click
 Requires: python3-CommonMark
