@@ -827,8 +827,11 @@ class Commands(object):
         ownername, projectname = self.parse_name(args.copr)
 
         if args.yaml:
-            module = self.client.module_proxy.build_from_file(
-                    ownername, projectname, args.yaml, distgit=args.distgit)
+            try:
+                module = self.client.module_proxy.build_from_file(
+                        ownername, projectname, args.yaml, distgit=args.distgit)
+            except FileNotFoundError as e:
+                raise CoprRequestException("File '{filename}' not found".format(filename=e.filename))
         else:
             module = self.client.module_proxy.build_from_url(
                     ownername, projectname, args.url, distgit=args.distgit)
