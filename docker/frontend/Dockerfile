@@ -26,7 +26,8 @@ RUN dnf -y update && \
                    redis \
                    mock-core-configs \
                    findutils \
-                   copr-frontend
+                   copr-frontend \
+                   modulemd-tools
 
 COPY files/ /
 
