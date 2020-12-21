@@ -492,6 +492,13 @@ This is directory is always passed to mock with ``skip_if_unavailable=1``.
 So if Copr have it, then it is used, otherwise ignored. But if it is missing DNF/YUM print the warning above even if it
 is ignored. Currently there is no way to tell DNF/YUM to not print this warning.
 
+.. _`How can I affect the build order, is there a "chain" build support?`:
+
+Build batches can be used to guarantee the order in which the builds are
+processed (one build batch can depend on other build batch).
+See `blog post <https://pavel.raiskup.cz/blog/build-ordering-by-batches-in-copr.html>`_
+with examples for more info.
+
 .. _`I have a problem and I need to talk to a human.`:
 
 .. rubric:: I have a problem and I need to talk to a human.  :ref:`¶ <I have a problem and I need to talk to a human.>`
