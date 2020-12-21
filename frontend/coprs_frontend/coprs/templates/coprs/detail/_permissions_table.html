@@ -28,10 +28,11 @@
       {% endfor %}
       {{ permissions_table_row_current_user(current_user_permissions, permissions_applier_form, permissions_form) }}
     </table>
-    {% if g.user and (permissions_applier_form or permissions_form) %} {# TODO: when to display? #}
-    <input class="btn btn-primary pull-right" type="submit" value="Update">
-  </form>
+    {% set show_form = g.user and (permissions_applier_form or permissions_form)  %}
+    {% if show_form %}
+      <input class="btn btn-primary pull-right" type="submit" value="{% if g.user.can_edit(copr) %}Update{% else %}Request{% endif %}">
     {% endif %}
+  </form>
   {% else %}
     No permissions for other users for this Copr.
   {% endif %}
