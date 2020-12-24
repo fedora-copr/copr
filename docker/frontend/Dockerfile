@@ -1,4 +1,4 @@
-FROM fedora:32
+FROM fedora:33
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 # TERM is to make the tito work in container, rhbz#1733043
@@ -65,7 +65,7 @@ RUN chmod -R g+rwX \
     /var/log/httpd/
 
 # Use copr-fe user when running outside of OpenShift
-USER 993
+USER 996
 
 EXPOSE 5000
 
