@@ -11,9 +11,11 @@ RUN dnf install -y vim \
                    resalloc \
                    resalloc-server \
                    sqlite \
+                   findutils \
                    openssh-clients
 
 # copy filesystem setup
 COPY files/ /
 
-RUN cd /usr/lib/python3.8/site-packages/resallocserver && alembic-3 upgrade head
+RUN cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) \
+    && alembic-3 upgrade head
