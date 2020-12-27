@@ -27,3 +27,8 @@ services:
     environment:
       - PYTHONPATH=/opt/copr/frontend/coprs_frontend
     command: /usr/sbin/runuser -u copr-fe -g copr-fe -- /opt/copr/frontend/coprs_frontend/manage.py runserver -p 5000 -h 0.0.0.0 --without-threads --no-reload
+
+  distgit:
+    environment:
+      - PYTHONPATH=/opt/copr/dist-git
+    command: /usr/sbin/runuser -u copr-dist-git -g copr-dist-git -- /opt/copr/dist-git/run/importer_runner.py

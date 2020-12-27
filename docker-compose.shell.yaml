@@ -20,3 +20,6 @@ services:
 
   frontend:
     command: /bin/bash
+
+  distgit:
+    command: /bin/bash
