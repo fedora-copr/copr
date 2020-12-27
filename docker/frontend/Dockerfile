@@ -65,7 +65,7 @@ RUN chmod -R g+rwX \
     /var/log/httpd/
 
 # Use copr-fe user when running outside of OpenShift
-USER 994
+USER copr-fe
 
 EXPOSE 5000
 
