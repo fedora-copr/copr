@@ -16,4 +16,4 @@ RUN dnf install -y vim \
 # copy filesystem setup
 COPY files/ /
 
-RUN cd /usr/lib/python3.9/site-packages/resallocserver && alembic-3 upgrade head
+RUN cd /usr/lib/python3.8/site-packages/resallocserver && alembic-3 upgrade head
