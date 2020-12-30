@@ -494,6 +494,8 @@ is ignored. Currently there is no way to tell DNF/YUM to not print this warning.
 
 .. _`How can I affect the build order, is there a "chain" build support?`:
 
+.. rubric:: How can I affect the build order, is there a "chain" build support? :ref:`¶ <How can I affect the build order, is there a "chain" build support?>`
+
 Build batches can be used to guarantee the order in which the builds are
 processed (one build batch can depend on other build batch).
 See `blog post <https://pavel.raiskup.cz/blog/build-ordering-by-batches-in-copr.html>`_
