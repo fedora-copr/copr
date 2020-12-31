@@ -67,6 +67,12 @@ RUN chmod -R g+rwX \
 # Use copr-fe user when running outside of OpenShift
 USER copr-fe
 
+# Since home directory for `copr-fe` user is `/usr/share/copr/coprs_frontend`
+# and we don't want .bashrc file in there, the bash prompt is `bash-5.0$` which
+# looks bad in copy-pasted outputs and tutorials. I borrowed this one from
+# /root/.bashrc
+ENV PS1="[\u@\h \W]\$ "
+
 EXPOSE 5000
 
 CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
