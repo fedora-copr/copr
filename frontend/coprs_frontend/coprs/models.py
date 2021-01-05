@@ -2147,7 +2147,8 @@ class ReviewedOutdatedChroot(db.Model):
     )
     copr_chroot = db.relationship(
         "CoprChroot",
-        backref=db.backref("reviewed_outdated_chroots")
+        backref=db.backref("reviewed_outdated_chroots",
+                           cascade="all, delete-orphan")
     )
 
 
