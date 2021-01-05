@@ -19,8 +19,12 @@
 """
 Cancel the background copr-rpmbuild process
 
-Attempt (best effort) to cancel the background running process.  The Copr
-backend code doesn't expect us to fail.
+Attempt (best effort) to cancel the background running process group.  The
+current implementation mimics the situation when 'copr-rpmbuild' is run in
+foreground (no --detached flag specified) and CTRL+C is pressed in the attached
+terminal.
+
+The Copr backend code doesn't expect us to fail.
 """
 
 import logging
@@ -44,26 +48,27 @@ def _get_stderr_logger():
 
 LOG = _get_stderr_logger()
 
-def _is_running(pid):
+def _is_running(pgid):
     try:
-        os.kill(pid, 0)
+        os.killpg(pgid, 0)
     except OSError:
-        # process not found, already shut-down
+        # no processes in this group found, already shut-down
         return False
     return True
 
-def _send_signal(pid, signum):
+def _send_signal(pgid, signum):
     try:
-        os.kill(pid, signum)
+        os.killpg(pgid, signum)
     except OSError as err:
-        LOG.warning("can't interrupt: %s (sig=%s)", err, signum)
+        LOG.warning("can't interrupt process group %s: %s (sig=%s)",
+                    pgid, err, signum)
 
 def _main():
     with open(PIDFILE, "r") as pidfd:
         pid = int(pidfd.read().strip())
 
     start = time.time()
-    LOG.debug("Trying to stop pid %s", pid)
+    LOG.debug("Trying to stop process group %s", pid)
     found = False
     while _is_running(pid):
         found = True
