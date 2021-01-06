@@ -18,6 +18,8 @@ def get_form_compatible_data(preserve=None):
         output[k] = v
 
     # Our WTForms expect chroots to be this way
+    # We don't need this workaround for `BuildForm*` forms anymore but we still
+    # need it for `CoprForm`
     for chroot in input.get("chroots") or []:
         output[chroot] = True
 

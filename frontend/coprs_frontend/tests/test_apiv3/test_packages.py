@@ -13,7 +13,7 @@ from tests.coprs_test_case import CoprsTestCase
 from tests.test_apiv3.test_builds import CASES
 
 
-CHROOTS = [[], ["fedora-18-x86_64"], ["fedora-17-i386"]]
+CHROOTS = [[], ["fedora-17-i386"]]
 
 
 class TestAPIv3Packages(CoprsTestCase):

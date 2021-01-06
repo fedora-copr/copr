@@ -581,18 +581,15 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
       Chroots:
     </label>
     <div class="col-sm-10" id="chroots">
-    {% for group_set, chs in form.chroots_sets.items() %}
-      {% set outer_loop = loop %}
-      {% for ch in chs %}
+      {% for ch in form.chroots %}
         <div class="checkbox">
           <label>
-            {{ form|attr(ch) }}
-            {{ form|attr(ch)|attr('label') }}
-            {% if outer_loop.last and loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
+            {{ ch }}
+            {{ ch.label }}
+            {% if loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
           </label>
         </div>
       {% endfor %}
-    {% endfor %}
     </div>
   </div>
   {{ form.csrf_token }}

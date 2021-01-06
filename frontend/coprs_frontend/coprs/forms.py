@@ -1096,11 +1096,7 @@ def _get_build_form(active_chroots, form, package=None):
     class F(form):
         @property
         def selected_chroots(self):
-            selected = []
-            for ch in self.chroots_list:
-                if getattr(self, ch).data:
-                    selected.append(ch)
-            return selected
+            return self.chroots.data
 
     F.timeout = wtforms.IntegerField(
         "Timeout",
@@ -1127,19 +1123,15 @@ def _get_build_form(active_chroots, form, package=None):
     # fill chroots based on project settings
     F.chroots_list = [x.name for x in active_chroots]
     F.chroots_list.sort()
-    F.chroots_sets = {}
 
     package_chroots = set(F.chroots_list)
     if package:
         package_chroots = set([ch.name for ch in package.chroots])
 
-    for ch in F.chroots_list:
-        default = ch in package_chroots
-        setattr(F, ch, wtforms.BooleanField(ch, default=default, false_values=FALSE_VALUES))
-        if ch[0] in F.chroots_sets:
-            F.chroots_sets[ch[0]].append(ch)
-        else:
-            F.chroots_sets[ch[0]] = [ch]
+    F.chroots = MultiCheckboxField(
+        "Chroots",
+        choices=[(ch, ch) for ch in F.chroots_list],
+        default=[ch for ch in F.chroots_list if ch in package_chroots])
 
     F.after_build_id = wtforms.IntegerField(
         "Batch-build after",

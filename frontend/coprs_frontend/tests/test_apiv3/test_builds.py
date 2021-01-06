@@ -82,11 +82,13 @@ CASES = [(
     },
 )]
 
-BUILDOPTS = [{}, {
-    "chroots": ["fedora-18-x86_64"],
-}, {
-    "chroots": ["fedora-17-x86_64"],
-}]
+
+BUILDOPTS = [
+    {},
+    {
+        "chroots": ["fedora-17-x86_64"],
+    }
+]
 
 
 # 1. description

@@ -19,7 +19,7 @@ class TestDistGitMethod(CoprsTestCase):
         data = {
             "package_name": "mock",
             "committish": "master",
-            "fedora-18-x86_64": True,
+            "chroots": ["fedora-18-x86_64"],
         }
         endpoint = "/coprs/{0}/{1}/new_build_distgit/".format(self.u1.name,
                                                               self.c1.name)

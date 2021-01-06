@@ -124,12 +124,8 @@ class WebUIRequests(_RequestsInterface):
     def _form_data_from_build_options(build_options):
         if build_options is None:
             build_options = {}
-        form_data = {}
-        chroots = build_options.get("chroots")
-        if chroots:
-            for ch in chroots:
-                form_data[ch] = 'y'
 
+        form_data = {"chroots": build_options.get("chroots")}
         for attr in ["bootstrap", "with_build_id", "after_build_id", "isolation"]:
             value = build_options.get(attr)
             if value is None:

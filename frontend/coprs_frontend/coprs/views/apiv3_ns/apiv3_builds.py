@@ -128,7 +128,7 @@ def cancel_build(build_id):
 @api_login_required
 def create_from_url():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = get_form_compatible_data(preserve=["chroots"])
     form = forms.BuildFormUrlFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build(options):
@@ -147,7 +147,7 @@ def create_from_url():
 @file_upload()
 def create_from_upload():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = get_form_compatible_data(preserve=["chroots"])
     form = forms.BuildFormUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build(options):
@@ -164,7 +164,7 @@ def create_from_upload():
 @api_login_required
 def create_from_scm():
     copr = get_copr()
-    data = rename_fields(get_form_compatible_data())
+    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
     form = forms.BuildFormScmFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build(options):
@@ -188,7 +188,7 @@ def create_from_distgit():
     route for v3.proxies.create_from_distgit() call
     """
     copr = get_copr()
-    data = rename_fields(get_form_compatible_data())
+    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
     # pylint: disable=not-callable
     form = forms.BuildFormDistGitSimpleFactory(copr.active_chroots)(data, meta={'csrf': False})
 
@@ -232,7 +232,7 @@ def create_from_pypi():
 @api_login_required
 def create_from_rubygems():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = get_form_compatible_data(preserve=["chroots"])
     form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build(options):
@@ -249,7 +249,7 @@ def create_from_rubygems():
 @api_login_required
 def create_from_custom():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = get_form_compatible_data(preserve=["chroots"])
     form = forms.BuildFormCustomFactory(copr.active_chroots)(data, meta={'csrf': False})
 
     def create_new_build(options):
