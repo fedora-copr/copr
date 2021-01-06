@@ -612,10 +612,10 @@ def seconds_to_pretty_hours(sec):
 
 
 class BuildFormRebuildFactory(object):
-    # TODO: drop, and use BaseBuildFormFactory directly
+    # TODO: drop, and use _get_build_form directly
     @staticmethod
     def create_form_cls(active_chroots):
-        return BaseBuildFormFactory(active_chroots, FlaskForm)
+        return _get_build_form(active_chroots, FlaskForm)
 
 
 class RebuildPackageFactory(object):
@@ -1083,7 +1083,7 @@ class PackageFormDistGitSimple(BasePackageForm):
 
 class RebuildAllPackagesFormFactory(object):
     def __new__(cls, active_chroots, package_names):
-        form_cls = BaseBuildFormFactory(active_chroots, FlaskForm)
+        form_cls = _get_build_form(active_chroots, FlaskForm)
         form_cls.packages = MultiCheckboxField(
             "Packages",
             choices=[(name, name) for name in package_names],
@@ -1092,116 +1092,111 @@ class RebuildAllPackagesFormFactory(object):
         return form_cls
 
 
-class BaseBuildFormFactory(object):
-    # TODO: Change this to just 'def get_build_form(...)'.  The __new__
-    #       hack confuses not only PyLint (on each calling place it claims
-    #       that the return value is not callable.  __new__ isn't supposed
-    #       to return classes, but instances.
-    def __new__(cls, active_chroots, form, package=None):
-        class F(form):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
+def _get_build_form(active_chroots, form, package=None):
+    class F(form):
+        @property
+        def selected_chroots(self):
+            selected = []
+            for ch in self.chroots_list:
+                if getattr(self, ch).data:
+                    selected.append(ch)
+            return selected
 
-        F.timeout = wtforms.IntegerField(
-            "Timeout",
-            description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
-                app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
-            validators=[
-                wtforms.validators.Optional(),
-                wtforms.validators.NumberRange(
-                    min=app.config["MIN_BUILD_TIMEOUT"],
-                    max=app.config["MAX_BUILD_TIMEOUT"])],
-            default=app.config["DEFAULT_BUILD_TIMEOUT"])
+    F.timeout = wtforms.IntegerField(
+        "Timeout",
+        description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
+            app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.NumberRange(
+                min=app.config["MIN_BUILD_TIMEOUT"],
+                max=app.config["MAX_BUILD_TIMEOUT"])],
+        default=app.config["DEFAULT_BUILD_TIMEOUT"])
 
-        F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
-        F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
-        F.project_dirname = wtforms.StringField(default=None)
-        F.bootstrap = create_mock_bootstrap_field("build")
-        F.isolation = create_isolation_field("build")
+    F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
+    F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+    F.project_dirname = wtforms.StringField(default=None)
+    F.bootstrap = create_mock_bootstrap_field("build")
+    F.isolation = create_isolation_field("build")
 
-        # Overrides BasePackageForm.package_name, it is usually unused for
-        # building
-        if not getattr(F, "build_requires_package_name", None):
-            F.package_name = wtforms.StringField()
+    # Overrides BasePackageForm.package_name, it is usually unused for
+    # building
+    if not getattr(F, "build_requires_package_name", None):
+        F.package_name = wtforms.StringField()
 
-        # fill chroots based on project settings
-        F.chroots_list = [x.name for x in active_chroots]
-        F.chroots_list.sort()
-        F.chroots_sets = {}
+    # fill chroots based on project settings
+    F.chroots_list = [x.name for x in active_chroots]
+    F.chroots_list.sort()
+    F.chroots_sets = {}
 
-        package_chroots = set(F.chroots_list)
-        if package:
-            package_chroots = set([ch.name for ch in package.chroots])
+    package_chroots = set(F.chroots_list)
+    if package:
+        package_chroots = set([ch.name for ch in package.chroots])
 
-        for ch in F.chroots_list:
-            default = ch in package_chroots
-            setattr(F, ch, wtforms.BooleanField(ch, default=default, false_values=FALSE_VALUES))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
+    for ch in F.chroots_list:
+        default = ch in package_chroots
+        setattr(F, ch, wtforms.BooleanField(ch, default=default, false_values=FALSE_VALUES))
+        if ch[0] in F.chroots_sets:
+            F.chroots_sets[ch[0]].append(ch)
+        else:
+            F.chroots_sets[ch[0]] = [ch]
 
-        F.after_build_id = wtforms.IntegerField(
-            "Batch-build after",
-            description=(
-                "Optional - Build after the batch containing "
-                "the Build ID build."
-            ),
-            validators=[
-                wtforms.validators.Optional()],
-            render_kw={'placeholder': 'Build ID'},
-            filters=[NoneFilter(None)],
-        )
+    F.after_build_id = wtforms.IntegerField(
+        "Batch-build after",
+        description=(
+            "Optional - Build after the batch containing "
+            "the Build ID build."
+        ),
+        validators=[
+            wtforms.validators.Optional()],
+        render_kw={'placeholder': 'Build ID'},
+        filters=[NoneFilter(None)],
+    )
 
-        F.with_build_id = wtforms.IntegerField(
-            "Batch-build with",
-            description=(
-                "Optional - Build in the same batch with the Build ID build"
-            ),
-            render_kw={'placeholder': 'Build ID'},
-            validators=[
-                wtforms.validators.Optional()],
-            filters=[NoneFilter(None)],
-        )
+    F.with_build_id = wtforms.IntegerField(
+        "Batch-build with",
+        description=(
+            "Optional - Build in the same batch with the Build ID build"
+        ),
+        render_kw={'placeholder': 'Build ID'},
+        validators=[
+            wtforms.validators.Optional()],
+        filters=[NoneFilter(None)],
+    )
 
-        def _validate_batch_opts(form, field):
-            counterpart = form.with_build_id
-            modifies = False
-            if counterpart == field:
-                counterpart = form.after_build_id
-                modifies = True
+    def _validate_batch_opts(form, field):
+        counterpart = form.with_build_id
+        modifies = False
+        if counterpart == field:
+            counterpart = form.after_build_id
+            modifies = True
 
-            if counterpart.data:
-                raise wtforms.ValidationError(
-                    "Only one batch option can be specified")
+        if counterpart.data:
+            raise wtforms.ValidationError(
+                "Only one batch option can be specified")
 
-            build_id = field.data
-            if not build_id:
-                return
+        build_id = field.data
+        if not build_id:
+            return
 
-            build_id = int(build_id)
-            build = models.Build.query.get(build_id)
-            if not build:
-                raise wtforms.ValidationError(
-                    "Build {} not found".format(build_id))
-            batch_error = build.batching_user_error(flask.g.user, modifies)
-            if batch_error:
-                raise wtforms.ValidationError(batch_error)
+        build_id = int(build_id)
+        build = models.Build.query.get(build_id)
+        if not build:
+            raise wtforms.ValidationError(
+                "Build {} not found".format(build_id))
+        batch_error = build.batching_user_error(flask.g.user, modifies)
+        if batch_error:
+            raise wtforms.ValidationError(batch_error)
 
-        F.validate_with_build_id = _validate_batch_opts
-        F.validate_after_build_id = _validate_batch_opts
+    F.validate_with_build_id = _validate_batch_opts
+    F.validate_after_build_id = _validate_batch_opts
 
-        return F
+    return F
 
 
 class BuildFormScmFactory(object):
     def __new__(cls, active_chroots, package=None):
-        return BaseBuildFormFactory(active_chroots, PackageFormScm, package)
+        return _get_build_form(active_chroots, PackageFormScm, package)
 
 
 class BuildFormTitoFactory(object):
@@ -1209,7 +1204,7 @@ class BuildFormTitoFactory(object):
     @deprecated
     """
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormTito)
+        return _get_build_form(active_chroots, PackageFormTito)
 
 
 class BuildFormMockFactory(object):
@@ -1217,27 +1212,27 @@ class BuildFormMockFactory(object):
     @deprecated
     """
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormMock)
+        return _get_build_form(active_chroots, PackageFormMock)
 
 
 class BuildFormPyPIFactory(object):
     def __new__(cls, active_chroots, package=None):
-        return BaseBuildFormFactory(active_chroots, PackageFormPyPI, package)
+        return _get_build_form(active_chroots, PackageFormPyPI, package)
 
 
 class BuildFormRubyGemsFactory(object):
     def __new__(cls, active_chroots, package=None):
-        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems, package)
+        return _get_build_form(active_chroots, PackageFormRubyGems, package)
 
 
 class BuildFormDistGitFactory(object):
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormDistGit)
+        return _get_build_form(active_chroots, PackageFormDistGit)
 
 
 class BuildFormUploadFactory(object):
     def __new__(cls, active_chroots):
-        form = BaseBuildFormFactory(active_chroots, FlaskForm)
+        form = _get_build_form(active_chroots, FlaskForm)
         form.pkgs = FileField('srpm', validators=[
             FileRequired(),
             SrpmValidator()])
@@ -1246,7 +1241,7 @@ class BuildFormUploadFactory(object):
 
 class BuildFormCustomFactory(object):
     def __new__(cls, active_chroots, package=None):
-        return BaseBuildFormFactory(active_chroots, PackageFormCustom, package)
+        return _get_build_form(active_chroots, PackageFormCustom, package)
 
 
 class BuildFormDistGitSimpleFactory:
@@ -1254,12 +1249,12 @@ class BuildFormDistGitSimpleFactory:
     Transform DistGitSimple package form into build form
     """
     def __new__(cls, active_chroots, package=None):
-        return BaseBuildFormFactory(active_chroots, PackageFormDistGitSimple,
+        return _get_build_form(active_chroots, PackageFormDistGitSimple,
                                     package)
 
 class BuildFormUrlFactory(object):
     def __new__(cls, active_chroots):
-        form = BaseBuildFormFactory(active_chroots, FlaskForm)
+        form = _get_build_form(active_chroots, FlaskForm)
         form.pkgs = wtforms.TextAreaField(
             "Pkgs",
             validators=[
