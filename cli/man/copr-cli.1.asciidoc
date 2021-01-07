@@ -207,6 +207,10 @@ usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout T
 -r, --chroot::
 If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
 
+--exclude-chroot::
+If you don't need this build for all the project's chroots. You can use it
+several times for each chroot you don't need.
+
 --memory::
 Override memory for this build. This is actually not used and it have no effect.
 

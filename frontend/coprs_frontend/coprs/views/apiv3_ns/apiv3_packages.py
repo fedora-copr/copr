@@ -157,7 +157,8 @@ def package_reset():
 @api_login_required
 def package_build():
     copr = get_copr()
-    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
+    data = rename_fields(get_form_compatible_data(
+        preserve=["python_versions", "chroots", "exclude_chroots"]))
     form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, meta={'csrf': False})
     try:
         package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]

@@ -114,7 +114,7 @@ def buildopts_from_args(args, progress_callback):
         "background": args.background,
         "progress_callback": progress_callback,
     }
-    for opt in ["bootstrap", "after_build_id", "with_build_id", "isolation"]:
+    for opt in ["exclude_chroots", "bootstrap", "after_build_id", "with_build_id", "isolation"]:
         value = getattr(args, opt)
         if value is not None:
             buildopts[opt] = value
@@ -1157,6 +1157,15 @@ def setup_parser():
                                      help="Don't wait for build")
     parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
                                      help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
+
+    parser_build_parent.add_argument(
+        "--exclude-chroot",
+        dest="exclude_chroots",
+        action="append",
+        help=("If you don't need this build for all the project's chroots."
+              "You can use it several times for each chroot you don't need.")
+    )
+
     parser_build_parent.add_argument("--background", dest="background", action="store_true", default=False,
                                      help="Mark the build as a background job. It will have lesser priority than regular builds.")
     parser_build_parent.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",

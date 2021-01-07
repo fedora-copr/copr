@@ -190,6 +190,28 @@ class TestAPIv3Builds(CoprsTestCase):
         assert response2.json["ownername"] == "user2"
         assert response2.json["projectname"] == "foocopr"
 
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_other_distgit", "f_db")
+    @pytest.mark.parametrize("case", CASES)
+    @pytest.mark.parametrize("exclude_chroots", [[], ["fedora-17-x86_64"]])
+    def test_v3_builds_exclude_chroots(self, exclude_chroots, case):
+        source_type_text, data, source_json, _ = case
+        form_data = copy.deepcopy(data)
+        form_data.update({"exclude_chroots": exclude_chroots})
+
+        endpoint = "/api_3/build/create/distgit"
+        user = self.models.User.query.filter_by(username="user2").first()
+        r = self.post_api3_with_auth(endpoint, form_data, user)
+        assert r.status_code == 200
+        build = self.models.Build.query.first()
+
+        if not exclude_chroots:
+            assert not build.chroots
+            return
+
+        expected = {ch.name for ch in build.copr.active_chroots}
+        expected -= set(exclude_chroots)
+        assert {ch.name for ch in build.chroots} == expected
 
 class TestWebUIBuilds(CoprsTestCase):
 
