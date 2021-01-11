@@ -63,6 +63,9 @@ sleeptime=30
 # minimum age for builds to be pruned
 prune_days=14
 
+# how many prune processes we can run in paralell
+# max_prune_processes = 50
+
 # logging settings
 #log_dir=/var/log/copr-backend/
 #log_level=info

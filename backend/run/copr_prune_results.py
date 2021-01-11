@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 
+import logging
 import os
 import shutil
 import sys
-import logging
 import subprocess
 import pwd
 import time
 import argparse
+import signal
 
 import json
-
-log = logging.getLogger(__name__)
+import multiprocessing
 
 from copr.exceptions import CoprException
 from copr.exceptions import CoprRequestException
@@ -21,8 +21,10 @@ from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_aut
 from copr_backend.frontend import FrontendClient
 from copr_backend.createrepo import createrepo
 
-DEF_DAYS = 14
+log = multiprocessing.get_logger()
 
+DEF_DAYS = 14
+MAX_PROCESS = 50
 
 parser = argparse.ArgumentParser(
         description="Automatically prune copr result directory")
@@ -65,6 +67,18 @@ def runcmd(cmd):
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
+def run_prunerepo(cmd, chroot_path, username, projectname, projectdir, sub_dir_name, prune_days):
+    # ignore the SIGINT otherwise prunerepo will print to broken pipe when Ctrl+C
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+        result = runcmd(cmd)
+        createrepo(path=chroot_path, username=username,
+                   projectname=projectname)
+        clean_copr(chroot_path, prune_days, verbose=True)
+        return result
+    except Exception as err:
+        logexception(err)
+        logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
 
 class Pruner(object):
     def __init__(self, opts, cmdline_opts=None):
@@ -73,8 +87,16 @@ class Pruner(object):
         self.chroots = {}
         self.frontend_client = FrontendClient(self.opts)
         self.mtime_optimization = True
+        self.max_processes = getattr(self.opts, "max_prune_processes", MAX_PROCESS)
+        self.pool = multiprocessing.Pool(processes=self.max_processes)
         if cmdline_opts:
             self.mtime_optimization = not cmdline_opts.no_mtime_optimization
+
+    def __del__(self):
+        # see the warning at
+        # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool
+        self.pool.close()
+        self.pool.join()
 
     def run(self):
         response = self.frontend_client.get("chroots-prunerepo-status")
@@ -102,6 +124,8 @@ class Pruner(object):
                 chroots_to_prune.append(chroot)
         self.frontend_client.post(chroots_to_prune, "final-prunerepo-done")
 
+        self.pool.close()
+        self.pool.join()
         loginfo("--------------------------------------------")
         loginfo("Pruning finished")
 
@@ -158,21 +182,15 @@ class Pruner(object):
                     loginfo("Skipping {} - not changed for {} days".format(
                         sub_dir_name, touched_before))
                     continue
+            cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days), '--nocreaterepo', chroot_path]
+            self.pool.apply_async(run_prunerepo,
+                                  (cmd, chroot_path, username, projectname,
+                                   projectdir, sub_dir_name, self.prune_days),
+                                  callback=loginfo, error_callback=logerror)
 
-            try:
-                cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days), '--nocreaterepo', chroot_path]
-                stdout = runcmd(cmd)
-                loginfo(stdout)
-                createrepo(path=chroot_path, username=username,
-                           projectname=projectname)
-                clean_copr(chroot_path, self.prune_days, verbose=True)
-            except Exception as err:
-                logexception(err)
-                logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
-
-            loginfo("Pruning done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
-
-        loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
+            # this does not make sense unless max_prune_processes is set to 1
+            #loginfo("Pruning done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
+        #loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
 
 
 def clean_copr(path, days=DEF_DAYS, verbose=True):
