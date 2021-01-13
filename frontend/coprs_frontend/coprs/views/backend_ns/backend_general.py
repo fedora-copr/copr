@@ -119,9 +119,9 @@ def get_build_record(task, short=False):
             return build_record
 
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
-        if copr_chroot.module_toggle_array:
-            array = [{'enable': m} for m in copr_chroot.module_toggle_array]
-            build_record["modules"] = {'toggle': array}
+        modules = copr_chroot.module_setup_commands
+        if modules:
+            build_record["modules"] = {'toggle': modules}
 
         build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
         build_record["repos"] = build_config.get("repos")

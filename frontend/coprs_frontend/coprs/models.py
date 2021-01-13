@@ -1616,14 +1616,14 @@ class CoprChroot(db.Model, helpers.Serializer):
         return "less then an hour"
 
     @property
-    def module_toggle_array(self):
-        if not self.module_toggle:
-            return []
-        module_enable = []
-        for m in self.module_toggle.split(','):
-            if m[0] != "!":
-                module_enable.append(m)
-        return module_enable
+    def module_setup_commands(self):
+        commands = []
+        modules = self.module_toggle.split(",") if self.module_toggle else []
+        for m in modules:
+            m = m.strip()
+            mod_tuple = {"disable": m[1:]} if m[0] == "!" else {"enable": m}
+            commands.append(mod_tuple)
+        return commands
 
     def to_dict(self):
         options = {"__columns_only__": [

@@ -22,19 +22,23 @@ class TestGetBuildTask(CoprsTestCase):
         data = json.loads(r.decode("utf-8"))
         assert data['modules']['toggle'] == [{'enable': 'XXX'}]
 
-    @skip("Modules disable not implemented yet.")
     def test_module_name_disable(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.c1.copr_chroots[0].module_toggle = "!XXX"
         r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
         data = json.loads(r.decode("utf-8"))
-        assert data['modules']['toggle'] == [{'disable': '!XXX'}]
+        assert data['modules']['toggle'] == [{'disable': 'XXX'}]
 
-    @skip("Modules disable not implemented yet.")
     def test_module_name_many_modules(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        self.c1.copr_chroots[0].module_toggle = "!XXX,YYY,ZZZ"
+        self.c1.copr_chroots[0].module_toggle = "XXX,!YYY,ZZZ"
         r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
         data = json.loads(r.decode("utf-8"))
-        assert data['modules']['toggle'] == [{'disable': '!XXX'}, {'enable': 'YYY'}, {'enable': 'ZZZ'}]
+        assert data['modules']['toggle'] == [{'enable': 'XXX'}, {'disable': 'YYY'}, {'enable': 'ZZZ'}]
+
+    def test_module_name_modules_with_spaces(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.c1.copr_chroots[0].module_toggle = "!XXX, YYY, ZZZ"
+        r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+        assert data['modules']['toggle'] == [{'disable': 'XXX'}, {'enable': 'YYY'}, {'enable': 'ZZZ'}]
 
 class TestWaitingBuilds(CoprsTestCase):
 

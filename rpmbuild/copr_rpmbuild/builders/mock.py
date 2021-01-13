@@ -78,7 +78,7 @@ class MockBuilder(object):
                                bootstrap_image=self.bootstrap_image,
                                repos=self.repos,
                                copr_username=self.copr_username, copr_projectname=self.copr_projectname,
-                               modules=self.enable_modules,
+                               modules=self.module_setup_commands,
                                copr_build_id=self.build_id,
                                vendor=self.vendor, isolation=self.isolation)
 
@@ -136,11 +136,11 @@ class MockBuilder(object):
         return os.path.join(self.configdir, "child.cfg")
 
     @property
-    def enable_modules(self):
+    def module_setup_commands(self):
         """ Return the list() of modules to be enabled """
-        enable = []
+        tuples  = []
         if self.modules is None:
-            return enable
+            return tuples
 
         assert isinstance(self.modules, dict)
         assert 'toggle' in self.modules
@@ -149,13 +149,15 @@ class MockBuilder(object):
 
         for toggle in self.modules['toggle']:
             assert isinstance(toggle, dict)
-            # we only have 'enable' now
-            assert 'enable' in toggle
-            assert isinstance(toggle['enable'], str)
-            module = toggle['enable'].strip()
-            enable.append(module)
+            # The toggle dict should always basically be a tuple of two items
+            assert len(toggle) == 1
+            command, module = toggle.popitem()
+            # we only have 'enable' and 'disable' now
+            assert command in ["enable", "disable"]
+            assert isinstance(module, str)
+            tuples.append((command, module))
 
-        return enable
+        return tuples
 
     def produce_rpm(self, srpm, resultdir):
         cmd = MOCK_CALL + [

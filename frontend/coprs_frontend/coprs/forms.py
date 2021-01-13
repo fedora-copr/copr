@@ -1317,7 +1317,7 @@ class ChrootForm(FlaskForm):
 
     comps = FileField("comps_xml")
 
-    module_toggle = wtforms.StringField("Enable module",
+    module_toggle = wtforms.StringField("Modules",
                                         validators=[ModuleEnableNameValidator()],
                                         filters=[StringWhiteCharactersFilter()]
                                         )

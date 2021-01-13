@@ -227,11 +227,9 @@ config_opts['macros']['%buildtag'] = '.copr10'
 
         part_of_expected_output = (
             "config_opts['macros']['%buildtag'] = '.copr10'\n"
-            "\n"
-            "{0}\n"
-        ).format('\n'.join(
-            ['config_opts["module_enable"] += ["{0}"]'.format(module.strip()) for module in modules]
-        ))
+            "config_opts['module_setup_commands'] = {0}\n\n"
+             .format(str([('enable', module) for module in modules]))
+        )
 
         config = ''.join(open(self.child_config, 'r').readlines())
         assert part_of_expected_output in config

@@ -33,9 +33,10 @@ config_opts['use_bootstrap_image'] = True
 config_opts['bootstrap_image'] = "{{ bootstrap_image }}"
 {%- endif %}
 {%- endif %}
-{% for module in modules %}
-config_opts["module_enable"] += ["{{ module }}"]
-{%- endfor %}
+{%- if modules %}
+config_opts['module_setup_commands'] = {{ modules |pprint }}
+{%- endif %}
+
 {% if repos %}
 config_opts[f"{config_opts.package_manager}.conf"] += """
 {% for repo in repos %}
