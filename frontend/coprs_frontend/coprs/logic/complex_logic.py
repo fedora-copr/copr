@@ -329,7 +329,7 @@ class ProjectForking(object):
 
             fcopr_dir = models.CoprDir(name=fcopr.name, copr=fcopr, main=True)
 
-            for chroot in list(copr.copr_chroots):
+            for chroot in list(copr.active_copr_chroots):
                 CoprChrootsLogic.create_chroot(self.user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
                                                chroot.repos, comps=chroot.comps, comps_name=chroot.comps_name,
                                                with_opts=chroot.with_opts, without_opts=chroot.without_opts)

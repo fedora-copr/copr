@@ -57,6 +57,41 @@ class TestComplexLogic(CoprsTestCase):
                                '6-hello-world': '00000013-hello-world',
                                '11-new-package': '00000015-new-package'}}
 
+    @new_app_context
+    @mock.patch("flask.g")
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
+    def test_fork_copr_with_eoled_chroots(self, mc_flask_g):
+        mc_flask_g.user.name = self.u2.name
+
+        # disable fedora-17-i386
+        self.mc3.is_active = False
+        self.db.session.add(self.mc3)
+        self.db.session.commit()
+
+        new_copr, created = ComplexLogic.fork_copr(self.c2, self.u2, u"dstname")
+        assert created
+        assert [cc.mock_chroot.name for cc in new_copr.copr_chroots] == [
+            "fedora-17-x86_64"
+        ]
+
+        self.db.session.commit()
+        actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
+        assert len(actions) == 1
+        data = json.loads(actions[0].data)
+        assert data["user"] == self.u2.name
+        assert data["copr"] == "dstname"
+        assert data["builds_map"] == {
+            'srpm-builds': {
+                '00000008-whatsupthere-world': '00000012',
+                '00000006-hello-world': '00000013',
+                '00000010-new-package': '00000014',
+            },
+            'fedora-17-x86_64': {
+                '8-whatsupthere-world': '00000012-whatsupthere-world',
+                '6-hello-world': '00000013-hello-world',
+                '10-new-package': '00000014-new-package',
+        }}
+
     def test_delete_expired_coprs(self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
         query = self.db.session.query(models.Copr)
 
