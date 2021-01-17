@@ -131,7 +131,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
 
 def turn_on_the_chroot_for_copr(copr, rawhide_name, mock_chroot):
     rawhide_chroot = None
-    for chroot in copr.copr_chroots:
+    for chroot in copr.active_copr_chroots:
         if chroot.name == rawhide_name:
             rawhide_chroot = chroot
         if chroot.name == mock_chroot.name:

@@ -420,7 +420,7 @@ class Copr(db.Model, helpers.Serializer):
         """
         Return list of active mock_chroots of this copr
         """
-        return [mc for mc in self.mock_chroots if mc.is_active]
+        return [cc.mock_chroot for cc in self.active_copr_chroots]
 
     @property
     def enable_permissible_chroots(self):
@@ -429,7 +429,8 @@ class Copr(db.Model, helpers.Serializer):
         assigned to this copr.
         """
         return [cc.mock_chroot for cc in self.copr_chroots
-                if not cc.delete_after_expired]
+                if not cc.delete_after_expired
+                and not cc.deleted]
 
     @property
     def active_multilib_chroots(self):
@@ -458,7 +459,7 @@ class Copr(db.Model, helpers.Serializer):
         """
         :rtype: list of CoprChroot
         """
-        return [c for c in self.copr_chroots if c.is_active]
+        return [c for c in self.copr_chroots if c.is_active and not c.deleted]
 
     @property
     def active_chroots_sorted(self):
@@ -469,7 +470,8 @@ class Copr(db.Model, helpers.Serializer):
 
     @property
     def outdated_chroots(self):
-        return sorted([chroot for chroot in self.copr_chroots if chroot.delete_after],
+        return sorted([chroot for chroot in self.active_copr_chroots
+                       if chroot.delete_after],
                       key=lambda ch: ch.name)
 
     @property
@@ -509,10 +511,11 @@ class Copr(db.Model, helpers.Serializer):
         Return list of chroots which has been modified
         """
         modified_chroots = []
-        for chroot in self.copr_chroots:
-            if ((chroot.buildroot_pkgs or chroot.repos
-                 or chroot.with_opts or chroot.without_opts)
-                    and chroot.is_active):
+        for chroot in self.active_copr_chroots:
+            if (chroot.buildroot_pkgs
+                or chroot.repos
+                or chroot.with_opts
+                or chroot.without_opts):
                 modified_chroots.append(chroot)
         return modified_chroots
 
@@ -1548,6 +1551,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     bootstrap_image = db.Column(db.Text)
 
     isolation = db.Column(db.Text, default="unchanged")
+    deleted = db.Column(db.Boolean, default=False)
 
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):

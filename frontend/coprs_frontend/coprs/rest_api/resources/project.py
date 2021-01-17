@@ -144,7 +144,7 @@ class ProjectR(Resource):
         if req_args["show_chroots"]:
             answer["project_chroots"] = [
                 render_copr_chroot(chroot)
-                for chroot in project.copr_chroots
+                for chroot in project.active_copr_chroots
             ]
 
         return answer

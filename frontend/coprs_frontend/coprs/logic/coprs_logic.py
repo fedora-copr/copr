@@ -770,6 +770,9 @@ class CoprChrootsLogic(object):
                     mock_chroot=mock_chroot,
                 ))
                 run_createrepo = True
+            else:
+                copr_chroot = chroot_map.get(mock_chroot)
+                copr_chroot.deleted = False
 
         if run_createrepo:
             ActionsLogic.send_createrepo(copr)
@@ -791,7 +794,7 @@ class CoprChrootsLogic(object):
                 if not bch.finished:
                     running_builds.add(bch.build_id)
                     continue
-            copr.mock_chroots.remove(mc)
+            cls.remove_copr_chroot(flask.g.user, chroot_map[mc])
 
         # reject the request when some build_chroots are not yet finished
         if running_builds:
@@ -822,7 +825,7 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        db.session.delete(copr_chroot)
+        copr_chroot.deleted = True
 
     @classmethod
     def filter_outdated(cls, query):

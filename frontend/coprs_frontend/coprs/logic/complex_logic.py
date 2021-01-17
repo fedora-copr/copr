@@ -388,7 +388,7 @@ class BuildConfigLogic(object):
     def generate_build_config(cls, copr, chroot_id):
         """ Return dict with proper build config contents """
         chroot = None
-        for i in copr.copr_chroots:
+        for i in copr.active_copr_chroots:
             if i.mock_chroot.name == chroot_id:
                 chroot = i
                 break

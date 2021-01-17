@@ -481,7 +481,7 @@ def copr_integrations_update(copr):
 def render_copr_edit(copr, form, view):
     if not form:
         form = forms.CoprFormFactory.create_form_cls(
-            copr.mock_chroots, copr=copr)(obj=copr)
+            copr.active_chroots, copr=copr)(obj=copr)
     comments = {}
     for chroot in MockChrootsLogic.get_multiple(active_only=True):
         comments[chroot.name] = chroot.comment

@@ -750,7 +750,7 @@ def copr_modify(copr):
         'description': copr.description,
         'instructions': copr.instructions,
         'repos': copr.repos,
-        'chroots': [c.name for c in copr.mock_chroots],
+        'chroots': [c.name for c in copr.active_chroots],
     }
 
     return flask.jsonify(output)

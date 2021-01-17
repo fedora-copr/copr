@@ -125,7 +125,9 @@ class TestCoprsLogic(CoprsTestCase):
 
 class TestCoprChrootsLogic(CoprsTestCase):
 
+    @new_app_context
     def test_update_from_names(self, f_users, f_coprs, f_mock_chroots, f_db):
+        flask.g.user = self.u2
         chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
         assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
@@ -133,7 +135,7 @@ class TestCoprChrootsLogic(CoprsTestCase):
 
         chroot_names = ["fedora-17-x86_64"]
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
-        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+        assert [ch.name for ch in self.c2.active_copr_chroots] == chroot_names
 
     def test_update_from_names_disabled(self, f_users, f_coprs, f_mock_chroots, f_db):
         # Say, that fedora-17-x86_64 is outdated
@@ -180,12 +182,14 @@ class TestCoprChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
         assert outdated.all() == [self.c2.copr_chroots[0]]
 
+    @new_app_context
     @pytest.mark.usefixtures("f_copr_chroots_assigned")
     def test_disabling_disallowed_when_build_runs(self):
         """
         We disallow removing chroots from project when some BuildChroot(s) are
         still in progress.
         """
+        flask.g.user = self.u2
         chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
         assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
 
@@ -198,26 +202,28 @@ class TestCoprChrootsLogic(CoprsTestCase):
             bch.status = StatusEnum("succeeded")
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
 
+    @new_app_context
     @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
     def test_chroot_reenable(self):
         """
         We re-assign old unassigned BuildChroots to newly created
         CoprChroot instances if they match the corresponding MockChroot
         """
+        flask.g.user = self.u2
         assert len(self.c2.copr_chroots) == 2
-        assert self.mc3 in self.c2.mock_chroots
-        old_copr_chroot = self.c2.copr_chroots[1]
+        assert self.mc3 in self.c2.active_chroots
+        old_copr_chroot = self.c2.active_copr_chroots[1]
         old_bch_ids = [bch.id for bch in old_copr_chroot.build_chroots]
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
-        assert len(self.c2.copr_chroots) == 1
-        assert self.mc3 not in self.c2.mock_chroots
+        assert len(self.c2.active_copr_chroots) == 1
+        assert self.mc3 not in self.c2.active_chroots
 
         # re-enable
         CoprChrootsLogic.update_from_names(
             self.c2.user, self.c2, ["fedora-17-x86_64", "fedora-17-i386"])
 
-        new_copr_chroot = self.c2.copr_chroots[1]
-        assert old_copr_chroot != new_copr_chroot
+        new_copr_chroot = self.c2.active_copr_chroots[1]
+        assert old_copr_chroot == new_copr_chroot
         assert old_bch_ids == [bch.id for bch in new_copr_chroot.build_chroots]
 
 

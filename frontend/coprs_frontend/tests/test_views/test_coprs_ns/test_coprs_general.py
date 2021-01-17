@@ -6,7 +6,7 @@ from unittest import mock
 
 import pytest
 import flask
-from sqlalchemy import desc
+from sqlalchemy import desc, and_
 
 
 from copr_common.enums import ActionTypeEnum, ActionPriorityEnum
@@ -410,8 +410,10 @@ class TestCoprUpdate(CoprsTestCase):
         self.mc1 = self.db.session.merge(self.mc1)
         mock_chroots = (self.models.MockChroot.query
                         .join(self.models.CoprChroot)
-                        .filter(self.models.CoprChroot.copr_id ==
-                                self.c2.id).all())
+                        .filter(and_(self.models.CoprChroot.copr_id ==
+                                     self.c2.id,
+                                     self.models.CoprChroot.deleted.is_(False)))
+                        .all())
 
         assert len(mock_chroots) == 1
 
