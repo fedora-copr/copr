@@ -33,11 +33,10 @@ sed -i 's|URL http://${SOURCEFORGE}/project/boost/boost/1.60.0/boost_1_60_0.tar.
 
 %build
 %cmake .
-make %{?_smp_mflags}
-
+%cmake_build
 
 %install
-make install DESTDIR=%{buildroot}
+%cmake_install
 
 %files
    %{_bindir}/vera++

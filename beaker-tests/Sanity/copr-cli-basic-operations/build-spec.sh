@@ -41,10 +41,10 @@ rlJournalStart
     rlPhaseStartTest
         rlRun "copr-cli create ${NAME_PREFIX}BuildSpec --enable-net on --chroot $CHROOT" 0
         rlRun "copr-cli build ${NAME_PREFIX}BuildSpec $HERE/files/vera.spec" 0
-        rlRun "copr-cli delete ${NAME_PREFIX}BuildSpec"
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        cleanProject "${NAME_PREFIX}BuildSpec"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
