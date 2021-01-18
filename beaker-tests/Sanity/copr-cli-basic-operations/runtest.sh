@@ -70,7 +70,7 @@ rlJournalStart
         # build - wrong project name
         rlRun "copr-cli build ${NAME_PREFIX}wrong-name http://nowhere/nothing.src.rpm" 1
         # build - wrong chroot name and non-existent url (if url was correct, srpm would be currently built for all available chroots)
-        rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 4
+        rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 1
         # build - OK
         rlRun "copr-cli build ${NAME_PREFIX}Project1 $HELLO"
         # build - FAIL  (syntax error in source code)
@@ -78,8 +78,8 @@ rlJournalStart
         # check all builds are listed
         OUTPUT=`mktemp`
         rlRun "copr-cli list-builds ${NAME_PREFIX}Project1 > $OUTPUT" 0
-        rlAssertEquals "Three builds listed" `cat $OUTPUT | wc -l` 3
-        rlAssertEquals "Two failed builds" `grep -r 'failed' $OUTPUT | wc -l` 2
+        rlAssertEquals "Two builds listed" `cat $OUTPUT | wc -l` 2
+        rlAssertEquals "One failed build" `grep -r 'failed' $OUTPUT | wc -l` 1
         rlAssertEquals "One succeeded build" `grep -r 'succeeded' $OUTPUT | wc -l` 1
         # enable Project1 repo
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project1 $CHROOT"
