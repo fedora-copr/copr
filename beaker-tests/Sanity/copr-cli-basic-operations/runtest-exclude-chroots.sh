@@ -40,7 +40,7 @@ rlJournalStart
         rlRun -s "copr-cli build --nowait --exclude-chroot fedora-$FEDORA_VERSION-aarch64 --exclude-chroot fedora-rawhide-x86_64 ${NAME_PREFIX}ExcludeChroots ${HELLO}"
         rlRun "parse_build_id"
         rlRun "curl $FRONTEND_URL/api_3/build/$BUILD_ID |jq .chroots > $OUTPUT"
-        rlRun "cat $OUTPUT |grep fedora-32-x86_64"
+        rlRun "cat $OUTPUT |grep fedora-$FEDORA_VERSION-x86_64"
         rlRun "cat $OUTPUT |grep fedora-$FEDORA_VERSION-aarch64" 1
         rlAssertEquals "Make sure the correct number of chroots is enabled" "`jq length $OUTPUT`" 4
     rlPhaseEnd
