@@ -154,11 +154,7 @@ Try to build some packages and you are done.
 Prepare AWS source images
 -------------------------
 
-First, check that `AWS login link`_ works fine for you, and that you are
-successfully logged-in.  Otherwise the following steps won't redirect you
-properly to AWS web console.
-
-Then you need to find proper (official) ``ami-*`` Fedora image IDs, bound to
+You need to find proper (official) ``ami-*`` Fedora image IDs, bound to
 your desired VM location.  You can e.g. go to `Fedora Cloud Page`_ and search
 for ``GP2 HVM AMIs`` (for x86_64) and ``arm64 AMIs`` (for aarch64) sections.
 
@@ -166,13 +162,11 @@ You should see there the *Click to launch* buttons.  When you click on them a
 new window should appear (javascript) with a list of available server locations.
 So you see the small "blue cloud" icon/hyperlink related to the desired server
 location (we are using N.Virginia option, aka ``us-east-1``, but we should move
-to ``us-west-*`` soon).  Check what address the button points to::
+to ``us-west-*`` soon).
 
-    https://redirect.fedoraproject.org/console.aws.amazon.com/ec2/v2/home
-        ?region=us-east-1#LaunchInstanceWizard:ami=ami-0c830793775595d4b
-
-Do not click the launch button and do not proceed to launch the instance manually
-through Amazon AWS launcher. Only remember the ``ami-0c830793775595d4b`` ID part.
+Do not click the launch button and do not proceed to launch the instance
+manually through Amazon AWS launcher. Only remember the
+``ami-0c830793775595d4b`` ID part.
 
 Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - copr``, and
 execute::
