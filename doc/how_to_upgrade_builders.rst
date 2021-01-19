@@ -308,9 +308,7 @@ the devel instance behaves sanely.  If not, consider running
 You can try to kill all the old currently unused builders, and check the spawner
 log what is happening::
 
-    [copr@copr-be-dev ~][STG]$ cleanup_vm_nova.py --kill-also-unused
-    [copr@copr-be-dev ~][STG]$ cleanup-vms-aws --kill-also-unused
-    [copr@copr-be-dev ~][STG]$ tail -f /var/log/copr-backend/spawner.log
+    [copr@copr-be-dev ~][STG]$ resalloc-maint resource-delete $(resalloc-maint resource-list | grep ticket=NULL | grep status=UP | cut -d' ' -f1)
 
 
 Production
@@ -326,11 +324,11 @@ playbook from batcave::
         -l copr-be.aws.fedoraproject.org groups/copr-backend.yml \
         -t provision_config
 
-Optionally, when you need to propagate the builders quickly, you can terminate
-the old currently unused builders by::
+Optionally, when you need to propagate the new images quickly, you can terminate
+the old but currently unused builders by::
 
-    $ cleanup_vm_nova.py --kill-also-unused
-    $ cleanup-vms-aws --kill-also-unused
+    $ su - resalloc
+    $ resalloc-maint resource-delete $(resalloc-maint resource-list | grep ticket=NULL | grep status=UP | cut -d' ' -f1)
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
