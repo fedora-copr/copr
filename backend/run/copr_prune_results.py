@@ -110,7 +110,7 @@ class Pruner(object):
         for chroot, active in self.chroots.items():
             if not active:
                 chroots_to_prune.append(chroot)
-        self.frontend_client.post(chroots_to_prune, "final-prunerepo-done")
+        self.frontend_client.post("final-prunerepo-done", chroots_to_prune)
 
         self.pool.close()
         self.pool.join()
