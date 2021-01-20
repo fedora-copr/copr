@@ -85,7 +85,8 @@ class Pruner(object):
         self.opts = opts
         self.prune_days = getattr(self.opts, "prune_days", DEF_DAYS)
         self.chroots = {}
-        self.frontend_client = FrontendClient(self.opts, try_indefinitely=True)
+        self.frontend_client = FrontendClient(self.opts, try_indefinitely=True,
+                                              logger=log)
         self.mtime_optimization = True
         self.max_processes = getattr(self.opts, "max_prune_processes", MAX_PROCESS)
         self.pool = multiprocessing.Pool(processes=self.max_processes)
