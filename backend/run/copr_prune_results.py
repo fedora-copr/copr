@@ -20,7 +20,8 @@ from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_aut
 from copr_backend.frontend import FrontendClient
 from copr_backend.createrepo import createrepo
 
-log = multiprocessing.get_logger()
+LOG = multiprocessing.log_to_stderr()
+LOG.setLevel(logging.INFO)
 
 DEF_DAYS = 14
 MAX_PROCESS = 50
@@ -38,31 +39,15 @@ def list_subdir(path):
     dir_names = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
     return dir_names, map(lambda x: os.path.join(path, x), dir_names)
 
-def logdebug(msg):
-    print(msg)
-    log.debug(msg)
-
-def loginfo(msg):
-    print(msg)
-    log.info(msg)
-
-def logerror(msg):
-    print(msg, file=sys.stderr)
-    log.error(msg)
-
-def logexception(msg):
-    print(msg, file=sys.stderr)
-    log.exception(msg)
-
 def runcmd(cmd):
     """
     Run given command in a subprocess
     """
-    loginfo('Executing: '+' '.join(cmd))
+    LOG.info('Executing: %s', cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
     (stdout, stderr) = process.communicate()
     if process.returncode != 0:
-        logerror(stderr)
+        LOG.error(stderr)
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
@@ -73,18 +58,20 @@ def run_prunerepo(chroot_path, username, projectname, projectdir, sub_dir_name, 
     be logged by parent process.
     """
     try:
-        loginfo("Pruning of {}/{} started".format(username, projectdir))
+        LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
         cmd = ['prunerepo', '--verbose', '--days', str(prune_days), '--nocreaterepo', chroot_path]
         stdout = runcmd(cmd)
-        loginfo(stdout)
+        LOG.info("Prunerepo stdout:\n%s", stdout)
         createrepo(path=chroot_path, username=username,
                    projectname=projectname)
         clean_copr(chroot_path, prune_days, verbose=True)
     except Exception as err:  # pylint: disable=broad-except
-        logexception(err)
-        logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
+        LOG.exception(err)
+        LOG.error("Error pruning chroot %s/%s/%s", username, projectdir,
+                  sub_dir_name)
 
-    loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
+    LOG.info("Pruning finished for projectdir %s/%s/%s",
+             username, projectdir, sub_dir_name)
 
 class Pruner(object):
     def __init__(self, opts, cmdline_opts=None):
@@ -92,7 +79,7 @@ class Pruner(object):
         self.prune_days = getattr(self.opts, "prune_days", DEF_DAYS)
         self.chroots = {}
         self.frontend_client = FrontendClient(self.opts, try_indefinitely=True,
-                                              logger=log)
+                                              logger=LOG)
         self.mtime_optimization = True
         self.max_processes = getattr(self.opts, "max_prune_processes", MAX_PROCESS)
         self.pool = multiprocessing.Pool(processes=self.max_processes)
@@ -104,21 +91,21 @@ class Pruner(object):
         self.chroots = json.loads(response.content)
 
         results_dir = self.opts.destdir
-        loginfo("Pruning results dir: {} ".format(results_dir))
+        LOG.info("Pruning results dir: %s", results_dir)
         user_dir_names, user_dirs = list_subdir(results_dir)
 
-        loginfo("Going to process total number: {} of user's directories".format(len(user_dir_names)))
-        loginfo("Going to process user's directories: {}".format(user_dir_names))
+        LOG.info("Going to process total number: %s of user's directories", len(user_dir_names))
+        LOG.info("Going to process user's directories: %s", user_dir_names)
 
-        loginfo("--------------------------------------------")
+        LOG.info("--------------------------------------------")
         for username, subpath in zip(user_dir_names, user_dirs):
-            loginfo("For user `{}` exploring path: {}".format(username, subpath))
+            LOG.info("For user '%s' exploring path: %s", username, subpath)
             for projectdir, project_path in zip(*list_subdir(subpath)):
-                loginfo("Exploring projectdir `{}` with path: {}".format(projectdir, project_path))
+                LOG.info("Exploring projectdir '%s' with path: %s", projectdir, project_path)
                 self.prune_project(project_path, username, projectdir)
-                loginfo("--------------------------------------------")
+                LOG.info("--------------------------------------------")
 
-        loginfo("Setting final_prunerepo_done for deactivated chroots")
+        LOG.info("Setting final_prunerepo_done for deactivated chroots")
         chroots_to_prune = []
         for chroot, active in self.chroots.items():
             if not active:
@@ -127,31 +114,31 @@ class Pruner(object):
 
         self.pool.close()
         self.pool.join()
-        loginfo("--------------------------------------------")
-        loginfo("Pruning finished")
+        LOG.info("--------------------------------------------")
+        LOG.info("Pruning finished")
 
     def prune_project(self, project_path, username, projectdir):
-        loginfo("Going to prune {}/{}".format(username, projectdir))
+        LOG.info("Going to prune %s/%s", username, projectdir)
 
         projectname = projectdir.split(':', 1)[0]
-        loginfo("projectname = {}".format(projectname))
+        LOG.info("projectname = %s", projectname)
 
         try:
             if uses_devel_repo(self.opts.frontend_base_url, username, projectname):
-                loginfo("Skipped {}/{} since auto createrepo option is disabled"
-                          .format(username, projectdir))
+                LOG.info("Skipped %s/%s since auto createrepo option is disabled",
+                         username, projectdir)
                 return
             if get_persistent_status(self.opts.frontend_base_url, username, projectname):
-                loginfo("Skipped {}/{} since the project is persistent"
-                          .format(username, projectdir))
+                LOG.info("Skipped %s/%s since the project is persistent",
+                         username, projectdir)
                 return
             if not get_auto_prune_status(self.opts.frontend_base_url, username, projectname):
-                loginfo("Skipped {}/{} since auto-prunning is disabled for the project"
-                          .format(username, projectdir))
+                LOG.info("Skipped %s/%s since auto-prunning is disabled for the project",
+                         username, projectdir)
                 return
         except (CoprException, CoprRequestException) as exception:
-            logerror("Failed to get project details for {}/{} with error: {}".format(
-                username, projectdir, exception))
+            LOG.error("Failed to get project details for %s/%s with error: %s",
+                      username, projectdir, exception)
             return
 
         for sub_dir_name in os.listdir(project_path):
@@ -164,7 +151,8 @@ class Pruner(object):
                 continue
 
             if sub_dir_name not in self.chroots:
-                loginfo("Final pruning already done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
+                LOG.info("Final pruning already done for chroot %s/%s:%s",
+                         username, projectdir, sub_dir_name)
                 continue
 
             if self.mtime_optimization:
@@ -180,8 +168,8 @@ class Pruner(object):
                 # error, I/O problems...) we rather wait 10 more days till we
                 # really start to ignore the directory.
                 if touched_before > int(self.prune_days) + 10:
-                    loginfo("Skipping {} - not changed for {} days".format(
-                        sub_dir_name, touched_before))
+                    LOG.info("Skipping %s - not changed for %s days",
+                             sub_dir_name, touched_before)
                     continue
 
             self.pool.apply_async(run_prunerepo,
@@ -193,7 +181,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
     """
     Remove whole copr build dirs if they no longer contain a RPM file
     """
-    loginfo("Cleaning COPR repository...")
+    LOG.info("Cleaning COPR repository...")
     for dir_name in os.listdir(path):
         dir_path = os.path.abspath(os.path.join(path, dir_name))
 
@@ -207,7 +195,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
             continue
 
         if verbose:
-            loginfo('Removing: ' + dir_path)
+            LOG.info('Removing: %s', dir_path)
         shutil.rmtree(dir_path)
 
         # also remove the associated log in the main dir
@@ -222,7 +210,7 @@ def rm_file(path, verbose=True):
     Remove file given its absolute path
     """
     if verbose:
-        loginfo("Removing: "+path)
+        LOG.info("Removing: %s", path)
     if os.path.exists(path) and os.path.isfile(path):
         os.remove(path)
 
@@ -240,7 +228,7 @@ def main():
     try:
         pruner.run()
     except Exception as e:
-        logexception(e)
+        LOG.exception(e)
 
 if __name__ == "__main__":
     if pwd.getpwuid(os.getuid())[0] != "copr":
