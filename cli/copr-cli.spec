@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.91
+Version:    1.92
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -125,6 +125,12 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.92-1
+- allow excluding chroots when submitting builds
+- raise a proper exception if the module yaml file does not exist
+- allow etting isolation option per chroot
+- fix serializable() helper for the new python3-munch
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.91-1
 - new --isolation option
 - add --help output for build --timeout option
