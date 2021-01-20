@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.107
+Version:    1.108
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.108-1
+- allow setting isolation option per chroot
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.107-1
 - new mock --isolation option
 - deduplicate APIv3 build-chroot parameters
