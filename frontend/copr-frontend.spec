@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.171
+Version:    1.172
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,26 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.172-1
+- reworked chroots fields in copr/build forms
+- do not fork EOLed/disabled chroots
+- allow disabling modules in the buildroot
+- rename button from Update to Request in permission form
+- allow excluding chroots when submitting builds
+- delete ReviewedOutdatedChroot rows on cascade
+- disable gpgcheck for external runtime dependencies
+- generate build_chroots for resubmitted SRPM-upload builds
+- drop dependencies on orphaned and useless javascript packages
+- allow setting isolation option per chroot
+- depend on python3-email-validator
+- allow project admins to edit chroots
+- allow overriding the api token instructions downstream
+- drop delete_after tag for re-activated EOLed chroot
+- sync delete_after_timestamp for all EOLed copr_chroots
+- support modulemd v2
+- keep showing the link to EOLed repo files in copr project
+- allow enabling not-yet-deleted but only eoled chroots
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 1.171-1
 - re-process killed SRPM tasks
 - backward compat APIv3 build-chroot fix
