@@ -28,7 +28,7 @@ class RedisLogHandler(object):
 
         self.components = ["spawner", "terminator", "vmm", "build_dispatcher",
                            "action_dispatcher", "backend", "actions", "worker",
-                           "modifyrepo"]
+                           "modifyrepo", "pruner"]
 
     def setup_logging(self):
 

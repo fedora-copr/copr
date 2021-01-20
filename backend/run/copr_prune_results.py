@@ -15,7 +15,7 @@ import multiprocessing
 from copr.exceptions import CoprException
 from copr.exceptions import CoprRequestException
 
-from copr_backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader, get_redis_logger
 from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status
 from copr_backend.frontend import FrontendClient
 from copr_backend.createrepo import createrepo
@@ -221,10 +221,20 @@ def is_rpm_in_dir(path):
     return any([f for f in files if f.endswith(".rpm") and not f.endswith(srpm_ex)])
 
 
+def redirect_logging(opts):
+    """
+    Redirect all logging to RedisLogHandler using BackendConfigReader options
+    """
+    global LOG  # pylint: disable=global-statement
+    LOG = get_redis_logger(opts, "copr_prune_results", "pruner")
+
+
 def main():
     args = parser.parse_args()
     config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
-    pruner = Pruner(BackendConfigReader(config_file).read(), args)
+    opts = BackendConfigReader(config_file).read()
+    redirect_logging(opts)
+    pruner = Pruner(opts, args)
     try:
         pruner.run()
     except Exception as e:
@@ -235,8 +245,4 @@ if __name__ == "__main__":
         print("This script should be executed under the `copr` user")
         sys.exit(1)
     else:
-        logging.basicConfig(
-            filename="/var/log/copr-backend/copr_prune_results.log",
-            format='[%(asctime)s][%(levelname)6s]: %(message)s',
-            level=logging.INFO)
         main()
