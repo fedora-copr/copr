@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.172
+Version:    1.173
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.173-1
+- temporarily revert one patch breaking 'copr modify' command
+
 * Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.172-1
 - reworked chroots fields in copr/build forms
 - do not fork EOLed/disabled chroots
