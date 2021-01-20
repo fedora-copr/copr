@@ -8,7 +8,6 @@ import subprocess
 import pwd
 import time
 import argparse
-import signal
 
 import json
 import multiprocessing
@@ -67,18 +66,25 @@ def runcmd(cmd):
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
-def run_prunerepo(cmd, chroot_path, username, projectname, projectdir, sub_dir_name, prune_days):
-    # ignore the SIGINT otherwise prunerepo will print to broken pipe when Ctrl+C
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+def run_prunerepo(chroot_path, username, projectname, projectdir, sub_dir_name, prune_days):
+    """
+    Running prunerepo in background worker.  We don't check the return value, so
+    the best we can do is that we return useful success/error message that will
+    be logged by parent process.
+    """
     try:
-        result = runcmd(cmd)
+        loginfo("Pruning of {}/{} started".format(username, projectdir))
+        cmd = ['prunerepo', '--verbose', '--days', str(prune_days), '--nocreaterepo', chroot_path]
+        stdout = runcmd(cmd)
+        loginfo(stdout)
         createrepo(path=chroot_path, username=username,
                    projectname=projectname)
         clean_copr(chroot_path, prune_days, verbose=True)
-        return result
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         logexception(err)
         logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
+
+    loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
 
 class Pruner(object):
     def __init__(self, opts, cmdline_opts=None):
@@ -92,12 +98,6 @@ class Pruner(object):
         self.pool = multiprocessing.Pool(processes=self.max_processes)
         if cmdline_opts:
             self.mtime_optimization = not cmdline_opts.no_mtime_optimization
-
-    def __del__(self):
-        # see the warning at
-        # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool
-        self.pool.close()
-        self.pool.join()
 
     def run(self):
         response = self.frontend_client.get("chroots-prunerepo-status")
@@ -183,15 +183,10 @@ class Pruner(object):
                     loginfo("Skipping {} - not changed for {} days".format(
                         sub_dir_name, touched_before))
                     continue
-            cmd = ['prunerepo', '--verbose', '--days', str(self.prune_days), '--nocreaterepo', chroot_path]
-            self.pool.apply_async(run_prunerepo,
-                                  (cmd, chroot_path, username, projectname,
-                                   projectdir, sub_dir_name, self.prune_days),
-                                  callback=loginfo, error_callback=logerror)
 
-            # this does not make sense unless max_prune_processes is set to 1
-            #loginfo("Pruning done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
-        #loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
+            self.pool.apply_async(run_prunerepo,
+                                  (chroot_path, username, projectname,
+                                   projectdir, sub_dir_name, self.prune_days))
 
 
 def clean_copr(path, days=DEF_DAYS, verbose=True):
