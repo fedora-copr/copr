@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.78
+Version:    1.79
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -171,6 +171,9 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.79-1
+- BuildRequires make
+
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 1.78-1
 - all: run pytest with -vv in package build
 - all: add Makefile symlink to sub-dirs
