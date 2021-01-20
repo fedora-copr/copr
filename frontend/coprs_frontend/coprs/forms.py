@@ -514,7 +514,11 @@ class CoprFormFactory(object):
 
             @property
             def selected_chroots(self):
-                return self.chroots.data
+                selected = []
+                for ch in self.chroots_list:
+                    if getattr(self, ch).data:
+                        selected.append(ch)
+                return selected
 
             def validate(self):
                 if not super(F, self).validate():
@@ -562,16 +566,26 @@ class CoprFormFactory(object):
                 return errors
 
             def validate_mock_chroots_not_empty(self):
-                return bool(self.chroots.data)
+                have_any = False
+                for c in self.chroots_list:
+                    if getattr(self, c).data:
+                        have_any = True
+                return have_any
 
         F.chroots_list = MockChrootsLogic.active_names()
         F.chroots_list.sort()
+        # sets of chroots according to how we should print them in columns
+        F.chroots_sets = {}
+        for ch in F.chroots_list:
+            checkbox_default = False
+            if mock_chroots and ch in [x.name for x in mock_chroots]:
+                checkbox_default = True
 
-        mock_chroot_names = [ch.name for ch in mock_chroots or []]
-        F.chroots = MultiCheckboxField(
-            "Chroots",
-            choices=[(ch, ch) for ch in F.chroots_list],
-            default=[ch for ch in F.chroots_list if ch in mock_chroot_names])
+            setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default, false_values=FALSE_VALUES))
+            if ch[0] in F.chroots_sets:
+                F.chroots_sets[ch[0]].append(ch)
+            else:
+                F.chroots_sets[ch[0]] = [ch]
 
         return F
 

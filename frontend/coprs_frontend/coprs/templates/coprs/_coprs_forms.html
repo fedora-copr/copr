@@ -64,13 +64,13 @@ render_bootstrap_options %}
         Chroots
       </label>
       <div class="col-sm-10">
-      {% for ch in form.chroots %}
+      {% for group_set, chs in form.chroots_sets.items() %}{% for ch in chs %}
         <div class="checkbox">
           <label>
-            {{ ch }}
-            {{ ch.label }}
-            {% set chrootname = ch.label.text %}
-            {% if copr and ch.data %}
+            {{ form|attr(ch) }}
+            {{ form|attr(ch)|attr('label') }}
+            {% set chrootname = form|attr(ch)|attr('label')|attr('text') %}
+            {% if copr and form|attr(ch)|attr('data') %}
               <a style="margin-left:20px" class="btn btn-xs btn-default" href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
                 <span class="pficon pficon-edit"> Edit </span>
               </a>
@@ -80,7 +80,7 @@ render_bootstrap_options %}
             {% endif %}
           </label>
         </div>
-      {% endfor %}
+      {% endfor %}{% endfor %}
       {% if form.errors["chroots"] %}
         <span class="help-block pficon pficon-warning-triangle-o"> {{ form.errors["chroots"] |join(". ") }}</span>
       {% endif %}

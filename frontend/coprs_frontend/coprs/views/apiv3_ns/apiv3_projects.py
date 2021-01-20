@@ -120,7 +120,7 @@ def search_projects(query, **kwargs):
 @api_login_required
 def add_project(ownername):
     user, group = owner2tuple(ownername)
-    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+    data = rename_fields(get_form_compatible_data())
     form = forms.CoprFormFactory.create_form_cls(user=user, group=group)(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
@@ -171,7 +171,7 @@ def add_project(ownername):
 @api_login_required
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+    data = rename_fields(get_form_compatible_data())
     form = forms.CoprModifyForm(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
@@ -209,7 +209,7 @@ def fork_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
 
     # @FIXME we want "ownername" from the outside, but our internal Form expects "owner" instead
-    data = get_form_compatible_data(preserve=["chroots"])
+    data = get_form_compatible_data()
     data["owner"] = data.get("ownername")
 
     form = forms.CoprForkFormFactory \
