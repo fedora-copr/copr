@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.140
+Version:    1.141
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -230,6 +230,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.141-1
+- run prunerepo in parallel
+- add one-shot copr_find_wrong_chroot_artifacts.py script
+- support modulemd v2
+
 * Tue Dec 01 2020 Pavel Raiskup <praiskup@redhat.com> 1.140-1
 - fix frontend-client post arguments
 
