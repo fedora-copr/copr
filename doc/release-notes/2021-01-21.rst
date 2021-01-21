@@ -1,0 +1,70 @@
+.. _release_notes_2021_01_21:
+
+Highlights from 2021-01-21 release
+==================================
+
+Updated client packages are shipped in `Fedora 33`_, `Fedora 32`_, `EPEL 8`_ and
+`EPEL 7`_ Bodhi updates.
+
+IPv6 support
+------------
+
+Fedora Copr stack is available both on IPv4 on IPv6.  This should enable
+IPv6-only clients to work correctly with Fedora Copr.
+
+Isolation configuration per-chroot
+----------------------------------
+
+There's new option for ``--isolation`` for ``copr edit-chroot``.  This allows
+users to set the ``mock --isolation`` on builders more carefuly (e.g. to
+work-around only specific chroot problems, and keep the rest of chroots in
+the default setup).
+
+Submit build with excluded chroots
+----------------------------------
+
+The ``copr build*`` commands now accept (list of) ``--exclude-chroot <chroot>``
+option(s).  With these options, copr will submit a build against all enabled
+chroots minus the set of excluded ones.  Note: This complements ``--chroot``
+option.
+
+EOL chroot management
+---------------------
+
+Copr serves the repo files for EOLed, but not yet deleted repositories.  This in
+turn allows your users to ``dnf copr enable <your>/<project>`` even when the
+chroot is end-of-live (and still, the end-of-life chroot expiration is
+`under your control`_).
+
+Disabling modules in buildroot
+------------------------------
+
+Previously modules could be enabled (Web-UI, Settings, Chroot configuration)
+using the comma-separated list of ``module:stream`` pairs.  Newly you can
+instruct Copr to also disable pre-enabled chroots using ``!module:stream``
+syntax.
+
+Bugfixes
+--------
+
+- Previously we did not always cancel the builds correctly, it sometimes led to
+  concurrent mock processes running on one builder and thus two sets of RPM
+  results produced one result directory.
+
+- Cli was fixed for updated python3-munch, which broke serialization of some
+  DB data sent to clients.
+
+- Runtime project dependencies are newly added to copr repo files with
+  ``gpgcheck=0``.  This is because the external repository may live anywhere
+  where signatures might or might not exist.  There's currently no way to
+  specify the gpg key for external repository.
+
+- Forked project don't contain end-of-live chroots.  This is important to not
+  bother users with bloat in outdated repositories form.
+
+
+.. _`under your control`: https://copr.fedorainfracloud.org/user/repositories/
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-4c8257e310
+.. _`Fedora 32`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-d64d77b7f8
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-1304240565
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-7d55e95d4e
