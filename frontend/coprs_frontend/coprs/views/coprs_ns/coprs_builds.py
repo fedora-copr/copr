@@ -458,15 +458,13 @@ def process_copr_repeat_build(build_id, copr):
         build_id=build_id, enable_net=build.enable_net)
 
     # remove all checkboxes by default
-    for ch in available_chroots:
-        field = getattr(form, ch.name)
-        field.data = False
+    form.chroots.data = []
     chroot_to_build = request.args.get("chroot")
     app.logger.debug("got param chroot: {}".format(chroot_to_build))
     if chroot_to_build:
         # set single checkbox if chroot query arg was provided
-        if hasattr(form, chroot_to_build):
-            getattr(form, chroot_to_build).data = True
+        if chroot_to_build in [ch.name for ch in available_chroots]:
+            form.chroots.data.append(chroot_to_build)
     else:
         build_chroot_names = set(ch.name for ch in build.chroots)
         build_failed_chroot_names = set(ch.name for ch in build.get_chroots_by_status([
@@ -475,7 +473,7 @@ def process_copr_repeat_build(build_id, copr):
         for ch in available_chroots:
             # check checkbox on all the chroots that have not been (successfully) built before
             if (ch.name not in build_chroot_names) or (ch.name in build_failed_chroot_names):
-                getattr(form, ch.name).data = True
+                form.chroots.data.append(ch.name)
     return flask.render_template(
         "coprs/detail/add_build/rebuild.html",
         copr=copr, build=build, form=form)

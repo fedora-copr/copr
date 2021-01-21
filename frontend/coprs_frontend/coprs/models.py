@@ -417,7 +417,7 @@ class Copr(db.Model, helpers.Serializer):
         """
         Return list of active mock_chroots of this copr
         """
-        return filter(lambda x: x.is_active, self.mock_chroots)
+        return [mc for mc in self.mock_chroots if mc.is_active]
 
     @property
     def enable_permissible_chroots(self):
