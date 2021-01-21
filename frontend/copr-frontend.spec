@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.173
+Version:    1.174
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Jan 21 2021 Pavel Raiskup <praiskup@redhat.com> 1.174-1
+- fix error 500 during build resubmit in Web-UI
+
 * Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.173-1
 - temporarily revert one patch breaking 'copr modify' command
 
