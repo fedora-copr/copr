@@ -444,9 +444,12 @@ def process_copr_repeat_build(build_id, copr):
         flask.flash("You are not allowed to repeat this build.")
 
     if build.source_type == helpers.BuildSourceEnum('upload'):
-        # If the original build's source is 'upload', we will show only the
-        # original build's chroots and skip import.
-        available_chroots = build.chroots
+        # If the original build's source is 'upload', we don't have the original
+        # uploaded file anymore.  Therefore we skip the import now and re-use
+        # existing imported sources (work-around).  This though means that we
+        # can not build against any currently enabled chroot -- we have to limit
+        # the chroots to those that were imported before into distgit.
+        available_chroots = build.chroots_still_active
 
     else:
         # For all other sources, we will show all chroots enabled in the project

@@ -1394,6 +1394,14 @@ class Build(db.Model, helpers.Serializer):
 
         return None  # new batch can be safely created
 
+    @property
+    def chroots_still_active(self):
+        """
+        Same as self.chroots, but the EOLed and disabled chroots are filtered
+        out (IOW set of chroot we can safely resubmit this build against).
+        """
+        return [ch for ch in self.chroots if ch in self.copr.active_chroots]
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """

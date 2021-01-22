@@ -58,6 +58,20 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(b.chroots) == 1
         assert b.chroots[0].name == expected_name
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_build_still_active_chroots(self):
+        builds = self.models.Build.query.all()
+        assert len(builds[2].chroots_still_active) == 2
+
+        # disable f17-x86_64
+        self.mc2.is_active = False
+        self.db.session.commit()
+
+        builds = self.models.Build.query.all()
+        assert len(builds[2].chroots_still_active) == 1
+        assert builds[2].chroots_still_active == [self.mc3]
+
     def test_add_raises_if_copr_has_unfinished_actions(self, f_users, f_coprs,
                                                        f_actions, f_db):
 
