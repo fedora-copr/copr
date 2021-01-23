@@ -64,9 +64,10 @@ class WebUIRequests(_RequestsInterface):
     """ Mimic Web UI request behavior """
 
     def new_project(self, name, chroots, **kwargs):
-        data = {"name": name}
-        for ch in chroots:
-            data[ch] = 'y'
+        data = {
+            "name": name,
+            "chroots": chroots,
+        }
 
         for config in ['bootstrap', 'isolation', 'contact', 'homepage']:
             if not config in kwargs:

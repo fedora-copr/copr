@@ -84,7 +84,7 @@ class TestCoprNew(CoprsTestCase):
         r = self.test_client.post(
             "/coprs/{0}/new/".format(self.u1.name),
             data={"name": "foo",
-                  "fedora-rawhide-i386": "y",
+                  "chroots": ["fedora-rawhide-i386"],
                   "arches": ["i386"]},
             follow_redirects=True)
 
@@ -109,7 +109,7 @@ class TestCoprNew(CoprsTestCase):
         r = self.test_client.post(
             "/coprs/{0}/new/".format(self.u3.name),
             data={"name": self.c1.name,
-                  "fedora-rawhide-i386": "y"},
+                  "chroots": ["fedora-rawhide-i386"]},
             follow_redirects=True)
 
         self.db.session.add(self.c1)
@@ -144,7 +144,7 @@ class TestCoprNew(CoprsTestCase):
     def test_copr_new_with_initial_pkgs(self, f_users, f_mock_chroots, f_db):
         r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
                                   data={"name": "foo",
-                                        "fedora-rawhide-i386": "y",
+                                        "chroots": ["fedora-rawhide-i386"],
                                         "initial_pkgs": ["http://a/f.src.rpm",
                                                          "http://a/b.src.rpm"],
                                         "build_enable_net": True,
@@ -167,7 +167,7 @@ class TestCoprNew(CoprsTestCase):
     def test_copr_new_with_initial_pkgs_disabled_net(self, f_users, f_mock_chroots, f_db):
         r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
                                   data={"name": "foo",
-                                        "fedora-rawhide-i386": "y",
+                                        "chroots": ["fedora-rawhide-i386"],
                                         "initial_pkgs": ["http://a/f.src.rpm",
                                                          "http://a/b.src.rpm"],
                                         "build_enable_net": None
@@ -199,7 +199,7 @@ class TestCoprNew(CoprsTestCase):
         self.db.session.add(self.c1)
         r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
                                   data={"name": self.c1.name,
-                                        "fedora-rawhide-i386": "y",
+                                        "chroots": ["fedora-rawhide-i386"],
                                         "arches": ["i386"]},
                                   follow_redirects=True)
 
@@ -217,7 +217,7 @@ class TestCoprNew(CoprsTestCase):
     def test_copr_new_contains_isolation(self):
         r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
                                   data={"name": "foo",
-                                        "fedora-rawhide-i386": "y",
+                                        "chroots": ["fedora-rawhide-i386"],
                                         "arches": ["i386"],
                                         "isolation": "simple"},
                                   follow_redirects=True)
@@ -332,7 +332,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post("/coprs/{0}/{1}/update/"
                                   .format(self.u1.name, self.c1.name),
                                   data={"name": self.c1.name,
-                                        "fedora-18-x86_64": "y",
+                                        "chroots": ["fedora-18-x86_64"],
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
@@ -346,7 +346,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post("/coprs/{0}/{1}/update/"
                                   .format(self.u2.name, self.c3.name),
                                   data={"name": self.c3.name,
-                                        "fedora-rawhide-i386": "y",
+                                        "chroots": ["fedora-rawhide-i386"],
                                         "id": self.c3.id},
                                   follow_redirects=True)
 
@@ -361,8 +361,10 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post("/coprs/{0}/{1}/update/"
                                   .format(self.u1.name, self.c1.name),
                                   data={"name": self.c1.name,
-                                        self.mc2.name: "y",
-                                        self.mc3.name: "y",
+                                        "chroots": [
+                                            self.mc2.name,
+                                            self.mc3.name,
+                                        ],
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
@@ -396,7 +398,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post("/coprs/{0}/{1}/update/"
                                   .format(self.u2.name, self.c2.name),
                                   data={"name": self.c2.name,
-                                        self.mc1.name: "y",
+                                        "chroots": [self.mc1.name],
                                         "id": self.c2.id},
                                   follow_redirects=True)
 
@@ -430,7 +432,7 @@ class TestCoprUpdate(CoprsTestCase):
         # 1. disabling ACR
         self.test_client.post(
             "/coprs/{0}/{1}/update/".format(username, coprname),
-            data={"name": coprname, chroot: "y", "id": copr_id,
+            data={"name": coprname, "chroots": [chroot], "id": copr_id,
                   "disable_createrepo": True},
             follow_redirects=True
         )
@@ -445,7 +447,7 @@ class TestCoprUpdate(CoprsTestCase):
         # 2. enabling ACR
         self.test_client.post(
             "/coprs/{0}/{1}/update/".format(username, coprname),
-            data={"name": coprname, chroot: "y", "id": copr_id,
+            data={"name": coprname, "chroots": [chroot], "id": copr_id,
                   "disable_createrepo": "false"},
             follow_redirects=True
         )
@@ -1019,7 +1021,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
         # When creating a project the initial createrepo action should be prioritized
         self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
             data={"name": "foo",
-                  "fedora-rawhide-i386": "y",
+                  "chroots": ["fedora-rawhide-i386"],
                   "arches": ["i386"]})
 
         copr = CoprsLogic.get(self.u1.username, "foo").one()

@@ -64,12 +64,13 @@ class TestCreateCopr(CoprsTestCase):
 
     @TransactionDecorator("u1")
     def test_api_create_copr_ok_all(self, f_users, f_mock_chroots, f_db):
-        self.db.session.add_all([self.u1, self.mc1])
+        self.db.session.add_all([self.u1, self.mc1, self.mc2])
         self.tc.post("/api/new/")
 
         content = {
             "name": self.copr_name,
             self.mc1.name: "y",
+            self.mc2.name: "y",
             "repos": self.repos,
             "initial_pkgs": self.initial_pkgs,
             "description": self.description,
@@ -90,7 +91,8 @@ class TestCreateCopr(CoprsTestCase):
         copr = self.models.Copr.query.order_by(desc(self.models.Copr.created_on))\
             .filter(self.models.Copr.name == self.copr_name).one()
         assert copr.name == self.copr_name
-        assert [self.mc1.name] == [c.name for c in copr.active_chroots]
+        assert [self.mc1.name, self.mc2.name] \
+            == [c.name for c in copr.active_chroots]
         assert copr.repos == self.repos
         assert copr.user.id == self.u1.id
         assert copr.description == self.description

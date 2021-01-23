@@ -26,10 +26,11 @@ from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 from coprs.views.misc import login_required, api_login_required
 
 from coprs.views.api_ns import api_ns
+from coprs.views.apiv3_ns.json2form import get_input_dict, MultiDict
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
@@ -126,7 +127,21 @@ def api_new_copr(username):
 
     """
 
-    form = forms.CoprFormFactory.create_form_cls()(meta={'csrf': False})
+    # In PR#1656, we changed copr form to **not** accept fields like
+    # "fedora-33-x86_64": "y" but instead accept "chroots" field having a list
+    # of chroot names. The APIv3 was reaady for this change, so we updated only
+    # the data that we send from our web form. To preserve APIv1 compatibility
+    # after this change, I am introducing the following workaround. It is better
+    # for it to be here, in a legacy code, rather than messing up forms.py
+    form_data = get_input_dict()
+    form_data["chroots"] = []
+    for ch in coprs_logic.MockChrootsLogic.active_names():
+        if form_data.get(ch):
+            form_data["chroots"].append(ch)
+    form_class = forms.CoprFormFactory.create_form_cls()
+    form = form_class(MultiDict(form_data), meta={'csrf': False})
+
+
     infos = []
 
     # are there any arguments in POST which our form doesn't know?
@@ -685,7 +700,11 @@ def delete_build(build_id):
 @api_login_required
 @api_req_with_copr
 def copr_modify(copr):
-    form = forms.CoprModifyForm(meta={'csrf': False})
+    form_data = get_input_dict()
+    form_data["chroots"] = form_data["chroots"].split()
+
+    form = forms.CoprModifyForm(MultiDict(form_data), meta={'csrf': False})
+    form.chroots.choices = [(ch, ch) for ch in MockChrootsLogic.active_names()]
 
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: {0}".format(form.errors))
