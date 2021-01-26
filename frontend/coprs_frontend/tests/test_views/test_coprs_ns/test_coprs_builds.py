@@ -1,5 +1,6 @@
 import json
 import pytest
+from lxml import html
 
 from copr_common.enums import StatusEnum, BuildSourceEnum
 from coprs import models
@@ -453,3 +454,39 @@ class TestCoprRepeatBuild(CoprsTestCase):
         assert b"doesn&#39;t seem to be a valid URL" not in r[0].data
         assert b"doesn&#39;t seem to be a valid URL" in r[1].data
         assert b"doesn&#39;t seem to be a valid URL" in r[2].data
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots",
+                             "f_builds", "f_db")
+    def test_copr_repeat_build_available_chroots(self):
+        """
+        When resubmitting a build, make sure that previously failed chroots
+        are now checked-on by default while previously succeeded chroots are
+        unchecked by default.
+        """
+        self.db.session.add_all([self.u2, self.c2, self.b3] + self.b3_bc)
+
+        # Make sure our build chroots are sorted, so we can easily compare it
+        # with what is rendered in the web UI (they are sorted there)
+        self.b3_bc.sort(key=lambda x: x.name)
+
+        self.b3_bc[0].status = StatusEnum("failed")
+        self.b3_bc[1].status = StatusEnum("succeeded")
+        self.db.session.add_all(self.b3_bc)
+
+        response = self.test_client.get(
+            "/coprs/{0}/{1}/repeat_build/{2}/"
+            .format(self.u2.name, self.c2.name, self.b3.id),
+            data={},
+            follow_redirects=True)
+        assert response.status_code == 200
+
+        tree = html.fromstring(response.data)
+        inputs = tree.xpath("//input[@name='chroots']")
+        assert len(inputs) == 2
+
+        assert inputs[0].get("value")== self.b3_bc[0].name
+        assert inputs[0].checked
+
+        assert inputs[1].get("value")== self.b3_bc[1].name
+        assert not inputs[1].checked
