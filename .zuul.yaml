@@ -1,0 +1,11 @@
+---
+- job:
+    name: csdiff-pylint
+    description: differential PyLint scan via csdiff
+    run: build_aux/zuul/pylint-csdiff-job.yaml
+    nodeset: fedora-rawhide-vm
+
+- project:
+    check:
+      jobs:
+        - csdiff-pylint

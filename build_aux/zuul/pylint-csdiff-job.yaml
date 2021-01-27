@@ -1,0 +1,17 @@
+---
+- hosts: all
+  tasks:
+  - name: install packages needed for the check
+    package:
+      state: present
+      name:
+        - csdiff
+        - git
+        - pylint
+    become: yes
+
+  - name: Run the differential pylint check
+    shell: |
+      cd "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}" && \
+      ./build_aux/zuul/pylint-csdiff-script safety-check
+    # TODO: move to chdir: (currently broken)

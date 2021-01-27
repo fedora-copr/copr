@@ -1,0 +1,79 @@
+#! /bin/bash
+
+# Rebase this PR against upstream master branch, and compare the set
+# of old issues with the set of new issues.  Fail if there are any new.
+# See git-log and 'jenkins-job' file for Jenkins job variant.
+
+set +x
+set -e
+
+REPO=https://pagure.io/copr/copr.git
+: "${DIFF_AGAINST=upstream/master}"
+
+rebase()
+{
+    git remote add upstream "$REPO"
+    git fetch upstream
+    git rebase upstream/master
+}
+
+get_changed_packages()
+{
+    subdirs=(
+        -e ^ansible$
+        -e ^backend$
+        -e ^behave$
+        -e ^frontend$
+        -e ^distgit$
+        -e ^cli$
+        -e ^common$
+        -e ^messaging$
+        -e ^rpmbuild$
+        -e ^keygen$
+        -e ^python$
+    )
+
+    changed_packages=$(
+        git diff --name-only "$DIFF_AGAINST" \
+            | cut -d'/' -f1 | sort | uniq \
+            | grep "${subdirs[@]}"
+    ) || :
+
+    test -n "$changed_packages" || {
+        echo "No package modified."
+        exit 0
+    }
+}
+
+run_linter()
+{
+    package=$1
+    linter_cmd=(../build_aux/linter --print-fixed-errors --compare-against)
+    echo "==== Testing package $package modified by this PR ===="
+    ( cd "$package" &&  "${linter_cmd[@]}" "$DIFF_AGAINST" )
+}
+
+if test "$1" != safety-check; then
+    echo "Be careful, this modifies git directry, STOP!"
+    exit 1
+fi
+
+rebase
+
+get_changed_packages
+
+failed_packages=()
+for package in $changed_packages; do
+    if ! run_linter "$package"; then
+        failed_packages+=( "$package" )
+    fi
+done
+
+echo =====
+
+if test 0 -eq "${#failed_packages}"; then
+    echo "SUCCESS!  No new PyLint issues."
+else
+    echo "FAILURE!  PyLint issues in packages: ${failed_packages[*]}"
+    exit 1
+fi
