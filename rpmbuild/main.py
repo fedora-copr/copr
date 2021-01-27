@@ -23,6 +23,7 @@ except ImportError:
 from copr_common.request import SafeRequest
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
+from copr_rpmbuild.automation import run_automation_tools
 from copr_rpmbuild.helpers import read_config, \
      parse_copr_name, dump_live_log, copr_chroot_to_task_id
 from six.moves.urllib.parse import urlparse, urljoin, urlencode
@@ -264,7 +265,9 @@ def build_rpm(args, config):
         builder = MockBuilder(task, distgit.clone_to, resultdir, config)
         builder.run()
         builder.touch_success_file()
+        run_automation_tools(task, resultdir, builder.mock_config_file, log)
     finally:
+        builder.archive_configs()
         shutil.rmtree(sourcedir)
 
 

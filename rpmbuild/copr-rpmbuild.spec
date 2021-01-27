@@ -120,6 +120,7 @@ Requires: rsync
 Requires: rubygem-gem2rpm
 Requires: scl-utils-build
 Requires: tito
+Requires: fedora-review
 # yum* to allow mock to build against el* chroots without bootstrap_container
 %if 0%{?rhel}
 Requires: yum

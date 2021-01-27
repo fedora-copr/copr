@@ -443,6 +443,7 @@ class Commands(object):
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
+            fedora_review=args.fedora_review,
         )
         print("New project was successfully created.")
 
@@ -467,6 +468,7 @@ class Commands(object):
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
+            fedora_review=ON_OFF_MAP[args.fedora_review],
         )
 
     @requires_api_auth
@@ -993,6 +995,13 @@ def setup_parser():
               "able to install 32bit variants of the packages (e.g. i386 for "
               "x86_64 arch), default is 'off'"))
 
+    parser_create.add_argument(
+        "--fedora-review", action="store_true", default=False,
+        help=("When submitting new package to Fedora, it needs to comply with "
+              "Fedora Packaging Guidelines. Use fedora-review tool to help you "
+              "discover packaging errors. Failing fedora-review will not fail "
+              "the build itself."))
+
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -1038,6 +1047,14 @@ def setup_parser():
               "multilib capable architecture (e.g. x86_64), they will also be "
               "able to install 32bit variants of the packages (e.g. i386 for "
               "x86_64 arch), default is \"don't change\""))
+
+    parser_modify.add_argument(
+        "--fedora-review", choices=["on", "off"], default="off",
+        help=("When submitting new package to Fedora, it needs to comply with "
+              "Fedora Packaging Guidelines. Use fedora-review tool to help you "
+              "discover packaging errors. Failing fedora-review will not fail "
+              "the build itself."))
+
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command

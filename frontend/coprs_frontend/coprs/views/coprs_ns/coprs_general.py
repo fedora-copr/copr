@@ -203,6 +203,7 @@ def copr_new(username=None, group_name=None):
                 follow_fedora_branching=form.follow_fedora_branching.data,
                 delete_after_days=form.delete_after_days.data,
                 multilib=form.multilib.data,
+                fedora_review=form.fedora_review.data,
                 runtime_dependencies=form.runtime_dependencies.data.replace("\n", " "),
                 bootstrap=form.bootstrap.data,
                 isolation=form.isolation.data,
@@ -517,6 +518,7 @@ def process_copr_update(copr, form):
     copr.delete_after_days = form.delete_after_days.data
     copr.multilib = form.multilib.data
     copr.module_hotfixes = form.module_hotfixes.data
+    copr.fedora_review = form.fedora_review.data
     copr.runtime_dependencies = form.runtime_dependencies.data.replace("\n", " ")
     copr.bootstrap = form.bootstrap.data
     copr.isolation = form.isolation.data

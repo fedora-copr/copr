@@ -72,7 +72,8 @@ class ProjectProxy(BaseProxy):
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
-            bootstrap=None, bootstrap_image=None, isolation=None):
+            bootstrap=None, bootstrap_image=None, isolation=None,
+            fedora_review=None):
         """
         Create a project
 
@@ -100,6 +101,8 @@ class ProjectProxy(BaseProxy):
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
         :param str isolation: Mock isolation feature setup.
             Possible values are 'default', 'simple', 'nspawn'.
+        :param bool fedora_review: Run fedora-review tool for packages
+                                   in this project
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -125,6 +128,7 @@ class ProjectProxy(BaseProxy):
             "delete_after_days": delete_after_days,
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
+            "fedora_review": fedora_review,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
@@ -138,7 +142,8 @@ class ProjectProxy(BaseProxy):
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
-             bootstrap=None, bootstrap_image=None, isolation=None):
+             bootstrap=None, bootstrap_image=None, isolation=None,
+             fedora_review=None):
         """
         Edit a project
 
@@ -163,6 +168,8 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'on', 'off', 'image'.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
+        :param bool fedora_review: Run fedora-review tool for packages
+                                   in this project
         :return: Munch
         """
         endpoint = "/project/edit/{ownername}/{projectname}"
@@ -187,6 +194,7 @@ class ProjectProxy(BaseProxy):
             "delete_after_days": delete_after_days,
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
+            "fedora_review": fedora_review,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

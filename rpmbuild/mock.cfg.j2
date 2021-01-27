@@ -1,5 +1,9 @@
 include('/etc/mock/{{ chroot }}.cfg')
 
+config_opts.setdefault('plugin_conf', {})
+config_opts['plugin_conf'].setdefault('tmpfs_opts', {})
+config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
+
 {% if buildroot_pkgs %}
 config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
 {% endif %}

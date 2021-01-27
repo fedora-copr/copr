@@ -145,6 +145,10 @@ class TestMockBuilder(object):
         assert config == """\
 include('/etc/mock/fedora-24-x86_64.cfg')
 
+config_opts.setdefault('plugin_conf', {})
+config_opts['plugin_conf'].setdefault('tmpfs_opts', {})
+config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
+
 
 config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'
 

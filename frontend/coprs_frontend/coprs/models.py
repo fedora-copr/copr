@@ -322,6 +322,9 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     runtime_dependencies = db.Column(db.Text)
 
+    # optional tools to run after build
+    fedora_review = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """
@@ -1789,14 +1792,33 @@ class BuildChroot(db.Model, helpers.Serializer):
                                             ["starting", "running"])
 
     @property
+    def rpm_fedora_review_url(self):
+        """
+        Full URL to the review.txt file produced by the `fedora-review` tool. If
+        the `fedora-review` tool is not enabled for this project, return `None`.
+
+        At this moment, the `review.txt` file (and the rest of the
+        `fedora-review` output) is uncompressed for all states.
+        """
+        if not self.build.copr.fedora_review:
+            return None
+        return self._compressed_log_variant("fedora-review/review.txt",
+                                            StatusEnum.vals.keys())
+
+    @property
     def rpm_live_logs(self):
         """ return list of live log URLs """
         logs = []
         log = self.rpm_backend_log_url
         if log:
             logs.append(log)
+
         log = self.rpm_live_log_url
         if log:
+            logs.append(log)
+
+        log = self.rpm_fedora_review_url
+        if log and self.finished:
             logs.append(log)
         return logs
 

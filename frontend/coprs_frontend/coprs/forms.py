@@ -512,6 +512,14 @@ class CoprFormFactory(object):
                     streams.""",
                     default=False, false_values=FALSE_VALUES)
 
+            fedora_review = wtforms.BooleanField(
+                    "Run fedora-review tool for packages in this project",
+                    description="""When submitting new package to Fedora, it
+                    needs to comply with Fedora Packaging Guidelines. Use
+                    fedora-review tool to help you discover packaging errors.
+                    Failing fedora-review will not fail the build itself.""",
+                    default=False, false_values=FALSE_VALUES)
+
             @property
             def selected_chroots(self):
                 return self.chroots.data
@@ -1432,6 +1440,14 @@ class CoprModifyForm(FlaskForm):
     enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     multilib = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
     module_hotfixes = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+
+    fedora_review = wtforms.BooleanField(
+        "Run fedora-review tool for packages in this project",
+        description="""When submitting new package to Fedora, it
+        needs to comply with Fedora Packaging Guidelines. Use
+        fedora-review tool to help you discover packaging errors.
+        Failing fedora-review will not fail the build itself.""",
+        default=False, false_values=FALSE_VALUES)
 
 
 class CoprForkFormFactory(object):

@@ -53,7 +53,6 @@ class MockBuilder(object):
             self.produce_rpm(srpm, self.resultdir)
         finally:
             self.mock_clean()
-            self.archive_configs()
 
     def prepare_configs(self):
         try:

@@ -109,6 +109,7 @@ def get_build_record(task, short=False):
             "package_version": task.build.pkg_version,
             "uses_devel_repo": task.build.copr.devel_mode,
             "isolation": task.build.isolation,
+            "fedora_review": task.build.copr.fedora_review,
         }
 
 

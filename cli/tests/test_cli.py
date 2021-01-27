@@ -375,6 +375,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "delete_after_days": None,
         "multilib": False,
         "module_hotfixes": False,
+        "fedora_review": False,
     }
     assert stdout == "New project was successfully created.\n"
 
@@ -440,6 +441,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "delete_after_days": None,
         "multilib": True,
         "module_hotfixes": False,
+        "fedora_review": False,
     }
     assert stdout == "New project was successfully created.\n"
 

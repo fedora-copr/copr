@@ -157,6 +157,7 @@ def add_project(ownername):
             delete_after_days=form.delete_after_days.data,
             multilib=form.multilib.data,
             module_hotfixes=form.module_hotfixes.data,
+            fedora_review=form.fedora_review.data,
         )
         db.session.commit()
     except (DuplicateException,
