@@ -17,6 +17,7 @@ Requirements
 
 * access to `Amazon AWS`_
 * ssh access to batcave01
+* permissions to update aws.fedoraproject.org DNS records
 
 
 Launch a new instance
@@ -60,6 +61,7 @@ type. Currently, we use the following:
 - Select ``Network`` without ``| foo`` suffix
 - Select ``Subnet`` to be ``us-east-1c``
 - Opt-in the ``Protect against accidental termination`` checkbox
+- Request IPv6 assignment ``IPv6 IPs -> Add IP``
 
 
 4. Add Storage
@@ -267,6 +269,13 @@ Finally flip the BE IP
 In the AWS attach the copr be elastic IP to the new server.
 
 
+Fix IPv6 DNS records
+--------------------
+
+There is no support for Elastic IPs for IPv6, so we have to update AAAA records
+every time we spawn a new infrastructure machine.  SSH to batcave, and setup the
+DNS records there according to `the DNS SOP`_.
+
 Get it working
 --------------
 
@@ -382,3 +391,4 @@ And rebuild indexes::
 .. _`copr devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`Amazon AWS`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
 .. _`Cloud Base Images`: https://alt.fedoraproject.org/cloud/
+.. _`the DNS SOP`: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/dns.html
