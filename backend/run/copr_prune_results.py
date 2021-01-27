@@ -24,7 +24,6 @@ LOG = multiprocessing.log_to_stderr()
 LOG.setLevel(logging.INFO)
 
 DEF_DAYS = 14
-MAX_PROCESS = 50
 
 parser = argparse.ArgumentParser(
         description="Automatically prune copr result directory")
@@ -81,8 +80,8 @@ class Pruner(object):
         self.frontend_client = FrontendClient(self.opts, try_indefinitely=True,
                                               logger=LOG)
         self.mtime_optimization = True
-        self.max_processes = getattr(self.opts, "max_prune_processes", MAX_PROCESS)
-        self.pool = multiprocessing.Pool(processes=self.max_processes)
+        self.workers = getattr(self.opts, "prune_workers", None)
+        self.pool = multiprocessing.Pool(processes=self.workers)
         if cmdline_opts:
             self.mtime_optimization = not cmdline_opts.no_mtime_optimization
 

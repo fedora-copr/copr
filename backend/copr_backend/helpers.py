@@ -305,6 +305,10 @@ class BackendConfigReader(object):
             cp, "backend", "actions_max_workers",
             default=10, mode="int")
 
+        opts.prune_workers = _get_conf(
+            cp, "backend", "prune_workers",
+            default=None, mode="int")
+
         opts.log_dir = _get_conf(
             cp, "backend", "log_dir", "/var/log/copr-backend/")
         opts.log_level = _get_conf(

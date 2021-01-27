@@ -63,8 +63,10 @@ sleeptime=30
 # minimum age for builds to be pruned
 prune_days=14
 
-# how many prune processes we can run in paralell
-# max_prune_processes = 50
+# Number of prunerepo workers spawned in parallel (started by
+# copr_prune_results.py).  By default `os.cpu_count()` is used, per
+# multiprocessing.Pool defaults.
+#prune_workers = 16
 
 # logging settings
 #log_dir=/var/log/copr-backend/
