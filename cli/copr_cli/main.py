@@ -112,6 +112,7 @@ def buildopts_from_args(args, progress_callback):
         "timeout": args.timeout,
         "chroots": args.chroots,
         "background": args.background,
+        "enable_net": ON_OFF_MAP[args.enable_net],
         "progress_callback": progress_callback,
     }
     for opt in ["exclude_chroots", "bootstrap", "after_build_id", "with_build_id", "isolation"]:
@@ -1170,6 +1171,8 @@ def setup_parser():
                                      help="Mark the build as a background job. It will have lesser priority than regular builds.")
     parser_build_parent.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",
                                      help="Choose the isolation method for running commands in buildroot.")
+    parser_build_parent.add_argument("--enable-net", choices=["on", "off"], default="off",
+                                     help="If net should be enabled for this build (default is off)")
 
     parser_build_parent.add_argument(
         "--bootstrap",

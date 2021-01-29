@@ -42,6 +42,7 @@ class TestDistGitMethodBuild(object):
             'background': False,
             'progress_callback': None,
             'isolation': 'unchanged',
+            'enable_net': False,
         },
         'packagename': 'test',
         'distgit': None,
@@ -91,6 +92,7 @@ class TestDistGitMethodBuild(object):
                 "background": True,
                 "progress_callback": None,
                 'isolation': 'unchanged',
+                'enable_net': False,
             },
         })
         assert call[1] == result

@@ -283,6 +283,7 @@ def process_creating_new_build(copr, form, create_new_build):
         'isolation': form.isolation.data,
         'after_build_id': form.after_build_id.data,
         'with_build_id': form.with_build_id.data,
+        'enable_net': form.enable_net.data,
     }
 
     # From URLs it can be created multiple builds at once
