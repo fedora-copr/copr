@@ -237,11 +237,11 @@ class ModulemdGenerator(object):
     def add_profiles(self, profiles):
         self.yaml = modulemd_tools.yaml.update(self.yaml, profiles=dict(profiles))
 
-    def add_components(self, packages, filter_packages, builds):
+    def add_components(self, packages, components_rpms, builds):
         components = []
         build_ids = sorted(list(set([int(id) for p, id in zip(packages, builds)
-                                     if p in filter_packages])))
-        for package in filter_packages:
+                                     if p in components_rpms])))
+        for package in components_rpms:
             build_id = builds[packages.index(package)]
             build = builds_logic.BuildsLogic.get_by_id(build_id).first()
             chroot = self._build_chroot(build)

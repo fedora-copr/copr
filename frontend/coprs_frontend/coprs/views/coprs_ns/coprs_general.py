@@ -1116,12 +1116,16 @@ def copr_create_module(copr):
 
 
 def render_create_module(copr, form, profiles=2):
+    components_rpms = []
     built_packages = []
     for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
+        components_rpms.append((build.package.name, build))
         for package in build.built_packages.split("\n"):
             built_packages.append((package.split()[0], build))
 
-    return flask.render_template("coprs/create_module.html", copr=copr, form=form, built_packages=built_packages, profiles=profiles)
+    return flask.render_template(
+        "coprs/create_module.html", copr=copr, form=form, profiles=profiles,
+        built_packages=built_packages, components_rpms=components_rpms)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
@@ -1158,7 +1162,7 @@ def build_module(copr, form):
     generator.add_filter(form.filter.data)
     generator.add_api(form.api.data)
     generator.add_profiles(dict(zip(form.profile_names.data, form.profile_pkgs.data)))
-    generator.add_components(form.packages.data, form.filter.data, form.builds.data)
+    generator.add_components(form.packages.data, form.components.data, form.builds.data)
     yaml = generator.generate()
 
     facade = None

@@ -37,7 +37,7 @@
 
       <div class="row">
 
-        {% for package, build in built_packages %}
+        {% for package, build in components_rpms %}
           <input type="hidden" name="{{ 'packages-%s' |format(loop.index0) }}" value="{{ package }}">
           <input type="hidden" name="{{ 'builds-%s' |format(loop.index0) }}" value="{{ build.id }}">
         {% endfor %}
@@ -45,13 +45,44 @@
 
         {% set no_packages = 'No successfully built packages in this project yet' %}
 
-        <div class="col-sm-4">
+        <div class="col-sm-3">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Components</h3>
+            </div>
+            <div class="panel-body" style="border-bottom: 1px solid #ededed;">
+              <p class="text-muted">
+                <span class="pficon pficon-info"></span>
+                Available SRPM packages from this project, that are
+                going to be used as the module components.
+              </p>
+            </div>
+            <div class="panel-body">
+              <label for="exampleInputEmail1">Packages <span class="text-muted">to be included:</span></label>
+              {% for package, build in components_rpms %}
+              <div class="checkbox">
+                <label>
+                  {{ render_checkbox("components-{}".format(loop.index0), package, (package in form.components.data or not form.is_submitted())) }}
+                </label>
+              </div>
+              {% else %}
+                <p class="text-muted"><span class="pficon pficon-warning-triangle-o"></span> {{ no_packages }}</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-3">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">Package Filter </h3>
             </div>
             <div class="panel-body" style="border-bottom: 1px solid #ededed;">
-              <p class="text-muted"><span class="pficon pficon-info"></span> All binary packages are included in the module by default. You can uncheck packages you do not want to be included.</p>
+              <p class="text-muted"><span class="pficon pficon-info"></span>
+                All binary packages are included in the module by
+                default. You can specify what packages should be
+                filtered out and <b>not be included</b> in the module.
+              </p>
             </div>
             <div class="panel-body">
 
@@ -59,7 +90,7 @@
               {% for package, build in built_packages %}
               <div class="checkbox">
                 <label>
-                  {{ render_checkbox("filter-{}".format(loop.index0), package, (package in form.filter.data or not form.is_submitted())) }}
+                  {{ render_checkbox("filter-{}".format(loop.index0), package, (package in form.filter.data)) }}
                 </label>
               </div>
               {% else %}
@@ -70,7 +101,7 @@
         </div>
 
 
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">Module API</h3>
@@ -95,7 +126,7 @@
           </div>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">Install Profiles</h3>

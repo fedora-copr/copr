@@ -60,6 +60,13 @@ class TestCreateModuleForm(CoprsTestCase):
             }
             form = CreateModuleForm(filter=["pkg1"],
                                     profile_names=["foo", "bar"])
+            assert not form.validate()
+            assert "components" in form.errors
+            assert "You must select some packages" \
+                in form.errors["components"][0]
+
+            form = CreateModuleForm(components=["pkg1"],
+                                    profile_names=["foo", "bar"])
             assert form.validate()
 
     def test_unique_names(self):
@@ -82,7 +89,7 @@ class TestCreateModuleForm(CoprsTestCase):
                 "profile_pkgs-1-0": "pkg1",
                 "profile_pkgs-1-1": "pkg2",
             }
-            form = CreateModuleForm(filter=["pkg1"],
+            form = CreateModuleForm(components=["pkg1"],
                                     profile_names=["foo", "bar"])
             assert not form.validate()
             assert "Missing profile name" in form.errors["profile_names"][0]
