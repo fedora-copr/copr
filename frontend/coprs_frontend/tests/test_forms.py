@@ -81,7 +81,8 @@ class TestCreateModuleForm(CoprsTestCase):
             assert "Profile names must be unique" in \
                 form.errors["profile_names"][0]
 
-    def test_unique_names(self):
+    @staticmethod
+    def test_profile_name_required():
         with app.test_request_context():
             flask.request.form = {
                 "profile_names-0": "foo",
