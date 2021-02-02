@@ -65,7 +65,7 @@ class OutdatedChrootsLogic:
         """
         A `user` decided to extend the preservation period for some EOL chroot
         """
-        delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+        delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"]
         cls._update_copr_chroot(copr_chroot, delete_after_days)
         (models.ReviewedOutdatedChroot.query
          .filter(models.ReviewedOutdatedChroot.copr_chroot_id

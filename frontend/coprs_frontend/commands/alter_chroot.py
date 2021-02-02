@@ -23,7 +23,7 @@ def alter_chroot(chroot_names, action):
     """Activates or deactivates a chroot"""
     activate = (action == "activate")
 
-    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"] + 1
+    delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"]
     delete_after_timestamp = datetime.datetime.now() + datetime.timedelta(delete_after_days)
 
     for chroot_name in chroot_names:
