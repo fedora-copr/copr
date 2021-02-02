@@ -21,6 +21,12 @@ from commands.create_chroot import print_invalid_format, print_doesnt_exist
 )
 def alter_chroot(chroot_names, action):
     """Activates or deactivates a chroot"""
+    func_alter_chroot(chroot_names, action)
+
+def func_alter_chroot(chroot_names, action):
+    """
+    A library-like variant of 'alter_chroot', used for unit-testing purposes.
+    """
     activate = (action == "activate")
 
     delete_after_days = app.config["DELETE_EOL_CHROOTS_AFTER"]

@@ -5,6 +5,8 @@ from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs import app
+from commands.alter_chroot import func_alter_chroot
+from commands.delete_outdated_chroots import delete_outdated_chroots_function
 
 
 class TestOutdatedChrootsLogic(CoprsTestCase):
@@ -158,3 +160,71 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
 
         chroot.delete_after = datetime.now() + timedelta(days=-35)
         assert chroot.delete_after_expired
+
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_expired_chroot_detection(self):
+        """
+        Test fix for issue #1682, that expired chroots are not printed out.
+        """
+
+        def _assert_unaffected(cc):
+            assert cc.is_active is True
+            assert cc.delete_after is None
+            assert cc.delete_notify is None
+
+        # (1) Somewhere in the future (now +180 days by default) fedora-17 is
+        #     going to be expired.
+        func_alter_chroot(["fedora-17-x86_64", "fedora-17-i386"], "eol")
+        found = 0
+        for cc in self.models.CoprChroot.query.all():
+            if "fedora-17" in cc.name:
+                assert cc.delete_after >= datetime.now() + timedelta(days=179)
+                assert cc.delete_notify is None
+                assert cc.delete_after_expired is False
+                # simulate that some mails were sent
+                cc.delete_notify = datetime.now()
+                continue
+            _assert_unaffected(cc)
+
+        # (2) Reactivate the chroots.  Happened at least for epel-7 chroots
+        #     historically.
+        func_alter_chroot(["fedora-17-x86_64", "fedora-17-i386"], "activate")
+        for cc in self.models.CoprChroot.query.all():
+            assert cc.delete_after_expired is False
+            _assert_unaffected(cc)
+
+        # (3) Mark as EOL again, when is appropriate time.  And Expire.
+        backup = self.app.config["DELETE_EOL_CHROOTS_AFTER"]
+        self.app.config["DELETE_EOL_CHROOTS_AFTER"] = 0
+        func_alter_chroot(["fedora-17-x86_64", "fedora-17-i386"], "eol")
+        self.app.config["DELETE_EOL_CHROOTS_AFTER"] = backup
+        found = 0
+        for cc in self.models.CoprChroot.query.all():
+            if "fedora-17" in cc.name:
+                found += 1
+                assert cc.is_active is False
+                assert cc.delete_after <= datetime.now() + timedelta(days=179)
+                assert cc.delete_notify is None
+                assert cc.delete_after_expired is True
+                # unblock the delete action
+                cc.delete_notify = datetime.now()
+            else:
+                _assert_unaffected(cc)
+        assert found == 2
+
+        # (4) Delete the expired chroots!
+        delete_outdated_chroots_function(False)
+        found = 0
+        for cc in self.models.CoprChroot.query.all():
+            if "fedora-17" in cc.name:
+                found += 1
+                assert cc.is_active is False
+                assert cc.delete_after is None
+                assert cc.delete_notify is not None
+                assert cc.delete_after_expired is True
+            else:
+                _assert_unaffected(cc)
+        assert found == 2
