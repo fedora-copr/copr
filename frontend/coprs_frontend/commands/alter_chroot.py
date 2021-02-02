@@ -36,8 +36,12 @@ def alter_chroot(chroot_names, action):
                     continue
 
                 for copr_chroot in mock_chroot.copr_chroots:
-                    # reset EOL policy after re-activation
-                    copr_chroot.delete_after = None if activate else delete_after_timestamp
+                    if activate:
+                        # reset EOL policy after re-activation
+                        copr_chroot.delete_after = None
+                        copr_chroot.delete_notify = None
+                    else:
+                        copr_chroot.delete_after = delete_after_timestamp
 
         except exceptions.MalformedArgumentException:
             print_invalid_format(chroot_name)
