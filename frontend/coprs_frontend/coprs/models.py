@@ -1584,12 +1584,16 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def delete_after_expired(self):
         """
-        Is the chroot going to expire in the future or it has already expired?
-        Using `delete_after_days` as a boolean is not sufficient because that
-        would return wrong results for the last 24 hours.
+        Is the chroot expired, aka its contents are going to be removed very
+        soon, or already removed?  Using `delete_after_days` as a boolean is not
+        sufficient because that would return wrong results for the last 24
+        hours.
         """
         if not self.delete_after:
-            return None
+            if self.delete_notify:
+                # already deleted, see Deleter.delete() method
+                return True
+            return False
         return self.delete_after < datetime.datetime.now()
 
     @property
