@@ -75,7 +75,7 @@ class TestCreateModuleForm(CoprsTestCase):
                 "profile_names-0": "foo",
                 "profile_names-1": "foo",
             }
-            form = CreateModuleForm(filter=["pkg1"],
+            form = CreateModuleForm(components=["pkg1"],
                                     profile_names=["foo", "foo"])
             assert not form.validate()
             assert "Profile names must be unique" in \
