@@ -301,8 +301,8 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
         else:
             raise e
 
-    if not committish:
-        committish = "master"
-
-    checkout_cmd = ['git', 'checkout', committish]
-    run_cmd(checkout_cmd, cwd=repo_path)
+    if committish:
+        # Do the checkout only if explicitly requested, otherwise build against
+        # the default branch.
+        checkout_cmd = ['git', 'checkout', committish]
+        run_cmd(checkout_cmd, cwd=repo_path)

@@ -7,9 +7,11 @@ import shutil
 import tempfile
 
 import configparser
+import pytest
 
 from copr_distgit_client import check_output
 from copr_rpmbuild.providers.distgit import DistGitProvider
+from copr_rpmbuild.helpers import git_clone_and_checkout
 
 try:
     from unittest import mock
@@ -86,3 +88,16 @@ lookaside_uri_pattern = lookaside/{{filename}}
         dgp.produce_srpm()
         assert os.path.exists(os.path.join(self.outdir, "obtain-sources",
                                            "origin", "datafile"))
+
+
+@pytest.mark.parametrize('committish', ["main", None, ""])
+@mock.patch("copr_rpmbuild.helpers.run_cmd")
+def test_with_without_committish(run_cmd, committish):
+    git_clone_and_checkout("clone_url", committish, "/dir")
+    expected = []
+    expected += [mock.call(['git', 'clone', 'clone_url', '/dir', '--depth',
+                            '500', '--no-single-branch'])]
+    if committish:
+        expected += [mock.call(['git', 'checkout', 'main'], cwd='/dir')]
+
+    assert expected == run_cmd.call_args_list
