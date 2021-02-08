@@ -16,7 +16,7 @@ How to enlarge disk on copr-be
 7. After the enlargement is done (this may take several hours if we speak about TB)
 8. Run::
 
-    nvme reset /dev/nvme1
+    [comment]: # (nvme reset /dev/nvme1 - we don't have to do this anymore)
     growpart /dev/nvme1n1 1
     resize2fs /dev/nvme1n1p1
 
