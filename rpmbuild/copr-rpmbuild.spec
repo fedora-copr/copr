@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.46
+Version: 0.47
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -314,6 +314,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue Feb 09 2021 Pavel Raiskup <praiskup@redhat.com> 0.47-1
+- scm method to not enforce 'master'
+
 * Tue Feb 09 2021 Pavel Raiskup <praiskup@redhat.com> 0.46-1
 - rpmbuild: don't checkout master when not requested
 
