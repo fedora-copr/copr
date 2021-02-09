@@ -98,6 +98,6 @@ def test_with_without_committish(run_cmd, committish):
     expected += [mock.call(['git', 'clone', 'clone_url', '/dir', '--depth',
                             '500', '--no-single-branch'])]
     if committish:
-        expected += [mock.call(['git', 'checkout', 'main'], cwd='/dir')]
+        expected += [mock.call(['git', 'checkout', committish], cwd='/dir')]
 
     assert expected == run_cmd.call_args_list

@@ -20,7 +20,7 @@ class ScmProvider(Provider):
         super(ScmProvider, self).__init__(source_dict, outdir, config)
         self.scm_type = source_dict.get('type') or 'git'
         self.clone_url = source_dict.get('clone_url')
-        self.committish = source_dict.get('committish') or 'master'
+        self.committish = source_dict.get('committish')
         self.repo_subdir = source_dict.get('subdirectory') or ''
         self.spec_relpath = source_dict.get('spec') or ''
         self.srpm_build_method = source_dict.get('srpm_build_method') or 'rpkg'
