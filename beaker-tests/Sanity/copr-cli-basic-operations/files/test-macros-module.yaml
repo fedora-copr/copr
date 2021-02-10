@@ -21,7 +21,7 @@ data:
         rpms:
             ed:
                 rationale: We need to have some package in the module
-                ref: master
+                ref: rawhide
     buildopts:
         rpms:
             macros: |

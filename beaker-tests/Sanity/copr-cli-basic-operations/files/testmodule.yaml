@@ -29,8 +29,8 @@ data:
         rpms:
             ed:
                 rationale: A build dependency of mksh.
-                ref: master
+                ref: rawhide
             mksh:
                 rationale: The main package of the module.
                 buildorder: 10
-                ref: master
+                ref: rawhide

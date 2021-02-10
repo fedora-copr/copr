@@ -6,7 +6,7 @@ Feature: Building from external DistGit instances
 
     @builds
     Scenario: Test that dist-git builds work
-        When a build of Fedora DistGit hello package from master branch is done
+        When a build of Fedora DistGit hello package from rawhide branch is done
         Then the build results are distributed
 
     @packages

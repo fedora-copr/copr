@@ -136,10 +136,12 @@ rlJournalStart
         # meh, the testmodule is hardwired to f33 so we can not simply rely on
         # $CHROOT variable
         rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
-        rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/master/f/testmodule.yaml $PROJECT"
+        # move back to modules/testmodule once this is merged https://src.fedoraproject.org/modules/testmodule/pull-request/1
+        rlRun "copr-cli build-module --url https://src.fedoraproject.org/fork/praiskup/modules/testmodule/raw/fix-rawhide/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmodulev2-beakertest-$DATE" 1 $PACKAGES
-        test_successful_packages "perl-List-Compare" $PACKAGES
+        wait_for_finished_module "module-testmodulev2-beakertest-$DATE" 3 $PACKAGES
+        pkg_list="perl-List-Compare  perl-Tangerine tangerine"
+        test_successful_packages "$pkg_list" $PACKAGES
 
         # @TODO Test that module succeeded
         # We need to implement API for retrieving modules or at least
