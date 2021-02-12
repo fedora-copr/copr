@@ -447,13 +447,17 @@ Choose the isolation method for running commands in buildroot
 `copr-cli get-chroot coprchroot`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr get-chroot [-h] coprchroot
+usage: copr get-chroot [-h] coprchroot [--output-format {json, text, text-row}]
 
 Print info of the given chroot.
 
 coprchroot::  
 Path to a project chroot as owner/project/chroot or project/chroot
 
+--output-format FORMAT::
+Set the formatting style. We recommend using json, which prints the required data in json format.
+The text format prints the required data in a column, one piece of information per line.
+The text-row format prints all information separated by a space on a single line.
 
 PACKAGE ACTIONS
 ---------------
@@ -654,7 +658,7 @@ Edit source definition and type of an existing package. Options are shared with 
 `copr-cli list-packages [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr list-packages [-h] [--with-latest-build]
-                          [--with-latest-succeeded-build] [--with-all-builds]
+                          [--with-latest-succeeded-build] [--with-all-builds] [--output-format {json, text, text-row}]
                           project
 
 Lists all packages in the given project in json format.
@@ -668,6 +672,10 @@ Also display data related to the latest succeeded build for each package.
 --with-all-builds::     
 Also display data related to the builds for each package.
 
+--output-format FORMAT::
+Set the formatting style. We recommend using json, which prints the required data in json format.
+The text format prints the required data in a column, one piece of information per line.
+The text-row format prints all information separated by a space on a single line.
 
 `copr-cli list-package-names [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -679,10 +687,15 @@ Only list package names in the given project line by line.
 `copr-cli get-package [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr get-package [-h] --name PKGNAME [--with-latest-build]
-                        [--with-latest-succeeded-build] [--with-all-builds]
+                        [--with-latest-succeeded-build] [--with-all-builds] [--output-format {json, text, text-row}]
                         project
 
 Similar to list-packages but returns just a single package directly as json structure (not wrapped in a list).
+
+--output-format FORMAT::
+Set the formatting style. We recommend using json, which prints the required data in json format.
+The text format prints the required data in a column, one piece of information per line.
+The text-row format prints all information separated by a space on a single line.
 
 
 `copr-cli delete-package [options]`

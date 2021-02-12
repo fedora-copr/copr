@@ -74,6 +74,13 @@ Hint: {1}
 
 """
 
+output_format_help = """
+Set the formatting style. We recommend using json, which prints the required data
+in json format. The text format prints the required data in a column, one piece of
+information per line. The text-row format prints all information separated
+by a space on a single line.
+"""
+
 try:
     input = raw_input
 except NameError:
@@ -123,6 +130,108 @@ def buildopts_from_args(args, progress_callback):
         if value is not None:
             buildopts[opt] = value
     return buildopts
+
+
+class AbstractPrinter(object):
+    """Abstract class defining mandatory methods of printer classes"""
+
+    def __init__(self, fields):
+        """Represents the data we want to print.
+        Supports callable lambda function which takes exactly one argument"""
+        self.fields = fields
+
+    def add_data(self, data):
+        """Initialize the data to be printed"""
+        raise NotImplementedError
+
+    def finish(self):
+        """Print the data according to the set format"""
+        raise NotImplementedError
+
+
+class RowTextPrinter(AbstractPrinter):
+    """The class takes care of printing the data in row text format"""
+
+    def finish(self):
+        pass
+
+    def add_data(self, data):
+        row_data = []
+        for field in self.fields:
+            if callable(field):
+                row_data.append(str(field(data)))
+            else:
+                row_data.append(str(data[field]))
+        print("\t".join(row_data))
+
+
+class ColumnTextPrinter(AbstractPrinter):
+    """The class takes care of printing the data in column text format"""
+
+    first_line = True
+
+    def finish(self):
+        pass
+
+    def add_data(self, data):
+        if not self.first_line:
+            print()
+        self.first_line = False
+        for field in self.fields:
+            if callable(field):
+                print("{0}: {1}".format(field.__code__.co_varnames[0], str(field(data))))
+            else:
+                print("{0}: {1}".format(field, str(data[field])))
+
+
+class JsonPrinter(AbstractPrinter):
+    """The class takes care of printing the data in json format"""
+
+    def __init__(self, fields):
+        super(JsonPrinter, self).__init__(fields)
+        self.output_info = []
+        self.json_values_list = []
+
+    def __process_fields(self, data):
+        desired_info = []
+        for field in self.fields:
+            if callable(field):
+                desired_info.append(field(data))
+            else:
+                desired_info.append(data[field])
+        self.output_info.append(desired_info)
+
+    def add_data(self, data):
+        json_values = {}
+        self.__process_fields(data)
+        for item in self.output_info:
+            for field, info in zip(self.fields, item):
+                if callable(field):
+                    json_values[field.__code__.co_varnames[0]] = info
+                else:
+                    json_values[field] = info
+        self.json_values_list.append(json_values)
+
+    def finish(self):
+        print(json_dumps(self.json_values_list[0]))
+
+
+class JsonPrinterListCommand(JsonPrinter):
+    """The class takes care of printing the data in list in json format"""
+
+    def finish(self):
+        print(json_dumps(self.json_values_list))
+
+
+def get_printer(output_format, fields, list_command=False):
+    """According to output_format decide which object of printer to return"""
+    if output_format == "json":
+        if list_command:
+            return JsonPrinterListCommand(fields)
+        return JsonPrinter(fields)
+    if output_format == "text":
+        return ColumnTextPrinter(fields)
+    return RowTextPrinter(fields)
 
 
 class Commands(object):
@@ -521,10 +630,17 @@ class Commands(object):
 
         builds_list = self.client.build_proxy.get_list(ownername, projectname,
                                                        pagination=pagination)
+        if not args.output_format:
+            args.output_format = "text-row"
+            sys.stderr.write(
+                "The default setting will be changed from text-row to json in the following releases\n")
+
         while builds_list:
-            for build in builds_list:
-                print("{0}\t{1}\t{2}".format(build["id"], build["source_package"]["name"],
-                                             build["state"]))
+            fields = ["id", lambda name: name["source_package"]["name"], "state"]
+            printer = get_printer(args.output_format, fields, True)
+            for data in builds_list:
+                printer.add_data(data)
+            printer.finish()
             builds_list = next_page(builds_list)
 
     def action_mock_config(self, args):
@@ -643,7 +759,12 @@ class Commands(object):
         project_chroot = self.client.project_chroot_proxy.get(
             ownername=owner, projectname=copr, chrootname=chroot
         )
-        print(json_dumps(project_chroot))
+        fields = ["additional_packages", "additional_repos", "comps_name", "delete_after_days",
+                  "isolation", "mock_chroot", "ownername", "projectname", "with_opts",
+                  "without_opts"]
+        printer = get_printer(args.output_format, fields)
+        printer.add_data(project_chroot)
+        printer.finish()
 
     def action_list_chroots(self, args):
         """List all currently available chroots.
@@ -759,7 +880,14 @@ class Commands(object):
                                                       with_latest_build=args.with_latest_build,
                                                       with_latest_succeeded_build=args.with_latest_succeeded_build)
         packages_with_builds = [self._package_with_builds(p, args) for p in packages]
-        print(json_dumps(packages_with_builds))
+        fields = ["id", "auto_rebuild", "name", "ownername", "projectname", "source_dict",
+                  "source_type", "latest_succeeded_build", "latest_build"]
+        if args.with_all_builds:
+            fields.insert(1, "builds")
+        printer = get_printer(args.output_format, fields, True)
+        for data in packages_with_builds:
+            printer.add_data(data)
+        printer.finish()
 
     def action_list_package_names(self, args):
         ownername, projectname = self.parse_name(args.copr)
@@ -777,7 +905,13 @@ class Commands(object):
             with_latest_succeeded_build=args.with_latest_succeeded_build,
         )
         package = self._package_with_builds(package, args)
-        print(json_dumps(package))
+        fields = ["auto_rebuild", "id", "latest_build", "latest_succeeded_build", "name", "ownername",
+                  "projectname", "source_dict", "source_type"]
+        if args.with_all_builds:
+            fields.insert(1, "builds")
+        printer = get_printer(args.output_format, fields)
+        printer.add_data(package)
+        printer.finish()
 
     def _package_with_builds(self, package, args):
         ownername, projectname = self.parse_name(args.copr)
@@ -1076,6 +1210,8 @@ def setup_parser():
     parser_builds.add_argument("project", help="Which project's builds should be listed.\
                                Can be just a name of the project or even in format\
                                username/project or @groupname/project.")
+    parser_builds.add_argument("--output-format", choices=["text", "json", "text-row"],
+                               help=output_format_help)
     parser_builds.set_defaults(func="action_list_builds")
 
     #########################################################
@@ -1341,6 +1477,8 @@ def setup_parser():
 
     parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")
     parser_get_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
+    parser_get_chroot.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
+                                   help=output_format_help)
     parser_get_chroot.set_defaults(func="action_get_chroot")
 
     parser_list_chroots = subparsers.add_parser("list-chroots", help="List all currently available chroots.")
@@ -1464,6 +1602,8 @@ def setup_parser():
                                       help="Also display data related to the latest succeeded build for the package.")
     parser_list_packages.add_argument("--with-all-builds", action="store_true",
                                       help="Also display data related to the builds for the package.")
+    parser_list_packages.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
+                                      help=output_format_help)
     parser_list_packages.set_defaults(func="action_list_packages")
 
     # package names listing
@@ -1487,6 +1627,8 @@ def setup_parser():
                                     help="Also display data related to the latest succeeded build for each package.")
     parser_get_package.add_argument("--with-all-builds", action="store_true",
                                     help="Also display data related to the builds for each package.")
+    parser_get_package.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
+                                    help=output_format_help)
     parser_get_package.set_defaults(func="action_get_package")
 
     # package deletion
@@ -1519,7 +1661,8 @@ def setup_parser():
 
     # module building
     parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
-    parser_build_module.add_argument("copr", help="The copr repo to build module in. Can be just name of project or even in format owner/project.")
+    parser_build_module.add_argument("copr", help="The copr repo to build module in. Can be just name of project "
+                                                  "or even in format owner/project.")
     parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group(required=True)
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
