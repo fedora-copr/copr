@@ -117,4 +117,5 @@ app.cli.add_command(get_flask_wrapper_command('run'))
 app.cli.add_command(get_flask_wrapper_command('shell'))
 
 if __name__ == "__main__":
-    app.cli()
+    with app.app_context():
+        app.cli()

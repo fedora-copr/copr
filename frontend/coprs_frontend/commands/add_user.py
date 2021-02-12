@@ -15,8 +15,7 @@ from coprs.views.misc import create_user_wrapper
     required=False
 )
 def add_user(name, mail, api_token=None, api_login=None):
-    with app.app_context():
-        return add_user_function(name, mail, api_token, api_login)
+    return add_user_function(name, mail, api_token, api_login)
 
 
 def add_user_function(name, mail, api_token=None, api_login=None):

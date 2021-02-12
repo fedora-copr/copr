@@ -5,8 +5,7 @@ from coprs import app
 
 
 def create_sqlite_file_function():
-    with app.app_context():
-        uri = app.config["SQLALCHEMY_DATABASE_URI"]
+    uri = app.config["SQLALCHEMY_DATABASE_URI"]
 
     if not uri.startswith("sqlite"):
         return None
