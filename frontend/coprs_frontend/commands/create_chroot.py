@@ -20,7 +20,8 @@ def print_doesnt_exist(chroot_name):
     print("{0} - chroot doesn\"t exist.".format(chroot_name))
 
 
-def create_chroot_function(chroot_names, branch=None, activated=True):
+def create_chroot_function(chroot_names, branch=None, activated=True,
+                           comment=None):
     """Creates a mock chroot in DB"""
     for chroot_name in chroot_names:
         if not branch:
@@ -30,6 +31,7 @@ def create_chroot_function(chroot_names, branch=None, activated=True):
             chroot = coprs_logic.MockChrootsLogic.add(chroot_name)
             chroot.distgit_branch = branch_object
             chroot.is_active = activated
+            chroot.comment = comment
             db.session.commit()
         except exceptions.MalformedArgumentException:
             print_invalid_format(chroot_name)
@@ -52,6 +54,11 @@ def create_chroot_function(chroot_names, branch=None, activated=True):
     help="Activate the chroot later, manually by `alter-chroot`",
     default=True
 )
-def create_chroot(chroot_names, branch=None, activated=True):
+@click.option(
+    "--comment",
+    help="Document any peculiarity about the new chroots.",
+    default=True,
+)
+def create_chroot(chroot_names, branch=None, activated=True, comment=None):
     """Creates a mock chroot in DB"""
-    return create_chroot_function(chroot_names, branch, activated)
+    return create_chroot_function(chroot_names, branch, activated, comment)
