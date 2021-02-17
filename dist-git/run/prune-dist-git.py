@@ -10,6 +10,7 @@ import shutil
 import sys
 import pwd
 import argparse
+import time
 import copr
 
 from copr.v3.client import Client as CoprClient
@@ -50,6 +51,12 @@ if __name__ == "__main__":
                 client.project_proxy.get(username, projectname)
             except copr.v3.exceptions.CoprNoResultException:
                 pass
+            except (copr.v3.exceptions.CoprRequestException, copr.v3.exceptions.CoprTimeoutException):
+                print('Cannot connect to frontend. Pausing for 5 secs.')
+                time.sleep(5)
+                # this is run daily, no problem if we miss one
+                # wait a few secs till frontend is available and continue
+                continue
             else:
                 continue
 
