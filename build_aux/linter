@@ -297,7 +297,7 @@ def _get_arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--compare-against",
-        default="origin/master",
+        default="origin/main",
         help=("What git ref to diff the linters' results against.  Note "
               "that the reference needs to be available in the current "
               "git directory"))

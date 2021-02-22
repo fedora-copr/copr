@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Rebase this PR against upstream master branch, and compare the set
+# Rebase this PR against upstream 'main' branch, and compare the set
 # of old issues with the set of new issues.  Fail if there are any new.
 # See git-log and 'jenkins-job' file for Jenkins job variant.
 
@@ -8,13 +8,13 @@ set +x
 set -e
 
 REPO=https://pagure.io/copr/copr.git
-: "${DIFF_AGAINST=upstream/master}"
+: "${DIFF_AGAINST=upstream/main}"
 
 rebase()
 {
     git remote add upstream "$REPO"
     git fetch upstream
-    git rebase upstream/master
+    git rebase upstream/main
 }
 
 get_changed_packages()
