@@ -49,10 +49,13 @@ type. Currently, we use the following:
 +----------------+-------------+-------------+
 | **backend**    | t3a.medium  | c5.4xlarge  |
 +----------------+-------------+-------------+
-| **keygen**     | t3a.small   | t3a.small   |
+| **keygen**     | t3a.small   | t3a.xlarge  |
 +----------------+-------------+-------------+
 | **distgit**    | t3a.medium  | t3a.medium  |
 +----------------+-------------+-------------+
+
+When more power is needed, please use the `ec2instances.info`_ comparator to get
+the cheapest available instance type according to our needs.
 
 
 3. Configure Instance
@@ -392,3 +395,4 @@ And rebuild indexes::
 .. _`Amazon AWS`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
 .. _`Cloud Base Images`: https://alt.fedoraproject.org/cloud/
 .. _`the DNS SOP`: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/dns.html
+.. _`ec2instances.info`: https://ec2instances.info/
