@@ -702,9 +702,7 @@ def delete_build(build_id):
 def copr_modify(copr):
     form_data = get_input_dict()
     form_data["chroots"] = form_data["chroots"].split()
-
-    form = forms.CoprModifyForm(MultiDict(form_data), meta={'csrf': False})
-    form.chroots.choices = [(ch, ch) for ch in MockChrootsLogic.active_names()]
+    form = forms.CoprForm(MultiDict(form_data), meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: {0}".format(form.errors))

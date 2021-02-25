@@ -157,15 +157,30 @@ class TestApiv3Projects(CoprsTestCase):
         for case in easy_changes:
             self.api3.modify_project("test", **case)
             new_data = self._get_copr_id_data(1)
-
-            # TODO: non-working fields!  These changes should have an effect,
-            # but they don't.
-            for key in list(case.keys()):
-                if key in ["homepage", "contact"]:
-                    case.pop(key)
             old_data.update(**case)
             assert old_data == new_data
             old_data = new_data
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_users_api", "f_mock_chroots", "f_db")
+    def test_fedora_review_setting(self):
+        """
+        Make sure that `fedora_review` setting is not lost when we modify
+        project without specifying it.
+        """
+        self.db.session.add(self.c1)
+        copr = Copr.query.get(self.c1.id)
+        assert not copr.fedora_review
+        assert not copr.delete_after_days
+
+        route = "/api_3/project/edit/{}".format(self.c1.full_name)
+        self.api3.post(route, {"fedora_review": True})
+        assert Copr.query.get(self.c1.id).fedora_review
+
+        self.api3.post(route, {"delete_after_days": 5})
+        copr = Copr.query.get(self.c1.id)
+        assert copr.fedora_review
+        assert copr.delete_after_days == 5
 
 
 class TestApiV3Permissions(CoprsTestCase):

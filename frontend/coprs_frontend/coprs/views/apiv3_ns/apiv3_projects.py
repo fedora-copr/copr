@@ -173,8 +173,7 @@ def add_project(ownername):
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
-    form = forms.CoprModifyForm(data, meta={'csrf': False})
-    form.chroots.choices = [(ch, ch) for ch in MockChrootsLogic.active_names()]
+    form = forms.CoprForm(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)

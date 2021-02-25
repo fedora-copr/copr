@@ -28,6 +28,15 @@ from wtforms import ValidationError
 FALSE_VALUES = {False, "false", ""}
 
 
+class NoneFilter():
+    def __init__(self, default):
+        self.default = default
+
+    def __call__(self, value):
+        if value in [None, 'None']:
+            return self.default
+        return value
+
 def get_package_form_cls_by_source_type_text(source_type_text):
     """
     Params
@@ -162,6 +171,26 @@ class BooleanFieldOptional(wtforms.BooleanField):
 class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
+
+
+class ChrootsField(MultiCheckboxField):
+    """
+    A list of chroot checkboxes. It doesn't accept any other value than
+    currently active mock chroot names. When `copr` is specified, the checkboxes
+    are ticked based on the currently enabled chroots in that project.
+    """
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, label="", validators=None, copr=None, **kwargs):
+        super().__init__(label, validators, **kwargs)
+        self.label = label or "Chroots"
+
+        active_names = sorted(MockChrootsLogic.active_names())
+        self.choices = [(ch, ch) for ch in active_names]
+
+        copr_mock_chroots = copr.mock_chroots if copr else []
+        copr_chroot_names = [ch.name for ch in copr_mock_chroots]
+        self.default = [ch for ch in active_names if ch in copr_chroot_names]
 
 
 class UrlListValidator(object):
@@ -395,11 +424,165 @@ class EmptyStringToNone:
         return value
 
 
+class CoprForm(FlaskForm):
+    """
+    Base form class for adding and modifying projects
+    """
+    # pylint: disable=too-few-public-methods
+
+    chroots = ChrootsField()
+
+    description = wtforms.TextAreaField("Description")
+
+    instructions = wtforms.TextAreaField("Instructions")
+
+    homepage = wtforms.StringField(
+        "Homepage",
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.URL()],
+        filters=[EmptyStringToNone()])
+
+    contact = wtforms.StringField(
+        "Contact",
+        validators=[
+            wtforms.validators.Optional(),
+            EmailOrURL()],
+        filters=[EmptyStringToNone()])
+
+    delete_after_days = wtforms.IntegerField(
+        "Delete after days",
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.NumberRange(min=-1, max=60)
+        ],
+        filters=[(lambda x : -1 if x is None else x)])
+
+    repos = wtforms.TextAreaField(
+        "External Repositories",
+        validators=[UrlRepoListValidator()],
+        filters=[StringListFilter()])
+
+    runtime_dependencies = wtforms.TextAreaField(
+        "Runtime dependencies",
+        validators=[UrlRepoListValidator()],
+        filters=[StringListFilter()])
+
+    initial_pkgs = wtforms.TextAreaField(
+        "Initial packages to build",
+        validators=[
+            UrlListValidator(),
+            UrlSrpmListValidator()],
+        filters=[StringListFilter()])
+
+    disable_createrepo = wtforms.BooleanField(default=False,
+            label="Create repositories manually",
+            description="""Repository meta data is normally refreshed
+            after each build.  If you want to do this manually, turn
+            this option on.""",
+            false_values=FALSE_VALUES)
+
+    unlisted_on_hp = wtforms.BooleanField(
+            "Project will not be listed on home page",
+            default=False,
+            false_values=FALSE_VALUES)
+
+    auto_prune = wtforms.BooleanField(
+            "Old builds will be deleted automatically",
+            default=True, false_values=FALSE_VALUES,
+            description="""Build will be deleted only if there is a
+            newer build (with respect to package version) and it is
+            older than 14 days""")
+
+    use_bootstrap_container = wtforms.StringField(
+        "backward-compat-only: old bootstrap",
+        validators=[wtforms.validators.Optional()],
+        filters=[_optional_checkbox_filter])
+
+    bootstrap = create_mock_bootstrap_field("project")
+
+    isolation = create_isolation_field("project")
+
+    follow_fedora_branching = wtforms.BooleanField(
+            "Follow Fedora branching",
+            description="""When Fedora is branched from rawhide, the
+            respective chroots for the new branch are automatically
+            created for you (as soon as they are available) as rawhide
+            chroot forks.""",
+            default=True,
+            false_values=FALSE_VALUES)
+
+    multilib = wtforms.BooleanField(
+            "Multilib support",
+            description="""When users enable this copr repository on
+            64bit variant of multilib capable architecture (e.g.
+            x86_64), they will be able to install 32bit variants of the
+            packages (e.g. i386 for x86_64 arch)""",
+            default=False,
+            false_values=FALSE_VALUES)
+
+    # Deprecated, use `enable_net` instead
+    build_enable_net = wtforms.BooleanField(
+            "Enable internet access during builds",
+            default=False, false_values=FALSE_VALUES)
+
+    enable_net = wtforms.BooleanField(
+            "Enable internet access during builds",
+            default=False, false_values=FALSE_VALUES)
+
+    module_hotfixes = wtforms.BooleanField(
+            "This repository contains module hotfixes",
+            description="""This will make packages from this project
+            available on along with packages from the active module
+            streams.""",
+            default=False, false_values=FALSE_VALUES)
+
+    fedora_review = wtforms.BooleanField(
+            "Run fedora-review tool for packages in this project",
+            description="""When submitting new package to Fedora, it
+            needs to comply with Fedora Packaging Guidelines. Use
+            fedora-review tool to help you discover packaging errors.
+            Failing fedora-review will not fail the build itself.""",
+            default=False, false_values=FALSE_VALUES)
+
+    @property
+    def errors(self):
+        """
+        Current stable version of WTForms's `Form` doesn't allow to set
+        form-level errors. Let's workaround it in a way, that is
+        implemented in the development branch.
+
+        2.2.1 (Fedora 31/32)
+            `form.errors["whatever"] = ["Some message"]` could be done
+
+        2.3.1 (Fedora 33)
+            The previous solution does nothing and there is no way to
+            have form-level errors. The only way to set errors is via
+            `form.some_field.errors.append("Some message")`. We are
+            reimplementing `errors` property to behave like in 3.0.0
+
+        3.0.0 (Fedora ??)
+            The `form.form_errors` field can be set. This list will be
+            added to the resulting `errors` value and accessible as
+            `form.errors[None]`.
+
+            RFE: https://github.com/wtforms/wtforms/issues/55
+            PR: https://github.com/wtforms/wtforms/pull/595
+            Release notes: https://github.com/wtforms/wtforms/blob/master/CHANGES.rst#version-300
+        """
+
+        # I don't understand pylint here, FlaskForm clearly has `errors` property
+        errors = super().errors.copy() # pylint: disable=no-member
+        if hasattr(self, "form_errors"):
+            errors[None] = self.form_errors  # pylint: disable=no-member
+        return errors
+
+
 class CoprFormFactory(object):
 
     @staticmethod
-    def create_form_cls(mock_chroots=None, user=None, group=None, copr=None):
-        class F(FlaskForm):
+    def create_form_cls(user=None, group=None, copr=None):
+        class F(CoprForm):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
             # that name already exists
@@ -415,61 +598,6 @@ class CoprFormFactory(object):
                     NameNotNumberValidator()
                 ])
 
-            homepage = wtforms.StringField(
-                "Homepage",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.URL()],
-                filters=[EmptyStringToNone()])
-
-            contact = wtforms.StringField(
-                "Contact",
-                validators=[
-                    wtforms.validators.Optional(),
-                    EmailOrURL()],
-                filters=[EmptyStringToNone()])
-
-            description = wtforms.TextAreaField("Description")
-
-            instructions = wtforms.TextAreaField("Instructions")
-
-            delete_after_days = wtforms.IntegerField(
-                "Delete after days",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(min=0, max=60),
-                ],
-                render_kw={'disabled': bool(copr and copr.persistent)})
-
-            repos = wtforms.TextAreaField(
-                "External Repositories",
-                validators=[UrlRepoListValidator()],
-                filters=[StringListFilter()])
-
-            runtime_dependencies = wtforms.TextAreaField(
-                "Runtime dependencies",
-                validators=[UrlRepoListValidator()],
-                filters=[StringListFilter()])
-
-            initial_pkgs = wtforms.TextAreaField(
-                "Initial packages to build",
-                validators=[
-                    UrlListValidator(),
-                    UrlSrpmListValidator()],
-                filters=[StringListFilter()])
-
-            disable_createrepo = wtforms.BooleanField(default=False,
-                    label="Create repositories manually",
-                    description="""Repository meta data is normally refreshed
-                    after each build.  If you want to do this manually, turn
-                    this option on.""",
-                    false_values=FALSE_VALUES)
-
-            unlisted_on_hp = wtforms.BooleanField(
-                    "Project will not be listed on home page",
-                    default=False,
-                    false_values=FALSE_VALUES)
-
             persistent = wtforms.BooleanField(
                     "Protect project and its builds against deletion",
                     description="""Project's builds and the project itself
@@ -479,63 +607,19 @@ class CoprFormFactory(object):
                     render_kw={'disabled': bool(copr)},
                     default=False, false_values=FALSE_VALUES)
 
-            auto_prune = wtforms.BooleanField(
-                    "Old builds will be deleted automatically",
-                    default=True, false_values=FALSE_VALUES,
-                    description="""Build will be deleted only if there is a
-                    newer build (with respect to package version) and it is
-                    older than 14 days""")
+            # We are redefining the original `CoprForm` field because this
+            # requires `copr.persistent`
+            delete_after_days = wtforms.IntegerField(
+                "Delete after days",
+                validators=[
+                    wtforms.validators.Optional(),
+                    wtforms.validators.NumberRange(min=0, max=60),
+                ],
+                render_kw={'disabled': bool(copr and copr.persistent)})
 
-            use_bootstrap_container = wtforms.StringField(
-                "backward-compat-only: old bootstrap",
-                validators=[wtforms.validators.Optional()],
-                filters=[_optional_checkbox_filter])
-
-            bootstrap = create_mock_bootstrap_field("project")
-
-            isolation = create_isolation_field("project")
-
-            follow_fedora_branching = wtforms.BooleanField(
-                    "Follow Fedora branching",
-                    description="""When Fedora is branched from rawhide, the
-                    respective chroots for the new branch are automatically
-                    created for you (as soon as they are available) as rawhide
-                    chroot forks.""",
-                    default=True,
-                    false_values=FALSE_VALUES)
-
-            multilib = wtforms.BooleanField(
-                    "Multilib support",
-                    description="""When users enable this copr repository on
-                    64bit variant of multilib capable architecture (e.g.
-                    x86_64), they will be able to install 32bit variants of the
-                    packages (e.g. i386 for x86_64 arch)""",
-                    default=False,
-                    false_values=FALSE_VALUES)
-
-            # Deprecated, use `enable_net` instead
-            build_enable_net = wtforms.BooleanField(
-                    "Enable internet access during builds",
-                    default=False, false_values=FALSE_VALUES)
-
-            enable_net = wtforms.BooleanField(
-                    "Enable internet access during builds",
-                    default=False, false_values=FALSE_VALUES)
-
-            module_hotfixes = wtforms.BooleanField(
-                    "This repository contains module hotfixes",
-                    description="""This will make packages from this project
-                    available on along with packages from the active module
-                    streams.""",
-                    default=False, false_values=FALSE_VALUES)
-
-            fedora_review = wtforms.BooleanField(
-                    "Run fedora-review tool for packages in this project",
-                    description="""When submitting new package to Fedora, it
-                    needs to comply with Fedora Packaging Guidelines. Use
-                    fedora-review tool to help you discover packaging errors.
-                    Failing fedora-review will not fail the build itself.""",
-                    default=False, false_values=FALSE_VALUES)
+            # We are redefining the original `CoprForm` field because we need to set
+            # a list of default chroots based on `copr`
+            chroots = ChrootsField(copr=copr)
 
             @property
             def selected_chroots(self):
@@ -556,47 +640,8 @@ class CoprFormFactory(object):
 
                 return True
 
-            @property
-            def errors(self):
-                """
-                Current stable version of WTForms's `Form` doesn't allow to set
-                form-level errors. Let's workaround it in a way, that is
-                implemented in the development branch.
-
-                2.2.1 (Fedora 31/32)
-                  `form.errors["whatever"] = ["Some message"]` could be done
-
-                2.3.1 (Fedora 33)
-                  The previous solution does nothing and there is no way to
-                  have form-level errors. The only way to set errors is via
-                  `form.some_field.errors.append("Some message")`. We are
-                  reimplementing `errors` property to behave like in 3.0.0
-
-                3.0.0 (Fedora ??)
-                  The `form.form_errors` field can be set. This list will be
-                  added to the resulting `errors` value and accessible as
-                  `form.errors[None]`.
-
-                  RFE: https://github.com/wtforms/wtforms/issues/55
-                  PR: https://github.com/wtforms/wtforms/pull/595
-                  Release notes: https://github.com/wtforms/wtforms/blob/master/CHANGES.rst#version-300
-                """
-                errors = super().errors.copy()
-                if hasattr(self, "form_errors"):
-                    errors[None] = self.form_errors
-                return errors
-
             def validate_mock_chroots_not_empty(self):
                 return bool(self.chroots.data)
-
-        F.chroots_list = MockChrootsLogic.active_names()
-        F.chroots_list.sort()
-
-        mock_chroot_names = [ch.name for ch in mock_chroots or []]
-        F.chroots = MultiCheckboxField(
-            "Chroots",
-            choices=[(ch, ch) for ch in F.chroots_list],
-            default=[ch for ch in F.chroots_list if ch in mock_chroot_names])
 
         return F
 
@@ -983,14 +1028,6 @@ class DistGitValidator(object):
             raise wtforms.ValidationError(message)
 
 
-class NoneFilter():
-    def __init__(self, default):
-        self.default = default
-
-    def __call__(self, value):
-        if value in [None, 'None']:
-            return self.default
-        return value
 
 
 class DistGitSelectField(wtforms.SelectField):
@@ -1422,49 +1459,6 @@ class PermissionsFormFactory(object):
                         coerce=int))
 
         return F
-
-
-class CoprModifyForm(FlaskForm):
-    description = wtforms.TextAreaField('Description',
-                                        validators=[wtforms.validators.Optional()])
-
-    instructions = wtforms.TextAreaField('Instructions',
-                                         validators=[wtforms.validators.Optional()])
-
-    # Set `chroots.choices` before validating the form object
-    chroots = MultiCheckboxField("Chroots")
-
-    repos = wtforms.TextAreaField('External Repositories',
-                                  validators=[UrlRepoListValidator(),
-                                              wtforms.validators.Optional()],
-                                  filters=[StringListFilter()])
-
-    disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    bootstrap = create_mock_bootstrap_field("project")
-    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    isolation = create_isolation_field("project")
-    follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    follow_fedora_branching = wtforms.BooleanField(default=True, false_values=FALSE_VALUES)
-    delete_after_days = wtforms.IntegerField(
-        validators=[wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(min=-1, max=60)],
-        filters=[(lambda x : -1 if x is None else x)])
-
-    # Deprecated, use `enable_net` instead
-    build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    multilib = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-    module_hotfixes = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
-
-    fedora_review = wtforms.BooleanField(
-        "Run fedora-review tool for packages in this project",
-        description="""When submitting new package to Fedora, it
-        needs to comply with Fedora Packaging Guidelines. Use
-        fedora-review tool to help you discover packaging errors.
-        Failing fedora-review will not fail the build itself.""",
-        default=False, false_values=FALSE_VALUES)
 
 
 class CoprForkFormFactory(object):
