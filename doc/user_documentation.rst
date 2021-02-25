@@ -269,6 +269,32 @@ to your page? E.g. to GitHub README.md? You can use those urls:
 
 And this badge will reflect current status of your package.
 
+Mass rebuilds
+-------------
+
+Copr can sustain mass-rebuilds and projects with thousands of packages and
+builds. A typical use-case for this can be rebuilding all Fedora packages with
+some proposal change or rebuilding programming-language modules (PyPI,
+RubyGems) as RPMs.
+
+Please follow these recommendations to have the smoothest experience:
+
+- If possible, let us know in advance, so we pay closer attention to the server
+  load and making sure everything functions as it should. Please see the
+  preferred :ref:`communication channels <communication>`
+- Creating AppStream metadata is too slow for large repositories, you might want
+  to disable it. Users cannot do this by themselves
+  `yet <https://pagure.io/copr/copr/issue/754>`_, so please ping any admin to
+  touch ``.disable-appstream`` file into your project directory on the backend
+- If possible, don't submit all builds at once but rather 1k-5k at the time and
+  wait for Copr to process them
+- Use :ref:`build_batches` to specify the order of your builds in advance. This
+  is useful when some of the packages use other packages in the project as
+  dependencies and need to wait until they are built
+- Use `pagination
+  <https://python-copr.readthedocs.io/en/latest/client_v3/pagination.html>`_
+  when accessing the project packages and builds through API
+
 FAQ
 ---
 
