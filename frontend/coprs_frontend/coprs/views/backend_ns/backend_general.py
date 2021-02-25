@@ -84,7 +84,25 @@ def dist_git_upload_completed():
     return flask.jsonify({"updated": True})
 
 
-def get_build_record(task, short=False):
+def get_build_record(task, for_backend=False):
+    """
+    Transform an ORM BuildChroot instance into a Python dictionary that is later
+    converted to a JSON string and sent (as task build instructions) to Copr
+    Backend or Copr Builder machine.
+
+    The Backend needs only a limited amount of information to correctly schedule
+    the task processing (what to build, when, how, where...), whilst Builder
+    needs the full information to properly perform the build.
+
+    The build queue may be rather large (tens of thousands tasks) in some peak
+    situations, so we try to really limit the amount of data processed and sent
+    to Backend (array).  OTOH, Builder's single-row queries are rather cheap and
+    thus we don't have to pay attention to such optimizations.
+
+    :param for_backend: True if the data are consumed by Backend (smaller
+        dictionary output), False if the data are consumed by Builder (full task
+        info).
+    """
     if not task:
         return None
 
@@ -94,11 +112,18 @@ def get_build_record(task, short=False):
             "task_id": task.task_id,
             "build_id": task.build.id,
             "project_owner": task.build.copr.owner_name,
+            "sandbox": task.build.sandbox,
+            "background": bool(task.build.is_background),
+            "chroot": task.mock_chroot.name,
+        }
+
+        if for_backend:
+            return build_record
+
+        build_record.update({
             "project_name": task.build.copr_name,
             "project_dirname": task.build.copr_dirname,
             "submitter": task.build.submitter[0],
-            "sandbox": task.build.sandbox,
-            "chroot": task.mock_chroot.name,
             "repos": task.build.repos,
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
@@ -110,14 +135,7 @@ def get_build_record(task, short=False):
             "uses_devel_repo": task.build.copr.devel_mode,
             "isolation": task.build.isolation,
             "fedora_review": task.build.copr.fedora_review,
-        }
-
-
-        if task.build.is_background:
-            build_record['background'] = True
-
-        if short:
-            return build_record
+        })
 
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
         modules = copr_chroot.module_setup_commands
@@ -144,7 +162,13 @@ def get_build_record(task, short=False):
     return build_record
 
 
-def get_srpm_build_record(task):
+def get_srpm_build_record(task, for_backend=False):
+    """
+    Transform an ORM Build instance (how to build SRPM) into a Python dictionary
+    that is later converted to a JSON string and sent (as task build
+    instructions) to Copr Backend or Copr Builder machine.  For more info see
+    get_build_record() documentation.
+    """
     if not task:
         return None
 
@@ -158,14 +182,20 @@ def get_srpm_build_record(task):
             "task_id": task.task_id,
             "build_id": task.id,
             "project_owner": task.copr.owner_name,
-            "project_name": task.copr_name,
-            "project_dirname": task.copr_dirname,
-            "submitter": task.submitter[0],
             "sandbox": task.sandbox,
-            "source_type": task.source_type,
-            "source_json": task.source_json,
             "chroot": chroot,
         }
+
+        if for_backend:
+            return build_record
+
+        build_record.update({
+            "source_type": task.source_type,
+            "source_json": task.source_json,
+            "submitter": task.submitter[0],
+            "project_name": task.copr_name,
+            "project_dirname": task.copr_dirname,
+        })
 
     except Exception as err:
         app.logger.exception(err)
@@ -249,12 +279,11 @@ def pending_jobs():
     """
     Return the job queue.
     """
-    srpm_tasks = [build for build in
-                  BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
-                  if not build.blocked]
     build_records = (
-        [get_srpm_build_record(task) for task in srpm_tasks] +
-        [get_build_record(task, short=True)
+        [get_srpm_build_record(task, for_backend=True)
+         for task in BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
+         if not task.blocked] +
+        [get_build_record(task, for_backend=True)
          for task in BuildsLogic.get_pending_build_tasks(for_backend=True)]
     )
     log.info('Selected build records: {}'.format(build_records))
