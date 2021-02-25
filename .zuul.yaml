@@ -3,7 +3,9 @@
     name: csdiff-pylint
     description: differential PyLint scan via csdiff
     run: build_aux/zuul/pylint-csdiff-job.yaml
-    nodeset: fedora-rawhide-vm
+    # Pick one from:
+    # https://pagure.io/fedora-zuul-jobs/blob/master/f/zuul.d/nodesets.yaml
+    nodeset: fedora-latest-vm
 
 - project:
     check:
