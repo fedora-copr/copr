@@ -635,7 +635,7 @@ def validate_chroot_blacklist(form, field):
         string = field.data
         fields = [x.lstrip().rstrip() for x in string.split(',')]
         for field in fields:
-            pattern = r'^[a-z0-9-*]+$'
+            pattern = r'^[a-z0-9-_*]+$'
             if not re.match(pattern, field):
                 raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(field, pattern))
 
