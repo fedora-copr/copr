@@ -286,6 +286,9 @@ Please follow these recommendations to have the smoothest experience:
   to disable it. Users cannot do this by themselves
   `yet <https://pagure.io/copr/copr/issue/754>`_, so please ping any admin to
   touch ``.disable-appstream`` file into your project directory on the backend
+- When submitting builds, please use ``--background`` parameter to
+  make them deprioritized by scheduler (compared to normal
+  builds). It's a nice gesture to other users.
 - If possible, don't submit all builds at once but rather 1k-5k at the time and
   wait for Copr to process them
 - Use :ref:`build_batches` to specify the order of your builds in advance. This
