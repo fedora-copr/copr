@@ -162,9 +162,9 @@ class TestModuleBuildFacade(CoprsTestCase):
         facade = ModuleBuildFacade(self.u1, self.c1, generator.generate(), "testmodule.yaml")
         facade.add_builds({"foo": pkg1, "bar": pkg2, "baz": pkg3}, self.m1)
 
-        b1, b2, b3 = self.m1.builds
-        assert b1.batch != b2.batch == b3.batch
-        assert b2.batch.blocked_by == b1.batch
+        builds = self.m1.builds
+        assert builds[0].batch != builds[1].batch == builds[2].batch
+        assert builds[1].batch.blocked_by == builds[0].batch
 
     @new_app_context
     def test_platform_chroots(self, f_users, f_coprs, f_mock_chroots_many, f_builds, f_modules, f_db):
