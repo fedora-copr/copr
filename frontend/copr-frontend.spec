@@ -171,7 +171,7 @@ Requires: python3-wtforms >= 2.2.1
 Requires: python3-zmq
 Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
-Requires: xstatic-jquery-ui-common
+Requires: js-jquery-ui
 Requires: xstatic-patternfly-common
 Requires: modulemd-tools >= 0.6
 
