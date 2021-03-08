@@ -23,11 +23,11 @@ def delete_outdated_chroots_function(dry_run):
     deleter = DryRunDeleter() if dry_run else Deleter()
 
     chroots = coprs_logic.CoprChrootsLogic \
-        .filter_outdated_to_be_deleted(coprs_logic.CoprChrootsLogic.get_multiple())
+        .filter_to_be_deleted(coprs_logic.CoprChrootsLogic.get_multiple())
     for i, chroot in enumerate(chroots, start=1):
 
         # This shouldn't happen but we should play it safe, not just hope
-        if not chroot.delete_notify:
+        if not is_safe_to_delete(chroot):
             app.logger.error("Refusing to delete %s/%s because any notification was sent about its deletion",
                              chroot.copr.full_name, chroot.name)
             continue
@@ -38,6 +38,23 @@ def delete_outdated_chroots_function(dry_run):
             deleter.commit()
         deleter.delete(chroot)
     deleter.commit()
+
+
+def is_safe_to_delete(copr_chroot):
+    """
+    Can we safely remove backend data for this chroot?
+    This function **does not** contain the comprehensive list of checks whether
+    a chroot is safe to delete. It merely checks if we sent a notification email
+    about the chroot or if we didn't need to.
+    """
+    # In case the chroot is not EOL and somebody unclicked it from
+    # a project, there is no protection. The data is safe to delete
+    if copr_chroot.deleted:
+        return True
+
+    # Data for EOL chroots are safe to delete only if we tried to deliver
+    # notifications about the upcoming deletion
+    return bool(copr_chroot.delete_notify)
 
 
 class Deleter(object):

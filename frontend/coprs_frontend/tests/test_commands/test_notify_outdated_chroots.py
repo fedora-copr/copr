@@ -65,6 +65,7 @@ class TestNotifyOutdatedChroots(CoprsTestCase):
             assert send_mail.call_count == 0
 
             # Mark a copr chroot to be deleted, we should send a notification
+            self.c2.copr_chroots[0].mock_chroot.is_active = False
             self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
             assert self.c2.copr_chroots[0].delete_notify is None
             notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)

@@ -1,5 +1,6 @@
 import flask
 from datetime import datetime, timedelta
+from sqlalchemy import not_
 from coprs import db
 from coprs import app
 from coprs import models
@@ -23,10 +24,11 @@ class OutdatedChrootsLogic:
         reviewed = [x.copr_chroot_id for x in cls.get_all_reviews(user).all()]
         return bool((models.CoprChroot.query
                      .filter(models.CoprChroot.copr_id.in_(projects_ids))
-                     .filter(models.CoprChroot.delete_after != None)
+                     .filter(models.CoprChroot.delete_after)
                      .filter(models.CoprChroot.delete_after <= soon)
                      .filter(models.CoprChroot.delete_after > now)
                      .filter(models.CoprChroot.id.notin_(reviewed))
+                     .filter(not_(models.MockChroot.is_active))
                      .first()))
 
     @classmethod

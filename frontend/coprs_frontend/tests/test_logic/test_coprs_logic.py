@@ -137,6 +137,36 @@ class TestCoprChrootsLogic(CoprsTestCase):
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
         assert [ch.name for ch in self.c2.active_copr_chroots] == chroot_names
 
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_update_from_names_delete_after(self):
+        """
+        Test that we eventually delete data from unclicked chroots
+        """
+        flask.g.user = self.u2
+
+        # Let's start with a project having two chroots
+        chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
+        assert [ch.name for ch in self.c2.active_copr_chroots] == chroot_names
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+
+        # User decides that he wants only one of them
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2,
+                                           ["fedora-17-x86_64"])
+
+        # We updated the project to have only one (active) chroot
+        assert len(self.c2.active_copr_chroots) == 1
+        assert self.c2.active_copr_chroots[0].name == "fedora-17-x86_64"
+
+        # But the record about the previously used chroot isn't deleted
+        assert [ch.name for ch in self.c2.copr_chroots] == chroot_names
+
+        # The data from unclicked chroot will be deleted after a week
+        unclicked = self.c2.copr_chroots[1]
+        assert unclicked.name == "fedora-17-i386"
+        assert unclicked.deleted
+        assert unclicked.delete_after.date() == date.today() + timedelta(days=7)
+
     def test_update_from_names_disabled(self, f_users, f_coprs, f_mock_chroots, f_db):
         # Say, that fedora-17-x86_64 is outdated
         self.mc2.is_active = False
@@ -155,6 +185,7 @@ class TestCoprChrootsLogic(CoprsTestCase):
         # A chroot is supposed to be removed today (without a time specification)
         # Do not notify anyone, it is already too late. For all intents and purposes,
         # the data is already gone.
+        self.c2.copr_chroots[0].mock_chroot.is_active = False
         self.c2.copr_chroots[0].delete_after = date.today()
         assert outdated.all() == []
 
@@ -166,8 +197,13 @@ class TestCoprChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
         assert outdated.all() == []
 
+        # A chroot is not EOL but was unclicked from a project by its owner
+        self.c2.copr_chroots[0].mock_chroot.is_active = True
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=1)
+        assert outdated.all() == []
+
     def test_filter_outdated_to_be_deleted(self, f_users, f_coprs, f_mock_chroots, f_db):
-        outdated = CoprChrootsLogic.filter_outdated_to_be_deleted(CoprChrootsLogic.get_multiple())
+        outdated = CoprChrootsLogic.filter_to_be_deleted(CoprChrootsLogic.get_multiple())
         assert outdated.all() == []
 
         # A chroot is supposed to be removed today (without a time specification)
@@ -225,6 +261,27 @@ class TestCoprChrootsLogic(CoprsTestCase):
         new_copr_chroot = self.c2.active_copr_chroots[1]
         assert old_copr_chroot == new_copr_chroot
         assert old_bch_ids == [bch.id for bch in new_copr_chroot.build_chroots]
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
+    def test_unclick_chroot_repeatedly(self):
+        """
+        Test that if we repeatedly update project settings and leave some chroot
+        unclicked, the `delete_after` change value does not change
+        """
+        flask.g.user = self.u2
+        assert len(self.c2.copr_chroots) == 2
+
+        # Unclick fedora-17-i386 chroot from the project and make sure its data
+        # is going to be deleted
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
+        delete_after = self.c2.copr_chroots[1].delete_after
+        assert delete_after
+
+        # Update project settings again and leave the fedora-17-i386 unclicked.
+        # Make sure its `delete_after` value hasn't been prolonged
+        CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
+        assert self.c2.copr_chroots[1].delete_after == delete_after
 
 
 class TestPinnedCoprsLogic(CoprsTestCase):

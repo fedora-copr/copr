@@ -42,11 +42,22 @@ def func_alter_chroot(chroot_names, action):
                     continue
 
                 for copr_chroot in mock_chroot.copr_chroots:
+                    # Don't touch unclicked chroots
+                    if copr_chroot.deleted:
+                        continue
+
                     if activate:
                         # reset EOL policy after re-activation
                         copr_chroot.delete_after = None
                         copr_chroot.delete_notify = None
                     else:
+                        if copr_chroot.deleted:
+                            # If the chroot was unclicked (deleted) from
+                            # a project, we don't want to run the whole EOL
+                            # machinery. The `delete_after` should be already
+                            # set and we want to keep it as is
+                            assert copr_chroot.delete_after
+                            continue
                         copr_chroot.delete_after = delete_after_timestamp
 
         except exceptions.MalformedArgumentException:

@@ -1,12 +1,16 @@
 import flask
 import pytest
+from unittest.mock import patch
 from datetime import datetime, timedelta
+from copr_common.enums import ActionTypeEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
+from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs import app
 from commands.alter_chroot import func_alter_chroot
 from commands.delete_outdated_chroots import delete_outdated_chroots_function
+from commands.notify_outdated_chroots import notify_outdated_chroots_function
 
 
 class TestOutdatedChrootsLogic(CoprsTestCase):
@@ -18,6 +22,7 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
         # Once a chroot is EOLed, we should see that a user has something unreviewed
+        self.c2.copr_chroots[0].mock_chroot.is_active = False
         self.c2.copr_chroots[0].delete_after = datetime.now() + timedelta(days=10)
         assert OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
@@ -42,6 +47,7 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u3)
 
         # Once a chroot is EOLed, we should see that a user has something unreviewed
+        self.gc2.copr_chroots[0].mock_chroot.is_active = False
         self.gc2.copr_chroots[0].delete_after = datetime.now() + timedelta(days=10)
         assert OutdatedChrootsLogic.has_not_reviewed(self.u3)
 
@@ -62,6 +68,7 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
         # A chroot was just marked as EOL, we don't want to see any warning just yet
+        self.c2.copr_chroots[0].mock_chroot.is_active = False
         self.c2.copr_chroots[0].delete_after = datetime.now() + timedelta(days=180)
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
@@ -228,3 +235,76 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
             else:
                 _assert_unaffected(cc)
         assert found == 2
+
+    @new_app_context
+    @patch("commands.notify_outdated_chroots.dev_instance_warning")
+    @patch("commands.notify_outdated_chroots.send_mail")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_delete_outdated_unclicked(self, send_mail, _dev_instance_warning):
+        """
+        A corner case that probably won't happen very often.
+        Let's say that user has some chroot (F17) enabled and because it is
+        reaching EOL, he decides to not care about it anymore and disable it.
+        This means the chroot data will be preserved for only a couple of days
+        and no email notification is going to be sent.
+
+        Within this short preservation period we indeed mark the chroot as EOL,
+        which would normally mean 180 days preservation period and email
+        notifications but since the chroot was manually unclicked by the project
+        owner, we don't want any of those.
+
+        This test makes sure that marking a chroot as EOL doesn't affect such
+        chroots that were already been unclicked from a project.
+        """
+        assert len(self.c2.copr_chroots) == 2
+        assert self.c2.copr_chroots[0].name == "fedora-17-x86_64"
+
+        # User unclicks a chroot from his project. The chroot data should be
+        # deleted within a couple of days
+        CoprChrootsLogic.remove_copr_chroot(self.u2, self.c2.copr_chroots[0])
+        delete_after = self.c2.copr_chroots[0].delete_after
+        assert delete_after
+
+        # Meanwhile we marked the chroot as EOL
+        func_alter_chroot(["fedora-17-x86_64"], "eol")
+
+        # Make sure the EOL process didn't interfere and the data is still
+        # going to be deleted within a couple of days
+        assert self.c2.copr_chroots[0].delete_after == delete_after
+
+        # Also make sure we will not send email notifications about the chroot
+        notify_outdated_chroots_function(
+            dry_run=False, email_filter=None, all=True)
+        assert send_mail.call_count == 0
+
+        # Test that the data deletion is not blocked by missing notification
+        self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=7)
+        assert len(ActionsLogic.get_many(ActionTypeEnum("delete")).all()) == 0
+        delete_outdated_chroots_function(dry_run=False)
+        assert len(ActionsLogic.get_many(ActionTypeEnum("delete")).all()) == 1
+
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_outdated_unclicked_repeat(self):
+        """
+        A corner case when user decides to unclick a chroot from his project
+        and in the meantime, Copr administrators repeatedly disable, EOL and
+        activate it. The copr_chroot instance shouldn't be affected by this at
+        all. Then user can enable it again.
+        """
+        # User unclicks a chroot from his project. The chroot data should be
+        CoprChrootsLogic.remove_copr_chroot(self.u2, self.c2.copr_chroots[0])
+        delete_after = self.c2.copr_chroots[0].delete_after
+        assert delete_after
+
+        # Meanwhile, Copr administrators decide to EOL, and reactivate the
+        # mock_chroot several times. The copr_chrot isn't affected.
+        for action in 2 * ["deactivate", "eol", "activate"]:
+            func_alter_chroot(["fedora-17-x86_64"], action)
+        assert self.c2.copr_chroots[0].delete_after == delete_after
+
+        # User decide to enable the chroot in his project again
+        CoprChrootsLogic.update_from_names(
+            self.u2, self.c2, [chroot.name for chroot in self.c2.copr_chroots])
+        assert not self.c2.copr_chroots[0].delete_after

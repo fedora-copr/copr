@@ -3,7 +3,7 @@ import time
 import datetime
 import flask
 
-from sqlalchemy import and_
+from sqlalchemy import and_, not_
 from sqlalchemy.sql import func
 from sqlalchemy import asc, desc
 from sqlalchemy.event import listens_for
@@ -756,6 +756,9 @@ class CoprChrootsLogic(object):
             user, copr,
             "Only owners and admins may update their projects.")
 
+        # Beware that `current_copr_chroots` contains also unclicked (deleted)
+        # chroots. We need them in order to not trying to create a new row when
+        # re-enabling chroots but rather settings `deleted` attribute to `False`
         current_copr_chroots = copr.copr_chroots
         chroot_map = {cch.mock_chroot: cch for cch in current_copr_chroots}
         new_mock_chroots = cls.mock_chroots_from_names(names)
@@ -796,6 +799,7 @@ class CoprChrootsLogic(object):
 
             # Make sure it is (re-)enabled.
             copr_chroot.deleted = False
+            copr_chroot.delete_after = None
 
         if run_createrepo_in:
             ActionsLogic.send_createrepo(copr, chroots=list(run_createrepo_in))
@@ -848,15 +852,44 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
+        # If the chroot is already unclicked (deleted), do nothing. We don't
+        # want to re-delete the chroot again, and with it, prolong its
+        # `delete_after` value.
+        if copr_chroot.deleted:
+            return
+
+        delete_after = datetime.datetime.now() + datetime.timedelta(days=7)
+        copr_chroot.delete_after = delete_after
         copr_chroot.deleted = True
 
     @classmethod
     def filter_outdated(cls, query):
-        return query.filter(models.CoprChroot.delete_after >= datetime.datetime.now())
+        """
+        Filter query to fetch only `CoprChroot` instances that are EOL but still
+        in the data preservation period
+        """
+        return (query.filter(models.CoprChroot.delete_after
+                             >= datetime.datetime.now())
+                     # Filter only such chroots that are not unclicked (deleted)
+                     # from a project. We don't want the EOL machinery for them,
+                     # they are deleted.
+                     .filter(not_(models.CoprChroot.deleted))
+
+                     # Filter only inactive (i.e. EOL) chroots
+                     .filter(not_(models.MockChroot.is_active)))
 
     @classmethod
-    def filter_outdated_to_be_deleted(cls, query):
-        return query.filter(models.CoprChroot.delete_after < datetime.datetime.now())
+    def filter_to_be_deleted(cls, query):
+        """
+        Filter query to fetch only `CoprChroot` instances whose data on backend
+        should be deleted for some reason:
+
+        1) They were unclicked from the project settings and the short
+           preservation time is over
+        2) They are EOL and nobody prolonged their preservation
+        """
+        return query.filter(models.CoprChroot.delete_after
+                            < datetime.datetime.now())
 
 
 class CoprScoreLogic:
