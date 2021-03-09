@@ -137,14 +137,17 @@ def event_info_from_pr_comment(data, base_url):
         'branch_to': data['msg']['pullrequest']['branch'],
         'start_commit': data['msg']['pullrequest']['commit_start'],
         'end_commit': data['msg']['pullrequest']['commit_stop'],
-        'agent': data['msg']['agent'],
+        'user': data['msg']['pullrequest']['user']['name'],
     })
 
 
 def event_info_from_pr(data, base_url):
     """
     Message handler for new pull-request opened in pagure.
-    Topic: ``*.pagure.pull-request.new``
+    Topics:
+    - ``*.pagure.pull-request.new``
+    - ``*.pagure.pull-request.updated``
+    - ``*.pagure.pull-request.rebased``
     """
     return munch.Munch({
         'object_id': data['msg']['pullrequest']['id'],
@@ -159,7 +162,7 @@ def event_info_from_pr(data, base_url):
         'branch_to': data['msg']['pullrequest']['branch'],
         'start_commit': data['msg']['pullrequest']['commit_start'],
         'end_commit': data['msg']['pullrequest']['commit_stop'],
-        'agent': data['msg']['agent'],
+        'user': data['msg']['pullrequest']['user']['name'],
     })
 
 
@@ -181,7 +184,11 @@ def event_info_from_push(data, base_url):
         'branch_to': data['msg']['branch'],
         'start_commit': data['msg']['start_commit'],
         'end_commit': data['msg']['end_commit'],
-        'agent': data['msg']['agent'],
+        # There's no better user identification of the committer.  It can be
+        # normal user, or some bot.  We use this value for sandboxing so the
+        # value doesn't play a security role too much -- pushed stuff should be
+        # safe to build no matter what.
+        'user': data['msg']['agent'],
     })
 
 
@@ -288,7 +295,7 @@ class build_on_fedmsg_loop():
                         event_info.object_type,
                         event_info.object_id,
                         scm_object_url,
-                        "{}user/{}".format(base_url, event_info.agent),
+                        "{}user/{}".format(base_url, event_info.user),
                     )
                     if build:
                         log.info('\t -> {}'.format(build.to_dict()))

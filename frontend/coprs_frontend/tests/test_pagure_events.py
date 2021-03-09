@@ -29,7 +29,13 @@ class TestPagureEvents(CoprsTestCase):
                     "url_path": "test/copr/copr",
                 },
                 'status': 'Open',
-                "comments": []
+                "comments": [],
+                'user': {
+                    "fullname": "John Doe",
+                    "url_path": "user/jdoe",
+                    "full_url": "https://src.fedoraproject.org/user/jdoe",
+                    "name": "jdoe"
+                },
             }
         }
     }
@@ -131,6 +137,7 @@ class TestPagureEvents(CoprsTestCase):
     def test_positive_event_info_from_pr(self):
         event_info = event_info_from_pr(self.data, self.base_url)
         assert event_info.base_clone_url == "https://pagure.io/test/copr/copr"
+        assert event_info.user == "jdoe"
 
     def test_positive_event_info_from_push(self):
         self.data['msg'] = {
@@ -142,6 +149,7 @@ class TestPagureEvents(CoprsTestCase):
         self.data['msg']['repo'] = {"fullname": "test", "url_path": "test"}
         event_info = event_info_from_push(self.data, self.base_url)
         assert event_info.base_clone_url == "https://pagure.io/test"
+        assert event_info.user == "test"
 
     @mock.patch('pagure_events.helpers.raw_commit_changes')
     @mock.patch('pagure_events.get_repeatedly')
