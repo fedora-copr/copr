@@ -183,6 +183,7 @@ def get_srpm_build_record(task, for_backend=False):
             "build_id": task.id,
             "project_owner": task.copr.owner_name,
             "sandbox": task.sandbox,
+            "background": bool(task.is_background),
             "chroot": chroot,
         }
 
