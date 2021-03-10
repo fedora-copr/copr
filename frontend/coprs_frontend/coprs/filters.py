@@ -159,7 +159,7 @@ def markdown_filter(data):
         return ''
 
     parser = commonmark.Parser()
-    renderer = CoprHtmlRenderer()
+    renderer = CoprHtmlRenderer({'safe': True})
 
     return Markup(renderer.render(parser.parse(data)))
 

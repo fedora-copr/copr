@@ -162,6 +162,7 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_coprs(self):
         self.c1 = models.Copr(name=u"foocopr", user=self.u1, repos="", description="""
+<blink>Some HTML code </blink>
 ```python
 # code snippet
 def foo():
