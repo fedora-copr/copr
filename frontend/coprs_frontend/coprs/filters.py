@@ -3,11 +3,7 @@ from six.moves.urllib.parse import urlparse
 import pytz
 import time
 
-try:
-    import commonmark
-except:
-    # needed for Fedora <= 29
-    import CommonMark as commonmark
+import commonmark
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
