@@ -28,11 +28,7 @@ class CoprHtmlRenderer(commonmark.HtmlRenderer):
         lexer = None
 
         if len(info_words) > 0 and len(info_words[0]) > 0:
-            try:
-                code = commonmark.common.escape_xml(info_words[0])
-            except TypeError:
-                # fallback for Fedora <= 30
-                code = commonmark.common.escape_xml(info_words[0], True)
+            code = commonmark.common.escape_xml(info_words[0])
             attrs.append(['class', 'language-' + code])
 
             try:
