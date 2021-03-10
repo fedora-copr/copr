@@ -3,9 +3,12 @@ import json
 from unittest import mock, skip
 import pytest
 
+from flask_sqlalchemy import get_debug_queries
+
 from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.builds_logic import BuildsLogic
+from coprs import app
 
 
 class TestGetBuildTask(CoprsTestCase):
@@ -98,6 +101,48 @@ class TestWaitingBuilds(CoprsTestCase):
         assert self.b3.id not in ids
         assert {self.b2.id, self.b4.id}.issubset(ids)
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_build_jobs_performance(self):
+        self.b2.source_status = StatusEnum("pending")
+        self.b2.is_background = True
+        for bch in self.b3_bc:
+            bch.status = StatusEnum("pending")
+        self.db.session.commit()
+
+        with app.app_context():
+            r = self.tc.get("/backend/pending-jobs/")
+            data = json.loads(r.data.decode("utf-8"))
+            dq = get_debug_queries()
+
+        # Only two queries should occur.  If you happen to see higher number
+        # here, please check the get_pending_srpm_build_tasks and
+        # get_pending_build_tasks methods to enhance the preloaded data.
+        assert len(dq) == 2
+
+        # No redundant data should occur in the output.  Only what BE needs.
+        assert data == [{
+            'build_id': 2,
+            'task_id': '2',
+            'background': True,
+            'chroot': None,
+            'project_owner': 'user1',
+            'sandbox':
+            'user1/foocopr--user2',
+        }, {
+            'build_id': 3,
+            'task_id': '3-fedora-17-x86_64',
+            'background': False,
+            'chroot': 'fedora-17-x86_64',
+            'project_owner': 'user2',
+            'sandbox': 'user2/foocopr--user2',
+        }, {
+            'build_id': 3,
+            'task_id': '3-fedora-17-i386',
+            'background': False,
+            'chroot': 'fedora-17-i386',
+            'project_owner': 'user2',
+            'sandbox': 'user2/foocopr--user2',
+        }]
 
 # status = 0 # failure
 # status = 1 # succeeded

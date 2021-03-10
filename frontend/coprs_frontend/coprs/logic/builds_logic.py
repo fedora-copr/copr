@@ -8,7 +8,7 @@ import requests
 
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import not_
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload, selectinload, load_only
 from sqlalchemy import func, desc, or_, and_
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
@@ -298,10 +298,23 @@ class BuildsLogic(object):
     def get_pending_srpm_build_tasks(cls, background=None, for_backend=False):
         query = (
             models.Build.query
+            .join(models.Copr)
             .filter(models.Build.canceled == false())
             .filter(models.Build.source_status.in_(cls._todo_states(for_backend)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc())
         )
+        if for_backend:
+            query = query.options(
+                load_only("is_background", "source_type", "source_json",
+                          "submitted_by"),
+                # from copr project info we only need the project name
+                joinedload('copr').load_only("user_id", "group_id", "name")
+                .joinedload('user', 'group'),
+                # who submitted the build?
+                joinedload('user').load_only("username"),
+                # is this blocked?
+                joinedload('batch'),
+            )
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
         return query
@@ -321,11 +334,22 @@ class BuildsLogic(object):
             # configuration which can be changed in the middle of the
             # BuildChroot processing.
             .join(models.Package, models.Package.id == models.Build.package_id)
-            .options(joinedload('build').joinedload('copr_dir'),
-                     joinedload('build').joinedload('package'))
             .filter(models.Build.canceled == false())
             .filter(models.BuildChroot.status.in_(cls._todo_states(for_backend)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
+
+        if for_backend:
+            query = query.options(
+                joinedload('build').load_only("is_background", "submitted_by",
+                                              "source_json", "source_type")
+                # from copr project info we only need the project name
+                .joinedload('copr').load_only("user_id", "group_id", "name")
+                .joinedload('user', 'group'),
+                joinedload('mock_chroot'),
+                # submitter
+                joinedload('build').load_only('id').joinedload('user').load_only("username")
+            )
+
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
         return query
