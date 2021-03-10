@@ -249,7 +249,7 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, {"package_name": pkgname})
         return resp
 
-    def rebuild_package(self, project, pkgname):
+    def rebuild_package(self, project, pkgname, build_options=None):
         """ Rebuild one package in a given project using API """
         route = "/api_3/package/build"
         rebuild_data = {
@@ -257,6 +257,7 @@ class API3Requests(_RequestsInterface):
             "projectname": project,
             "package_name": pkgname,
         }
+        rebuild_data.update(self._form_data_from_build_options(build_options))
         return self.post(route, rebuild_data)
 
 
