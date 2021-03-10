@@ -1268,7 +1268,10 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def blocked(self):
-        return bool(self.batch and self.batch.blocked_by and not self.batch.blocked_by.finished)
+        """
+        Detect if the batch we are in is blocked.
+        """
+        return bool(self.batch and self.batch.blocked)
 
     @property
     def persistent(self):
@@ -1980,16 +1983,68 @@ class Batch(db.Model):
     blocked_by_id = db.Column(db.Integer, db.ForeignKey("batch.id"), nullable=True)
     blocked_by = db.relationship("Batch", remote_side=[id])
 
+    _is_finished = None
+
     @property
-    def finished(self):
+    def finished_slow(self):
+        """
+        Check if this batch is finished by iterating through all the contained
+        builds.
+        """
+        cache_timeout = 3600
+        redis_cache_id = "batch_finished_{}".format(self.id)
+
+        if app.cache.get(redis_cache_id):
+            # prolong the cache after the access
+            app.cache.set(redis_cache_id, True, timeout=cache_timeout)
+            return True
+
         if not self.builds:
             # no builds assigned to this batch (yet)
             return False
-        return all([b.finished for b in self.builds])
+
+        # Some Batches are rather large;  use the all+map pair here, not a list
+        # comprehension, to escape the loop as soon as possible on the first
+        # miss (comprehension would go through all builds unnecessarily)
+        if all(map(lambda x: x.finished, self.builds)):
+            # nothing can switch finished batch to non-finished state, cache it
+            app.cache.set(redis_cache_id, True, cache_timeout)
+            return True
+        return False
+
+    @property
+    def finished(self):
+        """
+        Same as self.finished_slow, but doesn't require re-calculation for all
+        the builds, buildchroots, states, etc.  Or checking Redis caches.
+        """
+        if self._is_finished is None:
+            self._is_finished = self.finished_slow
+        return self._is_finished
+
+    @property
+    def blocked(self):
+        """
+        Batch is blocked when the parent batch is not yet finished.
+        """
+        if not self.blocked_by_id:
+            return False
+
+        # a) we are blocked if parent is blocked, or ...
+        if self.blocked_by.blocked:
+            # Optimization, checking for "blocked" is often cheaper than
+            # checking for "finished" because batches tend to contain too many
+            # builds (and transitively build_chroots).  IOW, since in each batch
+            # tree is only one batch being processed - it doesn't make sense to
+            # re-calculate 'finished' state for all of them.
+            return True
+
+        # b) ... when parent is not yet finished
+        return not self.blocked_by.finished
 
     @property
     def state(self):
-        if self.blocked_by and not self.blocked_by.finished:
+        if self.blocked:
             return "blocked"
         return "finished" if self.finished else "processing"
 

@@ -72,6 +72,7 @@ cache = Cache(app, config={
     'CACHE_REDIS_HOST': cache_rcp.host,
     'CACHE_REDIS_PORT': cache_rcp.port,
 })
+app.cache = cache
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general
