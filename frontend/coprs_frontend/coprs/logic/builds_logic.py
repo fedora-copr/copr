@@ -347,7 +347,9 @@ class BuildsLogic(object):
                 .joinedload('user', 'group'),
                 joinedload('mock_chroot'),
                 # submitter
-                joinedload('build').load_only('id').joinedload('user').load_only("username")
+                joinedload('build').load_only('id').joinedload('user').load_only("username"),
+                # preload also batch info
+                joinedload('build').load_only('id').joinedload('batch'),
             )
 
         if background is not None:

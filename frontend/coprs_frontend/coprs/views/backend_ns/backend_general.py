@@ -285,7 +285,8 @@ def pending_jobs():
          for task in BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
          if not task.blocked] +
         [get_build_record(task, for_backend=True)
-         for task in BuildsLogic.get_pending_build_tasks(for_backend=True)]
+         for task in BuildsLogic.get_pending_build_tasks(for_backend=True)
+         if not task.build.blocked]
     )
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
