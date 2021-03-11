@@ -165,13 +165,21 @@ class TestBatchesLogic(CoprsTestCase):
         #    only one tree of batches).
         # 5. Read BuildChroots (lazy) from ^^ to get statuses.
         # 6. Large query for BuildChroots (get_pending_build_tasks).
-        # 7.-N. The last batch (ID=2+more_bchs) contains one "ready" BuildChroot
-        #    task, which we know by parent batch (ID=2+more_bchs-1).  So parent
-        #    batch, and its parent batch, etc. needs to be loaded till Batch 2
-        #    which already is loaded.  So e.g. if more_bchs == 5, we have 7 batches
-        #    in total, batch 1/2 and 7 is pre-loaded, but we have to load batch
-        #    6, 5, 4 and 3 now (more_bchs-1 queries).
-        assert len(dq) == 6-1+more_bchs
+        #
+        # The last batch (ID=2+more_bchs) contains one "ready" BuildChroot task
+        # (the srpm upload emulation, see _prepare_project_with_batches()) which
+        # is only blocked by parent batch.  But because we cache Batch objects
+        # in pending_jobs() method - they are preloaded and we can be sure that
+        # we don't have to re-load the batch data to check if that is finished.
+        expected = 6
+        if expected != len(dq):
+            print()
+            for n, query in enumerate(dq):
+                print("==== query {} ====".format(n))
+                print(query)
+            print()
+
+        assert len(dq) == expected
 
         # First batch is done, second is processing and third is blocked.  Only
         # the builds from second batch are present.

@@ -280,14 +280,26 @@ def pending_jobs():
     """
     Return the job queue.
     """
+
+    # This code is really expensive, and takes a long time when there is a large
+    # build queue.  We want to avoid repeated reload of models.Batch data, and
+    # for that we need to have it strongly referenced.
+    cache = set()
+
+    def build_ready(build):
+        """ Is the build blocked? """
+        cache.add(build.batch)
+        return not build.blocked
+
     build_records = (
         [get_srpm_build_record(task, for_backend=True)
          for task in BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
-         if not task.blocked] +
+         if build_ready(task)] +
         [get_build_record(task, for_backend=True)
          for task in BuildsLogic.get_pending_build_tasks(for_backend=True)
-         if not task.build.blocked]
+         if build_ready(task.build)]
     )
+
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
 
