@@ -3,6 +3,7 @@ Tests for working with Batches
 """
 
 import json
+import time
 import pytest
 from flask_sqlalchemy import get_debug_queries
 from copr_common.enums import StatusEnum
@@ -198,3 +199,121 @@ class TestBatchesLogic(CoprsTestCase):
             'sandbox': 'user1/test--user1',
             'task_id': '4',
         }]
+
+    def _add_one_large_batch(self, projectname, builds=1000, after_build=None):
+        # create the first build in batch
+        bo = {
+            # pre-create two build chroots
+            "chroots": ["fedora-rawhide-i386", "fedora-18-x86_64"],
+        }
+        if after_build:
+            bo["after_build_id"] = after_build
+        res = self.api3.submit_url_build(projectname, build_options=bo)
+        batch_build_id = json.loads(res.data)['items'][0]['id']
+
+        # create the batch by grouping two builds
+        res = self.web_ui.submit_url_build(projectname, build_options={
+            "with_build_id": batch_build_id,
+        })
+
+        self.db.session.commit()
+
+        build = models.Build.query.get(batch_build_id)
+        batch = build.batch
+        mock_chroot = build.build_chroots[0].mock_chroot
+
+        b_objs = []
+        bch_objs = []
+        for counter in range(builds-2):
+            new_b = models.Build()
+            new_b.pkgs = 'https://example.com/some.src.rpm'
+            new_b.submitted_on = time.time()
+            new_b.source_json = '{"url": "https://example.com/some.src.rpm"}'
+            new_b.srpm_url = 'https://example.com/some.src.rpm'
+            new_b.batch_id = batch.id
+            new_b.canceled = 0
+            new_b.copr_dir_id = build.copr_dir_id
+            new_b.copr_id = build.copr_id
+
+            new_bch = models.BuildChroot()
+            new_bch.build_id = counter + build.id + 2  # two build ready
+            new_bch.mock_chroot_id = mock_chroot.id
+
+            if not after_build and not counter % 50:
+                # a few builds in the unblocked batch are done
+                new_bch.status = StatusEnum("pending")
+                new_b.source_status = StatusEnum("succeeded")
+                new_b.package_id = 1
+            else:
+                new_bch.status = StatusEnum("waiting")
+                new_b.source_status = StatusEnum("pending")
+
+            b_objs.append(new_b)
+            bch_objs.append(new_bch)
+
+        self.db.session.bulk_save_objects(b_objs)
+        self.db.session.bulk_save_objects(bch_objs)
+        self.db.session.commit()
+        return batch_build_id
+
+    def test_large_batch_build_queue(self):
+        """
+        Fill in few thousands of builds, some of them with build chroots, some
+        of them with finished source builds - and measure.  Fail if something
+        takes unexpectedly long.
+        """
+        projects = ["aaa", "bbb", "ccc", "ddd", "eee", "fff"]
+
+        t1 = time.time()
+        with app.app_context():
+            batches = 4
+            for projectname in projects:
+                self.web_ui.new_project(projectname,
+                                        ["fedora-rawhide-i386", "fedora-18-x86_64"])
+                self.web_ui.create_distgit_package(projectname, "testpkg")
+
+                after_build = None
+                for _b in range(batches):
+                    after_build = self._add_one_large_batch(
+                        projectname, after_build=after_build)
+
+        t2 = time.time()
+        with app.app_context():
+            r = self.tc.get("/backend/pending-jobs/")
+            data = json.loads(r.data.decode("utf-8"))
+            dq = get_debug_queries()
+
+        t3 = time.time()
+
+        # each project has 1000 unblocked tasks
+        assert len(data) == len(projects) * 1000
+        # most of the tasks are source builds, but some (each 50th is binary
+        # rpm build, aka BuildChroot)
+        assert len([d for d in data if d["chroot"]]) == len(projects)*20
+        for projectname in projects:
+            assert len([d for d in data if projectname+"--" in d["sandbox"]]) == 1000
+
+        fill_time = t2 - t1
+        sql_alchemy_time = t3 - t2
+        query_time = sum([q.duration for q in dq])
+
+        asserts = [
+            sql_alchemy_time < fill_time/2,
+            query_time < fill_time/20,
+            # - for each project two queries (for batch => one build +batch_build)
+            # - two large queries (srpm + rpms)
+            # - one query for self.tc initialization
+            # Note that we only lazily load first Build in each unblocked batch,
+            # because even that first Build in batch is not yet finished -
+            # meaning that the whole batch is not yet finished as well.
+            len(dq) == len(projects)*2 + 2 + 1,
+        ]
+
+        if not all(asserts):
+            print("fill_time: {}".format(fill_time))
+            print("sql_alchemy_time: {}".format(sql_alchemy_time))
+            print("query_time: {}".format(query_time))
+            for n, query in enumerate(dq):
+                print("=== {} ===".format(n))
+                print(query)
+            assert False
