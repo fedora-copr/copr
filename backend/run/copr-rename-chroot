@@ -1,0 +1,95 @@
+#! /usr/bin/python3
+
+"""
+Rename chroots, and keep backward compatibility link.
+"""
+
+import logging
+import os
+import sys
+import pwd
+import argparse
+
+from copr_backend.helpers import BackendConfigReader, walk_limited
+
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger()
+
+parser = argparse.ArgumentParser(
+    description=(
+        "Sometimes we need to rename chroots both in Frontend DB and on "
+        "Backend, synchronously.  For example we removed 'centos-stream' to "
+        "'centos-stream-8'.  This script helps with the Backend part."))
+parser.add_argument(
+    "--real-run",
+    action='store_true',
+    help=("Also perform the changes, not just checks"))
+parser.add_argument(
+    "--pair",
+    dest="pairs",
+    required=True,
+    action="append",
+    help=("Add FROM:TO chroot name pairs, e.g. "
+          "centos-stream-x86_64:centos-stream-8-x86_64"))
+
+
+def rename_in(path, pairs, dry_run=True):
+    """
+    Perform the rename of directories relatively to the PATH directory.
+    PAIRS is dictionary for chroot_from => chroot_to mapping.  When dry_run is
+    True we only log.
+    """
+    success = True
+    path = os.path.normpath(path)
+
+    # walk through all <owner>/<project_dir> directories
+    for project_dir, subdirs, _ in walk_limited(path, mindepth=2, maxdepth=2):
+        for chroot in subdirs:
+            if chroot not in pairs:
+                continue
+
+            new_chroot = pairs[chroot]
+            old_directory = os.path.join(project_dir, chroot)
+            new_directory = os.path.join(project_dir, new_chroot)
+            if os.path.exists(new_directory):
+                LOG.warning("'%s' already exists", new_directory)
+                success = False
+                continue
+
+            try:
+                LOG.info("Renaming %s to %s", old_directory, new_directory)
+                if not dry_run:
+                    os.rename(old_directory, new_directory)
+
+                LOG.info("Linking %s -> %s", old_directory, new_chroot)
+                if not dry_run:
+                    os.symlink(new_chroot, old_directory)
+
+            except OSError:
+                LOG.exception("Failed to rename or link")
+                success = False
+
+    return success
+
+
+def _main():
+    args = parser.parse_args()
+    if not args.real_run:
+        LOG.warning("Just doing dry run, run with --real-run")
+
+    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
+    opts = BackendConfigReader(config_file).read()
+    pairs = {}
+    for pair in args.pairs:
+        from_name, to_name = pair.split(":")
+        pairs[from_name.strip()] = to_name.strip()
+
+    if not rename_in(opts.destdir, pairs, not args.real_run):
+        LOG.error("some error found, see logs")
+
+
+if __name__ == "__main__":
+    if pwd.getpwuid(os.getuid())[0] != "copr":
+        print("This script should be executed under the `copr` user")
+        sys.exit(1)
+    _main()

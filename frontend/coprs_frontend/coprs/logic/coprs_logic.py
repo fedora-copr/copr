@@ -962,11 +962,15 @@ class MockChrootsLogic(object):
     @classmethod
     def tuple_from_name(cls, name, noarch=False):
         """
-        input should be os-version-architecture, e.g. fedora-rawhide-x86_64
+        Input is either 'NAME-VERSION-ARCH' string or just 'NAME-VERSION',
+        depending on the NOARCH input argument.
 
-        the architecture could be optional with noarch=True
-
-        returns ("os", "version", "arch") or ("os", "version", None)
+        Note that to deterministically split the string into tuple using comma
+        symbol, we can either allow comma to be part of the OS_NAME or
+        OS_VERSION but *not both*.  We somewhat artificially decided to allow
+        dashes in name instead of version (i.e. that we interpret the string
+        'centos-stream-8-x86_64' as ("centos-stream", "8") instead of
+        ("centos", "stream-8").
         """
         split_name = name.rsplit("-", 1) if noarch else name.rsplit("-", 2)
 

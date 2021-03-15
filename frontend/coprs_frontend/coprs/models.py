@@ -1428,12 +1428,14 @@ class MockChroot(db.Model, helpers.Serializer):
 
     __table_args__ = (
         db.UniqueConstraint('os_release', 'os_version', 'arch', name='mock_chroot_uniq'),
+        db.CheckConstraint("os_version not like '%-%'",
+                           name="no_dash_in_version_check"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
     # fedora/epel/..., mandatory
     os_release = db.Column(db.String(50), nullable=False)
-    # 18/rawhide/..., optional (mock chroot doesn"t need to have this)
+    # 18/rawhide/..., can't contain '-' symbol, see tuple_from_name
     os_version = db.Column(db.String(50), nullable=False)
     # x86_64/i686/..., mandatory
     arch = db.Column(db.String(50), nullable=False)
