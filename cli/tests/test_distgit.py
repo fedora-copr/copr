@@ -42,7 +42,6 @@ class TestDistGitMethodBuild(object):
             'background': False,
             'progress_callback': None,
             'isolation': 'unchanged',
-            'enable_net': False,
         },
         'packagename': 'test',
         'distgit': None,
@@ -69,13 +68,14 @@ class TestDistGitMethodBuild(object):
         call = f_patch_create_from_distgit.call_args_list[0]
         assert call[1] == self.default_build_call
 
-    def test_full_featured_distgit_build(self, f_patch_create_from_distgit,
-                                         capsys):
+    @pytest.mark.parametrize('enable_net', ["on", "off"])
+    def test_full_featured_distgit_build(self, enable_net,
+                                         f_patch_create_from_distgit, capsys):
         _assert_output(
             ['build-distgit', '--name', 'test', '@group/project', '--nowait',
              '--timeout', "3600", '--chroot', 'fedora-rawhide-x86_64',
              '--distgit', 'centos', '--commit', 'f19', '--namespace',
-             'rpms', "--background"],
+             'rpms', "--background", "--enable-net", enable_net],
             self.build_1, "",
             capsys)
         assert len(f_patch_create_from_distgit.call_args_list) == 1
@@ -92,7 +92,7 @@ class TestDistGitMethodBuild(object):
                 "background": True,
                 "progress_callback": None,
                 'isolation': 'unchanged',
-                'enable_net': False,
+                "enable_net": enable_net == "on",
             },
         })
         assert call[1] == result

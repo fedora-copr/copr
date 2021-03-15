@@ -142,6 +142,23 @@ def create_mock_bootstrap_image_field():
     )
 
 
+class BooleanFieldOptional(wtforms.BooleanField):
+    """
+    The same as BooleanField, but we make sure that None is used for self.data
+    instead of False when no data were submitted in the form for this field.
+    From web-ui it isn't normal situation, but from command-line client and
+    Python API it is pretty normal that some fields are not set in POST data.
+    And sometimes it is convenient to have three-state checkbox
+    (True|False|None).
+    """
+    def process_formdata(self, valuelist):
+        """ override parent's self.data decision when no value is sent """
+        super().process_formdata(valuelist)
+        if not valuelist:
+            # pylint: disable=attribute-defined-outside-init
+            self.data = None
+
+
 class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
@@ -1109,7 +1126,7 @@ def _get_build_form(active_chroots, form, package=None):
                 max=app.config["MAX_BUILD_TIMEOUT"])],
         default=app.config["DEFAULT_BUILD_TIMEOUT"])
 
-    F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
+    F.enable_net = BooleanFieldOptional(false_values=FALSE_VALUES)
     F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
     F.project_dirname = wtforms.StringField(default=None)
     F.bootstrap = create_mock_bootstrap_field("build")

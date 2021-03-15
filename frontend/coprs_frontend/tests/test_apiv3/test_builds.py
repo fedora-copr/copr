@@ -87,7 +87,9 @@ BUILDOPTS = [
     {},
     {
         "chroots": ["fedora-17-x86_64"],
-    }
+    },
+    {"enable_net": True},
+    {"enable_net": False},
 ]
 
 
@@ -131,6 +133,10 @@ class TestAPIv3Builds(CoprsTestCase):
         r = self.post_api3_with_auth(endpoint, form_data, user)
         assert r.status_code == 200
         build = self.models.Build.query.first()
+
+        # We inherit enable_net config from project when not explicitly
+        # set in build API call.
+        assert build.enable_net == buildopts.get("enable_net", build.copr.build_enable_net)
 
         enabled_chroots = set(['fedora-17-x86_64', 'fedora-17-i386'])
         if not form_data.get("chroots"):
