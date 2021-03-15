@@ -41,6 +41,10 @@ def file_type(filename):
     """
     if filename.endswith(".py"):
         return 'python'
+
+    if os.path.islink(filename):
+        return 'unknown'
+
     with open(filename) as f_d:
         first_line = f_d.readline()
         if first_line.startswith('#!') and first_line.find('python') != -1:
