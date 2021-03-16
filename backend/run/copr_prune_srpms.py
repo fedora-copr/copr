@@ -12,7 +12,11 @@ import logging
 import argparse
 import multiprocessing
 from datetime import datetime, timedelta
-from copr_backend.helpers import BackendConfigReader, get_redis_logger
+from copr_backend.helpers import (
+    BackendConfigReader,
+    get_redis_logger,
+    walk_limited,
+)
 
 
 LOG = multiprocessing.log_to_stderr()
@@ -60,20 +64,10 @@ def prune(path, days, dry_run=False, stdout=False):
     packages, that are too old.
     """
     path = os.path.normpath(path)
-    last_index = len(path.split(os.sep)) - 1
-    for root, subdirs, _ in os.walk(path):
+    for root, subdirs, _ in walk_limited(path, mindepth=3, maxdepth=3):
         parsed = os.path.normpath(root).split(os.sep)
 
-        # Path to the results directory may look like this
-        # /var/lib/copr/public_html/results/
-        # We recursively go deeper and care about directories called
-        # `srpm-builds` that are three more levels deep, e.g.
-        # /var/lib/copr/public_html/results/@copr/foo/srpm-builds/
-        chroot_index = last_index + 3
-        if len(parsed) != chroot_index + 1:
-            continue
-
-        if parsed[chroot_index] != "srpm-builds":
+        if parsed[-1] != "srpm-builds":
             continue
 
         for subdir in subdirs:
