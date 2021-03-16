@@ -58,13 +58,26 @@ def redirect_logging(opts):
     LOG = get_redis_logger(opts, "copr_prune_results", "pruner")
 
 
+def print_remove_text(path, modified, stdout=False):
+    """
+    Just a little helper function so we don't have to repeat the `if stdout`
+    condition everywhere
+    """
+    date = modified.strftime("%Y-%m-%d")
+    if stdout:
+        print("Removing: {0}  ({1})".format(path, date))
+    else:
+        LOG.info("Removing: %s  (%s)", path, date)
+
+
 def prune(path, days, dry_run=False, stdout=False):
     """
     Recursively go through the results directory and remove all stored SRPM
     packages, that are too old.
     """
     path = os.path.normpath(path)
-    for root, subdirs, _ in walk_limited(path, mindepth=3, maxdepth=3):
+    too_old = datetime.now() - timedelta(days=days)
+    for root, subdirs, files in walk_limited(path, mindepth=3, maxdepth=3):
         parsed = os.path.normpath(root).split(os.sep)
 
         if parsed[-1] != "srpm-builds":
@@ -73,19 +86,25 @@ def prune(path, days, dry_run=False, stdout=False):
         for subdir in subdirs:
             subdir = os.path.join(root, subdir)
             modified = datetime.fromtimestamp(os.path.getmtime(subdir))
-            too_old = datetime.now() - timedelta(days=days)
 
             if modified >= too_old:
                 continue
 
-            date = modified.strftime("%Y-%m-%d")
-            if stdout:
-                print("Removing: {0}  ({1})".format(subdir, date))
-            else:
-                LOG.info("Removing: %s  (%s)", subdir, date)
-
+            print_remove_text(subdir, modified, stdout)
             if not dry_run:
                 shutil.rmtree(subdir)
+
+        # We don't create such files anymore but it doesn't hurt to check
+        for srpm_log_file in files:
+            srpm_log_file = os.path.join(root, srpm_log_file)
+
+            if not srpm_log_file.endswith(".log"):
+                continue
+
+            modified = datetime.fromtimestamp(os.path.getmtime(srpm_log_file))
+            print_remove_text(srpm_log_file, modified, stdout)
+            if not dry_run:
+                os.remove(srpm_log_file)
 
 
 def main():
