@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.47
+Version: 0.48
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -315,6 +315,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 0.48-1
+- support running the fedora-review tool
+
 * Tue Feb 09 2021 Pavel Raiskup <praiskup@redhat.com> 0.47-1
 - scm method to not enforce 'master'
 
