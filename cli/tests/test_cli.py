@@ -479,6 +479,32 @@ def test_edit_chroot_with_isolation(_config_from_file, project_chroot_proxy_edit
     assert stdout == "Edit chroot operation was successful.\n"
 
 
+@mock.patch('copr.v3.proxies.project_chroot.ProjectChrootProxy.get')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_get_chroot_output_format_json(_config_from_file, project_chroot_proxy_get, capsys):
+    project_chroot_proxy_get.return_value = Munch(
+        projectname="foo",
+        additional_packages=[],
+        additional_repos=[],
+        comps_name="None",
+        delete_after_days="None",
+        isolation="None",
+        mock_chroot="fedora-20-x86_64",
+        ownername="None",
+        with_opts=[],
+        without_opts=[]
+    )
+    main.main(argv=[
+        "get-chroot", "foo/f20",
+    ])
+    stdout, stderr = capsys.readouterr()
+    project_chroot_proxy_get.assert_called_once()
+    json_values = json.loads(stdout)
+    assert stderr == ''
+    assert json_values["projectname"] == "foo"
+    assert json_values["mock_chroot"] == "fedora-20-x86_64"
+
+
 @mock.patch('copr.v3.proxies.project.ProjectProxy.add')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
