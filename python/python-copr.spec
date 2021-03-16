@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.108
+Version:    1.109
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.109-1
+- support the fedora-review option per-project
+
 * Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.108-1
 - allow setting isolation option per chroot
 
