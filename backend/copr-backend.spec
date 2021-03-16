@@ -6,7 +6,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.141
+Version:    1.142
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -230,6 +230,15 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.142-1
+- prepare for the centos-stream-8 rename
+- add script to prune srpm-build directories
+- pruner: correctly deliver the final prunerepo stamp to frontend
+- pruner: logging through RedisLogHandler
+- pruner: better parallelization
+- pruner: re-try be-fe communication upon failures
+- require up2date modulemd-tools
+
 * Wed Jan 20 2021 Pavel Raiskup <praiskup@redhat.com> 1.141-1
 - run prunerepo in parallel
 - add one-shot copr_find_wrong_chroot_artifacts.py script
