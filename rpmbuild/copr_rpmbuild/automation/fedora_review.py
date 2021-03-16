@@ -21,7 +21,7 @@ class FedoraReview(AutomationTool):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fedora_review_enabled = self.task["fedora_review"]
+        self.fedora_review_enabled = self.task.get("fedora_review")
 
     @property
     def enabled(self):
