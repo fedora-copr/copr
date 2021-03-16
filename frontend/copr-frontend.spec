@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.174
+Version:    1.175
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,24 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.175-1
+- preparations for the centos-stream-8 rename
+- support per-build --enable-net
+- a lot of caching implemented to support flawless build-batches
+- fix: don't schedule blocked BuildChroots
+- bettter preloaded /pending-jobs/ queries
+- the /backend/pending-tasks/ json minimized
+- better identify the build submitter from pagure events
+- stop deleting unclicked CoprChroots
+- exchange xstatitc-jquery-ui-common for js-jquery-ui
+- rhbz#1937217, filter HTML tags from description and instructions
+- allow underscore in blacklisting chroot regexp
+- optionally run fedora-review after build
+- respect DELETE_EOL_CHROOTS_AFTER constant
+- don't show repo files expired chroots
+- add --comment option for 'copr-frontend create-chroot' command
+- chroot fields in forms reworked
+
 * Thu Jan 21 2021 Pavel Raiskup <praiskup@redhat.com> 1.174-1
 - fix error 500 during build resubmit in Web-UI
 
