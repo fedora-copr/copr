@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.48
+Version:    0.49
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -131,6 +131,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 0.49-1
+- sleep and continue when frontend is not available
+
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.48-1
 - distgit: extend the timeout limit for importing packages
 - distgit: allow `import_package` function to run in parallel
