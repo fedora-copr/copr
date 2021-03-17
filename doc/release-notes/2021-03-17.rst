@@ -1,0 +1,88 @@
+.. _release_notes_2021_03_17:
+
+Highlights from 2021-03-17 release
+==================================
+
+Updated client packages are shipped in `Fedora 34`_, `Fedora 33`_, `Fedora 32`_,
+`EPEL 8`_ and `EPEL 7`_ Bodhi updates.
+
+
+Automatic run of Fedora Review tool
+-----------------------------------
+
+There's a new per-project config option (e.g. ``copr create --fedora-review``)
+that triggers an automatic run of `Fedora Review`_ after each build in such
+project, for now only in the ``fedora-*`` chroots.
+
+We don't mark the build failed when the review tool fails for now, and it is up
+to the end-user to check the review results in the new ``review.txt`` file
+that is created in build results.
+
+Quick HOWTO for the `Package Review`_ time::
+
+    $ copr create review-foo-component --chroot fedora-rawhide-x86_64 --fedora-review
+    $ copr build review-foo-component ./foo.src.rpm
+    ...
+    # wait and see the results!
+
+
+Updates in automatic repo cleanups
+----------------------------------
+
+The ``source-rpms`` directories, e.g. `the @copr/copr`_ one, ate a big amount of
+remaining free space on the Copr Backend storage because we did not clean those
+repositories before.  Therefore we installed a cron job doing an automatic
+cleanup there.  The only reason motivating users to go there is when they try to
+debug the failed source builds, so warning:  Please, from now on do the
+debugging soon enough.  We clean all the stuff there older than 7 days,
+similarly as we are used to cleanup obsoleted RPM builds.
+
+We did several parallelization fixes in the repo pruner cron job, so it should
+be much faster now (and some work on that is still WIP).
+
+
+The centos-stream-8 chroot change
+---------------------------------
+
+In the following days, we plan to rename the ``centos-stream-x86_64`` chroot to
+``centos-stream-8-x86_64``, this change already happened in the
+``mock-core-configs`` package.  For the projects that have this chroot already
+installed, we will install compatibility symlinks on backend side, like
+``centos-stream-x86_64 -> centos-stream-8-x86_64``.  So already used repourls in
+the wild will continue to work.  But note that these links are not not going to
+be created for new projects.  Also note that your scripts working with Copr
+Frontend (e.g. doing ``copr-cli build --chroot ...``) need to be updated.
+
+
+Other Enhancements and bugfixes
+-------------------------------
+
+- The command-line tool now supports ``--enable-net`` option for ``build*``
+  commands (so you can explicitly override the per-project settings).
+
+- Copr Frontend was largely optimized for the huge-queue times, we believe that
+  copr-frontend should flawlessly handle queue with several tens of thousands
+  pending tasks.
+
+- HTML tags are not expanded in project description fields.
+
+- The pull-request submitter in Pagure is now correctly recognized and used as
+  the submitter of automatic Copr builds.
+
+- The repo files for EOLed chroots shouldn't be shown on project pages anymore.
+
+- Newly, when no explicit branch is specified for DistGit or SCM build
+  in Copr, we don't automatically expect ``master`` is the default branch.
+  This fixed build-failures e.g. for Fedora DistGit builds where we moved
+  from the default ``master`` to ``rawhide``.
+
+
+.. _`under your control`: https://copr.fedorainfracloud.org/user/repositories/
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-60353d58c8
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-16455c9e63
+.. _`Fedora 32`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-f4aa5f9291
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-04161b969b
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-f856dbc7cb
+.. _`Fedora Review`: https://pagure.io/FedoraReview
+.. _`Package Review`: https://fedoraproject.org/wiki/Package_Review_Process
+.. _`the @copr/copr`: https://copr-be.cloud.fedoraproject.org/results/%40copr/copr/srpm-builds/
