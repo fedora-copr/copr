@@ -99,18 +99,18 @@ rlJournalStart
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/testmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
+        rlRun "copr-cli build-module --distgit fedora --yaml /tmp/testmodule.yaml $PROJECT"
 
         # Test submitting a wrong modulemd
         OUTPUT=`mktemp`
         touch "/tmp/emptyfile.yaml"
-        rlRun "copr-cli build-module --yaml /tmp/emptyfile.yaml $PROJECT &> $OUTPUT" 1
+        rlRun "copr-cli build-module --distgit fedora --yaml /tmp/emptyfile.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module in wrong format" `cat $OUTPUT | grep "Missing modulemd version" |wc -l` 1
 
         # Test module duplicity
         # @FIXME the request sometimes hangs for some obscure reason
         OUTPUT=`mktemp`
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
+        rlRun "copr-cli build-module --distgit fedora --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
         rlAssertEquals "MBS API is no longer available"\
@@ -126,7 +126,7 @@ rlJournalStart
         # meh, the testmodule is hardwired to f33 so we can not simply rely on
         # $CHROOT variable
         rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
-        rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
+        rlRun "copr-cli build-module --distgit fedora --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 $PACKAGES
         test_successful_packages "perl-List-Compare" $PACKAGES
@@ -137,7 +137,7 @@ rlJournalStart
         # $CHROOT variable
         rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
         # move back to modules/testmodule once this is merged https://src.fedoraproject.org/modules/testmodule/pull-request/1
-        rlRun "copr-cli build-module --url https://src.fedoraproject.org/fork/praiskup/modules/testmodule/raw/fix-rawhide/f/testmodule.yaml $PROJECT"
+        rlRun "copr-cli build-module --distgit fedora --url https://src.fedoraproject.org/fork/praiskup/modules/testmodule/raw/fix-rawhide/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmodulev2-beakertest-$DATE" 3 $PACKAGES
         pkg_list="perl-List-Compare  perl-Tangerine tangerine"
@@ -153,7 +153,7 @@ rlJournalStart
         yes | cp $HERE/files/test-macros-module.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/test-macros-module.yaml
-        copr-cli build-module --yaml /tmp/test-macros-module.yaml $PROJECT
+        copr-cli build-module --distgit fedora --yaml /tmp/test-macros-module.yaml $PROJECT
         PACKAGES=`mktemp`
         wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 $PACKAGES
 
@@ -180,7 +180,7 @@ rlJournalStart
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/testmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
+        rlRun "copr-cli build-module --distgit fedora --yaml /tmp/testmodule.yaml $PROJECT"
         wait_for_finished_module "$OWNER/TestModule$DATE$SUFFIX" 2 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
 
@@ -192,7 +192,8 @@ rlJournalStart
         sed -i "s/\$PLATFORM/$BRANCH/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$OWNER/$USER/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml $PROJECT"
+        sed -i "s|\$DISTGIT_URL|$DISTGIT_URL|g" /tmp/coprtestmodule.yaml
+        rlRun "copr-cli build-module --distgit fedora --yaml /tmp/coprtestmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 1 $PACKAGES
         test_successful_packages "ed" $PACKAGES

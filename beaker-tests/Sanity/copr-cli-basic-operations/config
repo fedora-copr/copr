@@ -8,6 +8,7 @@
 
 : "${FRONTEND_URL=https://copr-fe-dev.cloud.fedoraproject.org}"
 : "${BACKEND_URL=https://copr-be-dev.cloud.fedoraproject.org}"
+: "${DISTGIT_URL=https://copr-dist-git-dev.fedorainfracloud.org}"
 : "${OWNER=@copr}"
 
 # Owner and project
@@ -35,3 +36,4 @@ FILES=$HERE/files
 echo "USER = $USER"
 echo "FRONTEND_URL = $FRONTEND_URL"
 echo "BACKEND_URL = $BACKEND_URL"
+echo "DISTGIT_URL = $DISTGIT_URL"

@@ -16,7 +16,7 @@ fi
 
 for arg; do
     case $arg in
-    *all-in-tmux.sh|*runtest-production.sh|*upload_authentication.sh)
+    *all-in-tmux*|*runtest-production.sh|*upload_authentication.sh)
         continue
         ;;
     esac
