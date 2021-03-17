@@ -1,12 +1,14 @@
 # coding: utf-8
 
-from munch import Munch
+import os
 import json
 import logging
+import tempfile
+from munch import Munch
 
 from copr_backend.background_worker_build import BackendError
 from copr_backend.helpers import get_redis_logger, get_chroot_arch, \
-        format_filename, get_redis_connection
+        format_filename, get_redis_connection, walk_limited
 from copr_backend.constants import LOG_REDIS_FIFO
 
 """
@@ -57,3 +59,41 @@ class TestHelpers(object):
 
         split = ("ed", "1.14.2", "5.fc30", "2", "x86_64")
         assert format_filename(zero_epoch=True, *split) == "ed-2:1.14.2-5.fc30.x86_64"
+
+    @staticmethod
+    def test_walk_limited():
+        paths = [
+            "user1/foo/srpm-builds/111/foo-1.src.rpm",
+            "user1/foo/srpm-builds/111/foo-1.log",
+            "user1/foo/srpm-builds/222/foo-2.log",
+            "user1/foo/fedora-rawhide-x86_64/222-foo/foo-2.something.rpm",
+            "user1/foo/fedora-rawhide-x86_64/note.txt",
+            "user2/bar/.disable-appstream",
+        ]
+        with tempfile.TemporaryDirectory(prefix="copr-test-walk") as results:
+            for path in paths:
+                path = os.path.join(results, path)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                open(path, "a").close()
+
+            # The unlimited walk should be equal to built-in walk function
+            assert list(os.walk(results)) == list(walk_limited(results))
+
+            # Our fake directory strucutre isn't ten levels deep
+            assert not list(walk_limited(results, mindepth=10))
+
+            # A corner case with zero maxdepth
+            output = list(walk_limited(results, maxdepth=0))
+            assert output == [(results, ["user2", "user1"], [])]
+
+            # Combination of both mindepth and maxdepth
+            output = list(walk_limited(results, mindepth=3, maxdepth=3))
+            root, subdirs, files = output[0]
+            assert root == os.path.join(results, "user1/foo/fedora-rawhide-x86_64")
+            assert subdirs == ["222-foo"]
+            assert files == ["note.txt"]
+
+            root, subdirs, files = output[1]
+            assert root == os.path.join(results, "user1/foo/srpm-builds")
+            assert subdirs == ["222", "111"]
+            assert files == []
