@@ -170,9 +170,8 @@ def produce_srpm(task, config, resultdir):
     finally:
         try:
             shutil.rmtree(tempdir)
-        except Exception:
-            log.error("Can not remove tempdir, "
-                      "https://pagure.io/copr/copr/issue/1258")
+        except IOError:
+            log.exception("Can not remove tempdir, run copr-builder-cleanup.")
 
 
 def get_task(args, config, build_config_url_path=None, task_id=None):
