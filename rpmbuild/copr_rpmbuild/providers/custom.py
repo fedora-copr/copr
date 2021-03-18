@@ -20,10 +20,8 @@ class CustomProvider(Provider):
 
     workdir = None
 
-    def __init__(self, source_json, outdir, config):
-        super(CustomProvider, self).__init__(source_json, outdir, config)
-
-        self.outdir = outdir
+    def init_provider(self):
+        source_json = self.source_dict
         self.chroot = source_json.get('chroot')
         self.inner_resultdir = source_json.get('resultdir')
         self.builddeps = source_json.get('builddeps')
@@ -31,11 +29,10 @@ class CustomProvider(Provider):
 
         if 'hook_data' in source_json:
             self.hook_payload_url = "{server}/tmp/{tmp}/hook_payload".format(
-                server=config.get("main", "frontend_url"),
+                server=self.config.get("main", "frontend_url"),
                 tmp=source_json['tmp'],
             )
 
-        self.workdir = outdir
         self.file_script = os.path.join(self.workdir, 'script')
         with open(self.file_script, 'w') as script:
             script.write(source_json['script'])

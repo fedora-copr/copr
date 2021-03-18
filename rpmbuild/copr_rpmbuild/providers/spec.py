@@ -10,9 +10,8 @@ log = logging.getLogger("__main__")
 
 
 class UrlProvider(Provider):
-    def __init__(self, source_json, outdir, config=None):
-        super(UrlProvider, self).__init__(source_json, outdir, config)
-        self.url = source_json["url"]
+    def init_provider(self):
+        self.url = self.source_dict["url"]
         self.parsed_url = urlparse(self.url)
 
     def save_spec(self):

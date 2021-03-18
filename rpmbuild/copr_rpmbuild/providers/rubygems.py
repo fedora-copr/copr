@@ -6,9 +6,8 @@ log = logging.getLogger("__main__")
 
 
 class RubyGemsProvider(Provider):
-    def __init__(self, source_json, outdir, config=None):
-        super(RubyGemsProvider, self).__init__(source_json, outdir, config)
-        self.gem_name = source_json["gem_name"]
+    def init_provider(self):
+        self.gem_name = self.source_dict["gem_name"]
 
     def tool_presence_check(self):
         try:

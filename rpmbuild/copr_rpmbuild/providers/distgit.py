@@ -3,19 +3,22 @@ The "Build package from DistGit" method
 """
 
 import os
-
 from copr_rpmbuild import helpers
-from copr_rpmbuild.providers.base import Provider
+from .base import Provider
 
 
 class DistGitProvider(Provider):
     """
     DistGit provider, wrapper around copr-distgit-client script
     """
-    def __init__(self, source_dict, outdir, config):
-        super(DistGitProvider, self).__init__(source_dict, outdir, config)
-        self.clone_url = source_dict["clone_url"]
-        self.committish = source_dict.get("committish")
+
+    clone_url = None
+    committish = None
+    clone_to = None
+
+    def init_provider(self):
+        self.clone_url = self.source_dict["clone_url"]
+        self.committish = self.source_dict.get("committish")
         self.clone_to = os.path.join(
             self.workdir,
             helpers.git_clone_url_basepath(self.clone_url))

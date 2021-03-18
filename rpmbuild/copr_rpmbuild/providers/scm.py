@@ -16,8 +16,8 @@ log = logging.getLogger("__main__")
 
 
 class ScmProvider(Provider):
-    def __init__(self, source_dict, outdir, config):
-        super(ScmProvider, self).__init__(source_dict, outdir, config)
+    def init_provider(self):
+        source_dict = self.source_dict
         self.scm_type = source_dict.get('type') or 'git'
         self.clone_url = source_dict.get('clone_url')
         self.committish = source_dict.get('committish')

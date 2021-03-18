@@ -6,8 +6,8 @@ log = logging.getLogger("__main__")
 
 
 class PyPIProvider(Provider):
-    def __init__(self, source_json, outdir, config=None):
-        super(PyPIProvider, self).__init__(source_json, outdir, config)
+    def init_provider(self):
+        source_json = self.source_dict
         self.pypi_package_version = source_json["pypi_package_version"]
         self.pypi_package_name = source_json["pypi_package_name"]
         self.spec_template = source_json.get("spec_template", '')

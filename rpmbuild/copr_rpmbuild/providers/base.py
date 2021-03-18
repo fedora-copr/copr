@@ -9,6 +9,7 @@ log = logging.getLogger("__main__")
 
 class Provider(object):
     def __init__(self, source_dict, outdir, config):
+        self.source_dict = source_dict
         self.outdir = outdir
         self.config = config
 
@@ -22,6 +23,14 @@ class Provider(object):
         # Change home directory to workdir and create .rpmmacros there
         os.environ["HOME"] = self.workdir
         self.create_rpmmacros()
+        self.init_provider()
+
+    def init_provider(self):
+        """
+        Additional configuration stuff specific to a concrete provider.
+        Automatically called by __init__(), and it is _optional_, therefore we
+        don't raise NotImplementedError in Provider.init_provider() parent.
+        """
 
     def create_rpmmacros(self):
         path = os.path.join(self.workdir, ".rpmmacros")
