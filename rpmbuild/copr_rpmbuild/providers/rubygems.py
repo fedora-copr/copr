@@ -19,7 +19,7 @@ class RubyGemsProvider(Provider):
     def produce_srpm(self):
         self.tool_presence_check()
 
-        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.outdir, "--fetch"]
+        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.resultdir, "--fetch"]
         result = run_cmd(cmd)
 
         if "Empty tag: License" in result.stderr:

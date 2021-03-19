@@ -39,7 +39,7 @@ class CustomProvider(Provider):
 
 
     def produce_srpm(self):
-        mock_config_file = os.path.join(self.outdir, 'mock-config.cfg')
+        mock_config_file = os.path.join(self.resultdir, 'mock-config.cfg')
 
         with open(mock_config_file, 'w') as f:
             # Enable network.
@@ -62,7 +62,7 @@ class CustomProvider(Provider):
 
         if self.hook_payload_url:
             chunk_size = 1024
-            hook_payload_file = os.path.join(self.outdir, 'hook_payload')
+            hook_payload_file = os.path.join(self.resultdir, 'hook_payload')
             response = requests.get(self.hook_payload_url, stream=True)
             response.raise_for_status()
 
@@ -98,5 +98,5 @@ class CustomProvider(Provider):
 
         helpers.run_cmd(mock + ['--copyout', inner_resultdir, srpm_srcdir])
         helpers.run_cmd(mock + ['--scrub', 'all'])
-        helpers.build_srpm(srpm_srcdir, self.outdir)
+        helpers.build_srpm(srpm_srcdir, self.resultdir)
         shutil.rmtree(srpm_srcdir)

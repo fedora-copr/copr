@@ -24,7 +24,7 @@ class PyPIProvider(Provider):
         self.tool_presence_check()
 
         cmd = ["pyp2rpm", self.pypi_package_name, "-t", self.spec_template,
-               "--srpm", "-d", self.outdir]
+               "--srpm", "-d", self.resultdir]
 
         for i, python_version in enumerate(self.python_versions):
             if i == 0:

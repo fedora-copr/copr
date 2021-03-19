@@ -38,5 +38,5 @@ class DistGitProvider(Provider):
     def produce_srpm(self):
         self.produce_sources()
         helpers.run_cmd([
-            "copr-distgit-client", "srpm", "--outputdir", self.outdir
+            "copr-distgit-client", "srpm", "--outputdir", self.resultdir
         ], cwd=self.clone_to)

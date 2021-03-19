@@ -149,6 +149,7 @@ def string2list(string):
 def read_config(config_path=None):
     config = configparser.RawConfigParser(defaults={
         "resultdir": "/var/lib/copr-rpmbuild/results",
+        "workspace": "/var/lib/copr-rpmbuild/workspace",
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",
         "pidfile": "/var/lib/copr-rpmbuild/pid",

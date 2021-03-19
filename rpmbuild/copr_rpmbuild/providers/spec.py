@@ -26,12 +26,12 @@ class UrlProvider(Provider):
         cmd = ["mock", "-r", "/etc/copr-rpmbuild/mock-source-build.cfg",
                "--buildsrpm", "--spec", spec_path,
                "--define", "_disable_source_fetch 0",
-               "--resultdir", self.outdir]
+               "--resultdir", self.resultdir]
         return run_cmd(cmd, cwd=self.workdir)
 
     def download_srpm(self):
         basename = os.path.basename(self.parsed_url.path)
-        filename = os.path.join(self.outdir, basename)
+        filename = os.path.join(self.resultdir, basename)
         response = requests.get(self.url, stream=True)
         if response.status_code != 200:
             raise RuntimeError('Requests get status "{0}" for "{1}"'.format(

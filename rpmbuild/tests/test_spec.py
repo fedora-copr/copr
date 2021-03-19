@@ -3,7 +3,6 @@ import configparser
 import os
 import distro
 import pytest
-import tempfile
 
 try:
     from httmock import urlmatch, HTTMock
@@ -29,14 +28,13 @@ except ImportError:
 
 
 class TestUrlProvider(TestCase):
-    def test_setup(self):
+    def auto_test_setup(self):
         self.source_json = {"url": u"http://foo.ex/somepackage.spec"}
-        self.resultdir = "/path/to/resultdir"
 
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_init(self, mock_mkdir, mock_open):
-        provider = UrlProvider(self.source_json, self.resultdir, self.config)
+        provider = UrlProvider(self.source_json, self.config)
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
     @mock.patch('requests.get')
@@ -44,43 +42,46 @@ class TestUrlProvider(TestCase):
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd, mock_get):
-        provider = UrlProvider(self.source_json, self.resultdir, self.config)
+        provider = UrlProvider(self.source_json, self.config)
         provider.produce_srpm()
         args = [
             'mock', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
             '--buildsrpm',
             '--spec', '{0}/somepackage.spec'.format(provider.workdir),
             '--define', '_disable_source_fetch 0',
-            '--resultdir', self.resultdir]
+            '--resultdir', self.config.get("main", "resultdir")]
         run_cmd.assert_called_with(args, cwd=provider.workdir)
 
     @mock.patch('requests.get')
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_save_spec(self, mock_mkdir, mock_open, mock_get):
-        provider = UrlProvider(self.source_json, self.resultdir, self.config)
+        provider = UrlProvider(self.source_json, self.config)
         provider.save_spec()
         mock_open.assert_called_with("{0}/somepackage.spec".format(provider.workdir), "w")
 
 
 class TestUrlProviderQueryString(TestCase):
-    def test_setup(self):
+    def auto_test_setup(self):
         self.json_1 = {
             'url': "http://example.com/"
                    "srelay-0.4.8p3-0.20181224.git688764b.fc10.3sunshine.src.rpm?dl=1",
         }
         self.json_2 = { 'url': "http://example.com/test.spec?a=1&b=2" }
-        self.resultdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
+        self.config_basic_dirs()
+
+    def auto_test_cleanup(self):
+        self.cleanup_basic_dirs()
 
     @pytest.mark.skipif(distro.id() in ['rhel', 'centos'] and
                             distro.major_version() == '6',
                         reason='on httmock on rhel6')
     def test_srpm_query_string(self):
         with HTTMock(example_com_match):
-            provider = UrlProvider(self.json_1, self.resultdir, self.config)
+            provider = UrlProvider(self.json_1, self.config)
             provider.produce_srpm()
             file = os.path.join(
-                    self.resultdir,
+                    self.config.get("main", "resultdir"),
                     "srelay-0.4.8p3-0.20181224.git688764b.fc10.3sunshine.src.rpm",
             )
             with open(file, 'r') as f:
@@ -91,7 +92,7 @@ class TestUrlProviderQueryString(TestCase):
                         reason='on httmock on rhel6')
     def test_spec_query_string(self):
         with HTTMock(example_com_match):
-            provider = UrlProvider(self.json_2, self.resultdir, self.config)
+            provider = UrlProvider(self.json_2, self.config)
             filename = provider.save_spec()
             with open(filename, 'r') as f:
                 assert f.read() == 'some-content'

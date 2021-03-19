@@ -7,11 +7,8 @@ import sys
 import argparse
 import json
 import logging
-import tempfile
 import shutil
 import pprint
-import tempfile
-import stat
 import pipes
 import pkg_resources
 
@@ -148,30 +145,17 @@ def init(args, config):
         os.makedirs(resultdir)
 
 
-def produce_srpm(task, config, resultdir):
+def produce_srpm(task, config):
     """
-    create tempdir to allow --private-users=pick with make_srpm
-    that changes permissions on the result directory to out of scope values
+    Use *Provider() classes to create source RPM in config.get("resultdir")
     """
-    tempdir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
-    os.chmod(tempdir, stat.S_IRWXU|stat.S_IRWXO)
     try:
         provider = providers.factory(task["source_type"])(
-            task["source_json"], tempdir, config)
+            task["source_json"], config)
         provider.produce_srpm()
-        for item in os.listdir(tempdir):
-            if item in ["obtain-sources"]:
-                continue
-            src = os.path.join(tempdir, item)
-            if os.path.isdir(src):
-                shutil.copytree(src, os.path.join(resultdir, item))
-            else:
-                shutil.copy(src, resultdir)
+        provider.copy_insecure_results()
     finally:
-        try:
-            shutil.rmtree(tempdir)
-        except IOError:
-            log.exception("Can not remove tempdir, run copr-builder-cleanup.")
+        provider.cleanup()
 
 
 def get_task(args, config, build_config_url_path=None, task_id=None):
@@ -220,9 +204,9 @@ def build_srpm(args, config):
     task = get_task(args, config, build_config_url_path)
     log_task(task)
 
-    resultdir = config.get("main", "resultdir")
-    produce_srpm(task, config, resultdir)
+    produce_srpm(task, config)
 
+    resultdir = config.get("main", "resultdir")
     log.info("Output: {0}".format(
         os.listdir(resultdir)))
 
@@ -253,12 +237,15 @@ def build_rpm(args, config):
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
-    sourcedir = tempfile.mkdtemp(prefix="copr-rpmbuild-")
     try:
         distgit = providers.DistGitProvider(
             {"clone_url": task["git_repo"], "committish": task["git_hash"]},
-            sourcedir, config,
+            config,
         )
+
+        # Just clone and download sources, don't create source RPM (aka
+        # produce_srpm).  We want to create the source RPM using Mock
+        # in the target chroot.
         distgit.produce_sources()
         resultdir = config.get("main", "resultdir")
         builder = MockBuilder(task, distgit.clone_to, resultdir, config)
@@ -267,7 +254,7 @@ def build_rpm(args, config):
         run_automation_tools(task, resultdir, builder.mock_config_file, log)
     finally:
         builder.archive_configs()
-        shutil.rmtree(sourcedir)
+        distgit.cleanup()
 
 
 def dump_configs(args, config):

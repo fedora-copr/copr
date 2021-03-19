@@ -56,7 +56,6 @@ lookaside_uri_pattern = lookaside/{{filename}}
         self.workdir = tempfile.mkdtemp(prefix="copr-distgit-provider-test-")
         self.origin = os.path.join(self.workdir, "origin.git")
         os.mkdir(self.origin)
-        self.outdir = os.path.join(self.workdir, "out")
         os.chdir(self.origin)
         self.lookaside = os.path.join(self.workdir, "lookaside")
         os.mkdir(self.lookaside)
@@ -72,9 +71,16 @@ lookaside_uri_pattern = lookaside/{{filename}}
         ])
         self._setup_configdir()
 
-        self.main_config = configparser.ConfigParser()
-        self.main_config.add_section("main")
-        self.main_config.set("main", "enabled_source_protocols", "file")
+        self.main_config = mc = configparser.ConfigParser()
+        mc.add_section("main")
+        mc.set("main", "enabled_source_protocols", "file")
+        mc.set("main", "resultdir", os.path.join(self.workdir, "results"))
+        mc.set("main", "workspace", os.path.join(self.workdir, "workspace"))
+
+        # these normally exist
+        os.makedirs(mc.get("main", "resultdir"))
+        os.makedirs(mc.get("main", "workspace"))
+
 
     def teardown_method(self, method):
         _unused_but_needed_for_el6 = (method)
@@ -82,12 +88,14 @@ lookaside_uri_pattern = lookaside/{{filename}}
         self.env_patch.stop()
 
     def test_distgit_method(self):
-        os.mkdir(self.outdir)
         source_dict = {"clone_url": self.origin}
-        dgp = DistGitProvider(source_dict, self.outdir, self.main_config)
+        dgp = DistGitProvider(source_dict, self.main_config)
+        # this is normally created in main.py
         dgp.produce_srpm()
-        assert os.path.exists(os.path.join(self.outdir, "obtain-sources",
-                                           "origin", "datafile"))
+
+        # check presence of the cloned file
+        cloned_file = os.path.join(dgp.workdir, "origin", "datafile")
+        assert os.path.exists(cloned_file)
 
 
 @pytest.mark.parametrize('committish', ["main", None, ""])

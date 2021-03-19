@@ -1,3 +1,4 @@
+import os
 from copr_rpmbuild.providers.base import Provider
 from . import TestCase
 
@@ -13,12 +14,11 @@ class TestProvider(TestCase):
     def setUp(self):
         super(TestProvider, self).setUp()
         self.source_json = {}
-        self.resultdir = "/path/to/resultdir"
 
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_create_rpmmacros(self, mock_mkdir, mock_open):
-        provider = Provider(self.source_json, self.resultdir, self.config)
+        provider = Provider(self.source_json, self.config)
         rpmmacros = mock.MagicMock()
         mock_open.return_value = rpmmacros
         provider.create_rpmmacros()
@@ -31,6 +31,7 @@ class TestProvider(TestCase):
 
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     @mock.patch('copr_rpmbuild.providers.base.Provider.create_rpmmacros')
-    def test_workdir_in_outdir(self, mock_create_rpmmacros, mock_mkdir):
-        provider = Provider(self.source_json, self.resultdir, self.config)
-        assert provider.workdir == "/path/to/resultdir/obtain-sources"
+    def test_workdir_in_workspace(self, _mock_create_rpmmacros, _mock_mkdir):
+        ws = self.config.get("main", "workspace")
+        provider = Provider(self.source_json, self.config)
+        assert os.path.join(ws, "workdir-") in provider.workdir

@@ -1,55 +1,66 @@
 import os
+
 import pytest
-import unittest
-import shutil
 
 from copr_common.enums import BuildSourceEnum
 
 from main import produce_srpm
 
+from . import TestCase
 
 try:
      from unittest import mock
-     EPEL = False
 except ImportError:
      # Python 2 version depends on mock
      import mock
-     EPEL = True
 
 
-class TestTmpCleanup(unittest.TestCase):
+class TestTmpCleanup(TestCase):
 
     config = {}
-    resultdir = "/path/to/non/existing/directory"
+    workdir = None
+    resultdir = None
+    workspace = None
+
     task = {"source_type": BuildSourceEnum.upload,
             "source_json": {"url": "http://foo.ex/somepackage.spec"}}
 
+    def auto_test_setup(self):
+        self.config_basic_dirs()
+
+    def auto_test_cleanup(self):
+        self.cleanup_basic_dirs()
+
+    @mock.patch("copr_rpmbuild.providers.base.Provider.cleanup")
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.produce_srpm")
-    @mock.patch("main.shutil.rmtree", wraps=shutil.rmtree)
-    def test_produce_srpm_cleanup(self, mock_rmtree, mock_produce_srpm):
-        # Just to be sure, we are starting from zero
-        assert mock_rmtree.call_count == 0
-
+    def test_produce_srpm_cleanup_no(self, mock_produce_srpm, _cleanup):
         # Test that we cleanup after successful build
-        produce_srpm(self.task, self.config, self.resultdir)
-        assert mock_rmtree.call_count == (1 if not EPEL else 2)
-        for call in mock_rmtree.call_args_list:
-            args, _ = call
-            assert args[0].startswith("/tmp/copr-rpmbuild-")
+        produce_srpm(self.task, self.config)
+        # root + resultdir + workspace + not cleaned workdir
+        directories = list(os.walk(self.workdir))
+        assert len(directories) == 4
 
-        # Just to check, that on EPEL it recursively removes one directory, 
-        # not two different directories. Do not run this check on Fedora/Python3
-        # because there the directory is removed on one rmtree call.
-        if EPEL:
-            assert mock_rmtree.call_args_list[1][0][0] == \
-                os.path.join(mock_rmtree.call_args_list[0][0][0], "obtain-sources")
-
-        # Test that we cleanup after unsuccessful build
         mock_produce_srpm.side_effect = RuntimeError("Jeeez, something failed")
         with pytest.raises(RuntimeError):
-            produce_srpm(self.task, self.config, self.resultdir)
+            produce_srpm(self.task, self.config)
 
-        assert mock_rmtree.call_count == (2 if not EPEL else 4)
-        for call in mock_rmtree.call_args_list:
-            args, _ = call
-            assert args[0].startswith("/tmp/copr-rpmbuild-")
+        # .. and plus one more workdir
+        directories = list(os.walk(self.workdir))
+        assert len(directories) == 5
+
+    @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.produce_srpm")
+    def test_produce_srpm_cleanup_yes(self, mock_produce_srpm):
+        # Test that we cleanup after successful build
+        produce_srpm(self.task, self.config)
+
+        # root + resultdir + workspace (cleaned workdir)
+        directories = list(os.walk(self.workdir))
+        assert len(directories) == 3
+
+        mock_produce_srpm.side_effect = RuntimeError("Jeeez, something failed")
+        with pytest.raises(RuntimeError):
+            produce_srpm(self.task, self.config)
+
+        # root + resultdir + workspace (cleaned workdir)
+        directories = list(os.walk(self.workdir))
+        assert len(directories) == 3

@@ -221,6 +221,7 @@ EOF
 install -d %{buildroot}%mock_config_overrides
 install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild
 install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
+install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/workspace
 
 install -d %{buildroot}%{_bindir}
 install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
@@ -284,6 +285,7 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 %dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild
 %dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild/results
+%dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild/workspace
 
 %dir %{_sysconfdir}/copr-rpmbuild
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
