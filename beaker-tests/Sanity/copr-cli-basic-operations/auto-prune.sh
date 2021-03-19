@@ -31,10 +31,11 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
+source "$HERE/helpers"
 
 assert_auto_prune ()
 {
-    rlRun -s "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/" 0
+    rlRun -s "curl --silent ${FRONTEND_URL}/api/coprs/$PROJECT/detail/" 0
     rlRun "auto_prune=$(jq .detail.auto_prune < "$rlRun_LOG")"
     rlAssertEquals "auto prune is $1" "$auto_prune" "$1"
 }
@@ -44,17 +45,18 @@ rlJournalStart
         rlAssertRpm "copr-cli"
         rlAssertRpm "jq"
         rlAssertExists ~/.config/copr
+        setupProjectName "auto-prune"
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create --auto-prune off --chroot $CHROOT ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli create --auto-prune off --chroot $CHROOT $PROJECT"
         assert_auto_prune false
-        rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli modify --auto-prune on $PROJECT"
         assert_auto_prune true
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
+        cleanProject
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
