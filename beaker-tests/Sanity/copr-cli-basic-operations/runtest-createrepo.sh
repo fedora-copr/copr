@@ -12,6 +12,7 @@ URL=${FRONTEND_URL#https://}
 
 rlJournalStart
     rlPhaseStartSetup
+        setup_checks
     rlPhaseEnd
 
     rlPhaseStartTest

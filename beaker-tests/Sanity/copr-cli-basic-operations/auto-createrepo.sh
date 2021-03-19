@@ -9,6 +9,7 @@ source "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
+        setup_checks
         PROJECT_F=${NAME_PREFIX}DisableCreaterepoFalse
         PROJECT_T=${NAME_PREFIX}DisableCreaterepoTrue
         rlRun "copr-cli create --chroot $CHROOT --disable_createrepo false $PROJECT_F"

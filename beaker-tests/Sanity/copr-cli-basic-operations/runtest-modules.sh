@@ -72,15 +72,7 @@ function test_successful_packages()
 
 rlJournalStart
     rlPhaseStartSetup
-        rlAssertRpm "copr-cli"
-        rlAssertExists ~/.config/copr
-        # testing instance?
-        rlAssertGrep "$FRONTEND_URL" ~/.config/copr
-        # we don't need to be destroying the production instance
-        rlAssertNotGrep "copr.fedoraproject.org" ~/.config/copr
-        # token ok? communication ok?
-        rlRun "copr-cli list"
-        # and install... things
+        setup_checks
         yum -y install dnf dnf-plugins-core
         # use the dev instance
         sed -i "s+http://copr.fedoraproject.org+$FRONTEND_URL+g" \

@@ -14,6 +14,7 @@ source "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
+        setup_checks
         setupProjectName make-srpm-fail
     rlPhaseEnd
 

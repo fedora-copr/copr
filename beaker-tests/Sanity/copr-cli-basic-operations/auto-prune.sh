@@ -42,9 +42,8 @@ assert_auto_prune ()
 
 rlJournalStart
     rlPhaseStartSetup
-        rlAssertRpm "copr-cli"
+        setup_checks
         rlAssertRpm "jq"
-        rlAssertExists ~/.config/copr
         setupProjectName "auto-prune"
     rlPhaseEnd
 

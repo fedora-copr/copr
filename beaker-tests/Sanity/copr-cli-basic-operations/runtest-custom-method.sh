@@ -58,6 +58,7 @@ quick_package_script ()
 
 rlJournalStart
     rlPhaseStartSetup
+        setup_checks
     rlPhaseEnd
 
     rlPhaseStartTest Test

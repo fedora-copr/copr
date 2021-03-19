@@ -37,6 +37,7 @@ source "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
+        setup_checks
     rlPhaseEnd
 
     rlPhaseStartTest

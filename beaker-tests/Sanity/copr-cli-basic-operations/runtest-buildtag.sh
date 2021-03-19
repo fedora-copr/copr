@@ -28,9 +28,8 @@ source "$HERE/helpers"
 
 rlJournalStart
     rlPhaseStartSetup
-        rlAssertRpm "copr-cli"
+        setup_checks
         rlAssertRpm "jq"
-        rlAssertExists ~/.config/copr
         workdirSetup
         setupProjectName "buildtag"
     rlPhaseEnd

@@ -85,3 +85,21 @@ get_srpm_builder_log()
     rlLog "downloading $_log_file"
     curl "$_log_file" | gunzip
 }
+
+setup_checks()
+{
+    rlAssertRpm "copr-cli"
+    _config=$HOME/.config/copr
+    rlAssertExists "$_config"
+
+    # we currently support only staging instances
+    _frontend_url=$(grep ^copr_url "$_config" | cut -d= -f2)
+    case $_frontend_url in
+        *copr-fe-dev.cloud.fedoraproject.org) ;;
+        *dev-copr.devel.redhat.com) ;;
+        *) rlDie "improper copr_url in $_config" ;;
+    esac
+
+    # token ok? communication ok?
+    rlRun "copr-cli whoami"
+}

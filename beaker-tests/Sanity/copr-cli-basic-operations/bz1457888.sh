@@ -32,18 +32,12 @@
 # Load config settings
 HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
+source "$HERE/helpers"
 
 
 rlJournalStart
     rlPhaseStartSetup
-        rlAssertRpm "copr-cli"
-        rlAssertExists ~/.config/copr
-        # testing instance?
-        rlAssertGrep "$FRONTEND_URL" ~/.config/copr
-        # we don't need to be destroying the production instance
-        rlAssertNotGrep "copr.fedoraproject.org" ~/.config/copr
-        # token ok? communication ok?
-        rlRun "copr-cli list"
+        setup_checks
         # and install... things
         yum -y install dnf dnf-plugins-core
         # use the dev instance
