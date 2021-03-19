@@ -67,6 +67,7 @@ class BuildJob(object):
         self.sandbox = None
 
         self.results = None
+        self.appstream = None
 
         # TODO: validate update data, user marshmallow
         for key, val in task_data.items():
@@ -78,6 +79,9 @@ class BuildJob(object):
 
         if str(self.task_id) == str(self.build_id):
             self.chroot = 'srpm-builds'
+
+        if task_data["appstream"]:
+            self.appstream = task_data["appstream"]
 
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,

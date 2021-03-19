@@ -219,7 +219,7 @@ class CoprsLogic(object):
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
             auto_prune=True, bootstrap=None, follow_fedora_branching=False, isolation=None,
-            **kwargs):
+            appstream=True, **kwargs):
 
         if not flask.g.user.admin and flask.g.user != user:
             msg = ("You were authorized as '{0}' user without permissions to access "
@@ -246,6 +246,7 @@ class CoprsLogic(object):
                            bootstrap=bootstrap,
                            isolation=isolation,
                            follow_fedora_branching=follow_fedora_branching,
+                           appstream=appstream,
                            **kwargs)
 
 

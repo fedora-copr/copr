@@ -77,7 +77,7 @@ class WebUIRequests(_RequestsInterface):
             "chroots": chroots,
         }
 
-        for config in ['bootstrap', 'isolation', 'contact', 'homepage']:
+        for config in ['bootstrap', 'isolation', 'contact', 'homepage', 'appstream']:
             if not config in kwargs:
                 continue
             data[config] = kwargs[config]
@@ -201,7 +201,7 @@ class API3Requests(_RequestsInterface):
             "chroots": chroots,
         }
 
-        for config in ['bootstrap', 'isolation', 'contact', 'homepage']:
+        for config in ['bootstrap', 'isolation', 'contact', 'homepage', 'appstream']:
             if not config in kwargs:
                 continue
             data[config] = kwargs[config]

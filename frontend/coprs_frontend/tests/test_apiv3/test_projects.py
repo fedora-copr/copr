@@ -69,7 +69,8 @@ class TestApiv3Projects(CoprsTestCase):
         self.api3.new_project("test", ["fedora-rawhide-i386"],
                               bootstrap="default", isolation="simple",
                               contact="somebody@redhat.com",
-                              homepage="https://github.com/fedora-copr")
+                              homepage="https://github.com/fedora-copr",
+                              appstream=True)
         old_data = self._get_copr_id_data(1)
 
         # When new arguments are added to the Copr model, we should update this
@@ -93,7 +94,7 @@ class TestApiv3Projects(CoprsTestCase):
             "test", delete_after_days=5, enable_net=True, devel_mode=True,
             repos=["http://example/repo/", "http://another/"],
             runtime_dependencies=["http://run1/repo/", "http://run2/"],
-            bootstrap_image="noop",
+            bootstrap_image="noop", appstream=True,
         )
         new_data = self._get_copr_id_data(1)
         delete_after = datetime.datetime.now() + datetime.timedelta(days=5)
@@ -138,6 +139,8 @@ class TestApiv3Projects(CoprsTestCase):
         }, {
             "follow_fedora_branching": True,
         }, {
+        }, {
+            "appstream": True,
         }]
 
         for setup in easy_changes:

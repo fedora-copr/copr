@@ -611,6 +611,7 @@ class BuildBackgroundWorker(BackgroundWorker):
         project_owner = self.job.project_owner
         project_name = self.job.project_name
         devel = self.job.uses_devel_repo
+        appstream = self.job.appstream
 
         base_url = "/".join([self.opts.results_baseurl, project_owner,
                              project_name, self.job.chroot])
@@ -620,7 +621,8 @@ class BuildBackgroundWorker(BackgroundWorker):
                       base_url, not devel)
         if not call_copr_repo(self.job.chroot_dir, devel=devel,
                               add=[self.job.target_dir_name],
-                              logger=self.log):
+                              logger=self.log,
+                              appstream=appstream):
             raise BackendError("createrepo failed")
 
     def _get_srpm_build_details(self, job):

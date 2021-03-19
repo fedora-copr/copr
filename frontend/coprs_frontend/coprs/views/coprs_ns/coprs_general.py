@@ -250,6 +250,7 @@ def copr_new(username=None, group_name=None):
                 runtime_dependencies=form.runtime_dependencies.data.replace("\n", " "),
                 bootstrap=form.bootstrap.data,
                 isolation=form.isolation.data,
+                appstream=form.appstream.data,
             )
 
             db.session.commit()
@@ -574,6 +575,7 @@ def process_copr_update(copr, form):
     copr.runtime_dependencies = form.runtime_dependencies.data.replace("\n", " ")
     copr.bootstrap = form.bootstrap.data
     copr.isolation = form.isolation.data
+    copr.appstream = form.appstream.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

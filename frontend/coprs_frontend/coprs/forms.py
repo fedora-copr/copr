@@ -597,6 +597,12 @@ class CoprForm(FlaskForm):
             Failing fedora-review will not fail the build itself.""",
             default=False, false_values=FALSE_VALUES)
 
+    appstream = wtforms.BooleanField(
+            "Generate AppStream metadata",
+            description="""Generate AppStream metadata for this project.
+            Generating metadata slows down the builds in large Copr projects.""",
+            default=True, false_values=FALSE_VALUES)
+
     @property
     def errors(self):
         """

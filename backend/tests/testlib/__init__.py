@@ -74,7 +74,8 @@ VALID_RPM_JOB = {
     "use_bootstrap_container": False,
     "uses_devel_repo": False,
     "with_opts": [],
-    "without_opts": []
+    "without_opts": [],
+    "appstream": True,
 }
 
 
@@ -95,7 +96,8 @@ VALID_SRPM_JOB = {
     }),
     "source_type": 8,
     "submitter": "praiskup",
-    "task_id": "855954"
+    "task_id": "855954",
+    "appstream": True,
 }
 
 

@@ -107,6 +107,7 @@ class ActionsLogic(object):
             "projectname": copr.name,
             "project_dirnames": dirnames,
             "chroots": chroots,
+            "appstream": copr.appstream,
         }
         action = models.Action(
             action_type=ActionTypeEnum("createrepo"),
@@ -165,7 +166,8 @@ class ActionsLogic(object):
             "projectname": build.copr_name,
             "project_dirname":
                 build.copr_dirname if build.copr_dir else build.copr_name,
-            "chroot_builddirs": cls.get_chroot_builddirs(build)
+            "chroot_builddirs": cls.get_chroot_builddirs(build),
+            "appstream": build.appstream,
         }
 
     @classmethod
@@ -279,6 +281,7 @@ class ActionsLogic(object):
         data_dict = {
             "ownername": copr.owner_name,
             "projectname": copr.name,
+            "appstream": copr.appstream,
         }
 
         action = models.Action(

@@ -229,6 +229,7 @@ class TestBuildsLogic(CoprsTestCase):
             expected_chroots_to_delete.add(bchroot.name)
 
         assert len(ActionsLogic.get_many().all()) == 0
+        self.b4.appstream = True
         BuildsLogic.delete_build(self.u1, self.b4)
         self.db.session.commit()
 
@@ -250,6 +251,7 @@ class TestBuildsLogic(CoprsTestCase):
         self.db.session.commit()
 
         assert len(ActionsLogic.get_many().all()) == 0
+        self.b1.appstream = True
         BuildsLogic.delete_build(self.u1, self.b1)
         self.db.session.commit()
 
@@ -324,6 +326,7 @@ class TestBuildsLogic(CoprsTestCase):
             expected_chroots_to_delete.add(bchroot.name)
 
         assert len(ActionsLogic.get_many().all()) == 0
+        self.b1.appstream = True
         BuildsLogic.delete_build(self.u1, self.b1)
         self.db.session.commit()
 
@@ -399,6 +402,7 @@ class TestBuildsLogic(CoprsTestCase):
         # we can not delete not-yet finished builds!
         assert len(self.db.session.query(models.Build).all()) == 4
 
+        self.b3.appstream = True
         for bch in self.b3.build_chroots:
             bch.status = StatusEnum('succeeded')
             self.db.session.add(bch)

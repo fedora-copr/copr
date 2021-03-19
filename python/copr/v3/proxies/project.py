@@ -73,7 +73,7 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None,
-            fedora_review=None):
+            fedora_review=None, appstream=True):
         """
         Create a project
 
@@ -104,6 +104,7 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'simple', 'nspawn'.
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
+        :param bool appstream: Disable or enable generating the appstream metadata
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -130,6 +131,7 @@ class ProjectProxy(BaseProxy):
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
             "fedora_review": fedora_review,
+            "appstream": appstream,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
@@ -144,7 +146,7 @@ class ProjectProxy(BaseProxy):
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
              bootstrap=None, bootstrap_image=None, isolation=None,
-             fedora_review=None):
+             fedora_review=None, appstream=None):
         """
         Edit a project
 
@@ -174,6 +176,7 @@ class ProjectProxy(BaseProxy):
             This is a noop parameter and its value is ignored.
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
+        :param bool appstream: Disable or enable generating the appstream metadata
         :return: Munch
         """
         endpoint = "/project/edit/{ownername}/{projectname}"
@@ -199,6 +202,7 @@ class ProjectProxy(BaseProxy):
             "multilib": multilib,
             "module_hotfixes": module_hotfixes,
             "fedora_review": fedora_review,
+            "appstream": appstream,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

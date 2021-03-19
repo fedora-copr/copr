@@ -217,13 +217,16 @@ def run_createrepo(opts):
 
 
 def add_appdata(opts):
-    if opts.devel or not opts.appstream:
-        opts.log.info("appstream-builder skipped, /devel subdir or "
-                      "--no-appstream-metadata specified")
+    if opts.devel:
+        opts.log.info("appstream-builder skipped, /devel subdir")
         return
 
     if os.path.exists(os.path.join(opts.projectdir, ".disable-appstream")):
         opts.log.info("appstream-builder skipped, .disable-appstream file")
+        return
+
+    if not opts.appstream:
+        opts.log.info("appstream-builder skipped")
         return
 
     path = opts.directory

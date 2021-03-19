@@ -33,6 +33,7 @@ def to_dict(copr):
         "bootstrap": copr.bootstrap,
         "isolation": copr.isolation,
         "module_hotfixes": copr.module_hotfixes,
+        "appstream": copr.appstream,
     }
 
 
@@ -163,6 +164,7 @@ def add_project(ownername):
             fedora_review=form.fedora_review.data,
             follow_fedora_branching=form.follow_fedora_branching.data,
             runtime_dependencies=form.runtime_dependencies.data,
+            appstream=form.appstream.data,
         )
         db.session.commit()
     except (DuplicateException,

@@ -146,6 +146,7 @@ def get_build_record(task, for_backend=False):
             "uses_devel_repo": task.build.copr.devel_mode,
             "isolation": task.build.isolation,
             "fedora_review": task.build.copr.fedora_review,
+            "appstream": bool(task.build.appstream),
         })
 
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
@@ -207,6 +208,7 @@ def get_srpm_build_record(task, for_backend=False):
             "submitter": task.submitter[0],
             "project_name": task.copr_name,
             "project_dirname": task.copr_dirname,
+            "appstream": bool(task.copr.appstream),
         })
 
     except Exception as err:

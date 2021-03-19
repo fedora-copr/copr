@@ -39,6 +39,7 @@ class TestAction(object):
             "src_pkg_name": self.pkgs_stripped[0],
             "ownername": "foo",
             "projectname": "bar",
+            "appstream": True,
             "project_dirname": "bar",
             "chroot_builddirs": {
                 "fedora20": ["00001-foo"],
@@ -158,7 +159,8 @@ class TestAction(object):
                                 '00000002-pkg1': '00000009-pkg1', '00000005-pkg2': '00000010-pkg2'}
                         },
                         "user": "thrnciar",
-                        "copr": "source-copr"
+                        "copr": "source-copr",
+                        "appstream": True,
                     }),
                 "old_value": "thrnciar/source-copr",
                 "new_value": "thrnciar/destination-copr",
@@ -307,6 +309,7 @@ class TestAction(object):
                 "data": json.dumps({
                     "ownername": "foo",
                     "project_dirnames": ["bar", "baz"],
+                    "appstream": True,
                 }),
             },
         )
@@ -458,6 +461,7 @@ class TestAction(object):
                     "ownername": "@copr",
                     "projectname": "prunerepo",
                     "project_dirname": "prunerepo",
+                    "appstream": True,
                     "chroot_builddirs": {
                         "fedora-23-x86_64": [builddir],
                     },
@@ -553,6 +557,7 @@ class TestAction(object):
                 "data": json.dumps({
                     "ownername": "foo",
                     "projectname": "bar",
+                    "appstream": True,
                     "project_dirname": "bar",
                     "chroot_builddirs": {
                         "fedora-20-x86_64": ["rubygem-log4r-1.1.10-2.fc21"],
@@ -622,6 +627,7 @@ class TestAction(object):
                 "data": json.dumps({
                     "ownername": "foo",
                     "projectname": "bar",
+                    "appstream": True,
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"],
                     "project_dirname": "bar",
                     "chroot_builddirs": {
@@ -709,6 +715,7 @@ class TestAction(object):
         ext_data = json.dumps({
             "ownername": "foo",
             "projectname": "bar",
+            "appstream": True,
             "project_dirnames": {
                 'bar': {
                     "fedora-20": ["01-foo", "02-foo"],
@@ -752,6 +759,7 @@ class TestAction(object):
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
             "ownername": "foo",
             "projectname": "bar",
+            "appstream": True,
             "project_dirnames": ["bar"]
         })
         self.opts.destdir = tmp_dir
@@ -784,6 +792,7 @@ class TestAction(object):
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
             "ownername": "foo",
             "projectname": "bar",
+            "appstream": True,
             "project_dirnames": ["bar"]
         })
         self.opts.destdir = tmp_dir

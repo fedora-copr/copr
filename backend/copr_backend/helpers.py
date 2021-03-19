@@ -616,7 +616,7 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
 
 
 def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete=None, timeout=None,
-                   logger=None):
+                   logger=None, appstream=True):
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
@@ -635,6 +635,8 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
     cmd += opt_multiply('--add', add)
     cmd += opt_multiply('--delete', delete)
     cmd += opt_multiply('--rpms-to-remove', rpms_to_remove)
+    if not appstream:
+        cmd += ['--no-appstream-metadata']
     if devel:
         cmd += ['--devel']
 

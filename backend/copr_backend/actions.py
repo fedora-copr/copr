@@ -114,6 +114,7 @@ class Createrepo(Action):
         projectname = data["projectname"]
         project_dirnames = data["project_dirnames"]
         chroots = data["chroots"]
+        appstream = data["appstream"]
 
         result = ActionResult.SUCCESS
 
@@ -130,7 +131,7 @@ class Createrepo(Action):
                 except FileExistsError:
                     pass
 
-                if not call_copr_repo(repo, logger=self.log):
+                if not call_copr_repo(repo, appstream=appstream, logger=self.log):
                     result = ActionResult.FAILURE
 
         return result
@@ -228,7 +229,7 @@ class Delete(Action):
     """
     # pylint: disable=abstract-method
     def _handle_delete_builds(self, ownername, projectname, project_dirname,
-                              chroot_builddirs, build_ids):
+                              chroot_builddirs, build_ids, appstream):
         """ call /bin/copr-repo --delete """
         devel = uses_devel_repo(self.front_url, ownername, projectname)
         result = ActionResult.SUCCESS
@@ -247,7 +248,7 @@ class Delete(Action):
             # repodata temporarily pointing at non-existing files)!
             if chroot != "srpm-builds":
                 # In srpm-builds we don't create repodata at all
-                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel,
+                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel, appstream=appstream,
                                       logger=self.log):
                     result = ActionResult.FAILURE
 
@@ -341,13 +342,14 @@ class DeleteMultipleBuilds(Delete):
         projectname = ext_data["projectname"]
         project_dirnames = ext_data["project_dirnames"]
         build_ids = ext_data["build_ids"]
+        appstream = ext_data["appstream"]
 
         result = ActionResult.SUCCESS
         for project_dirname, chroot_builddirs in project_dirnames.items():
             if ActionResult.FAILURE == \
                self._handle_delete_builds(ownername, projectname,
                                           project_dirname, chroot_builddirs,
-                                          build_ids):
+                                          build_ids, appstream):
                 result = ActionResult.FAILURE
         return result
 
@@ -371,13 +373,14 @@ class DeleteBuild(Delete):
             projectname = ext_data["projectname"]
             project_dirname = ext_data["project_dirname"]
             chroot_builddirs = ext_data["chroot_builddirs"]
+            appstream = ext_data["appstream"]
         except KeyError:
             self.log.exception("Invalid action data")
             return ActionResult.FAILURE
 
         return self._handle_delete_builds(ownername, projectname,
                                           project_dirname, chroot_builddirs,
-                                          build_ids)
+                                          build_ids, appstream)
 
 
 class DeleteChroot(Delete):
@@ -414,6 +417,7 @@ class GenerateGpgKey(Action, GPGMixin):
 class RawhideToRelease(Action):
     def run(self):
         data = json.loads(self.data["data"])
+        appstream = data["appstream"]
         result = ActionResult.SUCCESS
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
@@ -432,7 +436,7 @@ class RawhideToRelease(Action):
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
-            if not call_copr_repo(chrootdir, logger=self.log):
+            if not call_copr_repo(chrootdir, appstream=appstream, logger=self.log):
                 result = ActionResult.FAILURE
         except:
             result = ActionResult.FAILURE
@@ -449,6 +453,7 @@ class BuildModule(Action):
             projectname = data["projectname"]
             chroots = data["chroots"]
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
+            appstream = data["appstream"]
 
             mmd_yaml = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
             mmd_yaml = modulemd_tools.yaml.upgrade(mmd_yaml, 2)
@@ -491,7 +496,7 @@ class BuildModule(Action):
                     mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, rpms_nevras=artifacts)
                     self.log.info("Module artifacts: %s", artifacts)
                     modulemd_tools.yaml.dump(mmd_yaml, destdir)
-                    if not call_copr_repo(destdir, logger=self.log):
+                    if not call_copr_repo(destdir, appstream=appstream, logger=self.log):
                         result = ActionResult.FAILURE
 
         except Exception:

@@ -1066,7 +1066,8 @@ class TestCoprActionsGeneration(CoprsTestCase):
         template = {
             "ownername": "user1",
             "projectname": "test",
-            "project_dirnames": ["test"]
+            "project_dirnames": ["test"],
+            "appstream": True,
         }
         def _expected(action, chroots):
             template["chroots"] = chroots

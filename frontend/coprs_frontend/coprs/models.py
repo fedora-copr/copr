@@ -337,6 +337,8 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # optional tools to run after build
     fedora_review = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    appstream = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """
@@ -1470,6 +1472,10 @@ class Build(db.Model, helpers.Serializer):
         Built packages in each build chroot.
         """
         return {bc.name: bc.results_dict for bc in self.build_chroots}
+
+    def appstream(self):
+        """Whether appstream metadata should be generated for a build."""
+        return self.copr.appstream
 
 
 class DistGitBranch(db.Model, helpers.Serializer):
