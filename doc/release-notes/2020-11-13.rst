@@ -61,8 +61,6 @@ feature ON by default for **newly created projects**.
 The bootstrap feature is not marked as "experimental" anymore, as it has been
 stabilized in Mock for quite some time (and ON by default).
 
-.. _build_batches:
-
 Build batches
 -------------
 

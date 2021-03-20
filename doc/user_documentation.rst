@@ -121,6 +121,22 @@ Example of what can be put into ``.copr/Makefile``:
 
 Note that the other tools (**tito** and **rpkg**) are run in the specified **Subdirectory** as well.
 
+DistGit
+^^^^^^^
+
+There's a new option to build from existing DistGit instances in Copr (e.g.,
+from Fedora or CentOS DistGit). To build the `foo` package from
+CentOS 8, one can do::
+
+    $ copr build-distgit <project> --name foo --distgit centos --commit c8
+
+It's even easier for a Fedora Rawhide package::
+
+    $ copr build-distgit <project> --name foo
+
+because 'fedora' distgit is the default, and we automatically pick the default
+branch.
+
 PyPI
 ^^^^
 
@@ -297,6 +313,48 @@ Please follow these recommendations to have the smoothest experience:
 - Use `pagination
   <https://python-copr.readthedocs.io/en/latest/client_v3/pagination.html>`_
   when accessing the project packages and builds through API
+
+.. _build_batches:
+
+Build batches
+-------------
+
+A build batches feature allows you to define the order of your builds
+in advance.  This feature is also available in the web-UI, but it is
+more convenient from the command-line::
+
+    $ copr build <project> --no-wait <first.src.rpm>
+    Created builds: 101010
+    $ copr build <project> --no-wait <second.src.rpm> --after-build-id 101010
+    Created builds: 101020
+    $ copr build <project> --no-wait <third.src.rpm> --with-build-id 101020
+    Created builds: 101030
+
+This will create two batches (first with one build 101010 and second
+with two builds 101020 and 101030), where second batch isn't started till Copr
+finishes the first one.  This way, you can build a tree of dependant build
+batches according to your project needs.
+
+Automatic run of Fedora Review tool
+-----------------------------------
+
+There's a new per-project config option (e.g. ``copr create --fedora-review``)
+that triggers an automatic run of `Fedora Review`_ after each build in such
+project, for now only in the ``fedora-*`` chroots.
+
+We don't mark the build failed when the review tool fails for now, and it is up
+to the end-user to check the review results in the new ``review.txt`` file
+that is created in build results.
+
+Quick HOWTO for the `Package Review`_ time::
+
+    $ copr create review-foo-component --chroot fedora-rawhide-x86_64 --fedora-review
+    $ copr build review-foo-component ./foo.src.rpm
+    ...
+    # wait and see the results!
+
+.. _`Fedora Review`: https://pagure.io/FedoraReview
+.. _`Package Review`: https://fedoraproject.org/wiki/Package_Review_Process
 
 FAQ
 ---
