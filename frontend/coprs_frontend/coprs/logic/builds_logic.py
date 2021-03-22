@@ -146,7 +146,8 @@ class BuildsLogic(object):
                 if l[0] == mock_chroot.id:
                     l[0] = mock_chroot.name
 
-        return chroots
+        # sort by chroot name
+        return sorted(chroots, key=lambda x: x[0])
 
     @classmethod
     def get_pending_jobs_bucket(cls, start, end):
