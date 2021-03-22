@@ -242,9 +242,14 @@ class Delete(Action):
 
             self.log.info("Deleting subdirs [%s] in %s",
                           ", ".join(subdirs), chroot_path)
-            if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
-                self.log.error("createrepo_c failed in %s", chroot_path)
-                result = ActionResult.FAILURE
+
+            # Run createrepo first and then remove the files (to avoid old
+            # repodata temporarily pointing at non-existing files)!
+            if chroot != "srpm-builds":
+                # In srpm-builds we don't create repodata at all
+                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
+                    self.log.error("createrepo_c failed in %s", chroot_path)
+                    result = ActionResult.FAILURE
 
             for build_id in build_ids or []:
                 log_paths = [
