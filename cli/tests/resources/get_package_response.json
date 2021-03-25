@@ -1,0 +1,36 @@
+{
+    "auto_rebuild": false,
+    "builds": {
+        "latest": null,
+        "latest_succeeded": {
+            "chroots": [
+                "fedora-rawhide-x86_64"
+            ],
+            "ended_on": 1616671797,
+            "id": 2097553,
+            "ownername": "praiskup",
+            "project_dirname": "autoconf-2.71-attempts",
+            "projectname": "autoconf-2.71-attempts",
+            "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/autoconf-2.71-attempts",
+            "source_package": {
+                "name": "binutils",
+                "url": "https://download.copr.fedorainfracloud.org/results/praiskup/autoconf-2.71-attempts/srpm-builds/02097553/binutils-2.36.1-7.src.rpm",
+                "version": "2.36.1-7"
+            },
+            "started_on": 1616669174,
+            "state": "succeeded",
+            "submitted_on": 1616669115,
+            "submitter": "praiskup"
+        }
+    },
+    "id": 654453,
+    "name": "binutils",
+    "ownername": "praiskup",
+    "projectname": "autoconf-2.71-attempts",
+    "source_dict": {
+        "pkg": "binutils-2.36.1-7.src.rpm",
+        "tmp": "tmpja508sn4",
+        "url": "https://copr.fedorainfracloud.org/tmp/tmpja508sn4/binutils-2.36.1-7.src.rpm"
+    },
+    "source_type": "upload"
+}

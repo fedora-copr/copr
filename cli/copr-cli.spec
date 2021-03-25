@@ -43,6 +43,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-jinja2
 BuildRequires: python3-humanize
 BuildRequires: python3-pytest
+BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 BuildRequires: python3-munch
@@ -58,6 +59,7 @@ BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-humanize
 BuildRequires: python-mock
+BuildRequires: python2-responses
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
 BuildRequires: python-munch

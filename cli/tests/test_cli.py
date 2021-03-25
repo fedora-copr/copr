@@ -2,6 +2,7 @@ import os
 import argparse
 import json
 import pytest
+import responses
 from munch import Munch
 
 import copr
@@ -196,6 +197,72 @@ def test_list_project(get_list, config_from_file, capsys):
     expected_warning = no_config_warning.format("~/.config/copr", "Dude, your config is missing")
     assert expected_warning in err
 
+@responses.activate
+@mock.patch("copr_cli.main.next_page")
+@mock.patch('copr_cli.main.config_from_file')
+def test_list_builds(config_from_file, next_page, capsys):
+    response_data = json.loads(read_res('list_builds_response.json'))
+    expected_output = read_res('list_builds_expected.txt')
+
+    responses.add(
+        responses.GET,
+        'http://copr.fedoraproject.org/api_3/build/list',
+        json=response_data, status=202)
+
+    # no config
+    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
+    next_page.return_value = None
+
+    main.main(argv=["list-builds", "praiskup/ping"])
+    out, _ = capsys.readouterr()
+    assert out.split("\n") == expected_output.split("\n")
+
+@responses.activate
+@mock.patch('copr_cli.main.config_from_file')
+def test_list_packages(config_from_file, capsys):
+    response_data = json.loads(read_res('list_packages_response.json'))
+    expected_output = read_res('list_packages_expected.json')
+
+    responses.add(
+        responses.GET,
+        'http://copr.fedoraproject.org/api_3/package/list',
+        json=response_data, status=202)
+
+    # no config
+    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
+
+    main.main(argv=["list-packages", "praiskup/ping"])
+    out, _ = capsys.readouterr()
+    assert json.loads(out) == json.loads(expected_output)
+
+@responses.activate
+@mock.patch('copr_cli.main.config_from_file')
+def test_get_package(config_from_file, capsys):
+
+    response_data = json.loads(read_res('get_package_response.json'))
+    response_build_data = json.loads(read_res('get_package_response_builds.json'))
+    expected_output = read_res('get_package_expected.json')
+
+    responses.add(
+        responses.GET,
+        'http://copr.fedoraproject.org/api_3/package',
+        json=response_data, status=202)
+
+    responses.add(
+        responses.GET,
+        'http://copr.fedoraproject.org/api_3/build/list',
+        json=response_build_data, status=202)
+
+
+    # no config
+    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
+
+    main.main(argv=[
+        "get-package", "--name", "binutils", "--with-all-builds",
+        "praiskup/autoconf-2.71-attempts", "--with-latest-succeeded-build",
+    ])
+    out, _ = capsys.readouterr()
+    assert json.loads(out) == json.loads(expected_output)
 
 @mock.patch('copr_cli.main.config_from_file')
 def test_list_project_no_username(config_from_file, capsys):

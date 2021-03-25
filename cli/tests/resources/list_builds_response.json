@@ -1,0 +1,107 @@
+{
+"meta": {
+    "limit": 100, "offset": 0, "order": "id", "order_type": "ASC"},
+"items": [
+    {
+        "chroots": [
+            "mageia-8-x86_64"
+        ],
+        "ended_on": 1616357014,
+        "id": 2088282,
+        "ownername": "praiskup",
+        "project_dirname": "ping",
+        "projectname": "ping",
+        "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping",
+        "source_package": {
+            "name": "dummy-pkg",
+            "url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping/srpm-builds/02088282/dummy-pkg-20210321_2058-1.src.rpm",
+            "version": "20210321_2058-1"
+        },
+        "started_on": 1616356790,
+        "state": "succeeded",
+        "submitted_on": 1616356749,
+        "submitter": "praiskup"
+    },
+    {
+        "chroots": [
+            "fedora-rawhide-i386"
+        ],
+        "ended_on": 1614062207,
+        "id": 2014210,
+        "ownername": "praiskup",
+        "project_dirname": "ping",
+        "projectname": "ping",
+        "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping",
+        "source_package": {
+            "name": "dummy-pkg",
+            "url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping/srpm-builds/02014210/dummy-pkg-20210223_0728-1.src.rpm",
+            "version": "20210223_0728-1"
+        },
+        "started_on": 1614061752,
+        "state": "failed",
+        "submitted_on": 1614061713,
+        "submitter": "praiskup"
+    },
+    {
+        "chroots": [
+            "fedora-rawhide-aarch64",
+            "centos-stream-8-x86_64",
+            "mageia-7-x86_64"
+        ],
+        "ended_on": 1613378548,
+        "id": 1966447,
+        "ownername": "praiskup",
+        "project_dirname": "ping",
+        "projectname": "ping",
+        "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping",
+        "source_package": {
+            "name": "dummy-pkg",
+            "url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping/srpm-builds/01966447/dummy-pkg-20210215_0934-1.src.rpm",
+            "version": "20210215_0934-1"
+        },
+        "started_on": 1613378100,
+        "state": "failed",
+        "submitted_on": 1613378074,
+        "submitter": "praiskup"
+    },
+    {
+        "chroots": [
+            "centos-stream-8-x86_64"
+        ],
+        "ended_on": 1613080722,
+        "id": 1958830,
+        "ownername": "praiskup",
+        "project_dirname": "ping",
+        "projectname": "ping",
+        "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping",
+        "source_package": {
+            "name": "dummy-pkg",
+            "url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping/srpm-builds/01958830/dummy-pkg-20210211_2253-1.src.rpm",
+            "version": "20210211_2253-1"
+        },
+        "started_on": 1613080490,
+        "state": "succeeded",
+        "submitted_on": 1613080453,
+        "submitter": "praiskup"
+    },
+    {
+        "chroots": [
+            "fedora-rawhide-x86_64"
+        ],
+        "ended_on": 1612423498,
+        "id": 1939925,
+        "ownername": "praiskup",
+        "project_dirname": "ping",
+        "projectname": "ping",
+        "repo_url": "https://download.copr.fedorainfracloud.org/results/praiskup/ping",
+        "source_package": {
+            "name": null,
+            "url": null,
+            "version": null
+        },
+        "started_on": 1612423493,
+        "state": "failed",
+        "submitted_on": 1612423436,
+        "submitter": "praiskup"
+    }
+]}

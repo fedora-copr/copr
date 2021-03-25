@@ -1,0 +1,119 @@
+[
+    {
+        "auto_rebuild": false,
+        "id": 361737,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "dummy-pkg",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "clone_url": "https://src.fedoraproject.org/rpms/tar.git",
+            "committish": "",
+            "source_build_method": "rpkg",
+            "spec": "",
+            "subdirectory": "",
+            "type": "git"
+        },
+        "source_type": "scm"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 478014,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "postgresql",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "pkg": "postgresql-12.3-3.fc33.src.rpm",
+            "tmp": "tmpgbydzodb",
+            "url": "https://copr.fedorainfracloud.org/tmp/tmpgbydzodb/postgresql-12.3-3.fc33.src.rpm"
+        },
+        "source_type": "upload"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 558001,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "sphinx",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "pypi_package_name": "sphinx",
+            "pypi_package_version": "",
+            "python_versions": [
+                "3",
+                "2"
+            ],
+            "spec_template": ""
+        },
+        "source_type": "pypi"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 558003,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "python-sphinx",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "pypi_package_name": "sphinx",
+            "pypi_package_version": "",
+            "python_versions": [
+                "3",
+                "2"
+            ],
+            "spec_template": ""
+        },
+        "source_type": "pypi"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 558023,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "tar",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "clone_url": "https://src.fedoraproject.org/rpms/tar.git",
+            "distgit": "fedora"
+        },
+        "source_type": "distgit"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 585766,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "cpio",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "clone_url": "https://src.fedoraproject.org/rpms/cpio.git",
+            "distgit": "fedora"
+        },
+        "source_type": "distgit"
+    },
+    {
+        "auto_rebuild": false,
+        "id": 613312,
+        "latest_build": null,
+        "latest_succeeded_build": null,
+        "name": "python-argparse-manpage",
+        "ownername": "praiskup",
+        "projectname": "ping",
+        "source_dict": {
+            "pypi_package_name": "argparse-manpage",
+            "pypi_package_version": "",
+            "python_versions": [
+                "3"
+            ],
+            "spec_template": ""
+        },
+        "source_type": "pypi"
+    }
+]

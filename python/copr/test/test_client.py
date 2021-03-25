@@ -42,7 +42,7 @@ def test_list_projects():
     CoprClient.create_from_file_config(config_location)
 
 
-# TODO: package https://github.com/dropbox/responses and use it
+# TODO: reuse python3-responses instead
 def make_mock_response(filename, status_code=None):
     response = Response()
     response.status_code = status_code or 200
