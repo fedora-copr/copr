@@ -1,3 +1,5 @@
+import copy
+import datetime
 import json
 from unittest.mock import patch, MagicMock
 
@@ -274,3 +276,112 @@ class TestApiV3Permissions(CoprsTestCase):
             del data["isolation"]
         self.api3.post(route, data)
         assert Copr.query.one().isolation == read
+
+    def _get_copr_id_data(self, copr_id):
+        data = copy.deepcopy(self.models.Copr.query.get(copr_id).__dict__)
+        data.pop("_sa_instance_state")
+        data.pop("latest_indexed_data_update")
+        return data
+
+    @pytest.mark.usefixtures("f_u1_ts_client", "f_mock_chroots", "f_db")
+    def test_update_copr_api3(self):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"],
+                                bootstrap="image", isolation="simple",
+                                contact="somebody@redhat.com",
+                                homepage="https://github.com/fedora-copr")
+        old_data = self._get_copr_id_data(1)
+
+        # When new arguments are added to the Copr model, we should update this
+        # testing method!
+        already_tested = set([
+            "delete_after", "build_enable_net", "auto_createrepo", "repos",
+        ])
+
+        # check non-trivial changes
+        assert old_data["delete_after"] is None
+        assert old_data["build_enable_net"] is False
+        assert old_data["auto_createrepo"] is True
+        assert old_data["module_hotfixes"] is False
+        assert old_data["fedora_review"] is False
+        assert old_data["repos"] == ''
+        assert old_data["auto_prune"] is False  # TODO: issue 1747
+        self.api3.modify_project(
+            "test", delete_after_days=5, enable_net=True, devel_mode=True,
+            repos=["http://example/repo/", "http://another/"],
+        )
+        new_data = self._get_copr_id_data(1)
+        delete_after = datetime.datetime.now() + datetime.timedelta(days=5)
+        assert new_data["delete_after"] > delete_after
+        old_data["delete_after"] = new_data["delete_after"]
+        old_data["build_enable_net"] = True
+        old_data["auto_createrepo"] = False
+        old_data["repos"] = "http://example/repo/\nhttp://another/"
+        assert old_data == new_data
+        old_data = new_data
+
+        easy_changes = [{
+            "isolation": "nspawn",
+        }, {
+            "isolation": "default",
+        }, {
+            "description": "simple desc",
+        }, {
+            "instructions": "how to enable",
+        }, {
+            "homepage": "https://example.com/blah/",
+        }, {
+            "contact": "jdoe@example.com",
+        }, {
+            "unlisted_on_hp": True,
+        }, {
+            "bootstrap": "off",
+        }, {
+            "multilib": True,
+        }, {
+            "module_hotfixes": True,
+        }, {
+            "auto_prune": True,
+        }, {
+            "auto_prune": False,
+        }, {
+            "fedora_review": True,
+        }, {
+        # TODO: issue#1748
+        #    "bootstrap": "custom_image",
+        #    "bootstrap_image": "centos:6",
+        #}, {
+        }]
+
+        for setup in easy_changes:
+            for key in setup:
+                already_tested.add(key)
+
+        should_test = {c.name for c in self.models.Copr.__table__.columns}
+
+        # these are never meant to be changed by modify
+        for item in [
+            "created_on", "deleted", "scm_api_auth_json", "scm_api_type",
+            "scm_repo_url", "id", "name", "user_id", "group_id",
+            "webhook_secret", "forked_from_id", "latest_indexed_data_update",
+            "copr_id", "persistent", "playground",
+        ]:
+            should_test.remove(item)
+
+        # TODO: issue#1748
+        for item in ['follow_fedora_branching', 'runtime_dependencies']:
+            should_test.remove(item)
+
+        assert already_tested == should_test
+
+        for case in easy_changes:
+            self.api3.modify_project("test", **case)
+            new_data = self._get_copr_id_data(1)
+
+            # TODO: non-working fields!  These changes should have an effect,
+            # but they don't.
+            for key in list(case.keys()):
+                if key in ["homepage", "contact"]:
+                    case.pop(key)
+            old_data.update(**case)
+            assert old_data == new_data
+            old_data = new_data

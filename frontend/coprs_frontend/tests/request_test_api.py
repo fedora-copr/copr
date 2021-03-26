@@ -202,6 +202,25 @@ class API3Requests(_RequestsInterface):
         assert resp.status_code == 200 if self.success_expected else 400
         return resp
 
+    def modify_project(self, projectname, ownername=None, chroots=None,
+                       **kwargs):
+        """ Mimic "copr modify" """
+        if ownername is None:
+            ownername = self.transaction_username
+
+        route = "/api_3/project/edit/{}/{}".format(ownername, projectname)
+
+        data = {}
+        if chroots:
+            data["chroots"] = chroots
+
+        for arg in kwargs:
+            data[arg] = kwargs[arg]
+
+        resp = self.post(route, data)
+        assert resp.status_code == 200 if self.success_expected else 400
+        return resp
+
     def edit_chroot(self, project, chroot, bootstrap=None,
                     bootstrap_image=None, owner=None, isolation=None):
         route = "/api_3/project-chroot/edit/{owner}/{project}/{chroot}".format(
