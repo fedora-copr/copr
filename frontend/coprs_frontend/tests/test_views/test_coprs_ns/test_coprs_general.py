@@ -1039,3 +1039,35 @@ class TestCoprActionsGeneration(CoprsTestCase):
         actions = ActionsLogic.get_many(ActionTypeEnum("createrepo")).all()
         assert len(actions) == 2
         assert actions[1].priority == 0
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_createrepo_on_reenable(self):
+        self.api3.new_project("test", ["fedora-rawhide-i386",
+                                       "fedora-17-x86_64"])
+        # disable fedora-17, but enable fedora-18
+        self.api3.modify_project("test", chroots=["fedora-rawhide-i386",
+                                                  "fedora-18-x86_64"])
+        # re-enable fedora-17
+        self.api3.modify_project("test", chroots=["fedora-rawhide-i386",
+                                                  "fedora-17-x86_64",
+                                                  "fedora-18-x86_64"])
+
+        actions = self.models.Action.query.all()
+        assert [ActionTypeEnum(a)
+                for a in ["createrepo", "gen_gpg_key", "createrepo",
+                          "createrepo"]] \
+               == [a.action_type for a in actions]
+
+        actions.pop(1)  # we don't care about gpg here
+        template = {
+            "ownername": "user1",
+            "projectname": "test",
+            "project_dirnames": ["test"]
+        }
+        def _expected(action, chroots):
+            template["chroots"] = chroots
+            assert json.loads(action.data) == template
+        _expected(actions[0], ["fedora-17-x86_64", "fedora-rawhide-i386"])
+        _expected(actions[1], ["fedora-18-x86_64"])
+        _expected(actions[2], ["fedora-17-x86_64"])

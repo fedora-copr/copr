@@ -761,21 +761,44 @@ class CoprChrootsLogic(object):
         new_mock_chroots = cls.mock_chroots_from_names(names)
 
         # add non-existing
-        run_createrepo = False
+        run_createrepo_in = set()
+
+        # Iterate through all mock chroots that we have to have enabled.
         for mock_chroot in new_mock_chroots:
-            if mock_chroot not in chroot_map:
-                db.session.add(CoprChrootsLogic.create_chroot(
+
+            # load the corresponding copr_chroot (if exists)
+            copr_chroot = chroot_map.get(mock_chroot)
+
+            if copr_chroot and not copr_chroot.deleted:
+                # This chroot exists, and is enabled (not deleted).  No need to
+                # touch this one!
+                continue
+
+            if not copr_chroot:
+                # This chroot is being enabled for the first time, new instance.
+                copr_chroot = CoprChrootsLogic.create_chroot(
                     user=user,
                     copr=copr,
                     mock_chroot=mock_chroot,
-                ))
-                run_createrepo = True
-            else:
-                copr_chroot = chroot_map.get(mock_chroot)
-                copr_chroot.deleted = False
+                )
+                db.session.add(copr_chroot)
 
-        if run_createrepo:
-            ActionsLogic.send_createrepo(copr)
+            # Run the createrepo for this MockChroot for all the assigned
+            # CoprDirs.  Note that we do this every-time, even for the
+            # chroots that are being re-enabled; even though it might seem to be
+            # unnecessary.  For the main CoprDir in the project, it is indeed
+            # redundant createrepo run (metadata already exist from the time it
+            # was enabled before) but the other existing CoprDirs (for pull
+            # requests, e.g.) could be created at the time this CoprChroot was
+            # disabled in project, and thus there are likely no metadata for
+            # this MockChroot yet.
+            run_createrepo_in.add(mock_chroot.name)
+
+            # Make sure it is (re-)enabled.
+            copr_chroot.deleted = False
+
+        if run_createrepo_in:
+            ActionsLogic.send_createrepo(copr, chroots=list(run_createrepo_in))
 
         to_remove = []
         for mock_chroot in chroot_map:

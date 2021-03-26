@@ -77,7 +77,17 @@ class ActionsLogic(object):
         return action
 
     @classmethod
-    def send_createrepo(cls, copr, dirnames=None):
+    def send_createrepo(cls, copr, dirnames=None, chroots=None):
+        """
+        Create a new createrepo Action in queue for given copr.
+
+        :param copr: Copr ORM object.
+        :param dirnames: List of CoprDir *names* to run the createrepo in.
+            Optional, use only when we want to limit the scope of this action,
+            otherwise the createrepo action is run in all dirnames.
+        :param chroots: List of MockChroot *names*.  Optional, by default
+            createrepo is run in all active chroots.
+        """
         possible_dirnames = [copr_dir.name for copr_dir in copr.dirs]
         if not dirnames:
             # by default we createrepo for all of them
@@ -88,11 +98,15 @@ class ActionsLogic(object):
                 raise exceptions.NotFoundException(
                     "Can't createrepo for {} dirnames in {} project".format(
                         missing, copr.full_name))
+
+        if chroots is None:
+            chroots = [chroot.name for chroot in copr.active_chroots]
+
         data_dict = {
             "ownername": copr.owner_name,
             "projectname": copr.name,
             "project_dirnames": dirnames,
-            "chroots": [chroot.name for chroot in copr.active_chroots],
+            "chroots": chroots,
         }
         action = models.Action(
             action_type=ActionTypeEnum("createrepo"),
