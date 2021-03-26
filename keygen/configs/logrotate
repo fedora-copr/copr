@@ -1,6 +1,6 @@
 /var/log/copr-keygen/*.log {
     weekly
-    rotate 5
+    rotate 13
     copytruncate
     compress
     notifempty

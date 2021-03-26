@@ -2,7 +2,7 @@
 
 /var/log/copr-frontend/*.log {
     weekly
-    rotate 5
+    rotate 13
     copytruncate
     compress
     notifempty
