@@ -367,9 +367,9 @@ class TestApiV3Permissions(CoprsTestCase):
 
     @patch('coprs.views.apiv3_ns.apiv3_permissions.send_mail',
            new_callable=MagicMock())
-    def test_perms_set_sends_emails(
-            self, send_mail, f_users, f_coprs, f_copr_more_permissions,
-            f_users_api, f_db):
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_copr_more_permissions",
+                             "f_users_api", "f_db")
+    def test_perms_set_sends_emails_2(self, send_mail):
         self.app.config['SEND_EMAILS'] = True
 
         # u4 is only a builder in c3 so far, request admin!  but owner of c3 is
@@ -385,7 +385,6 @@ class TestApiV3Permissions(CoprsTestCase):
             "Admin: nothing -> request",
             "Project: user2/barcopr"])
 
-        emails = ['user1@spam.foo', 'user2@spam.foo']
         calls = send_mail.call_args_list
         assert len(calls) == 2
         assert calls[0][0][0] == ["user2@spam.foo"]
