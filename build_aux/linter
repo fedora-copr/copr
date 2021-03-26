@@ -105,6 +105,7 @@ class _Linter:
             if not files:
                 return
             linter_cmd, linter_env = self.command(projectdir, files)
+            log.debug("Running linter command: %s", linter_cmd)
             env = os.environ.copy()
             env.update(linter_env)
             sed_cmd = self._sed_filter()
