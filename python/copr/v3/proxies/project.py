@@ -166,6 +166,8 @@ class ProjectProxy(BaseProxy):
                                      on along with packages from the active module streams.
         :param str bootstrap: Mock bootstrap feature setup.
             Possible values are 'default', 'on', 'off', 'image'.
+        :param str isolation: Mock isolation feature setup.
+            Possible values are 'default', 'simple', 'nspawn'.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
         :param bool fedora_review: Run fedora-review tool for packages
