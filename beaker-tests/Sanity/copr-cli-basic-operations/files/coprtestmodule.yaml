@@ -29,4 +29,4 @@ data:
           ed:
             rationale: An example of Copr package
             ref: $PLATFORM
-            repository: 'http://$DISTGIT_URL/git/$OWNER/$PROJECT/ed.git'
+            repository: '$DISTGIT_URL/git/$OWNER/$PROJECT/ed.git'
