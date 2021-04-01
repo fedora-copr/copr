@@ -503,15 +503,30 @@ class BuildBackgroundWorker(BackgroundWorker):
         ]
 
         # For automatic redirect from log to log.gz, consider configuring
-        # lighttpd like:
-        #     url.rewrite-if-not-file = ("^/(.*)/builder-live.log$" => "/$1/redirect-live.log")
-        #     url.redirect("^/(.*)/redirect-live.log$" => "/$1/builder-live.log.gz")
-        # or apache by:
-        #     <Files builder-live.log>
+        # Lighttpd like:
+        #
+        #   url.redirect += ( "^/(.*)/redirect-builder-live.log$" => "/$1/builder-live.log.gz" )
+        #   url.rewrite-if-not-file = ("^/(.*)/builder-live.log$" => "/$1/redirect-builder-live.log")
+        #   url.redirect += ( "^/(.*)/redirect-backend.log$" => "/$1/backend.log.gz" )
+        #   url.rewrite-if-not-file += ("^/(.*)/backend.log$" => "/$1/redirect-backend.log")
+        #
+        #   $HTTP["url"] =~ "\.log\.gz$" {
+        #       magnet.attract-physical-path-to = ( "/etc/lighttpd/content-encoding-gzip-if-exists.lua" )
+        #       mimetype.assign = ("" => "text/plain" )
+        #   }
+        #
+        # .. here the Lua script looks just like:
+        #
+        #   if (lighty.stat(lighty.env["physical.path"])) then
+        #     lighty.header["Content-Encoding"] = "gzip"
+        #   end
+        #
+        # Or Apache with:
+        #     <FilesMatch "^(builder-live|backend)\.log$">
         #     RewriteEngine on
         #     RewriteCond %{REQUEST_FILENAME} !-f
         #     RewriteRule ^(.*)$ %{REQUEST_URI}.gz [R]
-        #     </files>
+        #     </FilesMatch>
 
         for src in logs:
             dest = src + ".gz"
