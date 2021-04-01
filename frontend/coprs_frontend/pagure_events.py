@@ -29,13 +29,7 @@ SUPPORTED_SOURCE_TYPES = [
 ]
 
 log = logging.getLogger(__name__)
-if os.getenv('PAGURE_EVENTS_TESTONLY'):
-    ENDPOINT = 'tcp://stg.pagure.io:9940'
-else:
-    ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
-
 log.setLevel(logging.DEBUG)
-log.info("ENDPOINT = {}".format(ENDPOINT))
 
 TOPICS = {}
 for topic, url in app.config["PAGURE_EVENTS"].items():
