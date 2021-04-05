@@ -25,7 +25,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import JSONEncodedDict
+from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus
 
 
 # Pylint Specifics for models.py:
@@ -1606,6 +1606,57 @@ class CoprChroot(db.Model, helpers.Serializer):
         return self.mock_chroot.is_active
 
     @property
+    def delete_status(self):
+        """
+        When a chroot is marked as EOL or when it is unclicked from a project,
+        it goes through several stages before its data is finally deleted.
+        The pipeline is:  active -> preserved -> expired -> deleted
+        For detailed description of each state, see `ChrootDeletionStatus`.
+
+        The WTF/minute ratio for reading this method is way above bearable level
+        but we are considering 5 boolean variables and basically doing 2^5
+        binary table.
+        """
+        # pylint: disable=too-many-return-statements
+
+        # These are chroots, that were unclicked by user in project settings
+        if self.deleted:
+            if not self.delete_after:
+                return ChrootDeletionStatus("deleted")
+
+            if self.delete_after < datetime.datetime.now():
+                return ChrootDeletionStatus("expired")
+
+            return ChrootDeletionStatus("preserved")
+
+        # Chroots that we marked as EOL
+        if not self.is_active:
+            # We can never ever remove EOL chroots that we didn't send
+            # a notification about
+            if not self.delete_notify:
+                return ChrootDeletionStatus("preserved")
+
+            if not self.delete_after:
+                return ChrootDeletionStatus("deleted")
+
+            if self.delete_after < datetime.datetime.now():
+                return ChrootDeletionStatus("expired")
+
+            return ChrootDeletionStatus("preserved")
+
+        if not self.delete_after and not self.delete_notify:
+            return ChrootDeletionStatus("active")
+
+        raise RuntimeError("Undefined status, this shouldn't happen")
+
+    @property
+    def delete_status_str(self):
+        """
+        A string version of `delete_status`
+        """
+        return ChrootDeletionStatus(self.delete_status)
+
+    @property
     def delete_after_expired(self):
         """
         Is the chroot expired, aka its contents are going to be removed very
@@ -1613,12 +1664,8 @@ class CoprChroot(db.Model, helpers.Serializer):
         sufficient because that would return wrong results for the last 24
         hours.
         """
-        if not self.delete_after:
-            if self.delete_notify:
-                # already deleted, see Deleter.delete() method
-                return True
-            return False
-        return self.delete_after < datetime.datetime.now()
+        return self.delete_status in [ChrootDeletionStatus("expired"),
+                                      ChrootDeletionStatus("deleted")]
 
     @property
     def delete_after_days(self):

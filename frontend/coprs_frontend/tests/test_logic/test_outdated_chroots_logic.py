@@ -5,8 +5,10 @@ from datetime import datetime, timedelta
 from copr_common.enums import ActionTypeEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
+from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.helpers import ChrootDeletionStatus
 from coprs import app
 from commands.alter_chroot import func_alter_chroot
 from commands.delete_outdated_chroots import delete_outdated_chroots_function
@@ -14,6 +16,76 @@ from commands.notify_outdated_chroots import notify_outdated_chroots_function
 
 
 class TestOutdatedChrootsLogic(CoprsTestCase):
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_delete_status_outdated(self):
+        """
+        Transition within all steps of all chroot EOL process and make sure
+        the `delete_status` returns expected states
+        """
+        chroot = self.c2.copr_chroots[0]
+
+        # Normal, active chroot
+        assert chroot.is_active
+        assert not chroot.delete_after
+        assert not chroot.delete_notify
+        assert chroot.delete_status == ChrootDeletionStatus("active")
+
+        # Chroot is EOLed
+        chroot.mock_chroot.is_active = False
+        chroot.delete_after = datetime.now() + timedelta(days=180)
+        assert chroot.delete_status == ChrootDeletionStatus("preserved")
+        assert chroot.delete_status_str == "preserved"
+
+        # Within next cronjob, we sent emails
+        chroot.delete_notify = datetime.now()
+        assert chroot.delete_status == ChrootDeletionStatus("preserved")
+        assert chroot.delete_status_str == "preserved"
+
+        # After the preservation period is gone
+        chroot.delete_after = datetime.now() - timedelta(days=1)
+        assert chroot.delete_status == ChrootDeletionStatus("expired")
+        assert chroot.delete_status_str == "expired"
+
+        # Within next cronjob, we deleted the data
+        chroot.delete_after = None
+        assert chroot.delete_status == ChrootDeletionStatus("deleted")
+        assert chroot.delete_status_str == "deleted"
+
+        # Special case - we wasn't able to send any notification emails,
+        # therefore the chroot is preserved even after the standard
+        # preservation period is gone
+        chroot.delete_after = datetime.now() - timedelta(days=1)
+        chroot.delete_notify = None
+        assert chroot.delete_status == ChrootDeletionStatus("preserved")
+        assert chroot.delete_status_str == "preserved"
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_delete_status_unclicked(self):
+        """
+        Transition within all steps that unclicked chroot goes through and make
+        sure the `delete_status` returns expected states
+        """
+        chroot = self.c2.copr_chroots[0]
+
+        # Normal, active chroot
+        assert not chroot.deleted
+        assert chroot.delete_status == ChrootDeletionStatus("active")
+
+        # User un-clicks the chroot from project settings
+        chroot.deleted = True
+        chroot.delete_after = datetime.now() + timedelta(days=7)
+        assert chroot.delete_status == ChrootDeletionStatus("preserved")
+
+        # After the preservation period is gone
+        chroot.delete_after = datetime.now() - timedelta(days=1)
+        assert chroot.delete_status == ChrootDeletionStatus("expired")
+
+        # Within next cronjob, we deleted the data
+        chroot.delete_after = None
+        assert chroot.delete_status == ChrootDeletionStatus("deleted")
 
     @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
@@ -146,6 +218,7 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_humanized(self):
         chroot = self.c2.copr_chroots[0]
+        chroot.mock_chroot.is_active = False
         chroot.delete_after = datetime.now() + timedelta(days=35)
         assert chroot.delete_after_humanized == "34 days"
 
@@ -162,12 +235,14 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_expired(self):
         chroot = self.c2.copr_chroots[0]
+        chroot.mock_chroot.is_active = False
+        chroot.delete_notify = datetime.now()
+
         chroot.delete_after = datetime.now() + timedelta(days=35)
         assert not chroot.delete_after_expired
 
         chroot.delete_after = datetime.now() + timedelta(days=-35)
         assert chroot.delete_after_expired
-
 
     @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
@@ -215,7 +290,10 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
                 assert cc.is_active is False
                 assert cc.delete_after <= datetime.now() + timedelta(days=179)
                 assert cc.delete_notify is None
-                assert cc.delete_after_expired is True
+                # Because we didn't send any notification, the chroot is not
+                # considered to be expired even though the standard
+                # preservation time is gone
+                assert cc.delete_after_expired is False
                 # unblock the delete action
                 cc.delete_notify = datetime.now()
             else:

@@ -107,6 +107,41 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
+class ChrootDeletionStatus(with_metaclass(EnumType, object)):
+    """
+    When a chroot is marked as EOL or when it is unclicked from a project,
+    it goes through several stages before its data is finally deleted.
+    Each `models.CoprChroot` is in one of the following states.
+    """
+    # pylint: disable=too-few-public-methods
+    vals = {
+        # The chroot is enabled within its project and its data wasn't deleted
+        # or isn't going to be deleted in the future
+        "active": 0,
+
+        # There are multiple possible scenarios for chroots in this state:
+        # 1) The standard preservation period is not over yet. Its length
+        #    differs on whether the chroot is EOL or was unclicked from
+        #    a project but the meaning is same for both cases
+        #
+        # 2) If the chroot is EOL and we wasn't able to send a notification
+        #    about it.
+        #
+        # 3) Any other constraint that disallows the chroot to be deleted yet.
+        #    At this moment there shouldn't be any.
+        "preserved": 1,
+
+        # The standard preservation period is gone and there are no blockers
+        # to safely delete data from this chroot
+        "expired": 2,
+
+        # The data was already deleted. This includes a case when we attempted
+        # to delete the data and the backend action failed for some reason. From
+        # frontend's perspective, it doesn't matter.
+        "deleted": 3,
+    }
+
+
 class JSONEncodedDict(TypeDecorator):
     """Represents an immutable structure as a json-encoded string.
 
