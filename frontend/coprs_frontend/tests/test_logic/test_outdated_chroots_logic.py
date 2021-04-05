@@ -1,7 +1,7 @@
+from datetime import datetime, timedelta
+from unittest.mock import patch
 import flask
 import pytest
-from unittest.mock import patch
-from datetime import datetime, timedelta
 from copr_common.enums import ActionTypeEnum
 from tests.coprs_test_case import CoprsTestCase, new_app_context
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic

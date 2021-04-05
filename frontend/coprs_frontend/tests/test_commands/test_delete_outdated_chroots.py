@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
+import pytest
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.actions_logic import ActionsLogic
 from copr_common.enums import ActionTypeEnum
