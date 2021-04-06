@@ -99,6 +99,7 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'on', 'off', 'image'.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
+            This is a noop parameter and its value is ignored.
         :param str isolation: Mock isolation feature setup.
             Possible values are 'default', 'simple', 'nspawn'.
         :param bool fedora_review: Run fedora-review tool for packages
@@ -170,6 +171,7 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'simple', 'nspawn'.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
+            This is a noop parameter and its value is ignored.
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
         :return: Munch

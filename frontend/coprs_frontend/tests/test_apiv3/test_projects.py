@@ -67,7 +67,7 @@ class TestApiv3Projects(CoprsTestCase):
     @pytest.mark.usefixtures("f_u1_ts_client", "f_mock_chroots", "f_db")
     def test_update_copr_api3(self):
         self.web_ui.new_project("test", ["fedora-rawhide-i386"],
-                                bootstrap="image", isolation="simple",
+                                bootstrap="default", isolation="simple",
                                 contact="somebody@redhat.com",
                                 homepage="https://github.com/fedora-copr")
         old_data = self._get_copr_id_data(1)
@@ -76,6 +76,7 @@ class TestApiv3Projects(CoprsTestCase):
         # testing method!
         already_tested = set([
             "delete_after", "build_enable_net", "auto_createrepo", "repos",
+            "runtime_dependencies",
         ])
 
         # check non-trivial changes
@@ -85,10 +86,13 @@ class TestApiv3Projects(CoprsTestCase):
         assert old_data["module_hotfixes"] is False
         assert old_data["fedora_review"] is False
         assert old_data["repos"] == ''
+        assert old_data["runtime_dependencies"] == ""
         assert old_data["auto_prune"] is False  # TODO: issue 1747
         self.api3.modify_project(
             "test", delete_after_days=5, enable_net=True, devel_mode=True,
             repos=["http://example/repo/", "http://another/"],
+            runtime_dependencies=["http://run1/repo/", "http://run2/"],
+            bootstrap_image="noop",
         )
         new_data = self._get_copr_id_data(1)
         delete_after = datetime.datetime.now() + datetime.timedelta(days=5)
@@ -97,6 +101,8 @@ class TestApiv3Projects(CoprsTestCase):
         old_data["build_enable_net"] = True
         old_data["auto_createrepo"] = False
         old_data["repos"] = "http://example/repo/\nhttp://another/"
+        old_data["runtime_dependencies"] = "http://run1/repo/\nhttp://run2/"
+        old_data["bootstrap"] = "default"
         assert old_data == new_data
         old_data = new_data
 
@@ -127,10 +133,10 @@ class TestApiv3Projects(CoprsTestCase):
         }, {
             "fedora_review": True,
         }, {
-        # TODO: issue#1748
-        #    "bootstrap": "custom_image",
-        #    "bootstrap_image": "centos:6",
-        #}, {
+            "follow_fedora_branching": False,
+        }, {
+            "follow_fedora_branching": True,
+        }, {
         }]
 
         for setup in easy_changes:
@@ -146,10 +152,6 @@ class TestApiv3Projects(CoprsTestCase):
             "webhook_secret", "forked_from_id", "latest_indexed_data_update",
             "copr_id", "persistent", "playground",
         ]:
-            should_test.remove(item)
-
-        # TODO: issue#1748
-        for item in ['follow_fedora_branching', 'runtime_dependencies']:
             should_test.remove(item)
 
         assert already_tested == should_test
