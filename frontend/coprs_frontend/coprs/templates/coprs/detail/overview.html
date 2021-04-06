@@ -222,9 +222,11 @@
 {% for chroot in copr.modified_chroots %}
 <div id="dialog-{{chroot.name}}" class="hidden" title="{{chroot.name}} minimal buildroot">
     <ul>
+        {% if chroot.buildroot_pkgs %}
         {% for pkg in chroot.buildroot_pkgs.split(" "): %}
         <li>{{ pkg }}</li>
         {% endfor %}
+        {% endif %}
         {% for repo in chroot.repos_list: %}
         <li>{{ repo }}</li>
         {% endfor %}
