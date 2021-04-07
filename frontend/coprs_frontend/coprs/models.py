@@ -520,22 +520,50 @@ class Copr(db.Model, helpers.Serializer):
     @property
     def modified_chroots(self):
         """
-        Return list of chroots which has been modified
+        Return list of chroots which has been modified in ChrootForm.
         """
-        modified_chroots = []
+        modified_chroots = {}
+        def _set(chroot, attribute, value, check=None):
+            if check is not None and not check:
+                return
+            if not value:
+                return
+            if chroot not in modified_chroots:
+                modified_chroots[chroot] = {}
+            modified_chroots[chroot][attribute] = value
+
         for chroot in self.active_copr_chroots:
-            if (chroot.buildroot_pkgs
-                or chroot.repos
-                or chroot.with_opts
-                or chroot.without_opts):
-                modified_chroots.append(chroot)
+            _set(chroot.name,
+                 "Additional buildroot packages",
+                 ", ".join(chroot.buildroot_pkgs_list))
+            _set(chroot.name,
+                 "Build time repositories",
+                 ", ".join(chroot.repos_list))
+
+            mock_opts = []
+            for opt in chroot.with_opts.strip().split():
+                mock_opts += ["--with " + opt]
+            for opt in chroot.without_opts.strip().split():
+                mock_opts += ["--without " + opt]
+            _set(chroot.name,
+                 "Mock options",
+                 " ".join(mock_opts))
+            _set(chroot.name,
+                 "Module setup commands",
+                 chroot.module_toggle)
+            _set(chroot.name,
+                 "Bootstrap overridden as",
+                 chroot.bootstrap,
+                 chroot.bootstrap_changed)
+            _set(chroot.name,
+                 "Isolation set to",
+                 chroot.isolation,
+                 chroot.isolation and chroot.isolation != 'unchanged')
+
         return modified_chroots
 
     def is_release_arch_modified(self, name_release, arch):
-        if "{}-{}".format(name_release, arch) in \
-                [chroot.name for chroot in self.modified_chroots]:
-            return True
-        return False
+        return "{}-{}".format(name_release, arch) in self.modified_chroots.keys()
 
     @property
     def full_name(self):
@@ -1722,7 +1750,7 @@ class CoprChroot(db.Model, helpers.Serializer):
         settings = {}
         settings['bootstrap'] = self.copr.bootstrap
 
-        if self.bootstrap and self.bootstrap != 'unchanged':
+        if self.bootstrap_changed:
             # overwrite project default with chroot config
             settings['bootstrap'] = self.bootstrap
             if settings['bootstrap'] == 'custom_image':
@@ -1730,6 +1758,11 @@ class CoprChroot(db.Model, helpers.Serializer):
         if settings['bootstrap'] in [None, "default"]:
             return {}
         return settings
+
+    @property
+    def bootstrap_changed(self):
+        """ True when chroot-specific bootstrap configuration specified """
+        return self.bootstrap and self.bootstrap != 'unchanged'
 
     @property
     def isolation_setup(self):

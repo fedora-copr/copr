@@ -99,6 +99,24 @@
     </ul>
     {% endif %}
 
+
+{% for name, overrides  in copr.modified_chroots.items() %}
+<div id="dialog-{{name}}" class="repos-list" style="display: none;">
+<h3>Modified {{ name }}:</h3>
+<ul>
+    {% for label, config in overrides.items() %}
+    <li>{{ label }}: <strong>{{ config }}</strong></li>
+    {% endfor %}
+</ul>
+<script>
+  $("#modified-chroot-{{name}}").click(function(){
+    $("#dialog-{{name}}").toggle();
+  });
+</script>
+</div>
+{% endfor %}
+
+
     {% if config.ENABLE_DISCUSSION %}
     {% if config.DISCOURSE_URL %}
     <div id='discourse-comments'></div>
@@ -216,34 +234,6 @@
     </div>
   </div>
 </div>
-
-
-
-{% for chroot in copr.modified_chroots %}
-<div id="dialog-{{chroot.name}}" class="hidden" title="{{chroot.name}} minimal buildroot">
-    <ul>
-        {% if chroot.buildroot_pkgs %}
-        {% for pkg in chroot.buildroot_pkgs.split(" "): %}
-        <li>{{ pkg }}</li>
-        {% endfor %}
-        {% endif %}
-        {% for repo in chroot.repos_list: %}
-        <li>{{ repo }}</li>
-        {% endfor %}
-        {% for opt in chroot.with_opts.split(" "): %}
-        <li>{{ opt }}</li>
-        {% endfor %}
-        {% for opt in chroot.without_opts.split(" "): %}
-        <li>{{ opt }}</li>
-        {% endfor %}
-    </ul>
-</div>
-<script>
-    $("#modified-chroot-{{chroot.name}}").click(function(){
-        $("#dialog-{{chroot.name}}").dialog({dialogClass:'chroot-dialog'});
-    });
-</script>
-{% endfor %}
 
 
 {% endblock %}
