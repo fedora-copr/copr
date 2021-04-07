@@ -88,12 +88,14 @@ def sync_branch(new_branch, branch_commits, message):
         log.debug("nothing to commit into branch '{0}'".format(new_branch))
 
 
-def refresh_cgit_listing(opts):
+def refresh_cgit_listing(reponame=None):
     """
     Refresh cgit repository list. See cgit docs for more information.
     """
     try:
-        cmd = ["/usr/share/copr/dist_git/bin/cgit_pkg_list", opts.cgit_pkg_list_location]
+        cmd = ["copr-dist-git-refresh-cgit"]
+        if reponame:
+            cmd += [reponame]
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
     except OSError as e:
         log.error(str(e))
@@ -109,9 +111,11 @@ def setup_git_repo(reponame, branches):
     :param str branches: branch names to be created inside that repo
     """
     log.info("make sure repos exist: {}".format(reponame))
+    brand_new_package = False
     try:
         cmd = ["/usr/share/dist-git/setup_git_package", reponame]
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
+        brand_new_package = True
     except subprocess.CalledProcessError as e:
         log.error("cmd: {}, rc: {}, msg: {}"
                   .format(cmd, e.returncode, e.output.strip()))
@@ -119,6 +123,9 @@ def setup_git_repo(reponame, branches):
             log.info("Package already exists...continuing")
         else:
             raise PackageImportException(e.output)
+
+    if brand_new_package:
+        refresh_cgit_listing(reponame)
 
     for branch in branches:
         try:
@@ -239,7 +246,6 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
 
     os.chdir(oldpath)
     shutil.rmtree(repo_dir)
-    refresh_cgit_listing(opts)
 
     return munch.Munch(
         branch_commits=branch_commits,

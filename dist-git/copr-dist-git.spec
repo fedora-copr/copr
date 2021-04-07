@@ -27,6 +27,8 @@ BuildRequires: python3-setproctitle
 Recommends: logrotate
 Requires: systemd
 Requires: httpd
+Requires: coreutils
+Requires: crudini
 Requires: dist-git
 Requires: python3-copr-common
 Requires: python3-requests

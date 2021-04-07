@@ -10,3 +10,14 @@ frontend_auth=backend_password_from_fe_config
 log_dir=/tmp/copr-dist-git
 
 per_task_log_dir=/var/lib/copr-dist-git/per-task-logs/
+
+# Copr administrator is responsible for referencing this file in /etc/cgitrc as
+# include=CGIT_CACHE_FILE.  This file is automatically updated anytime a new
+# package is imported into dist-git (plus periodically by a monthly cron job).
+#cgit_cache_file=/var/cache/cgit/repo-configuration.rc
+
+# Intermediate file created when generating cgit_cache_file
+#cgit_cache_list_file=/var/cache/cgit/repo-subdirs.list
+
+# Lock file used to atomically work with cgit_cache_file
+#cgit_cache_lock_file=/var/cache/cgit/copr-repo.lock

@@ -1,3 +1,7 @@
 #!/usr/bin/sh
 
 runuser -c 'find /var/lib/copr-dist-git/per-task-logs -name *.log -mtime +30 -delete' - copr-dist-git
+
+# From time to time assure that the CGIT caches are consistent, and that the
+# ownership of cache files is correct (run this as root).
+/usr/bin/copr-dist-git-refresh-cgit

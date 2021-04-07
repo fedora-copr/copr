@@ -116,8 +116,18 @@ class ConfigReader(object):
             cp, "dist-git", "pool_busy_sleep_time", 0.5, mode="float"
         )
 
-        opts.cgit_pkg_list_location = _get_conf(
-            cp, "dist-git", "cgit_pkg_list_location", "/var/lib/copr-dist-git/cgit_pkg_list"
+        # The Copr administrator is responsible for configuring /etc/cgitrc to
+        # include this file.
+        opts.cgit_cache_file = _get_conf(
+            cp, "dist-git", "cgit_cache_file", "/var/cache/cgit/repo-configuration.rc"
+        )
+
+        opts.cgit_cache_list_file = _get_conf(
+            cp, "dist-git", "cgit_cache_list_file", "/var/cache/cgit/repo-subdirs.list"
+        )
+
+        opts.cgit_cache_lock_file = _get_conf(
+            cp, "dist-git", "cgit_cache_lock_file", "/var/cache/cgit/copr-repo.lock"
         )
 
         opts.lookaside_location = _get_conf(

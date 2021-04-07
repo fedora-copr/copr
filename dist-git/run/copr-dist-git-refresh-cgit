@@ -1,0 +1,106 @@
+#!/usr/bin/sh
+
+# This script generates a "cgit_cache_file" configuration file to be included
+# into the CGIT config /etc/cgitrc.  We execute this as 'copr-dist-git' user
+# from copr-dist-git service, and as root (full scan) from cron job.
+
+cachefile=$(copr-dist-git-config cgit_cache_file)
+listfile=$(copr-dist-git-config cgit_cache_list_file)
+lockfile=$(copr-dist-git-config cgit_cache_lock_file)
+reposdir=$(crudini --get /etc/dist-git/dist-git.conf dist-git gitroot_dir)
+ownership=copr-dist-git:apache
+subdir=$1
+
+single_repo ()
+{
+    # Note that we used to use /var/www/cgi-bin/cgit --scan-path=/..../ to
+    # generate the output, but since our directories are too large and deep
+    # nowadays it is too expensive, and cgit isn't anyhow optimized -- when
+    # --scan-path argument is used the full directory scan is done, and the
+    # project-list= argument in CGIT_CONFIG file is entirely ignored (see the
+    # difference between scan_projects() and scan_tree()):
+    # https://git.zx2c4.com/cgit/tree/cgit.c?id=bd6f5683f6cde4212364354b3139c1d521f40f39#n1001
+    subpath=$1
+
+    case $subpath in
+        *.git) ;;
+        *) subpath=$subpath.git ;;
+    esac
+cat <<EOF
+
+repo.url=$subpath
+repo.name=$subpath
+repo.path=/$reposdir/$subpath/
+repo.owner=
+repo.desc=Unnamed repository; edit this file 'description' to name the repository.
+repo.section=
+repo.enable-blame=0
+repo.enable-commit-graph=0
+repo.enable-log-filecount=0
+repo.enable-log-linecount=0
+repo.enable-remote-branches=0
+repo.enable-subject-links=0
+repo.enable-html-serving=0
+repo.hide=0
+repo.ignore=0
+
+EOF
+}
+
+tempfile_from ()
+{
+    base=$(basename "$1")
+    mktemp "/tmp/$base-XXXXXXXX"
+}
+
+if test ! -f "$lockfile"; then
+    touch "$lockfile"
+    chown $ownership "$lockfile"
+fi
+
+if test -z "$subdir"; then
+    # Full run, it takes some time to go through all the repos so work with
+    # a separate file, and without lock to not block others.
+    newlistfile=$(tempfile_from "$listfile")
+    find "$reposdir" -maxdepth 3 -mindepth 3 -type d -printf '%P\n' | sort > "$newlistfile"
+fi
+
+(
+    # !! Commands executed under lock, make this block FAST !!
+    set -e
+    flock 9
+
+    if test -n "$subdir"; then
+        # only one repo is being added, catenate to the existing config files
+        echo "$subdir" >> "$listfile"
+        single_repo "$subdir" >> "$cachefile"
+        exit 0
+    fi
+
+    # Generating the new cache file shouldn't take terribly long, though just in
+    # case -- generate it in a separate file name to not break the background
+    # httpd cgit cgi processes serving users.
+    newcachefile=$(tempfile_from "$cachefile")
+
+    # Some background copr-dist-git-workers might change the $listfile while
+    # we were traversing the directory tree (see above).  So we can not just
+    # rely on the "$newlistfile" - so we rather use both the old and new list
+    # files.  The file doesn't exist for the first run, so ignore failures.
+    cat "$listfile" >> "$newlistfile" || :
+    sort < "$newlistfile" | uniq | tee "$listfile" | \
+    while read -r line; do
+      single_repo "$line"
+    done >> "$newcachefile"
+
+    cp -fZ "$newcachefile" "$cachefile"
+    rm "$newcachefile" "$newlistfile"
+    chmod 644 "$cachefile"
+    chown "$ownership" "$cachefile" "$listfile"
+
+) 9>"$lockfile"
+
+# fix lock file so copr-dist-git user can lock as well
+case $(stat -c '%U:%G' "$lockfile"):$(id -u -n) in
+    "$ownership:root") ;;
+    *) chown "$ownership" "$lockfile"
+esac

@@ -8,7 +8,12 @@ from munch import Munch
 
 from base import Base
 
-from copr_dist_git.package_import import my_upload_fabric, import_package, setup_git_repo
+from copr_dist_git.package_import import (
+    import_package,
+    my_upload_fabric,
+    refresh_cgit_listing,
+    setup_git_repo,
+)
 
 from unittest import mock
 from unittest.mock import MagicMock
@@ -116,14 +121,21 @@ class TestPackageImport(Base):
         reponame = 'foo'
         branches = ['f25', 'f26']
         setup_git_repo(reponame, branches)
-        assert mc_subprocess_check_output.has_calls([
-            mock.call(['/usr/share/dist-git/setup_git_package', 'foo']),
-            mock.call(['/usr/share/dist-git/mkbranch', 'f25', 'foo']),
-            mock.call(['/usr/share/dist-git/mkbranch', 'f26', 'foo']),
-        ])
+        mc_subprocess_check_output.assert_has_calls([
+            mock.call(['/usr/share/dist-git/setup_git_package', 'foo'],
+                      stderr=-2, encoding='utf-8'),
+            mock.call(['/usr/share/dist-git/mkbranch', 'f25', 'foo'],
+                      stderr=-2, encoding='utf-8'),
+            mock.call(['/usr/share/dist-git/mkbranch', 'f26', 'foo'],
+                      stderr=-2, encoding='utf-8'),
+            mock.call(['copr-dist-git-refresh-cgit', 'foo'],
+                      stderr=-2, encoding='utf-8'),
+        ], any_order=True)
 
-    def refresh_cgit_listing(self, mc_subprocess_check_output):
-        refresh_cgit_listing(self.opts)
-        assert mc_subprocess_check_output.has_calls([
-            mock.call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
-        ])
+
+    def test_refresh_cgit_listing(self, mc_subprocess_check_output):
+        refresh_cgit_listing()
+        mc_subprocess_check_output.assert_has_calls([
+            mock.call(['copr-dist-git-refresh-cgit'],
+                      stderr=-2, encoding='utf-8'),
+        ], any_order=True)

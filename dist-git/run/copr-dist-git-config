@@ -1,0 +1,16 @@
+#! /usr/bin/python3
+
+"""
+Read the Copr DistGit configuration file, and print the desired config option to
+stdout.  Alternative to crudini parser, though we want to read also the defaults
+from ConfigReader.
+"""
+
+import sys
+from copr_dist_git.helpers import ConfigReader
+
+if __name__ == "__main__":
+    reader = ConfigReader()
+    opts = reader.read()
+    requested_option = sys.argv[1]
+    print(opts[requested_option])
