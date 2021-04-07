@@ -354,15 +354,19 @@ class TestBuildsLogic(CoprsTestCase):
         for build_id in [self.b1.id, self.b2.id, self.b3.id, self.b4.id]:
             BuildsLogic.get(build_id).one()
 
-        self.c1.user = self.u2
         build_ids = [self.b1.id, self.b4.id]
+        with pytest.raises(BadRequest) as err_msg:
+            BuildsLogic.delete_builds(self.u1, build_ids)
+        assert "Can not delete builds from more project" in str(err_msg.value)
+
+        self.b3.source_status = StatusEnum("failed")
+        build_ids = [self.b3.id, self.b4.id]
         BuildsLogic.delete_builds(self.u2, build_ids)
-        self.db.session.commit()
 
         assert len(ActionsLogic.get_many().all()) == 1
 
         with pytest.raises(NoResultFound):
-            BuildsLogic.get(self.b1.id).one()
+            BuildsLogic.get(self.b3.id).one()
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b4.id).one()
 

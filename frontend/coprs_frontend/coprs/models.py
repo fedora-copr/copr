@@ -7,7 +7,7 @@ import uuid
 from fnmatch import fnmatch
 import modulemd_tools.yaml
 
-from sqlalchemy import outerjoin
+from sqlalchemy import outerjoin, text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
@@ -251,6 +251,8 @@ class CoprScore(db.Model, helpers.Serializer):
                             name="copr_score_copr_id_user_id_uniq"),
     )
 
+_group_unique_where = text("deleted is not true and group_id is not null")
+_user_unique_where = text("deleted is not true and group_id is null")
 
 class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
@@ -262,6 +264,16 @@ class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
     __table_args__ = (
         db.Index('copr_name_group_id_idx', 'name', 'group_id'),
         db.Index('copr_deleted_name', 'deleted', 'name'),
+        db.Index("copr_name_in_group_uniq",
+                 "group_id", "name",
+                 unique=True,
+                 postgresql_where=_group_unique_where,
+                 sqlite_where=_group_unique_where),
+        db.Index("copr_name_for_user_uniq",
+                 "user_id", "name",
+                 unique=True,
+                 postgresql_where=_user_unique_where,
+                 sqlite_where=_user_unique_where),
     )
 
     id = db.Column(db.Integer, primary_key=True)
