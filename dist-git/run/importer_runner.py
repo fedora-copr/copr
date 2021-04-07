@@ -5,8 +5,8 @@ import os
 import sys
 import logging
 
-from dist_git.helpers import ConfigReader
-from dist_git.importer import Importer
+from copr_dist_git.helpers import ConfigReader
+from copr_dist_git.importer import Importer
 
 log = logging.getLogger(__name__)
 

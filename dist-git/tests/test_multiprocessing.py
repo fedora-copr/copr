@@ -7,9 +7,9 @@ import pytest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from dist_git import process_pool
+from copr_dist_git import process_pool
 
-MODULE_REF = 'dist_git.process_pool'
+MODULE_REF = 'copr_dist_git.process_pool'
 
 
 class TestWorker(object):

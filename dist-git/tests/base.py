@@ -5,8 +5,8 @@ import munch
 import time
 import json
 
-from dist_git import importer
-from dist_git import import_task
+from copr_dist_git import importer
+from copr_dist_git import import_task
 
 class Base(object):
 

@@ -8,12 +8,12 @@ from munch import Munch
 
 from base import Base
 
-from dist_git.package_import import my_upload_fabric, import_package, setup_git_repo
+from copr_dist_git.package_import import my_upload_fabric, import_package, setup_git_repo
 
 from unittest import mock
 from unittest.mock import MagicMock
 
-MODULE_REF = 'dist_git.package_import'
+MODULE_REF = 'copr_dist_git.package_import'
 
 
 @pytest.yield_fixture

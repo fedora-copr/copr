@@ -12,14 +12,14 @@ from unittest import mock
 from munch import Munch
 from subprocess import check_output
 
-from dist_git.package_import import import_package
+from copr_dist_git.package_import import import_package
 
 def scriptdir():
     return os.path.dirname(os.path.realpath(__file__))
 
 @pytest.yield_fixture
 def mc_setup_git_repo():
-    with mock.patch("{}.setup_git_repo".format('dist_git.package_import')) as handle:
+    with mock.patch("{}.setup_git_repo".format('copr_dist_git.package_import')) as handle:
         yield handle
 
 

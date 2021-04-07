@@ -55,6 +55,8 @@ This package contains Copr services for Dist Git server.
 
 
 %build
+%py3_build
+
 
 %pre
 getent group packager >/dev/null || groupadd -r packager
@@ -65,6 +67,7 @@ useradd -r -m -g copr-dist-git -G packager,apache -c "copr-dist-git user" copr-d
 /usr/bin/passwd -l copr-dist-git >/dev/null
 
 %install
+%py3_install
 
 install -d %{buildroot}%{_datadir}/copr/dist_git
 install -d %{buildroot}%{_sysconfdir}/copr
@@ -74,17 +77,14 @@ install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
 install -d %{buildroot}%{_tmpfilesdir}
 install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
-install -d %{buildroot}%{_bindir}/
 install -d %{buildroot}%{_sysconfdir}/cron.monthly
 
 install -p -m 755 conf/cron.monthly/copr-dist-git %{buildroot}%{_sysconfdir}/cron.monthly/copr-dist-git
 
-cp -a dist_git/* %{buildroot}%{_datadir}/copr/dist_git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
 cp -a conf/httpd/copr-dist-git.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
 cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
-cp -a run/* %{buildroot}%{_bindir}/
 
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 
@@ -110,6 +110,8 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %files
 %license LICENSE
+%python3_sitelib/copr_dist_git
+%python3_sitelib/copr_dist_git*egg-info
 
 %{_bindir}/*
 %dir %{_datadir}/copr

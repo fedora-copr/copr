@@ -13,7 +13,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 
-MODULE_REF = 'dist_git.importer'
+MODULE_REF = 'copr_dist_git.importer'
 
 
 @pytest.yield_fixture
