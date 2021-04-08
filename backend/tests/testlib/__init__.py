@@ -243,6 +243,7 @@ class AsyncCreaterepoRequestFactory:
             "add": ["add_1"],
             "delete": [],
             "full": False,
+            "rpms_to_remove": [],
         }
         self.pid += 1
         if overrides:

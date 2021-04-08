@@ -77,6 +77,8 @@ def get_arg_parser():
                         help="Try try to batch this request with requests "
                              "from other processes.  When specified, the "
                              "process needs an access to Redis DB.")
+    parser.add_argument('--rpms-to-remove', action='append', default=[],
+                        help="list of (s)RPM path names that should be removed")
     parser.add_argument('directory')
     return parser
 
@@ -137,6 +139,10 @@ def run_createrepo(opts):
         # this is because rhel-5 doesn't know sha256
         createrepo_cmd.extend(['-s', 'sha', '--checksum', 'md5'])
 
+    mb_comps_xml_path = os.path.join(opts.directory, "repodata", "comps.xml")
+    if os.path.exists(mb_comps_xml_path):
+        createrepo_cmd += ['--groupfile', mb_comps_xml_path, '--keep-all-metadata']
+
     # we assume that we could skip the call at the beginning
     createrepo_run_needed = False
 
@@ -163,6 +169,10 @@ def run_createrepo(opts):
         # something is going to be deleted
         createrepo_run_needed = True
         createrepo_cmd += ['--excludes', '*{}/*'.format(subdir)]
+
+    for rpm in opts.rpms_to_remove:
+        createrepo_run_needed = True
+        createrepo_cmd += ['--excludes', '{}'.format(rpm)]
 
     filelist = os.path.join(opts.directory, '.copr-createrepo-pkglist')
     if opts.add:
@@ -267,6 +277,13 @@ def delete_builds(opts):
         except:
             opts.log.exception("can't remove %s subdirectory", subdir)
 
+    for rpm in opts.rpms_to_remove:
+        opts.log.info("removing %s", rpm)
+        try:
+            os.unlink(os.path.join(opts.directory, rpm))
+        except OSError:
+            opts.log.exception("can't remove %s", rpm)
+
 
 def assert_new_createrepo():
     sp = subprocess.Popen(['/usr/bin/createrepo_c', '--help'],
@@ -293,7 +310,7 @@ def main_locked(opts, batch, log):
         return
 
     # Merge others' tasks with ours (if any).
-    (batch_full, batch_add, batch_delete) = batch.options()
+    (batch_full, batch_add, batch_delete, batch_rpms_to_remove) = batch.options()
 
     if batch_full:
         log.info("Others requested full createrepo")
@@ -310,6 +327,7 @@ def main_locked(opts, batch, log):
             opts.add += list(batch_add)
 
     opts.delete += list(batch_delete)
+    opts.rpms_to_remove += list(batch_rpms_to_remove)
 
     dont_add = set(opts.delete).intersection(opts.add)
     if dont_add:
@@ -369,6 +387,7 @@ def main():
         opts.full,
         opts.add,
         opts.delete,
+        opts.rpms_to_remove,
         log=opts.log,
         devel=opts.devel,
         appstream=opts.appstream,

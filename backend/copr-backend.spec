@@ -54,6 +54,8 @@ BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
 BuildRequires: python3-tabulate
 BuildRequires: modulemd-tools >= 0.6
+BuildRequires: prunerepo >= 1.19
+BuildRequires: dnf
 
 Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
@@ -66,7 +68,7 @@ Recommends: logrotate
 Requires:   mock
 Requires:   obs-signd
 Requires:   openssh-clients
-Requires:   prunerepo
+Requires:   prunerepo >= 1.19
 Requires:   python3-copr
 Requires:   python3-copr-common >= 0.10.1.dev
 Requires:   python3-copr-messaging

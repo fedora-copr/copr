@@ -577,7 +577,7 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
     return "{}-{}-{}.{}".format(name, version, release, arch)
 
 
-def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None,
+def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete=None, timeout=None,
                    logger=None):
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
@@ -598,6 +598,8 @@ def call_copr_repo(directory, devel=False, add=None, delete=None, timeout=None,
     cmd += subdirs('--delete', delete)
     if devel:
         cmd += ['--devel']
+    if rpms_to_remove:
+        cmd += subdirs('--rpms-to-remove', rpms_to_remove)
 
     try:
         if logger:

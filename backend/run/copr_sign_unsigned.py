@@ -10,6 +10,11 @@ import os
 import logging
 import pwd
 
+from copr_backend.helpers import (BackendConfigReader, create_file_logger,
+                             uses_devel_repo, call_copr_repo)
+from copr_backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
+from copr_backend.exceptions import CoprSignNoKeyError
+
 
 logging.basicConfig(
     filename="/var/log/copr-backend/onetime_signer.log",
@@ -18,32 +23,15 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-from copr_backend.helpers import (BackendConfigReader, create_file_logger,
-                             uses_devel_repo)
-from copr_backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
-from copr_backend.exceptions import CoprSignNoKeyError
-from copr_backend.createrepo import createrepo
-
-
-def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opts, devel):
+def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts, chroot_dir, devel):
     success = True
 
     logger = create_file_logger("run.check_signed_rpms_in_pkg_dir",
                                 "/tmp/copr_check_signed_rpms.log")
     try:
         sign_rpms_in_dir(user, project, pkg_dir, opts, log=logger)
-
         log.info("running createrepo for {}".format(pkg_dir))
-        base_url = "/".join([opts.results_baseurl, user,
-                             project, chroot])
-        createrepo(
-            path=chroot_dir,
-            base_url=base_url,
-            username=user,
-            projectname=project,
-            devel=devel,
-        )
-
+        call_copr_repo(directory=chroot_dir, devel=devel)
     except Exception as err:
         success = False
         log.error(">>> Failed to check/sign rpm in dir pkg_dir")
@@ -77,7 +65,7 @@ def check_signed_rpms(project_dir, user, project, opts, devel):
             log.debug(">> Stepping into package: {}".format(mb_pkg_path))
 
             if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project,
-                                                chroot, chroot_path, opts,
+                                                opts, chroot_path,
                                                 devel):
                 success = False
 

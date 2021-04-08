@@ -12,13 +12,15 @@ import argparse
 import json
 import multiprocessing
 
+from prunerepo.helpers import get_rpms_to_remove
+
 from copr.exceptions import CoprException
 from copr.exceptions import CoprRequestException
 
 from copr_backend.helpers import BackendConfigReader, get_redis_logger
-from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status
+from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status, call_copr_repo
 from copr_backend.frontend import FrontendClient
-from copr_backend.createrepo import createrepo
+
 
 LOG = multiprocessing.log_to_stderr()
 LOG.setLevel(logging.INFO)
@@ -50,7 +52,7 @@ def runcmd(cmd):
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
-def run_prunerepo(chroot_path, username, projectname, projectdir, sub_dir_name, prune_days):
+def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
     """
     Running prunerepo in background worker.  We don't check the return value, so
     the best we can do is that we return useful success/error message that will
@@ -58,11 +60,8 @@ def run_prunerepo(chroot_path, username, projectname, projectdir, sub_dir_name, 
     """
     try:
         LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
-        cmd = ['prunerepo', '--verbose', '--days', str(prune_days), '--nocreaterepo', chroot_path]
-        stdout = runcmd(cmd)
-        LOG.info("Prunerepo stdout:\n%s", stdout)
-        createrepo(path=chroot_path, username=username,
-                   projectname=projectname)
+        rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
+        call_copr_repo(directory=chroot_path, rpms_to_remove=rpms)
         clean_copr(chroot_path, prune_days, verbose=True)
     except Exception as err:  # pylint: disable=broad-except
         LOG.exception(err)
@@ -172,7 +171,7 @@ class Pruner(object):
                     continue
 
             self.pool.apply_async(run_prunerepo,
-                                  (chroot_path, username, projectname,
+                                  (chroot_path, username,
                                    projectdir, sub_dir_name, self.prune_days))
 
 

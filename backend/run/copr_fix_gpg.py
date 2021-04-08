@@ -6,9 +6,8 @@ import logging
 import argparse
 import pwd
 
-from copr_backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader, call_copr_repo
 from copr_backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, create_user_keys, create_gpg_email
-from copr_backend.createrepo import createrepo_unsafe, add_appdata
 
 logging.basicConfig(
     filename="/var/log/copr-backend/fix_gpg.log",
@@ -66,11 +65,8 @@ def fix_copr(opts, copr_full_name):
                 log.exception(str(e))
                 continue
 
-        log.info("> > Running createrepo_unsafe for {}".format(dir_path))
-        createrepo_unsafe(dir_path)
-
-        log.info("> > Running add_appdata for {}".format(dir_path))
-        add_appdata(dir_path, owner, coprname)
+        log.info("> > Running add_appdata for %s", dir_path)
+        call_copr_repo(dir_path)
 
 
 def main():

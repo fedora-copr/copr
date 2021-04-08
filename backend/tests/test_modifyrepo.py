@@ -5,17 +5,12 @@ import runpy
 import shutil
 import subprocess
 import tempfile
+import glob
 from unittest import mock
 
 import pytest
 from packaging import version
 import munch
-
-from copr_backend.helpers import (
-    BackendConfigReader,
-    call_copr_repo,
-    get_redis_connection,
-)
 
 from testlib.repodata import load_primary_xml
 from testlib import (
@@ -24,9 +19,19 @@ from testlib import (
     minimal_be_config,
 )
 
+from copr_prune_results import run_prunerepo
+
+from copr_backend.helpers import (
+    BackendConfigReader,
+    call_copr_repo,
+    get_redis_connection,
+)
+
+
 modifyrepo = 'run/copr-repo'
 
 # pylint: disable=attribute-defined-outside-init
+# pylint: disable=too-many-public-methods
 
 @contextlib.contextmanager
 def _lock(directory="non-existent"):
@@ -420,3 +425,76 @@ class TestModifyRepo(object):
         assert len(keys) == 1
         task_dict = self.redis.hgetall(keys[0])
         assert task_dict["status"] == "success"
+
+    @mock.patch("copr_backend.helpers.subprocess.call")
+    def test_copr_repo_rpms_to_remove_in_call(self, call):
+        """ check that list of rpm files to be removed is added to copr-repo call """
+        _unused = self
+        call.return_value = 0  # exit status 0
+        assert call_copr_repo('/some/dir', rpms_to_remove=['xxx.rpm'])
+        assert len(call.call_args_list) == 1
+        call = call.call_args_list[0]
+        assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--rpms-to-remove', 'xxx.rpm']
+
+    def test_copr_repo_rpms_to_remove_passes(self, f_third_build):
+        _unused = self
+        ctx = f_third_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+
+        assert_files_in_dir(chrootdir, ["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"], [])
+        assert call_copr_repo(chrootdir, rpms_to_remove=["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"])
+        assert_files_in_dir(chrootdir, [], ["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"])
+
+    def test_copr_repo_rpms_to_remove_passes_2(self, f_third_build):
+        _unused = self
+        ctx = f_third_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+
+        assert_files_in_dir(chrootdir, ["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"], [])
+        assert call_copr_repo(chrootdir, rpms_to_remove=[])
+        assert_files_in_dir(chrootdir, ["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"], [])
+
+    def test_copr_repo_rpms_to_remove_passes_3(self, f_third_build):
+        _unused = self
+        ctx = f_third_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+
+        assert call_copr_repo(chrootdir, add=[ctx.builds[0]])
+        assert_files_in_dir(chrootdir, ["00000001-prunerepo", "00000002-example"], [])
+        assert call_copr_repo(chrootdir,
+                              rpms_to_remove=["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"])
+        assert_files_in_dir(chrootdir,
+                            [],
+                            ["00000002-example/example-1.0.4-1.fc23.x86_64.rpm"])
+        assert_files_in_dir(chrootdir,
+                            ["00000001-prunerepo/prunerepo-1.1-1.fc23.noarch.rpm"],
+                            [])
+
+    def test_comps_present(self, f_third_build):
+        _unused = self
+        ctx = f_third_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        copms_path = os.path.join(chrootdir, "repodata", "comps.xml")
+        with open(copms_path, "w"):
+            pass
+
+        assert call_copr_repo(chrootdir)
+        name = glob.glob(os.path.join(chrootdir, "repodata", "*-comps.xml.gz"))
+        assert os.path.exists(name[0])
+
+    def test_run_prunerepo(self, f_builds_to_prune):
+        _unused = self
+        ctx = f_builds_to_prune
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        assert_files_in_dir(os.path.join(chrootdir, '00999999-dummy-pkg'),
+                            ["dummy-pkg-1-1.fc34.x86_64.rpm"],
+                            [])
+        run_prunerepo(chrootdir, 'john', 'empty', chroot, 0)
+        assert_files_in_dir(os.path.join(chrootdir, '00999999-dummy-pkg'),
+                            [],
+                            ["dummy-pkg-1-1.fc34.x86_64.rpm"])
