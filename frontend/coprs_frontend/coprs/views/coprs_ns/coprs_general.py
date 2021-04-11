@@ -1206,6 +1206,17 @@ def copr_module(copr, id):
         unique_chroots.append(chroot)
         unique_name_releases.add(chroot.name_release)
 
+    # There may be some modules with invalid modulemd YAML in the database. The
+    # validation was rather benevolent in the initial implementations. Let's
+    # make sure, we can parse the stored YAML.
+    try:
+        module.modulemd
+    except ValueError as ex:
+        msg = ("Unable to parse module YAML. The most probable reason is that "
+               "the module YAML is in an old modulemd version and/or has some "
+               "mistake in it. Hint: {}".format(ex))
+        return generic_error(msg, code=422, title="Unable to parse module YAML")
+
     return flask.render_template("coprs/detail/module.html", copr=copr, module=module,
                                  yaml=pretty_yaml, unique_chroots=unique_chroots)
 
