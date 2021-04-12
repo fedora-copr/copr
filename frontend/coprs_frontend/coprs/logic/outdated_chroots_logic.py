@@ -24,7 +24,7 @@ class OutdatedChrootsLogic:
         reviewed = [x.copr_chroot_id for x in cls.get_all_reviews(user).all()]
         return bool((models.CoprChroot.query
                      .filter(models.CoprChroot.copr_id.in_(projects_ids))
-                     .filter(models.CoprChroot.delete_after)
+                     .filter(models.CoprChroot.delete_after.isnot(None))
                      .filter(models.CoprChroot.delete_after <= soon)
                      .filter(models.CoprChroot.delete_after > now)
                      .filter(models.CoprChroot.id.notin_(reviewed))
