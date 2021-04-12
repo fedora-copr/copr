@@ -70,7 +70,7 @@ class Config(object):
     FAS_LOGIN = True
 
     LOGIN_INFO = {
-        'user_link': 'https://admin.fedoraproject.org/accounts/user/view/{username}/',
+        'user_link': 'https://accounts.fedoraproject.org/user/{username}/',
         'user_desc': 'fas'
     }
 

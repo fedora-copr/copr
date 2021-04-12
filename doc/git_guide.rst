@@ -46,7 +46,7 @@ If you have been approved to get git commit access to the copr git repository yo
 
 - Get your ssh RSA key into the Fedora accounts system here: (note: use your login name in this url :))
 
-https://admin.fedoraproject.org/accounts/user/edit/USERNAME
+https://accounts.fedoraproject.org/user/USERNAME/settings/keys
 
 - After that you should be able to git clone with::
 

@@ -11,7 +11,7 @@ Quick start
 
 If you are completely new to COPR build system, those steps will get you setup quickly:
 
-1) setup a FAS account here: https://admin.fedoraproject.org/accounts/user/new
+1) setup a FAS account here: https://accounts.fedoraproject.org
 2) log in into COPR (link at the top right corner of COPR HP: https://copr.fedorainfracloud.org/)
 3) go to https://copr.fedorainfracloud.org/api/
 4) copy the generated auth token into ``~/.config/copr``
@@ -365,7 +365,7 @@ FAQ
 
 Copr is a build system available for everybody. You provide the src.rpm and Copr provides a yum repository. Copr can be used for upstream builds, for continuous integration, or to provide a yum repository for users of your project, if your project is not yet included in the standard Fedora repositories. 
 
-You will need a `FAS account <https://admin.fedoraproject.org/accounts>`_ in order to get started.
+You will need a `FAS account <https://accounts.fedoraproject.org>`_ in order to get started.
 
 .. _`What I can build in Copr?`:
 
@@ -554,7 +554,7 @@ You should press Ctrl+Shift+R to invalidate your cache and reload page
 
 .. rubric:: How can I create new group? :ref:`¶ <How can I create new group?>`
 
-Groups membership is handled by `FAS <https://admin.fedoraproject.org/accounts/>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://pagure.io/fedora-infrastructure/new_issue>`_.
+Groups membership is handled by `FAS <https://accounts.fedoraproject.org>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://pagure.io/fedora-infrastructure/new_issue>`_.
 You have to log out and then log in again to Copr so Copr can read your new
 settings.
 

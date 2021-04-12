@@ -64,7 +64,7 @@ def login_menu():
 
         if config['FAS_LOGIN']:
             menu.append({
-                'link': 'https://admin.fedoraproject.org/accounts/user/new',
+                'link': 'https://accounts.fedoraproject.org/',
                 'desc': 'sign up',
             })
 
