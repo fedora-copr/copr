@@ -139,6 +139,10 @@ app.register_blueprint(user_ns)
 app.register_blueprint(webhooks_ns)
 app.register_blueprint(rss_ns)
 
+if app.config["MEMORY_ANALYZER"]:
+    from coprs.views.memory_analyzer import memory_analyzer
+    app.register_blueprint(memory_analyzer)
+
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 
 

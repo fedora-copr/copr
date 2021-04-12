@@ -118,6 +118,7 @@ class Config(object):
     DEFAULT_BUILD_TIMEOUT = 3600 * 5
     MIN_BUILD_TIMEOUT = 0
     MAX_BUILD_TIMEOUT = 108000
+    MEMORY_ANALYZER = False
 
 class ProductionConfig(Config):
     DEBUG = False
