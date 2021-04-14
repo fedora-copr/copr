@@ -49,6 +49,10 @@
     <span class="pficon pficon-add-circle-o"></span> New Project
   </a>
 
+  <a href="{{url_for('coprs_ns.copr_add_fedora_review', username=g.user.name) }}"
+      class="btn button-new btn-secondary">
+    <span class="pficon pficon-add-circle-o"></span> Fedora Review </a>
+
   <a href="{{ url_for('user_ns.pinned_projects') }}" class="btn button-new btn-secondary">
     <span class="pficon pficon-edit"></span> Customize pinned
   </a>

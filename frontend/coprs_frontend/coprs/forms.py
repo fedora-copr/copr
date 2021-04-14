@@ -287,6 +287,33 @@ class CoprUniqueNameValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
+class CoprUniqueNameValidator2:
+    """
+    Validate that that Copr project name User gave us doesn't
+    cause duplicity.
+
+    This validator can only be used in CoprBaseForm descendants.
+
+    TODO: Replace all occurrences of CoprUniqueNameValidator with this.
+    """
+    usr_msg = "You already have"
+    grp_msg = "Group '{}' already has"
+
+    def __call__(self, form, field):
+        msg = self.usr_msg
+        if form.group:
+            msg = self.grp_msg.format(form.group.name)
+            existing = CoprsLogic.exists_for_group(
+                form.group, field.data).first()
+        else:
+            existing = CoprsLogic.exists_for_user(
+                form.user, field.data).first()
+
+        if existing:
+            msg = msg + " a project named \"{}\"".format(existing.name)
+            raise wtforms.ValidationError(msg)
+
+
 class NameCharactersValidator(object):
     def __init__(self, message=None):
         if not message:
@@ -422,6 +449,31 @@ class EmptyStringToNone:
         if value.strip() == "":
             return None
         return value
+
+
+class CoprBaseForm(FlaskForm):
+    """
+    All forms that modify Copr project should inherit from this.
+    """
+
+    def __init__(self, *args, user=None, group=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.group = group
+
+
+class CoprFedoraReviewForm(CoprBaseForm):
+    """
+    Simplified Copr form for FedoraReview-only project.
+    """
+    name = wtforms.StringField(
+        "Name",
+        validators=[
+            wtforms.validators.DataRequired(),
+            NameCharactersValidator(),
+            CoprUniqueNameValidator2(),
+            NameNotNumberValidator()
+        ])
 
 
 class CoprForm(FlaskForm):

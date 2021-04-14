@@ -16,8 +16,11 @@ from coprs.helpers import generate_repo_name
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
+from commands.create_chroot import create_chroot_function
+
 from tests.coprs_test_case import (CoprsTestCase, TransactionDecorator,
     new_app_context)
+from tests.request_test_api import parse_web_form_error
 
 
 class TestMonitor(CoprsTestCase):
@@ -1071,3 +1074,32 @@ class TestCoprActionsGeneration(CoprsTestCase):
         _expected(actions[0], ["fedora-17-x86_64", "fedora-rawhide-i386"])
         _expected(actions[1], ["fedora-18-x86_64"])
         _expected(actions[2], ["fedora-17-x86_64"])
+
+    @pytest.mark.usefixtures("f_u1_ts_client", "f_mock_chroots", "f_db")
+    def test_fedora_review_project(self):
+        create_chroot_function(["fedora-rawhide-x86_64"])
+        route = "/coprs/{0}/new-fedora-review/".format(self.transaction_username)
+        resp = self.test_client.post(
+            route,
+            data={"name": "test-fedora-review"},
+            follow_redirects=False,
+        )
+        assert "user1/test-fedora-review/add_build" in resp.headers["Location"]
+        copr = self.models.Copr.query.get(1)
+        assert copr.full_name == "user1/test-fedora-review"
+        assert len(copr.active_chroots) == 1
+        assert copr.active_chroots[0].name == "fedora-rawhide-x86_64"
+        assert "Fedora Review tool" in copr.description
+        assert "You should ask the project owner" in copr.instructions
+        assert copr.fedora_review
+        assert copr.unlisted_on_hp
+
+        # re-request
+        resp = self.test_client.post(
+            route,
+            data={"name": "test-fedora-review"},
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200  # error!
+        error = parse_web_form_error(resp.data, variant="b")
+        assert error == "Error in project config"

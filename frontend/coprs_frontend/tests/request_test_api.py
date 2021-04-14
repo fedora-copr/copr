@@ -9,13 +9,21 @@ from bs4 import BeautifulSoup
 from coprs import models
 
 
-def parse_web_form_error(html_text):
+def parse_web_form_error(html_text, variant="a"):
     """ return the list of form errors from failed form page """
     soup = BeautifulSoup(html_text, "html.parser")
-    alerts = soup.findAll('div', class_='alert alert-danger')
+
+    if variant == "a":
+        classes = "alert alert-danger"
+    elif variant == "b":
+        classes = "alert alert-danger alert-dismissable"
+
+    alerts = soup.findAll('div', class_=classes)
     assert len(alerts) == 1
     div = alerts[0]
-    return [li.text for li in div.find_all("li")]
+    if variant == "a":
+        return [li.text for li in div.find_all("li")]
+    return div.text.strip()
 
 
 class _RequestsInterface:

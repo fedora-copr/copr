@@ -154,6 +154,49 @@ def coprs_fulltext_search(page=1):
                             graph=data)
 
 
+@coprs_ns.route("/<username>/new-fedora-review/", methods=["GET", "POST"])
+@login_required
+def copr_add_fedora_review(username):  # pylint: disable=unused-argument
+    """ Show and process the simplified "Copr create" form for Fedora Review """
+    delete_after_days = 60
+
+    if username != flask.g.user.username:
+        # when accessed by accident
+        flask.flash("You can not add projects for '{}' user".format(username),
+                    "error")
+        return flask.redirect("/")
+
+    form = forms.CoprFedoraReviewForm(user=flask.g.user)
+    if flask.request.method == "POST":
+        if form.validate_on_submit():
+            copr = coprs_logic.CoprsLogic.add(
+                flask.g.user,
+                name=form.name.data,
+                selected_chroots=["fedora-rawhide-x86_64"],
+                description="Project was created only to execute Fedora Review "
+                            "tool for all builds.",
+                instructions="You should ask the project owner before "
+                             "installing anything from this project.",
+                unlisted_on_hp=True,
+                delete_after_days=delete_after_days,
+                follow_fedora_branching=False,
+                fedora_review=True,
+            )
+            db.session.commit()
+            flask.flash(
+                "New review project has been created successfully, will be removed "
+                "after {} days (if not prolonged)".format(delete_after_days),
+                "success")
+
+            return flask.redirect(
+                helpers.copr_url('coprs_ns.copr_add_build', copr))
+
+        # validation problem
+        flask.flash("Error in project config", "error")
+
+    return flask.render_template("coprs/add_fedora_review.html", form=form)
+
+
 @coprs_ns.route("/<username>/add/")
 @coprs_ns.route("/g/<group_name>/add/")
 @login_required

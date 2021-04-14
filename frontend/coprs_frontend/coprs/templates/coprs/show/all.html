@@ -17,6 +17,9 @@
 
 {% block projects_header %}
 {% if g.user %}
+<a href="{{url_for('coprs_ns.copr_add_fedora_review', username=g.user.name) }}"
+    class="btn button-new btn-secondary pull-right">
+  <span class="pficon pficon-add-circle-o"></span> Fedora Review </a>
 <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span> New Project
 </a>

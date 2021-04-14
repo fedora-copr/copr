@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}Add a Fedora Review Project{% endblock %}
+{% block header %}Add a Fedora Review Project{% endblock %}
+
+{% from "_helpers.html" import render_field %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_by_user', username=g.user.name) }}">{{ g.user.name }}</a>
+  </li>
+  <li class="active">
+    New Fedora Review Project
+  </li>
+</ol>
+{% endblock %}
+{% block body %}
+
+<h1>Create a Fedora Review Project</h1>
+<p>
+You agree to build only <a href="https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr">allowed content</a> in Copr.
+Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
+</p>
+<form action="{{ request.path }}" method=post>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Project information</h3>
+    </div>
+    <div class="panel-body">
+      {{ form.csrf_token }}
+      {{ render_field(form.name) }}
+    </div>
+  </div>
+  <input class="btn btn-primary" type="submit" value="Create Fedora Review Project">
+</form>
+
+{% endblock %}
