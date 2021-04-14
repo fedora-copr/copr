@@ -42,7 +42,13 @@ load-plugins=pylint_copr_plugin
 #     This is to fix our Jenkins CI where we do not have all the build
 #     requirements for all our sub-components.  We can afford not listening to
 #     this error because our packaging CI would discover the problems anyways.
-disable=import-error
+# too-few-public-methods
+#     It's often useful to inherit from some (even library) class, and override
+#     some static property or even just constructor.  This though makes PyLint
+#     warn us if parent method doesn't provide the minimal amount of methods,
+#     reported here: https://github.com/PyCQA/pylint/issues/4352
+#     It's inconvenient to silence this per-class.
+disable=import-error,too-few-public-methods
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
