@@ -137,10 +137,5 @@ def turn_on_the_chroot_for_copr(copr, rawhide_name, mock_chroot):
         if chroot.name == mock_chroot.name:
             # already created
             return
-
-    create_kwargs = {
-        "buildroot_pkgs": rawhide_chroot.buildroot_pkgs,
-        "comps": rawhide_chroot.comps,
-        "comps_name": rawhide_chroot.comps_name,
-    }
-    coprs_logic.CoprChrootsLogic.create_chroot(copr.user, copr, mock_chroot, **create_kwargs)
+    coprs_logic.CoprChrootsLogic.create_chroot_from(rawhide_chroot,
+                                                    mock_chroot=mock_chroot)

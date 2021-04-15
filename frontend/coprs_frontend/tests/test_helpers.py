@@ -9,7 +9,7 @@ from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
     fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, \
     parse_repo_params, pagure_html_diff_changed, SubdirMatch, \
-    raw_commit_changes, WorkList, pluralize
+    raw_commit_changes, WorkList, pluralize, clone_sqlalchemy_instance
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -227,6 +227,39 @@ class TestHelpers(CoprsTestCase):
         assert pagure_html_diff_changed('<html></html>') == set([])
         assert pagure_html_diff_changed('some-dust-ajablůňka>isdf/#~<--') == set([])
         assert pagure_html_diff_changed(b'091213114151deadbeaf') == set([])
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_orm_object_clone(self):
+        """
+        Test here that we are able to clone several types of ORM objects we have
+        in Copr database.
+        """
+        # "fedora-17-x86_64" from "user2/foocopr"
+        original = self.models.CoprChroot.query.get(2)
+        # "user1/foocopr"
+        target_copr = self.models.Copr.query.get(1)
+
+        assert "fedora-17-x86_64" not in \
+                [m.name for m in target_copr.mock_chroots]
+
+        # Check this is copied, even though it causes duplicity - caller needs
+        # to take care of unique keys for now.
+        copy = clone_sqlalchemy_instance(original)
+        assert copy.copr == original.copr
+        assert copy.mock_chroot == original.mock_chroot
+        # These are not copied.
+        assert copy.copr_id is None
+        assert copy.mock_chroot_id is None
+        # Array fields are not copied.
+        assert copy.build_chroots == []
+
+        # remove the duplicity, and commit (no traceback)
+        copy.copr = target_copr
+        self.db.session.commit()
+
+        target_copr = self.models.Copr.query.get(1)
+        assert "fedora-17-x86_64" in \
+                [m.name for m in target_copr.mock_chroots]
 
 
 def test_worklist_class():

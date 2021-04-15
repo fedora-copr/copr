@@ -659,3 +659,37 @@ def pluralize(what: str, items: list, be_suffix: bool = False) -> str:
         items[0],
         " is" if be_suffix else ""
     )
+
+def clone_sqlalchemy_instance(instance, ignored=None):
+    """
+    Clone an object, but skip the primary key.
+    """
+    new_instance = type(instance)()
+    if not ignored:
+        ignored = []
+
+    # Copy the normal table columns.
+    for col in instance.__table__.columns:
+        column = col.name
+        if column in ignored:
+            continue
+        if not hasattr(instance, column):
+            # stuff like user_id in _UserPrivate
+            continue
+        if col.primary_key:
+            # the new object needs to have it's own unique primary key
+            continue
+        if col.foreign_keys:
+            # we copy the references instead below
+            continue
+        setattr(new_instance, column, getattr(instance, column))
+
+    # Copy the references.  It is better to copy 'new.parent = old.parent'
+    # than just 'old.parent_id' because the 'new' object wouldn't have the
+    # 'new.parent' object loaded.
+    for attr, rel in instance.__mapper__.relationships.items():
+        if rel.uselist:
+            # TODO: support also 1:N, not only N:1
+            continue
+        setattr(new_instance, attr, getattr(instance, attr))
+    return new_instance

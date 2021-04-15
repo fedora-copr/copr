@@ -20,7 +20,7 @@ from coprs import logic
 from coprs.exceptions import MalformedArgumentException, BadRequest
 from coprs.logic import users_logic
 from coprs.whoosheers import CoprWhoosheer
-from coprs.helpers import fix_protocol_for_backend
+from coprs.helpers import fix_protocol_for_backend, clone_sqlalchemy_instance
 
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -679,6 +679,23 @@ class CoprChrootsLogic(object):
             old_bch.copr_chroot = chroot
 
         return chroot
+
+    @classmethod
+    def create_chroot_from(cls, from_copr_chroot, copr=None, mock_chroot=None):
+        """
+        Create a new CoprChroot object for USER, COPR and MOCK_CHROOT,
+        inheriting the configuration from FROM_COPR_CHROOT.
+        """
+        assert copr or mock_chroot
+        copr_chroot = clone_sqlalchemy_instance(from_copr_chroot, ["build_chroots"])
+        if mock_chroot is not None:
+            copr_chroot.mock_chroot = mock_chroot
+        if copr is not None:
+            copr_chroot.copr = copr
+        db.session.add(copr_chroot)
+        if copr_chroot.comps_name is not None:
+            ActionsLogic.send_update_comps(copr_chroot)
+        return copr_chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
