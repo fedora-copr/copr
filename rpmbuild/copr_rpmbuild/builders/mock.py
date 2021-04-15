@@ -39,6 +39,7 @@ class MockBuilder(object):
             "group" if self.copr_username.startswith("@") else "user",
             self.copr_username,
         )
+        self.uniqueext = get_mock_uniqueext()
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -87,7 +88,7 @@ class MockBuilder(object):
             "--spec", spec,
             "--sources", sources,
             "--resultdir", resultdir,
-            "--uniqueext", get_mock_uniqueext(),
+            "--uniqueext", self.uniqueext,
             "-r", self.mock_config_file]
 
         for with_opt in self.with_opts:
@@ -113,6 +114,7 @@ class MockBuilder(object):
         """ Do a best effort Mock cleanup. """
         cmd = MOCK_CALL + [
             "-r", self.mock_config_file,
+            "--uniqueext", self.uniqueext,
             "--scrub", "bootstrap",
             "--scrub", "chroot",
             "--scrub", "root-cache",
@@ -162,7 +164,7 @@ class MockBuilder(object):
         cmd = MOCK_CALL + [
                "--rebuild", srpm,
                "--resultdir", resultdir,
-               "--uniqueext", get_mock_uniqueext(),
+               "--uniqueext", self.uniqueext,
                "-r", self.mock_config_file]
 
         for with_opt in self.with_opts:

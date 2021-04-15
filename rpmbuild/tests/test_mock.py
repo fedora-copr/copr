@@ -180,12 +180,14 @@ config_opts['macros']['%buildtag'] = '.copr10'
         call = f_mock_calls[1]
         assert call[0][0] == self.mock_rpm_call
 
+    @mock.patch("copr_rpmbuild.builders.mock.subprocess.call")
     @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.prepare_configs")
     @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
-    def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock, prep_configs):
+    def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock,
+                         prep_configs, sp_call):
+        get_mock_uniqueext_mock.side_effect = ['2', 'not_called_twice']
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
-        get_mock_uniqueext_mock.return_value = '2'
         process = mock.MagicMock(returncode=0)
         popen_mock.return_value = process
         builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/results")
@@ -196,6 +198,12 @@ config_opts['macros']['%buildtag'] = '.copr10'
                       '-r', builder.mock_config_file]
         popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE,
                                       timeout=21600)
+        builder.mock_clean()
+        sp_call.assert_called_with(
+            ['unbuffer', 'mock', '-r', builder.mock_config_file,
+             '--uniqueext', '2', '--scrub', 'bootstrap', '--scrub', 'chroot',
+             '--scrub', 'root-cache', '--quiet'])
+        assert get_mock_uniqueext_mock.call_count == 1
 
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
