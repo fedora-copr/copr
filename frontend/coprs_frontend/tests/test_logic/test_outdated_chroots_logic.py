@@ -32,8 +32,12 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert not chroot.delete_notify
         assert chroot.delete_status == ChrootDeletionStatus("active")
 
-        # Chroot is EOLed
+        # Chroot is deactivated
         chroot.mock_chroot.is_active = False
+        assert chroot.delete_status == ChrootDeletionStatus("deactivated")
+        assert chroot.delete_status_str == "deactivated"
+
+        # Chroot is EOLed
         chroot.delete_after = datetime.now() + timedelta(days=180)
         assert chroot.delete_status == ChrootDeletionStatus("preserved")
         assert chroot.delete_status_str == "preserved"

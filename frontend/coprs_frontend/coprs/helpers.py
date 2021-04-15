@@ -119,6 +119,10 @@ class ChrootDeletionStatus(with_metaclass(EnumType, object)):
         # or isn't going to be deleted in the future
         "active": 0,
 
+        # Temporarily (or even permanently) deactivated chroot. It is not
+        # marked as EOL and its data is never going to be deleted.
+        "deactivated": 1,
+
         # There are multiple possible scenarios for chroots in this state:
         # 1) The standard preservation period is not over yet. Its length
         #    differs on whether the chroot is EOL or was unclicked from
@@ -129,16 +133,16 @@ class ChrootDeletionStatus(with_metaclass(EnumType, object)):
         #
         # 3) Any other constraint that disallows the chroot to be deleted yet.
         #    At this moment there shouldn't be any.
-        "preserved": 1,
+        "preserved": 2,
 
         # The standard preservation period is gone and there are no blockers
         # to safely delete data from this chroot
-        "expired": 2,
+        "expired": 3,
 
         # The data was already deleted. This includes a case when we attempted
         # to delete the data and the backend action failed for some reason. From
         # frontend's perspective, it doesn't matter.
-        "deleted": 3,
+        "deleted": 4,
     }
 
 

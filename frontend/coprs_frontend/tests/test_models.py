@@ -1,9 +1,9 @@
+from datetime import datetime, timedelta
 import pytest
-
 import coprs
-
 from copr_common.enums import StatusEnum
-from tests.coprs_test_case import CoprsTestCase
+from coprs.helpers import ChrootDeletionStatus
+from tests.coprs_test_case import CoprsTestCase, new_app_context
 
 
 class TestBuildModel(CoprsTestCase):
@@ -190,3 +190,37 @@ class TestBuildModel(CoprsTestCase):
         assert self.b1.source_state == "unknown"
         self.b1.source_status = 0
         assert self.b1.source_state == "failed"
+
+
+class TestCoprModel(CoprsTestCase):
+
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_permissible_chroots(self):
+        """
+        Test for what chroots we want to show repofiles in the project overview
+        """
+        assert len(self.c2.mock_chroots) == 2
+        mc1 = self.c2.mock_chroots[0]
+        mc2 = self.c2.mock_chroots[1]
+        chroot = self.c2.copr_chroots[0]
+
+        # Normal, active chroot
+        assert chroot.delete_status == ChrootDeletionStatus("active")
+        assert self.c2.enable_permissible_chroots == [mc1, mc2]
+
+        # Chroot is deactivated
+        chroot.mock_chroot.is_active = False
+        assert chroot.delete_status == ChrootDeletionStatus("deactivated")
+        assert self.c2.enable_permissible_chroots == [mc2]
+
+        # Chroot is EOLed
+        chroot.delete_after = datetime.now() + timedelta(days=180)
+        chroot.delete_notify = datetime.now()
+        assert chroot.delete_status == ChrootDeletionStatus("preserved")
+        assert self.c2.enable_permissible_chroots == [mc1, mc2]
+
+        # After the preservation period is gone
+        chroot.delete_after = datetime.now() - timedelta(days=1)
+        assert chroot.delete_status == ChrootDeletionStatus("expired")
+        assert self.c2.enable_permissible_chroots == [mc2]

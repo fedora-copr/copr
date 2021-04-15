@@ -440,9 +440,12 @@ class Copr(db.Model, helpers.Serializer):
         Return the list of not-yet-deleted (includes EOLed) mock_chroots
         assigned to this copr.
         """
+        permissible_states = [
+            ChrootDeletionStatus("active"),
+            ChrootDeletionStatus("preserved"),
+        ]
         return [cc.mock_chroot for cc in self.copr_chroots
-                if not cc.delete_after_expired
-                and not cc.deleted]
+                if cc.delete_status in permissible_states]
 
     @property
     def active_multilib_chroots(self):
@@ -1657,8 +1660,12 @@ class CoprChroot(db.Model, helpers.Serializer):
 
             return ChrootDeletionStatus("preserved")
 
-        # Chroots that we marked as EOL
+        # Chroots that we deactivated or marked as EOL
         if not self.is_active:
+            # This chroot is not EOL, its just _temporarily_ deactivated
+            if not self.delete_after and not self.delete_notify:
+                return ChrootDeletionStatus("deactivated")
+
             # We can never ever remove EOL chroots that we didn't send
             # a notification about
             if not self.delete_notify:
