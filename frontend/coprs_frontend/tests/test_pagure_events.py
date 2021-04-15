@@ -1,7 +1,8 @@
+from unittest import mock
+import pytest
 from pagure_events import (event_info_from_pr_comment, event_info_from_push, event_info_from_pr, ScmPackage,
                            build_on_fedmsg_loop, ScmPackage)
 from tests.coprs_test_case import CoprsTestCase
-from unittest import mock
 
 
 class Message:
@@ -72,8 +73,9 @@ class TestPagureEvents(CoprsTestCase):
         assert dir_in_commit is True
 
     @mock.patch('pagure_events.helpers.raw_commit_changes')
-    @mock.patch('pagure_events.get_repeatedly')
-    def test_positive_build_from_pr_update(self, f_get_repeatedly, f_raw_commit_changes, f_users, f_coprs):
+    @mock.patch('pagure_events.get_repeatedly', mock.Mock())
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots")
+    def test_positive_build_from_pr_update(self, f_raw_commit_changes):
         f_raw_commit_changes.return_value = {
             'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
             'tests/integration/conftest.py b/tests/integration/conftest.py index '
@@ -152,8 +154,9 @@ class TestPagureEvents(CoprsTestCase):
         assert event_info.user == "test"
 
     @mock.patch('pagure_events.helpers.raw_commit_changes')
-    @mock.patch('pagure_events.get_repeatedly')
-    def test_positive_build_from_push(self, f_get_repeatedly, f_raw_commit_changes, f_users, f_coprs):
+    @mock.patch('pagure_events.get_repeatedly', mock.Mock())
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots")
+    def test_positive_build_from_push(self, f_raw_commit_changes):
         f_raw_commit_changes.return_value = {
             'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
             'tests/integration/conftest.py b/tests/integration/conftest.py index '

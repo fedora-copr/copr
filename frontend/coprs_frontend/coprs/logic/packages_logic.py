@@ -127,6 +127,9 @@ class PackagesLogic(object):
             if package_clone_url_stripped != clone_url_stripped:
                 continue
 
+            if not package.copr.active_copr_chroots:
+                continue
+
             if cls.commits_belong_to_package(package, commits, ref_type, ref):
                 result += [package]
 

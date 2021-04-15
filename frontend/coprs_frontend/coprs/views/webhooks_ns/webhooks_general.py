@@ -255,6 +255,10 @@ def webhooks_package_custom(copr, package, flavor=None):
     # do one day, but now just dump the hook contents somewhere so users can
     # parse manually.
     storage = HookContentStorage()
+
+    if not copr.active_copr_chroots:
+        return "NO_ACTIVE_CHROOTS_IN_PROJECT\n", 500
+
     try:
         build = BuildsLogic.rebuild_package(package, storage.rebuild_dict())
         db.session.commit()

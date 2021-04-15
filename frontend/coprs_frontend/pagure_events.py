@@ -255,6 +255,10 @@ class build_on_fedmsg_loop():
             log.info('Considering pkg package: {}, source_json: {}'
                         .format(package, pkg.source_json_dict))
 
+            if not pkg.copr.active_copr_chroots:
+                log.info("No active chroots in this project, skipped.")
+                continue
+
             if (git_compare_urls(pkg.clone_url, event_info.base_clone_url)
                     and (not pkg.committish or event_info.branch_to.endswith(pkg.committish))
                     and pkg.is_dir_in_commit(changed_files)):

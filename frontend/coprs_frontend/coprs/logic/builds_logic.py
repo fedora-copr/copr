@@ -785,6 +785,11 @@ class BuildsLogic(object):
         if not copr_dir:
             copr_dir = package.copr.main_dir
 
+        # TODO: Callers do not expect us to raise exceptions here.  It would be
+        # ideal to return None, but callers don't expect None return value
+        # either.
+        assert bool(package.copr.active_copr_chroots)
+
         build = models.Build(
             user=None,
             pkgs=None,
@@ -911,7 +916,9 @@ class BuildsLogic(object):
                 if not build.build_chroots:
                     # create the BuildChroots from Package setting, if not
                     # already set explicitly for concrete build
+                    added = False
                     for chroot in build.package.chroots:
+                        added = True
                         buildchroot = BuildChrootsLogic.new(
                             build=build,
                             status=chroot_status,
@@ -919,6 +926,8 @@ class BuildsLogic(object):
                             git_hash=None,
                         )
                         db.session.add(buildchroot)
+                    if not added:
+                        new_status = StatusEnum("failed")
                 else:
                     for buildchroot in build.build_chroots:
                         buildchroot.status = chroot_status
