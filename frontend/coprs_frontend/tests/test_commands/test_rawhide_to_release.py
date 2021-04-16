@@ -6,16 +6,21 @@ import pytest
 
 from coprs import db, models
 from coprs.logic import coprs_logic
-from tests.coprs_test_case import CoprsTestCase, new_app_context
-from copr_common.enums import StatusEnum
+from copr_common.enums import StatusEnum, ActionTypeEnum
 # pylint: disable=wrong-import-order
 from commands.branch_fedora import branch_fedora_function
 
+from coprs_frontend.tests.coprs_test_case import CoprsTestCase, new_app_context
 
 @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
 class TestBranchFedora(CoprsTestCase):
+
+    def _get_actions(self):
+        actions = self.models.Action.query.all()
+        return [ActionTypeEnum(a.action_type) for a in actions]
+
     @new_app_context
-    def test_branch_fedora(self):
+    def test_branch_fedora(self, capsys):
         """ Test rawhide-to-release through branch-fedora command """
 
         # Create one build which is also built in rawhide-i386 chroot
@@ -26,7 +31,6 @@ class TestBranchFedora(CoprsTestCase):
         db.session.add(b_rawhide)
 
         for cch in self.c3.copr_chroots:
-            print("adding {} buildchroot into {}".format(cch.name, b_rawhide))
             bch_rawhide = models.BuildChroot(
                 build=b_rawhide,
                 mock_chroot=cch.mock_chroot,
@@ -52,6 +56,8 @@ class TestBranchFedora(CoprsTestCase):
         db.session.add(mch_rawhide_x86_64)
         db.session.add(cc_rawhide_x86_64)
         db.session.commit()
+
+        assert self._get_actions() == []
 
         assert len(self.c1.copr_chroots) == 2
         assert len(self.c3.copr_chroots) == 2
@@ -81,3 +87,31 @@ class TestBranchFedora(CoprsTestCase):
 
         assert bch.status == StatusEnum("forked")
         assert bch.build.package == self.p3
+
+        assert self._get_actions() == ["rawhide_to_release"]
+
+        # re-run the command, this is no-op
+        branch_fedora_function(19, False, 'f19')
+        assert self._get_actions() == ["rawhide_to_release"]
+
+        # re-run, and re-fork all the builds, generates new action
+        branch_fedora_function(19, True, 'f19')
+        assert self._get_actions() == ["rawhide_to_release",
+                                       "rawhide_to_release"]
+
+        stdout, _ = capsys.readouterr()
+        assert stdout == "\n".join([
+            "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "  Fresh new build chroots: 1, regenerate 0",
+            "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "fedora-19-i386 - already exists.",
+            "fedora-19-x86_64 - already exists.",
+            "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "fedora-19-i386 - already exists.",
+            "fedora-19-x86_64 - already exists.",
+            "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "  Fresh new build chroots: 0, regenerate 1",
+            "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            ""
+        ])
