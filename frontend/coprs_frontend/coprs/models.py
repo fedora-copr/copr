@@ -985,7 +985,8 @@ class Build(db.Model, helpers.Serializer):
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
-    source_status = db.Column(db.Integer, default=StatusEnum("waiting"))
+    source_status = db.Column(db.Integer, default=StatusEnum("waiting"),
+                              nullable=False)
     srpm_url = db.Column(db.Text)
 
     isolation = db.Column(db.Text, default="default")
