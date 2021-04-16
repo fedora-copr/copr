@@ -95,6 +95,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         if not len(fork_builds):
             continue
 
+        new_build_chroots = 0
         for build in fork_builds:
             chroot_exists = mock_chroot in build.chroots
 
@@ -111,6 +112,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
             if not chroot_exists:
                 # forked chroot may already exists, e.g. from prevoius
                 # 'rawhide-to-release-run'
+                new_build_chroots += 1
                 dest_build_chroot = builds_logic.BuildChrootsLogic.new(
                     build=rbc.build,
                     mock_chroot=mock_chroot,
@@ -123,6 +125,12 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
 
             if rbc.result_dir:
                 data['builds'].append(rbc.result_dir)
+
+        if data["builds"] or new_build_chroots:
+            print("  Fresh new build chroots: {}, regenerate {}".format(
+                new_build_chroots,
+                len(data["builds"]) - new_build_chroots,
+            ))
 
         if len(data["builds"]):
             actions_logic.ActionsLogic.send_rawhide_to_release(data)
