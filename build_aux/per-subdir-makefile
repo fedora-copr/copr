@@ -8,7 +8,7 @@ check:
 test: check
 
 unittests:
-	./run_tests.sh
+	./run_tests.sh -vv -s
 
 lint:
 	../build_aux/linter
