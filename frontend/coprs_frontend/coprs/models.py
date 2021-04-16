@@ -1224,8 +1224,8 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return StatusEnum("canceled")
 
-        use_src_statuses = ["starting", "pending", "running", "importing", "failed"]
-        if self.source_status in [StatusEnum(s) for s in use_src_statuses]:
+        use_src_states = ["starting", "pending", "running", "importing", "failed"]
+        if self.source_state in use_src_states:
             return self.source_status
 
         if not self.chroot_states:
@@ -1236,8 +1236,8 @@ class Build(db.Model, helpers.Serializer):
             # from the "importing" state.
             # Anyways, return something meaningful here so we can debug
             # properly if such situation happens.
-            app.logger.error("Build %s has source_status succeeded, but "
-                             "no build_chroots", self.id)
+            app.logger.error("Build %s has source_state %s, but "
+                             "no build_chroots", self.id, self.source_state)
             return StatusEnum("waiting")
 
         for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked"]:
