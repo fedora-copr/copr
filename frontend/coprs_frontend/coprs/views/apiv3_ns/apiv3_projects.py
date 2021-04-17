@@ -1,7 +1,7 @@
 import flask
-from . import (query_params, get_copr, pagination, Paginator, GET, POST, PUT,
-               DELETE, set_defaults)
-from .json2form import get_form_compatible_data, get_input_dict
+from coprs.views.apiv3_ns import (query_params, get_copr, pagination, Paginator,
+                                  GET, POST, PUT, DELETE, set_defaults)
+from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
