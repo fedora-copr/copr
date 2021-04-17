@@ -1,5 +1,6 @@
 import flask
-from . import query_params, get_copr, pagination, Paginator, GET, POST, PUT, DELETE
+from . import (query_params, get_copr, pagination, Paginator, GET, POST, PUT,
+               DELETE, set_defaults)
 from .json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
@@ -121,7 +122,9 @@ def search_projects(query, **kwargs):
 def add_project(ownername):
     user, group = owner2tuple(ownername)
     data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
-    form = forms.CoprFormFactory.create_form_cls(user=user, group=group)(data, meta={'csrf': False})
+    form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group)
+    set_defaults(data, form_class)
+    form = form_class(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
@@ -158,6 +161,8 @@ def add_project(ownername):
             multilib=form.multilib.data,
             module_hotfixes=form.module_hotfixes.data,
             fedora_review=form.fedora_review.data,
+            follow_fedora_branching=form.follow_fedora_branching.data,
+            runtime_dependencies=form.runtime_dependencies.data,
         )
         db.session.commit()
     except (DuplicateException,

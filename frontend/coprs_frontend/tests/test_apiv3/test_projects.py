@@ -66,10 +66,10 @@ class TestApiv3Projects(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_u1_ts_client", "f_mock_chroots", "f_db")
     def test_update_copr_api3(self):
-        self.web_ui.new_project("test", ["fedora-rawhide-i386"],
-                                bootstrap="default", isolation="simple",
-                                contact="somebody@redhat.com",
-                                homepage="https://github.com/fedora-copr")
+        self.api3.new_project("test", ["fedora-rawhide-i386"],
+                              bootstrap="default", isolation="simple",
+                              contact="somebody@redhat.com",
+                              homepage="https://github.com/fedora-copr")
         old_data = self._get_copr_id_data(1)
 
         # When new arguments are added to the Copr model, we should update this
@@ -87,7 +87,8 @@ class TestApiv3Projects(CoprsTestCase):
         assert old_data["fedora_review"] is False
         assert old_data["repos"] == ''
         assert old_data["runtime_dependencies"] == ""
-        assert old_data["auto_prune"] is False  # TODO: issue 1747
+        assert old_data["auto_prune"] is True
+        assert old_data["follow_fedora_branching"] is True
         self.api3.modify_project(
             "test", delete_after_days=5, enable_net=True, devel_mode=True,
             repos=["http://example/repo/", "http://another/"],

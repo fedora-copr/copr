@@ -195,3 +195,36 @@ def editable_copr(f):
             )
         return f(copr, **kwargs)
     return wrapper
+
+
+def set_defaults(formdata, form_class):
+    """
+    Take a `formdata` which can be `flask.request.form` or an output from
+    `get_form_compatible_data`, and `form_class` (not instance). This function
+    then goes through all fields defaults and update the `formdata` if those
+    fields weren't set from a user.
+
+    I don't understand why this is necessary, I would expect a `form.foo.data`
+    to return the request value or `default` but it doesn't seem to work like
+    that. See the `wtforms.fields.Field` documentation:
+
+    > default – The default value to assign to the field, if no form or object
+    >           input is provided. May be a callable.
+
+    The **if no form or object input is provided** is really unexpected. We
+    always initialize our forms with request data, i.e. the defaults are never
+    used? IMHO a more reasonable approach would be doing this per field.
+
+    A field `default` value seems to be used only when rendering an empty form,
+    which is good enough for rendering an empty form into HTML (even though it
+    forces us to render all fields, which IMHO shouldn't be necessary). This
+    doesn't work at all for API where users send only a subset of form fields
+    and expect reasonable defaults for the rest.
+    """
+    form = form_class(ImmutableMultiDict())
+    for field in form:
+        if field.default is None:
+            continue
+        if field.name in formdata.keys():
+            continue
+        formdata[field.name] = field.default
