@@ -10,6 +10,7 @@ import sys
 import os
 import logging
 import weakref
+import warnings
 
 import six
 from six import with_metaclass
@@ -102,6 +103,11 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         self._builds = None
         self._build_tasks = None
         self._mock_chroots = None
+
+        warnings.warn("You are using Copr's deprecated APIv2. "
+                      "Please migrate to APIv3. "
+                      "See https://python-copr.readthedocs.io/en/latest/ClientV3.html",
+                      FutureWarning)
 
     def _check_client_init(self):
         if not self._post_init_done:
