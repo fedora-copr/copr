@@ -6,7 +6,7 @@ import mock
 import pytest
 
 from copr.v3 import Client
-from copr.test.test_client import config_location
+from copr.test import config_location
 
 
 @pytest.mark.parametrize('method_name', ['add', 'edit'])

@@ -3,7 +3,7 @@ from requests import Response
 from copr.v3 import Client, BuildProxy
 from copr.v3.requests import Request
 
-from copr.test.test_client import config_location
+from copr.test import config_location
 
 
 @mock.patch.object(Request, "send")
