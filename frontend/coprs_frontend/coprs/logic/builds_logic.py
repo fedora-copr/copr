@@ -965,6 +965,10 @@ class BuildsLogic(object):
 
                     if upd_dict.get("status") in BuildsLogic.terminal_states:
                         build_chroot.ended_on = upd_dict.get("ended_on") or time.time()
+                        assert isinstance(upd_dict, dict)
+                        assert not isinstance(upd_dict, str)
+                        BuildChrootResultsLogic.create_from_dict(
+                            build_chroot, upd_dict.get("results"))
 
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()
@@ -1302,6 +1306,24 @@ class BuildChrootsLogic(object):
         return query
 
     @classmethod
+    def get_by_results(cls, **kwargs):
+        """
+        Query all `BuildChroot` instances whose `results` corresponds with the
+        specified `kwargs`.
+
+        Supported parameter names:
+
+            name, epoch, version, release, arch
+
+        Example usage:
+
+            cls.get_by_results(name="hello")
+            cls.get_by_results(name="foo", arch="x86_64")
+        """
+        return (models.BuildChroot.query
+                .filter(models.BuildChroot.results.any(**kwargs)))
+
+    @classmethod
     def filter_by_build_id(cls, query, build_id):
         return query.filter(models.Build.id == build_id)
 
@@ -1341,6 +1363,39 @@ class BuildChrootsLogic(object):
         """
         return cls.filter_by_copr_and_mock_chroot(BuildChroot.query, copr,
                                                   mock_chroot)
+
+class BuildChrootResultsLogic:
+    """
+    High-level interface for working with `models.BuildChrootResult` objects
+    """
+
+    @classmethod
+    def create(cls, build_chroot, name, epoch, version, release, arch):
+        """
+        Create a new record about a built package in some `BuildChroot`
+        """
+        return models.BuildChrootResult(
+            build_chroot_id=build_chroot,
+            build_chroot=build_chroot,
+            name=name,
+            epoch=epoch,
+            version=version,
+            release=release,
+            arch=arch,
+        )
+
+
+    @classmethod
+    def create_from_dict(cls, build_chroot, results):
+        """
+        Parses a `dict` in the following format
+
+            {"packages": [{"name": "foo", "epoch": 0, ...}]}
+
+        and records all of the built packages for a given `BuildChroot`.
+        """
+        return [cls.create(build_chroot, **result)
+                for result in results["packages"]]
 
 
 class BuildsMonitorLogic(object):

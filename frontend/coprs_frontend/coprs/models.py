@@ -1464,6 +1464,13 @@ class Build(db.Model, helpers.Serializer):
         """
         return [ch for ch in self.chroots if ch in self.copr.active_chroots]
 
+    @property
+    def results_dict(self):
+        """
+        Built packages in each build chroot.
+        """
+        return {bc.name: bc.results_dict for bc in self.build_chroots}
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
@@ -1948,6 +1955,43 @@ class BuildChroot(db.Model, helpers.Serializer):
         if log and self.finished:
             logs.append(log)
         return logs
+
+    @property
+    def results_dict(self):
+        """
+        Returns a `dict` containing all built packages in this chroot
+        """
+        built_packages = []
+        for result in self.results:
+            options = {"__columns_except__": ["id", "build_chroot_id"]}
+            result_dict= result.to_dict(options=options)
+            built_packages.append(result_dict)
+        return {"packages": built_packages}
+
+
+
+class BuildChrootResult(db.Model, helpers.Serializer):
+    """
+    Represents a built package within some `BuildChroot`
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    build_chroot_id = db.Column(
+        db.Integer,
+        db.ForeignKey("build_chroot.id"),
+        nullable=False
+    )
+
+    name = db.Column(db.Text, nullable=False)
+    epoch = db.Column(db.Integer, default=0)
+    version = db.Column(db.Text, nullable=False)
+    release = db.Column(db.Text, nullable=False)
+    arch = db.Column(db.Text, nullable=False)
+
+    build_chroot = db.relationship(
+        "BuildChroot",
+        backref=db.backref("results", cascade="all, delete-orphan"),
+    )
 
 
 class LegalFlag(db.Model, helpers.Serializer):

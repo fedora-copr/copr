@@ -45,6 +45,18 @@ class BuildProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
+    def get_built_packages(self, build_id):
+        """
+        Return built packages (NEVRA dicts) for a given build
+
+        :param int build_id:
+        :return: Munch
+        """
+        endpoint = "/build/built-packages/{0}".format(build_id)
+        request = Request(endpoint, api_base_url=self.api_base_url)
+        response = request.send()
+        return munchify(response)
+
     def get_list(self, ownername, projectname, packagename=None, status=None, pagination=None):
         """
         Return a list of packages

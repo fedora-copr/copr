@@ -147,6 +147,19 @@ class TestWaitingBuilds(CoprsTestCase):
 # status = 0 # failure
 # status = 1 # succeeded
 class TestUpdateBuilds(CoprsTestCase):
+    built_packages = """
+{
+  "packages":[
+    {
+      "name":"example",
+      "epoch":0,
+      "version":"1.0.14",
+      "release":"1.fc30",
+      "arch":"x86_64"
+    }
+  ]
+}"""
+
     data1 = """
 {
   "builds":[
@@ -168,6 +181,17 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 1,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
+     "results": {
+       "packages":[
+         {
+           "name":"example",
+           "epoch":0,
+           "version":"1.0.14",
+           "release":"1.fc30",
+           "arch":"x86_64"
+         }
+       ]
+     },
      "ended_on": 1490866440
    }
   ]
@@ -190,6 +214,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 0,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
+     "results": {"packages": []},
      "ended_on": 1390866440
    },
    {
@@ -198,6 +223,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 0,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
+     "results": {"packages": []},
      "ended_on": 1390866440
    },
    {

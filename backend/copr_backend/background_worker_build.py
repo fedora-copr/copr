@@ -9,6 +9,7 @@ import pipes
 import shutil
 import statistics
 import time
+import json
 
 from packaging import version
 
@@ -30,7 +31,7 @@ from copr_backend.vm_alloc import ResallocHostFactory
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "0.40.1.dev"
+MIN_BUILDER_VERSION = "0.49.1.dev"
 CANCEL_CHECK_PERIOD = 5
 
 MESSAGES = {
@@ -280,6 +281,20 @@ class BuildBackgroundWorker(BackgroundWorker):
         data = {"builds": [self.job.to_dict()]}
         self.frontend_client.update(data)
         self.sender.announce("build.end", self.job, self.last_hostname)
+
+    def _parse_results(self):
+        """
+        Parse `results.json` and update the `self.job` object.
+        """
+        if self.job.chroot == "srpm-builds":
+            # We care only about final RPMs
+            return
+
+        path = os.path.join(self.job.results_dir, "results.json")
+        assert os.path.exists(path)
+        with open(path, "r") as f:
+            results = json.load(f)
+        self.job.results = results
 
     def _wait_for_repo(self):
         """
@@ -650,6 +665,7 @@ class BuildBackgroundWorker(BackgroundWorker):
                 build_details = {
                     "built_packages": self._collect_built_packages(job),
                 }
+                self._parse_results()
             self.log.info("build details: %s", build_details)
         except Exception as e:
             raise BackendError(

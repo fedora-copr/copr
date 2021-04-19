@@ -1,0 +1,11 @@
+{
+   "packages": [
+      {
+         "name":"example",
+         "epoch":0,
+         "version":"1.0.14",
+         "release":"1.fc30",
+         "arch":"x86_64"
+      }
+   ]
+}

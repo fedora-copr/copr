@@ -64,3 +64,13 @@ def get_build_chroot_list(build_id, **kwargs):
 def get_build_chroot_config(build_id, chrootname):
     chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
     return flask.jsonify(build_config(chroot))
+
+
+@apiv3_ns.route("/build-chroot/built-packages/", methods=GET)
+@query_params()
+def get_build_chroot_built_packages(build_id, chrootname):
+    """
+    Return built packages (NEVRA dicts) for a given build chroot
+    """
+    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
+    return flask.jsonify(chroot.results_dict)

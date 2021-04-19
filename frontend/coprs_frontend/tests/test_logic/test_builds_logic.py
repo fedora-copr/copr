@@ -16,7 +16,11 @@ from coprs.exceptions import (ActionInProgressException,
                               InsufficientStorage)
 
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.builds_logic import (
+    BuildsLogic,
+    BuildChrootsLogic,
+    BuildChrootResultsLogic,
+)
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -510,3 +514,48 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(build.build_chroots) == 1
         assert build.source_status == StatusEnum("importing")
         assert build.package.name == "foo"
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_build_results_filter(self):
+        """
+        Test that we can query `BuildChroot` instances based on their `results`.
+        """
+        defaults = {
+            "name": None,
+            "epoch": 0,
+            "version": "1.0",
+            "release": "1",
+            "arch": None,
+        }
+
+        b1b2_chroots = self.b1.build_chroots + self.b2.build_chroots
+        for chroot in b1b2_chroots:
+            result  = defaults | {"name": "foo", "arch": "x86_64"}
+            results = {"packages": [result]}
+            BuildChrootResultsLogic.create_from_dict(chroot, results)
+
+        for chroot in self.b3.build_chroots:
+            result = defaults | {"name": "bar", "arch": "noarch"}
+            results = {"packages": [result]}
+            BuildChrootResultsLogic.create_from_dict(chroot, results)
+
+        for chroot in self.b4.build_chroots:
+            result1 = defaults | {"name": "foobar", "arch": "ppc64le"}
+            result2 = defaults | {"name": "qux", "arch": "ppc64le"}
+            results = {"packages": [result1, result2]}
+            BuildChrootResultsLogic.create_from_dict(chroot, results)
+
+        # Filter results by name
+        result = BuildChrootsLogic.get_by_results(name="foo").all()
+        assert set(result) == set(b1b2_chroots)
+
+        # Filter results by multiple attributes
+        result = BuildChrootsLogic.get_by_results(name="foo", arch="noarch").all()
+        assert result == []
+
+        result = BuildChrootsLogic.get_by_results(name="foo", arch="x86_64").all()
+        assert set(result) == set(b1b2_chroots)
+
+        # Filter results with multiple rows
+        result = BuildChrootsLogic.get_by_results(name="qux").all()
+        assert set(result) == set(self.b4.build_chroots)

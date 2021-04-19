@@ -58,3 +58,20 @@ class BuildChrootProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return munchify(response)
+
+    def get_built_packages(self, build_id, chrootname):
+        """
+        Return built packages (NEVRA dicts) for a given build chroot
+
+        :param int build_id:
+        :param str chrootname:
+        :return: Munch
+        """
+        endpoint = "/build-chroot/built-packages"
+        params = {
+            "build_id": build_id,
+            "chrootname": chrootname,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
+        response = request.send()
+        return munchify(response)

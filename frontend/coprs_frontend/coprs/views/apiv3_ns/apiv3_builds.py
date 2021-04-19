@@ -115,6 +115,15 @@ def get_source_build_config(build_id):
     return flask.jsonify(to_source_build_config(build))
 
 
+@apiv3_ns.route("/build/built-packages/<int:build_id>/", methods=GET)
+def get_build_built_packages(build_id):
+    """
+    Return built packages (NEVRA dicts) for a given build
+    """
+    build = ComplexLogic.get_build_safe(build_id)
+    return flask.jsonify(build.results_dict)
+
+
 @apiv3_ns.route("/build/cancel/<int:build_id>", methods=PUT)
 @api_login_required
 def cancel_build(build_id):
