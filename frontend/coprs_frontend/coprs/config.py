@@ -120,6 +120,11 @@ class Config(object):
     MAX_BUILD_TIMEOUT = 108000
     MEMORY_ANALYZER = False
 
+    ##### DEVEL Section ####
+    # Enable flask-profiler
+    # Setting this to True requires special installation
+    PROFILER = False
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

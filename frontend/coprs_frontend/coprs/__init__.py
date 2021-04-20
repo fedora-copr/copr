@@ -54,6 +54,33 @@ def db_session_scope():
 
 whooshee = Whooshee(app)
 
+profiler_enabled = bool(app.config.get('PROFILER', False))
+try:
+    # needs to be installed using pip3
+    import flask_profiler
+except ImportError:
+    # This is intended to not be presented. Even on most devel setups.
+    profiler_enabled = False
+
+def setup_profiler(flask_app, enabled):
+    """ This creates /flask-profiler/ route """
+    flask_app.config["flask_profiler"] = {
+        "enabled": enabled,
+        "storage": {
+            "engine": "sqlite",
+            "FILE": "/tmp/profiler.sqlite",
+        },
+        "basicAuth":{
+            "enabled": True,
+            "username": "admin",
+            "password": "admin"
+        },
+        "ignore": [
+               "^/static/.*"
+           ]
+    }
+    if enabled:
+        flask_profiler.init_app(flask_app)
 
 import coprs.filters
 import coprs.log
@@ -164,6 +191,7 @@ from coprs.rest_api import rest_api_bp, register_api_error_handler, URL_PREFIX
 register_api_error_handler(app)
 app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 # register_api(app, db)
+setup_profiler(app, profiler_enabled)
 
 from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
