@@ -29,31 +29,21 @@ from testlib import assert_logs_exist, AsyncCreaterepoRequestFactory
 
 @mock.patch('copr_backend.createrepo.createrepo_unsafe')
 @mock.patch('copr_backend.createrepo.add_appdata')
-@mock.patch('copr_backend.helpers.CoprClient')
-def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe):
-    mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {}})
+def test_createrepo_conditional_true(mc_add_appdata, mc_create_unsafe):
     mc_create_unsafe.return_value = ""
     mc_add_appdata.return_value = ""
 
     createrepo(path="/tmp/", username="foo", projectname="bar")
     mc_create_unsafe.reset_mock()
 
-    mc_client.return_value.get_project_details.return_value = MagicMock(
-        data={"detail": {"auto_createrepo": True}})
-
     createrepo(path="/tmp/", username="foo", projectname="bar")
-
     mc_create_unsafe.reset_mock()
 
 
 @mock.patch('copr_backend.createrepo.createrepo_unsafe')
-@mock.patch('copr_backend.helpers.CoprClient')
-def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
-    mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": False}})
-
+def test_createrepo_conditional_false(mc_create_unsafe):
     base_url = "http://example.com/repo/"
     createrepo(path="/tmp/", username="foo", projectname="bar", base_url=base_url, devel=True)
-
     assert mc_create_unsafe.call_args == mock.call('/tmp/', dest_dir='devel', base_url=base_url)
 
 

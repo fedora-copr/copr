@@ -29,7 +29,7 @@ from munch import Munch
 
 from redis import StrictRedis
 
-from copr.client import CoprClient
+from copr.v3 import Client
 from copr_backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from copr_backend.exceptions import CoprBackendError, CoprBackendSrpmError
@@ -335,30 +335,21 @@ class BackendConfigReader(object):
 
 
 def uses_devel_repo(front_url, username, projectname):
-    client = CoprClient(copr_url=front_url)
-    result = client.get_project_details(projectname, username)
-
-    if "auto_createrepo" in result.data["detail"]:
-        return not bool(result.data["detail"]["auto_createrepo"])
-    return False
+    client = Client({"copr_url": front_url})
+    project = client.project_proxy.get(username, projectname)
+    return project.devel_mode
 
 
 def get_persistent_status(front_url, username, projectname):
-    client = CoprClient(copr_url=front_url)
-    result = client.get_project_details(projectname, username)
-
-    if "persistent" in result.data["detail"]:
-        return bool(result.data["detail"]["persistent"])
-    return True
+    client = Client({"copr_url": front_url})
+    project = client.project_proxy.get(username, projectname)
+    return project.persistent
 
 
 def get_auto_prune_status(front_url, username, projectname):
-    client = CoprClient(copr_url=front_url)
-    result = client.get_project_details(projectname, username)
-
-    if "auto_prune" in result.data["detail"]:
-        return bool(result.data["detail"]["auto_prune"])
-    return True
+    client = Client({"copr_url": front_url})
+    project = client.project_proxy.get(username, projectname)
+    return project.auto_prune
 
 
 # def log(lf, msg, quiet=None):
