@@ -337,19 +337,19 @@ class BackendConfigReader(object):
 def uses_devel_repo(front_url, username, projectname):
     client = Client({"copr_url": front_url})
     project = client.project_proxy.get(username, projectname)
-    return project.devel_mode
+    return bool(project.get("devel_mode", False))
 
 
 def get_persistent_status(front_url, username, projectname):
     client = Client({"copr_url": front_url})
     project = client.project_proxy.get(username, projectname)
-    return project.persistent
+    return bool(project.get("persistent", True))
 
 
 def get_auto_prune_status(front_url, username, projectname):
     client = Client({"copr_url": front_url})
     project = client.project_proxy.get(username, projectname)
-    return project.auto_prune
+    return bool(project.get("auto_prune", True))
 
 
 # def log(lf, msg, quiet=None):
