@@ -2,7 +2,7 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
-%global tests_version 1
+%global tests_version 2
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend

@@ -129,3 +129,18 @@ def f_third_build(f_second_build):
         os.mkdir(chdir)
         shutil.copy(source, chdir)
     yield ctx
+
+
+@fixture
+def f_builds_to_prune(f_empty_repos):
+    """
+    Prepare repositories to test prunerepo.
+    """
+    ctx = f_empty_repos
+    source = os.path.join(os.environ["TEST_DATA_DIRECTORY"],
+                          "to_prune")
+    for chroot in ctx.chroots:
+        chdir = os.path.join(ctx.empty_dir, chroot)
+        shutil.rmtree(chdir)
+        shutil.copytree(source, chdir)
+    yield ctx
