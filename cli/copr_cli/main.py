@@ -22,7 +22,6 @@ try:
 except ImportError:
     argcomplete = None
 
-from copr import CoprClient
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
     Client, config_from_file, CoprException, CoprRequestException,
@@ -378,17 +377,29 @@ class Commands(object):
         if answer == 'y':
             ownername, projectname = self.parse_name(args.name)
 
+            copr_url = self.client.config["copr_url"]
+            api_url = "{0}/api".format(copr_url)
+            url = "{0}/coprs/{1}/{2}/{3}/".format(
+                api_url, ownername, projectname, "new_webhook_secret")
+
+            auth = (self.client.config["login"],
+                    self.client.config["token"])
+
             # @TODO Rewrite this call to the APIv3.
             # @TODO I am not doing it right away because it is a release-blocker
-            # @TODO and I don't have a time to do it right now.
-            client = CoprClient.create_from_file_config()
-            result = client.new_webhook_secret(projectname, ownername=ownername)
+            try:
+                response = requests.post(url=url, auth=auth)
+                result = response.json()
+            except requests.ConnectionError as ex:
+                sys.stderr.write(str(ex) + "\n")
+                return
 
-            if result.output != "ok":
-                sys.stderr.write(result.error + "\n")
+            if result["output"] != "ok":
+                sys.stderr.write(result["error"] + "\n")
                 sys.stderr.write("Un-expected data returned, please report this issue\n")
+                return
 
-            print(result.message)
+            print(result["message"])
 
     @requires_api_auth
     def action_build(self, args):
