@@ -61,7 +61,9 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
         LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
         rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
         if rpms:
-            call_copr_repo(directory=chroot_path, rpms_to_remove=rpms)
+            LOG.info("Going to remove %s RPMs in %s", len(rpms), chroot_path)
+            call_copr_repo(directory=chroot_path, rpms_to_remove=rpms,
+                           logger=LOG)
         clean_copr(chroot_path, prune_days, verbose=True)
     except Exception as err:  # pylint: disable=broad-except
         LOG.exception(err)
@@ -179,7 +181,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
     """
     Remove whole copr build dirs if they no longer contain a RPM file
     """
-    LOG.info("Cleaning COPR repository...")
+    LOG.info("Cleaning COPR repository %s", path)
     for dir_name in os.listdir(path):
         dir_path = os.path.abspath(os.path.join(path, dir_name))
 
