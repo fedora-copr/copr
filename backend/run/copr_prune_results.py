@@ -60,7 +60,8 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
     try:
         LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
         rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
-        call_copr_repo(directory=chroot_path, rpms_to_remove=rpms)
+        if rpms:
+            call_copr_repo(directory=chroot_path, rpms_to_remove=rpms)
         clean_copr(chroot_path, prune_days, verbose=True)
     except Exception as err:  # pylint: disable=broad-except
         LOG.exception(err)
@@ -188,6 +189,11 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
             continue
         if is_rpm_in_dir(dir_path):
             continue
+
+        # Note that deleting some rpm files from the directory by
+        # run_prunerepo() actually bumps the st_mtime of the directory.  So we
+        # keep the directory here at least one another period after the last RPM
+        # removal.
         if time.time() - os.stat(dir_path).st_mtime <= days * 24 * 3600:
             continue
 
