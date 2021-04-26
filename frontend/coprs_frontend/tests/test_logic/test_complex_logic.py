@@ -2,6 +2,7 @@ import datetime
 import json
 from unittest import mock
 
+import flask
 import pytest
 
 from coprs import models, helpers, app
@@ -37,9 +38,9 @@ class TestComplexLogic(CoprsTestCase):
                 assert data["builds_map"] == {'srpm-builds': {'bar': '00000005'},'fedora-18-x86_64': {'bar': '00000005-hello-world'}}
 
     @new_app_context
-    @mock.patch("flask.g")
-    def test_fork_copr_projects_with_more_builds(self, mc_flask_g, f_users, f_fork_prepare, f_db):
-        mc_flask_g.user.name = self.u2.name
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
+    def test_fork_copr_projects_with_more_builds(self):
+        flask.g.user = self.u2
         fc2, created = ComplexLogic.fork_copr(self.c2, self.u2, u"dstname")
         self.db.session.commit()
         actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
@@ -58,10 +59,9 @@ class TestComplexLogic(CoprsTestCase):
                                '11-new-package': '00000015-new-package'}}
 
     @new_app_context
-    @mock.patch("flask.g")
     @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
-    def test_fork_copr_with_eoled_chroots(self, mc_flask_g):
-        mc_flask_g.user.name = self.u2.name
+    def test_fork_copr_with_eoled_chroots(self):
+        flask.g.user = self.u2
 
         # disable fedora-17-i386
         self.mc3.is_active = False

@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, date
 from flask_whooshee import Whooshee
 
 from sqlalchemy import desc
-from unittest import mock
 
 from copr_common.enums import ActionTypeEnum, StatusEnum
 from coprs import app
@@ -107,12 +106,12 @@ class TestCoprsLogic(CoprsTestCase):
             CoprsLogic.raise_if_cant_delete(self.u2, self.c2)
 
     @new_app_context
-    @mock.patch("flask.g")
-    def test_copr_logic_add_sends_create_gpg_key_action(self, mc_flask_g, f_users, f_mock_chroots, f_db):
+    @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
+    def test_copr_logic_add_sends_create_gpg_key_action(self):
         name = u"project_1"
         selected_chroots = [self.mc1.name]
 
-        mc_flask_g.user = self.u1
+        flask.g.user = self.u1
         CoprsLogic.add(self.u1, name, selected_chroots)
         self.db.session.commit()
 

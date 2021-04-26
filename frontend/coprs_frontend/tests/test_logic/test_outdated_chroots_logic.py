@@ -318,7 +318,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
                 _assert_unaffected(cc)
         assert found == 2
 
-    @new_app_context
     @patch("commands.notify_outdated_chroots.dev_instance_warning")
     @patch("commands.notify_outdated_chroots.send_mail")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
