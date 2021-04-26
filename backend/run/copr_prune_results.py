@@ -14,8 +14,7 @@ import multiprocessing
 
 from prunerepo.helpers import get_rpms_to_remove
 
-from copr.exceptions import CoprException
-from copr.exceptions import CoprRequestException
+from copr.v3.exceptions import CoprException
 
 from copr_backend.helpers import BackendConfigReader, get_redis_logger
 from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status, call_copr_repo
@@ -134,7 +133,7 @@ class Pruner(object):
                 LOG.info("Skipped %s/%s since auto-prunning is disabled for the project",
                          username, projectdir)
                 return
-        except (CoprException, CoprRequestException) as exception:
+        except CoprException as exception:
             LOG.error("Failed to get project details for %s/%s with error: %s",
                       username, projectdir, exception)
             return
