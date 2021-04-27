@@ -7,7 +7,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.144
+Version:    1.145
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -233,6 +233,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.145-1
+- backend: make the walk_limited test not dependend on its output order, pt2
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.144-1
 - backend: make the walk_limited test not dependend on its output order
 
