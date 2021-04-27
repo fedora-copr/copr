@@ -90,7 +90,7 @@ class TestHelpers(object):
             assert files == []
 
             # Combination of both mindepth and maxdepth
-            output = list(walk_limited(results, mindepth=3, maxdepth=3))
+            output = sorted(list(walk_limited(results, mindepth=3, maxdepth=3)))
             root, subdirs, files = output[0]
             assert root == os.path.join(results, "user1/foo/fedora-rawhide-x86_64")
             assert subdirs == ["222-foo"]
@@ -98,5 +98,5 @@ class TestHelpers(object):
 
             root, subdirs, files = output[1]
             assert root == os.path.join(results, "user1/foo/srpm-builds")
-            assert subdirs == ["222", "111"]
+            assert set(subdirs) == {"222", "111"}
             assert files == []
