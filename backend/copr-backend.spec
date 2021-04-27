@@ -7,7 +7,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.142
+Version:    1.143
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -233,6 +233,20 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.143-1
+- backend: fix copr_prune_results logging once more
+- backend: better logging in prunerepo
+- backend: prunerepo: don't re-createrepo when no rpm is removed
+- backend: catch correct client exceptions in copr_prune_results
+- test: backend: change prunerepo logic, use get_rpms_to_remove from prunerepo
+- backend: new fixture for testing prunerepo
+- backend: use safe defaults if APIv3 result doesn't contain what it should
+- backend: migrate to APIv3
+- backend: better how-to-redirect logs comment
+- backend, frontend, keygen, distgit: keep cca 3 months of logs
+- backend: don't createrepo in srpm-builds on delete
+- backend: test walk_limited function from helpers
+
 * Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.142-1
 - prepare for the centos-stream-8 rename
 - add script to prune srpm-build directories
