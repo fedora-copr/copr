@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.93
+Version:    1.94
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -127,6 +127,13 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.94-1
+- cli: migrate from CoprClient APIv1 call for generating webhook secrets
+- cli: fix output format, new option --output-format
+- test: cli: Test for get-chroot command
+- Explicitly require setuptools, copr_cli/main.py imports pkg_resources
+- cli: test list-builds, list-packages and get-package output
+
 * Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.93-1
 - support cli --enable-net for builds
 - new cli options for fedora-review
