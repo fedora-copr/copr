@@ -1,0 +1,90 @@
+.. _release_notes_2021_04_28:
+
+Highlights from 2021-04-28 release
+==================================
+
+Updated client packages are shipped in `Fedora 34`_, `Fedora 33`_, `Fedora 32`_,
+`EPEL 8`_ and `EPEL 7`_ Bodhi updates.
+
+
+Fedora Review projects
+----------------------
+During :ref:`the last release <release_notes_2021_03_17>`, a new option for
+automatically running the ``fedora-review`` tool after builds `was introduced`_.
+We have now added a button to specifically create a Fedora Review project. Such
+project will be deleted after 60 days and has settings that are common for
+Fedora package review.
+
+
+Specify copr-cli output format
+------------------------------
+A new ``--output-format {json, text, text-row}`` option has been added to
+``copr-cli`` to change the output format of the ``list-builds``, ``get-chroot``,
+``list-packages``, and ``get-package`` commands. The output format hasn't been
+changed so that users of these commands do not have to change anything at the
+moment. However, the list-builds output format will be changed to json in the
+following releases.
+
+
+Beware of
+---------
+
+- Drop the deprecated APIv1 code from ``python-copr`` package. During the Copr
+  history, we got three APIs. For a long time, we maintained all versions. We
+  decided that it is time to remove the old versions. We added a deprecation
+  warning for APIv2 and we drop the deprecated APIv1 code from the client. See
+  the `deprecation schedule`_ for more information.
+
+- Copr keeps one build results per each package stored indefinitely. All older
+  builds `are deleted after 14 days`_. This system is now applied also to Source
+  RPMs in the srpm-builds directory.
+
+- Previously, when a user disabled a chroot in project settings, the chroot
+  repository was still available (even though it wasn't listed in the project
+  overview anymore) and the builds data was kept on the backend. We now remove
+  the data from disabled chroots after 7 days (unless you decide to turn the
+  chroot back on within this period)
+
+- The ``[modified]`` string is blue on the Overview page, and it wasn't a
+  clickable link.  Now it really works, and it provides (by default hidden)
+  useful and formatted content about active releases in the given project.
+
+
+Bugfixes
+--------
+
+- `#1734`_, `#534`_ - Now we have better-designed directories for the build
+  results and log. They are now in /var/lib/copr-rpmbuild by default. We had a
+  large uploaded source RPM on two places before which caused the "No space left
+  on device" error.
+
+- `#172`_ - With the partial unique index we can better control that users cannot
+  create two projects with the same name.
+
+- `RHBZ 1948350`_ - The `old FAS site`_ FAS2 is deprecated, and currently in
+  read-only mode, so we updated our links and point them to the
+  `FAS successor`_. Please `configure your Fedora account`_ to use two-factor
+  authentication.
+
+- `#397`_ - The CGIT support for Copr DistGit is now optimized to scale with the
+  huge number of projects/repositories we have and is now re-enabled. It means
+  that git-hash links that are available in the build table should be working
+  now.
+
+
+.. _`Fedora 34`: #
+.. _`Fedora 33`: #
+.. _`Fedora 32`: #
+.. _`EPEL 8`: #
+.. _`EPEL 7`: #
+.. _`was introduced`: http://frostyx.cz/posts/running-fedora-review-after-copr-build
+.. _`are deleted after 14 days`: https://docs.pagure.org/copr.copr/user_documentation.html#how-long-do-you-keep-the-builds
+.. _`#1734`: https://pagure.io/copr/copr/issue/1743
+.. _`#534`: https://pagure.io/copr/copr/issue/534
+.. _`#172`: https://pagure.io/copr/copr/issue/172
+.. _`#397`: https://pagure.io/copr/copr/issue/397
+.. _`RHBZ 1948350`: https://bugzilla.redhat.com/show_bug.cgi?id=1948350
+.. _`old FAS site`: https://admin.fedoraproject.org/accounts
+.. _`FAS successor`: https://accounts.fedoraproject.org.
+.. _`configure your Fedora account`: https://docs.fedoraproject.org/my/fedora-accounts/user/
+.. _`deprecation schedule`: https://fedora-copr.github.io/posts/EOL-APIv1-APIv2
