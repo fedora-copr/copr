@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.49
+Version:    0.50
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -135,6 +135,11 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 0.50-1
+- dist-git: optimize cgit cache file generator
+- dist-git: move everything to Python path
+- backend, frontend, keygen, distgit: keep cca 3 months of logs
+
 * Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 0.49-1
 - sleep and continue when frontend is not available
 
