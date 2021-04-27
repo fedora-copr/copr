@@ -424,7 +424,7 @@ rlJournalStart
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
-        rlRun "python3 <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
+        rlRun "python3 <<< \"from copr.v3 import Client; client = Client.create_from_config_file('/root/.config/copr'); client.package_proxy.delete('$OWNER', '${NAME_VAR}TestConsequentDeleteActions', 'example'); client.project_proxy.delete('$OWNER', '${NAME_VAR}TestConsequentDeleteActions')\""
         sleep 30
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
