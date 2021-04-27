@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.175
+Version:    1.176
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,42 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.176-1
+- frontend: fix tests that fail in Fedora Rawhide chroots
+- frontend: create project for Fedora Review
+- frontend: memory_analyzer route module
+- frontend: fix unrelated pylint warnings
+- frontend: use correct auto_prune default when creating via API
+- frontend: better test the branch-fedora command
+- frontend: print forking stats for rawhide-to-release
+- frontend: rawhide-to-release fix for deactivated chroots
+- frontend: clone all CoprChroot attributes when forking
+- frontend: simplified Build.state logic, and better log
+- frontend: avoid NULLed source_status
+- frontend: don't create builds if there are no active chroots
+- frontend: hide deactivated chroots in the project overview
+- frontend: traceback for outdated-chroots flash message
+- frontend: make the [modified] chroot clickable
+- frontend: fix Jinja traceback on nulled buildroot_pkgs
+- frontend: catch tracebacks when rendering invalid modules
+- frontend: update FAS links to use the new site
+- frontend: fix unrelated pylint warnings
+- frontend: introduce ChrootDeletionStatus
+- frontend: delete data for unclicked chroots after few days
+- frontend: assure unique Copr name for group/user in DB
+- frontend: test that we can set these options via API
+- frontend: drop an unused pagure_events.py knob
+- GitLab moved their webhook settings to a different page.
+- frontend: fix createrepo scope for chroot enable
+- frontend: fix already defined method name
+- frontend: add base form for creating and modifying projects
+- frontend: move tests to proper class
+- frontend: explain what actions are
+- frontend: use Builds instead of Tasks in stats/
+- backend, frontend, keygen, distgit: keep cca 3 months of logs
+- frontend: test API for 'copr modify'
+- fronted: stats - sort chroots by name
+
 * Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.175-1
 - preparations for the centos-stream-8 rename
 - support per-build --enable-net
