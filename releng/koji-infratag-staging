@@ -1,0 +1,44 @@
+#! /bin/bash
+
+set -e
+
+usage()
+{
+    cat >&2 <<EOF
+usage: $0 NVR [NVR ...]
+
+Tag NVRs to proper infra staging repo.  The NVR must reference existing
+non-scratch build in Koji.
+
+Note that Koji suffers from race condition issues, and if you specify multiple
+NVRs - each is submitted to Koji as a separate task.  Such tasks are processed
+concurrently, and due to the race the final repository might miss some of the
+packages.  WORKAROUND: Submit all NVRs at once, wait a few minutes, and submit
+again.
+EOF
+}
+die() { echo >&2 "FATAL: $*"; exit 1; }
+
+test -n "$1" || { usage && exit 1 ; }
+
+fedoras=
+for build; do
+    fedora_version=${build//*fc/}
+    case $fedora_version in
+        [0-9][0-9]) ;;
+        *) die "wrong fedora id '$fedora_version'" ;;
+    esac
+
+    case $fedoras in
+    *" $fedora_version "*) ;;  # already in
+    *) fedoras="$fedoras $fedora_version "
+    esac
+
+    eval "fedora_$fedora_version=\"\$fedora_$fedora_version $build\""
+done
+
+for fedora in $fedoras; do
+    eval "builds=\$fedora_$fedora"
+    echo "Infra STG $fedora:$builds"
+    koji tag-build "f$fedora-infra-candidate" $builds
+done
