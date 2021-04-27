@@ -84,7 +84,10 @@ class TestHelpers(object):
 
             # A corner case with zero maxdepth
             output = list(walk_limited(results, maxdepth=0))
-            assert output == [(results, ["user2", "user1"], [])]
+            root, subdirs, files = output[0]
+            assert root == results
+            assert set(subdirs) == {"user2", "user1"}
+            assert files == []
 
             # Combination of both mindepth and maxdepth
             output = list(walk_limited(results, mindepth=3, maxdepth=3))
