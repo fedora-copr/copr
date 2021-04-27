@@ -65,10 +65,9 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
             call_copr_repo(directory=chroot_path, rpms_to_remove=rpms,
                            logger=LOG)
         clean_copr(chroot_path, prune_days, verbose=True)
-    except Exception as err:  # pylint: disable=broad-except
-        LOG.exception(err)
-        LOG.error("Error pruning chroot %s/%s/%s", username, projectdir,
-                  sub_dir_name)
+    except Exception:  # pylint: disable=broad-except
+        LOG.exception("Error pruning chroot %s/%s/%s", username, projectdir,
+                      sub_dir_name)
 
     LOG.info("Pruning finished for projectdir %s/%s/%s",
              username, projectdir, sub_dir_name)
@@ -105,6 +104,11 @@ class Pruner(object):
                 self.prune_project(project_path, username, projectdir)
                 LOG.info("--------------------------------------------")
 
+
+        LOG.info("Pruning tasks are delegated to background workers, waiting.")
+        self.pool.close()
+        self.pool.join()
+
         LOG.info("Setting final_prunerepo_done for deactivated chroots")
         chroots_to_prune = []
         for chroot, active in self.chroots.items():
@@ -112,10 +116,7 @@ class Pruner(object):
                 chroots_to_prune.append(chroot)
         self.frontend_client.post("final-prunerepo-done", chroots_to_prune)
 
-        self.pool.close()
-        self.pool.join()
         LOG.info("--------------------------------------------")
-        LOG.info("Pruning finished")
 
     def prune_project(self, project_path, username, projectdir):
         LOG.info("Going to prune %s/%s", username, projectdir)

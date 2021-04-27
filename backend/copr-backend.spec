@@ -2,6 +2,7 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
+%global prunerepo_version 1.20
 %global tests_version 2
 %global tests_tar test-data-copr-backend
 
@@ -54,7 +55,7 @@ BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
 BuildRequires: python3-tabulate
 BuildRequires: modulemd-tools >= 0.6
-BuildRequires: prunerepo >= 1.19
+BuildRequires: prunerepo >= %prunerepo_version
 BuildRequires: dnf
 
 Requires:   (copr-selinux if selinux-policy-targeted)
@@ -68,7 +69,7 @@ Recommends: logrotate
 Requires:   mock
 Requires:   obs-signd
 Requires:   openssh-clients
-Requires:   prunerepo >= 1.19
+Requires:   prunerepo >= %prunerepo_version
 Requires:   python3-copr
 Requires:   python3-copr-common >= 0.10.1.dev
 Requires:   python3-copr-messaging
