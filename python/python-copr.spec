@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.109
+Version:    1.110
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,13 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.110-1
+- python: drop the deprecated APIv1 code from client
+- python: add deprecation warning for APIv2
+- frontend: test that we can set these options via API
+- cli: test list-builds, list-packages and get-package output
+- frontend: document missing isolation argument
+
 * Tue Mar 16 2021 Pavel Raiskup <praiskup@redhat.com> 1.109-1
 - support the fedora-review option per-project
 
