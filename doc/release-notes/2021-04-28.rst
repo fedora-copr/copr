@@ -72,11 +72,11 @@ Bugfixes
   now.
 
 
-.. _`Fedora 34`: #
-.. _`Fedora 33`: #
-.. _`Fedora 32`: #
-.. _`EPEL 8`: #
-.. _`EPEL 7`: #
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-8d8929a4fc
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-2107cb0a42
+.. _`Fedora 32`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-67a406f71b
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-1b68061525
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-a62814e545
 .. _`was introduced`: http://frostyx.cz/posts/running-fedora-review-after-copr-build
 .. _`are deleted after 14 days`: https://docs.pagure.org/copr.copr/user_documentation.html#how-long-do-you-keep-the-builds
 .. _`#1734`: https://pagure.io/copr/copr/issue/1743
