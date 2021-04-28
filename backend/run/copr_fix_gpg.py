@@ -66,7 +66,7 @@ def fix_copr(opts, copr_full_name):
                 continue
 
         log.info("> > Running add_appdata for %s", dir_path)
-        call_copr_repo(dir_path)
+        call_copr_repo(dir_path, logger=log)
 
 
 def main():

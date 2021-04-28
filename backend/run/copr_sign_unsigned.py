@@ -31,7 +31,7 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts, chroot_dir, devel
     try:
         sign_rpms_in_dir(user, project, pkg_dir, opts, log=logger)
         log.info("running createrepo for {}".format(pkg_dir))
-        call_copr_repo(directory=chroot_dir, devel=devel)
+        call_copr_repo(directory=chroot_dir, devel=devel, logger=log)
     except Exception as err:
         success = False
         log.error(">>> Failed to check/sign rpm in dir pkg_dir")

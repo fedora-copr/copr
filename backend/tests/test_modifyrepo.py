@@ -357,19 +357,21 @@ class TestModifyRepo(object):
         ["slash/in/path"],
         [".."],
     ])
-    def test_copr_repo_subdir_validator(self, add, capfd):
-        assert 0 == call_copr_repo('/some/dir', add=add)
+    def test_copr_repo_subdir_validator(self, add, caplog):
+        log = logging.getLogger()
+        assert call_copr_repo('/some/dir', add=add, logger=log) == 0
         # not using capsys because pytest/issues/5997
-        _, err = capfd.readouterr()
-        assert 'copr-repo: error: argument' in err
+        messages = [r.message for r in caplog.records]
+        assert any(['copr-repo: error: argument' in m for m in messages])
 
-    @mock.patch("copr_backend.helpers.subprocess.call")
-    def test_copr_repo_subdir_none_doesnt_raise(self, call):
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
+    def test_copr_repo_subdir_none_doesnt_raise(self, popen):
         """ check that None is skipped in add (or delete) """
-        call.return_value = 0 # exit status 0
+        popen.return_value.communicate.return_value = ("", "")
+        popen.return_value.returncode = 0
         assert True == call_copr_repo('/some/dir', add=['xxx', None])
-        assert len(call.call_args_list) == 1
-        call = call.call_args_list[0]
+        assert len(popen.call_args_list) == 1
+        call = popen.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--add', 'xxx']
 
     def test_copr_repo_el5(self, f_third_build):
@@ -426,14 +428,16 @@ class TestModifyRepo(object):
         task_dict = self.redis.hgetall(keys[0])
         assert task_dict["status"] == "success"
 
-    @mock.patch("copr_backend.helpers.subprocess.call")
-    def test_copr_repo_rpms_to_remove_in_call(self, call):
+    @staticmethod
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
+    def test_copr_repo_rpms_to_remove_in_call(popen):
         """ check that list of rpm files to be removed is added to copr-repo call """
-        _unused = self
-        call.return_value = 0  # exit status 0
+        popen.return_value.communicate.return_value = ("","")
+        popen.return_value.returncode = 0
+
         assert call_copr_repo('/some/dir', rpms_to_remove=['xxx.rpm'])
-        assert len(call.call_args_list) == 1
-        call = call.call_args_list[0]
+        assert len(popen.call_args_list) == 1
+        call = popen.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--rpms-to-remove', 'xxx.rpm']
 
     def test_copr_repo_rpms_to_remove_passes(self, f_third_build):
@@ -486,6 +490,8 @@ class TestModifyRepo(object):
         name = glob.glob(os.path.join(chrootdir, "repodata", "*-comps.xml.gz"))
         assert os.path.exists(name[0])
 
+
+    @mock.patch("copr_prune_results.LOG", logging.getLogger())
     def test_run_prunerepo(self, f_builds_to_prune):
         _unused = self
         ctx = f_builds_to_prune

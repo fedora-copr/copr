@@ -134,8 +134,10 @@ class TestAction(object):
     @mock.patch("copr_backend.actions.copy_tree")
     @mock.patch("copr_backend.actions.os.path.exists")
     @mock.patch("copr_backend.actions.unsign_rpms_in_dir")
-    @mock.patch("copr_backend.actions.subprocess.call")
-    def test_action_handle_forks(self, mc_call, mc_unsign_rpms_in_dir, mc_exists, mc_copy_tree, mc_time):
+    @mock.patch("copr_backend.actions.subprocess.Popen")
+    def test_action_handle_forks(self, mc_popen, mc_unsign_rpms_in_dir,
+                                 mc_exists, mc_copy_tree, mc_time):
+        mc_popen.return_value.communicate.return_value = ("", "")
         mc_time.time.return_value = self.test_time
         mc_exists = True
         test_action = Action.create_from(
@@ -185,10 +187,10 @@ class TestAction(object):
             "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-i386/00000010-pkg2")
 
         # TODO: calling createrepo for srpm-builds is useless
-        assert len(mc_call.call_args_list) == 3
+        assert len(mc_popen.call_args_list) == 3
 
         dirs = set()
-        for call in mc_call.call_args_list:
+        for call in mc_popen.call_args_list:
             args = call[0][0]
             assert args[0] == 'copr-repo'
             dirs.add(args[2])
@@ -737,10 +739,11 @@ class TestAction(object):
     # We want to test that ACR flag doesn't make any difference here, explicit
     # createrepo always works with non-devel directory.
     @pytest.mark.parametrize('devel', [False, True])
-    @mock.patch("copr_backend.actions.subprocess.call")
+    @mock.patch("copr_backend.actions.subprocess.Popen")
     @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_handle_createrepo_ok(self, mc_devel, mc_sp_call, mc_time, devel):
-        mc_sp_call.return_value = 0 # exit_status=0
+    def test_handle_createrepo_ok(self, mc_devel, mc_sp_popen, mc_time, devel):
+        mc_sp_popen.return_value.communicate.return_value = ("", "")
+        mc_sp_popen.return_value.returncode = 0
         mc_devel.return_value = devel
 
         tmp_dir = self.make_temp_dir()
@@ -766,10 +769,10 @@ class TestAction(object):
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
             cmd = ["copr-repo", "--batched",
                    os.path.join(self.test_project_dir, chroot)]
-            exp_call = mock.call(cmd, timeout=None)
-            assert exp_call in mc_sp_call.call_args_list
+            exp_call = mock.call(cmd, stdout=-1, stderr=-1, shell=False, encoding='utf-8')
+            assert exp_call in mc_sp_popen.call_args_list
 
-        assert len(mc_sp_call.call_args_list) == 2
+        assert len(mc_sp_popen.call_args_list) == 2
 
     @mock.patch("copr_backend.actions.call_copr_repo")
     @mock.patch("copr_backend.actions.uses_devel_repo")

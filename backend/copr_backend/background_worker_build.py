@@ -604,7 +604,8 @@ class BuildBackgroundWorker(BackgroundWorker):
                       "(auto-create-repo=%s)", self.job.target_dir_name,
                       base_url, not devel)
         if not call_copr_repo(self.job.chroot_dir, devel=devel,
-                              add=[self.job.target_dir_name]):
+                              add=[self.job.target_dir_name],
+                              logger=self.log):
             raise BackendError("createrepo failed")
 
     def _get_srpm_build_details(self, job):

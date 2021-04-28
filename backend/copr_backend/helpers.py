@@ -8,6 +8,7 @@ import errno
 import time
 import types
 import glob
+import pipes
 
 import configparser
 from configparser import ConfigParser
@@ -60,8 +61,10 @@ def cmd_debug(cmd, rc, out, err, log):
     log.info("stderr: {}".format(err))
 
 
-def run_cmd(cmd, shell=False):
-    """Runs given command in a subprocess.
+def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False):
+    """
+    Runs given command in a subprocess, logs what is happening, return important
+    info about the process.
 
     Params
     ------
@@ -69,20 +72,55 @@ def run_cmd(cmd, shell=False):
         command to be executed and its arguments
     shell: bool
         if the command should be interpreted by shell
+    timeout:
+        passed down to Popen.communicate().  See catch_timeout, too.
+    catch_timeout:
+        When set to True, we catch timeout exceptions and log them, and return
+        the status code 124.
 
     Returns
     -------
     munch.Munch(stdout, stderr, returncode)
         executed cmd, standard output, error output, and the return code
     """
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, encoding="utf-8")
-    (stdout, stderr) = process.communicate()
+    def _info(logger, *args, **kwargs):
+        if not logger:
+            return
+        logger.info(*args, **kwargs)
 
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, encoding="utf-8")
+
+    pid = process.pid
+    str_cmd = cmd
+    if isinstance(cmd, list):
+        str_cmd = " ".join([pipes.quote(a) for a in cmd])
+
+    _info(logger, "Running command '%s' as PID %s", str_cmd, pid)
+
+    timeouted = False
+    try:
+        (stdout, stderr) = process.communicate(timeout=timeout)
+        code = process.returncode
+    except subprocess.TimeoutExpired:
+        _info(logger, "Timeouted (%s)", str_cmd)
+        if not catch_timeout:
+            raise
+        # https://docs.python.org/3/library/subprocess.html#subprocess.Popen.communicate
+        process.kill()
+        stdout, stderr = process.communicate()
+
+        code = 124  # inspired by /bin/timeout
+        timeouted = True
+
+    _info(logger, "Finished with code %s (%s)", code, str_cmd)
     return munch.Munch(
         cmd=cmd,
         stdout=stdout,
         stderr=stderr,
-        returncode=process.returncode
+        timeouted=timeouted,
+        returncode=code,
+        pid=pid,
+        str_cmd=str_cmd,
     )
 
 
@@ -601,12 +639,11 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
     if rpms_to_remove:
         cmd += subdirs('--rpms-to-remove', rpms_to_remove)
 
-    try:
-        if logger:
-            logger.info("Running %s", " ".join(cmd))
-        return not subprocess.call(cmd, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return False
+    result = run_cmd(cmd, timeout=timeout, logger=logger, catch_timeout=True)
+    if result.returncode and logger:
+        logger.error("Createrepo failed, stderr:\n%s", result.stderr)
+
+    return not result.returncode
 
 def build_target_dir(build_id, package_name=None):
     build_id = int(build_id)

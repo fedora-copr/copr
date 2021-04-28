@@ -130,7 +130,7 @@ class Createrepo(Action):
                 except FileExistsError:
                     pass
 
-                if not call_copr_repo(repo):
+                if not call_copr_repo(repo, logger=self.log):
                     result = ActionResult.FAILURE
 
         return result
@@ -211,7 +211,7 @@ class Fork(Action, GPGMixin):
 
             result = ActionResult.SUCCESS
             for chroot_path in chroot_paths:
-                if not call_copr_repo(chroot_path):
+                if not call_copr_repo(chroot_path, logger=self.log):
                     result = ActionResult.FAILURE
 
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
@@ -247,8 +247,8 @@ class Delete(Action):
             # repodata temporarily pointing at non-existing files)!
             if chroot != "srpm-builds":
                 # In srpm-builds we don't create repodata at all
-                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel):
-                    self.log.error("createrepo_c failed in %s", chroot_path)
+                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel,
+                                      logger=self.log):
                     result = ActionResult.FAILURE
 
             for build_id in build_ids or []:
@@ -432,8 +432,7 @@ class RawhideToRelease(Action):
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
-            if not call_copr_repo(chrootdir):
-                self.log.error("call_copr_repo('%s') failure", chrootdir)
+            if not call_copr_repo(chrootdir, logger=self.log):
                 result = ActionResult.FAILURE
         except:
             result = ActionResult.FAILURE
@@ -492,7 +491,7 @@ class BuildModule(Action):
                     mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, rpms_nevras=artifacts)
                     self.log.info("Module artifacts: %s", artifacts)
                     modulemd_tools.yaml.dump(mmd_yaml, destdir)
-                    if not call_copr_repo(destdir):
+                    if not call_copr_repo(destdir, logger=self.log):
                         result = ActionResult.FAILURE
 
         except Exception:
