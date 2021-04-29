@@ -11,6 +11,7 @@ mess up everything around.
 
 import argparse
 import contextlib
+import datetime
 import logging
 import os
 import pipes
@@ -281,6 +282,14 @@ def delete_builds(opts):
         opts.log.info("removing %s", rpm)
         try:
             os.unlink(os.path.join(opts.directory, rpm))
+            prune_log = os.path.join(opts.directory, os.path.dirname(rpm),
+                                     "prune.log")
+            with open(prune_log, "a+") as fd:
+                fd.write("{} pruned on {}, by PID {}\n".format(
+                    rpm,
+                    datetime.datetime.utcnow(),
+                    os.getpid(),
+                ))
         except OSError:
             opts.log.exception("can't remove %s", rpm)
 

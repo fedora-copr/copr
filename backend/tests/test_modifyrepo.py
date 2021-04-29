@@ -502,5 +502,10 @@ class TestModifyRepo(object):
                             [])
         run_prunerepo(chrootdir, 'john', 'empty', chroot, 0)
         assert_files_in_dir(os.path.join(chrootdir, '00999999-dummy-pkg'),
-                            [],
+                            ["prune.log"],
                             ["dummy-pkg-1-1.fc34.x86_64.rpm"])
+        logfile = os.path.join(chrootdir, "00999999-dummy-pkg", "prune.log")
+        with open(logfile, "r") as fd:
+            lines = fd.readlines()
+            assert len(lines) == 1
+            assert "pruned on" in lines[0]
