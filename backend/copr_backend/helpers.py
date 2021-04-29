@@ -621,7 +621,7 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
     cmd = ["copr-repo", "--batched", directory]
-    def subdirs(option, subdirs):
+    def opt_multiply(option, subdirs):
         args = []
         if not subdirs:
             return []
@@ -632,12 +632,11 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
                 continue
             args += [option, subdir]
         return args
-    cmd += subdirs('--add', add)
-    cmd += subdirs('--delete', delete)
+    cmd += opt_multiply('--add', add)
+    cmd += opt_multiply('--delete', delete)
+    cmd += opt_multiply('--rpms-to-remove', rpms_to_remove)
     if devel:
         cmd += ['--devel']
-    if rpms_to_remove:
-        cmd += subdirs('--rpms-to-remove', rpms_to_remove)
 
     result = run_cmd(cmd, timeout=timeout, logger=logger, catch_timeout=True)
     if result.returncode and logger:
