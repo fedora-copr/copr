@@ -7,7 +7,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.145
+Version:    1.146
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -233,6 +233,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Apr 30 2021 Pavel Raiskup <praiskup@redhat.com> 1.146-1
+- better fixes for the appstream-builder generated files
+- new helper script named /bin/copr-assure-permissions
+- do not rsync-copy permissions from the builder
+- log the partial "prunerepo" effects into resultdir
+- better, more verbose call_copr_repo logging
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.145-1
 - backend: make the walk_limited test not dependend on its output order, pt2
 
