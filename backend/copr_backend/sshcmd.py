@@ -197,7 +197,7 @@ class SSHConnection(object):
         log_filepath = "/dev/null"
         if logfile:
             log_filepath = os.path.join(dest, logfile)
-        command = "/usr/bin/rsync -rltDvH -e '{}' {} {}/ &> {}".format(
+        command = "/usr/bin/rsync -rltDvH --chmod=D755,F644 -e '{}' {} {}/ &> {}".format(
             ssh_opts, full_source_path, dest, log_filepath)
 
         try:
