@@ -188,7 +188,7 @@ class ChrootsField(MultiCheckboxField):
         active_names = sorted(MockChrootsLogic.active_names())
         self.choices = [(ch, ch) for ch in active_names]
 
-        copr_mock_chroots = copr.mock_chroots if copr else []
+        copr_mock_chroots = copr.active_chroots if copr else []
         copr_chroot_names = [ch.name for ch in copr_mock_chroots]
         self.default = [ch for ch in active_names if ch in copr_chroot_names]
 
