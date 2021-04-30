@@ -366,8 +366,8 @@ def render_copr_detail(copr):
                 "delete_reason": delete_reason,
             }
         else:
-            repos_info[mc.name_release]["arch_list"].append(chroot.arch)
-            repos_info[mc.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
+            repos_info[mc.name_release]["arch_list"].append(mc.arch)
+            repos_info[mc.name_release]["rpm_dl_stat"][mc.arch] = chroot_rpms_dl_stat
 
     if copr.multilib:
         for name_release in repos_info:
