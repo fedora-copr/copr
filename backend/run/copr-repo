@@ -144,27 +144,20 @@ def run_createrepo(opts):
     if os.path.exists(mb_comps_xml_path):
         createrepo_cmd += ['--groupfile', mb_comps_xml_path, '--keep-all-metadata']
 
-    # we assume that we could skip the call at the beginning
-    createrepo_run_needed = False
+    repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
+    repodata_exist = os.path.exists(repodata_xml)
 
-    if not opts.full:
-        # request for modification, is the repo actually initialized?  Otherwise
-        # we do full createrepo_c run.
-        repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
-        if os.path.exists(repodata_xml):
-            createrepo_cmd += ["--recycle-pkglist", "--update", "--skip-stat"]
-        else:
-            # Either --add or --delete was specified, but there are no metadata,
-            # yet.  This would be bug in most cases (most likely the initial
-            # createrepo run after project creation failed).  But it would be
-            # wrong to not run "full" createrepo in such case.
-            createrepo_run_needed = True
-    else:
-        # full createrepo run requested
-        createrepo_run_needed = True
+    if repodata_exist:
+        # optimized createrepo run
+        createrepo_cmd += ["--update", "--skip-stat"]
+        if not opts.full:
+            createrepo_cmd += ["--recycle-pkglist"]
 
     opts.add = filter_existing(opts, opts.add)
     opts.delete = filter_existing(opts, opts.delete)
+
+    # full run is never skipped
+    createrepo_run_needed = opts.full
 
     for subdir in opts.delete:
         # something is going to be deleted
