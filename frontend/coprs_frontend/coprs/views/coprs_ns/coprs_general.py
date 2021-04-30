@@ -318,7 +318,7 @@ def render_copr_detail(copr):
     repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
     form = forms.CoprLegalFlagForm()
     repos_info = {}
-    for chroot in copr.enable_permissible_chroots:
+    for chroot in copr.enable_permissible_copr_chroots:
         chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
             copr_user=copr.owner_name,
             copr_project_name=copr.name,
@@ -336,28 +336,38 @@ def render_copr_detail(copr):
             if fnmatch.fnmatch(logo, "*.png"):
                 logoset.add(logo[:-4])
 
-        if chroot.name_release not in repos_info:
+        mc = chroot.mock_chroot
+        if mc.name_release not in repos_info:
             logo = None
-            if chroot.name_release in logoset:
-                logo = chroot.name_release + ".png"
-            elif chroot.os_release in logoset:
-                logo = chroot.os_release + ".png"
+            if mc.name_release in logoset:
+                logo = mc.name_release + ".png"
+            elif mc.os_release in logoset:
+                logo = mc.os_release + ".png"
 
-            repos_info[chroot.name_release] = {
-                "name_release": chroot.name_release,
-                "os_release": chroot.os_release,
-                "os_version": chroot.os_version,
+            delete_reason = None
+            if chroot.delete_status:
+                delete_reason = ("This chroot {0} and its repository will "
+                                 "remain available for another {1} days".format(
+                                     "was disabled by a project owner"
+                                     if chroot.is_active else "is EOL",
+                                     chroot.delete_after_days))
+
+            repos_info[mc.name_release] = {
+                "name_release": mc.name_release,
+                "os_release": mc.os_release,
+                "os_version": mc.os_version,
                 "logo": logo,
-                "arch_list": [chroot.arch],
-                "repo_file": "{}-{}.repo".format(copr.repo_id, chroot.name_release),
-                "dl_stat": repo_dl_stat[chroot.name_release],
+                "arch_list": [mc.arch],
+                "repo_file": "{}-{}.repo".format(copr.repo_id, mc.name_release),
+                "dl_stat": repo_dl_stat[mc.name_release],
                 "rpm_dl_stat": {
-                    chroot.arch: chroot_rpms_dl_stat
-                }
+                    mc.arch: chroot_rpms_dl_stat
+                },
+                "delete_reason": delete_reason,
             }
         else:
-            repos_info[chroot.name_release]["arch_list"].append(chroot.arch)
-            repos_info[chroot.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
+            repos_info[mc.name_release]["arch_list"].append(chroot.arch)
+            repos_info[mc.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
 
     if copr.multilib:
         for name_release in repos_info:

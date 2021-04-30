@@ -72,6 +72,11 @@
               {% endfor %}
             {% endif %}
             <small class="text-muted"> ({{ repo.dl_stat }} downloads) </small>
+            <span class="pull-right">
+              {% if repo.delete_reason %}
+              <i class="fa fa-trash-o fa-2x" aria-hidden="true" title="{{ repo.delete_reason }}"></i>
+              {% endif %}
+            </span>
           </td>
         </tr>
       {% endfor %}

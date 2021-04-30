@@ -435,17 +435,26 @@ class Copr(db.Model, helpers.Serializer):
         return [cc.mock_chroot for cc in self.active_copr_chroots]
 
     @property
-    def enable_permissible_chroots(self):
+    def enable_permissible_copr_chroots(self):
         """
-        Return the list of not-yet-deleted (includes EOLed) mock_chroots
+        Return the list of not-yet-deleted (includes EOLed) copr_chroots
         assigned to this copr.
         """
         permissible_states = [
             ChrootDeletionStatus("active"),
             ChrootDeletionStatus("preserved"),
         ]
-        return [cc.mock_chroot for cc in self.copr_chroots
+        return [cc for cc in self.copr_chroots
                 if cc.delete_status in permissible_states]
+
+    @property
+    def enable_permissible_chroots(self):
+        """
+        Return the list of not-yet-deleted (includes EOLed) mock_chroots
+        assigned to this copr.
+        """
+        return [cc.mock_chroot for cc in self.enable_permissible_copr_chroots]
+
 
     @property
     def active_multilib_chroots(self):
