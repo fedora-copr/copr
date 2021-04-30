@@ -44,7 +44,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.176
+Version:    1.177
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,10 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Apr 30 2021 Pavel Raiskup <praiskup@redhat.com> 1.177-1
+- fix chroot disabling in project settings
+- not display EOL warning for per-project disabled chroots
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.176-1
 - frontend: fix tests that fail in Fedora Rawhide chroots
 - frontend: create project for Fedora Review
