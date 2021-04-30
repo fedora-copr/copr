@@ -1,0 +1,84 @@
+#! /usr/bin/python3
+
+"""
+Traverse through the given directory, and set the given permissions, ownership,
+etc.  Log every change that is being done.  This script requires a root access.
+"""
+
+import argparse
+import logging
+import os
+import pwd
+import grp
+import stat
+import sys
+
+def _get_argparser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("directory")
+    parser.add_argument("--owner")
+    parser.add_argument("--group")
+    parser.add_argument("--file-mode")
+    parser.add_argument("--dir-mode")
+    parser.add_argument("--dry-run", action='store_true')
+    return parser
+
+def fix_file(path, log, uid=None, gid=None, mode=None, dry_run=False):
+    """ Fix the permissions/ownership, and log-out """
+    if all([item is None for item in [uid, gid, mode]]):
+        return
+    log.debug("Checking %s", path)
+    file_stat = os.stat(path, follow_symlinks=False)
+
+    if not any([f(file_stat.st_mode)
+                for f in [stat.S_ISDIR, stat.S_ISREG, stat.S_ISLNK]]):
+        log.warning("File %s is not a directory, file or symlink!", path)
+
+    if mode is not None and not stat.S_ISLNK(file_stat.st_mode):
+        requested_mode = stat.S_IMODE(int(mode, 8))
+        current_mode = stat.S_IMODE(file_stat.st_mode)
+        if current_mode != requested_mode:
+            log.info("Fixing mode on '%s' from '%s' to '%s'",
+                     path, oct(current_mode), oct(requested_mode))
+            if not dry_run:
+                os.chmod(path, requested_mode, follow_symlinks=False)
+
+    new_uid = int(uid) if uid is not None else file_stat.st_uid
+    new_gid = int(gid) if gid is not None else file_stat.st_gid
+
+    if new_gid != file_stat.st_gid or new_uid != file_stat.st_uid:
+        log.info("Fixing ownership on '%s' from '%s:%s' to '%s:%s'",
+                 path, file_stat.st_uid, file_stat.st_gid, new_uid, new_gid)
+        if not dry_run:
+            os.chown(path, new_uid, new_gid, follow_symlinks=False)
+
+
+def _main():
+    parser = _get_argparser()
+    opts = parser.parse_args()
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger()
+
+    if os.getuid() != 0:
+        log.error("Please execute this as root")
+        sys.exit(1)
+
+    gid = uid = None
+    if opts.owner is not None:
+        uid = pwd.getpwnam(opts.owner).pw_uid
+    if opts.group is not None:
+        gid = grp.getgrnam(opts.group).gr_gid
+
+    for root, dirs, files in os.walk(opts.directory):
+        for subdir in dirs:
+            path = os.path.join(root, subdir)
+            fix_file(path, log, uid=uid, gid=gid, mode=opts.dir_mode,
+                     dry_run=opts.dry_run)
+
+        for file in files:
+            path = os.path.join(root, file)
+            fix_file(path, log, uid=uid, gid=gid, mode=opts.file_mode,
+                     dry_run=opts.dry_run)
+
+if __name__ == "__main__":
+    _main()
