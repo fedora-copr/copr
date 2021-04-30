@@ -22,7 +22,7 @@ class OutdatedChrootsLogic:
         soon = now + timedelta(days=period)
 
         reviewed = [x.copr_chroot_id for x in cls.get_all_reviews(user).all()]
-        return bool((models.CoprChroot.query
+        return bool((models.CoprChroot.query.join(models.CoprChroot.mock_chroot)
                      .filter(models.CoprChroot.copr_id.in_(projects_ids))
                      .filter(models.CoprChroot.delete_after.isnot(None))
                      .filter(models.CoprChroot.delete_after <= soon)
