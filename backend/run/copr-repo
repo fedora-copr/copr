@@ -329,7 +329,7 @@ def main_locked(opts, batch, log):
         log.info("Others requested full createrepo")
         opts.full = True
         # There's no point in searching for directories to be added, but we
-        # still want to delete!
+        # still want to process .delete/.rpms_to_remove!
         opts.add = []
 
     if batch_add:
@@ -382,7 +382,7 @@ def main():
     opts = get_arg_parser().parse_args()
 
     # neither --add nor --delete means we do full createrepo run
-    opts.full = not(opts.add or opts.delete)
+    opts.full = not(opts.add or opts.delete or opts.rpms_to_remove)
 
     # try to setup logging based on copr-be.conf
     process_backend_config(opts)
