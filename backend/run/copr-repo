@@ -263,9 +263,13 @@ def add_appdata(opts):
                  os.path.join(path, 'repodata')],
                 opts)
 
-    # appstream builder provides strange access rights to result dir
-    # fix them, so that lighttpd could serve appdata dir
-    run_cmd(['chmod', '-R', '+rX', os.path.join(path, 'appdata')], opts)
+    # The appstream-builder utility provides a strange access rights to the
+    # created directories.  Fix them, so that lighttpd could serve appdata dir.
+    # https://github.com/hughsie/appstream-glib/issues/399
+    fix_dirs = ["tmp", "cache", "appdata"]
+    find_cmd = ["find"] + [os.path.join(path, subdir) for subdir in fix_dirs]
+    run_cmd(find_cmd + ["-type", "d", "-exec", "chmod", "755", "{}", "+"], opts)
+    run_cmd(find_cmd + ["-type", "f", "-exec", "chmod", "644", "{}", "+"], opts)
 
 
 def delete_builds(opts):
