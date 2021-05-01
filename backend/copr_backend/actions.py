@@ -452,7 +452,7 @@ class BuildModule(Action):
 
             mmd_yaml = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
             mmd_yaml = modulemd_tools.yaml.upgrade(mmd_yaml, 2)
-            self.log.info(mmd_yaml)
+            self.log.info("%s", mmd_yaml)
 
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
