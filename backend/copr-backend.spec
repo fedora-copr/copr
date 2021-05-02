@@ -7,7 +7,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.146
+Version:    1.147
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -233,6 +233,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Sun May 02 2021 Pavel Raiskup <praiskup@redhat.com> 1.147-1
+- fix logging traceback for module builds
+- call creatrepo_c with --update if possible
+- don't do full createrpeo with --rpms-to-remove
+
 * Fri Apr 30 2021 Pavel Raiskup <praiskup@redhat.com> 1.146-1
 - better fixes for the appstream-builder generated files
 - new helper script named /bin/copr-assure-permissions
