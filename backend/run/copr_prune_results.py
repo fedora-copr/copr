@@ -33,7 +33,11 @@ parser.add_argument(
         action='store_true',
         help=("Also try to prune repositories where no new builds "
               "have been done for a long time"))
-
+parser.add_argument(
+        "--prune-finalized-chroots",
+        action='store_true',
+        help=("Also prune chroots that are inactive and we already did "
+              "the last prunerepo there, implies --no-mtime-optimization"))
 
 def list_subdir(path):
     dir_names = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -73,6 +77,8 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
              username, projectdir, sub_dir_name)
 
 class Pruner(object):
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, opts, cmdline_opts=None):
         self.opts = opts
         self.prune_days = getattr(self.opts, "prune_days", DEF_DAYS)
@@ -80,10 +86,17 @@ class Pruner(object):
         self.frontend_client = FrontendClient(self.opts, try_indefinitely=True,
                                               logger=LOG)
         self.mtime_optimization = True
+        self.prune_finalized_chroots = False
         self.workers = getattr(self.opts, "prune_workers", None)
         self.pool = multiprocessing.Pool(processes=self.workers)
         if cmdline_opts:
             self.mtime_optimization = not cmdline_opts.no_mtime_optimization
+            if cmdline_opts.prune_finalized_chroots:
+                self.prune_finalized_chroots = True
+                # We have to disable mtime optimizations because otherwise we
+                # would skip all the old chroots because probably nobody touched
+                # them for a very long time.
+                self.mtime_optimization = False
 
     def run(self):
         response = self.frontend_client.get("chroots-prunerepo-status")
@@ -110,13 +123,40 @@ class Pruner(object):
         self.pool.join()
 
         LOG.info("Setting final_prunerepo_done for deactivated chroots")
-        chroots_to_prune = []
-        for chroot, active in self.chroots.items():
-            if not active:
-                chroots_to_prune.append(chroot)
-        self.frontend_client.post("final-prunerepo-done", chroots_to_prune)
-
+        chroots_finalized = []
+        for chroot, info in self.chroots.items():
+            if info["final_prunerepo_done"]:
+                # no need to re-finalize on FE
+                continue
+            if info["active"]:
+                # This chroot can still get new builds
+                continue
+            chroots_finalized.append(chroot)
+        self.frontend_client.post("final-prunerepo-done", chroots_finalized)
         LOG.info("--------------------------------------------")
+
+    def should_run_in_chroot(self, username, projectdir, chroot_name):
+        """
+        Return False if we think that it doesn't make much sense to re-run the
+        repo cleanup scripts against this chroot (because nothing could have
+        happened since the previous run).
+        """
+        if chroot_name not in self.chroots:
+            LOG.error("Wrong chroot name %s/%s:%s",
+                      username, projectdir, chroot_name)
+            return False
+
+        info = self.chroots[chroot_name]
+        if info["final_prunerepo_done"]:
+            if self.prune_finalized_chroots:
+                LOG.info("Re-running prunerepo in finalized %s/%s:%s",
+                         username, projectdir, chroot_name)
+                return True
+            LOG.debug("Final pruning already done for chroot %s/%s:%s",
+                      username, projectdir, chroot_name)
+            return False
+
+        return True
 
     def prune_project(self, project_path, username, projectdir):
         LOG.info("Going to prune %s/%s", username, projectdir)
@@ -151,9 +191,7 @@ class Pruner(object):
             if not os.path.isdir(chroot_path):
                 continue
 
-            if sub_dir_name not in self.chroots:
-                LOG.info("Final pruning already done for chroot %s/%s:%s",
-                         username, projectdir, sub_dir_name)
+            if not self.should_run_in_chroot(username, projectdir, sub_dir_name):
                 continue
 
             if self.mtime_optimization:

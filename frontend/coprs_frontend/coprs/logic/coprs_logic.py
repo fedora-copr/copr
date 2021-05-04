@@ -1076,8 +1076,10 @@ class MockChrootsLogic(object):
         query = models.MockChroot.query
         chroots = {}
         for chroot in query:
-            if chroot.is_active or not chroot.final_prunerepo_done:
-                chroots[chroot.name] = chroot.is_active
+            chroots[chroot.name] = {
+                "active": bool(chroot.is_active),
+                "final_prunerepo_done": bool(chroot.final_prunerepo_done),
+            }
 
         return chroots
 
