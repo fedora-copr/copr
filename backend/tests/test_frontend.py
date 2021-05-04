@@ -31,6 +31,16 @@ def mc_time():
 
 class TestFrontendClient(object):
 
+    @staticmethod
+    def _get_fake_response():
+        resp = Munch()
+        resp.headers = {
+            "Copr-FE-BE-API-Version": "666",
+        }
+        resp.status_code = 200
+        resp.data = "ok\n"
+        return resp
+
     def setup_method(self, method):
         self.opts = Munch(
             frontend_base_url="http://example.com/",
@@ -72,8 +82,8 @@ class TestFrontendClient(object):
         assert method.called
 
     def test_post_to_frontend_repeated_first_try_ok(self, mask_frontend_request, mc_time):
-        response = "ok\n"
         mc_time.time.return_value = 0
+        response = self._get_fake_response()
         mask_frontend_request.return_value = response
         assert self.fc.post(self.data, self.url_path) == response
         assert not mc_time.sleep.called
@@ -82,7 +92,7 @@ class TestFrontendClient(object):
             mask_frontend_request, mc_time):
         method_name, method = f_request_method
 
-        response = "ok\n"
+        response = self._get_fake_response()
         mask_frontend_request.side_effect = [
             RequestRetryError(),
             response,
@@ -129,6 +139,17 @@ class TestFrontendClient(object):
             self.fc.post(self.data, self.url_path)
         assert mc_time.sleep.called
         assert len(caplog.records) == 100
+
+    def test_retries_on_outdated_frontend(self, mask_frontend_request, caplog):
+        response = self._get_fake_response()
+        response.headers["Copr-FE-BE-API-Version"] = "0"
+        mask_frontend_request.side_effect = [
+            response for _ in range(100)] + [Exception("sorry")]
+        with pytest.raises(Exception):
+            self.fc.try_indefinitely = True
+            self.fc.post(self.data, self.url_path)
+        assert len(mask_frontend_request.call_args_list) == 101
+        assert "Copr FE/BE API is too old on Frontend" in str(caplog.records[0])
 
     def test_update(self):
         ptfr = MagicMock()

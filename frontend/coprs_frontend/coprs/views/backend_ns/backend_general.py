@@ -20,6 +20,17 @@ import logging
 log = logging.getLogger(__name__)
 
 
+@backend_ns.after_request
+def send_frontend_version(response):
+    """
+    This sets the FE <=> BE API version.  We should bump this version anytime we
+    do something new with the protocol.  On the Backend/builder side we can
+    setup the version according to our needs.
+    """
+    response.headers['Copr-FE-BE-API-Version'] = '1'
+    return response
+
+
 @backend_ns.route("/importing/")
 def dist_git_importing_queue():
     """

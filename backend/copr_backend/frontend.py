@@ -3,6 +3,7 @@ import logging
 from copr_common.request import SafeRequest, RequestError
 from copr_backend.exceptions import FrontendClientException
 
+MIN_FE_BE_API = 1
 
 class FrontendClient(object):
     """
@@ -41,6 +42,20 @@ class FrontendClient(object):
         return self.send(url_path, data=data, method='put')
 
     def send(self, url_path, method='post', data=None, authenticate=True):
+        """ Repeat the request until it succeeds.  """
+        while True:
+            response = self._send_attempt(url_path, method, data, authenticate)
+            fe_be_api_version = response.headers.get("Copr-FE-BE-API-Version", 0)
+            if int(fe_be_api_version) >= MIN_FE_BE_API:
+                return response
+
+            msg = "Copr FE/BE API is too old on Frontend side, %s < %s"
+            if self.try_indefinitely:
+                self.logger.error(msg, fe_be_api_version, MIN_FE_BE_API)
+                continue
+            raise FrontendClientException(msg % (fe_be_api_version, MIN_FE_BE_API))
+
+    def _send_attempt(self, url_path, method='post', data=None, authenticate=True):
         # """
         # Repeat the request until it succeeds, or timeout is reached.
         # """
