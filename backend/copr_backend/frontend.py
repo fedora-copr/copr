@@ -1,3 +1,8 @@
+"""
+The logic behind contacting Copr Frontend from Backend.  All the requests to
+the /backend/ Flask blueprint should go through this FrontendClient API.
+"""
+
 import logging
 
 from copr_common.request import SafeRequest, RequestError
@@ -5,7 +10,7 @@ from copr_backend.exceptions import FrontendClientException
 
 MIN_FE_BE_API = 1
 
-class FrontendClient(object):
+class FrontendClient:
     """
     Object to send data back to fronted
     """
@@ -68,7 +73,7 @@ class FrontendClient(object):
             response = request.send(url, method=method, data=data)
             return response
         except RequestError as ex:
-            raise FrontendClientException(ex)
+            raise FrontendClientException from ex
 
     def update(self, data):
         """
