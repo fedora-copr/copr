@@ -66,6 +66,7 @@ class TestDistGitMethodBuild(object):
             capsys)
         assert len(f_patch_create_from_distgit.call_args_list) == 1
         call = f_patch_create_from_distgit.call_args_list[0]
+        self.default_build_call['ownername'] = "test"
         assert call[1] == self.default_build_call
 
     @pytest.mark.parametrize('enable_net', ["on", "off"])
@@ -116,7 +117,7 @@ class TestDistGitMethodPackage(object):
 
         call = f_patch_package_distgit[0].call_args_list[0]
         assert call == mock.call(
-            None, "project", "package", "distgit",
+            "test", "project", "package", "distgit",
             {'distgit': None,
              'namespace': None,
              'committish': None,
@@ -142,9 +143,10 @@ class TestDistGitMethodPackage(object):
              'webhook_rebuild': True})
 
     @staticmethod
-    def test_edit_package_fail(f_test_config, capsys):
-        with mock.patch("copr.v3.proxies.package.PackageProxy.add") as p1:
-            p1.side_effect = copr.v3.CoprRequestException("test")
+    @mock.patch('copr.v3.proxies.BaseProxy.auth', new_callable=mock.PropertyMock, return_value="test")
+    def test_edit_package_fail(auth, capsys):
+        with mock.patch("copr.v3.proxies.package.PackageProxy.edit") as p1:
+            p1.side_effect = copr.v3.CoprRequestException("Unable to connect to http://copr/api_3/.")
             with pytest.raises(SystemExit) as exc:
                 main.main(['edit-package-distgit', '--name', 'package',
                            '@owner/project/blah'])

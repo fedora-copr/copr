@@ -27,7 +27,7 @@ class TestRequest(object):
         r2 = Request(endpoint="/foo/bar", api_base_url="http://copr/api_3/")
         assert r2.endpoint_url == "http://copr/api_3/foo/bar"
 
-    @mock.patch("requests.request")
+    @mock.patch('requests.Session.request')
     def test_send(self, request):
         req1 = Request(endpoint="foo", api_base_url="http://copr/api_3")
         resp1 = req1.send()

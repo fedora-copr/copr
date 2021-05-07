@@ -1,9 +1,13 @@
+from __future__ import absolute_import
+
 from functools import wraps
 import os
 import time
 import configparser
+import requests
+import requests_gssapi
 from munch import Munch
-from .exceptions import CoprNoConfigException, CoprConfigException, CoprException
+from .exceptions import CoprConfigException, CoprException
 
 
 class List(list):
@@ -25,12 +29,13 @@ def config_from_file(path=None):
         raise CoprConfigException(str(ex))
 
     if not exists:
-        raise CoprNoConfigException("There is no config file: {}".format(path))
+        raw_config["copr-cli"] = {"copr_url": "https://copr.fedorainfracloud.org"}
 
     try:
-        for field in ["username", "login", "token", "copr_url"]:
+        for field in ["username", "login", "token", "copr_url", "gssapi"]:
             config[field] = raw_config["copr-cli"].get(field, None)
         config["encrypted"] = raw_config["copr-cli"].getboolean("encrypted", True)
+        config["gssapi"] = raw_config["copr-cli"].getboolean("gssapi", False)
 
     except configparser.Error as err:
         raise CoprConfigException("Bad configuration file: {0}".format(err))
@@ -132,3 +137,16 @@ def succeeded(builds):
         if build.state != "succeeded":
             return False
     return True
+
+
+def get_session_cookie(config):
+    """
+    Call an endpoint to check whether the user has a valid kerberos ticket.
+
+    :return: Munch
+    """
+    url = config["copr_url"] + "/api_v3/gssapi_login/"
+    session = requests.Session()
+    response = session.get(url, auth=requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True), allow_redirects=False)
+    cookies = response.cookies.get("session")
+    return cookies

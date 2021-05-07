@@ -6,7 +6,7 @@
 %global with_python2 1
 %endif
 
-%global min_python_copr_version 1.105.2.dev
+%global min_python_copr_version 1.116.1.dev
 
 Name:       copr-cli
 Version:    1.99
@@ -35,6 +35,8 @@ Requires:      python3-jinja2
 Requires:      python3-simplejson
 Requires:      python3-humanize
 Requires:      python3-koji
+Requires:      python3-requests-gssapi
+Requires:      python3-future
 
 Recommends:    python3-progress
 Suggests:      python3-beautifulsoup4
@@ -48,11 +50,15 @@ BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 BuildRequires: python3-munch
+BuildRequires: python3-requests-gssapi
+BuildRequires: python3-future
 %else
 Requires:      python-copr >= %min_python_copr_version
 Requires:      python-jinja2
 Requires:      python-simplejson
 Requires:      python-humanize
+Requires:      python2-requests-gssapi
+Requires:      python-future
 
 BuildRequires: pytest
 BuildRequires: python-copr >= %min_python_copr_version
@@ -64,6 +70,8 @@ BuildRequires: python2-responses
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
 BuildRequires: python-munch
+BuildRequires: python2-requests-gssapi
+BuildRequires: python-future
 %endif
 
 # We historically shipped empty doc package, uninstall it.

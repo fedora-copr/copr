@@ -3,10 +3,12 @@ from __future__ import absolute_import
 import os
 import json
 import requests
+import requests_gssapi
+from copr.v3.helpers import List
 from munch import Munch
+from future.utils import raise_from
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
-from .helpers import List
-from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException
+from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException, CoprGssapiException
 
 
 GET = "GET"
@@ -48,23 +50,34 @@ class Request(object):
         return self._method.upper()
 
     def send(self):
+        session = requests.Session()
+        if not isinstance(self.auth, tuple):
+            # api token not available, set session cookie obtained via gssapi
+            session.cookies.set("session", self.auth)
+
         try:
-            response = requests.request(**self._request_params)
+            response = session.request(**self._request_params)
         except requests.exceptions.ConnectionError:
             raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
+        except requests_gssapi.exceptions.SPNEGOExchangeError as e:
+            raise_from(CoprGssapiException("Kerberos ticket has expired."), e)
         handle_errors(response)
         return response
 
     @property
     def _request_params(self):
-        return {
+        params = {
             "url": self.endpoint_url,
-            "auth": self.auth,
             "json": self.data,
             "method": self.method,
             "params": self.params,
             "headers": self.headers,
         }
+        # We usually use a tuple (login, token). If this is not available,
+        # we use gssapi auth, which works with cookies.
+        if isinstance(self.auth, tuple):
+            params["auth"] = self.auth
+        return params
 
 
 class FileRequest(Request):

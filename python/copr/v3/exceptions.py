@@ -54,6 +54,7 @@ class CoprValidationException(CoprException):
 class CoprNoConfigException(CoprException):
     """
     Exception thrown when no config file is found
+    We left this exception in our code because someone can still catch it
     """
     pass
 
@@ -63,3 +64,9 @@ class CoprConfigException(CoprException):
     Exception thrown when the config file is incomplete or malformed.
     """
     pass
+
+
+class CoprGssapiException(CoprException):
+    """
+    Exception thrown when the kerberos authentication failed.
+    """

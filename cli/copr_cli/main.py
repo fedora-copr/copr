@@ -29,8 +29,8 @@ except ImportError:
 
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
-    Client, config_from_file, CoprException, CoprRequestException,
-    CoprNoConfigException, CoprConfigException, CoprNoResultException,
+    Client, config_from_file, CoprException, CoprRequestException, CoprConfigException, CoprNoResultException,
+    CoprGssapiException
 )
 from copr.v3.pagination import next_page
 from copr_cli.helpers import cli_use_output_format
@@ -72,7 +72,7 @@ BOOTSTRAP_MAP = {
 
 no_config_warning = """
 ================= WARNING: =======================
-File '{0}' is missing or incorrect.
+File '{0}' is incorrect.
 See documentation: man copr-cli.
 Any operation requiring credentials will fail!
 ==================================================
@@ -138,10 +138,12 @@ class Commands(object):
 
         try:
             self.config = config_from_file(self.config_path)
-        except (CoprNoConfigException, CoprConfigException) as ex:
+        except CoprConfigException as ex:
             sys.stderr.write(no_config_warning.format(self.config_path, ex))
             self.config = {"copr_url": "http://copr.fedoraproject.org", "no_config": True}
 
+        if not self.config.get("token"):
+            self.config["gssapi"] = True
         self.client = Client(self.config)
 
     def requires_api_auth(func):
@@ -164,13 +166,18 @@ class Commands(object):
         """
 
         def wrapper(self, args):
-            if "no_config" in self.config and args.username is None:
-                sys.stderr.write(
-                    "Error: Operation requires username\n"
-                    "Pass username to command or create `{0}`\n".format(self.config_path))
-                sys.exit(6)
+            if self.config["username"] is None and args.username is None:
+                if self.config.get("gssapi"):
+                    log.debug("Username is not set in the config file")
+                    log.debug("Trying to detect via gssapi")
+                    log.debug("Disable the use of gssapi by setting gssapi = False in the config file")
+                    response = self.client.base_proxy.auth_check()
+                    try:
+                        self.config["username"] = response.name
+                    except AttributeError:
+                        pass
 
-            if args.username is None and self.config["username"] is None:
+            if self.config["username"] is None and args.username is None:
                 sys.stderr.write(
                     "Error: Operation requires username\n"
                     "Pass username to command or add it to `{0}`\n".format(self.config_path))
@@ -302,7 +309,8 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        self.client.build_proxy.auth_check()
+        response = self.client.base_proxy.auth_check()
+        self.config["username"] = response.name
 
         builds = []
         for pkg in args.pkgs:
@@ -1815,6 +1823,9 @@ def main(argv=sys.argv[1:]):
     except argparse.ArgumentTypeError as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(2)
+    except CoprGssapiException as e:
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.exit(7)
     except CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)

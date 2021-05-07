@@ -2135,9 +2135,6 @@ class Krb5Login(db.Model, helpers.Serializer):
     # FK to User table
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-    # 'string' from 'copr.conf' from KRB5_LOGIN[string]
-    config_name = db.Column(db.String(30), nullable=False, primary_key=True)
-
     # krb's primary, i.e. 'username' from 'username@EXAMPLE.COM'
     primary = db.Column(db.String(80), nullable=False, primary_key=True)
 

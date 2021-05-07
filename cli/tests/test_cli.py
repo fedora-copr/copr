@@ -7,9 +7,10 @@ from munch import Munch
 
 import copr
 from copr.exceptions import CoprUnknownResponseException, CoprBuildException
-from copr_cli.main import no_config_warning, FrontendOutdatedCliException
-
 from cli_tests_lib import mock, MagicMock, config as mock_config
+from copr_cli import main
+from copr_cli.main import FrontendOutdatedCliException
+
 
 def exit_wrap(value):
     if type(value) == int:
@@ -28,8 +29,6 @@ def exit_wrap(value):
 #
 # log = logging.getLogger()
 # log.info("Logger initiated")
-
-from copr_cli import main
 
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_parse_name(config_from_file):
@@ -145,21 +144,16 @@ def test_error_copr_unknown_response(config_from_file, action_status, capsys):
     assert error_msg in stderr
 
 
-@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
-def test_cancel_build_no_config(config_from_file, capsys):
-    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
-
-    with pytest.raises(SystemExit) as err:
-        main.main(argv=["cancel", "123400"])
-
-    assert exit_wrap(err.value) == 6
-    out, err = capsys.readouterr()
-
-    assert "Error: Operation requires api authentication" in err
-    assert "File '~/.config/copr' is missing or incorrect" in err
-
-    expected_warning = no_config_warning.format("~/.config/copr", "Dude, your config is missing")
-    assert expected_warning in err
+@responses.activate
+@mock.patch('copr.v3.proxies.build.BuildProxy.cancel')
+@mock.patch('configparser.ConfigParser.read')
+def test_cancel_build_no_config(read, build_proxy_cancel, capsys):
+    read.return_value = []
+    response_status = "foobar"
+    build_proxy_cancel.return_value = MagicMock(state=response_status)
+    main.main(argv=["cancel", "123"])
+    out, _ = capsys.readouterr()
+    assert "{0}\n".format(response_status) in out
 
 
 @mock.patch('copr.v3.proxies.build.BuildProxy.cancel')
@@ -179,38 +173,33 @@ def read_res(name):
     return open(filepath).read()
 
 
-@mock.patch('copr_cli.main.config_from_file')
+@responses.activate
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr.v3.proxies.project.ProjectProxy.get_list')
-def test_list_project(get_list, config_from_file, capsys):
+def test_list_project(get_list, _config_from_file, capsys):
     response_data = json.loads(read_res('list_projects_response.json'))
     expected_output = read_res('list_projects_expected.txt')
 
-    # no config
-    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
     control_response = [Munch(x) for x in response_data]
     get_list.return_value = control_response
 
     main.main(argv=["list", "rhscl"])
-    out, err = capsys.readouterr()
+    out, _ = capsys.readouterr()
     assert expected_output in out
-
-    expected_warning = no_config_warning.format("~/.config/copr", "Dude, your config is missing")
-    assert expected_warning in err
 
 @responses.activate
 @mock.patch("copr_cli.main.next_page")
-@mock.patch('copr_cli.main.config_from_file')
-def test_list_builds(config_from_file, next_page, capsys):
+@mock.patch('configparser.ConfigParser.read')
+def test_list_builds(read, next_page, capsys):
+    read.return_value = []
     response_data = json.loads(read_res('list_builds_response.json'))
     expected_output = read_res('list_builds_expected.txt')
 
     responses.add(
         responses.GET,
-        'http://copr.fedoraproject.org/api_3/build/list',
+        'https://copr.fedorainfracloud.org/api_3/build/list',
         json=response_data, status=202)
 
-    # no config
-    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
     next_page.return_value = None
 
     main.main(argv=["list-builds", "praiskup/ping"])
@@ -219,18 +208,17 @@ def test_list_builds(config_from_file, next_page, capsys):
 
 @responses.activate
 @mock.patch("copr_cli.main.next_page")
-@mock.patch('copr_cli.main.config_from_file')
-def test_list_packages(config_from_file, next_page, capsys):
+@mock.patch('configparser.ConfigParser.read')
+def test_list_packages(read, next_page, capsys):
+    read.return_value = []
     response_data = json.loads(read_res('list_packages_response.json'))
     expected_output = read_res('list_packages_expected.json')
 
     responses.add(
         responses.GET,
-        'http://copr.fedoraproject.org/api_3/package/list',
+        'https://copr.fedorainfracloud.org/api_3/package/list',
         json=response_data, status=202)
 
-    # no config
-    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
     next_page.return_value = None
 
     main.main(argv=["list-packages", "praiskup/ping"])
@@ -238,26 +226,22 @@ def test_list_packages(config_from_file, next_page, capsys):
     assert json.loads(out) == json.loads(expected_output)
 
 @responses.activate
-@mock.patch('copr_cli.main.config_from_file')
-def test_get_package(config_from_file, capsys):
-
+@mock.patch('configparser.ConfigParser.read')
+def test_get_package(read, capsys):
+    read.return_value = []
     response_data = json.loads(read_res('get_package_response.json'))
     response_build_data = json.loads(read_res('get_package_response_builds.json'))
     expected_output = read_res('get_package_expected.json')
 
     responses.add(
         responses.GET,
-        'http://copr.fedoraproject.org/api_3/package',
+        'https://copr.fedorainfracloud.org/api_3/package',
         json=response_data, status=202)
 
     responses.add(
         responses.GET,
-        'http://copr.fedoraproject.org/api_3/build/list',
+        'https://copr.fedorainfracloud.org/api_3/build/list',
         json=response_build_data, status=202)
-
-
-    # no config
-    config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
 
     main.main(argv=[
         "get-package", "--name", "binutils", "--with-all-builds",
@@ -266,20 +250,28 @@ def test_get_package(config_from_file, capsys):
     out, _ = capsys.readouterr()
     assert json.loads(out) == json.loads(expected_output)
 
-@mock.patch('copr_cli.main.config_from_file')
-def test_list_project_no_username(config_from_file, capsys):
-    config_from_file.side_effect = copr.v3.CoprNoConfigException()
+
+@mock.patch('configparser.ConfigParser.read')
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name=None))
+def test_list_project_no_username(_auth_check, read, capsys):
+    read.return_value = []
 
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
 
     assert exit_wrap(err.value) == 6
     out, err = capsys.readouterr()
-    assert "Pass username to command or create `~/.config/copr`" in err
+    assert "Pass username to command or add it to `~/.config/copr`" in err
 
 
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_list_project_no_username2(config_from_file, capsys):
+    config_from_file.return_value = {
+        "username": None,
+        "copr_url": "http://copr/",
+        "login": "",
+        "token": "test_token_XXX",
+    }
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
 
@@ -543,7 +535,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
     assert stdout == "New project was successfully created.\n"
 
 
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
@@ -561,7 +553,7 @@ def test_create_build_no_wait_ok(watch_builds, config_from_file, create_from_url
     assert not watch_builds.called
 
 
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
@@ -581,7 +573,7 @@ def test_create_build_no_wait_error(watch_builds, config_from_file,create_from_u
 
 
 @mock.patch('copr_cli.main.time')
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -600,7 +592,7 @@ def test_create_build_wait_succeeded_no_sleep(config_from_file, build_proxy_get,
     assert not mock_time.sleep.called
 
 
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -619,7 +611,7 @@ def test_create_build_wait_error_status(config_from_file, build_proxy_get, creat
     assert "Watching build" in stdout
 
 
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -638,7 +630,7 @@ def test_create_build_wait_unknown_build_status(config_from_file, build_proxy_ge
     assert "Watching build" in stdout
 
 
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -660,7 +652,7 @@ def test_create_build_wait_keyboard_interrupt(config_from_file, build_proxy_get,
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 class TestCreateBuild(object):
 
-    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
     @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
     @mock.patch('copr.v3.proxies.build.BuildProxy.get')
     def test_create_build_wait_succeeded_complex(self, build_proxy_get, create_from_url, auth_check,
@@ -697,7 +689,7 @@ class TestCreateBuild(object):
         assert "Watching build" in stdout
         assert len(mock_time.sleep.call_args_list) == 3
 
-    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=True)
+    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
     @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
     @mock.patch('copr.v3.proxies.build.BuildProxy.get')
     def test_create_build_wait_failed_complex(self, build_proxy_get, create_from_url, auth_check,

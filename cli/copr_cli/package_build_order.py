@@ -7,7 +7,7 @@ import argparse
 from configparser import ConfigParser
 
 from copr.v3 import BuildProxy, BuildChrootProxy, config_from_file
-from copr.v3.exceptions import CoprNoConfigException, CoprNoResultException, CoprRequestException
+from copr.v3.exceptions import CoprNoResultException, CoprRequestException
 
 from koji import ClientSession, GenericError, BUILD_STATES
 
@@ -21,11 +21,7 @@ def package_order_from_copr(args):
     if not args.config:
         args.config = "~/.config/copr"
 
-    try:
-        config_file = config_from_file(args.config)
-    except CoprNoConfigException:
-        print("Couldn't find copr config file at {0}.".format(args.config))
-        sys.exit(1)
+    config_file = config_from_file(args.config)
 
     try:
         build_proxy = BuildProxy(config_file)

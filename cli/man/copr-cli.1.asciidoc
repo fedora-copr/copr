@@ -792,6 +792,8 @@ Normally, the exit code is 0 when everything goes well. But if not, we could get
 4 - Build failed or was canceled.
 5 - Communication error between Cli and server.
     This issue probably means bug and should be reported.
+6 - Configuration file is missing.
+7 - Kerberos authentication failed.
 
 
 API KEY

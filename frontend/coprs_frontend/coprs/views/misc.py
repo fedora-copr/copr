@@ -3,10 +3,10 @@ import base64
 import datetime
 import functools
 from functools import wraps, partial
-from urllib.parse import urlparse
-
 import re
+from urllib.parse import urlparse
 import flask
+
 from flask import send_file
 
 from openid_teams.teams import TeamsRequest
@@ -110,8 +110,8 @@ conflict_request_handler = partial(generic_error, code=409, title="Conflict")
 misc = flask.Blueprint("misc", __name__)
 
 
-@misc.route(app.config['KRB5_LOGIN_BASEURI'] + "<name>/", methods=["GET"])
-def krb5_login(name):
+@misc.route(app.config['KRB5_LOGIN_BASEURI'], methods=["GET"])
+def krb5_login():
     """
     Handle the Kerberos authentication.
 
@@ -126,16 +126,6 @@ def krb5_login(name):
         return flask.redirect(oid.get_next_url())
 
     krb_config = app.config['KRB5_LOGIN']
-
-    found = None
-    for key in krb_config.keys():
-        if krb_config[key]['URI'] == name:
-            found = key
-            break
-
-    if not found:
-        # no KRB5_LOGIN.<name> configured in copr.conf
-        return flask.render_template("404.html"), 404
 
     if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
         # For local testing (without krb5 keytab and other configuration)
@@ -154,7 +144,6 @@ def krb5_login(name):
 
     krb_login = (
         models.Krb5Login.query
-        .filter(models.Krb5Login.config_name == key)
         .filter(models.Krb5Login.primary == username)
         .first()
     )
@@ -168,11 +157,11 @@ def krb5_login(name):
     user = models.User.query.filter(models.User.username == username).first()
     if not user:
         # Even the item in 'user' table does not exist, create _now_
-        email = username + "@" + krb_config[key]['email_domain']
+        email = username + "@" + krb_config['email_domain']
         user = create_user_wrapper(username, email)
         db.session.add(user)
 
-    krb_login = models.Krb5Login(user=user, primary=username, config_name=key)
+    krb_login = models.Krb5Login(user=user, primary=username)
     db.session.add(krb_login)
     db.session.commit()
 
@@ -287,15 +276,19 @@ def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         token = None
-        apt_login = None
+        api_login = None
+        # flask.g.user can be already set in case a user is using gssapi auth,
+        # in that case before_request was called and the user is known.
+        if flask.g.user is not None:
+            return f(*args, **kwargs)
         if "Authorization" in flask.request.headers:
             base64string = flask.request.headers["Authorization"]
             base64string = base64string.split()[1].strip()
             userstring = base64.b64decode(base64string)
-            (apt_login, token) = userstring.decode("utf-8").split(":")
+            (api_login, token) = userstring.decode("utf-8").split(":")
         token_auth = False
-        if token and apt_login:
-            user = UsersLogic.get_by_api_login(apt_login).first()
+        if token and api_login:
+            user = UsersLogic.get_by_api_login(api_login).first()
             if (user and user.api_token == token and
                     user.api_token_expiration >= datetime.date.today()):
                 token_auth = True
@@ -316,11 +309,9 @@ def api_login_required(f):
 
 
 def krb5_login_redirect(next=None):
-    krbc = app.config['KRB5_LOGIN']
-    for key in krbc:
+    if app.config['KRB5_LOGIN']:
         # Pick the first one for now.
         return flask.redirect(flask.url_for("misc.krb5_login",
-                                            name=krbc[key]['URI'],
                                             next=next))
     flask.flash("Unable to pick krb5 login page", "error")
     return flask.redirect(flask.url_for("coprs_ns.coprs_show"))

@@ -13,7 +13,7 @@ class Config(object):
     BACKEND_BASE_URL = "http://copr-be-dev.cloud.fedoraproject.org"
     BACKEND_STATS_URI = None
 
-    KRB5_LOGIN_BASEURI = "/krb5_login/"
+    KRB5_LOGIN_BASEURI = "/api_v3/gssapi_login/"
     KRB5_LOGIN = {}
 
     OPENID_PROVIDER_URL = "https://id.fedoraproject.org"
@@ -120,6 +120,8 @@ class Config(object):
     MIN_BUILD_TIMEOUT = 0
     MAX_BUILD_TIMEOUT = 108000
     MEMORY_ANALYZER = False
+
+    API_GSSAPI_AUTH = True
 
     ##### DEVEL Section ####
     # Enable flask-profiler

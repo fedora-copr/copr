@@ -24,7 +24,7 @@ class TestModuleProxy(object):
         shutil.rmtree(self.tmpdir)
 
     @pytest.mark.parametrize('distgit_opt', [None, 'fedora'])
-    @mock.patch('copr.v3.requests.requests.request')
+    @mock.patch('copr.v3.requests.requests.Session.request')
     def test_module_dist_git_choice_url(self, request, distgit_opt):
         proxy = ModuleProxy(self.config_auth)
         proxy.build_from_url('owner', 'project', 'http://test.yaml',
@@ -42,7 +42,7 @@ class TestModuleProxy(object):
         assert json['scmurl'] == 'http://test.yaml'
 
     @pytest.mark.parametrize('distgit_opt', [None, 'fedora'])
-    @mock.patch('copr.v3.requests.requests.request')
+    @mock.patch('copr.v3.requests.requests.Session.request')
     def test_module_dist_git_choice_upload(self, request, distgit_opt):
         proxy = ModuleProxy(self.config_auth)
         proxy.build_from_file('owner', 'project',

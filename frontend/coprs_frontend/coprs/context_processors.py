@@ -58,12 +58,10 @@ def login_menu():
             })
 
         if config['KRB5_LOGIN']:
-            base = config['KRB5_LOGIN_BASEURI']
-            for _, login in config['KRB5_LOGIN'].items():
-                menu.append({
-                    'link': base + login['URI'],
-                    'desc': login['log_text'],
-                })
+            menu.append({
+                'link': config['KRB5_LOGIN_BASEURI'],
+                'desc': config['KRB5_LOGIN']['log_text'],
+            })
 
         if config['FAS_LOGIN']:
             menu.append({
