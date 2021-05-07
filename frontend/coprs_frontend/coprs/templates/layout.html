@@ -168,7 +168,7 @@
   <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
   <script>
     $(document).ready(function(){
-      show_last_article( "{{ config.NEWS_FEED_URL }}" )
+      show_last_articles("{{ config.NEWS_FEED_URL }}", 2)
       $(".show-me-javascript").removeClass("hidden");
     });
   </script>

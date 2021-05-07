@@ -1,6 +1,6 @@
 // https://stackoverflow.com/a/10943610/3285282
 
-function show_last_article(feed_url){
+function show_last_articles(feed_url, count=1){
 
     $.get(feed_url, function (data) {
 
@@ -13,17 +13,19 @@ function show_last_article(feed_url){
             return monthNames[this.getMonth()];
         }
 
-        $(data).find("item").each(function () { // or "item" or whatever suits your feed
+        $(data).find("item").each(function (index) {
             var el = $(this);
             var published = new Date(el.find("pubDate").text());
             var f_published = published.getDate() + " " + published.getMonthName() + " " + published.getFullYear()
 
-            $("#blog-title").text(el.find("title").text())
-            $("#blog-author").text(el.find("author").text())
-            $("#blog-date").text(f_published)
-            $("#blog-link").attr("href", el.find("link").text())
-            $("#blog-link").removeClass("hidden")
-            return false
+            $("#blog-title-" + index).text(el.find("title").text())
+            $("#blog-author-" + index).text(el.find("author").text())
+            $("#blog-date-" + index).text(f_published)
+            $("#blog-link-" + index).attr("href", el.find("link").text())
+            $("#blog-link-" + index).removeClass("hidden")
+            if (index == count - 1) {
+                return false
+            }
         });
     });
 };

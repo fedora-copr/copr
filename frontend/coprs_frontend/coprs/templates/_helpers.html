@@ -385,22 +385,24 @@
       <noscript>
         <a href="https://fedora-copr.github.io/" class="list-group-item">
           <p class="list-group-item-text">
-            This page uses JavaScript to show the most recent article from out blog.
+            This page uses JavaScript to show the most recent articles from our blog.
             Click here to visit the blog.
           </p>
         </a>
       </noscript>
-      <a href="" id="blog-link" class="list-group-item hidden">
-        <b class="list-group-item-heading" id="blog-title"></b>
+      {% for i in range(2) %}
+      <a href="" id="blog-link-{{ i }}" class="list-group-item hidden">
+        <b class="list-group-item-heading" id="blog-title-{{ i }}"></b>
         <p class="list-group-item-text">
           <small>Published:</small>
-          <span id="blog-date"></span>
+          <span id="blog-date-{{ i }}"></span>
         </p>
         <p class="list-group-item-text">
           <small>Author:</small>
-          <span id="blog-author"></span>
+          <span id="blog-author-{{ i }}"></span>
         </p>
       </a>
+      {% endfor %}
     </div>
   </div>
   {% endif %}
