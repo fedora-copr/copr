@@ -216,7 +216,12 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
     branch_commits = {}
     for branch in branches:
         log.debug("checkout '{0}' branch".format(branch))
-        commands.switch_branch(branch)
+
+        try:
+            commands.switch_branch(branch)
+        except rpkgError as ex:
+            log.error(str(ex))
+            continue
 
         try:
             if not branch_commits:
