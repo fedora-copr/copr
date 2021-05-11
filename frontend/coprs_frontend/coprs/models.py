@@ -1910,6 +1910,15 @@ class BuildChroot(db.Model, helpers.Serializer):
                                             ["starting", "running"])
 
     @property
+    def fedora_review(self):
+        """ Whether the project is intended for fedora review. """
+        if not self.build.source_json:
+            return False
+        if "fedora_review" in self.build.source_json and self.mock_chroot.name.startswith("fedora-"):
+            return True
+        return False
+
+    @property
     def rpm_fedora_review_url(self):
         """
         Full URL to the review.txt file produced by the `fedora-review` tool. If
@@ -1918,7 +1927,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         At this moment, the `review.txt` file (and the rest of the
         `fedora-review` output) is uncompressed for all states.
         """
-        if not self.build.copr.fedora_review:
+        if not self.fedora_review:
             return None
         return self._compressed_log_variant("fedora-review/review.txt",
                                             StatusEnum.vals.keys())

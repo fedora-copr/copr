@@ -627,6 +627,11 @@ class BuildsLogic(object):
         # generated
         chroots = []
 
+        if copr.fedora_review:
+            source_json = json.loads(source_json)
+            source_json["fedora_review"] = True
+            source_json = json.dumps(source_json)
+
         # If chroots are specified by the user, we should create the build only
         # for them
         if chroot_names:
