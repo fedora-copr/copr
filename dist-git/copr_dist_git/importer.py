@@ -8,7 +8,7 @@ import shutil
 from requests import get, post
 
 from .package_import import import_package
-from .process_pool import Worker, Pool
+from .process_pool import Worker, Pool, SingleThreadWorker
 from .exceptions import PackageImportException
 from .import_task import ImportTask
 

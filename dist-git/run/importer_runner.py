@@ -3,6 +3,7 @@
 
 import os
 import sys
+import argparse
 import logging
 
 from copr_dist_git.helpers import ConfigReader
@@ -11,19 +12,39 @@ from copr_dist_git.importer import Importer
 log = logging.getLogger(__name__)
 
 
+def get_arg_parser():
+    """
+    Parser for commandline options
+    """
+    description = "copr-dist-git process for importing packages"
+    parser = argparse.ArgumentParser("importer_runner", description=description)
+    parser.add_argument(
+        "--foreground",
+        action="store_true",
+        help="Run this process on foreground, using just a single thread",
+    )
+    parser.add_argument(
+        "config",
+        help="Path to a config file",
+        nargs="?",
+    )
+    return parser
+
+
 def main():
-    config_file = None
+    parser = get_arg_parser()
+    args = parser.parse_args()
 
-    if len(sys.argv) > 1:
-        config_file = sys.argv[1]
-
-    config_reader = ConfigReader(config_file)
+    config_reader = ConfigReader(args.config)
     try:
         opts = config_reader.read()
     except Exception:
         print("Failed to read config file, used file location: `{}`"
               .format(config_file))
         sys.exit(1)
+
+    if args.foreground:
+        opts.multiple_threads = False
 
     logging.basicConfig(
         filename=os.path.join(opts.log_dir, "main.log"),
