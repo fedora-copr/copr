@@ -3,6 +3,8 @@ import os
 import time
 import subprocess
 
+import netaddr
+
 class SSHConnectionError(Exception):
     pass
 
@@ -166,7 +168,10 @@ class SSHConnection(object):
 
     def _full_source_path(self, src):
         """ for easier unittesting """
-        return "{}@{}:{}".format(self.user, self.host, src)
+        host = self.host
+        if netaddr.valid_ipv6(host):
+            host = "[{}]".format(host)
+        return "{}@{}:{}".format(self.user, host, src)
 
     def rsync_download(self, src, dest, logfile=None, max_retries=0):
         """

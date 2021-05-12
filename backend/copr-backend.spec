@@ -43,6 +43,7 @@ BuildRequires: python3-gobject
 BuildRequires: python3-humanize
 BuildRequires: python3-libmodulemd1 >= 1.7.0
 BuildRequires: python3-munch
+BuildRequires: python3-netaddr
 BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-packaging
 BuildRequires: python3-pytest
