@@ -7,7 +7,7 @@
 %global tests_tar test-data-copr-backend
 
 Name:       copr-backend
-Version:    1.147
+Version:    1.148
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -234,6 +234,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu May 13 2021 Pavel Raiskup <praiskup@redhat.com> 1.148-1
+- work with builders also over ipv6
+
 * Sun May 02 2021 Pavel Raiskup <praiskup@redhat.com> 1.147-1
 - fix logging traceback for module builds
 - call creatrepo_c with --update if possible
