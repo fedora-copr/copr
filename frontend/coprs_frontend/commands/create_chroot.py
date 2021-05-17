@@ -57,7 +57,6 @@ def create_chroot_function(chroot_names, branch=None, activated=True,
 @click.option(
     "--comment",
     help="Document any peculiarity about the new chroots.",
-    default=True,
 )
 def create_chroot(chroot_names, branch=None, activated=True, comment=None):
     """Creates a mock chroot in DB"""
