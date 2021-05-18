@@ -46,7 +46,10 @@ def file_type(filename):
         return 'unknown'
 
     with open(filename) as f_d:
-        first_line = f_d.readline()
+        try:
+            first_line = f_d.readline()
+        except UnicodeDecodeError:
+            return 'unknown'
         if first_line.startswith('#!') and first_line.find('python') != -1:
             return 'python'
     return 'unknown'
