@@ -139,6 +139,7 @@ Requires: yum-utils
 %endif
 %latest_requires mock
 %latest_requires mock-core-configs
+%latest_requires redhat-rpm-config
 %latest_requires rpm
 
 
@@ -191,7 +192,7 @@ cat > copr-update-builder <<'EOF'
 # decides to do so (please keep the script idempotent).
 
 # install the latest versions of those packages
-dnf update -y %latest_requires_packages
+dnf update -y %latest_requires_packages *rpm-macros
 
 # The mock-core-configs package was potentially updated above, and it provides
 # "noreplace" %%config files.  It means that - if the builder cloud image had
