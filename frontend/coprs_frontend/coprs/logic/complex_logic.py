@@ -319,7 +319,6 @@ class ProjectForking(object):
 
             fcopr.forked_from_id = copr.id
             fcopr.user = self.user
-            fcopr.user_id = self.user.id
             fcopr.created_on = int(time.time())
             if name:
                 fcopr.name = name

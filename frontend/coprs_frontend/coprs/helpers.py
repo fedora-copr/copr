@@ -684,12 +684,18 @@ def clone_sqlalchemy_instance(instance, ignored=None):
             continue
         setattr(new_instance, column, getattr(instance, column))
 
-    # Copy the references.  It is better to copy 'new.parent = old.parent'
-    # than just 'old.parent_id' because the 'new' object wouldn't have the
-    # 'new.parent' object loaded.
+    # Load all relationship objects preemptively
+    relationships = {}
     for attr, rel in instance.__mapper__.relationships.items():
         if rel.uselist:
             # TODO: support also 1:N, not only N:1
             continue
-        setattr(new_instance, attr, getattr(instance, attr))
+        relationships[attr] = getattr(instance, attr)
+
+    # Copy the references.  It is better to copy 'new.parent = old.parent'
+    # than just 'old.parent_id' because the 'new' object wouldn't have the
+    # 'new.parent' object loaded.
+    for attr, rel in relationships.items():
+        setattr(new_instance, attr, rel)
+
     return new_instance

@@ -298,7 +298,7 @@ class TestBatchesLogic(CoprsTestCase):
         query_time = sum([q.duration for q in dq])
 
         asserts = [
-            sql_alchemy_time < fill_time/2,
+            sql_alchemy_time < fill_time/3*2,
             query_time < fill_time/20,
             # - for each project two queries (for batch => one build +batch_build)
             # - two large queries (srpm + rpms)
