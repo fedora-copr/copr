@@ -37,7 +37,7 @@ fi
 
 pushd "$pkg_git_dir" > /dev/null || exit 1
 
-whitelist=()
+allowlist=()
 
 # find sources that are referenced by the latest commit in any of the branches
 for branch in $(git for-each-ref --format="%(refname:short)" refs/heads); do
@@ -48,7 +48,7 @@ for branch in $(git for-each-ref --format="%(refname:short)" refs/heads); do
         # skip projects using the new format
         test $# -eq 0 && continue
         test $# -ne 2 && die "Unsupported format. Only the old '<SUM> <FILENAME' format is used."
-        whitelist+=("$hash","$filename")
+        allowlist+=("$hash","$filename")
     done < <(git show "$branch":sources)
 done
 
@@ -67,7 +67,7 @@ while read -r file; do
     hash=$2
 
     keep=false
-    for source in "${whitelist[@]}"; do
+    for source in "${allowlist[@]}"; do
         IFS=','
         set -- $source
         IFS=$old_IFS

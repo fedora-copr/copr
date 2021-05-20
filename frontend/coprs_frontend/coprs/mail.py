@@ -114,16 +114,16 @@ class OutdatedChrootMessage(Message):
                 "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days, url))
 
 
-def filter_whitelisted_recipients(recipients):
+def filter_allowlisted_recipients(recipients):
     """
     Filters e-mail recipients if the white list of recipients in conf is not empty.
     :param recipients: list of recipients
     :return: list of recipients who should receive an e-mail
     """
-    if not app.config["WHITELIST_EMAILS"]:
+    if not app.config["ALLOWLIST_EMAILS"]:
         return recipients
 
-    return [r for r in recipients if r in app.config["WHITELIST_EMAILS"]]
+    return [r for r in recipients if r in app.config["ALLOWLIST_EMAILS"]]
 
 
 def send_mail(recipients, message, sender=None, reply_to=None):
@@ -138,7 +138,7 @@ def send_mail(recipients, message, sender=None, reply_to=None):
     msg["From"] = sender or "root@{0}".format(platform.node())
     msg["To"] = ", ".join(recipients)
     msg.add_header("reply-to", reply_to or app.config["REPLY_TO"])
-    recipients = filter_whitelisted_recipients(recipients)
+    recipients = filter_allowlisted_recipients(recipients)
     if not recipients:
         return
     with SMTP("localhost") as smtp:

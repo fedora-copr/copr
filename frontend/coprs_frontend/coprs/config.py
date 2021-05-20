@@ -103,7 +103,7 @@ class Config(object):
     ENABLE_DISCUSSION = False
     DISCOURSE_URL = ''
 
-    WHITELIST_EMAILS = []
+    ALLOWLIST_EMAILS = []
 
     # PAGINATION
     ITEMS_PER_PAGE = 10
