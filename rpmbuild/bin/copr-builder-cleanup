@@ -33,7 +33,9 @@ test "$UID" -eq 0
 su - mockbuilder -c "/usr/bin/copr-rpmbuild-cancel"
 rm -f /var/lib/copr-rpmbuild/pid
 rm -f /var/lib/copr-rpmbuild/main.log
-rm -rf /var/lib/copr-rpmbuild/results
+
+shopt -s dotglob
+rm -rf /var/lib/copr-rpmbuild/results/*
 rm -rf /var/lib/copr-rpmbuild/workspace/*
 
 shopt -s nullglob
