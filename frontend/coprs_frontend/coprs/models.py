@@ -2364,17 +2364,31 @@ class DistGitInstance(db.Model):
     # for UI form ordering, higher number means higher priority
     priority = db.Column(db.Integer, default=100, nullable=False)
 
+    # Some DistGit instances may support namespaces but doesn't require them.
+    # e.g. Fedora DistGit which uses 'forks/user1' for forks but doesn't have
+    # any namespace for main package repositories.
+    #
+    # There is a notable difference between empty string and None value.
+    # None means, there is no default namespace defined and therefore if
+    # `clone_package_uri` contains `{namespace}`, it needs to be specified by
+    # the user. OTOH when empty string is used, it it passed as `{namespace}`
+    # and therefore it doesn't have to be set by user.
+    default_namespace = db.Column(db.String(50), nullable=True)
+
     def package_clone_url(self, pkgname, namespace=None):
         """
         Get the right git clone url for the package hosted in this dist git
         instance.
         """
-        url = '/'.join([self.clone_url, self.clone_package_uri])
         try:
-            if namespace:
-                return url.format(pkgname=pkgname, namespace=namespace)
+            params = {"pkgname": pkgname}
+            namespace = namespace or self.default_namespace
+            if namespace is not None:
+                params["namespace"] = namespace
 
-            return url.format(pkgname=pkgname)
+            uri = self.clone_package_uri.format(**params)
+            uri = os.path.normpath(uri).strip("/")
+            return "/".join([self.clone_url, uri])
         except KeyError as k:
             raise KeyError("DistGit '{}' requires {} specified".format(
                 self.name, k
@@ -2419,6 +2433,7 @@ def insert_fedora_distgit(*args, **kwargs):
     db.session.add(DistGitInstance(
         name="fedora",
         clone_url="https://src.fedoraproject.org",
-        clone_package_uri="rpms/{pkgname}",
+        clone_package_uri="{namespace}/rpms/{pkgname}",
+        default_namespace="",
     ))
     db.session.commit()

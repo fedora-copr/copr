@@ -1,7 +1,8 @@
 from unittest import mock
 import pytest
-from pagure_events import (event_info_from_pr_comment, event_info_from_push, event_info_from_pr, ScmPackage,
-                           build_on_fedmsg_loop, ScmPackage)
+from pagure_events import (event_info_from_pr_comment, event_info_from_push,
+                           event_info_from_pr, ScmPackage, build_on_fedmsg_loop,
+                           TOPICS)
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -201,3 +202,50 @@ class TestPagureEvents(CoprsTestCase):
         build(message)
         builds = self.models.Build.query.all()
         assert len(builds) == 0
+
+    @mock.patch('pagure_events.helpers.raw_commit_changes')
+    @mock.patch('pagure_events.get_repeatedly', mock.Mock())
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs", "f_mock_chroots")
+    def test_positive_build_from_pr_fork(self, f_raw_commit_changes):
+        """
+        Make sure that PRs against forks in Fedora DistGit trigger builds
+        """
+        f_raw_commit_changes.return_value = {
+            'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
+            'tests/integration/conftest.py b/tests/integration/conftest.py index '
+            '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
+
+        # Create a new package via API instead of simply SQLAlchemy model, so
+        # we can make sure that the clone URL is generated properly
+        endpoint = "/api_3/package/add/{0}/{1}/{2}".format(
+            self.c1.full_name, "hello-world", "distgit")
+        form_data = {
+            'package_name': 'hello-world',
+            'distgit': 'fedora',
+            'namespace': 'forks/frostyx',
+            'webhook_rebuild': True,
+        }
+        response = self.post_api3_with_auth(endpoint, form_data, self.u1)
+        assert response.status_code == 200
+
+        # Adjust recognized message topics to support Fedora DistGit
+        event = "org.fedoraproject.prod.pagure.pull-request.updated"
+        url = "https://src.fedoraproject.org/"
+        TOPICS[event] = url
+
+        # Fake a Fedora DistGit PR message
+        paths = {
+            "fullname": "forks/frostyx/rpms/hello-world",
+            "url_path": "forks/frostyx/rpms/hello-world",
+        }
+        self.data["msg"]["pullrequest"]["project"].update(paths)
+        self.data["msg"]["pullrequest"]["repo_from"].update(paths)
+        message = Message(event, self.data['msg'])
+
+        build = build_on_fedmsg_loop()
+        build(message)
+        builds = self.models.Build.query.all()
+
+        # Make sure a build was created
+        assert len(builds) == 1
+        assert builds[0].scm_object_type == 'pull-request'

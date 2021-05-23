@@ -51,3 +51,19 @@ def step_impl(context):
         context.last_project_name,
     ])
     context.cli.wait_success_build(build)
+
+
+@when(u'build of {distgit} DistGit namespaced {package_name} package from '
+      u'{committish} {committish_type} in {namespace} is done')
+def step_build_from_fork(context, distgit, package_name, committish, committish_type, namespace):
+    _ = (committish_type)
+    distgit = distgit.lower()
+    build = context.cli.run_build([
+        "build-distgit",
+        "--name", package_name,
+        "--distgit", distgit,
+        "--commit", committish,
+        "--namespace", namespace,
+        context.last_project_name,
+    ])
+    context.cli.wait_success_build(build)

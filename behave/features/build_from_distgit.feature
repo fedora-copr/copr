@@ -20,3 +20,8 @@ Feature: Building from external DistGit instances
         When a DistGit CentOS "filesystem" package from branch "c8" is added
         And the package build is requested
         Then the build results are distributed
+
+    @builds
+    Scenario: Test that dist-git builds from forks work
+        When build of Fedora DistGit namespaced hello package from rawhide branch in forks/frostyx is done
+        Then the build results are distributed

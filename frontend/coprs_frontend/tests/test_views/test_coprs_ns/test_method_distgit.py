@@ -61,7 +61,7 @@ class TestDistGitMethod(CoprsTestCase):
         endpoint = "/coprs/{0}/{1}/package/mock/edit/distgit".format(self.u1.name,
                                                                      self.c1.name)
         data["committish"] = "f15"
-        data["namespace"] = "@copr/copr"
+        data["namespace"] = "forks/user1"
         self.test_client.post(endpoint, data=data, follow_redirects=True)
 
         package = self.models.Package.query.first()
@@ -70,6 +70,6 @@ class TestDistGitMethod(CoprsTestCase):
         assert json.loads(package.source_json) == {
             "distgit": "fedora",  # prefilled as default
             "committish": "f15",
-            "namespace": "@copr/copr",
-            "clone_url": "https://src.fedoraproject.org/rpms/mock"
+            "namespace": "forks/user1",
+            "clone_url": "https://src.fedoraproject.org/forks/user1/rpms/mock"
         }

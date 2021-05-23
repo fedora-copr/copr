@@ -1138,9 +1138,12 @@ class PackageFormDistGitSimple(BasePackageForm):
             "namespaced - e.g. you need to specify '@copr/copr' for "
             "the <a href='https://copr-dist-git.fedorainfracloud.org/"
             "cgit/@copr/copr/copr-cli.git/tree/copr-cli.spec'>"
-            "@copr/copr/copr-cli</a> Fedora Copr package"),
+            "@copr/copr/copr-cli</a> Fedora Copr package. When building from "
+            "a fork in the Fedora DistGit intance, you need to specify "
+            "e.g. 'forks/someuser'."
+        ),
         render_kw={
-            "placeholder": "Optional - string, e.g. '@copr/copr'"},
+            "placeholder": "Optional - string, e.g. '@copr/copr', or 'forks/someuser'"},
     )
 
     build_requires_package_name = True
