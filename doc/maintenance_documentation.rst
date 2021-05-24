@@ -11,6 +11,7 @@ This section contains information about maintenance topics. You may also be inte
 
    How to release copr RPM packages <how_to_release_copr>
    how_to_upgrade_builders
+   how_to_upgrade_builders_openstack
    how_to_upgrade_persistent_instances
    how_to_upgrade_persistent_instances_openstack
    How to manage active chroots <how_to_manage_chroots>

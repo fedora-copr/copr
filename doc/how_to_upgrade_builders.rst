@@ -3,28 +3,22 @@
 How to upgrade builders
 =======================
 
-This article explains how to upgrade the Copr builders in OpenStack (ppc64le,
-x86_64), AWS (x86_64 and aarch64) and libvirt (aarch64) to a newer Fedora once
-it is released.
+This article explains how to upgrade the Copr builders in AWS (x86_64 and
+aarch64) and libvirt (x86_64, aarch64) to a newer Fedora once it is released.
 
-Keep amending this page if you find something not matching reality or expectations.
+Keep amending this page if you find something not matching reality or
+expectations.
 
-
-.. note:: Until a datacenter migration is done, our builders run only in
-          Amazon AWS. You can safely jump to :ref:`prepare_aws_source_images`.
-          Also, ``ppc64le`` builders are temporarily disabled.
+We don't currently use OpenStack, but we
+:ref:`still keep the docs <how_to_upgrade_builders_openstack>`.
 
 
 Requirements
 ------------
 
 * ssh access to `staging backend box`_
-* an account on `Fedora Infra OpenStack`_, ..
-* downloaded OpenStack RC File (go to OpenStack dasboard -- Access & Security --
-  API Access -- Download OpenStack RC File) ..
-* and ``python3-openstackclient`` package installed
-* ssh access to the main aarch64 hypervisor
-  ``copr@virthost-aarch64-os01.fedorainfracloud.org``
+* ssh access to one of our x86_64 hypervisors (01 to 04)
+  ``copr@vmhost-x86-copr01.rdu-cc.fedoraproject.org``
 * ssh access to ``batcave01.iad2.fedoraproject.org``, and sudo access there
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
 
@@ -43,110 +37,6 @@ If neither that url provides the expected cloud image version (yet), there
 should exist at least a "compose" version in `Koji compose directory listing`_,
 look for ``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images``
 directory.
-
-
-Prepare OpenStack source images
--------------------------------
-
-(x86_64 and ppc64le architectures)
-
-For OpenStack, there is an image registry on `OpenStack images dashboard`_.  By
-default you see only the project images; to see all of them, click on the
-``Public`` button.
-
-Search for the ``Fedora-Cloud-Base-*`` images of the particular Fedora.  Are
-both x86_64 and ppc64le images available?  Then you can jump right to the next
-section.
-
-Download the image, and upload it to the infra OpenStack.  Be careful to keep
-sane ``Fedora-Cloud-Base*`` naming, and to make it public, so others can later
-use it as well:
-
-::
-
-    $ wget <THE_QCOW_IMAGE_URL>
-    .. downloaded Fedora-Cloud-Base-30-1.2.x86_64.qcow2 ..
-    $ source <THE_OPENSTACK_RC_FILE>
-    # hw_rng_model=virtio is needed to guarantee enough entropy on VMs
-    # --public is needed to publish it to everyone
-    # --protected so other openstack users can not delete it
-    $ openstack image create \
-        --file Fedora-Cloud-Base-30-1.2.x86_64.qcow2 \
-        --public \
-        --protected \
-        --disk-format qcow2 \
-        --container-format bare \
-        --property architecture=x86_64 \
-        --property hw_rng_model=virtio \
-        Fedora-Cloud-Base-30-1.2.x86_64
-
-Note also the ``--property hw_rng_model=virtio`` option which guarantees that
-the VMs won't wait indefinitely for random seed.
-
-
-Prepare VM for snapshot
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Open a ssh connection to ``copr-be-dev.cloud.fedoraproject.org`` and run::
-
-    # su - copr
-    $ copr-builder-image-prepare-cloud.sh os:x86_64 Fedora-Cloud-Base-30-1.2.x86_64 # or ppc64le
-    ... snip ...
-    TASK [disable offloading] *****************************************************
-    Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
-    changed: [172.25.150.72]
-    ... snip ....
-
-It can fail (for various reasons, missing packages, changes in Fedora, etc.).
-But after running the script, you will get an IP address of a spawned builder.
-You can ssh into that builder, make changes and try to debug.  Then, knowing
-where the problem is - fix the following playbook files::
-
-    /home/copr/provision/provision_builder_tasks.yml
-    /home/copr/provision/builderpb_nova.yml
-    /home/copr/provision/builderpb_nova_ppc64le.yml
-
-Repeat the fixing of playbooks till the script finishes properly::
-
-    $ copr-builder-image-prepare-cloud.sh os:x86_64 Fedora-Cloud-Base-30-1.2.x86_64
-    ... see the output instructions ...
-    TASK [disable offloading] *****************************************************
-    Wednesday 14 August 2019  13:31:27 +0000 (0:00:05.603)       0:03:47.402 ******
-    changed: [172.25.150.72]
-    ... snip ....
-    Request to stop server Copr_builder_20901443 has been accepted.
-    Please go to https://fedorainfracloud.org/ page, log-in and find the instance
-
-        Copr_builder_20901443
-
-    Check that it is in SHUTOFF state.  Create a snapshot from that instance, name
-    it "copr-builder-x86_64-f30-20190814_133128".  Once snapshot is saved, run:
-
-        $ copr-builder-image-fixup-snapshot-os.sh copr-builder-x86_64-f30-20190814_133128
-
-    And continue with
-    https://docs.pagure.org/copr.copr/how_to_upgrade_builders.html#how-to-upgrade-builders
-
-Once done, continue with the manual steps from the instructions on the
-command-line output (create image snapshot and run the
-``copr-builder-image-fixup-snapshot-os.sh`` script).   Those manual steps could be done
-automatically, but `Fedora Infra OpenStack`_ refuses snapshot API requests for
-some reason.
-
-
-Finishing up OpenStack images
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Since you have a new image name(s) which can be used on builders, you can
-configure ``copr_builder_images`` option in
-``/home/copr/provision/nova_cloud_vars.yml`` variable file.  Since now, the
-**development** backend should spawn from new image.  You can try to kill all
-the old builders, and check the spawner log what is happening::
-
-    [copr@copr-be-dev ~][STG]$ cleanup_vm_nova.py --kill-also-unused
-    [copr@copr-be-dev ~][STG]$  tail -f /var/log/copr-backend/spawner.log
-
-Try to build some packages and you are done.
 
 
 .. _prepare_aws_source_images:
@@ -187,102 +77,67 @@ and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 Prepare libvirt source images
 -----------------------------
 
-(aarch64 architecture only)
+We prepare images for Libvirt on our hypervisors (of proper architecture).  The
+ansible configuration is configured so any hypervisor of given architecture can
+be taken.
 
-We can not prepare the image locally (on x86 laptops), so we have to create it
-on some remote aarch64 box.  We have currently two aarch64 hypervisors available
-for Copr project purposes, and we'll use one of them.
+The hypervisors have overcommitted RAM and disk space a lot (otherwise it
+wouldn't be possible to start so many builders on each hypervisor in parallel).
+But the good thing is that we should always anytime be able to spawn one or two
+VMs more, for the purpose of generating the builder image.
 
-The problem is that both the aarch64 hypervisors are configured so they are
-using all the availalbe resources (namely storage), we have to kill some
-pre-existing VMs first to have some space (note the ``_dev`` keyword, we are not
-deleting production builders in this step!)::
+So try to generate the image from given official Fedora Cloud image on one of
+the hypervisors::
 
-    $ ssh root@copr-be-dev.cloud.fedoraproject.org
+    $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
 
-    # set 'aarch64_01_dev.max' option to 0 to disable spawner on hypervisor 1
-    [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
+    [copr@vmhost-x86-copr02 ~][PROD]$ copr-image https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2
+    ... SNIP ...
+    ++ date -I
+    + qemu-img convert -f qcow2 /tmp/wip-image-hi1jK.qcow2 -c -O qcow2 -o compat=0.10 /tmp/copr-eimg-G6yZpG/eimg-fixed-2021-05-24.qcow2
+    + cleanup
+    + rm -rf /tmp/wip-image-hi1jK.qcow2
 
-    # and terminate all already running resources there;  if there are some
-    # STARTING instances, please wait till they are not UP
-    [root@copr-be-dev ~][STG]# su - resalloc
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
-    138 - aarch64_01_dev_00000138_20190613_051611 pool=aarch64_01_dev tags=aarch64 status=UP
-    140 - aarch64_01_dev_00000140_20190613_051613 pool=aarch64_01_dev tags=aarch64 status=UP
+This long running task (several minutes) can fail.  If so, please fix the
+script, and re-run.  Once the script finishes correctly (see above the output,
+and final `eimg-fixed*.qcow` file), upload the image to all hypervisors::
 
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-delete 138 140
-
-    # check that all are deleted (no output)
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep aarch64_01_dev
-
-Now begin the work on the aarch64 box:
-
-::
-
-    $ ssh copr@virthost-aarch64-os01.fedorainfracloud.org
-
-    # just in case you wanted to call /bin/virsh directly in this session
-    [copr@virthost-aarch64-os01 ~][PROD]$ export VIRSH_DEFAULT_CONNECT_URI=qemu:///system
-
-Download the image, and prepare it for upload
-
-::
-
-    [copr@virthost-aarch64-os01 ~][PROD]$ wget --directory-prefix=/tmp \
-        https://mirrors.nic.cz/fedora/linux/releases/30/Cloud/aarch64/images/Fedora-Cloud-Base-30-1.2.aarch64.qcow2
-
-    [copr@virthost-aarch64-os01 ~][PROD]$ cd ~/vm-manage
-
-    # prepare the image, it takes ~15 minutes
-    [copr@virthost-aarch64-os01 ~][PROD]$ ./prepare-disk /tmp/Fedora-Cloud-Base-30-1.2.aarch64.qcow2
-    ...
-    + cp /tmp/Fedora-Cloud-Base-30-1.2.aarch64.qcow2 /tmp/newdisk.qcow2
-    ...
-
-This can fail, if so, please fix the script, and re-run.  Once done, upload the
-image to libvirt instances (both hypervisors)::
-
-    [copr@virthost-aarch64-os01 vm-manage][PROD]$ ./upload-disk /tmp/newdisk.qcow2
-    ...
-    + virsh ... vol-upload copr-builder-20190614_123554 ... /tmp/newdisk.qcow2
-    ...
-    uploaded images copr-builder-20190614_123554
+    [copr@vmhost-x86-copr02 ~][PROD]$ /home/copr/provision/upload-qcow2-images /tmp/copr-eimg-G6yZpG/eimg-fixed-2021-05-24.qcow2
+    ... SNIP ...
+    uploaded images copr-builder-20210524_085845
 
 Test that the image spawns correctly::
 
     $ ssh root@copr-be-dev.cloud.fedoraproject.org
     Last login: Fri Jun 14 12:16:48 2019 from 77.92.220.242
 
-    # use a different image, set the "img_volume = 'copr-builder-20190614_123554'"
-    [root@copr-be-dev ~][PROD]# vim /var/lib/resallocserver/resalloc_provision/vm-aarch64-new
+    # use a different image, set the "VOLUMES.x86_64" to 'copr-builder-20210524_085845'"
+    [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/provision/libvirt-new
 
-    # re-enable spawner, set 'aarch64_01_dev.max' option to 2
+    # increase the `max_prealloc` value in one of the hypervisors by 1
+    # (e.g. 2=>3, e.g.) so resalloc server starts a new machine.
     [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
 
-    # wait a minute for newly spawned VMs
+    # wait a minute for the new VMs
     [root@copr-be-dev ~][STG]# su - resalloc
     Last login: Fri Jun 14 12:43:16 UTC 2019 on pts/0
 
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list
-    141 - aarch64_02_dev_00000141_20190613_051613 pool=aarch64_02_dev tags=aarch64 status=UP
-    139 - aarch64_02_dev_00000139_20190613_051611 pool=aarch64_02_dev tags=aarch64 status=UP
-    144 - aarch64_01_dev_00000144_20190614_124441 pool=aarch64_01_dev tags= status=STARTING
-    145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags= status=STARTING
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep STARTING
+    30784 - copr_hv_x86_64_02_dev_00030784_20210524_090406 pool=copr_hv_x86_64_02_dev tags= status=STARTING releases=0 ticket=NULL
 
-    [resalloc@copr-be-dev ~][STG]$ tail -f /var/log/resallocserver/hooks/000145_alloc
-    ...
-    DEBUG:root: -> exit_status=0, time=233.029s
-    DEBUG:root:cleaning up workdir
-    38.145.48.106
-
+    [resalloc@copr-be-dev ~][STG]$ tail -f /var/log/resallocserver/hooks/030784_alloc
+    ... SNIP ...
+    DEBUG:root:Cleaning up ...
+    2620:52:3:1:dead:beef:cafe:c141
+    DEBUG:root:cleanup 50_shut_down_vm_destroy
+    ... SNIP ...
 
 If the log doesn't look good, you'll have to start over again (perhaps fix
-spawner playbooks, or the ``prepare-disk`` script).  But if you see the VM IP
-address, you are mostly done::
+spawner playbooks, or the ``copr-image`` script).  But if you see the VM IP
+address (can be an IPv6 one), you are mostly done::
 
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
     145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
-
 
 .. _testing:
 
@@ -331,12 +186,9 @@ the old but currently unused builders by::
     $ resalloc-maint resource-delete $(resalloc-maint resource-list | grep ticket=NULL | grep status=UP | cut -d' ' -f1)
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
-.. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
 .. _`Fedora Cloud page`: https://alt.fedoraproject.org/cloud
 .. _`Alternate Architectures page`:  https://alt.fedoraproject.org/alt
 .. _`Koji compose directory listing`: https://kojipkgs.fedoraproject.org/compose/cloud/
-.. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
-.. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
 .. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
 .. _`staging copr instance`: https://copr-fe-dev.cloud.fedoraproject.org
 .. _`AWS login link`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
