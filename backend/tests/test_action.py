@@ -973,3 +973,22 @@ class TestAction(object):
         with open(file, "r") as fd:
             lines = fd.readlines()
             assert lines == [text]
+
+    @mock.patch("copr_backend.actions.shutil.rmtree")
+    def test_remove_dirs(self, mock_rmtree, mc_time):
+        _unused = mc_time
+        test_action = Action.create_from(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.REMOVE_DIRS,
+                "data": json.dumps([
+                    "@python/python3.8:pr:11",
+                    "jdoe/some:pr:123",
+                ]),
+            },
+        )
+        assert test_action.run() == ActionResult.SUCCESS
+        assert mock_rmtree.call_args_list == [
+            mock.call('/var/lib/copr/public_html/results/@python/python3.8:pr:11'),
+            mock.call('/var/lib/copr/public_html/results/jdoe/some:pr:123'),
+        ]

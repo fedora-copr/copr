@@ -54,7 +54,7 @@ class _RequestsInterface:
         """ Modify CoprChroot """
         raise NotImplementedError
 
-    def create_distgit_package(self, project, pkgname):
+    def create_distgit_package(self, project, pkgname, options=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -117,7 +117,9 @@ class WebUIRequests(_RequestsInterface):
             assert resp.status_code == 302
         return resp
 
-    def create_distgit_package(self, project, pkgname):
+    def create_distgit_package(self, project, pkgname, options=None):
+        if options:
+            raise NotImplementedError
         data = {
             "package_name": pkgname,
         }
@@ -270,10 +272,13 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, data)
         return resp
 
-    def create_distgit_package(self, project, pkgname):
+    def create_distgit_package(self, project, pkgname, options=None):
         route = "/api_3/package/add/{}/{}/{}/distgit".format(
             self.transaction_username, project, pkgname)
-        resp = self.post(route, {"package_name": pkgname})
+        data = {"package_name": pkgname}
+        if options is not None:
+            data.update(options)
+        resp = self.post(route, data)
         return resp
 
     def rebuild_package(self, project, pkgname, build_options=None):
@@ -300,7 +305,7 @@ class BackendRequests:
 
     def update(self, data):
         """ Post to the "/backend/update/" using a dict """
-        self.client.post(
+        return self.client.post(
             "/backend/update/",
             content_type="application/json",
             headers=self.test_class_object.auth_header,

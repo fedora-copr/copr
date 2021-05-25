@@ -63,6 +63,7 @@ class Action(object):
             ActionType.FORK: Fork,
             ActionType.BUILD_MODULE: BuildModule,
             ActionType.DELETE: Delete,
+            ActionType.REMOVE_DIRS: RemoveDirs,
         }.get(action_type, None)
 
         if action_type == ActionType.DELETE:
@@ -506,6 +507,33 @@ class BuildModule(Action):
         return result
 
 
+class RemoveDirs(Action):
+    """
+    Delete outdated CoprDir instances.  Frontend gives us only a list of
+    sub-directories to remove.
+    """
+    def _run_internal(self):
+        copr_dirs = json.loads(self.data["data"])
+        for copr_dir in copr_dirs:
+            assert len(copr_dir.split('/')) == 2
+            assert ':pr:' in copr_dir
+            directory = os.path.join(self.destdir, copr_dir)
+            self.log.info("RemoveDirs: removing %s", directory)
+            try:
+                shutil.rmtree(directory)
+            except FileNotFoundError:
+                self.log.error("RemoveDirs: %s not found", directory)
+
+    def run(self):
+        result = ActionResult.FAILURE
+        try:
+            self._run_internal()
+            result = ActionResult.SUCCESS
+        except OSError:
+            self.log.exception("RemoveDirs OSError")
+        return result
+
+
 # TODO: sync with ActionTypeEnum from common
 class ActionType(object):
     DELETE = 0
@@ -519,6 +547,7 @@ class ActionType(object):
     UPDATE_MODULE_MD = 8  # Deprecated
     BUILD_MODULE = 9
     CANCEL_BUILD = 10
+    REMOVE_DIRS = 11
 
 
 class ActionQueueTask(QueueTask):

@@ -6,6 +6,8 @@
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
+%global copr_common_version 0.11.1.dev
+
 # Please bump the %%flavor_guard version every-time some incompatible change
 # happens (since the last release) in %%flavor_files set of files.  Those files
 # are basically replaced by third-party flavor providers, and any file removal,
@@ -75,7 +77,7 @@ BuildRequires: python3-click
 BuildRequires: python3-CommonMark
 BuildRequires: python3-blinker
 BuildRequires: python3-beautifulsoup4
-BuildRequires: python3-copr-common >= 0.7
+BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-email-validator
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator
@@ -134,7 +136,7 @@ Requires: python3-click
 Requires: python3-CommonMark
 Requires: python3-alembic
 Requires: python3-blinker
-Requires: python3-copr-common >= 0.7
+Requires: python3-copr-common >= %copr_common_version
 Requires: python3-dateutil
 Requires: python3-email-validator
 Requires: python3-flask

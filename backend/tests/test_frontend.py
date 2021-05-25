@@ -20,6 +20,9 @@ def post_req():
 def f_request_method(request):
     'mock the requests.{get,post,put} method'
     with mock.patch("copr_common.request.{}".format(request.param)) as ctx:
+        ctx.return_value.headers = {
+            "Copr-FE-BE-API-Version": "666",
+        }
         yield (request.param, ctx)
 
 

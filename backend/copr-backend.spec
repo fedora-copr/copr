@@ -6,6 +6,8 @@
 %global tests_version 2
 %global tests_tar test-data-copr-backend
 
+%global copr_common_version 0.11.1.dev
+
 Name:       copr-backend
 Version:    1.148
 Release:    1%{?dist}
@@ -35,6 +37,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 
 BuildRequires: python3-copr
+BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-copr-messaging
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
@@ -73,7 +76,7 @@ Requires:   obs-signd
 Requires:   openssh-clients
 Requires:   prunerepo >= %prunerepo_version
 Requires:   python3-copr
-Requires:   python3-copr-common >= 0.10.1.dev
+Requires:   python3-copr-common >= %copr_common_version
 Requires:   python3-copr-messaging
 Requires:   python3-daemon
 Requires:   python3-dateutil

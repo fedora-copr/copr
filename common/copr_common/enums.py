@@ -35,6 +35,7 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "update_module_md": 8,
         "build_module": 9,
         "cancel_build": 10,
+        "remove_dirs": 11,
     }
 
 

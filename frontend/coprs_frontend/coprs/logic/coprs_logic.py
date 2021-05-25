@@ -1,4 +1,5 @@
 import locale
+import json
 import os
 import time
 import datetime
@@ -563,6 +564,16 @@ class CoprDirsLogic(object):
         db.session.delete(copr_dir)
 
     @classmethod
+    def delete_with_builds(cls, copr_dir):
+        """
+        Delete CoprDir istance from database, and transitively delete all
+        assigned Builds and BuildChroots.  No Backend action is generated.
+        """
+        models.Build.query.filter(models.Build.copr_dir_id==copr_dir.id)\
+                .delete()
+        cls.delete(copr_dir)
+
+    @classmethod
     def delete_all_by_copr(cls, copr):
         for copr_dir in copr.dirs:
             db.session.delete(copr_dir)
@@ -616,7 +627,7 @@ class CoprDirsLogic(object):
         )
         return (
             db.session.query(models.CoprDir, subquery)
-            .filter(models.CoprDir.copr_id==copr_id)
+            .filter(models.CoprDir.copr_id==int(copr_id))
         )
 
     @classmethod
@@ -665,6 +676,50 @@ class CoprDirsLogic(object):
             }]
 
         return results
+
+    @classmethod
+    def get_copr_ids_with_pr_dirs(cls):
+        """
+        Get query returning all Copr instances that have some PR directories
+        """
+        return (
+            db.session.query(models.CoprDir.copr_id)
+            .filter(models.CoprDir.name.like("%:pr:%"))
+            .group_by(models.CoprDir.copr_id)
+        )
+
+    @classmethod
+    def send_delete_dirs_action(cls):
+        """
+        Go through all projects, and check if there are some PR directories to
+        be removed.  Generate delete action for them, and drop them.
+        """
+        copr_ids = cls.get_copr_ids_with_pr_dirs().all()
+
+        remove_dirs = []
+        for copr_id in copr_ids:
+            copr_id = copr_id[0]
+            all_dirs = cls.get_all_with_latest_submitted_build(copr_id)
+            for copr_dir in all_dirs:
+                dir_object = copr_dir["copr_dir"]
+                if not copr_dir['delete']:
+                    continue
+
+                dirname = "{}/{}".format(
+                    dir_object.copr.owner_name,
+                    dir_object.name,
+                )
+                print("{} is going to be deleted".format(dirname))
+                cls.delete_with_builds(dir_object)
+                remove_dirs.append(dirname)
+
+        action = models.Action(
+            action_type=ActionTypeEnum("remove_dirs"),
+            object_type="copr",
+            data=json.dumps(remove_dirs),
+            created_on=int(time.time()))
+
+        db.session.add(action)
 
 @listens_for(models.Copr.auto_createrepo, 'set')
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):

@@ -7,3 +7,4 @@
 runuser -c '/usr/share/copr/coprs_frontend/manage.py vacuum-graphs' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-expired-projects' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-old-builds' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/manage.py delete-dirs' - copr-fe

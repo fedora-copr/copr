@@ -16,6 +16,7 @@ import commands.drop_db
 import commands.create_chroot
 import commands.alter_chroot
 import commands.display_chroots
+import commands.delete_dirs
 import commands.drop_chroot
 import commands.branch_fedora
 import commands.comment_chroot
@@ -82,6 +83,7 @@ commands_list =	[
     "clean_expired_projects",
     "clean_old_builds",
     "delete_orphans",
+    "delete_dirs",
 ]
 
 
