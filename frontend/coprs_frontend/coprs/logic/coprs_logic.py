@@ -1,6 +1,10 @@
+import locale
 import os
 import time
 import datetime
+from functools import cmp_to_key
+from itertools import zip_longest
+
 import flask
 
 from sqlalchemy import and_, not_
@@ -12,7 +16,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, ActionPriorityEnum
-from coprs import db
+from coprs import app, db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
@@ -563,6 +567,104 @@ class CoprDirsLogic(object):
         for copr_dir in copr.dirs:
             db.session.delete(copr_dir)
 
+    @staticmethod
+    def _compare_dir_pairs(pair1, pair2):
+        """
+        Compare list of pairs from get_all_with_latest_submitted_build_query
+        """
+
+        dirname1 = pair1.CoprDir.name
+        dirname2 = pair2.CoprDir.name
+
+        if ':' not in dirname1:
+            return -1
+        if ':' not in dirname2:
+            return 1
+
+        pr = False
+        for left, right in zip_longest(dirname1.split(':'), dirname2.split(':')):
+            if None in [left, right]:
+                return 1 if left is None else -1
+            if pr:
+                try:
+                    # _try_ to compare as numbers now
+                    return int(right) - int(left)
+                except ValueError:
+                    # let's fallback to string comparison
+                    pr = False
+            rc = locale.strcoll(left, right)
+            if rc != 0:
+                return rc
+
+            # go down to another field
+            if left == 'pr':
+                pr = True
+        return 0
+
+    @classmethod
+    def get_all_with_latest_submitted_build_query(cls, copr_id):
+        """
+        Get query returning list of pairs (CoprDir, latest_build_submitted_on)
+        """
+        subquery = (
+            db.session.query(
+                func.max(models.Build.submitted_on)
+            )
+            .filter(models.Build.copr_dir_id==models.CoprDir.id)
+            .group_by(models.Build.copr_dir_id)
+            .label("latest_build_submitted_on")
+        )
+        return (
+            db.session.query(models.CoprDir, subquery)
+            .filter(models.CoprDir.copr_id==copr_id)
+        )
+
+    @classmethod
+    def get_all_with_latest_submitted_build(cls, copr_id):
+        """
+        Return a list of pairs like [(CoprDir, latest_build_submitted_on), ...]
+        ordered by name.
+        """
+
+        keep_days = app.config["KEEP_PR_DIRS_DAYS"]
+        now = time.time()
+
+        pairs = list(cls.get_all_with_latest_submitted_build_query(copr_id))
+
+        results = []
+        for pair in sorted(pairs, key=cmp_to_key(cls._compare_dir_pairs)):
+            last = pair.latest_build_submitted_on
+            copr_dir = pair.CoprDir
+
+            removal_candidate = True
+            if ':pr:' not in copr_dir.name:
+                removal_candidate = False
+                delete = False  # never ever remove this!
+                remaining_days = 'infinity'
+                days_since_last = 0
+
+            elif last is None:
+                delete = True
+                remaining_days = 0
+                days_since_last = float('inf')
+
+            else:
+                seconds_since_last = now - last
+                days_since_last = seconds_since_last/3600/24
+                delete = days_since_last > keep_days
+                remaining_days = int(keep_days - days_since_last)
+                if remaining_days < 0:
+                    remaining_days = 0
+
+            results += [{
+                'copr_dir': copr_dir,
+                'warn': days_since_last > keep_days / 2,
+                'delete': delete,
+                'remaining_days': remaining_days,
+                'removal_candidate': removal_candidate,
+            }]
+
+        return results
 
 @listens_for(models.Copr.auto_createrepo, 'set')
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):

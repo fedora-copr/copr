@@ -125,6 +125,9 @@ class Config(object):
     # Setting this to True requires special installation
     PROFILER = False
 
+    # We remove pull-request directories after some time.
+    KEEP_PR_DIRS_DAYS = 40
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

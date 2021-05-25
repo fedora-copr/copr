@@ -10,6 +10,7 @@ from coprs import helpers
 from coprs.logic import builds_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.coprs_logic import CoprDirsLogic
 
 from coprs.views.misc import (login_required, req_with_copr, send_build_icon)
 from coprs.views.coprs_ns import coprs_ns
@@ -59,10 +60,13 @@ def copr_builds(copr):
     dirname = flask.request.args.get('dirname')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
     builds = builds_query.yield_per(1000)
+    dirs = CoprDirsLogic.get_all_with_latest_submitted_build(copr.id)
+
     response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
                               copr=copr,
                               builds=builds,
                               current_dirname=dirname,
+                              copr_dirs=dirs,
                               flashes=flashes)))
 
     flask.session.pop('_flashes', [])
