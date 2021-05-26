@@ -743,11 +743,9 @@ class CoprDir(db.Model):
     copr = db.relationship("Copr", backref=db.backref("dirs"))
 
     __table_args__ = (
-        # TODO: Drop the PG only index.  Add (a) normal unique index, (b) add a
-        # check index for 'main == true' (NULLs are not calculated), and (c)
-        # flip all the false values to NULL.
         db.Index('only_one_main_copr_dir', copr_id, main,
-                 unique=True, postgresql_where=(main==True)),
+                 unique=True, postgresql_where=(main),
+                 sqlite_where=(main)),
 
         db.UniqueConstraint('ownername', 'name',
                             name='ownername_copr_dir_uniq'),
