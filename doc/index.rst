@@ -31,7 +31,7 @@ The main subsections of this wiki:
 Communication
 -------------
 
-Copr is discussed on #fedora-buildsys on irc.freenode.net
+Copr is discussed on #fedora-buildsys on libera.chat
 
 Copr also has a mailing list for discussion: copr-devel@lists.fedorahosted.org `(signup) <https://fedorahosted.org/mailman/listinfo/copr-devel>`_ `(archives) <https://lists.fedorahosted.org/archives/list/copr-devel@lists.fedorahosted.org/>`_
 

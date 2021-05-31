@@ -22,7 +22,7 @@ Contact
 
 If you have any questions, please contact us:
 
-    - IRC: #fedora-buildsys@irc.freenode.net
+    - IRC: #fedora-buildsys@libera.chat
     - mailing list: copr-devel@lists.fedorahosted.org
       [`signup <https://fedorahosted.org/mailman/listinfo/copr-devel>`_]
       [`archives <https://lists.fedorahosted.org/pipermail/copr-devel/>`_]
