@@ -1621,7 +1621,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     bootstrap_image = db.Column(db.Text)
 
     isolation = db.Column(db.Text, default="unchanged")
-    deleted = db.Column(db.Boolean, default=False)
+    deleted = db.Column(db.Boolean, default=False, index=True)
 
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
