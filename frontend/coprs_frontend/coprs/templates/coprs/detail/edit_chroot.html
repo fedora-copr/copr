@@ -68,12 +68,9 @@
       <div class="col-sm-10">
         {{ form.comps }}
         {% if chroot.comps_name %}
-          Stored comps file: <code>
-            <a href="{{ copr_url('coprs_ns.chroot_view_comps', copr, chrootname=chroot.name) }}">
-              {{ chroot.comps_name}}
-            </a>
-
-          </code>
+          Stored comps file:
+            <a href="{{ copr_url('coprs_ns.chroot_view_comps', copr, chrootname=chroot.name) }}">{{ chroot.comps_name}}</a>
+            <br />
           <button class="btn btn-default" type="submit" value="delete_comps" name="submit">
             <span class="pficon pficon-delete"></span> Delete
           </button>
