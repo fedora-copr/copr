@@ -304,7 +304,7 @@ class CompsUpdate(Action):
         remote_comps_url = self.opts.frontend_base_url + url_path
         self.log.info(remote_comps_url)
 
-        path = self.get_chroot_result_dir(chroot, projectname, ownername)
+        path = os.path.join(self.destdir, ownername, projectname, chroot)
         ensure_dir_exists(path, self.log)
         local_comps_path = os.path.join(path, "comps.xml")
         result = ActionResult.SUCCESS

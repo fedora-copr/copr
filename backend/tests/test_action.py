@@ -8,6 +8,7 @@ import subprocess
 from munch import Munch
 
 import pytest
+import httpretty
 
 import unittest
 from unittest import mock
@@ -52,7 +53,7 @@ class TestAction(object):
             redis_port=7777,
 
             destdir="/var/lib/copr/public_html/results/",
-            frontend_base_url=None,
+            frontend_base_url="https://example.com",
             results_baseurl=RESULTS_ROOT_URL,
 
             do_sign=False,
@@ -932,3 +933,43 @@ class TestAction(object):
 
         # The action shouldn't fail even when the directory doesn't exist anymore
         assert test_action.run() == ActionResult.SUCCESS
+
+    @httpretty.activate()
+    def test_comps_create(self, mc_time):
+        _ = mc_time
+        text = "some xml body\n"
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://example.com/comps/path/",
+            body=text,
+        )
+
+        self.opts.destdir = self.make_temp_dir()
+        action_dict = {
+            "action_type": 4,
+            "created_on": 1622632008,
+            "data": json.dumps({
+                "ownername": "praiskup",
+                "projectname": "ping",
+                "chroot": "fedora-rawhide-x86_64",
+                "comps_present": True,
+                "url_path": "/comps/path/",
+            }),
+            "id": 672272,
+            "object_type": "copr_chroot",
+            "object_id": None,
+            "old_value": None,
+            "priority": 0,
+        }
+        test_action = Action.create_from(
+            opts=self.opts,
+            action=action_dict,
+        )
+        assert test_action.run() == ActionResult.SUCCESS
+
+        file = os.path.join(self.opts.destdir,
+                            "praiskup/ping/fedora-rawhide-x86_64",
+                            "comps.xml")
+        with open(file, "r") as fd:
+            lines = fd.readlines()
+            assert lines == [text]

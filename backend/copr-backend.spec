@@ -40,6 +40,7 @@ BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-fedmsg
 BuildRequires: python3-gobject
+BuildRequires: python3-httpretty
 BuildRequires: python3-humanize
 BuildRequires: python3-libmodulemd1 >= 1.7.0
 BuildRequires: python3-munch
