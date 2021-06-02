@@ -1053,6 +1053,29 @@ class CoprChrootsLogic(object):
                      # Filter only inactive (i.e. EOL) chroots
                      .filter(not_(models.MockChroot.is_active)))
 
+
+    @classmethod
+    def should_already_be_noticed(cls, remaining_days):
+        """
+        In issue#1724 we realized that we did not notify some chroots.  This
+        method is here temporarily to fix the situation.  We give such chroots
+        a bit more time so there's a chance we'll notify the maintainers.
+        """
+        exp_delete_after = datetime.datetime.now() \
+                         + datetime.timedelta(days=remaining_days)
+
+        query = cls.get_multiple()
+        return (
+            query.filter(models.CoprChroot.delete_after
+                         < exp_delete_after)
+             # Filter-out manually deleted chroots.
+             .filter(models.CoprChroot.deleted.isnot(True))
+             # We want not-yet notified chroots.
+             .filter(models.CoprChroot.delete_notify.is_(None))
+             # Filter only inactive (i.e. EOL) chroots
+             .filter(not_(models.MockChroot.is_active))
+        )
+
     @classmethod
     def filter_to_be_deleted(cls, query):
         """
