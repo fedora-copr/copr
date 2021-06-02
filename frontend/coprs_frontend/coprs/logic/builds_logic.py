@@ -857,8 +857,8 @@ class BuildsLogic(object):
             storage_path = app.config["STORAGE_DIR"]
             try:
                 shutil.rmtree(os.path.join(storage_path, tmp))
-            except:
-                pass
+            except OSError:
+                log.exception("Can't remove tmpdir '%s'", tmp)
 
 
     @classmethod
@@ -947,6 +947,7 @@ class BuildsLogic(object):
 
             if new_status == StatusEnum("failed"):
                 build.fail_type = FailTypeEnum("srpm_build_error")
+                BuildsLogic.delete_local_source(build)
 
             cls.process_update_callback(build)
             db.session.add(build)

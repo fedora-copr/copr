@@ -22,7 +22,7 @@ def transform_functions(function):
     Transformate some function definitions so pylint doesn't object.
     """
     if function.name == 'logger':
-        for prop in ['debug', 'info', 'warning', 'error']:
+        for prop in ['debug', 'info', 'warning', 'error', 'exception']:
             function.instance_attrs[prop] = extract_node('def {name}(arg): return'.format(name=prop))
 
     if function.name in ["upgrade", "downgrade"]:

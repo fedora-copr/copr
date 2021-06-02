@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import json
+import os
 import time
 
 import pytest
@@ -519,6 +520,71 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(build.build_chroots) == 1
         assert build.source_status == StatusEnum("importing")
         assert build.package.name == "foo"
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    @pytest.mark.parametrize("fail", [False, True])
+    def test_temporary_data_removed(self, fail):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"])
+        content = "content"
+        filename = "fake.src.rpm"
+        def f_uploader(file_path):
+            assert file_path.endswith(filename)
+            with open(file_path, "w") as fd:
+                fd.write(content)
+
+        user = models.User.query.get(1)
+        copr = models.Copr.query.first()
+        build = BuildsLogic.create_new_from_upload(
+            user, copr, f_uploader, os.path.basename(filename),
+            chroot_names=["fedora-18-x86_64"],
+            copr_dirname=None)
+
+        source_dict = build.source_json_dict
+        storage = os.path.join(self.app.config["STORAGE_DIR"], source_dict["tmp"])
+        with open(os.path.join(storage, filename), "r") as fd:
+            assert fd.readlines() == [content]
+        self.db.session.commit()
+        assert os.path.exists(storage)
+
+        form_data = {
+            "builds": [{
+                "id": 1,
+                "task_id": "1",
+                "srpm_url": "http://foo",
+                "status": 0 if fail else 1,
+                "pkg_name": "foo",  # not a 'copr-cli'!
+                "pkg_version": 1
+            }],
+        }
+
+        self.backend.update(form_data)
+        build = models.Build.query.get(1)
+        assert build.source_state == "failed" if fail else "importing"
+
+        # Removed upon failure, otherwise exists!
+        assert os.path.exists(storage) is not fail
+
+        if fail:
+            # nothing is imported in this case, nothing to test
+            return
+
+        # test that import hook works
+        r = self.tc.post("/backend/import-completed/",
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=json.dumps({
+                            "build_id": 1,
+                            "branch_commits": {
+                                "master": "4dc32823233c0ef1aacc6f345b674d4f40a026b8"
+                            },
+                            "reponame": "test/foo"
+                        }))
+        assert r.status_code == 200
+        build = models.Build.query.get(1)
+        assert build.source_state == "succeeded"
+        assert not os.path.exists(storage)
+
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
     def test_build_results_filter(self):
