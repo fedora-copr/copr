@@ -1048,7 +1048,7 @@ class CoprChrootsLogic(object):
                      # Filter only such chroots that are not unclicked (deleted)
                      # from a project. We don't want the EOL machinery for them,
                      # they are deleted.
-                     .filter(not_(models.CoprChroot.deleted))
+                     .filter(models.CoprChroot.deleted.isnot(True))
 
                      # Filter only inactive (i.e. EOL) chroots
                      .filter(not_(models.MockChroot.is_active)))
