@@ -258,6 +258,7 @@ install -p -m 755 conf/cron.daily/copr-frontend* %{buildroot}%{_sysconfdir}/cron
 install -p -m 755 coprs_frontend/run/copr_dump_db.sh %{buildroot}%{_libexecdir}
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
+rm -rf %{buildroot}%{_datadir}/copr/coprs_frontend/tests
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
 
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
