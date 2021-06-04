@@ -291,7 +291,8 @@ class BuildBackgroundWorker(BackgroundWorker):
             return
 
         path = os.path.join(self.job.results_dir, "results.json")
-        assert os.path.exists(path)
+        if not os.path.exists(path):
+            raise BackendError("results.json file not found in resultdir")
         with open(path, "r") as f:
             results = json.load(f)
         self.job.results = results
@@ -667,7 +668,6 @@ class BuildBackgroundWorker(BackgroundWorker):
                 build_details = {
                     "built_packages": self._collect_built_packages(job),
                 }
-                self._parse_results()
             self.log.info("build details: %s", build_details)
         except Exception as e:
             raise BackendError(
@@ -735,6 +735,7 @@ class BuildBackgroundWorker(BackgroundWorker):
             if self.opts.do_sign:
                 self._sign_built_packages()
             self._do_createrepo()
+            self._parse_results()
             build_details = self._get_build_details(self.job)
             self.job.update(build_details)
             self._add_pubkey()
