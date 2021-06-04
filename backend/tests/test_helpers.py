@@ -34,7 +34,7 @@ class TestHelpers(object):
         pass
 
     def test_redis_logger_exception(self):
-        log = get_redis_logger(self.opts, "copr_backend.test", "test")
+        log = get_redis_logger(self.opts, "copr_backend.test", "backend")
         try:
             raise BackendError("foobar")
         except Exception as err:
@@ -42,7 +42,7 @@ class TestHelpers(object):
 
         (_, raw_message) = self.rc.blpop([LOG_REDIS_FIFO])
         data = json.loads(raw_message)
-        assert data.get("who") == "test"
+        assert data.get("who") == "backend"
         assert data.get("levelno") == logging.ERROR
         assert "error occurred: Backend process error: foobar\n" in data["msg"]
         assert 'raise BackendError("foobar")' in data["msg"]

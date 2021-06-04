@@ -25,10 +25,7 @@ class RedisLogHandler(object):
         self.log_dir = os.path.dirname(self.opts.log_dir)
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir, mode=0o750)
-
-        self.components = ["spawner", "terminator", "vmm", "build_dispatcher",
-                           "action_dispatcher", "backend", "actions", "worker",
-                           "modifyrepo", "pruner"]
+        self.components = helpers.LOG_COMPONENTS
 
     def setup_logging(self):
 

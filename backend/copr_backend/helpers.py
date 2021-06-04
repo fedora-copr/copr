@@ -38,6 +38,12 @@ from copr_backend.exceptions import CoprBackendError, CoprBackendSrpmError
 from . import constants
 
 
+LOG_COMPONENTS = [
+    "spawner", "terminator", "vmm", "build_dispatcher", "action_dispatcher",
+    "backend", "actions", "worker", "modifyrepo", "pruner",
+]
+
+
 def pyconffile(filename):
     """
     Load python file as configuration file, inspired by python-flask
@@ -493,6 +499,21 @@ class RedisPublishHandler(logging.Handler):
             sys.stderr.write("Failed to publish log record to redis, {}"
                              .format(format_tb(error, ex_tb)))
 
+def get_redis_log_handler(opts, component):
+    """
+    Get RedisPublishHandler object sending the events to Redis.
+
+    :param opts: BackendConfigReader.read() output dict.
+    :param name: Name of the logger, e.g. 'root'.
+    :param component: Where to log the file in /var/log/copr-backend.  When
+        the component is 'pruner', the file will be 'pruner.log'.
+    """
+    assert component in LOG_COMPONENTS
+    rc = get_redis_connection(opts)
+    # level=DEBUG, by default we send everything logger gives us
+    handler = RedisPublishHandler(rc, component, level=logging.DEBUG)
+    return handler
+
 
 def get_redis_logger(opts, name, who):
     logger = logging.getLogger(name)
@@ -501,9 +522,7 @@ def get_redis_logger(opts, name, who):
     logger.setLevel(level)
 
     if not logger.handlers:
-        rc = get_redis_connection(opts)
-        handler = RedisPublishHandler(rc, who, level=logging.DEBUG)
-        logger.addHandler(handler)
+        logger.addHandler(get_redis_log_handler(opts, who))
 
     return logger
 
