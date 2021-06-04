@@ -31,7 +31,7 @@ from copr_backend.vm_alloc import ResallocHostFactory
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "0.49.1.dev"
+MIN_BUILDER_VERSION = "0.51.1.dev"
 CANCEL_CHECK_PERIOD = 5
 
 MESSAGES = {
