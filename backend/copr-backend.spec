@@ -83,6 +83,7 @@ Requires:   python3-dateutil
 Requires:   python3-fedmsg
 Requires:   python3-gobject
 Requires:   python3-humanize
+Requires:   python3-jinja2
 Requires:   python3-libmodulemd1 >= 1.7.0
 Requires:   python3-munch
 Requires:   python3-netaddr
@@ -99,6 +100,7 @@ Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
 Requires:   modulemd-tools >= 0.6
+Requires:   zstd
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -144,6 +146,7 @@ install -d %{buildroot}/%{_var}/run/copr-backend/
 install -d %{buildroot}/%{_tmpfilesdir}
 install -d %{buildroot}/%{_sbindir}
 install -d %{buildroot}%{_sysconfdir}/cron.daily
+install -d %{buildroot}%{_sysconfdir}/cron.weekly
 install -d %{buildroot}%{_sysconfdir}/sudoers.d
 install -d %{buildroot}%{_bindir}/
 
@@ -151,7 +154,8 @@ cp -a copr-backend-service %{buildroot}/%{_sbindir}/
 cp -a run/* %{buildroot}%{_bindir}/
 cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
-install -p -m 755 conf/crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
+install -p -m 755 conf/crontab/daily %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
+install -p -m 755 conf/crontab/weekly  %{buildroot}%{_sysconfdir}/cron.weekly/copr-backend
 
 cp -a conf/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 cp -a conf/logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
@@ -225,6 +229,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %{_sbindir}/*
 
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
+%config(noreplace) %{_sysconfdir}/cron.weekly/copr-backend
 %{_datadir}/logstash/patterns/lighttpd.pattern
 
 

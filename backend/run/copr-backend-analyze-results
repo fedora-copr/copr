@@ -1,0 +1,246 @@
+#! /usr/bin/python3
+
+"""
+Analyze the Copr Backend resultdir storage usage.
+"""
+
+import argparse
+from datetime import datetime
+import json
+import os
+import pipes
+import subprocess
+import time
+
+import humanize
+
+from copr_backend.setup import app, log, config
+
+
+def get_arg_parser():
+    """ Return an argument parser """
+    parser = argparse.ArgumentParser(
+        description="Analyze contents of copr-backend resultdir.  Print "
+                    "the statistics to STDOUT")
+    parser.add_argument(
+        "--log-to-stderr",
+        action="store_true",
+        help=("Print logging output to the STDERR instead of log file"))
+    parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help=("Don't dump the statistics to statsdir, but to STDOUT"))
+    parser.add_argument(
+        "--custom-du-command",
+        help="By default we run 'du -x $resultdir', use this for override",
+    )
+    parser.add_argument(
+        "--log-progress-delay",
+        type=int,
+        metavar="SECONDS",
+        help="Print progress info with SECONDS period",
+        default=30,
+    )
+    parser.add_argument(
+        "--output-filename",
+        help="The stats file basename")
+    return parser
+
+
+def get_stdout_line(command, binary=False, **kwargs):
+    """
+    Run COMMAND, read it's stdout line-by-line, and yield the line.  The
+    kwargs argument is passed down to Popen() call.
+    """
+
+    # Per Python Popen help
+    # ---------------------
+    # If you experience performance issues, it is recommended that you try to
+    # enable buffering by setting bufsize to either -1 or a large enough
+    # positive value (such as 4096).
+    assert "universal_newlines" not in kwargs
+
+    sentinel = b'' if binary else ''
+    kwargs['universal_newlines'] = not binary
+
+    process = subprocess.Popen(command, bufsize=-1, stdout=subprocess.PIPE,
+                               **kwargs)
+    for line in iter(process.stdout.readline, sentinel):
+        yield line
+
+
+class Stats:
+    """ Calculators. """
+    def __init__(self, name, print_items=None):
+        self.data = {}
+        self.name = name
+        self.print_items = print_items
+
+    def add(self, key, size):
+        """
+        Append size to the KEY counter, create the counter if it doesn't exist.
+        """
+        if key not in self.data:
+            self.data[key] = 0
+        self.data[key] += size
+
+    def _sorted_iterator(self):
+        for key, value in sorted(self.data.items(), key=lambda item: -item[1]):
+            yield key, value
+
+    def log_line(self, items=None):
+        """ self.print() but more compressed """
+
+        print_items = self.print_items
+        if items is not None:
+            print_items = items
+
+        line = "{}: ".format(self.name)
+        to_print = []
+        for key, value in self._sorted_iterator():
+            value = humanize.naturalsize(value*1024)
+            to_print.append("{}: {}".format(key, value))
+            if print_items is not None:
+                print_items -= 1
+                if print_items <= 0:
+                    break
+        log.info("%s", line + ", ".join(to_print))
+
+
+class TimeToPrint:
+    """ Helper class to estimate the time when the output should be printed """
+    def __init__(self, time_check_each=1000, print_per_seconds=3):
+        self.checks = 0
+        self.check_each = time_check_each
+        self.each_second = print_per_seconds
+        self.last_print = None
+
+    def should_print(self):
+        """ Return True if it is a time to print """
+        self.checks += 1
+        if not self.last_print:
+            self.last_print = time.time()
+        if self.checks % self.check_each:
+            return False
+        now = time.time()
+        if now > self.last_print + self.each_second:
+            self.last_print = now
+            return True
+        return False
+
+
+def compress_file(filename):
+    """ Zstd-compress filename """
+    log.info("Compressing the %s file", filename)
+    compress_cmd = ["zstd", "--rm", filename]
+    subprocess.check_call(compress_cmd)
+
+
+def _main(arguments):
+    # pylint: disable=too-many-locals,too-many-statements,too-many-branches
+    resultdir = os.path.normpath(config.destdir)
+
+    command = "du -x " + pipes.quote(resultdir)
+    if arguments.custom_du_command:
+        command = arguments.custom_du_command
+
+    datadir = os.path.join(config.statsdir, "samples")
+    try:
+        os.makedirs(datadir)
+    except FileExistsError:
+        pass
+
+    timestamp = datetime.utcnow().isoformat()
+
+    full_du_log = os.path.join(
+        datadir,
+        timestamp + ".du.log")
+
+
+    stats_file = os.path.join(
+        datadir,
+        timestamp + ".json")
+
+    if arguments.output_filename:
+        # We probably consume pre-existing du log, so no need to create yet
+        # another one.
+        full_du_log = "/dev/null"
+        stats_file  = arguments.output_filename
+
+    chroots = Stats("chroots", 5)
+    arches = Stats("arches")
+    owners = Stats("owners", 5)
+    projects = Stats("projects", 5)
+    distros = Stats("distros", 6)
+
+    all_stats = [chroots, arches, owners, projects, distros]
+
+    checker = TimeToPrint(print_per_seconds=arguments.log_progress_delay)
+
+    with open(full_du_log, "w") as du_log_fd:
+        for line in get_stdout_line(command, shell=True):
+            # copy the line
+            du_log_fd.write(line)
+
+            if checker.should_print():
+                log.info("=== analyzing period (each %s seconds) ===",
+                         arguments.log_progress_delay)
+                for stat in all_stats:
+                    stat.log_line()
+
+            line = line.strip()
+
+            # du format is 'size<tab>path'
+            kbytes, path = line.split('\t')
+            kbytes = int(kbytes)
+
+            if not path.startswith(resultdir):
+                continue
+
+            relpath = path[len(resultdir)+1:]
+            if not relpath:
+                continue
+
+            parts = relpath.split("/")
+            if len(parts) == 1:
+                owner = parts[0]
+                owners.add(owner, kbytes)
+                continue
+
+            if len(parts) == 2:
+                project = "/".join(parts)
+                projects.add(project, kbytes)
+                continue
+
+            if len(parts) == 3:
+                chroot = parts[-1]
+                distro = "-".join(parts[:-1])
+                chroots.add(chroot, kbytes)
+
+                if chroot not in ["srpm-builds", "modules", "repodata"]:
+                    distro, arch = chroot.rsplit("-", 1)
+                    arches.add(arch, kbytes)
+                    distros.add(distro, kbytes)
+
+    if full_du_log != "/dev/null":
+        compress_file(full_du_log)
+
+    data = {}
+    for stats in all_stats:
+        data[stats.name] = stats.data
+
+    output = json.dumps(data, indent=4, sort_keys=True)
+    if arguments.stdout:
+        print(output)
+    else:
+        with open(stats_file, "w+") as file:
+            file.write(output)
+
+        compress_file(stats_file)
+
+
+if __name__ == "__main__":
+    args = get_arg_parser().parse_args()
+    if not args.log_to_stderr:
+        app.redirect_to_redis_log("analyze-results")
+    _main(args)

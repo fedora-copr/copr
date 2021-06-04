@@ -1,0 +1,34 @@
+#! /bin/bash
+
+scriptdir=$(dirname "$(readlink -f "$0")")
+localwrap_workdir=$scriptdir/.localwrap
+
+new_paths=$scriptdir:$scriptdir/../common
+export PYTHONPATH=${PYTHONPATH+$PYTHONPATH:}$new_paths
+export BACKEND_CONFIG=$localwrap_workdir/backend.conf
+
+die() { echo >&2 "$*" ; exit 1; }
+
+prepare_workdir()
+{
+    resultdir=$localwrap_workdir/results
+    logdir=$localwrap_workdir/logs
+    statsdir=$localwrap_workdir/stats
+    mkdir -p "$resultdir"
+    cat > "$BACKEND_CONFIG" <<EOF
+[backend]
+destdir = $resultdir
+log_dir = $logdir
+statsdir = $statsdir
+EOF
+    mkdir -p "$resultdir/adam/workspace/fedora-rawhide-x86_64/00049143-foo"
+    touch    "$resultdir/adam/workspace/fedora-rawhide-x86_64/00049143-foo/foo.rpm"
+    mkdir -p "$resultdir/bob/sandbox/epel-7-x86_64/00849143-copr-builder"
+    touch    "$resultdir/bob/sandbox/epel-7-x86_64/00849143-copr-builder/copr-builder"
+    mkdir -p "$statsdir"
+}
+
+test $# -eq 0 && die "What command do you want to wrap?"
+
+prepare_workdir
+exec "$@"

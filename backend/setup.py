@@ -24,6 +24,7 @@ setup(
     url=__url__,
     license='GPLv2+',
     packages=find_packages(exclude=('tests*',)),
+    package_data={'': ['*.j2']},
     include_package_data=True,
     zip_safe=False,
 )

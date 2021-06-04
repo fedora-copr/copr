@@ -17,6 +17,9 @@ frontend_auth=backend_password_from_fe_config
 # no default
 destdir=/var/lib/copr/public_html/results
 
+# Periodically generated statistics/graphs go here
+statsdir=/var/lib/copr/public_html/stats
+
 # how long (in seconds) backend should wait before query frontends
 # for new tasks in queue
 # default is 10

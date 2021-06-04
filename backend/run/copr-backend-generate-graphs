@@ -1,0 +1,313 @@
+#! /usr/bin/python3
+
+"""
+Go to statsdir, gather all the available statistics and draw a set of related
+graphs.
+"""
+
+import argparse
+import json
+import pipes
+import subprocess
+import os
+import dateutil.parser as dp
+from jinja2 import Template
+from copr_backend.setup import app, config, log
+
+DOWNLOAD_JS_FILES = [
+    "https://www.chartjs.org/dist/2.6.0/Chart.bundle.js",
+    "https://www.chartjs.org/samples/2.6.0/utils.js",
+    "https://momentjs.com/downloads/moment.min.js",
+]
+
+def get_arg_parser():
+    """ Return an argument parser """
+    parser = argparse.ArgumentParser(
+        description="Read pre-generated stats, and generate graphs.")
+    parser.add_argument(
+        "--log-to-stderr",
+        action="store_true",
+        help=("Print logging output to the STDERR instead of log file"))
+    return parser
+
+
+def stamp2js(stamp):
+    """ JS works with miliseconds, and we know we work with UTC """
+    return dp.parse(stamp + "Z").timestamp()*1000
+
+
+def download_js_files():
+    """
+    Download static JavaScript files
+    """
+    for js_file in DOWNLOAD_JS_FILES:
+        basename = os.path.basename(js_file)
+        local_file = os.path.join(config.statsdir, basename)
+        if os.path.exists(local_file):
+            continue
+        log.info("Downloading %s file", js_file)
+        subprocess.check_call(["wget", js_file, "-O", local_file])
+
+
+def read_compressed_json(filename):
+    """
+    Read one json.zst file, and return its contents as dict
+    """
+    decompress = "zstd -d < {}".format(pipes.quote(filename))
+    string = subprocess.check_output(decompress, shell=True)
+    return json.loads(string)
+
+
+def expand_template(template_name, destfile, **kwargs):
+    """ Expand the given J2 template with **KWARGS """
+    template = os.path.join(config.stats_templates_dir,
+                            template_name)
+    with open(template, "r") as fd:
+        contents = fd.read()
+    template = Template(contents)
+    destfile = os.path.join(config.statsdir, destfile)
+    with open(destfile, "w") as fd:
+        fd.write(template.render(**kwargs))
+
+
+def hide_all_not_up2date(chroot, largest):
+    """
+    What chroots should be disabled by default
+    """
+    limits = {
+        "epel": largest["epel"] - 3,
+        "fedora": largest["fedora"] - 4,
+    }
+
+    if "centos-stream" in chroot:
+        return False
+
+    parts = chroot.split("-")
+    if len(parts) != 2:
+        return True
+
+
+    if parts[0] in ["fedora", "epel"]:
+        if parts[1] in ["rawhide", "eln"]:
+            return False
+
+        return limits[parts[0]] >= int(parts[1])
+    return True
+
+def get_distro_datasets(all_data):
+    """ Feed distros.html.j2 """
+    all_distros = set([])
+
+    distro_datasets = {}
+    for stamp in all_data:
+        all_distros = all_distros.union(set(all_data[stamp]["distros"].keys()))
+        for distro in all_distros:
+            distro_datasets[distro] = {
+                "label": distro,
+                "cubicInterpolationMode": "monotone",
+                "data": [],
+                "fill": False,
+            }
+
+    largest = {
+        "fedora": 0,
+        "epel": 0,
+    }
+    for distro in all_distros:
+        parts = distro.split("-")
+        name = parts[0]
+        version = parts[1]
+        if name in ["fedora", "epel"]:
+            try:
+                new_val = int(version)
+                if new_val > largest[name]:
+                    largest[name] = new_val
+            except ValueError:
+                continue
+
+    for distro in all_distros:
+        distro_datasets[distro]["hidden"] = hide_all_not_up2date(distro, largest)
+
+    for stamp, data in list_dict_by_key(all_data):
+        for distro, storage in data["distros"].items():
+            distro_datasets[distro]["data"] += [{
+                "x": stamp2js(stamp),
+                "y": storage,
+            }]
+
+    result = []
+    for _, dataset in distro_datasets.items():
+        result += [dataset]
+    result.sort(key=lambda x: x['label'])
+    return result
+
+
+def get_chroots_datasets(all_data):
+    """ Feed chroots.html.j2 """
+    all_chroots = set([])
+
+    chroot_datasets = {}
+    for stamp in all_data:
+        all_chroots = all_chroots.union(set(all_data[stamp]["chroots"].keys()))
+        for chroot in all_chroots:
+            chroot_datasets[chroot] = {
+                "label": chroot,
+                "hidden": "rawhide" not in chroot,
+                "cubicInterpolationMode": "monotone",
+                "data": [],
+            }
+
+    for stamp, data in list_dict_by_key(all_data):
+        for chroot, storage in data["chroots"].items():
+            chroot_datasets[chroot]["data"] += [{
+                "x": stamp2js(stamp),
+                "y": storage,
+            }]
+
+    result = []
+    for chroot, dataset in chroot_datasets.items():
+        result += [dataset]
+    result.sort(key=lambda x: x['label'])
+    return result
+
+
+def get_arch_datasets(all_data):
+    """ Feed archs.html.j2 """
+    all_archs = set([])
+
+    arch_datasets = {}
+    for stamp in all_data:
+        all_archs = all_archs.union(set(all_data[stamp]["arches"].keys()))
+        for arch in all_archs:
+            arch_datasets[arch] = {
+                "label": arch,
+                "cubicInterpolationMode": "monotone",
+                "data": [],
+            }
+
+    for stamp, data in list_dict_by_key(all_data):
+        for arch, storage in data["arches"].items():
+            arch_datasets[arch]["data"] += [{
+                "x": stamp2js(stamp),
+                "y": storage,
+            }]
+
+    result = []
+    for arch, dataset in arch_datasets.items():
+        result += [dataset]
+    result.sort(key=lambda x: x['label'])
+    return result
+
+
+def list_dict_by_key(the_dict, reverse=False):
+    """ Iterate the given dict by key """
+    k = -1 if reverse else 1
+    for key, value in sorted(the_dict.items(), key=lambda item: k*item[0]):
+        yield (key, value)
+
+
+def list_dict_backwards(the_dict):
+    """ Iterate dictionary backwards, based on the value part (not key) """
+    for key, value in sorted(the_dict.items(), key=lambda item: -item[1]):
+        yield (key, value)
+
+
+def get_topmost_dataset(all_data, stats_type, keep_from_each_set=15,
+                        show_from_last_set=5):
+    """
+    Get the datasets for top users/projects
+    """
+
+    last_dataset = all_data[sorted(list(all_data.keys()))[-1]][stats_type]
+
+    dont_hide = set()
+    keep_items = set()
+
+    for key, _ in list_dict_backwards(last_dataset):
+        show_from_last_set -= 1
+        dont_hide.add(key)
+        if show_from_last_set <= 0:
+            break
+
+    for _, day_data in all_data.items():
+        dataset = day_data[stats_type]
+        keep = keep_from_each_set
+        for item, _ in list_dict_backwards(dataset):
+            if keep <= 0:
+                break
+            keep_items.add(item)
+            keep -= 1
+
+    final_order_values = dict()
+    for keep in keep_items:
+        final_order_values[keep] = last_dataset[keep]
+    final_order = [key for key, _ in list_dict_backwards(final_order_values)]
+
+    result_dict = {}
+    for keep in keep_items:
+        result_dict[keep] = {
+            "label": keep,
+            "cubicInterpolationMode": "monotone",
+            "data": [],
+        }
+
+    for stamp, data in list_dict_by_key(all_data):
+        dataset = data[stats_type]
+
+        for keep in keep_items:
+            result_dict[keep]["data"] += [{
+                "x": stamp2js(stamp),
+                "y": dataset.get(keep, 0),
+            }]
+
+    return_datasets = []
+    for label in final_order:
+        dataset = result_dict[label]
+        dataset["hidden"] = label not in dont_hide
+        return_datasets += [dataset]
+
+    return return_datasets
+
+
+def _main(_args):
+    download_js_files()
+    sampledir = os.path.join(config.statsdir, "samples")
+    files = os.listdir(sampledir)
+    json_files = sorted([sample for sample in files
+                         if sample.endswith('json.zst')])
+
+    all_data = {}
+    for file in json_files:
+        stamp = file[:-9]
+        abs_file = os.path.join(sampledir, file)
+        all_data[stamp] = read_compressed_json(abs_file)
+
+    expand_template("index.html.j2", "index.html")
+
+    datasets = get_distro_datasets(all_data)
+    expand_template("distro.html.j2", "distro.html",
+                    datasets=datasets)
+
+    datasets = get_chroots_datasets(all_data)
+    expand_template("chroots.html.j2", "chroots.html",
+                    datasets=datasets)
+
+    datasets = get_arch_datasets(all_data)
+    expand_template("arches.html.j2", "arches.html",
+                    datasets=datasets)
+
+    datasets = get_topmost_dataset(all_data, "projects")
+    expand_template("topmost.html.j2", "projects.html",
+                    datasets=datasets,
+                    title="Consumption per projects")
+
+    datasets = get_topmost_dataset(all_data, "owners")
+    expand_template("topmost.html.j2", "owners.html",
+                    datasets=datasets,
+                    title="Consumption per owners")
+
+if __name__ == "__main__":
+    args = get_arg_parser().parse_args()
+    if not args.log_to_stderr:
+        app.redirect_to_redis_log("analyze-results")
+    _main(args)

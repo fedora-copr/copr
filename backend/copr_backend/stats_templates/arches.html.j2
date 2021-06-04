@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+
+{% set title="Storage consumption per architecture" %}
+
+<head>
+    <title>{{ title }}</title>
+    <script src="Chart.bundle.js"></script>
+    <script src="utils.js"></script>
+    <script src="moment.min.js"></script>
+    <style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
+
+<body>
+    <div style="width:75%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+        var color = Chart.helpers.color;
+        var scatterChartData = {
+            datasets: {{ datasets|tojson }}
+        };
+
+        function setup_colors(value, index, array) {
+            value["borderColor"] = [
+                window.chartColors.blue,
+                window.chartColors.red,
+                window.chartColors.green,
+                window.chartColors.grey,
+                window.chartColors.yellow,
+                window.chartColors.orange,
+                window.chartColors.purple,
+                window.chartColors.blue,
+            ][index];
+        };
+
+        window.onload = function() {
+
+            console.log(window.chartColors);
+
+            scatterChartData["datasets"].forEach(setup_colors);
+
+            var ctx = document.getElementById("canvas").getContext("2d");
+            window.myScatter = Chart.Scatter(ctx, {
+                data: scatterChartData,
+                options: {
+                    title: {
+                        display: true,
+                        text: '{{ title }}',
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(item, data) {
+                                index = item.datasetIndex;
+                                dataset = data.datasets[index];
+                                return dataset.label
+                                       + " => " + new Date(item.xLabel).toISOString().slice(0,10)
+                                       + " => " + Math.round(item.yLabel / 1024 / 1024 * 10)/10 + " GB";
+                            }
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                callback: (value) => {
+                                    return new Date(value).toLocaleDateString(
+                                        "en-US",
+                                        {month: "short", year: "numeric"}
+                                    );
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                callback: (value) => {
+                                    return Math.round(value / 1024 / 1024 *10)/10 + " GB";
+                                }
+                            }
+                        }]
+
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+
+</html>

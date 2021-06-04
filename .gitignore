@@ -15,6 +15,7 @@ _report/
 _tmp/
 .cache/
 .pytest_cache/
+.localwrap/
 
 backend/docs/build
 

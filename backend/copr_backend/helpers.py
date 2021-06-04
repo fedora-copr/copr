@@ -40,7 +40,7 @@ from . import constants
 
 LOG_COMPONENTS = [
     "spawner", "terminator", "vmm", "build_dispatcher", "action_dispatcher",
-    "backend", "actions", "worker", "modifyrepo", "pruner",
+    "backend", "actions", "worker", "modifyrepo", "pruner", "analyze-results",
 ]
 
 
@@ -359,6 +359,13 @@ class BackendConfigReader(object):
             cp, "backend", "log_level", "info")
         opts.log_format = _get_conf(
             cp, "backend", "log_format", default_log_format)
+
+        opts.statsdir = _get_conf(
+            cp, "backend", "statsdir", "/var/lib/copr/public_html/stats")
+
+        opts.stats_templates_dir = _get_conf(
+            cp, "backend", "stats_templates_dir",
+            os.path.join(os.path.dirname(__file__), "stats_templates"))
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 

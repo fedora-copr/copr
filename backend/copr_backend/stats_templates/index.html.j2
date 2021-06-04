@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+
+{% set title = "Copr Backend Storage Statistics" %}
+
+<head>
+    <title>{{ title }}</title>
+    <script src="Chart.bundle.js"></script>
+    <script src="utils.js"></script>
+    <script src="moment.min.js"></script>
+    <style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <a href="distro.html">Distro consumption</a><br />
+    <a href="chroots.html">Chroot consumption</a><br />
+    <a href="arches.html">Architecture consumption</a><br />
+    <a href="owners.html">Most consuming owners</a><br />
+    <a href="projects.html">Most consuming projects</a><br />
+</body>
+</html>
