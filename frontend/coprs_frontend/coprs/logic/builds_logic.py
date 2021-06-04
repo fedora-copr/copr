@@ -965,7 +965,6 @@ class BuildsLogic(object):
                     if upd_dict.get("status") in BuildsLogic.terminal_states:
                         build_chroot.ended_on = upd_dict.get("ended_on") or time.time()
                         assert isinstance(upd_dict, dict)
-                        assert not isinstance(upd_dict, str)
                         BuildChrootResultsLogic.create_from_dict(
                             build_chroot, upd_dict.get("results"))
 
@@ -1393,6 +1392,8 @@ class BuildChrootResultsLogic:
 
         and records all of the built packages for a given `BuildChroot`.
         """
+        if results is None or "packages" not in results:
+            return []
         return [cls.create(build_chroot, **result)
                 for result in results["packages"]]
 
