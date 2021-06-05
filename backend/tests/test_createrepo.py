@@ -183,38 +183,76 @@ class TestBatchedCreaterepo:
 
     def test_batched_createrepo_task_limit(self, caplog):
         some_dir = "/some/dir/name:pr:limit"
+
+        # request a createrepo run (devel == False!)
         bcr = self._prep_batched_repo(some_dir)
         key = bcr.make_request()
+        assert len(self.redis.keys()) == 1
 
-        # create limit +2 other requests, one is not to be processed, once
-        # skipped
+        # add 'add_1' task
         self.request_createrepo.get(some_dir)
+
+        # another background, not considered because devel == True
         self.request_createrepo.get(some_dir, {"add": ["add_2"], "devel": True})
+
+        # Fill-up the MAX_IN_BATCH quota with background requests, and add
+        # two more.
         for i in range(3, 3 + MAX_IN_BATCH):
             add_dir = "add_{}".format(i)
             self.request_createrepo.get(some_dir, {"add": [add_dir]})
 
-        # nobody processed us
-        assert not bcr.check_processed()
+        # MAX_IN_BATCH + 2 more above + one is ours
+        assert len(self.redis.keys()) == MAX_IN_BATCH + 2 + 1
 
-        expected = {"add_{}".format(i) for i in range(1, MAX_IN_BATCH + 2)}
+        # Nobody processed us, drop us from DB
+        assert not bcr.check_processed()
+        assert len(self.redis.keys()) == MAX_IN_BATCH + 2
+
+        # What directories should be processed at once?  Drop add_2 as it is
+        # devel=True.
+        expected = {"add_{}".format(i) for i in range(1, MAX_IN_BATCH + 3)}
         expected.remove("add_2")
-        assert len(expected) == MAX_IN_BATCH
+        assert len(expected) == MAX_IN_BATCH + 1
 
         full, add, remove, rpms_to_remove = bcr.options()
         assert (full, remove, rpms_to_remove) == (False, set(), set())
-        assert len(add) == MAX_IN_BATCH
+        # check that the batch is this request + (MAX_IN_BATCH - 1)
+        assert len(add) == MAX_IN_BATCH - 1
 
-        # The redis.keys() isn't sorted, and even if it was - PID would make the
-        # order.  Therefore we don't know which one is skipped, but only one is.
-        assert len(add - expected) == 1
-        assert len(expected - add) == 1
+        # The redis.keys() list isn't sorted, and even if it was - our own
+        # PID in the key would make the final order.  Therefore we don't know
+        # which items are skipped, but we know there are two left for the next
+        # batch.
+        assert len(expected-add) == 2
 
-        assert len(bcr.notify_keys) == MAX_IN_BATCH
+        # Nothing unexpected should go here.
+        assert add-expected == set()
+
+        assert len(bcr.notify_keys) == MAX_IN_BATCH - 1
         assert self.redis.hgetall(key) == {}
-        assert len(caplog.record_tuples) == 3
-        assert_logs_exist({
-            "'devel' attribute doesn't match",
+
+        log_entries_expected = {
             "Batch copr-repo limit",
             "Checking if we have to start actually",
-        }, caplog)
+        }
+
+        msg_count = len(caplog.record_tuples)
+        if msg_count == 3:
+            # we have one miss in roughly MAX_IN_BATCH tasks in the redis
+            # database, so there's roughly 1:MAX_IN_BATCH chance this message
+            # doesn't appear.
+            log_entries_expected.add("'devel' attribute doesn't match")
+        else:
+            assert msg_count == 2
+
+        assert_logs_exist(log_entries_expected, caplog)
+
+        bcr.commit()
+        without_status = set()
+        for key in self.redis.keys():
+            if not self.redis.hget(key, "status"):
+                data = json.loads(self.redis.hget(key, "task"))
+                for add_dir in data["add"]:
+                    without_status.add(add_dir)
+        assert "add_2" in without_status
+        assert len(without_status) == 3

@@ -176,7 +176,7 @@ class BatchedCreaterepo:
 
             rpms_to_remove.update(task_opts["rpms_to_remove"])
 
-            if len(self.notify_keys) >= MAX_IN_BATCH:
+            if len(self.notify_keys) >= MAX_IN_BATCH - 1:  # one is ours!
                 self.log.info("Batch copr-repo limit %s reached, skip the rest",
                               MAX_IN_BATCH)
                 break
