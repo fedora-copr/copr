@@ -2075,8 +2075,8 @@ class Action(db.Model, helpers.Serializer):
         return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
             self.action_type, self.object_type, self.old_value, self.new_value)
 
-    def to_dict(self, **kwargs):
-        d = super(Action, self).to_dict()
+    def to_dict(self, options=None):
+        d = super(Action, self).to_dict(options)
         if d.get("object_type") == "module":
             module = Module.query.filter(Module.id == d["object_id"]).first()
             data = json.loads(d["data"])
