@@ -352,6 +352,7 @@ class ProjectForking(object):
         fbuild.copr = fcopr
         fbuild.package = fpackage
         fbuild.copr_dir = fcopr.main_dir
+        fbuild.source_status = StatusEnum("forked")
         db.session.add(fbuild)
         db.session.flush()
 
