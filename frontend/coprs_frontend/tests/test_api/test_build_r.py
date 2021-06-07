@@ -408,7 +408,7 @@ class TestBuildResource(CoprsTestCase):
                              f_mock_chroots, f_builds,f_users_api, ):
 
         self.db.session.commit()
-        self.b1.appstream = True
+        self.b1.copr.appstream = True
         b_id = self.b1.id
         href = "/api_2/builds/{}".format(b_id)
         r = self.request_rest_api_with_auth(

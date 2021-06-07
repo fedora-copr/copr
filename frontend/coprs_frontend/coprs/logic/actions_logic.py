@@ -201,7 +201,7 @@ class ActionsLogic(object):
             build_ids.append(build.id)
 
             # inherit some params from the first build
-            for param in ['ownername', 'projectname']:
+            for param in ["ownername", "projectname", "appstream"]:
                 new = build_delete_data[param]
                 if param in data and data[param] != new:
                     # this shouldn't happen

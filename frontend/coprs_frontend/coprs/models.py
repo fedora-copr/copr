@@ -1471,6 +1471,7 @@ class Build(db.Model, helpers.Serializer):
         """
         return {bc.name: bc.results_dict for bc in self.build_chroots}
 
+    @property
     def appstream(self):
         """Whether appstream metadata should be generated for a build."""
         return self.copr.appstream

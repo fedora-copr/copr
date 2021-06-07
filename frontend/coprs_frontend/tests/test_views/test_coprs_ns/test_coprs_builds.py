@@ -147,7 +147,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
         self.db.session.commit()
 
         expected_chroot_builddirs = {'srpm-builds': [self.b_few_chroots.result_dir]}
-        self.b_few_chroots.appstream = True
+        self.b_few_chroots.copr.appstream = True
         for chroot in self.b_few_chroots.build_chroots:
             expected_chroot_builddirs[chroot.name] = [chroot.result_dir]
 
@@ -177,7 +177,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
         self.db.session.commit()
 
         b_id = self.b1.id
-        self.b1.appstream = True
+        self.b1.copr.appstream = True
         url = "/coprs/{0}/{1}/delete_build/{2}/".format(self.u1.name, self.c1.name, b_id)
 
         r = self.test_client.post(
