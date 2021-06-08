@@ -334,6 +334,7 @@ class ActionsLogic(object):
         data = {
             "chroots": [ch.name for ch in mock_chroots],
             "builds": [b.id for b in module.builds],
+            "appstream": copr.appstream,
         }
 
         action = models.Action(
