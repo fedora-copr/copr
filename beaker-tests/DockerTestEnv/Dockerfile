@@ -8,7 +8,7 @@ RUN dnf -y update \
     && wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d \
     && dnf -y copr enable @copr/copr \
     && if test "$COPR_PACKAGES" = devel; then dnf -y copr enable @copr/copr-dev; fi \
-    && dnf -y install htop net-tools iputils vim mlocate git sudo \
+    && dnf -y install hostname htop net-tools iputils vim mlocate git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect python3-behave python3-hamcrest \
     && dnf -y install python3-copr rpm-build copr-cli jq \
