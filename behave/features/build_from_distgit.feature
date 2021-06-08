@@ -17,6 +17,6 @@ Feature: Building from external DistGit instances
 
     @packages @builds
     Scenario: Test that we can add and build dist-git packages
-        When a DistGit CentOS "setup" package from branch "c8" is added
+        When a DistGit CentOS "filesystem" package from branch "c8" is added
         And the package build is requested
         Then the build results are distributed

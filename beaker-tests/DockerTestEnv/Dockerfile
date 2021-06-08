@@ -1,4 +1,4 @@
-FROM fedora:33
+FROM fedora:34
 ARG COPR_PACKAGES=devel
 MAINTAINER copr-devel@lists.fedorahosted.org
 ENV container docker
@@ -6,6 +6,8 @@ ENV container docker
 RUN dnf -y update \
     && dnf -y install dnf-plugins-core wget \
     && wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d \
+    && true "see https://github.com/beakerlib/beakerlib/issues/103" \
+    && sed -i 's/$releasever/33/' /etc/yum.repos.d/beaker-client-Fedora.repo \
     && dnf -y copr enable @copr/copr \
     && if test "$COPR_PACKAGES" = devel; then dnf -y copr enable @copr/copr-dev; fi \
     && dnf -y install hostname htop net-tools iputils vim mlocate git sudo \
