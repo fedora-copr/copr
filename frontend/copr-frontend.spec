@@ -25,7 +25,7 @@
 %global flavor_files                            \
 %staticdir/header_background.png                \
 %staticdir/favicon.ico                          \
-%staticdir/new_copr_logo.png                    \
+%staticdir/copr_logo.png                        \
 %staticdir/css/copr-flavor.css                  \
 %templatedir/additional_token_info.html         \
 %templatedir/project_info.html                  \
