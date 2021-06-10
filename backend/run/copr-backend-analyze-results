@@ -214,10 +214,18 @@ def _main(arguments):
 
             if len(parts) == 3:
                 chroot = parts[-1]
-                distro = "-".join(parts[:-1])
-                chroots.add(chroot, kbytes)
-
-                if chroot not in ["srpm-builds", "modules", "repodata"]:
+                if chroot.endswith(".cfg"):
+                    # some buggy directories, skip them all
+                    pass
+                elif chroot in ["repodata"]:
+                    # buggy repodata on wrong level
+                    pass
+                elif chroot in ["srpm-builds", "modules"]:
+                    # We calculate those as chroots, as it is interesting to see
+                    # how much storage the srpm-builds or modules eat.
+                    chroots.add(chroot, kbytes)
+                else:
+                    chroots.add(chroot, kbytes)
                     distro, arch = chroot.rsplit("-", 1)
                     arches.add(arch, kbytes)
                     distros.add(distro, kbytes)
