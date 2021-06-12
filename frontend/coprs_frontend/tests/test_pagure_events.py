@@ -13,35 +13,47 @@ class Message:
 
 
 class TestPagureEvents(CoprsTestCase):
-    data = {
-        "msg": {
-            "agent": "test",
-            "pullrequest": {
-                "branch": "master",
-                "branch_from": "test_PR",
-                "id": 1,
-                "commit_start": "78a74b02771506daf8927b3391a669cbc32ccf10",
-                "commit_stop": "da3d120f2ff24fa730067735c19a0b52c8bc1a44",
-                "repo_from": {
-                    "fullname": "test/copr/copr",
-                    "url_path": "test/copr/copr",
-                },
-                "project": {
-                    "fullname": "test/copr/copr",
-                    "url_path": "test/copr/copr",
-                },
-                'status': 'Open',
-                "comments": [],
-                'user': {
-                    "fullname": "John Doe",
-                    "url_path": "user/jdoe",
-                    "full_url": "https://src.fedoraproject.org/user/jdoe",
-                    "name": "jdoe"
-                },
+    def setup_method(self, method):
+        super().setup_method(method)
+        # pylint: disable=attribute-defined-outside-init
+        self.data = {
+            "msg": {
+                "agent": "test",
+                "pullrequest": {
+                    "branch": "master",
+                    "branch_from": "test_PR",
+                    "id": 1,
+                    "commit_start": "78a74b02771506daf8927b3391a669cbc32ccf10",
+                    "commit_stop": "da3d120f2ff24fa730067735c19a0b52c8bc1a44",
+                    "repo_from": {
+                        "fullname": "test/copr/copr",
+                        "url_path": "test/copr/copr",
+                    },
+                    "project": {
+                        "fullname": "test/copr/copr",
+                        "url_path": "test/copr/copr",
+                    },
+                    'status': 'Open',
+                    "comments": [],
+                    'user': {
+                        "fullname": "John Doe",
+                        "url_path": "user/jdoe",
+                        "full_url": "https://src.fedoraproject.org/user/jdoe",
+                        "name": "jdoe"
+                    },
+                }
             }
         }
-    }
-    base_url = "https://pagure.io/"
+        self.base_url = "https://pagure.io/"
+
+    def _setup_push_msg(self):
+        self.data['msg'] = {
+            "branch": "master",
+            "start_commit": "61bba3a6bd95fe83c651339018c1d36eae48b620",
+            'end_commit': '61bba3a6bd95fe83c651339018c1d36eae48b620',
+            "agent": "test",
+            "repo": {"fullname": "test", "url_path": "test"},
+        }
 
     def test_negative_event_info_from_pr_comment(self):
         event_info = event_info_from_pr_comment(self.data, self.base_url)
@@ -158,6 +170,7 @@ class TestPagureEvents(CoprsTestCase):
     @mock.patch('pagure_events.get_repeatedly', mock.Mock())
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots")
     def test_positive_build_from_push(self, f_raw_commit_changes):
+        self._setup_push_msg()
         f_raw_commit_changes.return_value = {
             'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
             'tests/integration/conftest.py b/tests/integration/conftest.py index '
@@ -179,6 +192,7 @@ class TestPagureEvents(CoprsTestCase):
     @mock.patch('pagure_events.helpers.raw_commit_changes')
     @mock.patch('pagure_events.get_repeatedly')
     def test_negative_build_from_push(self, f_get_repeatedly, f_raw_commit_changes, f_users, f_coprs):
+        self._setup_push_msg()
         f_raw_commit_changes.return_value = {''}
         self.p1 = self.models.Package(
             copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
