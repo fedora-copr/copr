@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.51.1.dev
+Version: 0.52
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -319,6 +319,10 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 0.52-1
+- provide the build results as results.json
+- ensure the latest *rpm macros packages on builder
+
 * Thu May 20 2021 Pavel Raiskup <praiskup@redhat.com> 0.51-1
 - don't cleanup resultdir itself, only contents
 
