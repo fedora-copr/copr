@@ -11,7 +11,7 @@ from alembic import op
 
 
 revision = 'e2b1cb42e6b7'
-down_revision = 'efec6b1aa9a2'
+down_revision = '8ea94673d6ee'
 
 
 def _update(name, uri, namespace=None):
