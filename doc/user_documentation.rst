@@ -333,7 +333,9 @@ more convenient from the command-line::
 This will create two batches (first with one build 101010 and second
 with two builds 101020 and 101030), where second batch isn't started till Copr
 finishes the first one.  This way, you can build a tree of dependant build
-batches according to your project needs.
+batches according to your project needs.  See also a related `blog post
+<https://pavel.raiskup.cz/blog/build-ordering-by-batches-in-copr.html>`
+which goes a little bit more into detail.
 
 Automatic run of Fedora Review tool
 -----------------------------------
