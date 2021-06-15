@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.50
+Version:    0.51
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -135,6 +135,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 0.51-1
+- add a --foreground option for importer_runner.py
+- install debugging helpers for indefinite imports (rhbz#1963954)
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 0.50-1
 - dist-git: optimize cgit cache file generator
 - dist-git: move everything to Python path
