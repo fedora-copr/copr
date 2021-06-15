@@ -9,7 +9,7 @@
 %global copr_common_version 0.11.1.dev
 
 Name:       copr-backend
-Version:    1.148
+Version:    1.149
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -243,6 +243,18 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.149-1
+- new weekly cron-job for analyzing storage use (graphs, statistics)
+- added some convenience globals into copr_backend.setup module
+- keep the max batch size really on the MAX_IN_BATCH limit
+- require up2date rpmbuild version
+- new action for removing CoprDirs (triggered by cron on frontend)
+- fix the CompsUpdate action
+- users now can disable appstream metadata generation themselves (without admins asistance)
+- handle results.json given by builder, and provide it to frontend (served as APIv3 later)
+- pruner: allow pruning also the finalized chroots on demand
+- invent FE-BE API version, so backend politely waits for an updated copr-frontend version
+
 * Thu May 13 2021 Pavel Raiskup <praiskup@redhat.com> 1.148-1
 - work with builders also over ipv6
 
