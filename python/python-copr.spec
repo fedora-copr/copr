@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.110
+Version:    1.111
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.111-1
+- allow user to disable generating appstream metadata
+- new API call for providing ENVRA info for builds
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.110-1
 - python: drop the deprecated APIv1 code from client
 - python: add deprecation warning for APIv2
