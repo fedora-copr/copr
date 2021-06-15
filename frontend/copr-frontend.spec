@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.178
+Version:    1.179
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -382,6 +382,30 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.179-1
+- add support for optional namespaces in DistGit instances
+- add a "storage statistics" link to footer
+- fix the copr logo so it contains updated "fedora" font
+- index the CoprChroot.deleted field to speedup API/UI
+- a new admin command for prolonging unnoticed chroots
+- properly notify all not-deleted chroots
+- storage waste - drop upload temporary directories even upon source failure
+- automatically request PR CoprDirs removal using a new action type
+- colorize CoprDir-buttons on builds page, notifying users which of them will be removed soon
+- fix build-listing for copr-dirs, show all builds by default again
+- forked source builds now have forked source_status, too
+- fixed the comps file hyperlink in web-UI form
+- packaging - don't install test files (not used at runtime)
+- allow user to disable generating appstream metadata (admin action is no longer needed)
+- provide ENVRA build results via APIv3 (for particular build ID)
+- review.txt link is now shown only for proper chroots
+- add a logo for the OpenMandriva chroots
+- the default value for MockChroot.comment should be none
+- pruner: allow pruning also the finalized chroots
+- invent a new FE-BE API version constant, guarding against incompatible FE/BE installations
+- a new knob for turning a profiler on (devel setup)
+- newly we show two latest blog post articles
+
 * Fri Apr 30 2021 Jakub Kadlcik <frostyx@email.cz> 1.178-1
 - frontend: oops, forgot to change these two instances
 - frontend: show deletion tooltip in project overview
