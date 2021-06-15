@@ -46,7 +46,7 @@ def download_js_files():
         if os.path.exists(local_file):
             continue
         log.info("Downloading %s file", js_file)
-        subprocess.check_call(["wget", js_file, "-O", local_file])
+        subprocess.check_call(["curl", "--location", js_file, "-o", local_file])
 
 
 def read_compressed_json(filename):
