@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.11.1.dev
+Version:    0.12
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,9 @@ version=%version %py2_install
 
 
 %changelog
+* Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 0.12-1
+- new action type for automatically deleting pull-request CoprDirs
+
 * Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 0.11-1
 - add first tests for copr-common package
 - repeatedly send requests to frontend until they succeed
