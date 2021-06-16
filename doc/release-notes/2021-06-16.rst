@@ -1,0 +1,117 @@
+.. _release_notes_2021_06_16:
+
+Highlights from 2021-06-16 release
+==================================
+
+Updated client packages are shipped in `Fedora 34`_, `Fedora 33`_,
+`EPEL 8`_ and `EPEL 7`_ Bodhi updates.
+
+
+Users can disable generating appstream metadata for their projects
+------------------------------------------------------------------
+
+It was possible to disable the generation of appstream metadata for quite some
+time, but it required contacting Copr maintainers to create a special file within
+the project results. There is now an option in the project settings, and users
+can disable/enable the appstream metadata generation by themselves.
+
+
+Query built RPM results via API
+-------------------------------
+
+We added two API endpoints for obtaining build results (the NEVRAs of built RPM
+packages). You can query build results from a specific build-chroot
+
+.. code-block:: python
+
+    from copr.v3 import Client
+
+    client = Client.create_from_config_file()
+    response = client.build_chroot_proxy.get_built_packages(123, "fedora-rawhide-x86_64")
+
+
+And you can also query build results from all chroots within one build
+
+.. code-block:: python
+
+    client = Client.create_from_config_file()
+    response = client.build_proxy.get_built_packages(123)
+
+
+Pull request CoprDirs are automatically deleted after inactivity
+----------------------------------------------------------------
+
+Copr supports webhooks and automatically builds packages from PRs within an
+upstream project. Such builds were kept indefinitely, and the `user interface
+could get cluttered`_. We now automatically delete all PR-related content after
+40 days of inactivity in that pull request. This should not be a problem for
+long-term unfinished PRs because once the work is resumed, everything will be
+rebuilt in Copr again.
+
+This feature is now paused, and we'll re-enable it by the end of June.
+In the meantime, please update your pull-requests to prolong your existing
+builds (the red-labeled build-filtering buttons denote builds that would
+be otherwise already removed).
+
+
+Showing two latest Copr-related articles
+----------------------------------------
+
+For some time we present Copr-related blog posts on Copr frontpage.  Occasionally the post frequency is too quick, and some articles are not shown
+on the homepage long enough, so we decided to show the two latest articles
+instead of one.
+
+Also, if you would like to have your Copr-related article published on the
+homepage, `submit it here`_.
+
+
+Worth noting
+------------
+
+- We created a script to calculate backend storage statistics and `show them in
+  graphs`_
+
+- While we are waiting for the new unified `Fedora websites redesign`_, we made
+  just an intermediate step to change the Copr logo
+
+
+Bugfixes
+--------
+
+- `#1422`_ - We now remove all leftovers after uploading SRPM packages and
+  therefore we shouldn't encounter issues with insufficient space on
+  the frontend when uploading large SRPM packages.
+
+- `#1431`_ - The uploaded `comps.xml` file is now properly placed into the repodata.
+
+- `#1539`_ - Source status of forked builds is now correctly in the `forked`
+  state
+
+- `#1633`_ - DistGit builds from src.fedoraproject.org can now be submitted even
+  from forked projects. Simply specify a namespace like so `forks/churchyard`.
+
+- `#1724`_ - We added a script for notifying old chroots that passed unnoticed
+  and run it to mark EOL everything that should be.
+
+- `#1737`_ - Link to `fedora-review` result is now shown only for Fedora chroots.
+
+- `#1823`_ - We now ensure that `redhat-rpm-config` and `*rpm-macros` packages
+  are now always up-to-date on builders.
+
+
+
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-e4ab5521ec
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-739569e2c4
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-01a8ed1078
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-82dbe71972
+.. _`submit it here`: https://github.com/fedora-copr/fedora-copr.github.io
+.. _`user interface could get cluttered`: https://pagure.io/copr/copr/issue/820
+.. _`show them in graphs`: https://download.copr.fedorainfracloud.org/stats/index.html
+.. _`Fedora websites redesign`: https://pagure.io/design/issue/758
+.. _`#1422`: https://pagure.io/copr/copr/issue/1422
+.. _`#1431`: https://pagure.io/copr/copr/issue/1431
+.. _`#1539`: https://pagure.io/copr/copr/issue/1539
+.. _`#1633`: https://pagure.io/copr/copr/issue/1633
+.. _`#1724`: https://pagure.io/copr/copr/issue/1724
+.. _`#1737`: https://pagure.io/copr/copr/issue/1737
+.. _`#1823`: https://pagure.io/copr/copr/issue/1823
