@@ -211,11 +211,6 @@ Post-release
 
 At this moment, every Copr service should be up and running.
 
-Announce the end of the release
-...............................
-
-Send email to copr-dev mailing list. If there is some important change you can send email to fedora devel mailing list too.
-
 
 Generate documentation
 ......................
@@ -242,6 +237,15 @@ Generate package specific documentation by going to:
 And hitting "Build" button for each of those projects.
 
 If schema was modified you should generate new Schema documentation.
+
+
+Announce the end of the release
+...............................
+
+Send email to copr-dev mailing list. If there is some important change you can send email to fedora devel mailing list too.
+Add the link to the "Highlights from XXXX-XX-XX release" documentation page.
+
+Add the "highlights" `blog post entry <https://github.com/fedora-copr/fedora-copr.github.io>`_.
 
 
 Release packages to PyPI
