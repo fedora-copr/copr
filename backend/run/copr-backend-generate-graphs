@@ -240,7 +240,7 @@ def get_topmost_dataset(all_data, stats_type, keep_from_each_set=15,
 
     final_order_values = dict()
     for keep in keep_items:
-        final_order_values[keep] = last_dataset[keep]
+        final_order_values[keep] = last_dataset.get(keep, 0)
     final_order = [key for key, _ in list_dict_backwards(final_order_values)]
 
     result_dict = {}
