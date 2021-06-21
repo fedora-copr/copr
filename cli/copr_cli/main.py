@@ -376,30 +376,8 @@ class Commands(object):
 
         if answer == 'y':
             ownername, projectname = self.parse_name(args.name)
-
-            copr_url = self.client.config["copr_url"]
-            api_url = "{0}/api".format(copr_url)
-            url = "{0}/coprs/{1}/{2}/{3}/".format(
-                api_url, ownername, projectname, "new_webhook_secret")
-
-            auth = (self.client.config["login"],
-                    self.client.config["token"])
-
-            # @TODO Rewrite this call to the APIv3.
-            # @TODO I am not doing it right away because it is a release-blocker
-            try:
-                response = requests.post(url=url, auth=auth)
-                result = response.json()
-            except requests.ConnectionError as ex:
-                sys.stderr.write(str(ex) + "\n")
-                return
-
-            if result["output"] != "ok":
-                sys.stderr.write(result["error"] + "\n")
-                sys.stderr.write("Un-expected data returned, please report this issue\n")
-                return
-
-            print(result["message"])
+            token = self.client.webhook_proxy.generate(ownername, projectname)
+            print("Generated new token: {0}".format(token.webhook_secret))
 
     @requires_api_auth
     def action_build(self, args):
