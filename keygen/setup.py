@@ -3,13 +3,6 @@ from setuptools import setup
 import shutil
 import sys
 
-description = """Copr is lightweight build system. It allows you to create
-new project in WebUI, and submit new builds and COPR will create yum repository
-from latest builds.
-
-This package contains aux service that generate keys for package signing.
-"""
-
 requires = [
     'flask',
     'six',
@@ -18,7 +11,7 @@ requires = [
 
 
 __name__ = 'copr-keygen'
-__description__ = description
+__description__ = description = "Copr's subsystem that generates keys for package signing."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
 __url__ = "https://pagure.io/copr/copr"
