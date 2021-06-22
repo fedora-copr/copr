@@ -257,10 +257,6 @@ def api_login_required(f):
             user = UsersLogic.get_by_api_login(apt_login).first()
             if (user and user.api_token == token and
                     user.api_token_expiration >= datetime.date.today()):
-
-                if user.proxy and "username" in flask.request.form:
-                    user = UsersLogic.get(flask.request.form["username"]).first()
-
                 token_auth = True
                 flask.g.user = user
         if not token_auth:

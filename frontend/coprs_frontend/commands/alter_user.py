@@ -6,8 +6,7 @@ from coprs import models
 @click.argument("name", required=True)
 @click.option('--admin/--no-admin', default=False)
 @click.option('--proven/--no-proven', default=False)
-@click.option('--proxy/--no-proxy', default=False)
-def alter_user(name, admin, proven, proxy):
+def alter_user(name, admin, proven):
     """
     Alter user data
     """
@@ -19,7 +18,6 @@ def alter_user(name, admin, proven, proxy):
 
     user.admin = admin
     user.proven = proven
-    user.proxy = proxy
 
     db.session.add(user)
     db.session.commit()

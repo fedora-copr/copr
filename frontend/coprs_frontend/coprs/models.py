@@ -55,9 +55,6 @@ class _UserPublic(db.Model, helpers.Serializer):
     # is this user admin of the system?
     admin = db.Column(db.Boolean, default=False)
 
-    # can this user behave as someone else?
-    proxy = db.Column(db.Boolean, default=False)
-
     # list of groups as retrieved from openid
     openid_groups = db.Column(JSONEncodedDict)
 

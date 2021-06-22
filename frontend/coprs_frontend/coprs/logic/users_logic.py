@@ -113,7 +113,6 @@ class UsersLogic(object):
         null = {"timezone": None,
                 "proven": False,
                 "admin": False,
-                "proxy": False,
                 "api_login": "",
                 "api_token": "",
                 "api_token_expiration": date(1970, 1, 1),

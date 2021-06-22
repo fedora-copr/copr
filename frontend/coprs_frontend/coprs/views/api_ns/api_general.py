@@ -90,8 +90,7 @@ def validate_post_keys(form):
     infos = []
     # TODO: don't use WTFform for parsing and validation here
     # are there any arguments in POST which our form doesn't know?
-    proxyuser_keys = ["username"]  # When user is proxyuser, he can specify username of delegated author
-    allowed = list(form.__dict__.keys()) + proxyuser_keys
+    allowed = list(form.__dict__.keys())
     for post_key in flask.request.form.keys():
         if post_key not in allowed:
             infos.append("Unknown key '{key}' received.".format(key=post_key))

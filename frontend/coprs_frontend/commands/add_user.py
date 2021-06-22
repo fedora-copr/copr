@@ -21,7 +21,7 @@ def add_user(name, mail, api_token=None, api_login=None):
 def add_user_function(name, mail, api_token=None, api_login=None):
     """
     You should not use regularly as that user will not be related to FAS account.
-    This should be used only for testing or adding special accounts e.g. proxy user.
+    This should be used only for testing.
     """
     user = models.User.query.filter(models.User.username == name).first()
     if user:
