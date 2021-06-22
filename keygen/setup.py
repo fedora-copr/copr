@@ -12,8 +12,8 @@ requires = [
 
 __name__ = 'copr-keygen'
 __description__ = description = "Copr's subsystem that generates keys for package signing."
-__author__ = "Valentin Gologuzov"
-__author_email__ = "vgologuz@redhat.com"
+__author__ = "Red Hat"
+__author_email__ = "copr-team@redhat.com"
 __url__ = "https://pagure.io/copr/copr"
 
 
@@ -28,10 +28,9 @@ setup(
     classifiers=[
         "License :: OSI Approved ::"
         " GNU General Public License v2 or later (GPLv2+)",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Topic :: System :: Archiving :: Packaging",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
     ],
     install_requires=requires,
     package_dir={'': 'src'},
