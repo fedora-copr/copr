@@ -363,10 +363,20 @@ def req_with_copr_dir(f):
     return wrapper
 
 
-def send_build_icon(build):
+def send_build_icon(build, no_cache=False):
+    """
+    Sends a build icon depending on the state of the build.
+    We use cache depending on whether it was the last build of a package, where the status can
+    change in a minute, or a specific build, where the status will not change.
+    :param build: build whose state we are interested in.
+    :param no_cache: whether we want to cache the build state icon.
+    :return: content of a file.
+    """
     if not build:
-        return send_file("static/status_images/unknown.png",
-                         mimetype='image/png')
+        response = send_file("static/status_images/unknown.png", mimetype='image/png')
+        if no_cache:
+            response.headers['Cache-Control'] = 'public, max-age=60'
+        return response
 
     if build.state in ["importing", "pending", "starting", "running"]:
         # The icon is about to change very soon, disable caches:
@@ -377,12 +387,12 @@ def send_build_icon(build):
         return response
 
     if build.state in ["succeeded", "skipped"]:
-        return send_file("static/status_images/succeeded.png",
-                         mimetype='image/png')
+        response = send_file("static/status_images/succeeded.png", mimetype='image/png')
+    elif build.state == "failed":
+        response = send_file("static/status_images/failed.png", mimetype='image/png')
+    else:
+        response = send_file("static/status_images/unknown.png", mimetype='image/png')
 
-    if build.state == "failed":
-        return send_file("static/status_images/failed.png",
-                         mimetype='image/png')
-
-    return send_file("static/status_images/unknown.png",
-                     mimetype='image/png')
+    if no_cache:
+        response.headers['Cache-Control'] = 'public, max-age=60'
+    return response

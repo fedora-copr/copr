@@ -54,7 +54,7 @@ def copr_package_icon(copr, package_name):
     except ObjectNotFound:
         return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
-    return send_build_icon(package.last_build())
+    return send_build_icon(package.last_build(), no_cache=True)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
