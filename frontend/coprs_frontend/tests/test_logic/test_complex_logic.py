@@ -12,6 +12,7 @@ from coprs.logic.complex_logic import (
     BuildConfigLogic,
     ComplexLogic,
     ProjectForking,
+    ReposLogic,
 )
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from tests.coprs_test_case import (
@@ -284,3 +285,58 @@ class FooModel(object):
     @property
     def columns(self):
         return {"x": self.x, "y": self.y, "z": self.z}
+
+
+class TestReposLogic(CoprsTestCase):
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
+                             "f_db")
+    def test_delete_reasons(self):
+        """
+        Make sure we correctly explain the reasons why and when chroots are
+        going to be deleted.
+        """
+        # pylint: disable=protected-access
+
+        # Make sure all chroots are active and not going to be deleted
+        for chroot in self.c2.copr_chroots:
+            assert chroot.is_active
+            assert not chroot.delete_after_days
+
+        # Check the reasoning when a project owner deleted the chroot
+        chroot = self.c2.copr_chroots[0]
+        CoprChrootsLogic.remove_copr_chroot(self.u2, chroot)
+        assert chroot.delete_after_days == 6
+        assert ReposLogic._delete_reason(self.c2.copr_chroots)\
+            == ("The chroot x86_64 is disabled by a project owner and will "
+                "remain available for another 6 days")
+
+        # Check the reasoning when we marked the chroot as EOL
+        chroot.mock_chroot.is_active = False
+        chroot.delete_after = datetime.datetime.today() + datetime.timedelta(days=180)
+        assert ReposLogic._delete_reason(self.c2.copr_chroots)\
+            == ("The chroot x86_64 is EOL and will remain "
+                "available for another 179 days")
+
+        # Check the reasoning when we have multiple chroots with the same name
+        # and release but each of its architectures was disabled for a different
+        # reason
+        assert self.c2.copr_chroots[0].mock_chroot.name_release\
+            == self.c2.copr_chroots[1].mock_chroot.name_release
+
+        chroot = self.c2.copr_chroots[1]
+        CoprChrootsLogic.remove_copr_chroot(self.u2, chroot)
+        assert ReposLogic._delete_reason(self.c2.copr_chroots)\
+            == ("The chroot x86_64 is EOL and will remain "
+                "available for another 179 days"
+                "\n"
+                "The chroot i386 is disabled by a project owner and will "
+                "remain available for another 6 days")
+
+        # Check the reasoning when multiple chroots are disabled for the same
+        # reason
+        chroot.mock_chroot.is_active = False
+        chroot.delete_after = datetime.datetime.today() + datetime.timedelta(days=180)
+        assert ReposLogic._delete_reason(self.c2.copr_chroots)\
+            == ("The chroots x86_64 and i386 are EOL and will remain "
+                "available for another 179 days")

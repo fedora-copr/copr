@@ -68,7 +68,7 @@ class CoprsTestCase(object):
         coprs.db.create_all()
         self.db.session.commit()
         #coprs/views/coprs_ns/coprs_general.py
-        self.rmodel_TSE_coprs_general_patcher = mock.patch("coprs.views.coprs_ns.coprs_general.TimedStatEvents")
+        self.rmodel_TSE_coprs_general_patcher = mock.patch("coprs.logic.complex_logic.TimedStatEvents")
         self.rmodel_TSE_coprs_general_mc = self.rmodel_TSE_coprs_general_patcher.start()
         self.rmodel_TSE_coprs_general_mc.return_value.get_count.return_value = 0
         self.rmodel_TSE_coprs_general_mc.return_value.add_event.return_value = None

@@ -1,12 +1,16 @@
 # coding: utf-8
 
+import os
 import datetime
 import time
+import fnmatch
 import flask
 import sqlalchemy
 
 from copr_common.enums import StatusEnum
+from coprs import app
 from coprs import db
+from coprs import rcp
 from coprs import helpers
 from coprs import models
 from coprs import exceptions
@@ -18,6 +22,7 @@ from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
+from coprs.rmodels import TimedStatEvents
 from coprs.logic.coprs_logic import (CoprsLogic, CoprDirsLogic, CoprChrootsLogic,
                                      PinnedCoprsLogic, MockChrootsLogic)
 
@@ -493,3 +498,153 @@ class BuildConfigLogic(object):
         if not copr_chroot.copr.auto_createrepo:
             repos.append("copr://{}/devel".format(copr_chroot.copr.full_name))
         return repos
+
+
+class ReposLogic:
+    """
+    Logic for generating repositories (e.g. in the project overview)
+    """
+
+    @classmethod
+    def repos_for_copr(cls, copr,  copr_repo_dl_stat):
+        """
+        Return a `dict` containing repository information for all chroots in
+        a given `copr` project
+        """
+        repos_groups = {}
+        for chroot in copr.enable_permissible_copr_chroots:
+            mc = chroot.mock_chroot
+            repos_groups.setdefault(mc.name_release, [])
+            repos_groups[mc.name_release].append(chroot)
+
+        repos_info = {}
+        for name_release, chroots in repos_groups.items():
+            repo = cls.repo_for_chroots(chroots, copr_repo_dl_stat)
+            repos_info[name_release] = repo
+        cls._append_multilib_repos(copr, repos_info)
+        return repos_info
+
+    @classmethod
+    def repo_for_chroots(cls, copr_chroots, copr_repo_dl_stat):
+        """
+        Return a repository that is combine for a multiple copr chroots. We
+        show one repository for all architectures of the same name-release
+        chroots
+        """
+        repo = None
+        for chroot in copr_chroots:
+            if not repo:
+                repo = cls._basic_repo_for_chroot(chroot, copr_repo_dl_stat)
+
+            arch = chroot.mock_chroot.arch
+            repo["arch_list"].append(arch)
+            repo["rpm_dl_stat"][arch] = cls._rpms_dl_stat(chroot)
+
+        repo["delete_reason"] = cls._delete_reason(copr_chroots)
+        return repo
+
+    @classmethod
+    def _basic_repo_for_chroot(cls, copr_chroot, copr_repo_dl_stat):
+        """
+        Return a basic repository information for a given `copr_chroot`.
+        Be aware that this information is incomplete and some
+        architecture-specific parameters are not set.
+        """
+        copr = copr_chroot.copr
+        mc = copr_chroot.mock_chroot
+        return {
+            "name_release": mc.name_release,
+            "os_release": mc.os_release,
+            "os_version": mc.os_version,
+            "logo": cls._logo(mc),
+            "arch_list": [],
+            "repo_file": "{}-{}.repo".format(copr.repo_id, mc.name_release),
+            "dl_stat": copr_repo_dl_stat[mc.name_release],
+            "rpm_dl_stat": {},
+            "delete_reason": None,
+        }
+
+    @classmethod
+    def _rpms_dl_stat(cls, copr_chroot):
+        """
+        Calculate how many times a repo for given `copr_chroot` was downloaded
+        """
+        chroot_rpms_dl_stat_key = helpers.CHROOT_RPMS_DL_STAT_FMT.format(
+            copr_user=copr_chroot.copr.owner_name,
+            copr_project_name=copr_chroot.copr.name,
+            copr_chroot=copr_chroot.name,
+        )
+        return TimedStatEvents.get_count(
+            rconnect=rcp.get_connection(),
+            name=chroot_rpms_dl_stat_key,
+        )
+
+    @classmethod
+    def _delete_reason(cls, copr_chroots):
+        """
+        In case some of the `copr_chroots` is going to be deleted in the future,
+        describe the reason why
+        """
+        # Do we even want to show a trash icon? I.e. are any of the project
+        # chroots set to be deleted in the future?
+        delete_chroots = [cc for cc in copr_chroots if cc.delete_status]
+        if not delete_chroots:
+            return None
+
+        # Let's find out for what reason each of the chroot architecture is
+        # going to be deleted and how much time is remaining before deletion.
+        # (e.g. one architecture may be EOL and another may be deleted by the
+        # project owner. Or all of them for the same reason. Also all
+        # architectures may be deleted by the project owner but on a different
+        # day and therefore the remaining time may be different)
+        reasons = {}
+        for chroot in delete_chroots:
+            reason_format = "{0} and will remain available for another {1} days"
+            reason = reason_format.format(
+                "disabled by a project owner" if chroot.is_active else "EOL",
+                chroot.delete_after_days,
+            )
+            reasons.setdefault(reason, [])
+            reasons[reason].append(chroot.mock_chroot.arch)
+
+        # Since we have architectures grouped by reasons why they are going to
+        # be deleted, let's create complete sentences describing them.
+        full_reasons = []
+        for key, value in reasons.items():
+            pluralized = helpers.pluralize("The chroot", value, be_suffix=True)
+            full_reasons.append("{0} {1}".format(pluralized, key))
+
+        return "\n".join(full_reasons)
+
+    @classmethod
+    def _logo(cls, mock_chroot):
+        """
+        Assign the correct OS logo for this repository
+        """
+        logoset = set()
+        logodir = app.static_folder + "/chroot_logodir"
+        for logo in os.listdir(logodir):
+            # glob.glob() uses listdir() and fnmatch anyways
+            if fnmatch.fnmatch(logo, "*.png"):
+                logoset.add(logo[:-4])
+
+        logo = None
+        if mock_chroot.name_release in logoset:
+            logo = mock_chroot.name_release + ".png"
+        elif mock_chroot.os_release in logoset:
+            logo = mock_chroot.os_release + ".png"
+        return logo
+
+    @classmethod
+    def _append_multilib_repos(cls, copr, repos_info):
+        if not copr.multilib:
+            return
+
+        for name_release in repos_info:
+            arches = repos_info[name_release]['arch_list']
+            arch_repos = {}
+            for ch64, ch32 in models.MockChroot.multilib_pairs.items():
+                if set([ch64, ch32]).issubset(set(arches)):
+                    arch_repos[ch64] = ch32
+
+            repos_info[name_release]['arch_repos'] = arch_repos

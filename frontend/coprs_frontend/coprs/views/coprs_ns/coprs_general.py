@@ -2,7 +2,6 @@
 
 import os
 import time
-import fnmatch
 import subprocess
 import json
 import datetime
@@ -22,7 +21,6 @@ from pygments.formatters import HtmlFormatter
 from coprs import app
 from coprs import cache
 from coprs import db
-from coprs import rcp
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
@@ -31,10 +29,9 @@ from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
-from coprs.rmodels import TimedStatEvents
 from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
 
-from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.complex_logic import ComplexLogic, ReposLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 
 from coprs.views.misc import (login_required, page_not_found, req_with_copr,
@@ -43,7 +40,7 @@ from coprs.views.misc import (login_required, page_not_found, req_with_copr,
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
-from coprs.helpers import generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, \
+from coprs.helpers import generate_repo_url, \
     url_for_copr_view, REPO_DL_STAT_FMT, CounterStatType, generate_repo_name, \
     WorkList
 
@@ -318,69 +315,7 @@ def copr_detail(copr):
 def render_copr_detail(copr):
     repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
     form = forms.CoprLegalFlagForm()
-    repos_info = {}
-    for chroot in copr.enable_permissible_copr_chroots:
-        chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
-            copr_user=copr.owner_name,
-            copr_project_name=copr.name,
-            copr_chroot=chroot.name,
-        )
-        chroot_rpms_dl_stat = TimedStatEvents.get_count(
-            rconnect=rcp.get_connection(),
-            name=chroot_rpms_dl_stat_key,
-        )
-
-        logoset = set()
-        logodir = app.static_folder + "/chroot_logodir"
-        for logo in os.listdir(logodir):
-            # glob.glob() uses listdir() and fnmatch anyways
-            if fnmatch.fnmatch(logo, "*.png"):
-                logoset.add(logo[:-4])
-
-        mc = chroot.mock_chroot
-        if mc.name_release not in repos_info:
-            logo = None
-            if mc.name_release in logoset:
-                logo = mc.name_release + ".png"
-            elif mc.os_release in logoset:
-                logo = mc.os_release + ".png"
-
-            delete_reason = None
-            if chroot.delete_status:
-                delete_reason = ("This chroot {0} and its repository will "
-                                 "remain available for another {1} days".format(
-                                     "was disabled by a project owner"
-                                     if chroot.is_active else "is EOL",
-                                     chroot.delete_after_days))
-
-            repos_info[mc.name_release] = {
-                "name_release": mc.name_release,
-                "os_release": mc.os_release,
-                "os_version": mc.os_version,
-                "logo": logo,
-                "arch_list": [mc.arch],
-                "repo_file": "{}-{}.repo".format(copr.repo_id, mc.name_release),
-                "dl_stat": repo_dl_stat[mc.name_release],
-                "rpm_dl_stat": {
-                    mc.arch: chroot_rpms_dl_stat
-                },
-                "delete_reason": delete_reason,
-            }
-        else:
-            repos_info[mc.name_release]["arch_list"].append(mc.arch)
-            repos_info[mc.name_release]["rpm_dl_stat"][mc.arch] = chroot_rpms_dl_stat
-
-    if copr.multilib:
-        for name_release in repos_info:
-            arches = repos_info[name_release]['arch_list']
-            arch_repos = {}
-            for ch64, ch32 in models.MockChroot.multilib_pairs.items():
-                if set([ch64, ch32]).issubset(set(arches)):
-                    arch_repos[ch64] = ch32
-
-            repos_info[name_release]['arch_repos'] = arch_repos
-
-
+    repos_info = ReposLogic.repos_for_copr(copr, repo_dl_stat)
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
     builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
 
