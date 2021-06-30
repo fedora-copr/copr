@@ -15,7 +15,8 @@ down_revision = 'e2b1cb42e6b7'
 
 
 def upgrade():
-    op.execute("""delete from "user" where proxy = true""")
+    op.execute("""delete from user_private  where user_id=(select id from "user" WHERE proxy = true);""")
+    op.execute("""delete from "user" where proxy = true;""")
     op.drop_column('user', 'proxy')
 
 
