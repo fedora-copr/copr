@@ -58,6 +58,13 @@ class BaseErrorHandler:
             return error.description
         return str(error)
 
+    def _log_admin_only_exception(self):
+        # pylint: disable=no-self-use
+        LOG.exception("Admin-only exception\nRequest: %s %s\nUser: %s\n",
+                      flask.request.method,
+                      flask.request.url,
+                      flask.g.user.name if flask.g.user else None)
+
 
 class UIErrorHandler(BaseErrorHandler):
     """
@@ -80,7 +87,7 @@ class UIErrorHandler(BaseErrorHandler):
         if code in error_views:
             return error_views[code](message)
 
-        LOG.exception("Admin-only exception")
+        self._log_admin_only_exception()
         return generic_error("Server error, contact admin", code)
 
 
@@ -114,7 +121,7 @@ class APIErrorHandler(BaseErrorHandler):
                     isinstance(error, HTTPException)]):
             message = ("Request wasn't successful, "
                        "there is probably a bug in the API code.")
-            LOG.exception("Admin-only exception")
+        self._log_admin_only_exception()
         return self.respond(message, code)
 
     def respond(self, message, code):  # pylint: disable=no-self-use
