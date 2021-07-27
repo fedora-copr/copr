@@ -1,8 +1,8 @@
 [rpkg]
 preprocess_spec = True
-# auto-packing is deprecated:
-auto_pack = True
 
 [git]
-lookaside = {{ lookaside_url }}
-anongiturl = {{ clone_url }}
+anon_clone_url = {{ clone_url }}
+
+[lookaside]
+download_url = {{ lookaside_url }}
