@@ -4,7 +4,7 @@ from coprs.logic.users_logic import UserDataDumper, UsersLogic
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
-app.config["SERVER_NAME"] = "localhost"
+app.config["SERVER_NAME"] = "localhost.localdomain"
 
 
 class TestUserDataDumper(CoprsTestCase):
@@ -21,14 +21,14 @@ class TestUserDataDumper(CoprsTestCase):
         assert data["gravatar"].startswith("https://seccdn.libravatar.org/avatar/")
 
     def test_projects(self, f_users, f_coprs, f_db):
-        app.config["SERVER_NAME"] = "localhost"
+        app.config["SERVER_NAME"] = "localhost.localdomain"
         with app.app_context():
             dumper = UserDataDumper(self.u1)
             projects = dumper.projects
             assert [p["full_name"] for p in projects] == ["user1/foocopr"]
 
     def test_builds(self, f_users, f_coprs, f_builds, f_db):
-        app.config["SERVER_NAME"] = "localhost"
+        app.config["SERVER_NAME"] = "localhost.localdomain"
         with app.app_context():
             dumper = UserDataDumper(self.u1)
             builds = dumper.builds
@@ -37,7 +37,7 @@ class TestUserDataDumper(CoprsTestCase):
             assert builds[0]["project"] == "user1/foocopr"
 
     def test_data(self, f_users, f_fas_groups, f_coprs, f_db):
-        app.config["SERVER_NAME"] = "localhost"
+        app.config["SERVER_NAME"] = "localhost.localdomain"
         with app.app_context():
             dumper = UserDataDumper(self.u1)
             data = dumper.data
@@ -47,7 +47,7 @@ class TestUserDataDumper(CoprsTestCase):
             assert type(data["builds"]) == list
 
     def test_dumps(self, f_users, f_fas_groups, f_coprs, f_db):
-        app.config["SERVER_NAME"] = "localhost"
+        app.config["SERVER_NAME"] = "localhost.localdomain"
         with app.app_context():
             dumper = UserDataDumper(self.u1)
             output = dumper.dumps()
