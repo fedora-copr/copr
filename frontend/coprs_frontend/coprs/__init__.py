@@ -93,9 +93,6 @@ app.session_interface = RedisSessionInterface(rcp.get_connection())
 
 cache_rcp = RedisConnectionProvider(config=app.config, db=1)
 cache = Cache(app, config={
-    'CACHE_TYPE': 'redis',
-    'CACHE_REDIS_DB': 1,    # we use 0 for sessions
-    'CACHE_KEY_PREFIX': 'copr_cache_',
     'CACHE_REDIS_HOST': cache_rcp.host,
     'CACHE_REDIS_PORT': cache_rcp.port,
 })

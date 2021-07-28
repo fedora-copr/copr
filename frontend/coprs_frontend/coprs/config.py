@@ -129,6 +129,15 @@ class Config(object):
     # We remove pull-request directories after some time.
     KEEP_PR_DIRS_DAYS = 40
 
+    # Caching templates
+    # https://flask-caching.readthedocs.io/en/latest/
+    # To enable caching set `CACHE_TYPE` to "redis". To disable it (e.g. for
+    # development purposes), set it to "NullCache"
+    CACHE_TYPE = "redis"
+    CACHE_REDIS_DB = 1  # we use 0 for sessions
+    CACHE_KEY_PREFIX = "copr_cache_"
+
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"
