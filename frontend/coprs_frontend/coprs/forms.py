@@ -137,7 +137,7 @@ def create_mock_bootstrap_image_field():
     Mandatory bootstrap-image field when the bootstrap select-box is set to a
     custom image option.
     """
-    return wtforms.TextField(
+    return wtforms.StringField(
         "Mock bootstrap image",
         validators=[
             wtforms.validators.Optional(),
