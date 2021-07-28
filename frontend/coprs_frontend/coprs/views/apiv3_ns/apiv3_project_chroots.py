@@ -99,7 +99,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
         with_opts = form.with_opts.data
     if "without_opts" in data:
         without_opts = form.without_opts.data
-    if form.upload_comps.has_file():
+    if form.upload_comps.data:
         comps_xml = form.upload_comps.data.stream.read()
         comps_name = form.upload_comps.data.filename
     if form.delete_comps.data:

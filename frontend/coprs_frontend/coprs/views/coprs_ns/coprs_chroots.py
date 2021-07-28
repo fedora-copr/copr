@@ -67,7 +67,7 @@ def chroot_update(copr, chrootname):
         if action == "update":
             comps_name = comps_xml = None
 
-            if form.comps.has_file():
+            if form.comps.data:
                 comps_xml = form.comps.data.stream.read()
                 comps_name = form.comps.data.filename
 

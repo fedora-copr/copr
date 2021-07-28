@@ -787,7 +787,7 @@ def copr_edit_chroot(copr, chrootname):
             buildroot_pkgs = form.buildroot_pkgs.data
         if "repos" in flask.request.form:
             repos = form.repos.data
-        if form.upload_comps.has_file():
+        if form.upload_comps.data:
             comps_xml = form.upload_comps.data.stream.read()
             comps_name = form.upload_comps.data.filename
         if form.delete_comps.data:
