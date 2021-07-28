@@ -74,6 +74,17 @@ manually).  So as soon as it is possible, do::
     copr-frontend alter-chroot --action activate fedora-32-x86_64 fedora-32-i386 \
         fedora-32-ppc64le fedora-32-aarch64 fedora-32-armhfp fedora-32-s390x
 
+Update the the ``CHROOT_NAME_RELEASE_ALIAS`` option in the
+``copr.conf`` stored in our ansible configuration and run the frontend
+playbook. It should map the numeric ``$releasever`` value for Fedora
+Rawhide to our existing chroots.
+
+.. code-block:: python
+
+    CHROOT_NAME_RELEASE_ALIAS = {
+        "fedora-35": "fedora-rawhide",
+    }
+
 When everything is done, `send an information email to a mailing list <#mailing-lists>`_.
 
 
