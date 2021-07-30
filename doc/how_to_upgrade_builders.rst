@@ -4,7 +4,7 @@ How to upgrade builders
 =======================
 
 This article explains how to upgrade the Copr builders in AWS (x86_64 and
-aarch64) and libvirt (x86_64, aarch64) to a newer Fedora once it is released.
+aarch64) and libvirt (x86_64 and ppc64le) to a newer Fedora once it is released.
 
 Keep amending this page if you find something not matching reality or
 expectations.
@@ -17,8 +17,9 @@ Requirements
 ------------
 
 * ssh access to `staging backend box`_
-* ssh access to one of our x86_64 hypervisors (01 to 04)
-  ``copr@vmhost-x86-copr01.rdu-cc.fedoraproject.org``
+* ssh access to one of our x86_64 and ppc64le hypervisors, e.g.
+  ``copr@vmhost-x86-copr01.rdu-cc.fedoraproject.org`` and
+  ``copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org``
 * ssh access to ``batcave01.iad2.fedoraproject.org``, and sudo access there
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
 
@@ -77,17 +78,26 @@ and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 Prepare libvirt source images
 -----------------------------
 
-We prepare images for Libvirt on our hypervisors (of proper architecture).  The
-ansible configuration is configured so any hypervisor of given architecture can
-be taken.
+We prepare images for Libvirt on our hypervisors.  We start with the official
+Fedora images as the "base images", and we just modify them (easier than
+generating images from scratch).
 
-The hypervisors have overcommitted RAM and disk space a lot (otherwise it
+We can not prepare the images cross-arch, and we need to prepare one image for
+every supported architecture (on an appropriate hypervisor).  So in turn we need
+to repeat the instructions for each architecture we have hypervisors for
+(currently x86_64 and ppc64le).
+
+All the hypervisors in Copr build system are appropriately configured, so it
+doesn't matter which of the hypervisors is chosen (only the architecture must
+match).
+
+Our hypervisors have overcommitted RAM and disk space a lot (otherwise it
 wouldn't be possible to start so many builders on each hypervisor in parallel).
-But the good thing is that we should always anytime be able to spawn one or two
-VMs more, for the purpose of generating the builder image.
+The good thing about that is that we can anytime temporarily spawn one or more
+VMs for the purpose of generating the builder image.
 
-So try to generate the image from given official Fedora Cloud image on one of
-the hypervisors::
+So let's try to generate the image from the given official Fedora Cloud image on
+one of the x86_64 hypervisors::
 
     $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
 
