@@ -409,6 +409,29 @@ though they are recommended to do so. In particular, kernel modules
 may be built in Copr, as long as they don't violate the license
 requirements in point 2. above.
 
+.. _`Is it safe to use Copr?`:
+
+.. rubric::  Is it safe to use Copr? :ref:`¶ <Is it safe to use Copr?>`
+
+This is a two-part question.
+
+1\) Can we trust Copr as a platform?
+
+Copr is free software with its code publicly available for review by
+anyone. Internally, it uses the standard Fedora packaging toolset, and
+resulting repositories are signed. All Copr servers are deployed
+within Fedora infrastructure, and we work closely with the Fedora
+Infrastructure team.
+
+2\) Can we trust the software available in Copr?
+
+Only people with FAS accounts are allowed to create projects and build
+packages in Copr. That means that you can find out more information
+about each project owner and decide for yourself whether you find them
+trustworthy or not. You can also see how exactly each build was
+submitted, download its SRPM file, and validate the sources and spec
+file for yourself.
+
 .. _`How can I enable a Copr repository?`:
 
 .. rubric:: How can I enable a Copr repository? :ref:`¶ <How can I enable a Copr repository?>`
