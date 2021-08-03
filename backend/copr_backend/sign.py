@@ -184,7 +184,7 @@ def _unsign_one(path):
 
     if handle.returncode != 0:
         err = CoprSignError(
-            msg="Failed to unsign ".format(path),
+            msg="Failed to unsign {}".format(path),
             return_code=handle.returncode,
             cmd=cmd, stdout=stdout, stderr=stderr)
 
