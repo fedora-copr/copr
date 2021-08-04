@@ -56,7 +56,7 @@ class TestSign(object):
         mc_handle.returncode = 0
         mc_popen.return_value = mc_handle
 
-        result = get_pubkey(self.username, self.projectname)
+        result = get_pubkey(self.username, self.projectname, MagicMock())
         assert result == STDOUT
         assert mc_popen.call_args[0][0] == ['/bin/sign', '-u', self.usermail, '-p']
 
@@ -66,7 +66,7 @@ class TestSign(object):
         mc_popen.side_effect = IOError(STDERR)
 
         with pytest.raises(CoprSignError):
-            get_pubkey(self.username, self.projectname)
+            get_pubkey(self.username, self.projectname, MagicMock())
 
 
     @mock.patch("copr_backend.sign.Popen")
@@ -77,7 +77,7 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignNoKeyError) as err:
-            get_pubkey(self.username, self.projectname)
+            get_pubkey(self.username, self.projectname, MagicMock())
 
         assert "There are no gpg keys for user foo in keyring" in str(err)
 
@@ -89,7 +89,7 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignError) as err:
-            get_pubkey(self.username, self.projectname)
+            get_pubkey(self.username, self.projectname, MagicMock())
 
         assert "Failed to get user pubkey" in str(err)
 
@@ -102,7 +102,8 @@ class TestSign(object):
 
         outfile_path = os.path.join(self.tmp_dir_path, "out.pub")
         assert not os.path.exists(outfile_path)
-        result = get_pubkey(self.username, self.projectname, outfile_path)
+        result = get_pubkey(self.username, self.projectname, MagicMock(),
+                            outfile_path)
         assert result == STDOUT
         assert os.path.exists(outfile_path)
         with open(outfile_path) as handle:
@@ -117,7 +118,7 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         fake_path = "/tmp/pkg.rpm"
-        result = _sign_one(fake_path, self.usermail)
+        result = _sign_one(fake_path, self.usermail, MagicMock())
         assert STDOUT, STDERR == result
 
         expected_cmd = ['/bin/sign', '-u', self.usermail, '-r', fake_path]
@@ -129,7 +130,7 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail)
+            _sign_one(fake_path, self.usermail, MagicMock())
 
     @mock.patch("copr_backend.sign.Popen")
     def test_sign_one_cmd_erro(self, mc_popen):
@@ -140,7 +141,7 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail)
+            _sign_one(fake_path, self.usermail, MagicMock())
 
     @mock.patch("copr_backend.sign.request")
     def test_create_user_keys(self, mc_request):
@@ -271,4 +272,3 @@ class TestSign(object):
         assert not mc_cuk.called
 
         assert mc_so.called
-

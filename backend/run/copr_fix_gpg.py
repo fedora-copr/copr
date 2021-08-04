@@ -44,7 +44,7 @@ def fix_copr(opts, copr_full_name):
     create_user_keys(owner, coprname, opts)
 
     log.info('> Regenerate pubkey.gpg in copr {}.'.format(copr_path))
-    get_pubkey(owner, coprname, os.path.join(copr_path, 'pubkey.gpg'))
+    get_pubkey(owner, coprname, log, os.path.join(copr_path, 'pubkey.gpg'))
 
     log.info('> Re-sign rpms and call createrepo in copr\'s chroots:')
     for dir_name in os.listdir(copr_path):

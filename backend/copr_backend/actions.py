@@ -174,7 +174,7 @@ class Fork(Action, GPGMixin):
                 # Generate brand new gpg key.
                 self.generate_gpg_key(data["user"], data["copr"])
                 # Put the new public key into forked build directory.
-                get_pubkey(data["user"], data["copr"], pubkey_path)
+                get_pubkey(data["user"], data["copr"], self.log, pubkey_path)
 
             chroot_paths = set()
             for chroot, src_dst_dir in builds_map.items():

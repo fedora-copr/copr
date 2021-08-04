@@ -26,7 +26,24 @@ def create_gpg_email(username, projectname):
     return "{}#{}@copr.{}".format(username, projectname, DOMAIN)
 
 
-def get_pubkey(username, projectname, outfile=None):
+def call_sign_bin(cmd, log):
+    """
+    Call /bin/sign and return (rc, stdout, stderr).  Re-try the call
+    automatically upon certain failures (if that makes sense).
+    """
+    cmd_pretty = ' '.join(cmd)
+    for attempt in [1, 2, 3]:
+        log.info("Calling '%s' (attempt #%s)", cmd_pretty, attempt)
+        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+        stdout, stderr = handle.communicate()
+        if handle.returncode != 0 and "Connection timed out" in stderr:
+            log.warning("Timeout on %s, re-trying", cmd_pretty)
+            continue
+        break
+    return handle.returncode, stdout, stderr
+
+
+def get_pubkey(username, projectname, log, outfile=None):
     """
     Retrieves public key for user/project from signer host.
 
@@ -40,22 +57,22 @@ def get_pubkey(username, projectname, outfile=None):
     cmd = [SIGN_BINARY, "-u", usermail, "-p"]
 
     try:
-        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-        stdout, stderr = handle.communicate()
-    except Exception as e:
-        raise CoprSignError("Failed to get user pubkey"
-                            " due to: {}".format(e))
+        returncode, stdout, stderr = call_sign_bin(cmd, log)
+    except Exception as err:
+        new_err = CoprSignError("Failed to get user pubkey"
+                                " due to: {}".format(err))
+        raise new_err from err
 
-    if handle.returncode != 0:
+    if returncode != 0:
         if "unknown key:" in stderr:
             raise CoprSignNoKeyError(
                 "There are no gpg keys for user {} in keyring".format(username),
-                return_code=handle.returncode,
+                return_code=returncode,
                 cmd=cmd, stdout=stdout, stderr=stderr)
         raise CoprSignError(
             msg="Failed to get user pubkey\n"
                 "sign stdout: {}\n sign stderr: {}\n".format(stdout, stderr),
-            return_code=handle.returncode,
+            return_code=returncode,
             cmd=cmd, stdout=stdout, stderr=stderr)
 
     if outfile:
@@ -65,27 +82,20 @@ def get_pubkey(username, projectname, outfile=None):
     return stdout
 
 
-def _sign_one(path, email):
+def _sign_one(path, email, log):
     cmd = [SIGN_BINARY, "-u", email, "-r", path]
-
     try:
-        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-        stdout, stderr = handle.communicate()
-    except Exception as e:
-        err = CoprSignError(
+        returncode, stdout, stderr = call_sign_bin(cmd, log)
+    except Exception as err:
+        new_err = CoprSignError(
             msg="Failed to invoke sign {} by user {} with error {}"
-            .format(path, email, e, cmd=None, stdout=None, stderr=None))
-
-        raise err
-
-    if handle.returncode != 0:
-        err = CoprSignError(
+            .format(path, email, err, cmd=cmd, stdout=None, stderr=None))
+        raise new_err from err
+    if returncode != 0:
+        raise CoprSignError(
             msg="Failed to sign {} by user {}".format(path, email),
-            return_code=handle.returncode,
+            return_code=returncode,
             cmd=cmd, stdout=stdout, stderr=stderr)
-
-        raise err
-
     return stdout, stderr
 
 
@@ -115,14 +125,14 @@ def sign_rpms_in_dir(username, projectname, path, opts, log):
         return
 
     try:
-        get_pubkey(username, projectname)
+        get_pubkey(username, projectname, log)
     except CoprSignNoKeyError:
         create_user_keys(username, projectname, opts)
 
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _sign_one(rpm, create_gpg_email(username, projectname))
+            _sign_one(rpm, create_gpg_email(username, projectname), log)
             log.info("signed rpm: {}".format(rpm))
 
         except CoprSignError as e:
