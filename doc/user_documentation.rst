@@ -613,6 +613,25 @@ processed (one build batch can depend on other build batch).
 See `blog post <https://pavel.raiskup.cz/blog/build-ordering-by-batches-in-copr.html>`_
 with examples for more info.
 
+.. _`Build succeeded, but I don't see the built results!`:
+
+.. rubric:: Build succeeded, but I don't see the built results? :ref:`¶ <Build succeeded, but I don't see the built results!>`
+
+Fedora Copr uses the AWS CDN to spread the HTTP traffic on the built RPM
+repositories across the globe, and it implies a lot of caching on the AWS side.
+
+When you (or anyone else in your territory) check the build directory while
+the build is still in progress, the web server directory listing gets cached in
+CDN - and then the contents of the directory appears unchanged for some time
+(even though the build might already be finished and thus the directory updated).
+
+Don't worry, this caching doesn't affect the DNF/YUM behavior - so even though
+your browser is misled by caches, package managers always download the latest
+contents of the directories.  Either please ignore the inconsistency, or visit
+the `non-cached host variant
+<http://copr-be.cloud.fedoraproject.org/results/>`_.
+
+
 .. _`I have a problem and I need to talk to a human.`:
 
 .. rubric:: I have a problem and I need to talk to a human.  :ref:`¶ <I have a problem and I need to talk to a human.>`
