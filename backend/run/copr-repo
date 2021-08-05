@@ -119,6 +119,11 @@ def process_backend_config(opts):
     logger_name = '{}.pid-{}'.format(sys.argv[0], os.getpid())
     opts.log = get_redis_logger(opts.backend_opts, logger_name, "modifyrepo")
 
+    # keep important info also on stderr
+    stderr_handler = logging.StreamHandler()
+    stderr_handler.setLevel(logging.WARNING)
+    opts.log.addHandler(stderr_handler)
+
 
 def filter_existing(opts, subdirs):
     """ Return items from ``subdirs`` that exist """
