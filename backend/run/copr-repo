@@ -412,7 +412,7 @@ def main():
         return 1
 
     except Exception:
-        opts.log.exception("Unexpeted exception")
+        opts.log.exception("Unexpected exception")
         raise
 
 if __name__ == "__main__":
