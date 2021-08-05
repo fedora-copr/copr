@@ -36,6 +36,7 @@
       </div>
       <div class="panel-body">
         <dl class="dl-horizontal">
+
           {% if package.dist_git_url %}
           <dt> Dist Git Repo:</dt>
           <dd>
@@ -44,6 +45,22 @@
             </a>
           </dd>
           {% endif %}
+
+          {% if package.webhook_rebuild %}
+          <dt>Webhook rebuild:</dt>
+          <dd>Yes</dd>
+          {% endif %}
+
+          {% if package.max_builds %}
+          <dt>Max builds:</dt>
+          <dd>{{ package.max_builds }}</dd>
+          {% endif %}
+
+          {% if package.chroot_blacklist_raw %}
+          <dt>Excluded chroots:</dt>
+          <dd>{{ package.chroot_blacklist_raw }}</dd>
+          {% endif %}
+
         </dl>
       </div>
     </div>
