@@ -67,7 +67,12 @@ def cmd_debug(cmd, rc, out, err, log):
     log.info("stderr: {}".format(err))
 
 
-def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False):
+class CommandException(Exception):
+    """ Raised upon run_cmd(..., check=True) failure """
+
+
+def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False,
+            check=False):
     """
     Runs given command in a subprocess, logs what is happening, return important
     info about the process.
@@ -83,6 +88,9 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False):
     catch_timeout:
         When set to True, we catch timeout exceptions and log them, and return
         the status code 124.
+    check:
+        When set to True, raise CommandException() in case of CMD's non-zero
+        exit status.
 
     Returns
     -------
@@ -119,6 +127,13 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False):
         timeouted = True
 
     _info(logger, "Finished with code %s (%s)", code, str_cmd)
+
+    if check and code != 0:
+        raise CommandException(
+            "Command '{cmd}' failed with status '{status}'\n"
+            "stdout:\n{stdout}\nstderr:\n{stderr}\n".format(
+                cmd=str_cmd, stdout=stdout, stderr=stderr, status=code))
+
     return munch.Munch(
         cmd=cmd,
         stdout=stdout,

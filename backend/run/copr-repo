@@ -21,31 +21,17 @@ import sys
 
 import oslo_concurrency.lockutils
 
-from copr_backend.helpers import get_redis_logger, BackendConfigReader
+from copr_backend.helpers import (
+    BackendConfigReader,
+    CommandException,
+    run_cmd,
+    get_redis_logger,
+)
 from copr_backend.createrepo import BatchedCreaterepo
-
-class CommandException(Exception):
-    pass
 
 
 def printable_cmd(cmd):
     return ' '.join([pipes.quote(arg) for arg in cmd])
-
-
-def run_cmd(cmd, opts, check=True):
-    opts.log.info("running: %s", printable_cmd(cmd))
-    sp = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = sp.communicate()
-    if out:
-        opts.log.debug("stdout:\n%s", out.decode('utf-8'))
-    if err:
-        opts.log.debug("stderr:\n%s", err.decode('utf-8'))
-
-    if check and sp.returncode:
-        raise CommandException("command failed with {}".format(sp.returncode))
-
-    opts.log.debug("command exited with %s", sp.returncode)
-    return sp.returncode
 
 
 def arg_parser_subdir_type(subdir):
@@ -209,7 +195,7 @@ def run_createrepo(opts):
 
     try:
         if createrepo_run_needed:
-            run_cmd(createrepo_cmd, opts)
+            run_cmd(createrepo_cmd, check=True, logger=opts.log)
         else:
             opts.log.info("createrepo_c run is not actually needed, "
                           "skipping command: %s",
@@ -249,28 +235,31 @@ def add_appdata(opts):
         "--min-icon-size=48",
         "--veto-ignore=missing-parents",
         "--enable-hidpi",
-        "--origin=" + origin], opts)
+        "--origin=" + origin],
+        check=True, logger=opts.log)
 
     mr_cmd = ["/usr/bin/modifyrepo_c", "--no-compress"]
 
     if os.path.exists(os.path.join(path, "appdata", "appstream.xml.gz")):
         run_cmd(mr_cmd + [os.path.join(path, 'appdata', 'appstream.xml.gz'),
                           os.path.join(path, 'repodata')],
-                opts)
+                check=True, logger=opts.log)
 
     if os.path.exists(os.path.join(path, "appdata", "appstream-icons.tar.gz")):
         run_cmd(mr_cmd +
                 [os.path.join(path, 'appdata', 'appstream-icons.tar.gz'),
                  os.path.join(path, 'repodata')],
-                opts)
+                check=True, logger=opts.log)
 
     # The appstream-builder utility provides a strange access rights to the
     # created directories.  Fix them, so that lighttpd could serve appdata dir.
     # https://github.com/hughsie/appstream-glib/issues/399
     fix_dirs = ["tmp", "cache", "appdata"]
     find_cmd = ["find"] + [os.path.join(path, subdir) for subdir in fix_dirs]
-    run_cmd(find_cmd + ["-type", "d", "-exec", "chmod", "755", "{}", "+"], opts)
-    run_cmd(find_cmd + ["-type", "f", "-exec", "chmod", "644", "{}", "+"], opts)
+    run_cmd(find_cmd + ["-type", "d", "-exec", "chmod", "755", "{}", "+"],
+            check=True, logger=opts.log)
+    run_cmd(find_cmd + ["-type", "f", "-exec", "chmod", "644", "{}", "+"],
+            check=True, logger=opts.log)
 
 
 def delete_builds(opts):
@@ -419,7 +408,7 @@ def main():
             batch.commit()
 
     except CommandException:
-        opts.log.error("Sub-command failed")
+        opts.log.exception("Sub-command failed")
         return 1
 
     except Exception:
