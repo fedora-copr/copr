@@ -7,6 +7,7 @@ import time
 import subprocess
 import json
 from itertools import groupby
+import base64
 
 from urllib.parse import urljoin
 
@@ -906,8 +907,23 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
         mock_chroot = mc
 
     if not mock_chroot:
-        raise ObjectNotFound("Chroot {} does not exist in {}".format(
-            searched_chroot, copr.full_name))
+        enabled_project_chroots = set(copr.enable_permissible_chroots)
+        html_error_msg = "Chroot {0} does not exist in {1}.\n".format(searched_chroot, copr.full_name)
+        available_chroots = []
+
+        # if a project is old, it can cause that it doesn't have any enabled chroots
+        if len(enabled_project_chroots) == 0:
+            html_error_msg += "There are no enabled chroots in {0}.".format(copr.full_name)
+        # project has at least one chroot enabled, but the requested chroot is not enabled
+        elif len(enabled_project_chroots) != 0:
+            html_error_msg += "Available chroots:\n"
+            for available_chroot in enabled_project_chroots:
+                available_chroots.append(available_chroot.name)
+                html_error_msg += available_chroot.name + "\n"
+
+        cmd_error_msg = {"available chroots": available_chroots}
+        return flask.render_template("404.html", message=html_error_msg), 404, {
+            'Copr-Error-Data': base64.b64encode(json.dumps(cmd_error_msg).encode("utf-8"))}
 
     # append multilib counterpart repo only upon explicit request (ach != None),
     # and only if the chroot actually is multilib capable

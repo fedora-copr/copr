@@ -4,7 +4,9 @@
 {% block body %}
   <h1> Error 404: Not Found </h1>
   {% if message %}
-    {{ message }}
+    {% for line in message.split("\n") %}
+      {{ line }} {% if not loop.last %}<br />{% endif %}
+    {% endfor %}
   {% else %}
     The thing you're looking for does not exist.
   {% endif %}
