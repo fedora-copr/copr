@@ -4,7 +4,7 @@
 Wrapper for /bin/sign from obs-sign package
 """
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, SubprocessError
 import json
 
 import os
@@ -34,8 +34,13 @@ def call_sign_bin(cmd, log):
     cmd_pretty = ' '.join(cmd)
     for attempt in [1, 2, 3]:
         log.info("Calling '%s' (attempt #%s)", cmd_pretty, attempt)
-        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-        stdout, stderr = handle.communicate()
+        try:
+            handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
+            stdout, stderr = handle.communicate()
+        except (SubprocessError, OSError) as err:
+            new_err = CoprSignError("Failed to invoke '{}'".format(cmd_pretty))
+            raise new_err from err
+
         if handle.returncode != 0 and "Connection timed out" in stderr:
             log.warning("Timeout on %s, re-trying", cmd_pretty)
             continue
@@ -56,13 +61,7 @@ def get_pubkey(username, projectname, log, outfile=None):
     usermail = create_gpg_email(username, projectname)
     cmd = [SIGN_BINARY, "-u", usermail, "-p"]
 
-    try:
-        returncode, stdout, stderr = call_sign_bin(cmd, log)
-    except Exception as err:
-        new_err = CoprSignError("Failed to get user pubkey"
-                                " due to: {}".format(err))
-        raise new_err from err
-
+    returncode, stdout, stderr = call_sign_bin(cmd, log)
     if returncode != 0:
         if "unknown key:" in stderr:
             raise CoprSignNoKeyError(
@@ -84,13 +83,7 @@ def get_pubkey(username, projectname, log, outfile=None):
 
 def _sign_one(path, email, log):
     cmd = [SIGN_BINARY, "-u", email, "-r", path]
-    try:
-        returncode, stdout, stderr = call_sign_bin(cmd, log)
-    except Exception as err:
-        new_err = CoprSignError(
-            msg="Failed to invoke sign {} by user {} with error {}"
-            .format(path, email, err, cmd=cmd, stdout=None, stderr=None))
-        raise new_err from err
+    returncode, stdout, stderr = call_sign_bin(cmd, log)
     if returncode != 0:
         raise CoprSignError(
             msg="Failed to sign {} by user {}".format(path, email),
