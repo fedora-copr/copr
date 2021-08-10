@@ -86,10 +86,6 @@ prune_days=14
 # default is 1800
 timeout=3600
 
-# Number if build failures needed to happen "in row" before we start reporting
-# an issue by the script /usr/bin/check_consecutive_build_fails.py
-#consecutive_failure_threshold=10
-
 
 [ssh]
 # SSH config file which is used by backend when communicating with allocated

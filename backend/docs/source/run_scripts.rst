@@ -35,15 +35,3 @@ VM info
 
 To get current copr-backend view on used VM use:
 ``run/copr_get_vm_info.py``
-
-
-Consecutive builds fails
-------------------------
-To monitor service disruption use ``run/check_consecutive_builds_fails.py``. It checks if copr-backend has too many
-interrupted builds. This script is aimed to be used by nagios nrpe check.
-
-Return code meanings:
-    - 0: OK
-    - 1: Warning
-    - 2: Failure
-
