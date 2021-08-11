@@ -1,3 +1,7 @@
+"""
+Copr Frontend helper classes, functions, methods, constants, etc.
+"""
+
 import math
 import random
 import string
@@ -5,10 +9,9 @@ import json
 from os.path import normpath
 import posixpath
 import re
+from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
 import html5_parser
-
-from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
 import flask
 from flask import url_for

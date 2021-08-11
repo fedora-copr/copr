@@ -1,19 +1,27 @@
+"""
+Copr Frontend database layout, see the ER diagram:
+https://docs.pagure.org/copr.copr/_images/db-erd.png
+"""
+
 import copy
 import datetime
-import os
+from fnmatch import fnmatch
+import itertools
 import json
 import base64
+import operator
+import os
+from urllib.parse import urljoin
 import uuid
-from fnmatch import fnmatch
+import zlib
+
 import modulemd_tools.yaml
 
 from sqlalchemy import outerjoin, text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
-from urllib.parse import urljoin
 from libravatar import libravatar_url
-import zlib
 
 from flask import url_for
 
@@ -23,8 +31,6 @@ from coprs import db
 from coprs import helpers
 from coprs import app
 
-import itertools
-import operator
 from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus
 
 

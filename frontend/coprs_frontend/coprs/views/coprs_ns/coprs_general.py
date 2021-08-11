@@ -1,17 +1,18 @@
-# coding: utf-8
+"""
+Set of general Copr Frontend Flask routes.
+"""
 
 import os
 import time
 import subprocess
 import json
-import datetime
+from itertools import groupby
 
 from urllib.parse import urljoin
 
 import flask
 from flask import render_template, url_for, stream_with_context
 import sqlalchemy
-from itertools import groupby
 from wtforms import ValidationError
 
 from pygments import highlight

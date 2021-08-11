@@ -1,9 +1,15 @@
+"""
+Jinja2 filters specific for Copr Frontend
+"""
+
 import datetime
-from urllib.parse import urlparse
-import pytz
+import os
+import re
 import time
+from urllib.parse import urlparse
 
 import commonmark
+import pytz
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
@@ -12,8 +18,6 @@ from pygments.util import ClassNotFound
 from pygments.formatters import HtmlFormatter
 
 import humanize
-import os
-import re
 
 from flask import Markup, url_for
 
