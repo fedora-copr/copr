@@ -44,6 +44,7 @@ def setup_log():
     log_level_text = app.config.get("LOGGING_LEVEL", 'info')
     log_level = getattr(logging, log_level_text.upper())
     handler.setLevel(log_level)
+    app.logger.setLevel(log_level)
     app.logger.addHandler(handler)
 
-    app.logger.info("logging configuration finished, config: {}".format(app.config))
+    app.logger.info("logging configuration finished")
