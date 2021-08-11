@@ -443,6 +443,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "multilib": False,
         "module_hotfixes": False,
         "fedora_review": False,
+        "appstream": True,
     }
     assert stdout == "New project was successfully created.\n"
 
@@ -535,6 +536,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "multilib": True,
         "module_hotfixes": False,
         "fedora_review": False,
+        "appstream": True,
     }
     assert stdout == "New project was successfully created.\n"
 

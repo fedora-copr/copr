@@ -545,6 +545,7 @@ class Commands(object):
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
             fedora_review=args.fedora_review,
+            appstream=ON_OFF_MAP[args.appstream],
         )
         print("New project was successfully created.")
 
@@ -570,6 +571,7 @@ class Commands(object):
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
             fedora_review=ON_OFF_MAP[args.fedora_review],
+            appstream=ON_OFF_MAP[args.appstream],
         )
 
     @requires_api_auth
@@ -1120,6 +1122,11 @@ def setup_parser():
               "discover packaging errors. Failing fedora-review will not fail "
               "the build itself."))
 
+    parser_create.add_argument(
+        "--appstream", choices=["on", "off"], default="on",
+        help=("Generate AppStream metadata for this project. Generating "
+              "metadata slows down the builds in large Copr projects."))
+
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -1172,6 +1179,11 @@ def setup_parser():
               "Fedora Packaging Guidelines. Use fedora-review tool to help you "
               "discover packaging errors. Failing fedora-review will not fail "
               "the build itself."))
+
+    parser_modify.add_argument(
+        "--appstream", choices=["on", "off"], default="on",
+        help=("Generate AppStream metadata for this project. Generating "
+              "metadata slows down the builds in large Copr projects."))
 
     parser_modify.set_defaults(func="action_modify_project")
 
