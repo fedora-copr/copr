@@ -654,26 +654,21 @@ class Commands(object):
 
         """
         username = args.username or self.config["username"]
-        try:
-            projects = self.client.project_proxy.get_list(username)
-            if not projects:
-                sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
-                return
+        projects = self.client.project_proxy.get_list(username)
+        if not projects:
+            sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
+            return
 
-            for project in projects:
-                print("Name: {0}".format(project.name))
-                print("  Description: {0}".format(project.description))
-                if project.chroot_repos:
-                    print("  Repo(s):")
-                    for name, url in project.chroot_repos.items():
-                        print("    {0}: {1}".format(name, url))
-                if project.additional_repos:
-                    print("  Additional repo: {0}".format(" ".join(project.additional_repos)))
-                print("")
-
-        except CoprRequestException as ex:
-            sys.stderr.write(str(ex) + "\n")
-            sys.stderr.write("Un-expected data returned, please report this issue\n")
+        for project in projects:
+            print("Name: {0}".format(project.name))
+            print("  Description: {0}".format(project.description))
+            if project.chroot_repos:
+                print("  Repo(s):")
+                for name, url in project.chroot_repos.items():
+                    print("    {0}: {1}".format(name, url))
+            if project.additional_repos:
+                print("  Additional repo: {0}".format(" ".join(project.additional_repos)))
+            print("")
 
     def action_status(self, args):
         build = self.client.build_proxy.get(args.build_id)
@@ -937,17 +932,14 @@ class Commands(object):
         ownername, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
         buildopts = buildopts_from_args(args, None)
-        try:
-            build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
-                                                    packagename=args.name, buildopts=buildopts,
-                                                    project_dirname=project_dirname)
-            print("Build was added to {0}.".format(build.projectname))
-            print("Created builds: {0}".format(build.id))
+        build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
+                                                packagename=args.name, buildopts=buildopts,
+                                                project_dirname=project_dirname)
+        print("Build was added to {0}.".format(build.projectname))
+        print("Created builds: {0}".format(build.id))
 
-            if not args.nowait:
-                self._watch_builds([build.id])
-        except CoprRequestException as ex:
-            sys.stderr.write(str(ex) + "\n")
+        if not args.nowait:
+            self._watch_builds([build.id])
 
     def action_build_module(self, args):
         """
