@@ -2,6 +2,7 @@
 Tests for 'branch-fedora' and 'rawhide-to-release'
 """
 
+import json
 import pytest
 
 from coprs import db, models
@@ -9,8 +10,48 @@ from coprs.logic import coprs_logic
 from copr_common.enums import StatusEnum, ActionTypeEnum
 # pylint: disable=wrong-import-order
 from commands.branch_fedora import branch_fedora_function
+from commands.rawhide_to_release import rawhide_to_release_function
+from commands.create_chroot import create_chroot_function
 
 from coprs_frontend.tests.coprs_test_case import CoprsTestCase, new_app_context
+
+
+class TestRawhideToRelease(CoprsTestCase):
+    @staticmethod
+    @pytest.mark.usefixtures("f_fedora_branching")
+    def test_rawhide_to_release_action():
+        branchname = "f20"
+        create_chroot_function(
+            ["fedora-20-i386", "fedora-20-x86_64"],
+            branch="f20",
+            activated=False,
+            comment="some test",
+        )
+        rawhide_to_release_function(
+            "fedora-rawhide-i386",
+            "fedora-20-i386",
+            False,
+        )
+        mock_chroots = models.MockChroot.query.filter_by(
+            distgit_branch_name=branchname,
+        ).all()
+        assert len(mock_chroots) == 2
+        for mock_chroot in mock_chroots:
+            if mock_chroot.name == 'fedora-20-i386':
+                assert len(mock_chroot.copr_chroots) == 2
+                for build in mock_chroot.builds:
+                    assert build.state == 'forked'
+            else:
+                # nothing in fedora-rawhide-x86_64
+                assert len(mock_chroot.copr_chroots) == 0
+
+        actions = models.Action.query.all()
+        actions = actions[-2:]
+        for action in actions:
+            action.appstream_shortcut = json.loads(action.data)["appstream"]
+            assert action.appstream_shortcut in [True, False]
+        assert actions[0].appstream_shortcut != actions[1].appstream_shortcut
+
 
 @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
 class TestBranchFedora(CoprsTestCase):

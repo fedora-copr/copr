@@ -510,6 +510,29 @@ def foo():
         self.db.session.add_all([self.b9, self.b10, self.b11])
 
     @pytest.fixture
+    def f_fedora_branching(self, f_u1_ts_client, f_mock_chroots, f_db):
+        """
+        Prepare some builds in a Rawhide chroot which could be forked
+        using the rawhide_to_release action.
+        """
+        _side_effects = [f_u1_ts_client, f_mock_chroots, f_db]
+        self.web_ui.new_project("test1", ["fedora-rawhide-i386"],
+                                appstream='false',
+                                follow_fedora_branching='true')
+        self.web_ui.new_project("test2", ["fedora-rawhide-i386",
+                                          "fedora-17-x86_64"],
+                                appstream='true',
+                                follow_fedora_branching='true')
+        self.web_ui.create_distgit_package("test1", "tar")
+        self.web_ui.create_distgit_package("test2", "cpio")
+        self.api3.rebuild_package("test1", "tar")
+        self.api3.rebuild_package("test2", "cpio")
+        self.backend.finish_build(1)
+        self.backend.finish_build(2)
+
+
+
+    @pytest.fixture
     def f_hook_package(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.c1.webhook_secret = str(uuid.uuid4())
         self.db.session.add(self.c1)

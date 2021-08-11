@@ -69,6 +69,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         data = {"projectname": copr.name,
                 "ownername": copr.owner_name,
                 "rawhide_chroot": rawhide_chroot,
+                "appstream": copr.appstream,
                 "dest_chroot": dest_chroot,
                 "builds": []}
 

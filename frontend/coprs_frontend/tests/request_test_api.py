@@ -77,7 +77,8 @@ class WebUIRequests(_RequestsInterface):
             "chroots": chroots,
         }
 
-        for config in ['bootstrap', 'isolation', 'contact', 'homepage', 'appstream']:
+        for config in ['bootstrap', 'isolation', 'contact', 'homepage',
+                       'appstream', 'follow_fedora_branching']:
             if not config in kwargs:
                 continue
             data[config] = kwargs[config]
@@ -321,3 +322,58 @@ class BackendRequests:
         )
         assert resp.status_code == 200
         return json.loads(resp.data)
+
+    def finish_build(self, build_id, package_name=None):
+        """
+        Given the build_id, finish the build with succeeded state
+        """
+        build = models.Build.query.get(build_id)
+        if not package_name:
+            package_name = build.package.name
+
+        # finish srpm
+        assert self.update({
+            "builds": [{
+                "id": build_id,
+                "task_id": str(build_id),
+                "srpm_url": "http://foo",
+                "status": 1,
+                "pkg_name": package_name,
+                "pkg_version": 1
+            }],
+        }).status_code == 200
+
+        # import srpm to appropriate branches
+        build = models.Build.query.get(build_id)
+        branch_commits = {}
+        for bch in build.build_chroots:
+            branch_commits[bch.mock_chroot.distgit_branch.name] = "4dc328232"
+        assert self.client.post(
+            "/backend/import-completed/",
+            content_type="application/json",
+            headers=self.test_class_object.auth_header,
+            data=json.dumps({
+               "build_id": build_id,
+               "branch_commits": branch_commits,
+               "reponame": "some/repo"
+        }))
+
+        # finish rpms
+        update_requests = []
+        for build_chroot in models.BuildChroot.query.filter_by(build_id=build_id).all():
+            update_requests.append({
+                "builds": [{
+                    "id": build_id,
+                    "build_id": build_id,
+                    "task_id": "{}-{}".format(build_id, build_chroot.mock_chroot.name),
+                    "chroot": build_chroot.mock_chroot.name,
+                    "arch": build_chroot.mock_chroot.arch,
+                    "status": 1,
+                    "package_name": package_name,
+                    "result_dir": "xyz",
+                    "package_version": 1
+                }],
+            })
+
+        for request in update_requests:
+            assert self.update(request).status_code == 200
