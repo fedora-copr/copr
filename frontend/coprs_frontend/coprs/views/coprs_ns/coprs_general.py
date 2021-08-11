@@ -6,7 +6,7 @@ import subprocess
 import json
 import datetime
 
-from six.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 
 import flask
 from flask import render_template, url_for, stream_with_context

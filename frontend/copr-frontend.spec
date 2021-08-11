@@ -110,7 +110,6 @@ BuildRequires: python3-pytest-cov
 BuildRequires: python3-pytz
 BuildRequires: python3-redis
 BuildRequires: python3-requests
-BuildRequires: python3-six
 BuildRequires: python3-sphinx
 BuildRequires: python3-sphinxcontrib-httpdomain
 BuildRequires: python3-whoosh

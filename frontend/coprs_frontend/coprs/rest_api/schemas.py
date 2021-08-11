@@ -2,7 +2,6 @@
 
 from collections.abc import Iterable
 from marshmallow import Schema as _Schema, fields, ValidationError, validate
-from six import string_types
 
 
 loads_kwargs = {}
@@ -69,7 +68,7 @@ class SpaceSeparatedList(fields.Field):
     def _deserialize(self, value, attr=None, data=None, **kwargs):
         if value is None:
             return ""
-        elif not isinstance(value, Iterable) or isinstance(value, string_types):
+        elif not isinstance(value, Iterable) or isinstance(value, str):
             raise ValidationError("Value `{}` is not a list of strings"
                                   .format(value))
         else:

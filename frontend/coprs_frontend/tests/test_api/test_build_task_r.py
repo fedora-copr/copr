@@ -2,7 +2,7 @@
 import copy
 
 import json
-from six.moves.urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 from copr_common.enums import StatusEnum
 

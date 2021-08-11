@@ -8,8 +8,7 @@ import re
 
 import html5_parser
 
-from six import with_metaclass
-from six.moves.urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
 import flask
 from flask import url_for
@@ -98,7 +97,7 @@ class CounterStatType(object):
     REPO_DL = "repo_dl"
 
 
-class PermissionEnum(with_metaclass(EnumType, object)):
+class PermissionEnum(metaclass=EnumType):
     # The text form is part of APIv3!
     vals = {"nothing": 0, "request": 1, "approved": 2}
 
@@ -107,7 +106,7 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class ChrootDeletionStatus(with_metaclass(EnumType, object)):
+class ChrootDeletionStatus(metaclass=EnumType):
     """
     When a chroot is marked as EOL or when it is unclicked from a project,
     it goes through several stages before its data is finally deleted.
