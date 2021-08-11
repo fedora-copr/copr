@@ -1,8 +1,6 @@
 # This is very complicated module.  TODO: drop the ignores
 # pylint: disable=wrong-import-order,wrong-import-position,cyclic-import
 
-from __future__ import with_statement
-
 import os
 import flask
 
