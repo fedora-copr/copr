@@ -274,3 +274,57 @@ table.permissions {
 .text-green {
   color: #00A000;
 }
+
+#homepage-jumbotron {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  background-color: white;
+}
+
+#homepage-jumbotron h2 {
+  text-align: center;
+  font-size: 35px;
+}
+
+#homepage-jumbotron h2 > span {
+  color: #214d8b;
+}
+
+#homepage-jumbotron form {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+#homepage-jumbotron p {
+  font-size: 14px;
+}
+
+.documentation-cards, .col-sm-3 {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.col-padding {
+  padding-left: 10px;
+}
+
+.documentation-cards h3 {
+  text-align: center;
+}
+
+.documentation-cards span {
+  margin-top: 5px;
+}
+
+.documentation-cards {
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.documentation-cards i.fa {
+  font-size: 30px;
+  float:left;
+  margin-right: 12px;
+}

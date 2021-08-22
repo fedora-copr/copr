@@ -3,7 +3,7 @@
 {% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination, copr_details_href, copr_name, user_projects_panel %}
 {% from "_helpers.html" import recent_builds_panel, task_queue_panel, recent_blog_panel, friendly_os_name %}
-{% from "_helpers.html" import render_project_box %}
+{% from "_helpers.html" import render_project_box, render_search_bar, projects_header %}
 {%block main_menu_projects %}active{% endblock %}
 {% block body %}
 <div class="row">
@@ -17,15 +17,18 @@
 
     <div class="panel panel-default">
       <div class="list-group">
+      {% block projects %}
       {% for copr in pinned + coprs %}
         {{ render_project_box(copr, pinned=copr in pinned) }}
       {% else %}
         <p>No projects...</p>
       {% endfor %}
+      {% endblock %}
       </div>
     </div>
     {{ render_pagination(request, paginator) }}
   {% endblock %}
+
   </div>
   <div class="col-md-3 col-sm-4">
     <br>

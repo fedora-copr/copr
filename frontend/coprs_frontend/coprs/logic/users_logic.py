@@ -20,6 +20,14 @@ class UsersLogic(object):
         return User.query.filter(User.api_login == login)
 
     @classmethod
+    def get_multiple_with_projects(cls):
+        """
+        Return all users that have at least one project (deleted projects
+        counts as well)
+        """
+        return User.query.filter(~User.coprs.any())
+
+    @classmethod
     def raise_if_cant_update_copr(cls, user, copr, message):
         """
         Raise InsufficientRightsException if given user cant update

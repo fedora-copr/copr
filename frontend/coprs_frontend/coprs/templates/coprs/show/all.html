@@ -4,25 +4,72 @@
 
 
 {% block show_top %}
+
+{% if paginator.page == 1 %}
+<div id="homepage-jumbotron" class="jumbotron">
+  {% include "homepage_header.html" %}
+  {{ render_search_bar(large=True, form_id="2") }}
+
+  <p>
+    You can run a full-text search, or you can use the dropdown menu
+    next to the search bar and limit your query to a user name, group
+    name, project name, or package name.
+  </p>
+</div>
+
+
 {% if not g.user and not fulltext%}
-<br>
 <div class="panel panel-default">
   <div class="panel-body">
     {% include "welcome.html" %}
   </div>
 </div>
 {% endif %}
+
+{% include "documentation_cards.html" %}
+
+{% endif %}
 {% endblock %}
 
 
 {% block projects_header %}
-{% if g.user %}
-<a href="{{url_for('coprs_ns.copr_add_fedora_review', username=g.user.name) }}"
-    class="btn button-new btn-secondary pull-right">
-  <span class="pficon pficon-add-circle-o"></span> Fedora Review </a>
-<a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
-  <span class="pficon pficon-add-circle-o"></span> New Project
-</a>
+<div class="clearfix"></div>
+
+{% if g.user and not fulltext and paginator.page == 1%}
+  {% if pinned %}
+  {{ projects_header() }}
+  <h2 class="page-title">{{user.name|capitalize}}&#39;s Pinned Projects</h2>
+  <div class="panel panel-default">
+    <div class="list-group">
+    {% for copr in pinned %}
+      {{ render_project_box(copr, pinned=True) }}
+    {% endfor %}
+    </div>
+  </div>
+  {% elif recent %}
+  {{ projects_header() }}
+  <h2 class="page-title">{{user.name|capitalize}}&#39;s Recent Projects</h2>
+  <div class="panel panel-default">
+    <div class="list-group">
+    {% for copr in recent %}
+      {{ render_project_box(copr) }}
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+<div class="clearfix"></div>
+{{ projects_header(customize_pinned=False) }}
 {% endif %}
-<h2 class="page-title"> Projects </h2>
+
+<h2 class="page-title">Recent Projects</h2>
+{% endblock %}
+
+
+{% block projects %}
+{% for copr in coprs %}
+  {{ render_project_box(copr) }}
+{% else %}
+  <p>No projects...</p>
+{% endfor %}
 {% endblock %}

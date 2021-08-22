@@ -33,9 +33,9 @@ $(document).ready(function() {
   );
 });
 
-function search_by_attribute(attribute) {
+function search_by_attribute(attribute, form_id) {
   event.preventDefault();
-  var value = $("input[name=fulltext]").val()
+  var value = $("form[id=" + form_id + "]").find("input[name=fulltext").val()
 
   // When searching by group but omitting the starting @
   var group = $(event.target).attr("id") == "search-groupname"

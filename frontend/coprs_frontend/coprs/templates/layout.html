@@ -1,4 +1,4 @@
-{% from "_helpers.html" import alert %}
+{% from "_helpers.html" import alert, render_search_bar %}
 
 <!doctype html>
 <html>
@@ -46,49 +46,7 @@
           {% endfor %}
 
           </div>
-          <form role="search" method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
-            <div class="input-group menu-search">
-              <input name="fulltext" type="text" class="form-control" placeholder="Search projects by name, os or arch" value="{% block search_box %}{%endblock%}">
-
-              <div class="input-group-btn">
-                <button type="submit" class="btn btn-default">
-                  <span class="glyphicon glyphicon-search"></span>
-                </button>
-
-                <button type="button" class="btn btn-default dropdown-toggle"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="caret"></span>
-                  <span class="sr-only">Toggle Dropdown</span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a id="search-username" onClick="search_by_attribute('ownername')" href="#">
-                      Search by user name
-                    </a>
-                  </li>
-
-                  <li>
-                    <a id="search-groupname" onClick="search_by_attribute('ownername')" href="#">
-                      Search by group name
-                    </a>
-                  </li>
-                  <li role="separator" class="divider"></li>
-
-                  <li>
-                    <a id="search-projectname" onClick="search_by_attribute('projectname')" href="#">
-                      Search by project name
-                    </a>
-                  </li>
-
-                  <li>
-                    <a id="search-packagename" onClick="search_by_attribute('packagename')" href="#">
-                      Search by package name
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </form>
+          {{ render_search_bar() }}
         </div>
       </div>
     </div>

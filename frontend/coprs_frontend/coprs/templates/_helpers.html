@@ -673,11 +673,11 @@ https://accounts.fedoraproject.org/group/{{name}}
     $(".show-me-javascript").removeClass("hidden");
     $('.datatable').dataTable({
       "order": [[ 0, '{{ order }}' ]],
-      "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, 'All']], 
+      "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, 'All']],
       dom:
         "<'dataTables_header'<'dataTables_filter'f><'dataTables_info'i>>" +
 			  "<'row'<'col-sm-12'tr>>" +
-        "<'row table_footer'<'col-sm-6 dataTables_length'l><'col-sm-6 dataTables_info'p>>" 
+        "<'row table_footer'<'col-sm-6 dataTables_length'l><'col-sm-6 dataTables_info'p>>"
     });
 
     $('[name="DataTables_Table_0_length"]').change(function() {
@@ -890,4 +890,102 @@ https://accounts.fedoraproject.org/group/{{name}}
     the requested data on one page (as we usually do), please use the pagination
     buttons below the table.
 </p>
+{% endmacro %}
+
+
+{% macro render_search_bar(large=False, form_id="1") %}
+{% set size = "input-group-lg" if large else "" %}
+<form role="search" method="get" id="{{ form_id }}"
+      action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
+  <div class="input-group {{ size }} menu-search">
+    <input name="fulltext" type="text" class="form-control"
+           placeholder="Search projects by name, os or arch"
+           value="{% block search_box %}{%endblock%}">
+
+    <div class="input-group-btn">
+      <button type="submit" class="btn btn-default">
+        <span class="glyphicon glyphicon-search"></span>
+      </button>
+
+      <button type="button" class="btn btn-default dropdown-toggle"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="caret"></span>
+        <span class="sr-only">Toggle Dropdown</span>
+      </button>
+
+      <ul class="dropdown-menu">
+        <li>
+          <a id="search-username" onClick="search_by_attribute('ownername', {{ form_id }})" href="#">
+            Search by user name
+          </a>
+        </li>
+
+        <li>
+          <a id="search-groupname" onClick="search_by_attribute('ownername', {{ form_id }})" href="#">
+            Search by group name
+          </a>
+        </li>
+        <li role="separator" class="divider"></li>
+
+        <li>
+          <a id="search-projectname" onClick="search_by_attribute('projectname', {{ form_id }})" href="#">
+            Search by project name
+          </a>
+        </li>
+
+        <li>
+          <a id="search-packagename" onClick="search_by_attribute('packagename', {{ form_id }})" href="#">
+            Search by package name
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
+
+{% macro projects_header(new_project=True, fedora_review=True, customize_pinned=True) %}
+<div class="btn-group pull-right" role="group">
+
+  {% if new_project %}
+  <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new btn-primary">
+    <span class="pficon pficon-add-circle-o"></span> New Project
+  </a>
+  {% endif %}
+
+  {% if fedora_review %}
+  <a href="{{url_for('coprs_ns.copr_add_fedora_review', username=g.user.name) }}"
+      class="btn button-new btn-secondary">
+    <span class="pficon pficon-add-circle-o"></span> Fedora Review </a>
+  {% endif %}
+
+  {% if customize_pinned %}
+  <a href="{{ url_for('user_ns.pinned_projects') }}" class="btn button-new btn-secondary">
+    <span class="pficon pficon-edit"></span> Customize pinned
+  </a>
+  {% endif %}
+
+</div>
+{% endmacro %}
+
+
+{% macro documentation_card(icon, title, url, text, first=False) %}
+<div class="col-sm-3 {% if not first %}col-padding{% endif %}">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{ title }}</h3>
+    </div>
+    <div class="panel-body">
+      <p>
+        <i class="fa {{ icon }}" aria-hidden="true"></i>
+        {{ text }}
+        <br>
+        <span class="pull-right">
+          <a href="{{ url }}" title="Read more about {{ title }}">Read more</a>
+        </span>
+      </p>
+    </div>
+  </div>
+</div>
 {% endmacro %}

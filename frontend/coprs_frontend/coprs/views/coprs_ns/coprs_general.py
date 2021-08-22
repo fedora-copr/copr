@@ -72,10 +72,22 @@ def url_for_copr_edit(copr):
 def coprs_show(page=1):
     query = CoprsLogic.get_multiple(include_unlisted_on_hp=False)
     query = CoprsLogic.set_query_order(query, desc=True)
-
     paginator = helpers.Paginator(query, query.count(), page)
-
     coprs = paginator.sliced_query
+
+    pinned = []
+    recent = []
+    if flask.g.user:
+        pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_user_id(flask.g.user.id)]
+
+    if flask.g.user and not pinned:
+        recent = CoprsLogic.get_multiple_owned_by_username(flask.g.user.username)
+        recent = CoprsLogic.set_query_order(recent, desc=True)
+        recent = recent.limit(4)
+
+    projects_count = CoprsLogic.get_multiple().count()
+    # users_count = models.User.query.count()
+    users_count = users_logic.UsersLogic.get_multiple_with_projects().count()
 
     # flask.g.user is none when no user is logged - showing builds from everyone
     # TODO: builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5) takes too much time, optimize sql
@@ -85,8 +97,12 @@ def coprs_show(page=1):
     data = builds_logic.BuildsLogic.get_small_graph_data('30min')
 
     return flask.render_template("coprs/show/all.html",
+                                 user=flask.g.user,
                                  coprs=coprs,
-                                 pinned=[],
+                                 pinned=pinned,
+                                 recent=recent,
+                                 projects_count=projects_count,
+                                 users_count=users_count,
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  users_builds=users_builds,

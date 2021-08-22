@@ -249,3 +249,12 @@ def repo_url(url):
 @app.template_filter("mailto")
 def mailto(url):
     return url if urlparse(url).scheme else "mailto:{}".format(url)
+
+
+@app.template_filter("int_with_commas")
+def int_with_commas(number):
+    """
+    When displaying large numbers, separate thousands with a comma,
+    e.g. display 16,724 instead of 16724, it's more readable.
+    """
+    return format(int(number), ',d')
