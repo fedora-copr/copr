@@ -392,6 +392,8 @@ class BuildBackgroundWorker(BackgroundWorker):
         tags = []
         if self.job.arch:
             tags.append("arch_{}".format(self.job.arch))
+        else:
+            tags.append("arch_noarch")
 
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
         while True:
