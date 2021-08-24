@@ -2,9 +2,8 @@ import flask
 import sqlalchemy
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
-from . import get_copr, file_upload, POST
-from coprs import db, forms
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs import forms, db_session_scope
+from coprs.views.apiv3_ns import apiv3_ns, get_copr, file_upload, POST
 from coprs.views.misc import api_login_required
 from coprs.exceptions import DuplicateException, BadRequest
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
@@ -30,8 +29,8 @@ def build_module(ownername, projectname):
         mod_info = ModuleProvider.from_input(form.modulemd.data or form.scmurl.data)
         facade = ModuleBuildFacade(flask.g.user, copr, mod_info.yaml,
                                    mod_info.filename, form.distgit.data)
-        module = facade.submit_build()
-        db.session.commit()
+        with db_session_scope():
+            module = facade.submit_build()
         return flask.jsonify(to_dict(module))
 
     except (ValidationError, RequestException, InvalidSchema, RuntimeError) as ex:
