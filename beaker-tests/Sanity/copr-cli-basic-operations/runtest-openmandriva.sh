@@ -9,7 +9,8 @@ HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
 source "$HERE/helpers"
 
-PACKAGE="http://abf-downloads.openmandriva.org/cooker/repository/SRPMS/main/release/python-pip-21.0.1-1.src.rpm"
+PACKAGE="https://raw.githubusercontent.com/fedora-copr/test-data-copr-backend/main/to_prune/00999998-dummy-pkg/dummy-pkg-2-1.fc34.src.rpm"
+
 CHROOTS="  --chroot openmandriva-cooker-aarch64"
 CHROOTS+=" --chroot openmandriva-cooker-i686"
 CHROOTS+=" --chroot openmandriva-cooker-x86_64"
