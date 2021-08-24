@@ -34,10 +34,10 @@ def build_module(ownername, projectname):
         return flask.jsonify(to_dict(module))
 
     except (ValidationError, RequestException, InvalidSchema, RuntimeError) as ex:
-        raise BadRequest(str(ex))
+        raise BadRequest(str(ex)) from ex
 
-    except sqlalchemy.exc.IntegrityError:
+    except sqlalchemy.exc.IntegrityError as err:
         raise DuplicateException("Module {}-{}-{} already exists"
                                  .format(facade.modulemd.get_module_name(),
                                          facade.modulemd.get_stream_name(),
-                                         facade.modulemd.get_version()))
+                                         facade.modulemd.get_version())) from err
