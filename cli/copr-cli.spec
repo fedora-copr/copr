@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.94
+Version:    1.95
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -127,6 +127,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.95-1
+- add parameters for disabling appstream generation
+- let exceptions flow to the main function
+- generate webhook secrets using APIv3
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.94-1
 - cli: migrate from CoprClient APIv1 call for generating webhook secrets
 - cli: fix output format, new option --output-format
