@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.179
+Version:    1.180
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -381,6 +381,20 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.180-1
+- use the same repofile for all Fedora versions including Rawhide
+- don't traceback for "module exists" error
+- fixup logging of info messages
+- don't depend on python-six, drop __future__ imports
+- move package non-denylisted chroots to general information
+- show more of general package information on package detail page
+- update main.ini and rpkg.conf.j2 for rpkg 3.0 compatibility
+- make template caching configurable
+- log basic request information for each traceback
+- do not cache last build badge
+- drop user proxy concept, we don't use it
+- generate webhook secrets using APIv3
+
 * Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.179-1
 - add support for optional namespaces in DistGit instances
 - add a "storage statistics" link to footer
