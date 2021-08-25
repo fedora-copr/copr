@@ -9,7 +9,7 @@
 %global copr_common_version 0.11.1.dev
 
 Name:       copr-backend
-Version:    1.149
+Version:    1.150
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -243,6 +243,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.150-1
+- request arch_noarch resalloc tag for source RPM builds
+- re-try /bin/sign call upon connection timeout
+- drop 'check_consecutive_build_fails' script
+
 * Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.149-1
 - new weekly cron-job for analyzing storage use (graphs, statistics)
 - added some convenience globals into copr_backend.setup module
