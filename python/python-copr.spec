@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.111
+Version:    1.112
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.112-1
+- generate webhook secrets using APIv3
+
 * Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 1.111-1
 - allow user to disable generating appstream metadata
 - new API call for providing ENVRA info for builds
