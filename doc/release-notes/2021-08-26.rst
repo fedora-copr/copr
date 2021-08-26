@@ -1,0 +1,95 @@
+.. _release_notes_2021_08_26:
+
+Highlights from 2021-08-26 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_, `Fedora 34`_, `Fedora 33`_,
+`EPEL 8`_, and `EPEL 7`_ Bodhi updates.
+
+
+Unified repofile for all Fedora versions
+----------------------------------------
+
+`#639`_ - In the past, we generated different repofiles for stable Fedora releases and
+Fedora rawhide. They differed in ``baseurl`` value, on Rawhide it contained
+``fedora-rawhide-$basearch`` while on stable releases it contained
+``fedora-$releasever-$basearch``. This could be now unified and the repofile is
+exactly the same for all Fedora versions, see the `releng RFE` for more info
+about the change.
+
+
+Builder VMs priority
+--------------------
+
+The Fedora Copr builders are provided from multiple sources (AWS On-Demand
+instances, AWS Spot instances, dedicated in-house hypervisors). The price for
+using a builder differs based on its type, so now we attempt to prioritize use of
+the cheaper variants.
+
+Read more about `Fedora Copr farm of builders`_.
+
+
+Bugfixes
+--------
+
+- `#1816`_ - Data from chroots that were disabled by their project owners or that
+  were marked as EOL, is not deleted immediately but with an
+  intended delay. Such chroots are displayed in a project overview
+  with a trash icon next to them. The trash icon message was vague and
+  confusing, so we improved its wording to more accurately describe
+  when the data is going to be deleted.
+
+- `#509`_ - When opening package detail you can now see its generic
+  information that was previously visible in the package settings
+  form (e.g. whether webhook-rebuild is enabled, for which chroots the
+  package is being built, etc).
+
+- `#1558`_ - When a build fails because of an unexpected
+  appstream-builder problem, we now properly log the error output so
+  it is transparent to users.
+
+- `#1886`_ - We documented that Fedora Copr uses Amazon AWS CDN to
+  spread the RPM repositories across the globe and that listing those
+  repositories in a web browser may sometimes show outdated data
+  because of caching while not affecting DNF/YUM behavior.
+
+- `#1881`_ - Signing built packages occasionally failed because of TCP
+  connection timeouts within the cloud. We now repeat the request
+  several times before giving up.
+
+- `#1792`_ - The ``copr new-webhook-secret <owner>/<project>`` was the last
+  piece of code to be finally migrated from APIv1 to APIv3. Please be aware that
+  per `EOL Copr APIv1 and APIv2`_ document, the APIv1 code is going to be
+  removed from ``copr-frontend`` in the following release.
+
+- `#1888`_ - Copr-cli commands ``copr-cli build-package`` and
+  ``copr-cli list`` now return non-zero status code on failure.
+
+- `#1896`_ - It is now possible to disable appstream metadata
+  generation when creating or modifying projects via
+  ``copr-cli`` by specifying ``--appstream off``.
+
+- `RHBZ 1940748`_ - The badge for the last build is not being cached
+  anymore and therefore should always return the actual status.
+
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-73b4d48b2f
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-df00b04eee
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-61a3221d5f
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-61b633dfe0
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-4825fe9a84
+
+.. _`Fedora Copr farm of builders`: https://pavel.raiskup.cz/blog/copr-farm-of-builders.html
+.. _`EOL Copr APIv1 and APIv2`: https://fedora-copr.github.io/posts/EOL-APIv1-APIv2
+.. _`#639`: https://pagure.io/copr/copr/issue/639
+.. _`#1816`: https://pagure.io/copr/copr/issue/1816
+.. _`#509`: https://pagure.io/copr/copr/issue/509
+.. _`#1558`: https://pagure.io/copr/copr/issue/1558
+.. _`#1886`: https://pagure.io/copr/copr/issue/1886
+.. _`#1881`: https://pagure.io/copr/copr/issue/1881
+.. _`#1792`: https://pagure.io/copr/copr/issue/1792
+.. _`#1888`: https://pagure.io/copr/copr/issue/1888
+.. _`#1896`: https://pagure.io/copr/copr/issue/1896
+.. _`RHBZ 1940748`: https://bugzilla.redhat.com/show_bug.cgi?id=1940748
+.. _`releng RFE`: https://pagure.io/releng/issue/7445
