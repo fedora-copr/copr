@@ -350,3 +350,26 @@ class ProjectProxy(BaseProxy):
                 data=permissions)
 
         request.send()
+
+    def regenerate_repos(self, ownername, projectname):
+        """
+        Regenerate repositories for a project
+
+        :param str ownername: owner of the project to regenerate
+        :param str projectname: name of the project to regenerate
+        """
+        endpoint = "/projects/regenerate-repo/{ownername}/{projectname}"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname
+        }
+        request = Request(
+                endpoint,
+                api_base_url=self.api_base_url,
+                auth=self.auth,
+                method=PUT,
+                params=params)
+
+        request.send()
+        response = request.send()
+        return munchify(response)

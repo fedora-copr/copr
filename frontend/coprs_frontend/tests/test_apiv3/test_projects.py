@@ -188,6 +188,17 @@ class TestApiv3Projects(CoprsTestCase):
         assert copr.fedora_review
         assert copr.delete_after_days == 5
 
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_users_api", "f_mock_chroots", "f_db")
+    def test_regenerate_repos(self):
+        """
+        Make sure that the regenerate-repos api works.
+        """
+        self.db.session.add(self.c1)
+        route = "/api_3/project/regenerate-repos/{}".format(self.c1.full_name)
+        r = self.api3.post(route, {})
+        assert r.status_code == 200
+
 
 class TestApiV3Permissions(CoprsTestCase):
 

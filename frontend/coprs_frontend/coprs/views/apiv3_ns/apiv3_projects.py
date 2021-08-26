@@ -2,15 +2,17 @@ import flask
 from coprs.views.apiv3_ns import (query_params, get_copr, pagination, Paginator,
                                   GET, POST, PUT, DELETE, set_defaults)
 from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
-from coprs import db, models, forms
+from coprs import db, models, forms, db_session_scope
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
+from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
                               InsufficientRightsException, BadRequest, ObjectNotFound)
+from . import editable_copr
 
 
 def to_dict(copr):
@@ -265,3 +267,15 @@ def delete_project(ownername, projectname):
     else:
         raise BadRequest(form.errors)
     return flask.jsonify(copr_dict)
+
+@apiv3_ns.route("/project/regenerate-repos/<ownername>/<projectname>", methods=PUT)
+@api_login_required
+@editable_copr
+def regenerate_repos(copr):
+    """
+    This function will regenerate all repository metadata for a project.
+    """
+    with db_session_scope():
+        ActionsLogic.send_createrepo(copr)
+
+    return flask.jsonify(to_dict(copr))
