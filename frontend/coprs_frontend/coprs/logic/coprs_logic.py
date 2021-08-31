@@ -619,10 +619,11 @@ class CoprDirsLogic(object):
         """
         subquery = (
             db.session.query(
-                func.max(models.Build.submitted_on)
+                models.Build.submitted_on
             )
             .filter(models.Build.copr_dir_id==models.CoprDir.id)
-            .group_by(models.Build.copr_dir_id)
+            .order_by(desc(models.Build.id))
+            .limit(1)
             .label("latest_build_submitted_on")
         )
         return (

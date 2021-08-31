@@ -944,13 +944,6 @@ class Build(db.Model, helpers.Serializer):
     SCM_COMMIT = 'commit'
     SCM_PULL_REQUEST = 'pull-request'
 
-    __table_args__ = (db.Index('build_canceled', "canceled"),
-                      db.Index('build_order', "is_background", "id"),
-                      db.Index('build_filter', "source_type", "canceled"),
-                      db.Index('build_canceled_is_background_source_status_id_idx', 'canceled', "is_background", "source_status", "id"),
-                      db.Index('build_copr_id_package_id', "copr_id", "package_id")
-                     )
-
     def __init__(self, *args, **kwargs):
         if kwargs.get('source_type') == helpers.BuildSourceEnum("custom"):
             source_dict = json.loads(kwargs['source_json'])
@@ -1039,6 +1032,16 @@ class Build(db.Model, helpers.Serializer):
     # the original build id is not here as a foreign key because the original build can be deleted so we can lost
     # the info that the build was resubmitted
     resubmitted_from_id = db.Column(db.Integer)
+
+    __table_args__ = (
+        db.Index('build_canceled', "canceled"),
+        db.Index('build_order', "is_background", "id"),
+        db.Index('build_filter', "source_type", "canceled"),
+        db.Index('build_canceled_is_background_source_status_id_idx',
+                 'canceled', "is_background", "source_status", "id"),
+        db.Index('build_copr_id_package_id', "copr_id", "package_id"),
+        db.Index("build_id_desc_per_copr_dir", id.desc(), "copr_dir_id"),
+    )
 
     _cached_status = None
     _cached_status_set = None
