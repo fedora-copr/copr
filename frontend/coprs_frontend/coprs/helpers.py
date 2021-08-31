@@ -20,6 +20,8 @@ from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.engine.default import DefaultDialect
 from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
+from werkzeug.urls import url_encode
+
 from copr_common.enums import EnumType
 # TODO: don't import BuildSourceEnum from helpers, use copr_common.enum instead
 from copr_common.enums import BuildSourceEnum # pylint: disable=unused-import
@@ -700,3 +702,16 @@ def clone_sqlalchemy_instance(instance, ignored=None):
         setattr(new_instance, attr, rel)
 
     return new_instance
+
+
+def current_url(**kwargs):
+    """
+    Generate the same url as is currently processed, but define (or replace) the
+    arguments in kwargs.
+    """
+    new_args = {}
+    new_args.update(flask.request.args)
+    new_args.update(kwargs)
+    if not new_args:
+        return flask.request.path
+    return '{}?{}'.format(flask.request.path, url_encode(new_args))

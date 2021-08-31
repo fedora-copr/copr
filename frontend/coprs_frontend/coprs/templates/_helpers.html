@@ -866,3 +866,31 @@ https://accounts.fedoraproject.org/group/{{name}}
     </td>
 </tr>
 {% endmacro %}
+
+
+{% macro pagination_form(pagination) %}
+<form class="content-view-pf-pagination table-view-pf-pagination clearfix"
+      id="pagination" method="post" action="{{ current_url() }}">
+  <div class="form-group">
+    <span>
+      <span class="pagination-pf-items-current">
+          {{ pagination.per_page*(pagination.page -1) + 1}} -
+          {{ pagination.per_page*(pagination.page) }}
+      </span>
+      of
+      <span class="pagination-pf-items-total">{{ pagination.total }}</span></span>
+    <ul class="pagination pagination-pf-back">
+      <li {% if not pagination.has_prev %}class="disabled"{% endif %}><a href="{{ current_url(page=1) }}" title="First Page"><span class="i fa fa-angle-double-left"></span></a></li>
+      <li {% if not pagination.has_prev %}class="disabled"{% endif %}><a href="{{ current_url(page=pagination.page - 1) }}"  title="Previous Page"><span class="i fa fa-angle-left"></span></a></li>
+    </ul>
+    <label for="pagination1-page" class="sr-only">Current Page</label>
+    <input class="pagination-pf-page" name="go_to_page"  type="text" value="{{ pagination.page }}" id="go_to_page" style="width: 3.5em;" />
+    <span>of <span class="pagination-pf-pages">{{ pagination.pages }}</span></span>
+    <ul class="pagination pagination-pf-forward">
+        <li {% if not pagination.has_next %}class="disabled"{% endif %}><a href="{{ current_url(page=pagination.page + 1) }}" title="Next Page"><span class="i fa fa-angle-right"></span></a></li>
+        <li {% if not pagination.has_next %}class="disabled"{% endif %}><a href="{{ current_url(page=pagination.pages) }}" title="Last Page"><span class="i fa fa-angle-double-right"></span></a></li>
+    </ul>
+  </div>
+</form>
+
+{% endmacro %}

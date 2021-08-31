@@ -1,18 +1,25 @@
 import flask
 from flask import request, render_template, stream_with_context
+from sqlalchemy import desc
 
 from copr_common.enums import StatusEnum
 from coprs import app
 from coprs import db
 from coprs import forms
 from coprs import helpers
+from coprs import models
 
 from coprs.logic import builds_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprDirsLogic
 
-from coprs.views.misc import (login_required, req_with_copr, send_build_icon)
+from coprs.views.misc import (
+    login_required,
+    req_with_copr,
+    req_with_pagination,
+    send_build_icon,
+)
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (
@@ -52,14 +59,38 @@ def render_copr_build(build_id, copr):
 
 ################################ Build table ################################
 
+@coprs_ns.route("/<username>/<coprname>/builds/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/builds/", methods=["POST"])
+def copr_builds_redirect(**_kwargs):
+    """
+    Redirect the current page to the same page with changed ?page=<N> argument
+    """
+    to_page = flask.request.form.get('go_to_page', 1)
+    return flask.redirect(helpers.current_url(page=to_page))
+
+
 @coprs_ns.route("/<username>/<coprname>/builds/")
 @coprs_ns.route("/g/<group_name>/<coprname>/builds/")
 @req_with_copr
-def copr_builds(copr):
+@req_with_pagination
+def copr_builds(copr, page=1):
+
     flashes = flask.session.pop('_flashes', [])
     dirname = flask.request.args.get('dirname')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
-    builds = builds_query.yield_per(1000)
+
+    one_js_page_limit = 10000
+    if builds_query.count() > one_js_page_limit:
+        # we currently don't support filtering with server-side pagination,
+        # so order the query so the newest builds are shown first
+        builds_query = builds_query.order_by(desc(models.Build.id))
+        builds = builds_query.paginate(
+            page=page,
+            per_page=50,
+        )
+    else:
+        builds = builds_query.yield_per(1000)
+
     dirs = CoprDirsLogic.get_all_with_latest_submitted_build(copr.id)
 
     response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",

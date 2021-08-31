@@ -1,6 +1,9 @@
 import os
-from . import app
 import flask
+
+from coprs import app
+from coprs.helpers import current_url
+
 
 BANNER_LOCATION = "/var/lib/copr/banner-include.html"
 
@@ -82,3 +85,9 @@ def counter_processor():
         return str(flask.g.counters[name])
 
     return dict(counter=counter)
+
+
+@app.context_processor
+def current_url_processor():
+    """ Provide 'current_url()' method in templates """
+    return dict(current_url=current_url)

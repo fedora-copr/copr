@@ -141,7 +141,7 @@ from coprs.exceptions import (
     NonAdminCannotDisableAutoPrunning,
 )
 from coprs.error_handlers import get_error_handler
-from .context_processors import include_banner, inject_fedmenu, counter_processor
+import coprs.context_processors
 
 setup_log()
 

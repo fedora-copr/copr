@@ -1,13 +1,16 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 {% from "_helpers.html" import build_href_from_sql, build_state, initialize_datatables, copr_url %}
+{% from "_helpers.html" import pagination_form with context %}
 
 
-{% macro builds_table(builds, print_possible_states=True) %}
+{% macro builds_table(builds, print_possible_states=True, serverside_pagination=None) %}
   {% for build in builds %}
     {% if loop.first %}
+    {% if not serverside_pagination %}
     <noscript><p>WARNING!! This page is using JavaScript to filter, sort and delete builds from the table.</p></noscript>
-    <table class="datatable table table-striped table-bordered">
+    {% endif %}
+    <table class="datatable dataTable table table-striped table-bordered">
       <thead>
         <tr>
           <th>Build ID</th>
@@ -62,7 +65,11 @@
     {% if loop.last %}
       </tbody>
     </table>
-    {{ initialize_datatables() }}
+    {% if not serverside_pagination %}
+        {{ initialize_datatables() }}
+    {% else %}
+        {{ pagination_form(serverside_pagination) }}
+    {% endif %}
     {% if print_possible_states %}
       {{ build_states() }}
     {% endif %}

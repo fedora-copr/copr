@@ -21,6 +21,7 @@ from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.exceptions import ObjectNotFound
 
 
 def create_user_wrapper(username, email, timezone=None):
@@ -396,3 +397,19 @@ def send_build_icon(build, no_cache=False):
     if no_cache:
         response.headers['Cache-Control'] = 'public, max-age=60'
     return response
+
+
+
+def req_with_pagination(f):
+    """
+    Parse 'page=' option from GET url, and place it as the argument
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            page = flask.request.args.get('page', 1)
+            page = int(page)
+        except ValueError as err:
+            raise ObjectNotFound("Invalid pagination format") from err
+        return f(*args, page=page, **kwargs)
+    return wrapper

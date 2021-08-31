@@ -57,6 +57,10 @@
   </div>
   {% endif %}
 
+  {% if builds.items %}
+  {{ builds_table(builds.items, serverside_pagination=builds) }}
+  {% else %}
   {{ builds_table(builds) }}
+  {% endif %}
 
 {% endblock %}
