@@ -59,16 +59,6 @@ def render_copr_build(build_id, copr):
 
 ################################ Build table ################################
 
-@coprs_ns.route("/<username>/<coprname>/builds/", methods=["POST"])
-@coprs_ns.route("/g/<group_name>/<coprname>/builds/", methods=["POST"])
-def copr_builds_redirect(**_kwargs):
-    """
-    Redirect the current page to the same page with changed ?page=<N> argument
-    """
-    to_page = flask.request.form.get('go_to_page', 1)
-    return flask.redirect(helpers.current_url(page=to_page))
-
-
 @coprs_ns.route("/<username>/<coprname>/builds/")
 @coprs_ns.route("/g/<group_name>/<coprname>/builds/")
 @req_with_copr

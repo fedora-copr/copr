@@ -13,7 +13,12 @@ from coprs.views.coprs_ns.coprs_builds import (
     render_add_build_custom,
     render_add_build_distgit,
 )
-from coprs.views.misc import login_required, req_with_copr, send_build_icon
+from coprs.views.misc import (
+    login_required,
+    req_with_copr,
+    req_with_pagination,
+    send_build_icon
+)
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
@@ -21,19 +26,35 @@ from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPacka
                               InsufficientRightsException, MalformedArgumentException)
 
 
+
 @coprs_ns.route("/<username>/<coprname>/packages/")
 @coprs_ns.route("/g/<group_name>/<coprname>/packages/")
 @req_with_copr
-def copr_packages(copr):
+@req_with_pagination
+def copr_packages(copr, page=1):
     flashes = flask.session.pop('_flashes', [])
+
+    copr_dir_id = copr.main_dir.id
+    query_packages = PackagesLogic.get_all_ordered(copr_dir_id)
+
+    pagination = None
+    if query_packages.count() > 1000:
+        pagination = query_packages.paginate(page=page, per_page=50)
+        packages = pagination.items
+    else:
+        packages = query_packages.all()
+
+    # Assign the latest builds to the package array set.
     packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
-        copr.main_dir.id)
+        copr.main_dir.id, packages=packages)
+
     response = flask.Response(
         stream_with_context(helpers.stream_template(
             "coprs/detail/packages.html",
             copr=copr,
             packages=packages,
             flashes=flashes,
+            serverside_pagination=pagination,
         )))
     flask.session.pop('_flashes', [])
     return response

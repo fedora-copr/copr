@@ -26,8 +26,18 @@ class PackagesLogic(object):
 
     @classmethod
     def get_all(cls, copr_dir_id):
+        """
+        Get all packages assigned to 'copr_dir_id'
+        """
         return (models.Package.query
                 .filter(models.Package.copr_dir_id == copr_dir_id))
+
+    @classmethod
+    def get_all_ordered(cls, copr_dir_id):
+        """
+        Get all packages in 'copr_dir_id' ordered by package name
+        """
+        return cls.get_all(copr_dir_id).order_by(models.Package.name)
 
     @classmethod
     def get_all_in_copr(cls, copr_id):
@@ -35,9 +45,23 @@ class PackagesLogic(object):
                 .filter(models.Package.copr_id == copr_id))
 
     @classmethod
-    def get_packages_with_latest_builds_for_dir(cls, copr_dir_id, small_build=True):
-        packages = (models.Package.query.filter_by(copr_dir_id=copr_dir_id)
-                                        .order_by(models.Package.name).all())
+    def get_packages_with_latest_builds_for_dir(
+            cls, copr_dir_id, small_build=True, packages=None):
+        """
+        Obtain the list of package objects for given copr_dir_id, with the
+        latest build assigned.
+        Parameters:
+
+        :param copr_dir_id: CoprDir ID (int)
+        :param small_build: Don't assign full Build objects, but only a limited
+            objects with necessary info.
+        :param packages: Don't query the list of Package objects from DB, but
+            use the given 'packages' array.
+        :return: array of Package objects, with assigned latest Build object
+        """
+        if not packages:
+            packages = cls.get_all_ordered(copr_dir_id).all()
+
         pkg_ids = [package.id for package in packages]
         builds_ids = models.Build.query \
             .filter(models.Build.package_id.in_(pkg_ids)) \
