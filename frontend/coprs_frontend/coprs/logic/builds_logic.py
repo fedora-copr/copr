@@ -1400,40 +1400,74 @@ class BuildChrootResultsLogic:
 
 class BuildsMonitorLogic(object):
     @classmethod
-    def get_monitor_data(cls, copr):
-        query = """
-	SELECT
-	  package.id as package_id,
-	  package.name AS package_name,
-	  build.id AS build_id,
-	  build_chroot.status AS build_chroot_status,
-	  build.pkg_version AS build_pkg_version,
-	  mock_chroot.id AS mock_chroot_id,
-          mock_chroot.os_release AS mock_chroot_os_release,
-          mock_chroot.os_version AS mock_chroot_os_version,
-          mock_chroot.arch AS mock_chroot_arch
-	FROM package
-	JOIN (SELECT
-	  MAX(build.id) AS max_build_id_for_chroot,
-	  build.package_id AS package_id,
-	  build_chroot.mock_chroot_id AS mock_chroot_id
-	FROM build
-	JOIN build_chroot
-	  ON build.id = build_chroot.build_id
-	WHERE build.copr_id = {copr_id}
-	AND build_chroot.status != 2
-	GROUP BY build.package_id,
-		 build_chroot.mock_chroot_id) AS max_build_ids_for_a_chroot
-	  ON package.id = max_build_ids_for_a_chroot.package_id
-	JOIN build
-	  ON build.id = max_build_ids_for_a_chroot.max_build_id_for_chroot
-	JOIN build_chroot
-	  ON build_chroot.mock_chroot_id = max_build_ids_for_a_chroot.mock_chroot_id
-	  AND build_chroot.build_id = max_build_ids_for_a_chroot.max_build_id_for_chroot
-	JOIN mock_chroot
-	  ON mock_chroot.id = max_build_ids_for_a_chroot.mock_chroot_id
-	JOIN copr_dir ON build.copr_dir_id=copr_dir.id WHERE copr_dir.main IS TRUE
-	ORDER BY package.name ASC, package.id ASC, mock_chroot.os_release ASC, mock_chroot.os_version ASC, mock_chroot.arch ASC
-	""".format(copr_id=copr.id)
-        rows = db.session.execute(query)
-        return rows
+    def get_monitor_data(cls, copr, per_page=50, page=1,
+                         paginate_if_more_than=1000):
+        """
+        Return Package objects with corresponding latest BuildChroots in active
+        CoprChroots in given COPR.  We try to hold all packages on one page,
+        though if there are more than PAGINATE_IF_MORE_THAN packages, we return
+        only a slice of the results (in this case PAGE is used to return an
+        appropriate slice, and PER_PAGE to control how many pieces are returned
+        in one slice).
+        We return only the pagination object:
+            pagination.items => list of returned packages
+            pagination.serverside_pagination => if the pagination is in effect
+            pagination.item[N].latest_build_chroots => list of the latest
+                BuildChroots (can span multiple Builds!) for the given package
+        """
+
+        packages_query = PackagesLogic.get_all_ordered(copr.main_dir.id)
+        packages_count = packages_query.count()
+
+        if packages_count > paginate_if_more_than:
+            pagination = packages_query.paginate(per_page=per_page,
+                                                 page=page)
+            pagination.serverside_pagination = True
+        else:
+            pagination = packages_query.paginate(per_page=paginate_if_more_than,
+                                                 page=1)
+            pagination.serverside_pagination = False
+
+        pkg_ids = [package.id for package in pagination.items]
+        mock_chroot_ids = [mch.id for mch in copr.active_chroots]
+
+        builds_ids = (
+            models.Build.query.join(models.BuildChroot)
+                  .filter(models.Build.package_id.in_(pkg_ids))
+                  .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))
+                  .with_entities(
+                      models.Build.package_id.label('package_id'),
+                      func.max(models.Build.id).label('build_id').label("build_id"),
+                      models.BuildChroot.mock_chroot_id,
+                  )
+                  .group_by(
+                      models.Build.package_id,
+                      models.BuildChroot.mock_chroot_id,
+                  )
+                  .subquery()
+        )
+
+        query = (models.BuildChroot.query
+            .join(
+                builds_ids,
+                and_(builds_ids.c.build_id == models.BuildChroot.build_id,
+                     builds_ids.c.mock_chroot_id == models.BuildChroot.mock_chroot_id))
+            .add_columns(
+                builds_ids.c.package_id.label("package_id"),
+            )
+        )
+
+        mapper = {}
+        for package in pagination.items:
+            mapper[package.id] = {}
+
+        for build_chroot, package_id in query:
+            mapper[package_id][build_chroot.mock_chroot.name] = build_chroot
+
+        for package in pagination.items:
+            package.latest_build_chroots = []
+            for chroot in copr.active_chroots_sorted:
+                package.latest_build_chroots.append(
+                    mapper[package.id].get(chroot.name))
+
+        return pagination

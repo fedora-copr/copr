@@ -35,8 +35,14 @@ from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, Pe
 from coprs.logic.complex_logic import ComplexLogic, ReposLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 
-from coprs.views.misc import (login_required, page_not_found, req_with_copr,
-                              generic_error, req_with_copr_dir)
+from coprs.views.misc import (
+    generic_error,
+    login_required,
+    page_not_found,
+    req_with_copr,
+    req_with_copr_dir,
+    req_with_pagination,
+)
 
 from coprs.views.coprs_ns import coprs_ns
 
@@ -1008,14 +1014,21 @@ def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>")
 @req_with_copr
-def copr_build_monitor(copr, detailed=False):
+@req_with_pagination
+def copr_build_monitor(copr, detailed=False, page=1):
     """
     The monitor page (overview of the build status in each chroot for all the
     packages built in given project).
     """
     detailed = detailed == "detailed"
-    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+    pagination = builds_logic.BuildsMonitorLogic.get_monitor_data(
+            copr, page=page)
     oses = [chroot.os for chroot in copr.active_chroots_sorted]
+
+    chroot_indexer = {}
+    for index, chroot in enumerate(copr.active_chroots_sorted):
+        chroot_indexer[chroot] = index
+
     oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
     archs = [chroot.arch for chroot in copr.active_chroots_sorted]
     if detailed:
@@ -1024,7 +1037,7 @@ def copr_build_monitor(copr, detailed=False):
         template = "coprs/detail/monitor/simple.html"
     return flask.Response(stream_with_context(helpers.stream_template(template,
                                  copr=copr,
-                                 monitor=monitor,
+                                 pagination=pagination,
                                  oses=oses_grouped,
                                  archs=archs,)))
 

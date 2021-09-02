@@ -13,6 +13,10 @@ from coprs import helpers
 @coprs_ns.route("/g/<group_name>/<coprname>/builds/", methods=["POST"])
 @coprs_ns.route("/<username>/<coprname>/packages/", methods=["POST"])
 @coprs_ns.route("/g/<group_name>/<coprname>/packages/", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/monitor/", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/monitor/<detailed>", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>", methods=["POST"])
 def copr_pagination_redirect(**_kwargs):
     """
     Redirect the current page to the very same page, with just the '?page=<N>'

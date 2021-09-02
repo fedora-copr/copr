@@ -25,6 +25,7 @@ from tests.request_test_api import parse_web_form_error
 
 class TestMonitor(CoprsTestCase):
 
+    @new_app_context
     def test_regression_monitor_no_copr_returned(self, f_db, f_users, f_mock_chroots):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1165284
 

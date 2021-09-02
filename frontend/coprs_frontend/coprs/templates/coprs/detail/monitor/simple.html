@@ -1,6 +1,7 @@
 {% extends "coprs/detail/monitor.html" %}
 
-{% from "_helpers.html" import package_href, build_href, build_state_text, render_monitor_table %}
+{% from "_helpers.html" import package_href, build_href, build_state_text %}
+{% from "_helpers.html" import render_monitor_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% set selected_monitor_tab = "simple" %}
@@ -14,5 +15,5 @@
 {% block monitor_simple_selected %}active{% endblock %}
 
 {% block monitor_table %}
-{{ render_monitor_table(copr, monitor, oses, archs, simple=True) }}
+{{ render_monitor_table(copr, pagination, oses, archs, simple=True) }}
 {% endblock %}

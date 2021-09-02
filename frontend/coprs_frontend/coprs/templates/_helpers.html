@@ -475,8 +475,8 @@ https://accounts.fedoraproject.org/group/{{name}}
 {% endmacro %}
 
 
-{% macro render_monitor_table(copr, monitor, oses, archs, simple=True) %}
-<table class="table table-striped table-bordered">
+{% macro render_monitor_table(copr, pagination, oses, archs, simple=True) %}
+<table class="table table-striped table-bordered dataTable">
   <thead>
     <tr>
       <th rowspan="2">Package</th>
@@ -492,56 +492,41 @@ https://accounts.fedoraproject.org/group/{{name}}
   </thead>
   <tbody>
     <tr>
-    {# The following code is optimized to pass (potentially large) monitor data just once. #}
-    {# It expects results to be sorted by package.name and then mock_chroot.name. #}
+    {# This table should be sorted by package name #}
     {% set current_row = [None] %}
     {% set copr_active_chroots_sorted = copr.active_chroots_sorted %}
     {% set copr_active_chroots_sorted_length = copr_active_chroots_sorted|length %}
     {#% set copr_active_chroots_sorted_index = copr_active_chroots_sorted_length %#} {# we need to set this var from an inner scope, which is unsupported, hence the following list-as-a-counter hacks: #}
     {% set copr_active_chroots_sorted_index = [1]*copr_active_chroots_sorted_length %}
 
-    {% for row in monitor %}
-      {% if row.package_name != current_row[0] %}
-        {% for _ in range(copr_active_chroots_sorted_index|length, copr_active_chroots_sorted_length) %} {# "do" tag would help but just a tiny bit (so no enabling) #}
-          <td>-</td>
-        {% endfor %}
-        </tr><tr>
+    </tr>
 
+    {% for package in pagination.items %}
+    <tr>
         <td style="white-space:nowrap">
-          <b><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=row.package_name) }}">
-            {{ row.package_name }}
+          <b><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">
+            {{ package.name }}
           </a></b>
         </td>
-        {% set _ = current_row.pop() %}
-        {% set _ = current_row.append(row.package_name) %}
-        {#% set copr_active_chroots_sorted_index = 0 %#}
-        {% for _ in range(copr_active_chroots_sorted_index|length) %}{% if copr_active_chroots_sorted_index.remove(1) %}{% endif %}{% endfor %}
-      {% endif %}
 
-      {% for index in range(copr_active_chroots_sorted_index|length, copr_active_chroots_sorted_length) %}
-        {% if row.mock_chroot_id == copr_active_chroots_sorted[index].id %}
-          {% for _ in range(copr_active_chroots_sorted_index|length, index) %}
-          <td>-</td>
-          {% endfor %}
-          <td>
-            <a href="{{ copr_url("coprs_ns.copr_build", copr, build_id=row.build_id) }}">
-              {% if simple %}
-                {{ build_state_text(row.build_chroot_status|state_from_num) }}
-              {% else %}
-                <small> {{ row.build_id }} </small> <br>
-                {{ build_state_text(row.build_chroot_status|state_from_num) }}<br>
-                <small class="text-muted"> {{ row.build_pkg_version }} </small>
-              {% endif %}
-            </a>
-          </td>
-          {#% set copr_active_chroots_sorted_index = index + 1 %#}
-          {% for _ in range(copr_active_chroots_sorted_index|length, index+1) %}
-            {% if copr_active_chroots_sorted_index.append(1) %}{% endif %}
-          {% endfor %}
-          {% set index = copr_active_chroots_sorted_length %}
-        {% endif %}
-      {% endfor %}
-
+        {% for buildchroot in package.latest_build_chroots %}
+        <td>
+            {% if buildchroot %}
+                <a href="{{ copr_url("coprs_ns.copr_build", copr, build_id=buildchroot.build_id) }}">
+                {% if simple %}
+                    {{ build_state_text(buildchroot.status|state_from_num) }}
+                {% else %}
+                    <small> {{ buildchroot.build_id }} </small> <br>
+                    {{ build_state_text(buildchroot.status|state_from_num) }}<br>
+                    <small class="text-muted"> {{ buildchroot.build.pkg_version }} </small>
+                {% endif %}
+                </a>
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
     {% endfor %}
 
     {% for _ in range(copr_active_chroots_sorted_index|length, copr_active_chroots_sorted_length) %} {# "do" tag would help but just a tiny bit (so no enabling) #}
@@ -550,6 +535,10 @@ https://accounts.fedoraproject.org/group/{{name}}
     </tr>
   </tbody>
 </table>
+
+{% if pagination.serverside_pagination %}
+{{ pagination_form(pagination) }}
+{% endif %}
 {% endmacro %}
 
 {% macro render_bootstrap_options(form, build=False) %}
