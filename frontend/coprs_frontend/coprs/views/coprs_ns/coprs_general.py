@@ -1003,7 +1003,17 @@ def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
         return flask.render_template("404.html")
 
 
-def render_monitor(copr, detailed=False):
+@coprs_ns.route("/<username>/<coprname>/monitor/")
+@coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>")
+@req_with_copr
+def copr_build_monitor(copr, detailed=False):
+    """
+    The monitor page (overview of the build status in each chroot for all the
+    packages built in given project).
+    """
+    detailed = detailed == "detailed"
     monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     oses = [chroot.os for chroot in copr.active_chroots_sorted]
     oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
@@ -1017,15 +1027,6 @@ def render_monitor(copr, detailed=False):
                                  monitor=monitor,
                                  oses=oses_grouped,
                                  archs=archs,)))
-
-
-@coprs_ns.route("/<username>/<coprname>/monitor/")
-@coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
-@coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
-@coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>")
-@req_with_copr
-def copr_build_monitor(copr, detailed=False):
-    return render_monitor(copr, detailed == "detailed")
 
 
 @coprs_ns.route("/<username>/<coprname>/fork/")
