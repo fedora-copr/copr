@@ -1,65 +1,51 @@
 .. _seeddb:
 
-Populate DB with pruduction-like data
-=====================================
+Populate DB with pruduction data
+================================
 
-This article assumes that you have an access to copr-fe-dev machine.
+While setting your local development environment, you might want to
+populate your database with production data. This document describes
+how to import a databse dump when using the docker-compose stack
+provided together with Copr source code (see :ref:`contribute`).
 
-While setting your local development environment, you might want to populate your database with production-like data.
+First, obtain some SQL dump from the production instance. They are
+generated daily.
 
-First, obtain some SQL dump from copr-fe-dev (i.e. ``coprdb-2015-06-02.sql``). This assumes that you are a Copr developer.
+https://copr.fedorainfracloud.org/db_dumps/
 
-Then, if you are using docker-compose stack provided together with Copr source code (see :ref:`contribute`),
-you can import the db dump into the Postgresql database used by copr-frontend container.
+Stop your frontend container because it holds a session to your database::
 
-First see what's the name of the copr-frontend container e.g. by looking at ``docker ps`` output.
+    $ docker-compose stop frontend
 
-Let's say it is ``copr_frontend_1``.
+Copy the db dump into the database container::
 
-Copy the db dump into the copr-frontend container:
+    $ docker cp copr_db-2021-09-02_03-16.gz copr_database_1:/tmp/
 
-::
+Then log into the machine::
 
-    $ docker cp coprdb-2015-06-02.sql copr_frontend_1:/tmp/
+    $ docker exec -it copr_database_1 /bin/bash
 
-Then log into the machine:
+Import the database dump::
 
-::
+    bash-4.2$ dropdb coprdb
+    bash-4.2$ createdb coprdb
+    bash-4.2$ cat /tmp/copr_db-2021-09-02_03-16.gz | gunzip | psql coprdb
+
+Cancel all unfinished builds to avoid overloading your machine with
+unnecessary builds::
+
+    bash-4.2$ psql coprdb
+    coprdb=# UPDATE build SET source_status=2 WHERE source_status IN (3, 4, 6, 7, 9);
+    coprdb=# UPDATE build_chroot SET status=2 WHERE status IN (3, 4, 6, 7, 9);
+
+When running frontend from ``main`` updating the database schema may
+be necessary::
 
     $ docker exec -it copr_frontend_1 /bin/bash
+    [copr-fe@frontend /]$ cd /opt/copr/frontend/coprs_frontend/
+    [copr-fe@frontend coprs_frontend]$ alembic-3 upgrade head
+    [copr-fe@frontend coprs_frontend]$ exit
 
-Stop your httpd service because it holds a session to your database:
+Finally, start the frontend container again::
 
-::
-
-    [root@frontend /]# systemctl stop httpd
-
-And continue with the import:
-
-::
-
-    [root@frontend ~]# su - postgres
-
-    -bash-4.4$ dropdb coprdb
-
-    -bash-4.4$ psql < /tmp/coprdb-2015-06-02.sql
-
-    -bash-4.4$ exit
-
-To keep your database schema up-to-date, use alembic:
-
-::
-
-    [root@frontend ~]$ cd /usr/share/copr/coprs_frontend/
-
-    [root@frontend ~]$ su - copr-fe
-
-    -bash-4.4$ alembic upgrade head
-
-    -bash-4.4$ exit
-
-Finally start the httpd service again:
-
-::
-
-    [root@frontend ~]# systemctl start httpd
+    $ docker-compose start frontend
