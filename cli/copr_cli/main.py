@@ -186,40 +186,60 @@ class ColumnTextPrinter(AbstractPrinter):
 class JsonPrinter(AbstractPrinter):
     """The class takes care of printing the data in json format"""
 
-    def __init__(self, fields):
-        super(JsonPrinter, self).__init__(fields)
-        self.output_info = []
-        self.json_values_list = []
-
-    def __process_fields(self, data):
-        desired_info = []
+    def _get_result_json(self, data):
+        result = {}
         for field in self.fields:
             if callable(field):
-                desired_info.append(field(data))
+                name = field.__code__.co_varnames[0]
+                result[name] = field(data)
             else:
-                desired_info.append(data[field])
-        self.output_info.append(desired_info)
+                result[field] = data[field]
+        return json_dumps(result)
 
     def add_data(self, data):
-        json_values = {}
-        self.__process_fields(data)
-        for item in self.output_info:
-            for field, info in zip(self.fields, item):
-                if callable(field):
-                    json_values[field.__code__.co_varnames[0]] = info
-                else:
-                    json_values[field] = info
-        self.json_values_list.append(json_values)
+        print(self._get_result_json(data))
 
     def finish(self):
-        print(json_dumps(self.json_values_list[0]))
+        pass
 
 
 class JsonPrinterListCommand(JsonPrinter):
-    """The class takes care of printing the data in list in json format"""
+    """
+    The class takes care of printing the data in list in json format
+
+    For performance reasons we cannot simply add everything to a list and then
+    use `json_dumps` function to print all JSON at once. For large projects this
+    would mean minutes of no output, which is not user-friendly.
+
+    The approach here is to utilize `json_dumps` to convert each object to
+    a JSON string and print it immediately. We then manually take care of
+    opening and closing list brackets and separators.
+    """
+
+    first_line = True
+
+    def add_data(self, data):
+        self.start()
+        result = self._get_result_json(data)
+        for line in result.split("\n"):
+            print("    {0}".format(line))
+
+    def start(self):
+        """
+        This is called before printing the first object
+        """
+        if self.first_line:
+            self.first_line = False
+            print("[")
+        else:
+            print("    ,")
 
     def finish(self):
-        print(json_dumps(self.json_values_list))
+        """
+        This is called by the user after printing all objects
+        """
+        if not self.first_line:
+            print("]")
 
 
 def get_printer(output_format, fields, list_command=False):
@@ -640,13 +660,13 @@ class Commands(object):
             sys.stderr.write(
                 "The default setting will be changed from text-row to json in the following releases\n")
 
+        fields = ["id", lambda name: name["source_package"]["name"], "state"]
+        printer = get_printer(args.output_format, fields, True)
         while builds_list:
-            fields = ["id", lambda name: name["source_package"]["name"], "state"]
-            printer = get_printer(args.output_format, fields, True)
             for data in builds_list:
                 printer.add_data(data)
-            printer.finish()
             builds_list = next_page(builds_list)
+        printer.finish()
 
     def action_mock_config(self, args):
         """ Method called when the 'mock-config' action has been selected by the
