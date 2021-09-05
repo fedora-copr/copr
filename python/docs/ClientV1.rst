@@ -18,8 +18,3 @@ provided attributes and methods.
 
 See method signatures and response objects in
 the auto generated documentation:
-
-
-.. toctree::
-    client_v1/CoprClient
-    client_v1/Responses

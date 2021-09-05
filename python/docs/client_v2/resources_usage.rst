@@ -6,7 +6,7 @@ Resources
 ~~~~~~~~~
 
 Client represents API with two kinds of resources: Individuals and Collections. For example when we request
-all projects with name `copr` we would receive collection :py:class:`~copr.client_v2.resources.ProjectList` resource:
+all projects with name ``copr`` we would receive collection :py:class:`~copr.client_v2.resources.ProjectList` resource:
 
     .. sourcecode:: python
 
@@ -23,7 +23,7 @@ all projects with name `copr` we would receive collection :py:class:`~copr.clien
 
 
 Access to elements in collection is done through iterator interface. Since API limits number of elements
-retrieved in the one request, collections has method `next_page()` to retrieve more objects:
+retrieved in the one request, collections has method ``next_page()`` to retrieve more objects:
 
     .. sourcecode:: python
 
