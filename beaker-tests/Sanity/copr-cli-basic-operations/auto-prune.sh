@@ -35,8 +35,8 @@ source "$HERE/helpers"
 
 assert_auto_prune ()
 {
-    rlRun -s "curl --silent ${FRONTEND_URL}/api/coprs/$PROJECT/detail/" 0
-    rlRun "auto_prune=$(jq .detail.auto_prune < "$rlRun_LOG")"
+    rlRun -s "curl --silent '${FRONTEND_URL}/api_3/project?ownername=${OWNER}&projectname=${NAME_VAR}-auto-prune'" 0
+    rlRun "auto_prune=$(jq .auto_prune < "$rlRun_LOG")"
     rlAssertEquals "auto prune is $1" "$auto_prune" "$1"
 }
 
