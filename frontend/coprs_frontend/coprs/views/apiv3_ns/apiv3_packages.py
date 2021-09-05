@@ -6,7 +6,7 @@ from coprs.exceptions import (
         NoPackageSourceException,
         InsufficientRightsException,
         DuplicateException,
-        LegacyApiError,
+        ApiError,
         UnknownSourceTypeException,
 )
 from coprs.views.misc import api_login_required
@@ -211,16 +211,16 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
                 add_function(key, value)
         form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, meta={'csrf': False})
     except UnknownSourceTypeException:
-        raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
+        raise ApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
 
     if form.validate_on_submit():
         if not package:
             try:
                 package = PackagesLogic.add(flask.app.g.user, copr.main_dir, form.package_name.data)
             except InsufficientRightsException:
-                raise LegacyApiError("Insufficient permissions.")
+                raise ApiError("Insufficient permissions.")
             except DuplicateException:
-                raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
+                raise ApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
 
         try:
             source_type = helpers.BuildSourceEnum(source_type_text)
@@ -237,7 +237,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
         db.session.add(package)
         db.session.commit()
     else:
-        raise LegacyApiError(form.errors)
+        raise ApiError(form.errors)
 
     return flask.jsonify({
         "output": "ok",
