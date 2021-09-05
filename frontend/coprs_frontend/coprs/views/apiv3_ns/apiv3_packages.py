@@ -3,18 +3,19 @@ import flask
 from coprs.exceptions import (
         BadRequest,
         ObjectNotFound,
-        NoPackageSourceException
+        NoPackageSourceException,
+        InsufficientRightsException,
+        DuplicateException,
+        LegacyApiError,
+        UnknownSourceTypeException,
 )
 from coprs.views.misc import api_login_required
-from coprs import db, models, forms
+from coprs import db, models, forms, helpers
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.packages_logic import PackagesLogic
 
 # @TODO if we need to do this on several places, we should figure a better way to do it
 from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
-
-# @TODO Don't import things from APIv1
-from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 from . import query_params, pagination, get_copr, ListPaginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
@@ -193,3 +194,53 @@ def package_delete():
     PackagesLogic.delete_package(flask.g.user, package)
     db.session.commit()
     return flask.jsonify(to_dict(package))
+
+
+def process_package_add_or_edit(copr, source_type_text, package=None, data=None):
+    if not flask.g.user.can_edit(copr):
+        raise InsufficientRightsException(
+            "You are not allowed to add or edit packages in this copr.")
+
+    formdata = data or flask.request.form
+    try:
+        if package and data:
+            formdata = data.copy()
+            for key in package.source_json_dict.keys() - data.keys():
+                value = package.source_json_dict[key]
+                add_function = formdata.setlist if type(value) == list else formdata.add
+                add_function(key, value)
+        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, meta={'csrf': False})
+    except UnknownSourceTypeException:
+        raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
+
+    if form.validate_on_submit():
+        if not package:
+            try:
+                package = PackagesLogic.add(flask.app.g.user, copr.main_dir, form.package_name.data)
+            except InsufficientRightsException:
+                raise LegacyApiError("Insufficient permissions.")
+            except DuplicateException:
+                raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
+
+        try:
+            source_type = helpers.BuildSourceEnum(source_type_text)
+        except KeyError:
+            source_type = helpers.BuildSourceEnum("scm")
+
+        package.source_type = source_type
+        package.source_json = form.source_json
+        if "webhook_rebuild" in formdata:
+            package.webhook_rebuild = form.webhook_rebuild.data
+        if "max_builds" in formdata:
+            package.max_builds = form.max_builds.data
+
+        db.session.add(package)
+        db.session.commit()
+    else:
+        raise LegacyApiError(form.errors)
+
+    return flask.jsonify({
+        "output": "ok",
+        "message": "Create or edit operation was successful.",
+        "package": package.to_dict(),
+    })
