@@ -22,7 +22,7 @@ source
 .. code-block:: bash
 
     git clone https://pagure.io/copr/copr.git
-    cd python
+    cd copr/python
     # enable virtualenv if needed
     pip install -r requirements.txt
     python setup.py install

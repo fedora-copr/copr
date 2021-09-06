@@ -126,7 +126,7 @@ Not exactly. It is a subclass of a ``list`` created in the ``copr`` package.
     <class 'copr.v3.helpers.List'>
     True
 
-Let's answer the anticipated question, why do we need a modified implementation of a list. It can provide the frontned
+Let's answer the anticipated question, why do we need a modified implementation of a list. It can provide the frontend
 response in a ``__response__`` attribute the same way that single munch does.
 
 ::
