@@ -24,14 +24,14 @@ Usage:
 - Retrieve your API login & token
 
 ::
-
-    from python_copr.main import CoprClient
-    client = CoprClient(
-        login="<login from /api>",
-        token="<token from /api>",
-        username="<copr username>",
-        copr_url="<url copr instance ; optional>"
-    )
+    from copr.v3 import Client
+    config = {
+        "copr_url": "<url copr instance ; optional>",
+        "login": "<login from /api>",
+        "token": "<token from /api>",
+        "username": "<copr username>",
+    }
+    client = Client(config)
 
 Alternatively you could use configuration file:
 - Create the file ``~/.config/copr``
@@ -44,5 +44,3 @@ Alternatively you could use configuration file:
  username = <insert here your copr username>
  token = <insert here your API token>
  copr_url = <insert here copr url>
-
-
