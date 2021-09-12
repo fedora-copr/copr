@@ -143,6 +143,9 @@ Requires: yum-utils
 %latest_requires redhat-rpm-config
 %latest_requires rpm
 
+# Outdated gem2rpm version may have problems with fetching from rubygems.org
+%latest_requires rubygem-gem2rpm
+
 
 %description -n copr-builder
 Provides command capable of running COPR build-tasks.
