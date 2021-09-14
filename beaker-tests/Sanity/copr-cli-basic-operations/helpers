@@ -102,4 +102,10 @@ setup_checks()
 
     # token ok? communication ok?
     rlRun "copr-cli whoami"
+
+    # Make sure the test container is running an expected Fedora version.
+    # This is important because some tests build packages only for this Fedora
+    # version and then try to install them. If there is a Fedora version
+    # mismatch, such tests will fail and it is not trivial to find out why.
+    rlRun "cat /etc/os-release |grep VERSION_ID=${FEDORA_VERSION}"
 }
