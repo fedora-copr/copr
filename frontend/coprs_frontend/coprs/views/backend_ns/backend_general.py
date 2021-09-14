@@ -313,7 +313,8 @@ def pending_jobs():
          if build_ready(task.build)]
     )
 
-    log.info('Selected build records: {}'.format(build_records))
+    log.info('Number of selected build records: %s', len(build_records))
+    log.debug('Selected build records: %s', build_records)
     return flask.jsonify(build_records)
 
 
