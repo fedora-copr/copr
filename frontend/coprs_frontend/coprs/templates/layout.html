@@ -49,11 +49,51 @@
           <form role="search" method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
             <div class="input-group menu-search">
               <input name="fulltext" type="text" class="form-control" placeholder="Search projects by name, os or arch" value="{% block search_box %}{%endblock%}">
-              <span class="input-group-btn">
+
+              <div class="input-group-btn">
                 <button type="submit" class="btn btn-default">
-                <span class="glyphicon glyphicon-search"></span>
+                  <span class="glyphicon glyphicon-search"></span>
                 </button>
-              </span>
+
+                <button type="button" class="btn btn-default dropdown-toggle"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='frostyx') }}">
+                      Search by user name
+                    </a>
+                  </li>
+
+                  <li>
+                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='@copr') }}">
+                      Search by group name
+                    </a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', projectname='copr') }}">
+                      Search by project name
+                    </a>
+                  </li>
+
+                  <li>
+                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', packagename='copr-cli') }}">
+                      Search by package name
+                    </a>
+                  </li>
+                  <li role="separator" class="divider"></li>
+
+                  <li>
+                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='frostyx', packagename='copr-cli') }}">
+                      Search by multiple parameters
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </form>
         </div>
@@ -99,7 +139,7 @@
                 <dl>
                   {% include 'contact_us.html' %}
                 </dl>
-              </div> 
+              </div>
               <div class="col-sm-3">
                 <dl>
                   {% include 'project_info.html' %}
