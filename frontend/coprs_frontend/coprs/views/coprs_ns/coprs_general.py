@@ -164,6 +164,7 @@ def coprs_fulltext_search(page=1):
                             pinned=[],
                             paginator=paginator,
                             fulltext=fulltext,
+                            search_string=helpers.format_search_string(params),
                             tasks_info=ComplexLogic.get_queue_sizes(),
                             graph=data)
 

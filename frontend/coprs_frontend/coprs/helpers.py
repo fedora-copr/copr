@@ -726,3 +726,27 @@ def parse_fullname(full_name):
     if "/" in full_name:
         return full_name.split("/", maxsplit=1)
     return None, full_name
+
+
+def format_search_string(params):
+    """
+    Takes a dict of parameters that were specified for searching and return
+    them in a formatted, human-readable string.
+
+    {"ownername": "@copr", "projectname": "copr-dev"}
+        => "ownername: @copr, projectname: copr-dev"
+
+    {"ownername": "frostyx", "fulltext": "foo"}
+        => "ownername: frostyx, foo"
+    """
+    params_copy = dict(params.copy())
+    fulltext = params_copy.pop("fulltext", None)
+
+    params_list = ["{0}: {1}".format(k, v) for k, v in params_copy.items()]
+    if not params_list:
+        return fulltext
+
+    result = ", ".join(params_list)
+    if not fulltext:
+        return result
+    return ", ".join([result, fulltext])

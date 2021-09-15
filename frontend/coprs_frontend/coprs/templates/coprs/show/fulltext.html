@@ -9,12 +9,12 @@
     <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
   </li>
   <li class="active">
-    Searching: {{fulltext}}
+    Searching: {{ search_string }}
   </li>
 </ol>
 {% endblock %}
 {% block show_top %}
 
 
-<h1> Search Results <small> {{fulltext}} </small></h1>
+<h1> Search Results <small> {{ search_string }} </small></h1>
 {% endblock %}
