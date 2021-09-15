@@ -27,3 +27,6 @@ copr-cli cancel <build_id>
 
 # to build rpm(s) from GIT
 copr-cli buildscm test-project --clone-url https://pagure.io/copr/copr.git --subdir cli
+
+# to regenerate repository metadata for a project
+copr-cli regenerate-repos test-project

@@ -358,7 +358,7 @@ class ProjectProxy(BaseProxy):
         :param str ownername: owner of the project to regenerate
         :param str projectname: name of the project to regenerate
         """
-        endpoint = "/projects/regenerate-repo/{ownername}/{projectname}"
+        endpoint = "/project/regenerate-repos/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
             "projectname": projectname

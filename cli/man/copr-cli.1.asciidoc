@@ -60,6 +60,9 @@ Download a build to local directory.
 modify::
 Modify existing copr
 
+regenerate-repos::
+Regenerate repository metadata for a project
+
 add-package-*::
 Add a new package of the specified source type (e.g. add-package-tito)
 
@@ -192,6 +195,14 @@ If backend auto-prunning script should be run for this project. This option can 
 Choose the isolation method for running commands in buildroot
 
 name::
+Can be just name of the project or in form username/projectname or @groupname/projectname.
+
+`copr-cli regenerate-repos [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli regenerate-repos [-h] copr
+
+copr::
 Can be just name of the project or in form username/projectname or @groupname/projectname.
 
 BUILD ACTIONS

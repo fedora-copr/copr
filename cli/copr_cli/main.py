@@ -610,6 +610,20 @@ class Commands(object):
             print("Updating packages in {0} from {1}/{2}.\nPlease be aware that it may take a few minutes "
                   "to duplicate backend data.".format(project.full_name, srcownername, srcprojectname))
 
+    @requires_api_auth
+    def action_regenerate_repos(self, args):
+        """ Method called when the 'regenerate-repos' action has been selected
+        by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        ownername, projectname = self.parse_name(args.copr)
+        project = self.client.project_proxy.regenerate_repos(
+            ownername, projectname)
+
+        print("Submitted action to regenerate repository metadata for "
+              "the '{0}' project.".format(project.full_name))
+
     def action_list_builds(self, args):
         """ Method called when the 'list-builds' action has been selected by
         the user.
@@ -1198,6 +1212,16 @@ def setup_parser():
     parser_delete.add_argument("dst", help="Name of the new project")
     parser_delete.add_argument("--confirm", action="store_true", help="Confirm forking into existing project")
     parser_delete.set_defaults(func="action_fork")
+
+    # create the parser for the "regenerate-repos" command
+    parser_regenerate_repos = subparsers.add_parser(
+        "regenerate-repos",
+        help=("Regenerate repository metadata for a project. "
+              "Useful when automatic generation is disabled"))
+    parser_regenerate_repos.add_argument(
+        "copr",
+        help=("Can be just name of project or even in format owner/project."))
+    parser_regenerate_repos.set_defaults(func="action_regenerate_repos")
 
     parser_builds = subparsers.add_parser("list-builds", help="List all builds in the project")
     parser_builds.add_argument("project", help="Which project's builds should be listed.\
