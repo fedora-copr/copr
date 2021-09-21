@@ -1,10 +1,12 @@
-{% from "_helpers.html" import copr_url, build_state, initialize_datatables %}
+{% from "_helpers.html" import copr_url, build_state, initialize_datatables, serverside_pagination_warning %}
 {% from "_helpers.html" import pagination_form with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% macro packages_table(packages, serverside_pagination=None) %}
 {% if not serverside_pagination %}
 <noscript><p>WARNING!! This page is using JavaScript to filter, sort and delete builds from the table.</p></noscript>
+{% else %}
+{{ serverside_pagination_warning() }}
 {% endif %}
 {% if packages %}
   <table class="datatable dataTable table table-striped table-bordered">

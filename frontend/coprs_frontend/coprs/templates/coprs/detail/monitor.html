@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_url, copr_name %}
+{% from "_helpers.html" import copr_url, copr_name, serverside_pagination_warning  %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 {% block title %}Monitor {{ copr_name(copr) }}{% endblock %}
 
@@ -25,6 +25,10 @@
 {% block detail_body %}
 
 <h2 class="section-heading"> Build Monitor </h2>
+
+{% if pagination.serverside_pagination %}
+{{ serverside_pagination_warning() }}
+{% endif %}
 
 <div class="panel panel-default panel-monitor-menu">
   <div class="panel-body">

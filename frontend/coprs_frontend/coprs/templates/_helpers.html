@@ -883,3 +883,11 @@ https://accounts.fedoraproject.org/group/{{name}}
 </form>
 
 {% endmacro %}
+
+{% macro serverside_pagination_warning() %}
+<p> Warning!
+    This is a large project with many packages and/or builds - we can not hold all
+    the requested data on one page (as we usually do), please use the pagination
+    buttons below the table.
+</p>
+{% endmacro %}

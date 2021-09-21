@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Builds for {{ copr.full_name }}{% endblock %}
 
-{% from "_helpers.html" import render_pagination %}
+{% from "_helpers.html" import render_pagination, serverside_pagination_warning %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 {% from "coprs/detail/_builds_forms.html" import copr_delete_builds %}
@@ -58,6 +58,7 @@
   {% endif %}
 
   {% if builds.items %}
+  {{ serverside_pagination_warning() }}
   {{ builds_table(builds.items, serverside_pagination=builds) }}
   {% else %}
   {{ builds_table(builds) }}
