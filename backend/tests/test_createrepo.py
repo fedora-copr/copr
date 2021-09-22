@@ -233,7 +233,7 @@ class TestBatchedCreaterepo:
 
         log_entries_expected = {
             "Batch copr-repo limit",
-            "Checking if we have to start actually",
+            "Has already a status? False",
         }
 
         msg_count = len(caplog.record_tuples)

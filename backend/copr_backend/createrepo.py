@@ -90,23 +90,30 @@ class BatchedCreaterepo:
         self.redis.hset(self.key, "task", self._json_redis_task)
         return self.key
 
-    def check_processed(self):
+    def check_processed(self, delete_if_not=True):
         """
         Drop our entry from Redis DB (if any), and return True if the task is
-        already processed.  Requires lock!
+        already processed.  When 'delete_if_not=True, we delete the self.key
+        from Redis even if the task is not yet processed (meaning that caller
+        plans to finish the task right away).
         """
         if self.noop:
             return False
 
-        self.log.debug("Checking if we have to start actually")
-        status = self.redis.hget(self.key, "status")
-        self.redis.delete(self.key)
-        if status is None:
-            # not yet processed
-            return False
+        status = self.redis.hget(self.key, "status") == "success"
+        self.log.debug("Has already a status? %s", status)
 
-        self.log.debug("Task has already status %s", status)
-        return status == "success"
+        try:
+            if not status:
+                # not yet processed
+                return False
+        finally:
+            # This is atomic operation, other processes may not re-start doing this
+            # task again.  https://github.com/redis/redis/issues/9531
+            if status or delete_if_not:
+                self.redis.delete(self.key)
+
+        return status
 
     def options(self):
         """

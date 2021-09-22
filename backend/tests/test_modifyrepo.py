@@ -5,6 +5,7 @@ import runpy
 import shutil
 import subprocess
 import tempfile
+import time
 import glob
 from unittest import mock
 
@@ -509,3 +510,56 @@ class TestModifyRepo(object):
             lines = fd.readlines()
             assert len(lines) == 1
             assert "pruned on" in lines[0]
+
+    @pytest.mark.parametrize('run_bg', [True, False])
+    @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
+    def test_copr_repo_timeouted_check(self, f_second_build, run_bg):
+        _unused = self
+        ctx = f_second_build
+        chroot = ctx.chroots[0]
+        chrootdir = os.path.join(ctx.empty_dir, chroot)
+        repodata = os.path.join(chrootdir, 'repodata')
+
+        # empty repodata at the beginning
+        empty_repodata = load_primary_xml(repodata)
+        assert empty_repodata['names'] == set()
+
+        pid = os.fork()
+        if not pid:
+            # give parent some time to lock the repo
+            time.sleep(1)
+            # Run the blocked (by parent) createrepo, it must finish soon
+            # anway because parent will claim the task is done.
+            assert call_copr_repo(chrootdir, add=[ctx.builds[1]])
+            # sys.exit() can not be used in testsuite
+            os._exit(0)  # pylint: disable=protected-access
+
+        with _lock(chrootdir):
+            # give the child some time to fill its Redis keys
+            sleeper = 1
+            while True:
+                if len(self.redis.keys()) > 0:
+                    break
+                sleeper += 1
+                time.sleep(0.1)
+                assert sleeper < 10*15  # 15s
+
+            assert len(self.redis.keys()) == 1
+            key = self.redis.keys()[0]
+
+            # Claim we did that task (even if not) and check that the child
+            # finishes after some time.
+            if not run_bg:
+                self.redis.hset(key, "status", "success")
+                assert os.wait()[1] == 0
+                assert self.redis.get(key) is None
+
+        if run_bg:
+            # actually process the background job!
+            assert os.wait()[1] == 0
+
+        repodata = load_primary_xml(repodata)
+        if run_bg:
+            assert repodata['names'] == {'example'}
+        else:
+            assert repodata['names'] == set()

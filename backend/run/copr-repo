@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import sys
 
-import oslo_concurrency.lockutils
+import filelock
 
 from copr_backend.helpers import (
     BackendConfigReader,
@@ -295,19 +295,28 @@ def assert_new_createrepo():
     assert b'--recycle-pkglist' in out
 
 
+class LockTimeout(OSError):
+    """ Raised for lock() timeout, if timeout= option is set to value >= 0 """
+
 @contextlib.contextmanager
-def lock(opts):
+def lock(opts, timeout=-1):
     lock_path = os.environ.get('COPR_TESTSUITE_LOCKPATH', "/var/lock/copr-backend")
-    # TODO: better lock filename once we can remove craterepo.py
-    lock_name = os.path.join(opts.directory, 'createrepo.lock')
+    lock_basename = opts.directory.replace("/", "_@_") + '.lock'
+    lock_filename = os.path.join(lock_path, lock_basename)
     opts.log.debug("acquiring lock")
-    with oslo_concurrency.lockutils.lock(name=lock_name, external=True,
-                                         lock_path=lock_path):
-        opts.log.debug("acquired lock")
-        yield
+    try:
+        with filelock.FileLock(lock_filename, timeout=timeout):
+            opts.log.debug("acquired lock")
+            yield
+    except filelock.Timeout as err:
+        opts.log.debug("lock timeouted")
+        raise LockTimeout("Timeouted on lock file: {}".format(lock_path)) from err
 
 
 def main_locked(opts, batch, log):
+    """
+    Main method, executed under lock.
+    """
     if batch.check_processed():
         log.info("Task processed by other process")
         return
@@ -368,6 +377,37 @@ def process_directory_path(opts):
                                 opts.dirname, opts.chroot)
 
 
+def main_try_lock(opts, batch):
+    """
+    Periodically try to acquire the lock, and execute the main_locked() method.
+    """
+
+    while True:
+
+        # We don't have fair locking (locks-first => processes-first).  So to
+        # avoid potential indefinite waiting (see issue #1423) we check if the
+        # task isn't already processed _without_ having the lock.
+
+        if batch.check_processed(delete_if_not=False):
+            opts.log.info("Task processed by other process (no-lock)")
+            return
+
+        try:
+            with lock(opts, timeout=5):
+                main_locked(opts, batch, opts.log)
+                # skip commit if main_locked() raises exception
+                batch.commit()
+                # Unless there's an exception, the bash.commit() is done and we are
+                # done.
+                opts.log.debug("Metadata built by this process")
+                break
+        except LockTimeout:
+            continue  # Try again...
+
+        # we never loop, only upon timeout
+        assert False
+
+
 def main():
     opts = get_arg_parser().parse_args()
 
@@ -402,11 +442,7 @@ def main():
     batch.make_request()
 
     try:
-        with lock(opts):
-            main_locked(opts, batch, opts.log)
-            # skip commit if main_locked() raises exception
-            batch.commit()
-
+        main_try_lock(opts, batch)
     except CommandException:
         opts.log.exception("Sub-command failed")
         return 1
