@@ -8,9 +8,8 @@ from itertools import zip_longest
 
 import flask
 
-from sqlalchemy import and_, not_
-from sqlalchemy.sql import func
-from sqlalchemy import asc, desc
+from sqlalchemy import not_
+from sqlalchemy import desc
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
@@ -197,27 +196,39 @@ class CoprsLogic(object):
                 "User is not a system admin")
 
     @classmethod
-    def get_multiple_fulltext(cls, search_string):
+    def get_multiple_fulltext(cls, fulltext=None, projectname=None,
+                              ownername=None, packagename=None):
+
+        if fulltext and "/" in fulltext:
+            ownername, projectname = helpers.parse_fullname(fulltext)
+            fulltext = None
+
         query = (models.Copr.query.order_by(desc(models.Copr.created_on))
-                 .join(models.User)
                  .filter(models.Copr.deleted == False))
-        if "/" in search_string: # copr search by its full name
-            if search_string[0] == '@': # searching for @group/project
-                group_name = "%{}%".format(search_string.split("/")[0][1:])
-                project = "%{}%".format(search_string.split("/")[1])
-                query = query.filter(and_(models.Group.name.ilike(group_name),
-                                          models.Copr.name.ilike(project),
-                                          models.Group.id == models.Copr.group_id))
-                query = query.order_by(asc(func.length(models.Group.name)+func.length(models.Copr.name)))
-            else: # searching for user/project
-                user_name = "%{}%".format(search_string.split("/")[0])
-                project = "%{}%".format(search_string.split("/")[1])
-                query = query.filter(and_(models.User.username.ilike(user_name),
-                                          models.Copr.name.ilike(project),
-                                          models.User.id == models.Copr.user_id))
-                query = query.order_by(asc(func.length(models.User.username)+func.length(models.Copr.name)))
-        else: # fulltext search
-            query = query.whooshee_search(search_string, whoosheer=CoprWhoosheer, order_by_relevance=100)
+
+        if projectname:
+            value = "%{}%".format(projectname)
+            query = query.filter(models.Copr.name.ilike(value))
+
+        if ownername and ownername[0] != "@":
+            query = query.join(models.User)
+            value = "%{}%".format(ownername)
+            query = query.filter(models.User.username.ilike(value))
+
+        if ownername and ownername[0] == "@":
+            query = query.join(models.Group)
+            value = "%{}%".format(ownername[1:])
+            query = query.filter(models.Group.name.ilike(value))
+
+        if packagename:
+            query = query.join(models.Package)
+            value = "%{}%".format(packagename)
+            query = query.filter(models.Package.name.ilike(value))
+
+        if fulltext:
+            query = query.whooshee_search(
+                fulltext, whoosheer=CoprWhoosheer, order_by_relevance=100)
+
         return query
 
     @classmethod

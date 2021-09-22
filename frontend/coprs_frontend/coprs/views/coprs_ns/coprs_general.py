@@ -128,8 +128,16 @@ def coprs_by_user(username=None, page=1):
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
 @coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):
-    fulltext = flask.request.args.get("fulltext", "")
+    params = flask.request.args
+    allowed_keys = ["fulltext", "projectname", "ownername", "packagename"]
+    for key in params.keys():
+        if key in allowed_keys:
+            continue
+        flask.flash("Cannot search by: {}".format(key), "error")
+        return flask.redirect(flask.request.referrer or
+                              flask.url_for("coprs_ns.coprs_show"))
 
+    fulltext = params.get("fulltext", "")
     if fulltext.isnumeric():
         build = builds_logic.BuildsLogic.get(int(fulltext)).first()
         if build:
@@ -138,14 +146,15 @@ def coprs_fulltext_search(page=1):
             return flask.redirect(url)
 
     try:
-        query = coprs_logic.CoprsLogic.get_multiple_fulltext(fulltext)
+        query = coprs_logic.CoprsLogic.get_multiple_fulltext(
+            **flask.request.args)
     except ValueError as e:
         flask.flash(str(e), "error")
         return flask.redirect(flask.request.referrer or
                               flask.url_for("coprs_ns.coprs_show"))
 
     paginator = helpers.Paginator(query, query.count(), page,
-                                  additional_params={"fulltext": fulltext})
+                                  additional_params=params)
 
     data = builds_logic.BuildsLogic.get_small_graph_data('30min')
 

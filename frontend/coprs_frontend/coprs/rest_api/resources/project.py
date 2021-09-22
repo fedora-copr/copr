@@ -4,7 +4,7 @@ import flask
 from flask import url_for, make_response
 from flask_restful import Resource
 
-from ... import db
+from ... import db, models
 from ...logic.builds_logic import BuildsLogic
 from ...logic.complex_logic import ComplexLogic
 from ...logic.helpers import slice_query
@@ -76,9 +76,11 @@ class ProjectListR(Resource):
         query = CoprsLogic.set_query_order(query)
 
         if req_args["owner"]:
+            query = query.join(models.User, models.Copr.user_id == models.User.id)
             query = CoprsLogic.filter_by_user_name(query, req_args["owner"])
 
         if req_args["group"]:
+            query = query.join(models.Group)
             query = CoprsLogic.filter_by_group_name(query, req_args["group"])
 
         if req_args["name"]:

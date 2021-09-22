@@ -715,3 +715,14 @@ def current_url(**kwargs):
     if not new_args:
         return flask.request.path
     return '{}?{}'.format(flask.request.path, url_encode(new_args))
+
+
+def parse_fullname(full_name):
+    """
+    Take a string in a `ownername/projectname` format and return them in a tuple
+    `(ownername, projectname)`. If a string without a forward-slash is passed,
+    it is considered to be a projectname without ownername.
+    """
+    if "/" in full_name:
+        return full_name.split("/", maxsplit=1)
+    return None, full_name
