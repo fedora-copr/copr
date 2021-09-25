@@ -651,7 +651,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         ownername, projectname = self.parse_name(args.project)
-        pagination = {"limit": 100}
+        pagination = {"limit": 1000}
 
         builds_list = self.client.build_proxy.get_list(ownername, projectname,
                                                        pagination=pagination)
