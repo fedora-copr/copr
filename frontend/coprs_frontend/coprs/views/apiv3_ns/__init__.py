@@ -118,8 +118,14 @@ class Paginator(object):
             if self.order == 'name':
                 self.order_type = 'ASC'
 
-
     def get(self):
+        return self.paginate_query(self.query)
+
+    def paginate_query(self, query):
+        """
+        Return `self.query` with all pagination parameters (limit, offset,
+        order) but do not run it.
+        """
         order_attr = getattr(self.model, self.order, None)
         if not order_attr:
             msg = "Cannot order by {}, {} doesn't have such property".format(
@@ -137,7 +143,7 @@ class Paginator(object):
         elif self.order_type == 'DESC':
             order_fun = sqlalchemy.desc
 
-        return (self.query.order_by(order_fun(order_attr))
+        return (query.order_by(order_fun(order_attr))
                 .limit(self.limit)
                 .offset(self.offset))
 
@@ -150,6 +156,27 @@ class Paginator(object):
 
     def to_dict(self):
         return [x.to_dict() for x in self.get()]
+
+
+class SubqueryPaginator(Paginator):
+    """
+    Selecting rows with large offsets (400k+) is slower (~10 times) than
+    offset=0. There is not many options to get around it. To mitigate the
+    slowdown at least a little (~10%), we can filter, offset, and limit within
+    a subquery and then base the full-query on the subquery results.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pk = getattr(self.model, "id")
+        self.subquery = self._create_subquery()
+
+    def get(self):
+        query = self.query.filter(self.pk.in_(self.subquery.subquery()))
+        return query.all()
+
+    def _create_subquery(self):
+        query = sqlalchemy.select(self.pk)
+        return self.paginate_query(query)
 
 
 class ListPaginator(Paginator):

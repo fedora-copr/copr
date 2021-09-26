@@ -1,13 +1,10 @@
 import os
 import flask
 from sqlalchemy.orm import joinedload
-from sqlalchemy import select
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
 
-from . import get_copr, file_upload, query_params, pagination, Paginator, json2form, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data
 from copr_common.enums import StatusEnum
 from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
@@ -15,6 +12,20 @@ from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
+
+from . import (
+    get_copr,
+    file_upload,
+    query_params,
+    pagination,
+    SubqueryPaginator,
+    json2form,
+    GET,
+    POST,
+    PUT,
+    DELETE,
+)
+from .json2form import get_form_compatible_data
 
 
 def to_dict(build):
@@ -82,7 +93,6 @@ def get_build(build_id):
 @query_params()
 def get_build_list(ownername, projectname, packagename=None, status=None, **kwargs):
     copr = get_copr(ownername, projectname)
-    offset = kwargs.get("offset") or 0
 
     # WORKAROUND
     # We can't filter builds by status directly in the database, because we
@@ -93,40 +103,28 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
     paginator_limit = None if status else kwargs["limit"]
     del kwargs["limit"]
 
-    # Selecting rows with large offsets (400k+) is slower (~10 times) than
-    # offset=0. There is not many options to get around it. To mitigate the
-    # slowdown at least a little (~10%), we can filter, offset, and limit within
-    # a subquery and then base the full-query on the subquery results.
-    subquery = (
-        select(models.Build.id)
-        .filter(models.Build.copr == copr)
-        .limit(limit)
-        .offset(offset)
-        .subquery()
-    )
-
-    query = BuildsLogic.get_multiple().filter(models.Build.id.in_(subquery))
-    if packagename:
-        query = BuildsLogic.filter_by_package_name(query, packagename)
-
     # Loading relationships straight away makes running `to_dict` somewhat
     # faster, which adds up over time, and  brings a significant speedup for
     # large projects
+    query = BuildsLogic.get_multiple()
     query = query.options(
         joinedload(models.Build.build_chroots),
         joinedload(models.Build.package),
         joinedload(models.Build.copr),
     )
 
-    paginator = Paginator(query, models.Build, limit=paginator_limit, **kwargs)
-    paginator.offset = 0  # We already applied offset within subquery
+    paginator = SubqueryPaginator(query, models.Build, limit=paginator_limit, **kwargs)
+    paginator.subquery = paginator.subquery.filter(models.Build.copr == copr)
+    if packagename:
+        paginator.subquery = BuildsLogic.filter_by_package_name(
+            paginator.subquery, packagename)
+
     builds = paginator.map(to_dict)
 
     if status:
         builds = [b for b in builds if b["state"] == status][:limit]
         paginator.limit = limit
 
-    paginator.offset = offset  # So the client knows where to continue
     return flask.jsonify(items=builds, meta=paginator.meta)
 
 
