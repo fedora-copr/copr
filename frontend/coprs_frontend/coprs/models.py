@@ -1040,6 +1040,7 @@ class Build(db.Model, helpers.Serializer):
         db.Index('build_canceled_is_background_source_status_id_idx',
                  'canceled', "is_background", "source_status", "id"),
         db.Index('build_copr_id_package_id', "copr_id", "package_id"),
+        db.Index("build_copr_id_build_id", "copr_id", "id", unique=True),
         db.Index("build_id_desc_per_copr_dir", id.desc(), "copr_dir_id"),
     )
 
