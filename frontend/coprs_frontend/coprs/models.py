@@ -594,7 +594,7 @@ class Copr(db.Model, helpers.Serializer):
     def repo_url(self):
         return "/".join([app.config["BACKEND_BASE_URL"],
                          u"results",
-                         self.main_dir.full_name])
+                         self.full_name])
 
     @property
     def repo_id(self):
