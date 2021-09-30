@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.180
+Version:    1.181
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -381,6 +381,25 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Sep 30 2021 Silvie Chlupova 1.181-1
+- frontend: better not found message for not existing chroot
+- frontend: avoid additional query for main_dir.full_name
+- frontend: add index for combination of build.id and build.copr_id
+- frontend: move the subquery hack into paginator
+- frontend: speedup for listing builds via APIv3
+- frontend: add a warning about the server-side pagination
+- frontend: web-ui: paginate monitor page for more than 1000 packages
+- backend: don't unnecessarily split the web-ui monitor route
+- frontend: web-ui: sync package list with build list
+- frontend: web-ui: server-side pagination for too-many-packages
+- frontend: web-ui: server-side pagination for too-many-builds
+- frontend: speedup /<owner>/<project>/builds/ route
+- frontend: log pending build records only when debugging
+- frontend: drop LegacyApiError exception
+- frontend: remove all APIv1 code
+- Add API entrypoint for regenerating repos
+- frontend: fix rawhide_to_release/brach_fedora commands
+
 * Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.180-1
 - use the same repofile for all Fedora versions including Rawhide
 - don't traceback for "module exists" error
