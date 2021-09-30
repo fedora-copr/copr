@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.95
+Version:    1.96
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -127,6 +127,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Thu Sep 30 2021 Silvie Chlupova 1.96-1
+- frontend: speedup for listing builds via APIv3
+- cli: print JSON list continuously, not at once when all items are fetched
+- cli: add regenerate-repos command
+
 * Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.95-1
 - add parameters for disabling appstream generation
 - let exceptions flow to the main function
