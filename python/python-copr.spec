@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.112
+Version:    1.113
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,17 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Thu Sep 30 2021 Silvie Chlupova 1.113-1
+- cli: add regenerate-repos command
+- doc: fix typo and installation dir for python-copr
+- python: remove APIv1 and APIv2 from the documentation TOC
+- python: the package is not in alpha stage anymore
+- python: update example code in non-documentation README
+- python: remove all autodoc depending on APIv1 and APIv2 code
+- python: remove all APIv2 code
+- beaker-tests-sanity: use APIv3 to obtain project information
+- Add API entrypoint for regenerating repos
+
 * Wed Aug 25 2021 Pavel Raiskup <praiskup@redhat.com> 1.112-1
 - generate webhook secrets using APIv3
 
