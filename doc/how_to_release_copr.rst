@@ -39,6 +39,12 @@ For others, new version can be bumped automatically::
 
     tito tag
 
+Make sure that the %changelog is nice and meaningful, i.e. remove the
+`frontend:`, `rpmbuild:`, etc. prefixes and filter-out entries which are not
+interesting for the package end-users (git-log != %changelog).  Later on, if
+properly polished, the %changelogs' contents may be used for filling the Bodhi
+update text.
+
 Push all new tags at once::
 
     git push --follow-tags origin
