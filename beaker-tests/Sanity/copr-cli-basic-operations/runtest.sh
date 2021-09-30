@@ -443,15 +443,15 @@ rlJournalStart
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot $CHROOT" 0
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url $COPR_HELLO_GIT"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
-        rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
+        # rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot $CHROOT" 0
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot $CHROOT" 0
         rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url $COPR_HELLO_GIT" 0
         rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url $COPR_HELLO_GIT" 0
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/$CHROOT" 0
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/$CHROOT" 0
+        # rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/$CHROOT" 0
+        # rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/$CHROOT" 0
 
         # Bug 1444804 - Logs are not present for failed builds
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot $CHROOT" 0
