@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.80
+Version:    1.81
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -171,6 +171,10 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Thu Sep 30 2021 Silvie Chlupova 1.81-1
+- keygen: various improvements for setup.py
+- keygen: remove multiline description
+
 * Tue Apr 27 2021 Jakub Kadlcik <frostyx@email.cz> 1.80-1
 - backend, frontend, keygen, distgit: keep cca 3 months of logs
 

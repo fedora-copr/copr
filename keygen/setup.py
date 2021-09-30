@@ -19,7 +19,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name=__name__,
-    version="1.80",
+    version="1.81",
     description=__description__,
     author=__author__,
     author_email=__author_email__,
