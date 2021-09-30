@@ -133,8 +133,15 @@ For each package do::
     tito release fedora-git
 
 And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
-Not even every fedora infra member can to this, ping clime or ask on ``#fedora-admin``.
+If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or someone on ``#fedora-admin`` libera.chat channel.
+We have wrappers around the ``koji`` tool for this.  First move the package to
+staging repo::
 
+    ./releng/koji-infratag-staging  copr-rpmbuild-0.53-1.fc34
+
+Then, after some time (when the package is signed by Koji), you can use the
+staging infra repo on the devel copr stack (used by default), so for example you
+can re-run te tests against the soon-to-be production packages.
 
 Prepare release notes
 .....................
@@ -172,6 +179,23 @@ Release window
 If all the pre-release preparations were done meticulously and everything
 was tested properly, the release window shouldn't take more than ten
 minutes. That is, if nothing goes terribly sideways...
+
+Production infra tags
+---------------------
+
+You can now move the packages to production infra repo.  Note that the
+production builder machines install/update the ``copr-rpmbuild`` package from
+the production infra repo *automatically*;  so you probably want to wait with
+tagging (at least for some of the packages) till it is 100% safe action (during
+outage window, as old copr infra stack might be incompatible with updated
+rpmbuild, e.g.). ::
+
+    ./releng/koji-infratag-move-prod copr-rpmbuild-0.53-1.fc34 ...
+
+This takes some time.  Wait till you see the packages in the infra repo (example
+for F33)::
+
+    https://kojipkgs.fedoraproject.org/repos-dist/f33-infra/
 
 
 Upgrade production machines
