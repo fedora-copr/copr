@@ -113,11 +113,11 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
         joinedload(models.Build.copr),
     )
 
-    paginator = SubqueryPaginator(query, models.Build, limit=paginator_limit, **kwargs)
-    paginator.subquery = paginator.subquery.filter(models.Build.copr == copr)
+    subquery = query.filter(models.Build.copr == copr)
     if packagename:
-        paginator.subquery = BuildsLogic.filter_by_package_name(
-            paginator.subquery, packagename)
+        subquery = BuildsLogic.filter_by_package_name(subquery, packagename)
+
+    paginator = SubqueryPaginator(query, subquery, models.Build, limit=paginator_limit, **kwargs)
 
     builds = paginator.map(to_dict)
 

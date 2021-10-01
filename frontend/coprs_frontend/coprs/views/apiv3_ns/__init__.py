@@ -165,18 +165,15 @@ class SubqueryPaginator(Paginator):
     slowdown at least a little (~10%), we can filter, offset, and limit within
     a subquery and then base the full-query on the subquery results.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, query, subquery, *args, **kwargs):
+        super().__init__(query, *args, **kwargs)
         self.pk = getattr(self.model, "id")
-        self.subquery = self._create_subquery()
+        self.subquery = subquery.with_entities(self.pk)
 
     def get(self):
-        query = self.query.filter(self.pk.in_(self.subquery.subquery()))
+        subquery = self.paginate_query(self.subquery).subquery()
+        query = self.query.filter(self.pk.in_(subquery))
         return query.all()
-
-    def _create_subquery(self):
-        query = sqlalchemy.select(self.pk)
-        return self.paginate_query(query)
 
 
 class ListPaginator(Paginator):
