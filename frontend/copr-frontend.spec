@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.181
+Version:    1.182
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -381,6 +381,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Oct 01 2021 Pavel Raiskup <praiskup@redhat.com> 1.182-1
+- fixup SubqueryPaginator for older sqlalchemy versions
+
 * Thu Sep 30 2021 Silvie Chlupova 1.181-1
 - frontend: better not found message for not existing chroot
 - frontend: avoid additional query for main_dir.full_name
