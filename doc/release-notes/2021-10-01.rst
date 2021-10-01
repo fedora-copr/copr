@@ -1,0 +1,71 @@
+.. _release_notes_2021_10_01:
+
+Highlights from 2021-10-01 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_, `Fedora 34`_, `Fedora 33`_,
+`EPEL 8`_, and `EPEL 7`_ Bodhi updates.
+
+
+API entrypoint for regenerating repos
+----------------------------------------
+
+We have now support for regenerating repositories in APIv3, in the python-copr
+package and in the copr-cli package.
+You can use `regenerate-repos` command as:
+
+.. code-block:: python
+
+    copr-cli regenerate-repos copr
+
+The command can regenerate all repository metadata for a given project.
+
+All APIv1 code removed
+----------------------------------------
+
+According to the deprecation schedule `EOL Copr APIv1 and APIv2`_
+we removed APIv1 code from the frontend. I.e., Copr service does not understand APIv1 calls.
+Note that APIv1 code was removed from copr-cli and python3-copr months ago.
+
+APIv2 code removed from python3-copr library
+--------------------------------------------
+
+If you cannot migrate to APIv3 yet, you can still send requests to
+APIv2 endpoints directly, without using the python3-copr library,
+or you can temporarily freeze on `python-copr-1.112`.
+
+Please don’t put aside the migration of your code for much longer. In
+April 2022 the APIv2 is going to be dropped from the frontend and the
+Copr service will no longer understand APIv2 calls.
+
+
+Bugfixes
+--------
+
+- `#54`_ - Previously, the Web-UI pages listing project packages and project builds (including "monitor" page)
+  were always loading everything. For very large projects the pages were either way too slow,
+  or the request even timeouted. Newly, when the list of packages (or the list of builds) is too large,
+  we provide a server-side pagination feature.
+
+- We fixed `list-builds` command in the copr-cli package. Printing of json
+  is now continuous compared to the original approach, when everything was printed at once.
+  We also fixed that we didn't print a valid json output for large projects that required
+  paginating over more than just one page.
+
+- When a user tries to display a repo file for a non-existent chroot,
+  we return a more appropriate message that the chroot was not found.
+
+- `#1423`_ - Createrepo locking was not "fair". We worked-around the absence of python
+  fair locking mechanism by timeout polling, and this should bring about 2x more
+  throughput for mass rebuilds.
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-88cb945af2
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-7dab1dcee5
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-e01411594c
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-ef17120305
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-266eeec2e2
+
+.. _`EOL Copr APIv1 and APIv2`: https://fedora-copr.github.io/posts/EOL-APIv1-APIv2
+.. _`#54`: https://pagure.io/copr/copr/issue/54
+.. _`#1423`: https://pagure.io/copr/copr/issue/1423
