@@ -12,6 +12,14 @@ import os
 import subprocess
 from six.moves.urllib.parse import urlparse
 
+try:
+    from rpmautospec import (
+        specfile_uses_rpmautospec as rpmautospec_used,
+        process_distgit as rpmautospec_expand,
+    )
+except ImportError:
+    rpmautospec_used = lambda _: False
+
 
 def log_cmd(command, comment="Running command"):
     """ Dump the command to stderr so it can be c&p to shell """
@@ -228,6 +236,30 @@ def sources(args, config):
             download_file_and_check(url_file, kwargs, distgit_config)
 
 
+def handle_autospec(spec_abspath, spec_basename, args):
+    """
+    When %auto* macros are used in SPEC_ABSPATH, expand them into a separate
+    spec file within ARGS.OUTPUTDIR, and return the absolute filename of the
+    specfile.  When %auto* macros are not used, return SPEC_ABSPATH unchanged.
+    """
+    result = spec_abspath
+    if rpmautospec_used(spec_abspath):
+        git_dir = check_output(["git", "rev-parse", "--git-dir"])
+        git_dir = git_dir.decode("utf-8").strip()
+        if os.path.exists(os.path.join(git_dir, "shallow")):
+            # Hack.  The rpmautospec doesn't support shallow clones:
+            # https://pagure.io/fedora-infra/rpmautospec/issue/227
+            logging.info("rpmautospec requires full clone => --unshallow")
+            check_call(["git", "fetch", "--unshallow"])
+
+        # Expand the %auto* macros, and create the separate spec file in the
+        # output directory.
+        output_spec = os.path.join(args.outputdir, spec_basename)
+        rpmautospec_expand(spec_abspath, output_spec)
+        result = output_spec
+    return result
+
+
 def srpm(args, config):
     """
     Using the appropriate dist-git configuration, generate source RPM
@@ -243,6 +275,7 @@ def srpm(args, config):
     mkdir_p(args.outputdir)
 
     spec_abspath = os.path.join(specs, spec)
+    spec_abspath = handle_autospec(spec_abspath, spec, args)
 
     if args.mock_chroot:
         command = [
