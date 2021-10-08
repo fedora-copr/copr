@@ -137,6 +137,9 @@ class Config(object):
     CACHE_REDIS_DB = 1  # we use 0 for sessions
     CACHE_KEY_PREFIX = "copr_cache_"
 
+    # Default value for temporary projects
+    DELETE_AFTER_DAYS = 60
+
 
 class ProductionConfig(Config):
     DEBUG = False

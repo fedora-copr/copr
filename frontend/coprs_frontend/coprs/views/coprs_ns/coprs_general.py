@@ -163,7 +163,7 @@ def coprs_fulltext_search(page=1):
 @login_required
 def copr_add_fedora_review(username):  # pylint: disable=unused-argument
     """ Show and process the simplified "Copr create" form for Fedora Review """
-    delete_after_days = 60
+    delete_after_days = app.config["DELETE_AFTER_DAYS"]
 
     if username != flask.g.user.username:
         # when accessed by accident
