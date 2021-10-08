@@ -24,22 +24,6 @@ Requirements
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
 
 
-Find source images
-------------------
-
-The first thing you need to figure out is what image should you use and where to
-get it.
-
-The Cloud Base image for x86_64 can be obtained on `Fedora Cloud page`_.  Pick
-the one with ``.qcow2`` extension.  The ppc64le and aarch64 images can be found
-on the `Alternate Architectures page`_.  Don't confuse PPC64LE with PPC64.
-
-If neither that url provides the expected cloud image version (yet), there
-should exist at least a "compose" version in `Koji compose directory listing`_,
-look for ``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images``
-directory.
-
-
 .. _prepare_aws_source_images:
 
 Prepare AWS source images
@@ -81,6 +65,24 @@ Prepare libvirt source images
 We prepare images for Libvirt on our hypervisors.  We start with the official
 Fedora images as the "base images", and we just modify them (easier than
 generating images from scratch).
+
+Find source images
+^^^^^^^^^^^^^^^^^^
+
+The first thing you need to figure out is what image should you use and where to
+get it.
+
+The Cloud Base image for x86_64 can be obtained on `Fedora Cloud page`_.  Pick
+the one with ``.qcow2`` extension.  The ppc64le and aarch64 images can be found
+on the `Alternate Architectures page`_.  Don't confuse PPC64LE with PPC64.
+
+If neither that url provides the expected cloud image version (yet), there
+should exist at least a "compose" version in `Koji compose directory listing`_,
+look for ``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images``
+directory.
+
+Image preparation
+^^^^^^^^^^^^^^^^^
 
 We can not prepare the images cross-arch, and we need to prepare one image for
 every supported architecture (on an appropriate hypervisor).  So in turn we need
