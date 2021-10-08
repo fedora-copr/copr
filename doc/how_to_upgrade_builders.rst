@@ -43,16 +43,30 @@ Do not click the launch button and do not proceed to launch the instance
 manually through Amazon AWS launcher. Only remember the
 ``ami-0c830793775595d4b`` ID part.
 
-Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - copr``, and
-execute::
+Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - resalloc``,
+and execute for ``x86_64`` arch::
 
-    $ copr-builder-image-prepare-cloud.sh aws:aarch64 ami-0c830793775595d4b
-    ... snip output ...
-    The new image ID   is: ami-XXXXXXXXXXXXXXXXX
-    The new image Name is: copr-builder-aarch64-f31-20191203_110334
+    $ copr-resalloc-aws-new-x86_64 --initial-preparation --create-snapshot-image \
+        --arch x86_64 --spot-price 1 --debug \
+        --name temporary-vm-name-x86_64-000 \
+        --ami <ami_ID>
+    ...
+     * Image ID: ami-0ebce709a474af685
+    ...
 
-Continue fixing the script/playbooks/fedora till you succeed like that.  Repeat
-the previous steps for both ``aarch64`` and ``x86_64``.
+And then for ``aarch64`` arch::
+
+    $ copr-resalloc-aws-new-aarch64 --initial-preparation --create-snapshot-image \
+        --arch aarch64 --spot-price 1 --debug \
+        --additional-volume-size 160 \
+        --name temporary-vm-name-aarch64-000 \
+        --ami <ami_ID>
+    ...
+     * Image ID: ami-0942a35ec3999e00d
+    ...
+
+Continue fixing the scripts/playbooks/fedora till you succeed like that ^^.
+Repeat the previous steps.
 
 The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
 options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev_aws``
