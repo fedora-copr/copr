@@ -299,9 +299,9 @@ Please follow these recommendations to have the smoothest experience:
   load and making sure everything functions as it should. Please see the
   preferred :ref:`communication channels <communication>`
 - Creating AppStream metadata is too slow for large repositories, you might want
-  to disable it. Users cannot do this by themselves
-  `yet <https://pagure.io/copr/copr/issue/754>`_, so please ping any admin to
-  touch ``.disable-appstream`` file into your project directory on the backend
+  to disable it. Go to your project settings and turn off the
+  "Generate AppStream metadata" option, or specify ``--appstream=off``
+  when creating or modifying a project in ``copr-cli``.
 - When submitting builds, please use ``--background`` parameter to
   make them deprioritized by scheduler (compared to normal
   builds). It's a nice gesture to other users.
