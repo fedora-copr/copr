@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.53
+Version: 0.54
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -326,6 +326,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Mon Oct 11 2021 Pavel Raiskup <praiskup@redhat.com> 0.54-1
+- %%auto{spec,changelog} support for DistGit method
+
 * Thu Sep 30 2021 Silvie Chlupova 0.53-1
 - rpmbuild: require the latest version of gem2rpm
 - rpmbuild: update main.ini and rpkg.conf.j2 for rpkg 3.0 compatibility
