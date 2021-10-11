@@ -46,20 +46,22 @@ manually through Amazon AWS launcher. Only remember the
 Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - resalloc``,
 and execute for ``x86_64`` arch::
 
-    $ copr-resalloc-aws-new-x86_64 --initial-preparation --create-snapshot-image \
-        --arch x86_64 --spot-price 1 --debug \
-        --name temporary-vm-name-x86_64-000 \
+    $ copr-resalloc-aws-new-x86_64 \
+        --initial-preparation --create-snapshot-image --debug \
+        --name copr-builder-image-x86_64 \
         --ami <ami_ID>
     ...
      * Image ID: ami-0ebce709a474af685
     ...
 
-And then for ``aarch64`` arch::
+And then also for ``aarch64``.  Note that we need an additional volume that will
+be later inherited by all machines instatiated from the snapshot *ami* image (so
+we don't need yet another additional volume when starting builders)::
 
-    $ copr-resalloc-aws-new-aarch64 --initial-preparation --create-snapshot-image \
-        --arch aarch64 --spot-price 1 --debug \
+    $ copr-resalloc-aws-new-aarch64 \
+        --initial-preparation --create-snapshot-image --debug \
         --additional-volume-size 160 \
-        --name temporary-vm-name-aarch64-000 \
+        --name copr-builder-image-aarch64 \
         --ami <ami_ID>
     ...
      * Image ID: ami-0942a35ec3999e00d
