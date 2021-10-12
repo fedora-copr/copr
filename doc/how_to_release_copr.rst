@@ -75,7 +75,7 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
 
     sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org \
                        manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend-cloud.yml
+    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend.yml
 
     sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
@@ -216,7 +216,7 @@ Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mi
 
     sudo rbac-playbook -l copr-fe.aws.fedoraproject.org \
                        manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe.aws.fedoraproject.org groups/copr-frontend-cloud.yml
+    sudo rbac-playbook -l copr-fe.aws.fedoraproject.org groups/copr-frontend.yml
 
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
