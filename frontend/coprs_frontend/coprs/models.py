@@ -136,10 +136,10 @@ class User(db.Model, helpers.Serializer):
                 return True
         elif copr.user_id == self.id:
             return True
-        if (self.permissions_for_copr(copr) and
-                self.permissions_for_copr(copr).copr_builder ==
-                helpers.PermissionEnum("approved")):
-            return True
+        if permissions := self.permissions_for_copr(copr):
+            builder, admin = permissions.copr_builder, permissions.copr_admin
+            if helpers.PermissionEnum("approved") in (builder, admin):
+                return True
         return False
 
     @property
