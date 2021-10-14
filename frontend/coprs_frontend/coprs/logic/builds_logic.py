@@ -8,7 +8,7 @@ import requests
 
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import not_
-from sqlalchemy.orm import joinedload, selectinload, load_only
+from sqlalchemy.orm import joinedload, selectinload, load_only, contains_eager
 from sqlalchemy import func, desc, or_, and_
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
@@ -40,6 +40,7 @@ from coprs.models import BuildChroot
 from coprs.logic.coprs_logic import MockChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.batches_logic import BatchesLogic
+from coprs.measure import checkpoint
 
 from .helpers import get_graph_parameters
 log = app.logger
@@ -1400,6 +1401,141 @@ class BuildChrootResultsLogic:
 
 class BuildsMonitorLogic(object):
     @classmethod
+    def package_build_chroots_query(cls, copr_dir, mock_chroot_ids):
+        """
+        Return an SQL query returning all BuildChroots assigned to given CoprDir
+        (copr_dir) and MockChroot's (mock_chroot_ids).  The output is sorted by
+        Package.name, and then by Build.id (so callers can easily skip the
+        uninteresting entries).
+        """
+        return (
+            models.BuildChroot.query
+            .join(models.Build)
+            .join(models.Package)
+            .options(
+                load_only("build_id", "status", "mock_chroot_id", "result_dir"),
+                contains_eager("build").load_only("package_id", "copr_dir_id")
+                    .contains_eager("package").load_only("name"),
+            )
+            .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))
+            .filter(models.Build.copr_dir==copr_dir)
+            .order_by(
+                models.Package.name.asc(),
+                models.Build.id.desc(),
+            )
+        )
+
+    @classmethod
+    def package_build_chroots(cls, copr_dir):
+        """
+        For each Packge in CoprDir (copr_dir) and its assigned and enabled
+        CoprChroots, return a list of the latest BuildChroots, if any.
+        The output format is:
+            [{
+                "name": "PackageName",
+                "chroots": [ <BuildChroot>, <BuildChroot>, ...  ],
+            }, ...]
+        """
+
+        class _Finder:
+            def __init__(self, find_mock_chroot_ids):
+                self.searching_for = set(find_mock_chroot_ids)
+                self.package_name = None
+                self._reset()
+
+            def _reset(self):
+                self.mock_chroot_ids_found = set()
+                self.package_name = None
+                self.chroots = []
+
+            def get_data(self):
+                """
+                Return the dictionary to be yielded, or None if no data are
+                already processed.
+                """
+                if not self.chroots:
+                    # no package in the result set
+                    return None
+                return {
+                    "name": self.package_name,
+                    "chroots": self.chroots,
+                }
+
+            def _add_item(self, build_chroot):
+                self.mock_chroot_ids_found.add(build_chroot.mock_chroot_id)
+                self.chroots.append(build_chroot)
+                self.package_name = build_chroot.build.package.name
+
+            def add(self, build_chroot):
+                """
+                Process one BuildChroot instance.  Return the get_data() output
+                if we should flush the package out to caller, or None.
+                """
+                package_name = build_chroot.build.package.name
+
+                if self.package_name is None:
+                    # first package
+                    self._add_item(build_chroot)
+                    return None
+
+                if package_name == self.package_name:
+                    # additional chroot for the same package
+                    mock_chroot_id = build_chroot.mock_chroot_id
+                    if mock_chroot_id in self.mock_chroot_ids_found:
+                        # we already have status for this
+                        return None
+                    self._add_item(build_chroot)
+                    return None
+
+                # a different package, flush the old one
+                return_value = self.get_data()
+                self._reset()
+                self._add_item(build_chroot)
+                return return_value
+
+        mock_chroot_ids = {mch.id for mch in copr_dir.copr.active_chroots}
+        package_data = _Finder(mock_chroot_ids)
+        for bch in cls.package_build_chroots_query(copr_dir, mock_chroot_ids).yield_per(1000):
+            if value := package_data.add(bch):
+                yield value
+
+        if value := package_data.get_data():
+            yield value
+
+
+    @classmethod
+    def last_buildchroots(cls, pkg_ids, mock_chroot_ids):
+        """
+        Query the BuildChroot for given list of package IDs, and mock chroot IDs
+        """
+        builds_ids = (
+            models.Build.query.join(models.BuildChroot)
+                  .filter(models.Build.package_id.in_(pkg_ids))
+                  .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))
+                  .with_entities(
+                      models.Build.package_id.label('package_id'),
+                      func.max(models.Build.id).label('build_id').label("build_id"),
+                      models.BuildChroot.mock_chroot_id,
+                  )
+                  .group_by(
+                      models.Build.package_id,
+                      models.BuildChroot.mock_chroot_id,
+                  )
+                  .subquery()
+        )
+
+        return (models.BuildChroot.query
+            .join(
+                builds_ids,
+                and_(builds_ids.c.build_id == models.BuildChroot.build_id,
+                     builds_ids.c.mock_chroot_id == models.BuildChroot.mock_chroot_id))
+            .add_columns(
+                builds_ids.c.package_id.label("package_id"),
+            )
+        )
+
+
+    @classmethod
     def get_monitor_data(cls, copr, per_page=50, page=1,
                          paginate_if_more_than=1000):
         """
@@ -1431,38 +1567,21 @@ class BuildsMonitorLogic(object):
         pkg_ids = [package.id for package in pagination.items]
         mock_chroot_ids = [mch.id for mch in copr.active_chroots]
 
-        builds_ids = (
-            models.Build.query.join(models.BuildChroot)
-                  .filter(models.Build.package_id.in_(pkg_ids))
-                  .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))
-                  .with_entities(
-                      models.Build.package_id.label('package_id'),
-                      func.max(models.Build.id).label('build_id').label("build_id"),
-                      models.BuildChroot.mock_chroot_id,
-                  )
-                  .group_by(
-                      models.Build.package_id,
-                      models.BuildChroot.mock_chroot_id,
-                  )
-                  .subquery()
-        )
-
-        query = (models.BuildChroot.query
-            .join(
-                builds_ids,
-                and_(builds_ids.c.build_id == models.BuildChroot.build_id,
-                     builds_ids.c.mock_chroot_id == models.BuildChroot.mock_chroot_id))
-            .add_columns(
-                builds_ids.c.package_id.label("package_id"),
-            )
-        )
+        query = BuildsMonitorLogic.last_buildchroots(pkg_ids, mock_chroot_ids)
 
         mapper = {}
         for package in pagination.items:
             mapper[package.id] = {}
 
+        checkpoint("large query start")
+        first = True
         for build_chroot, package_id in query:
+            if first:
+                checkpoint("large query done")
+            first = False
             mapper[package_id][build_chroot.mock_chroot.name] = build_chroot
+
+        checkpoint("buildchroot => package mapped")
 
         for package in pagination.items:
             package.latest_build_chroots = []

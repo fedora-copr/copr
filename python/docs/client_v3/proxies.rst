@@ -47,6 +47,13 @@ Module
    :members:
 
 
+Monitor
+-------
+
+.. autoclass:: copr.v3.proxies.monitor.MonitorProxy
+   :members:
+
+
 Project Chroot
 --------------
 

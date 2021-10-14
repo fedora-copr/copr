@@ -252,3 +252,42 @@ def set_defaults(formdata, form_class):
         if field.name in formdata.keys():
             continue
         formdata[field.name] = field.default
+
+
+def streamed_json_array_response(array_or_generator, message, field="data"):
+    """
+    Helper response to stream large JSON API arrays (ARRAY_OR_GENERATOR).  We
+    keep the layout of the output like::
+
+        {
+            "output": "ok",
+            "message: MESSAGE,
+            "<FIELD>": [ ITEM, ITEM, ...,]
+        }
+
+    .. as it is expected by clients.  We iterate continuously over the array
+    items (or fetch from generator), so we don't have to keep the large dataset
+    in memory (or wait till it is fully fetched from DB).
+    """
+
+    def _stream():
+        start_string = (
+            '{{'
+            '"output": "ok",'
+            '"message": {message},'
+            '{field}: [\n'
+        )
+        yield start_string.format(message=json.dumps(message),
+                                  field=json.dumps(field))
+        for item in array_or_generator:
+            if start_string:
+                yield json.dumps(item)
+                start_string = None
+            else:
+                yield ",\n" + json.dumps(item)
+        yield "]}"
+
+    return flask.Response(
+        _stream(),
+        mimetype="application/json",
+    )

@@ -29,6 +29,7 @@ from copr.v3 import (
 )
 from copr.v3.pagination import next_page
 from copr_cli.helpers import cli_use_output_format
+from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
 from .util import ProgressBar, serializable
 from .build_config import MockProfile
@@ -184,6 +185,14 @@ class Commands(object):
         else:
             owner = self.config["username"]
         return owner, name
+
+    def build_url(self, build_id):
+        """
+        Return the "generic" predictable url for build_id, which redirects
+        to the final owner/project/build_id route.
+        """
+        return urljoin(self.config["copr_url"],
+                       "/coprs/build/{0}".format(build_id))
 
     def parse_chroot_path(self, path):
         """
@@ -397,8 +406,7 @@ class Commands(object):
             print("Build was added to {0}:".format(builds[0].projectname))
 
             for build in builds:
-                url = urljoin(self.config["copr_url"], "/coprs/build/{0}".format(build.id))
-                print("  {0}".format(url))
+                print("  {0}".format(self.build_url(build.id)))
 
             build_ids = [build.id for build in builds]
             print("Created builds: {0}".format(" ".join(map(str, build_ids))))
@@ -1664,6 +1672,9 @@ def setup_parser():
             help=request_help.format('builder'))
     parser_permissions_request.set_defaults(func='action_permissions_request')
 
+    # package monitoring
+    cli_monitor_parser(subparsers)
+
     if argcomplete:
         argcomplete.autocomplete(parser)
     return parser
@@ -1701,7 +1712,12 @@ def main(argv=sys.argv[1:]):
             return
 
         commands = Commands(arg.config)
-        getattr(commands, arg.func)(arg)
+        if isinstance(arg.func, str):
+            # Call self method by its name
+            getattr(commands, arg.func)(arg)
+        else:
+            # Call external command method
+            arg.func(commands, arg)
 
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")

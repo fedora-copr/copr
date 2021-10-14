@@ -323,6 +323,19 @@ class BackendRequests:
         assert resp.status_code == 200
         return json.loads(resp.data)
 
+    def fail_source_build(self, build_id):
+        """ Mimic backend marking source build as failed """
+        form_data = {
+            "builds": [{
+                "id": int(build_id),
+                "task_id": str(build_id),
+                "srpm_url": "http://foo",
+                "status": 0,
+            }],
+        }
+        assert self.update(form_data).status_code == 200
+
+
     def finish_build(self, build_id, package_name=None):
         """
         Given the build_id, finish the build with succeeded state

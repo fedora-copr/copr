@@ -5,6 +5,7 @@ from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
 from .proxies.module import ModuleProxy
 from .proxies.mock_chroot import MockChrootProxy
+from .proxies.monitor import MonitorProxy
 from .proxies.project_chroot import ProjectChrootProxy
 from .proxies.build_chroot import BuildChrootProxy
 from .proxies.webhook import WebhookProxy
@@ -19,6 +20,7 @@ class Client(object):
         self.package_proxy = PackageProxy(config)
         self.module_proxy = ModuleProxy(config)
         self.mock_chroot_proxy = MockChrootProxy(config)
+        self.monitor_proxy = MonitorProxy(config)
         self.project_chroot_proxy = ProjectChrootProxy(config)
         self.build_chroot_proxy = BuildChrootProxy(config)
         self.webhook_proxy = WebhookProxy(config)
