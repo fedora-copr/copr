@@ -28,6 +28,7 @@ from copr.v3 import (
     CoprNoConfigException, CoprConfigException, CoprNoResultException,
 )
 from copr.v3.pagination import next_page
+from copr_cli.helpers import cli_use_output_format
 from .util import ProgressBar, json_dumps, serializable
 from .build_config import MockProfile
 
@@ -71,13 +72,6 @@ Any operation requiring credentials will fail!
 
 Hint: {1}
 
-"""
-
-output_format_help = """
-Set the formatting style. We recommend using json, which prints the required data
-in json format. The text format prints the required data in a column, one piece of
-information per line. The text-row format prints all information separated
-by a space on a single line.
 """
 
 try:
@@ -1247,8 +1241,7 @@ def setup_parser():
     parser_builds.add_argument("project", help="Which project's builds should be listed.\
                                Can be just a name of the project or even in format\
                                username/project or @groupname/project.")
-    parser_builds.add_argument("--output-format", choices=["text", "json", "text-row"],
-                               help=output_format_help)
+    cli_use_output_format(parser_builds, default=None)
     parser_builds.set_defaults(func="action_list_builds")
 
     #########################################################
@@ -1514,8 +1507,7 @@ def setup_parser():
 
     parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")
     parser_get_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
-    parser_get_chroot.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
-                                   help=output_format_help)
+    cli_use_output_format(parser_get_chroot)
     parser_get_chroot.set_defaults(func="action_get_chroot")
 
     parser_list_chroots = subparsers.add_parser("list-chroots", help="List all currently available chroots.")
@@ -1639,8 +1631,7 @@ def setup_parser():
                                       help="Also display data related to the latest succeeded build for the package.")
     parser_list_packages.add_argument("--with-all-builds", action="store_true",
                                       help="Also display data related to the builds for the package.")
-    parser_list_packages.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
-                                      help=output_format_help)
+    cli_use_output_format(parser_list_packages)
     parser_list_packages.set_defaults(func="action_list_packages")
 
     # package names listing
@@ -1664,8 +1655,7 @@ def setup_parser():
                                     help="Also display data related to the latest succeeded build for each package.")
     parser_get_package.add_argument("--with-all-builds", action="store_true",
                                     help="Also display data related to the builds for each package.")
-    parser_get_package.add_argument("--output-format", default="json", choices=["text", "json", "text-row"],
-                                    help=output_format_help)
+    cli_use_output_format(parser_get_package)
     parser_get_package.set_defaults(func="action_get_package")
 
     # package deletion
