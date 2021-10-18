@@ -1,3 +1,4 @@
+from functools import wraps
 import os
 import time
 import configparser
@@ -58,6 +59,7 @@ def bind_proxy(func):
     Modify a result munch and set the __proxy__ parameter
     to the actual proxy instance.
     """
+    @wraps(func)
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         if type(result) not in [List, Munch]:
