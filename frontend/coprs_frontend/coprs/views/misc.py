@@ -20,7 +20,6 @@ from coprs import models
 from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ObjectNotFound
 
 
@@ -178,7 +177,43 @@ def krb5_login(name):
     return flask.redirect(oid.get_next_url())
 
 
+def workaround_ipsilon_email_login_bug_handler(f):
+    """
+    We are working around an ipislon issue when people log in with their email,
+    ipsilon then yields incorrect openid.identity:
+
+      ERROR:root:Discovery verification failure for http://foo@fedoraproject.org.id.fedoraproject.org/
+
+    The error above raises an exception in python-openid thus restarting the login process
+    which turns into an infinite loop of requests. Since we drop the openid_error key from flask.session,
+    we'll prevent the infinite loop to happen.
+
+    Ref: https://pagure.io/ipsilon/issue/358
+    """
+
+    @functools.wraps(f)
+    def _the_handler(*args, **kwargs):
+        msg = flask.session.get("openid_error")
+        if msg and "No matching endpoint found after discovering" in msg:
+            # we need to advise to log out because the user will have an active FAS session
+            # and the only way to break it is to log out
+            logout_url = app.config["OPENID_PROVIDER_URL"] + "/logout"
+            message = (
+                    "You logged in using your email. <a href=\"https://pagure.io/ipsilon/issue/358\""
+                    " target=\"_blank\">This is not supported.</a> "
+                    "Please log in with your <em>FAS username</em> instead "
+                    "<a href=\"%s\">after logging out here</a>." % logout_url
+            )
+            flask.session.pop("openid_error")
+            flask.flash(message, "error")
+            # do not redirect to "/login" since it's gonna be an infinite loop
+            return flask.redirect("/")
+        return f(*args, **kwargs)
+    return _the_handler
+
+
 @misc.route("/login/", methods=["GET"])
+@workaround_ipsilon_email_login_bug_handler
 @oid.loginhandler
 def login():
     if not app.config['FAS_LOGIN']:
@@ -397,7 +432,6 @@ def send_build_icon(build, no_cache=False):
     if no_cache:
         response.headers['Cache-Control'] = 'public, max-age=60'
     return response
-
 
 
 def req_with_pagination(f):
