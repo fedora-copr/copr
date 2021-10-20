@@ -47,7 +47,9 @@ class BaseErrorHandler:
         """
         Return status code for a given exception
         """
-        return getattr(error, "code", 500)
+        code = getattr(error, "code", 500)
+        return code if code is not None else 500
+
 
     def message(self, error):  # pylint: disable=no-self-use
         """
