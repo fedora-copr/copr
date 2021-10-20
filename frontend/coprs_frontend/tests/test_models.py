@@ -25,7 +25,9 @@ class TestBuildModel(CoprsTestCase):
         assert expected_1 == result_1
 
 
-    def test_chroot_denylist(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds",
+                             "f_mock_chroots_many", "f_pr_dir", "f_db")
+    def test_chroot_denylist(self):
         # test main package
         assert len(list(self.p1.chroots)) == 15
         self.p1.chroot_denylist_raw = '*-19-*, epel*'
@@ -40,7 +42,9 @@ class TestBuildModel(CoprsTestCase):
         assert len(self.p4.chroot_denylist) == 1
         assert len(list(self.p4.chroots)) == 10
 
-    def test_chroot_denylist_all(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds",
+                             "f_mock_chroots_many", "f_pr_dir", "f_db")
+    def test_chroot_denylist_all(self):
         assert len(list(self.p1.chroots)) == 15
         assert len(list(self.p1.copr.active_chroots)) == 15
         self.p1.chroot_denylist_raw = '*'

@@ -889,6 +889,10 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def chroot_denylist(self):
+        """
+        Parse the raw field 'chroot_denylist_raw' and return the list of
+        wildcard patterns to match self.active_chroots against.
+        """
         if not self.chroot_denylist_raw:
             return []
 

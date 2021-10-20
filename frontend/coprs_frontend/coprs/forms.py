@@ -744,29 +744,33 @@ class RebuildPackageFactory(object):
 
 
 def cleanup_chroot_denylist(string):
+    """ Filter invalid values out from BasePackageForm.chroot_denylist field """
+
     if not string:
         return string
     fields = [x.lstrip().rstrip() for x in string.split(',')]
     return ', '.join(fields)
 
 
-def validate_chroot_denylist(form, field):
+def validate_chroot_denylist(_form, field):
+    """ Validate BasePackageForm.chroot_denylist field """
+
     if field.data:
         string = field.data
-        fields = [x.lstrip().rstrip() for x in string.split(',')]
-        for field in fields:
+        items = [x.lstrip().rstrip() for x in string.split(',')]
+        for item in items:
             pattern = r'^[a-z0-9-_*]+$'
-            if not re.match(pattern, field):
-                raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(field, pattern))
+            if not re.match(pattern, item):
+                raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(item, pattern))
 
             matched = set()
             all_chroots = MockChrootsLogic.active_names()
             for chroot in all_chroots:
-                if fnmatch(chroot, field):
+                if fnmatch(chroot, item):
                     matched.add(chroot)
 
             if not matched:
-                raise wtforms.ValidationError('no chroot matched by pattern "{0}"'.format(field))
+                raise wtforms.ValidationError('no chroot matched by pattern "{0}"'.format(item))
 
             if matched == all_chroots:
                 raise wtforms.ValidationError('patterns are deny-listing all chroots')

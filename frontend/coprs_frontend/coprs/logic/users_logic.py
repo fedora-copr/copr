@@ -103,10 +103,12 @@ class UsersLogic(object):
 
     @classmethod
     def is_denylisted_group(cls, fas_group):
+        """
+        Return true if FAS_GROUP is on GROUP_DENYLIST in copr configuration.
+        """
         if "GROUP_DENYLIST" in app.config:
             return fas_group in app.config["GROUP_DENYLIST"]
-        else:
-            return False
+        return False
 
     @classmethod
     def delete_user_data(cls, user):
