@@ -543,8 +543,32 @@ class CoprPermissionsLogic(object):
 
 class CoprDirsLogic(object):
     @classmethod
+    def get_by_copr_safe(cls, copr, dirname):
+        """
+        Return _query_ for getting CoprDir by Copr and dirname
+        """
+        return (db.session.query(models.CoprDir)
+                .join(models.Copr)
+                .filter(models.Copr.id==copr.id)
+                .filter(models.CoprDir.name==dirname)).first()
+
+    @classmethod
+    def get_by_copr(cls, copr, dirname):
+        """
+        Return CoprDir instance per given Copr instance and dirname.  Raise
+        ObjectNotFound if it doesn't exist.
+        """
+        coprdir = cls.get_by_copr_safe(copr, dirname)
+        if not coprdir:
+            raise exceptions.ObjectNotFound(
+                "Dirname '{}' doesn't exist in '{}' copr".format(
+                    dirname,
+                    copr.full_name))
+        return coprdir
+
+    @classmethod
     def get_or_create(cls, copr, dirname, main=False):
-        copr_dir = cls.get_by_copr(copr, dirname).first()
+        copr_dir = cls.get_by_copr_safe(copr, dirname)
 
         if copr_dir:
             return copr_dir
@@ -557,12 +581,6 @@ class CoprDirsLogic(object):
         db.session.add(copr_dir)
         return copr_dir
 
-    @classmethod
-    def get_by_copr(cls, copr, dirname):
-        return (db.session.query(models.CoprDir)
-                .join(models.Copr)
-                .filter(models.Copr.id==copr.id)
-                .filter(models.CoprDir.name==dirname))
 
     @classmethod
     def get_by_ownername(cls, ownername, dirname):

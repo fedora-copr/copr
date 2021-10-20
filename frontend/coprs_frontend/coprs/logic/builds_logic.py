@@ -393,7 +393,7 @@ class BuildsLogic(object):
     def get_copr_builds_list(cls, copr, dirname=None):
         query = models.Build.query.filter(models.Build.copr_id==copr.id)
         if dirname:
-            copr_dir = coprs_logic.CoprDirsLogic.get_by_copr(copr, dirname).one()
+            copr_dir = coprs_logic.CoprDirsLogic.get_by_copr(copr, dirname)
             query = query.filter(models.Build.copr_dir_id==copr_dir.id)
         query = query.options(selectinload('build_chroots'), selectinload('package'))
         return query
