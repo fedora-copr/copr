@@ -63,13 +63,21 @@ class TestAPIv3Packages(CoprsTestCase):
         build = self.models.Build.query.get(1)
         assert json.loads(build.source_json) == expected_source_dict
         assert build.source_type == BuildSourceEnum(source_type_text)
-        assert build.chroots == []
 
+        def _assert_default_chroots(test_build):
+            # We assign Package to Build as soon as possible, and at the same
+            # time we allocate BuildChroots.
+            assert {bch.name for bch in test_build.chroots} == {
+                "fedora-17-x86_64",
+                "fedora-17-i386",
+            }
+
+        _assert_default_chroots(build)
         rebuild_data["chroots"] = chroots
         self.post_api3_with_auth(endpoint, rebuild_data, user)
         build = self.models.Build.query.get(2)
         assert json.loads(build.source_json) == expected_source_dict
         if "fedora-18-x86_64" in chroots or chroots == []:
-            assert build.chroots == []
+            _assert_default_chroots(build)
         else:
             assert [mch.name for mch in build.chroots] == ["fedora-17-i386"]

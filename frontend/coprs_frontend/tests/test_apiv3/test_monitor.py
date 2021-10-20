@@ -135,9 +135,7 @@ class TestAPIv3Monitor(CoprsTestCase):
             "test",
             ["fedora-rawhide-i386", "fedora-18-x86_64"])
         self.web_ui.create_distgit_package("test", "tar")
-        self.api3.rebuild_package("test", "tar", build_options={
-            "chroots": ["fedora-rawhide-i386"],
-        })
+        self.api3.rebuild_package("test", "tar")
 
         def _fixup_result(result_dict, update=None):
             for package in result_dict["packages"]:
@@ -159,6 +157,13 @@ class TestAPIv3Monitor(CoprsTestCase):
                 "name": "tar",
                 'chroots': {
                     'fedora-rawhide-i386': {
+                        'build_id': 1,
+                        'state': 'waiting',
+                        'status': 9,
+                        # we don't have build log here
+                        'url_build_log': None,
+                    },
+                    'fedora-18-x86_64': {
                         'build_id': 1,
                         'state': 'waiting',
                         'status': 9,

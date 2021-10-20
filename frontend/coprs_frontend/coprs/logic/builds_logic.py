@@ -690,14 +690,51 @@ class BuildsLogic(object):
         return batch
 
     @classmethod
+    def assign_buildchroots(cls, build, chroot_names, status=None,
+                            git_hashes=None, **kwargs):
+        """
+        For each chroot_name allocate a new BuildChroot instance and assign it
+        to the build.
+        """
+        something_added = False
+        for chroot in chroot_names:
+            something_added = True
+            additional_args = {}
+            if git_hashes:
+                additional_args["git_hash"] = git_hashes.get(chroot)
+            if status is None:
+                status = StatusEnum("waiting")
+            buildchroot = BuildChrootsLogic.new(
+                build=build,
+                mock_chroot=chroot,
+                status=status,
+                **kwargs,
+                **additional_args,
+            )
+            db.session.add(buildchroot)
+        return something_added
+
+    @classmethod
+    def assign_buildchroots_from_package(cls, build, **kwargs):
+        """
+        If build has already assigned build.package, create and assign new set
+        of BuildChroot instances according to 'build.package.chroots'.  This
+        e.g. respects the Copr.chroot_denylist config.
+        """
+        if not build.package:
+            return False
+        return cls.assign_buildchroots(
+            build,
+            build.package.chroots,
+            **kwargs,
+        )
+
+    @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None, copr_dirname=None, bootstrap=None, isolation=None,
             package=None, after_build_id=None, with_build_id=None):
-
-        if chroots is None:
-            chroots = []
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
@@ -755,21 +792,18 @@ class BuildsLogic(object):
         if timeout:
             build.timeout = timeout or app.config["DEFAULT_BUILD_TIMEOUT"]
 
+        if not chroots and package:
+            chroots = package.chroots
+        if not chroots:
+            chroots = []
+
         db.session.add(build)
-
-        for chroot in chroots:
-            # Chroots were explicitly set per-build.
-            git_hash = None
-            if git_hashes:
-                git_hash = git_hashes.get(chroot.name)
-            buildchroot = BuildChrootsLogic.new(
-                build=build,
-                status=chroot_status,
-                mock_chroot=chroot,
-                git_hash=git_hash,
-            )
-            db.session.add(buildchroot)
-
+        cls.assign_buildchroots(
+            build,
+            chroots,
+            git_hashes=git_hashes,
+            status=chroot_status,
+        )
         return build
 
     @classmethod
@@ -814,17 +848,7 @@ class BuildsLogic(object):
             submitted_by=submitted_by,
         )
         db.session.add(build)
-
-        status = StatusEnum("waiting")
-        for chroot in package.chroots:
-            buildchroot = BuildChrootsLogic.new(
-                build=build,
-                status=status,
-                mock_chroot=chroot,
-                git_hash=None
-            )
-            db.session.add(buildchroot)
-
+        cls.assign_buildchroots_from_package(build)
         cls.process_update_callback(build)
         return build
 
@@ -918,19 +942,10 @@ class BuildsLogic(object):
                 new_status = StatusEnum("importing")
                 chroot_status=StatusEnum("waiting")
                 if not build.build_chroots:
-                    # create the BuildChroots from Package setting, if not
-                    # already set explicitly for concrete build
-                    added = False
-                    for chroot in build.package.chroots:
-                        added = True
-                        buildchroot = BuildChrootsLogic.new(
-                            build=build,
-                            status=chroot_status,
-                            mock_chroot=chroot,
-                            git_hash=None,
-                        )
-                        db.session.add(buildchroot)
-                    if not added:
+                    # When BuildChroots are not yet allocated, allocate them now
+                    # from the assigned Package setting.
+                    if not cls.assign_buildchroots_from_package(
+                            build, status=chroot_status, git_hash=None):
                         new_status = StatusEnum("failed")
                 else:
                     for buildchroot in build.build_chroots:
