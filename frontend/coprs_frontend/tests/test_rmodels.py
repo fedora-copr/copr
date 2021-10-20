@@ -1,37 +1,30 @@
-# coding: utf-8
+"""
+Test the class TimedStatEvents
+"""
 
 import time
 
-from redis import StrictRedis, ConnectionError
-
 from coprs.rmodels import TimedStatEvents
+from coprs import rcp
 
 
-class TestRModels(object):
+class TestRModels:
+    rc = None  # pylint: disable=invalid-name
+    disabled = None
+    prefix = "copr:test:r_models"
+    time_now = None
 
-    def setup_method(self, method):
-        self.rc = StrictRedis()
-        self.disabled = False
-        try:
-            self.rc.ping()
-        except ConnectionError:
-            self.disabled = True
-        self.prefix = "copr:test:r_models"
-
+    def setup_method(self):
+        self.rc = rcp.get_connection()
+        self.rc.ping()
         self.time_now = time.time()
 
-    def teardown_method(self, method):
-        if self.disabled:
-            return
-
+    def teardown_method(self):
         keys = self.rc.keys('{}*'.format(self.prefix))
         if keys:
             self.rc.delete(*keys)
 
     def test_timed_stats_events(self):
-        if self.disabled:
-            return
-
         TimedStatEvents.add_event(self.rc, name="foobar", prefix=self.prefix,
                                   timestamp=self.time_now, )
 
@@ -57,4 +50,3 @@ class TestRModels(object):
 
         assert TimedStatEvents.get_count(self.rc, name="foobar", prefix=self.prefix,
                                          day_min=self.time_now - 5000000) == 3
-
