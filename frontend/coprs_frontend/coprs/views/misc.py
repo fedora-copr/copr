@@ -63,12 +63,17 @@ def krb_straighten_username(krb_remote_user):
 
 
 @app.before_request
-def set_empty_user():
-    flask.g.user = None
+def before_request():
+    """
+    Configure some useful defaults for (before) each request.
+    """
 
+    # Checkpoints initialization
+    checkpoint_start()
 
-@app.before_request
-def lookup_current_user():
+    # Load the logged-in user, if any.
+    # https://github.com/PyCQA/pylint/issues/3793
+    # pylint: disable=assigning-non-slot
     flask.g.user = username = None
     if "openid" in flask.session:
         username = fed_raw_name(flask.session["openid"])
@@ -78,11 +83,6 @@ def lookup_current_user():
     if username:
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
-
-
-@app.before_request
-def measure_setup():
-    checkpoint_start()
 
 
 def page_not_found(message):
