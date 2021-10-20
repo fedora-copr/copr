@@ -22,15 +22,12 @@ ignored-classes=SQLAlchemy,scoped_session
 ignored-modules=alembic,setproctitle
 
 init-hook=
-    import os
-    import sys
     import subprocess
     gitrootdir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
-    sys.path.insert(0, os.path.join(gitrootdir, 'backend'))
-    sys.path.insert(0, os.path.join(gitrootdir, 'frontend', 'coprs_frontend'))
-    sys.path.insert(0, os.path.join(gitrootdir, 'common'))
-    sys.path.insert(0, os.path.join(gitrootdir, 'python'))
     sys.path.insert(0, os.path.join(gitrootdir, '.pylintpath'))
+    import copr_pylintrc
+    copr_pylintrc.init()
+
 
 # Our own pylint transformations.
 load-plugins=pylint_copr_plugin
