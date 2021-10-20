@@ -58,7 +58,7 @@
       <h3 class="panel-title">{{ counter('instructions') }}. Generic package setup</h3>
     </div>
     <div class="panel-body">
-{{ render_field(form.chroot_blacklist,
+{{ render_field(form.chroot_denylist,
                 placeholder="Optional - comma-separated list of wildcard-patterns, e.g.  fedora-*, *-i386",
                 info="What chroots should be skipped for this package, by default we build for all.",
 )}}

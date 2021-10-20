@@ -56,9 +56,9 @@
           <dd>{{ package.max_builds }}</dd>
           {% endif %}
 
-          {% if package.chroot_blacklist_raw %}
+          {% if package.chroot_denylist_raw %}
           <dt>Excluded chroots:</dt>
-          <dd>{{ package.chroot_blacklist_raw }}</dd>
+          <dd>{{ package.chroot_denylist_raw }}</dd>
           {% endif %}
 
           {% if package.chroots | length != package.copr.active_chroots | list | length %}

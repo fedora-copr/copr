@@ -25,25 +25,25 @@ class TestBuildModel(CoprsTestCase):
         assert expected_1 == result_1
 
 
-    def test_chroot_blacklist(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
+    def test_chroot_denylist(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
         # test main package
         assert len(list(self.p1.chroots)) == 15
-        self.p1.chroot_blacklist_raw = '*-19-*, epel*'
-        assert len(self.p1.chroot_blacklist) == 2
+        self.p1.chroot_denylist_raw = '*-19-*, epel*'
+        assert len(self.p1.chroot_denylist) == 2
         assert len(list(self.p1.chroots)) == 8
 
         # non-main package inherits from main package by default
         assert len(list(self.p4.chroots)) == 8
 
-        # but if we set the blacklist here, too, it get's precedence
-        self.p4.chroot_blacklist_raw = 'epel*'
-        assert len(self.p4.chroot_blacklist) == 1
+        # but if we set the denylist here, too, it get's precedence
+        self.p4.chroot_denylist_raw = 'epel*'
+        assert len(self.p4.chroot_denylist) == 1
         assert len(list(self.p4.chroots)) == 10
 
-    def test_chroot_blacklist_all(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
+    def test_chroot_denylist_all(self, f_users, f_coprs, f_builds, f_mock_chroots_many, f_pr_dir, f_db):
         assert len(list(self.p1.chroots)) == 15
         assert len(list(self.p1.copr.active_chroots)) == 15
-        self.p1.chroot_blacklist_raw = '*'
+        self.p1.chroot_denylist_raw = '*'
         # even though we blacklised (by mistake) all chroots, package builds
         # against all chroots (fallback)
         assert len(list(self.p1.chroots)) == 15

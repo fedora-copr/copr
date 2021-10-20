@@ -743,14 +743,14 @@ class RebuildPackageFactory(object):
         return form
 
 
-def cleanup_chroot_blacklist(string):
+def cleanup_chroot_denylist(string):
     if not string:
         return string
     fields = [x.lstrip().rstrip() for x in string.split(',')]
     return ', '.join(fields)
 
 
-def validate_chroot_blacklist(form, field):
+def validate_chroot_denylist(form, field):
     if field.data:
         string = field.data
         fields = [x.lstrip().rstrip() for x in string.split(',')]
@@ -769,7 +769,7 @@ def validate_chroot_blacklist(form, field):
                 raise wtforms.ValidationError('no chroot matched by pattern "{0}"'.format(field))
 
             if matched == all_chroots:
-                raise wtforms.ValidationError('patterns are black-listing all chroots')
+                raise wtforms.ValidationError('patterns are deny-listing all chroots')
 
 
 class BasePackageForm(FlaskForm):
@@ -785,12 +785,12 @@ class BasePackageForm(FlaskForm):
     )
 
     webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
-    chroot_blacklist = wtforms.StringField(
-        "Chroot blacklist",
-        filters=[cleanup_chroot_blacklist],
+    chroot_denylist = wtforms.StringField(
+        "Chroot denylist",
+        filters=[cleanup_chroot_denylist],
         validators=[
             wtforms.validators.Optional(),
-            validate_chroot_blacklist,
+            validate_chroot_denylist,
         ],
     )
     max_builds = wtforms.IntegerField(

@@ -825,7 +825,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     # comma-separated list of wildcards of chroot names that this package should
     # not be built against, e.g. "fedora-*, epel-*-i386"
-    chroot_blacklist_raw = db.Column(db.Text)
+    chroot_denylist_raw = db.Column(db.Text)
 
     @property
     def dist_git_repo(self):
@@ -888,18 +888,18 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
 
     @property
-    def chroot_blacklist(self):
-        if not self.chroot_blacklist_raw:
+    def chroot_denylist(self):
+        if not self.chroot_denylist_raw:
             return []
 
-        blacklisted = []
-        for pattern in self.chroot_blacklist_raw.split(','):
+        denylisted = []
+        for pattern in self.chroot_denylist_raw.split(','):
             pattern = pattern.strip()
             if not pattern:
                 continue
-            blacklisted.append(pattern)
+            denylisted.append(pattern)
 
-        return blacklisted
+        return denylisted
 
 
     @staticmethod
@@ -925,13 +925,13 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     @property
     def chroots(self):
         chroots = list(self.copr.active_chroots)
-        if not self.chroot_blacklist_raw:
-            # no specific blacklist
+        if not self.chroot_denylist_raw:
+            # no specific denylist
             if self.copr_dir.main:
                 return chroots
             return self.main_pkg.chroots
 
-        filtered = [c for c in chroots if not self.matched_chroot(c, self.chroot_blacklist)]
+        filtered = [c for c in chroots if not self.matched_chroot(c, self.chroot_denylist)]
         # We never want to filter everything, this is a misconfiguration.
         return filtered if filtered else chroots
 
