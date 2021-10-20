@@ -24,8 +24,8 @@ def activate_group(fas_group):
     form = ActivateFasGroupForm()
 
     if form.validate_on_submit():
-        if UsersLogic.is_blacklisted_group(fas_group):
-            flask.flash("This group is blacklisted and cannot be added.")
+        if UsersLogic.is_denylisted_group(fas_group):
+            flask.flash("This group is denylisted and cannot be added.")
             return flask.redirect(url_for(
                 "groups_ns.list_user_groups"))
 
@@ -94,7 +94,7 @@ def list_user_groups():
         UsersLogic.get_groups_by_fas_names_list(teams).all()
     }
 
-    teams = list(UsersLogic.filter_blacklisted_teams(teams))
+    teams = list(UsersLogic.filter_denylisted_teams(teams))
 
     copr_groups = {
         fas_name: active_map.get(fas_name)

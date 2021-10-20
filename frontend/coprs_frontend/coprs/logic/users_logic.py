@@ -92,19 +92,19 @@ class UsersLogic(object):
         return group
 
     @classmethod
-    def filter_blacklisted_teams(cls, teams):
-        """ removes blacklisted groups from teams list
+    def filter_denylisted_teams(cls, teams):
+        """ removes denylisted groups from teams list
             :type teams: list of str
             :return: filtered teams
             :rtype: list of str
         """
-        blacklist = set(app.config.get("BLACKLISTED_GROUPS", []))
-        return filter(lambda t: t not in blacklist, teams)
+        denylist = set(app.config.get("GROUP_DENYLIST", []))
+        return filter(lambda t: t not in denylist, teams)
 
     @classmethod
-    def is_blacklisted_group(cls, fas_group):
-        if "BLACKLISTED_GROUPS" in app.config:
-            return fas_group in app.config["BLACKLISTED_GROUPS"]
+    def is_denylisted_group(cls, fas_group):
+        if "GROUP_DENYLIST" in app.config:
+            return fas_group in app.config["GROUP_DENYLIST"]
         else:
             return False
 
