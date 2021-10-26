@@ -4,17 +4,22 @@ import logging
 import shutil
 import stat
 import tempfile
+
+from copr_common.request import SafeRequest
+
 from ..helpers import string2list
 
 log = logging.getLogger("__main__")
 
 
 class Provider(object):
+    # pylint: disable=too-many-instance-attributes
     _safe_resultdir = None
 
     def __init__(self, source_dict, config):
         self.source_dict = source_dict
         self.config = config
+        self.request = SafeRequest(log=log)
 
         # Where we should produce output, everything there gets copied to
         # backend once build ends!

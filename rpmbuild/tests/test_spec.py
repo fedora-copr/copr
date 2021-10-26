@@ -37,7 +37,7 @@ class TestUrlProvider(TestCase):
         provider = UrlProvider(self.source_json, self.config)
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
-    @mock.patch('requests.get')
+    @mock.patch('copr_common.request.SafeRequest.get')
     @mock.patch("copr_rpmbuild.providers.spec.run_cmd")
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
@@ -52,7 +52,7 @@ class TestUrlProvider(TestCase):
             '--resultdir', self.config.get("main", "resultdir")]
         run_cmd.assert_called_with(args, cwd=provider.workdir)
 
-    @mock.patch('requests.get')
+    @mock.patch('copr_common.request.SafeRequest.get')
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_save_spec(self, mock_mkdir, mock_open, mock_get):

@@ -1,10 +1,10 @@
 import os
 import logging
-import requests
-from ..helpers import run_cmd
-from .base import Provider
+
 from six.moves.urllib.parse import urlparse
 
+from copr_rpmbuild.helpers import run_cmd
+from copr_rpmbuild.providers.base import Provider
 
 log = logging.getLogger("__main__")
 
@@ -15,7 +15,7 @@ class UrlProvider(Provider):
         self.parsed_url = urlparse(self.url)
 
     def save_spec(self):
-        response = requests.get(self.url)
+        response = self.request.get(self.url)
         path = os.path.join(self.workdir, self.parsed_url.path.split("/")[-1])
         with open(path, "w") as spec:
             spec.write(response.text)
@@ -32,7 +32,7 @@ class UrlProvider(Provider):
     def download_srpm(self):
         basename = os.path.basename(self.parsed_url.path)
         filename = os.path.join(self.resultdir, basename)
-        response = requests.get(self.url, stream=True)
+        response = self.request.get(self.url, stream=True)
         if response.status_code != 200:
             raise RuntimeError('Requests get status "{0}" for "{1}"'.format(
                 response.status_code, self.url

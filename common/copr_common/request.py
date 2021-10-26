@@ -26,46 +26,48 @@ class SafeRequest:
         self.log = log
         self.try_indefinitely = try_indefinitely
 
-    def get(self, url):
+    def get(self, url, **kwargs):
         """
         Issue relentless GET request to a given URL
         """
-        return self.send(url, method='get')
+        return self.send(url, method='get', **kwargs)
 
-    def post(self, url, data):
+    def post(self, url, data, **kwargs):
         """
         Issue relentless POST request to given URL
         """
-        return self.send(url, method='post', data=data)
+        return self.send(url, method='post', data=data, **kwargs)
 
-    def put(self, url, data):
+    def put(self, url, data, **kwargs):
         """
         Issue relentless POST request to a given URL
         """
-        return self.send(url, method='put', data=data)
+        return self.send(url, method='put', data=data, **kwargs)
 
-    def send(self, url, method, data=None):
+    def send(self, url, method, data=None, **kwargs):
         """
         Issue relentless request to a given URL
         """
-        return self._send_request_repeatedly(url, method=method, data=data)
+        return self._send_request_repeatedly(url, method=method, data=data,
+                                             **kwargs)
 
-    def _send_request(self, url, method, data=None):
+    def _send_request(self, url, method, data=None, **kwargs):
         headers = {"content-type": "application/json"}
         auth = ("user", self.auth) if self.auth else None
 
         try:
-            kwargs = {
-                'auth': auth,
-                'headers': headers,
-            }
+            req_args = {}
+            req_args.update(kwargs)
+            req_args["auth"] = auth
+            req_args["headers"] = headers
+            req_args["timeout"] = self.TIMEOUT / 5
             method = method.lower()
             if method in ['post', 'put']:
-                kwargs['data'] = json.dumps(data)
+                req_args['data'] = json.dumps(data)
                 method = post if method == 'post' else put
             else:
                 method = get
-            response = method(url, **kwargs)
+            response = method(url, **req_args)
         except RequestException as ex:
             raise RequestRetryError(
                 "Requests error on {}: {}".format(url, str(ex)))
@@ -87,7 +89,7 @@ class SafeRequest:
         # TODO: Success, but tighten the redirects etc.
         return response
 
-    def _send_request_repeatedly(self, url, method, data=None):
+    def _send_request_repeatedly(self, url, method, data=None, **kwargs):
         """
         Repeat the request until it succeeds, or timeout is reached.
         """
@@ -104,7 +106,8 @@ class SafeRequest:
                     "(we gave it {} attempts)".format(i))
 
             try:
-                return self._send_request(url, method=method, data=data)
+                return self._send_request(url, method=method, data=data,
+                                          **kwargs)
             except RequestRetryError as ex:
                 self.log.warning("Retry request #%s on %s: %s", i, url,
                                  str(ex))

@@ -1,7 +1,6 @@
 import os
 import logging
 import shutil
-import requests
 
 from copr_rpmbuild import helpers
 from .base import Provider
@@ -63,7 +62,7 @@ class CustomProvider(Provider):
         if self.hook_payload_url:
             chunk_size = 1024
             hook_payload_file = os.path.join(self.resultdir, 'hook_payload')
-            response = requests.get(self.hook_payload_url, stream=True)
+            response = self.request.get(self.hook_payload_url, stream=True)
             response.raise_for_status()
 
             with open(hook_payload_file, 'wb') as payload_file:
