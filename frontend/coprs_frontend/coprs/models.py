@@ -1995,7 +1995,8 @@ class BuildChrootResult(db.Model, helpers.Serializer):
     build_chroot_id = db.Column(
         db.Integer,
         db.ForeignKey("build_chroot.id"),
-        nullable=False
+        nullable=False,
+        index=True,
     )
 
     name = db.Column(db.Text, nullable=False)
