@@ -62,34 +62,27 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='frostyx') }}">
+                    <a id="search-username" onClick="search_by_attribute('ownername')" href="#">
                       Search by user name
                     </a>
                   </li>
 
                   <li>
-                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='@copr') }}">
+                    <a id="search-groupname" onClick="search_by_attribute('ownername')" href="#">
                       Search by group name
                     </a>
                   </li>
                   <li role="separator" class="divider"></li>
 
                   <li>
-                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', projectname='copr') }}">
+                    <a id="search-projectname" onClick="search_by_attribute('projectname')" href="#">
                       Search by project name
                     </a>
                   </li>
 
                   <li>
-                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', packagename='copr-cli') }}">
+                    <a id="search-packagename" onClick="search_by_attribute('packagename')" href="#">
                       Search by package name
-                    </a>
-                  </li>
-                  <li role="separator" class="divider"></li>
-
-                  <li>
-                    <a href="{{ url_for('coprs_ns.coprs_fulltext_search', ownername='frostyx', packagename='copr-cli') }}">
-                      Search by multiple parameters
                     </a>
                   </li>
                 </ul>

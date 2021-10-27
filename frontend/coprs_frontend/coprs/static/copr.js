@@ -32,3 +32,17 @@ $(document).ready(function() {
     }
   );
 });
+
+function search_by_attribute(attribute) {
+  event.preventDefault();
+  var value = $("input[name=fulltext]").val()
+
+  // When searching by group but omitting the starting @
+  var group = $(event.target).attr("id") == "search-groupname"
+  if (group && value[0] != "@") {
+    value = "@" + value
+  }
+
+  var url = "/coprs/fulltext/?" + attribute + "=" + value
+  window.location.href = url
+}
