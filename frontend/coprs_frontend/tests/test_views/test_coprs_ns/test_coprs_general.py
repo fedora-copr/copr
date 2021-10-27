@@ -4,6 +4,7 @@ from configparser import ConfigParser
 
 from unittest import mock
 
+from lxml import html
 import pytest
 import flask
 from sqlalchemy import desc, and_
@@ -965,6 +966,36 @@ class TestSearch(CoprsTestCase):
         # self.tc.get("/coprs/fulltext/?fulltext={}".format("user1/"))
         # qargs, qkwargs = mc_render_template.call_args
         # assert qkwargs["paginator"].total_count == 5
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_group_copr", "f_builds",
+                             "f_db")
+    def test_search_by_attributes(self):
+        # We will be searching a lot, so let's make a small helper for that
+        def search(url):
+            response = self.tc.get(url)
+            tree = html.fromstring(response.data)
+            results = [x.find(".//h3") for x in
+                       tree.xpath("//a[@class='list-group-item']")]
+            return [x.text for x in results if x is not None]
+
+        # Search by username
+        results = search("/coprs/fulltext/?ownername=user2")
+        assert len(results) == 2
+
+        # Search by packagename
+        results = search("/coprs/fulltext/?packagename=world")
+        assert len(results) == 3
+
+        # Search by multiple attributes at once
+        params = "?ownername=user2&projectname=foo&packagename=world"
+        results = search("/coprs/fulltext/" + params)
+        assert len(results) == 1
+
+        # Make sure all found results contain the searched username
+        # and projectname
+        for result in results:
+            assert "user2" in result
+            assert "foo" in result
 
 
 class TestRepo(CoprsTestCase):

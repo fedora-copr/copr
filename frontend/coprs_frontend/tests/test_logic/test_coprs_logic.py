@@ -391,3 +391,28 @@ class TestCoprScoreLogic(CoprsTestCase):
         assert self.c1.upvotes == 1
         assert self.c1.downvotes == 2
         assert self.c1.score == -1
+
+
+class TestCoprSearchLogic(CoprsTestCase):
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_group_copr", "f_builds",
+                             "f_db")
+    def test_search_by_attributes(self):
+        result = CoprsLogic.get_multiple_fulltext(ownername="user2")
+        assert set(result) == {self.c2, self.c3}
+
+        result = CoprsLogic.get_multiple_fulltext(ownername="@group1")
+        assert set(result) == {self.gc1, self.gc2}
+
+        result = CoprsLogic.get_multiple_fulltext(projectname="foo")
+        assert set(result) == {self.c1, self.c2}
+
+        result = CoprsLogic.get_multiple_fulltext(packagename="goodbye")
+        assert set(result) == {self.c3}
+
+        result = CoprsLogic.get_multiple_fulltext(
+            ownername="user2",
+            projectname="foo",
+            packagename="world",
+        )
+        assert set(result) == {self.c2}
