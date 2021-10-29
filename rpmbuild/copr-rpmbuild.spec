@@ -71,6 +71,7 @@ Requires: git-svn
 # for the /bin/unbuffer binary
 Requires: expect
 Requires: qemu-user-static
+Requires: sed
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg
@@ -180,7 +181,7 @@ the corresponding dist-git instance configuration.
 for script in bin/copr-rpmbuild* \
               bin/copr-distgit*
 do
-    sed -i '1 s|#.*|#! /usr/bin/%python|' "$script"
+    sed -i '1 s|#.*python.*|#! /usr/bin/%python|' "$script"
 done
 
 
@@ -253,6 +254,7 @@ install -p -m 755 bin/copr-builder-cleanup %buildroot%_bindir
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-log %buildroot%_bindir
+install -p -m 755 bin/copr-rpmbuild-loggify %buildroot%_bindir
 
 name="%{name}" version="%{version}" summary="%{summary}" %py_install
 

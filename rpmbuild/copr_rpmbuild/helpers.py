@@ -234,7 +234,7 @@ def parse_copr_name(name):
 
 
 def dump_live_log(logfile):
-    filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
+    filter_continuing_lines = "/usr/bin/copr-rpmbuild-loggify"
     tee_output = "tee -a {0}".format(pipes.quote(logfile))
     cmd = filter_continuing_lines + "|" + tee_output
     tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)

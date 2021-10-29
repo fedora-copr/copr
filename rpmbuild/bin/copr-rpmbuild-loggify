@@ -1,0 +1,19 @@
+#! /bin/bash
+
+# copr-rpmbuild-loggify - filter-out terminal output so it is nicely loggable
+# Copyright (C) 2021 Red Hat, Inc.
+#
+# Use like:
+# $ some_terminal_app_with_output | copr-loggify > /var/log/the.log
+
+cmd=(
+    sed --unbuffered
+    # Strings terminated by CR, aka "live progress bars"
+    -e 's/.*\x0D\([^\x0a]\)/\1/g'
+    # Terminal control sequences (e.g. colors)
+    -e 's|\x1B\[[0-9;]*[a-zA-Z]||g'
+    # Carriage Return, Shift Out, Shift In
+    -e 's/[\x0d\x0e\x0f]*//g'
+)
+
+exec "${cmd[@]}"
