@@ -265,7 +265,7 @@ class PackagesLogic(object):
 
             if (package.source_type == helpers.BuildSourceEnum('upload') or
                     package.source_type == helpers.BuildSourceEnum('link')):
-                source_build = package.last_build()
+                source_build = package.last_build(successful=True)
 
                 if not source_build or not source_build.build_chroots[0].git_hash:
                     raise exceptions.NoPackageSourceException(
