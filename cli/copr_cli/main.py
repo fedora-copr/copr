@@ -18,6 +18,11 @@ import pkg_resources
 import requests
 
 try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
+try:
     import argcomplete
 except ImportError:
     argcomplete = None
@@ -1698,6 +1703,27 @@ def str2bool(v):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
+def _handle_frontend_api_request_error(e, args):
+    if "Request is not in JSON format" not in str(e):
+        return
+    if not args.debug:
+        sys.stderr.write("Try 'copr-cli --debug' for more info.\n")
+        return
+
+    page_content = e.result.__response__.content
+    if BeautifulSoup:
+        soup = BeautifulSoup(page_content, features="html.parser")
+        page_content = soup.get_text()
+    else:
+        page_content = re.sub(r'<.*?>', '', page_content.decode("utf-8"))
+
+    sys.stderr.write(
+        "\n"
+        "Server response:\n"
+        "----------------\n"
+        "%s\n" % page_content)
+
+
 def main(argv=sys.argv[1:]):
     try:
         # Set up parser for global args
@@ -1731,6 +1757,7 @@ def main(argv=sys.argv[1:]):
     except (CoprRequestException, CoprNoResultException) as e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
+        _handle_frontend_api_request_error(e, arg)
         sys.exit(1)
     except argparse.ArgumentTypeError as e:
         sys.stderr.write("\nError: {0}\n".format(e))
