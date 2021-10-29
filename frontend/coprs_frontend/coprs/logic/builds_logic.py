@@ -603,7 +603,8 @@ class BuildsLogic(object):
     @classmethod
     def create_new(cls, user, copr, source_type, source_json, chroot_names=None, pkgs="",
                    git_hashes=None, skip_import=False, background=False, batch=None,
-                   srpm_url=None, copr_dirname=None, package=None, **build_options):
+                   srpm_url=None, copr_dirname=None, package=None,
+                   package_chroots_subset=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -664,6 +665,7 @@ class BuildsLogic(object):
             isolation=build_options.get("isolation"),
             after_build_id=build_options.get("after_build_id"),
             with_build_id=build_options.get("with_build_id"),
+            package_chroots_subset=package_chroots_subset,
         )
 
         if "timeout" in build_options:
@@ -729,12 +731,40 @@ class BuildsLogic(object):
             **kwargs,
         )
 
+    @staticmethod
+    def _chroots_to_add(package, chroots, package_chroots_subset):
+        """
+        Get the list of chroot names to be assigned to build.
+        """
+        if package:
+            if not chroots:
+                chroots = package.chroots
+            if package_chroots_subset:
+                chroots = list(set(chroots).intersection(set(package.chroots)))
+
+            # When we know the package we build already, there's no reason to
+            # delay BuildChroot allocation at this point in time.  So the chroot
+            # list must be set, and non-empty.
+            if not chroots:
+                raise MalformedArgumentException(
+                    "No chroots selected (or automatically selectable) for "
+                    "the package \"%s\" in \"%s\""
+                    % (package.name, package.copr_dir.name))
+
+        elif chroots is None:
+            # when package is unknown, we assign the chroots later when the
+            # source build is done (and thus also the package name is known).
+            chroots = []
+
+        return chroots
+
     @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None, copr_dirname=None, bootstrap=None, isolation=None,
-            package=None, after_build_id=None, with_build_id=None):
+            package=None, after_build_id=None, with_build_id=None,
+            package_chroots_subset=None):
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
@@ -770,6 +800,8 @@ class BuildsLogic(object):
                 raise MalformedArgumentException("Copr dirname not starting with copr name.")
             copr_dir = coprs_logic.CoprDirsLogic.get_or_create(copr, copr_dirname)
 
+        chroots = cls._chroots_to_add(package, chroots, package_chroots_subset)
+
         build = models.Build(
             user=user,
             package=package,
@@ -791,11 +823,6 @@ class BuildsLogic(object):
 
         if timeout:
             build.timeout = timeout or app.config["DEFAULT_BUILD_TIMEOUT"]
-
-        if not chroots and package:
-            chroots = package.chroots
-        if not chroots:
-            chroots = []
 
         db.session.add(build)
         cls.assign_buildchroots(

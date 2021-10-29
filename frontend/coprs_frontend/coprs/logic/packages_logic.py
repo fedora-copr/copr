@@ -252,7 +252,8 @@ class PackagesLogic(object):
 
 
     @classmethod
-    def batch_build(cls, user, copr, packages, chroot_names=None, **build_options):
+    def batch_build(cls, user, copr, packages, chroot_names=None,
+                    only_package_chroots=None, **build_options):
         new_builds = []
 
         batch = models.Batch()
@@ -285,6 +286,7 @@ class PackagesLogic(object):
                 git_hashes=git_hashes,
                 skip_import=skip_import,
                 batch=batch,
+                package_chroots_subset=only_package_chroots,
                 **build_options)
 
             if source_build:

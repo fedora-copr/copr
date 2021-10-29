@@ -96,7 +96,9 @@ def copr_rebuild_all_packages(copr):
                 copr,
                 packages,
                 form.selected_chroots,
-                enable_net=form.enable_net.data)
+                enable_net=form.enable_net.data,
+                only_package_chroots=form.only_package_chroots.data,
+            )
 
         except (ObjectNotFound, ActionInProgressException, NoPackageSourceException, \
                 InsufficientRightsException, MalformedArgumentException) as e:

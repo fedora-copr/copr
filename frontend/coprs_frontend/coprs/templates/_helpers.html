@@ -568,6 +568,24 @@ https://accounts.fedoraproject.org/group/{{name}}
 
 {% macro render_additional_build_options(form, copr) %}
   <div class="form-group">
+    {% if form.only_package_chroots %}
+    <label class="col-sm-2 control-label" for="textInput-markup">
+      Package config:
+    </label>
+    <div class="col-sm-10">
+      <div class="checkbox">
+        <label>
+          {{ form.only_package_chroots }}
+          {{ form.only_package_chroots.label }}
+        </label>
+      <div class="help-block">
+        <small class="text-muted pficon pficon-info">
+          {{form.only_package_chroots.description|safe}}
+        </small>
+      </div>
+      </div>
+    </div>
+    {% endif %}
     <label class="col-sm-2 control-label" for="textInput-markup">
       Chroots:
     </label>

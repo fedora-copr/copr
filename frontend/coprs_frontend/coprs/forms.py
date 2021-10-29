@@ -1202,6 +1202,19 @@ class RebuildAllPackagesFormFactory(object):
             choices=[(name, name) for name in package_names],
             default=package_names,
             validators=[wtforms.validators.DataRequired()])
+        form_cls.only_package_chroots = wtforms.BooleanField(
+            label="Respect package-level chroot list configuration",
+            description=(
+                "The final set of chroot builds submitted for a particular "
+                "package will be an <strong>intersection</strong> of the "
+                "chroot list <strong>selected below</strong> "
+                "and the chroots selected <strong>per package</strong>. "
+                "If not set, builds for all chroots selected below will "
+                "be submitted."
+            ),
+            default=True,
+            false_values=FALSE_VALUES,
+        )
         return form_cls
 
 
