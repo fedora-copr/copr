@@ -22,7 +22,7 @@ from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
 from werkzeug.urls import url_encode
 
-from copr_common.enums import EnumType
+from copr_common.enums import EnumType, StatusEnum
 # TODO: don't import BuildSourceEnum from helpers, use copr_common.enum instead
 from copr_common.enums import BuildSourceEnum # pylint: disable=unused-import
 from copr_common.rpm import splitFilename
@@ -46,7 +46,8 @@ CHROOT_RPMS_DL_STAT_FMT = "chroot_rpms_dl_stat:hset::{copr_user}@{copr_project_n
 PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project_name}"
 
 
-FINISHED_STATUSES = ["succeeded", "forked", "canceled", "skipped", "failed"]
+FINISHED_STATES = ["succeeded", "forked", "canceled", "skipped", "failed"]
+FINISHED_STATUSES = [StatusEnum(s) for s in FINISHED_STATES]
 
 
 class WorkList:

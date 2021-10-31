@@ -1020,21 +1020,32 @@ class CoprChrootsLogic(object):
             # iteration
             to_remove.append(mock_chroot)
 
+        shortened = False
         running_builds = set()
         for mc in to_remove:
-            for bch in chroot_map[mc].build_chroots:
-                if not bch.finished:
-                    running_builds.add(bch.build_id)
-                    continue
+            # We don't overwhelm  the user with too many build IDs in
+            # the error message.
+            max_items = 5
+            copr_chroot = chroot_map[mc]
+            query = CoprChrootsLogic.unfinished_buildchroot(copr_chroot).limit(
+                max_items + 1)
+            for bch in query:
+                if len(running_builds) >= max_items:
+                    shortened = True
+                    break
+                running_builds.add(bch.build_id)
             cls.remove_copr_chroot(flask.g.user, chroot_map[mc])
+
 
         # reject the request when some build_chroots are not yet finished
         if running_builds:
+            builds = list(running_builds)
+            if shortened:
+                builds.append("others")
             raise exceptions.ConflictingRequest(
                 "Can't drop chroot from project, related "
                 "{} still in progress".format(
-                    helpers.pluralize("build", list(running_builds),
-                                      be_suffix=True)))
+                    helpers.pluralize("build", builds, be_suffix=True)))
 
 
     @classmethod
@@ -1119,6 +1130,18 @@ class CoprChrootsLogic(object):
         return query.filter(models.CoprChroot.delete_after
                             < datetime.datetime.now())
 
+    @classmethod
+    def unfinished_buildchroot(cls, copr_chroot):
+        """
+        Query returning list of unfinished BuildChroots assigned to
+        the given CoprChroot.
+        """
+        statuses = helpers.FINISHED_STATUSES
+        return (
+            models.BuildChroot.query
+            .filter(models.BuildChroot.copr_chroot==copr_chroot)
+            .filter(not_(models.BuildChroot.status.in_(statuses)))
+        )
 
 class CoprScoreLogic:
     """

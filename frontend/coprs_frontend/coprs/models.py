@@ -1327,7 +1327,7 @@ class Build(db.Model, helpers.Serializer):
         if self.finished_early:
             return True
         if not self.build_chroots:
-            return StatusEnum(self.source_status) in helpers.FINISHED_STATUSES
+            return StatusEnum(self.source_status) in helpers.FINISHED_STATES
         return all([chroot.finished for chroot in self.build_chroots])
 
     @property
@@ -1879,7 +1879,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     def finished(self):
         if self.build.finished_early:
             return True
-        return self.state in helpers.FINISHED_STATUSES
+        return self.state in helpers.FINISHED_STATES
 
     @property
     def task_id(self):
