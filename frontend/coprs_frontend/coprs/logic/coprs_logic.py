@@ -567,17 +567,24 @@ class CoprDirsLogic(object):
         return coprdir
 
     @classmethod
-    def get_or_create(cls, copr, dirname, main=False):
+    def get_or_create(cls, copr, dirname):
+        """
+        Create a CoprDir on-demand, e.g. before pull-request builds is
+        submitted.  We don't create the "main" CoprDirs here (those are created
+        when a new project is created.
+        """
         copr_dir = cls.get_by_copr_safe(copr, dirname)
-
         if copr_dir:
             return copr_dir
 
-        copr_dir = models.CoprDir(
-            name=dirname, copr=copr, main=main)
+        if not dirname.startswith(copr.name+':'):
+            raise MalformedArgumentException(
+                "Copr dirname must start with '{}:' prefix".format(
+                copr.name,
+            ))
 
+        copr_dir = models.CoprDir(name=dirname, copr=copr, main=False)
         ActionsLogic.send_createrepo(copr, dirnames=[dirname])
-
         db.session.add(copr_dir)
         return copr_dir
 
@@ -755,11 +762,16 @@ class CoprDirsLogic(object):
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     """ Emit createrepo action when auto_createrepo re-enabled"""
     if old_value_acr == NEVER_SET:
-        #  created new copr, not interesting
+        # Created a new copr.  We handle the createrepo actions within
+        # CoprsLogic.add() and the CoprChrootsLogic.new_from_names() called
+        # inside.
         return
-    if not old_value_acr and value_acr:
-        #  re-enabled
-        ActionsLogic.send_createrepo(target_copr)
+
+    if old_value_acr == value_acr:
+        # no change
+        return
+
+    ActionsLogic.send_createrepo(target_copr, devel=not value_acr)
 
 
 class BranchesLogic(object):
@@ -836,8 +848,7 @@ class CoprChrootsLogic(object):
             db.session.add(
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
-        action = ActionsLogic.send_createrepo(copr)
-        action.priority = ActionPriorityEnum("highest")
+        ActionsLogic.send_createrepo(copr, priority=ActionPriorityEnum("highest"))
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,

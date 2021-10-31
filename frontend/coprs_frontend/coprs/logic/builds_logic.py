@@ -796,8 +796,6 @@ class BuildsLogic(object):
 
         copr_dir = None
         if copr_dirname:
-            if not copr_dirname.startswith(copr.name+':') and copr_dirname != copr.name:
-                raise MalformedArgumentException("Copr dirname not starting with copr name.")
             copr_dir = coprs_logic.CoprDirsLogic.get_or_create(copr, copr_dirname)
 
         chroots = cls._chroots_to_add(package, chroots, package_chroots_subset)

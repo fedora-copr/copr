@@ -761,7 +761,8 @@ class TestAction(object):
             "ownername": "foo",
             "projectname": "bar",
             "appstream": True,
-            "project_dirnames": ["bar"]
+            "project_dirnames": ["bar"],
+            "devel": False,
         })
         self.opts.destdir = tmp_dir
 
@@ -794,7 +795,8 @@ class TestAction(object):
             "ownername": "foo",
             "projectname": "bar",
             "appstream": True,
-            "project_dirnames": ["bar"]
+            "project_dirnames": ["bar"],
+            "devel": False,
         })
         self.opts.destdir = tmp_dir
         test_action = Action.create_from(

@@ -276,6 +276,6 @@ def regenerate_repos(copr):
     This function will regenerate all repository metadata for a project.
     """
     with db_session_scope():
-        ActionsLogic.send_createrepo(copr)
+        ActionsLogic.send_createrepo(copr, devel=False)
 
     return flask.jsonify(to_dict(copr))

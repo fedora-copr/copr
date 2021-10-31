@@ -101,6 +101,37 @@ class TestCoprNew(CoprsTestCase):
 
         # make sure no initial build was submitted
         assert self.models.Build.query.first() is None
+        # one createrepo action generated
+        actions = ActionsLogic.get_many().all()
+        assert len(actions) == 2
+        for action in actions:
+            if action.action_type == ActionTypeEnum("createrepo"):
+                assert json.loads(actions[0].data)["devel"] is False
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
+    def test_copr_new_ACR_OFF(self):
+        r = self.test_client.post(
+            "/coprs/{0}/new/".format(self.u1.name),
+            data={
+                "name": "foo",
+                "chroots": ["fedora-rawhide-i386"],
+                "arches": ["i386"],
+                "disable_createrepo": True,
+            },
+            follow_redirects=True)
+
+        assert self.models.Copr.query\
+            .order_by(desc(models.Copr.created_on))\
+            .filter(self.models.Copr.name == "foo").first()
+        assert self.success_string.encode("utf-8") in r.data
+
+        # make sure no initial build was submitted
+        assert self.models.Build.query.first() is None
+
+        actions = ActionsLogic.get_many().filter_by(action_type=3).order_by('id').all()
+        assert {True, False} == {json.loads(action.data)["devel"]
+                                 for action in actions}
 
     @TransactionDecorator("u3")
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs,
@@ -424,8 +455,8 @@ class TestCoprUpdate(CoprsTestCase):
         assert len(mock_chroots) == 1
 
     @TransactionDecorator("u1")
-    def test_re_enable_auto_createrepo_produce_action(
-            self, f_users, f_coprs, f_mock_chroots, f_db):
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_changed_ACR_produces_action(self):
 
         self.db.session.add_all(
             [self.u1, self.c1, self.mc1, self.mc2, self.mc3])
@@ -434,13 +465,15 @@ class TestCoprUpdate(CoprsTestCase):
         coprname = self.c1.name
         copr_id = self.c1.id
         chroot = self.mc1.name
+        chroots = {self.mc1.name, self.mc2.name, self.mc3.name}
 
-        # 1.ensure ACR enabled
-
+        # 1. Ensure ACR is enabled
         self.db.session.commit()
         c1_actual = CoprsLogic.get(self.u1.name, self.c1.name).one()
         assert c1_actual.auto_createrepo
-        # 1. disabling ACR
+        assert len(ActionsLogic.get_many().all()) == 0
+
+        # 2. Disabling ACR (generates createrepo action in devel/
         self.test_client.post(
             "/coprs/{0}/{1}/update/".format(username, coprname),
             data={"name": coprname, "chroots": [chroot], "id": copr_id,
@@ -448,33 +481,52 @@ class TestCoprUpdate(CoprsTestCase):
             follow_redirects=True
         )
         self.db.session.commit()
-
-        # check current status
         c1_actual = CoprsLogic.get(username, coprname).one()
         assert not c1_actual.auto_createrepo
-        # no actions issued before
-        assert len(ActionsLogic.get_many().all()) == 0
+        assert len(ActionsLogic.get_many().all()) == 1
+        action = ActionsLogic.get_many().one()
+        handled_ids = {action.id}
 
-        # 2. enabling ACR
+        expected_data = {
+            "ownername": "user1",
+            "projectname": "foocopr",
+            "project_dirnames": ["foocopr"],
+            "chroots": ["fedora-18-x86_64"],
+            "appstream": True,
+            "devel": True,
+        }
+
+        assert json.loads(action.data) == expected_data
+
+        # 3. Re-enable ACR, and enable two new chroots
         self.test_client.post(
             "/coprs/{0}/{1}/update/".format(username, coprname),
-            data={"name": coprname, "chroots": [chroot], "id": copr_id,
+            data={"name": coprname, "chroots": list(chroots), "id": copr_id,
                   "disable_createrepo": "false"},
             follow_redirects=True
         )
         self.db.session.commit()
-
         c1_actual = CoprsLogic.get(username, coprname).one()
-
-        # ACR enabled
         assert c1_actual.auto_createrepo
-        # added action
-        assert len(ActionsLogic.get_many().all()) > 0
-        action = ActionsLogic.get_many(action_type=ActionTypeEnum("createrepo")).one()
+        actions = ActionsLogic.get_many().all()
+        assert len(actions) == 3
 
-        data_dict = json.loads(action.data)
-        assert data_dict["ownername"] == username
-        assert data_dict["projectname"] == coprname
+        expected_chroots = chroots
+
+        for action in ActionsLogic.get_many():
+            if action.id in handled_ids:
+                continue
+            expected_data["devel"] = False
+            # TODO: the form re-sets appstream to False for None value
+            expected_data["appstream"] = False
+            data = json.loads(action.data)
+            expected_data["chroots"] = data["chroots"]
+            for chroot in data["chroots"]:
+                assert chroot in expected_chroots
+                expected_chroots.remove(chroot)
+            assert data == expected_data
+        # createrepo was created in all the three chroots
+        assert len(expected_chroots) == 0
 
 
 class TestCoprApplyForPermissions(CoprsTestCase):
@@ -1101,6 +1153,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "projectname": "test",
             "project_dirnames": ["test"],
             "appstream": True,
+            "devel": False,
         }
         def _expected(action, chroots):
             template["chroots"] = chroots

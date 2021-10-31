@@ -754,7 +754,7 @@ def copr_createrepo(copr_id):
             "You are not allowed to recreate repository metadata of copr with id {}.".format(copr_id), "error")
         return flask.redirect(url_for_copr_details(copr))
 
-    actions_logic.ActionsLogic.send_createrepo(copr)
+    actions_logic.ActionsLogic.send_createrepo(copr, devel=False)
     db.session.commit()
 
     flask.flash("Repository metadata in all directories will be regenerated...", "success")

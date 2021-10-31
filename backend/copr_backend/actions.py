@@ -116,6 +116,7 @@ class Createrepo(Action):
         project_dirnames = data["project_dirnames"]
         chroots = data["chroots"]
         appstream = data["appstream"]
+        devel = data["devel"]
 
         result = ActionResult.SUCCESS
 
@@ -132,7 +133,8 @@ class Createrepo(Action):
                 except FileExistsError:
                     pass
 
-                if not call_copr_repo(repo, appstream=appstream, logger=self.log):
+                if not call_copr_repo(repo, appstream=appstream, devel=devel,
+                                      logger=self.log):
                     result = ActionResult.FAILURE
 
         return result

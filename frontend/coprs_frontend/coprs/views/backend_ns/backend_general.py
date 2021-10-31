@@ -27,7 +27,7 @@ def send_frontend_version(response):
     do something new with the protocol.  On the Backend/builder side we can
     setup the version according to our needs.
     """
-    response.headers['Copr-FE-BE-API-Version'] = '2'
+    response.headers['Copr-FE-BE-API-Version'] = '3'
     return response
 
 

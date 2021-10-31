@@ -77,7 +77,8 @@ class ActionsLogic(object):
         return action
 
     @classmethod
-    def send_createrepo(cls, copr, dirnames=None, chroots=None):
+    def send_createrepo(cls, copr, dirnames=None, chroots=None, devel=None,
+                        priority=None):
         """
         Create a new createrepo Action in queue for given copr.
 
@@ -87,6 +88,11 @@ class ActionsLogic(object):
             otherwise the createrepo action is run in all dirnames.
         :param chroots: List of MockChroot *names*.  Optional, by default
             createrepo is run in all active chroots.
+        :param devel: If devel=True, the createrepo action is run only in the
+            devel/ subdirectory, if devel=False the createrepo is run in the
+            "production" directory.  When devel=None, depending on the current
+            auto_createrepo settings, both production and devel might be
+            regenerated.
         """
         possible_dirnames = [copr_dir.name for copr_dir in copr.dirs]
         if not dirnames:
@@ -109,15 +115,28 @@ class ActionsLogic(object):
             "chroots": chroots,
             "appstream": copr.appstream,
         }
-        action = models.Action(
-            action_type=ActionTypeEnum("createrepo"),
-            object_type="repository",
-            object_id=0,
-            data=json.dumps(data_dict),
-            created_on=int(time.time()),
-        )
-        db.session.add(action)
-        return action
+
+        run_in = set()
+        if devel is None:
+            run_in.add('prod')
+            if not copr.auto_createrepo:
+                run_in.add('dev')
+        else:
+            run_in.add('dev' if devel else 'prod')
+
+        for run in run_in:
+            data_dict["devel"] = run == "dev"
+            action = models.Action(
+                action_type=ActionTypeEnum("createrepo"),
+                object_type="repository",
+                object_id=0,
+                data=json.dumps(data_dict),
+                created_on=int(time.time()),
+            )
+            if priority is not None:
+                action.priority = priority
+            db.session.add(action)
+
 
     @classmethod
     def send_delete_copr(cls, copr):

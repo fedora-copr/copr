@@ -8,7 +8,7 @@ import logging
 from copr_common.request import SafeRequest, RequestError
 from copr_backend.exceptions import FrontendClientException
 
-MIN_FE_BE_API = 2
+MIN_FE_BE_API = 3
 
 class FrontendClient:
     """

@@ -49,11 +49,7 @@ name='{{ repo["name"] }}'
 baseurl={{ repo["baseurl"] }}
 gpgcheck=0
 enabled=1
-{%- if repo['id'] == 'copr_base_devel' %}
-skip_if_unavailable=1
-{%- else %}
 skip_if_unavailable=0
-{%- endif %}
 metadata_expire=0
 cost=1
 best=1
