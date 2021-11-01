@@ -140,6 +140,10 @@ class Config(object):
     # Default value for temporary projects
     DELETE_AFTER_DAYS = 60
 
+    # Turn-on the in-code checkpoints (additional logging info output).  See the
+    # 'measure.py' module for more info.
+    DEBUG_CHECKPOINTS = False
+
 
 class ProductionConfig(Config):
     DEBUG = False

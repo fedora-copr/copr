@@ -21,6 +21,7 @@ from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
+from coprs.measure import checkpoint_start
 
 
 def create_user_wrapper(username, email, timezone=None):
@@ -77,6 +78,11 @@ def lookup_current_user():
     if username:
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
+
+
+@app.before_request
+def measure_setup():
+    checkpoint_start()
 
 
 def page_not_found(message):
