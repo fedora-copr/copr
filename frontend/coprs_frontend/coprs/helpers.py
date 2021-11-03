@@ -647,16 +647,18 @@ def pluralize(what: str, items: list, be_suffix: bool = False) -> str:
     """
     By giving ``what`` string (e.g. "build") and ``items`` array, return string
     in either of those formats:
-    - "builds 1, 2, 3 and 4[ are]"
+    - "builds 1, 2, 3, and 4[ are]"
+    - "builds 1, 2, and others[ are]"
     - "builds 1 and 2[ are]"
     - "build 31[ is]"
     """
     if len(items) > 1:
-        return "{}s {} and {}{}".format(
-            what,
-            ', '.join(str(item) for item in items[:-1]),
-            str(items[-1]),
-            " are" if be_suffix else ""
+        return "{what}s {list}{comma} and {last}{be_suffix}".format(
+            what=what,
+            list=', '.join(str(item) for item in items[:-1]),
+            comma=',' if len(items) > 2 else "",
+            last=str(items[-1]),
+            be_suffix=" are" if be_suffix else "",
         )
     return "{} {}{}".format(
         what,

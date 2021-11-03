@@ -295,7 +295,8 @@ def test_worklist_class():
 def test_pluralize():
     """ test generic I/O for helpers.pluralize """
     # we don't explicitly re-order
-    assert pluralize("build", [2, 1, 3], be_suffix=True) == "builds 2, 1 and 3 are"
+    assert pluralize("build", [2, 1, 3], be_suffix=True) == "builds 2, 1, and 3 are"
+    assert pluralize("build", [2, 1, "others"], be_suffix=True) == "builds 2, 1, and others are"
     assert pluralize("action", [1], be_suffix=True) == "action 1 is"
     assert pluralize("sth", [1, 2], be_suffix=False) == "sths 1 and 2"
     assert pluralize("a", [2], be_suffix=False) == "a 2"
