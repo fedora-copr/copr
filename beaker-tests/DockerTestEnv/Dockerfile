@@ -5,16 +5,13 @@ ENV container docker
 
 RUN dnf -y update \
     && dnf -y install dnf-plugins-core wget \
-    && wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d \
-    && true "see https://github.com/beakerlib/beakerlib/issues/103" \
-    && sed -i 's/$releasever/33/' /etc/yum.repos.d/beaker-client-Fedora.repo \
     && dnf -y copr enable @copr/copr \
     && if test "$COPR_PACKAGES" = devel; then dnf -y copr enable @copr/copr-dev; fi \
     && dnf -y install hostname htop net-tools iputils vim mlocate git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect python3-behave python3-hamcrest \
     && dnf -y install python3-copr rpm-build copr-cli jq \
-    && dnf -y install rhts-test-env beakerlib \
+    && dnf -y install beakerlib \
     && dnf -y clean all
 
 RUN for repo in fedora updates updates-testing; do \

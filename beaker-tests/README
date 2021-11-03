@@ -63,28 +63,32 @@ results file in the end, on which tests can be run afterwards. Often a new test 
 *                    Sanity tests                  *
 ****************************************************
 
-They should rather be called "Integration" tests as they mostly test the whole COPR stack starting from copr-cli down to backend.
-Note that those tests run against public copr-*-dev.fedorainfracloud.org machines as opposed to Regression tests that run
-against private, locally spawned containers and VMs.
+They should rather be called "Integration" or "Black box" tests as they mostly
+test the whole COPR stack starting from copr-cli down to backend.
+
+Note that those tests are run against a pre-existing development Copr
+deployments, as opposed to Regression tests that run against private, locally
+spawned containers and VMs.
 
 How to run the tests
 --------------------
-Go into Sanity/copr-cli-basic-operations and run the runtest.sh script:
 
-./runtest.sh
+Go into Sanity/copr-cli-basic-operations and run the all-in-tmux.sh script:
 
-Requirements to run the tests
------------------------------
-To run beaker tests locally (not on a Beaker machine), you need the following packages
-to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
+  $ ./all-in-tmux.sh
 
-- rhts-test-env
+
+Requirements of sanity tests
+----------------------------
+
+To run beaker tests locally, you need the following packages installed:
+
 - beakerlib
 - rpm-build
 - jq
-- python3-copr and copr-cli (tested version)
+- python3-copr and copr-cli (the version you want to test, usually pre-release)
 - python3-behave and python3-hamcrest (for the BDD tests)
 
 Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh which needs
 a root access for many tasks.  That's why you might want to run the test inside
-a container or vm (see DockerTestEnv docs above).
+a container or VM (see DockerTestEnv docs above).
