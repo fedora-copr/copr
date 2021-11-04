@@ -17,6 +17,7 @@ requires = [
     'marshmallow',
     'requests',
     'requests-toolbelt',
+    'setuptools',
     'six',
     'munch',
 ]

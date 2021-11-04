@@ -112,7 +112,7 @@ Requires: python2-six >= 1.9.0
 %package -n python3-copr
 Summary:        Python interface for Copr
 
-# for recent fedoras the requires are generated dynamicaly
+# for recent fedoras the requires are generated dynamically
 %if 0%{?fedora} && 0%{?fedora} < 31 || 0%{?rhel} && 0%{?rhel} <= 8
 
 BuildRequires: python3-devel
