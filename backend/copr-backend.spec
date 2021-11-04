@@ -41,6 +41,7 @@ BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-copr-messaging
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
+BuildRequires: python3-distro
 BuildRequires: python3-fedmsg
 BuildRequires: python3-filelock
 BuildRequires: python3-gobject

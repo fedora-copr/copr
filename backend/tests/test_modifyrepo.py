@@ -1,17 +1,22 @@
+"""
+Testing for 'copr-repo' script (Copr Backend codebase)
+"""
+
 import contextlib
-import os
+import glob
 import logging
+import os
 import runpy
 import shutil
 import subprocess
 import tempfile
 import time
-import glob
 from unittest import mock
 
-import pytest
-from packaging import version
+import distro
 import munch
+from packaging import version
+import pytest
 
 from testlib.repodata import load_primary_xml
 from testlib import (
@@ -375,6 +380,10 @@ class TestModifyRepo(object):
         call = popen.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--add', 'xxx']
 
+    @pytest.mark.skipif(
+        distro.id() == 'fedora' and int(distro.version()) >= 36,
+        reason="createrepo_c dropped md5 checksum support"
+    )
     def test_copr_repo_el5(self, f_third_build):
         """
         Test that special createrepo_c arguments are used when creating
