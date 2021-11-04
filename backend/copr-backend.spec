@@ -166,8 +166,6 @@ cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 touch %{buildroot}%{_var}/log/copr-backend/copr.log
 touch %{buildroot}%{_var}/log/copr-backend/prune_old.log
 
-touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
-
 cp -a units/*.{target,service} %{buildroot}/%{_unitdir}/
 install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
@@ -215,7 +213,6 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %attr(0755, copr, copr) %{_var}/log/copr-backend
 
 %ghost %{_var}/log/copr-backend/*.log
-%ghost %{_var}/run/copr-backend/copr-be.pid
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %dir %{_pkgdocdir}
