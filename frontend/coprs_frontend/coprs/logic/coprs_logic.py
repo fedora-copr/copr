@@ -11,7 +11,7 @@ import flask
 from sqlalchemy import not_
 from sqlalchemy import desc
 from sqlalchemy.event import listens_for
-from sqlalchemy.orm.attributes import NEVER_SET
+from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
@@ -761,7 +761,7 @@ class CoprDirsLogic(object):
 @listens_for(models.Copr.auto_createrepo, 'set')
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     """ Emit createrepo action when auto_createrepo re-enabled"""
-    if old_value_acr == NEVER_SET:
+    if old_value_acr in [NEVER_SET, NO_VALUE]:
         # Created a new copr.  We handle the createrepo actions within
         # CoprsLogic.add() and the CoprChrootsLogic.new_from_names() called
         # inside.
