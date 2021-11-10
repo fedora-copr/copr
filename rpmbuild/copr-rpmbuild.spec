@@ -329,6 +329,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.55.1-1
+- Fixing copr-common version
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.54.2.dev-1
 - Fixup ACR handling
 - Always set 'requests.get()' timeout
