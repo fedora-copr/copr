@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.105.2.dev
 
 Name:       copr-cli
-Version:    1.96
+Version:    1.97
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -128,6 +128,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.97-1
+- More detailed "Request is not in JSON format" error
+- APIv3 /monitor route
 * Thu Sep 30 2021 Silvie Chlupova 1.96-1
 - frontend: speedup for listing builds via APIv3
 - cli: print JSON list continuously, not at once when all items are fetched
