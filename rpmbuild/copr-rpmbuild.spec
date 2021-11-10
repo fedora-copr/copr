@@ -11,6 +11,7 @@
 %global rpm_python      rpm-python
 %global sitelib         %python_sitelib
 %endif
+%global copr_common_version 0.12.1.dev
 
 # do not build debuginfo sub-packages
 %define debug_package %nil
@@ -31,7 +32,7 @@ License: GPLv2+
 # tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
 
-BuildRequires: %{python}-copr-common >= 0.13.1
+BuildRequires: %{python}-copr-common >= %copr_common_version
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
 %if 0%{?rhel} == 0 || 0%{?rhel} != 6
@@ -59,7 +60,7 @@ Requires: python2-configparser
 %endif
 
 Requires: %python
-Requires: %{python}-copr-common >= 0.13.1
+Requires: %{python}-copr-common >= %copr_common_version
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
