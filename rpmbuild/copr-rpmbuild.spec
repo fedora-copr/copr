@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.54.2.dev
+Version: 0.55.1
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -31,7 +31,7 @@ License: GPLv2+
 # tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
 
-BuildRequires: %{python}-copr-common
+BuildRequires: %{python}-copr-common >= 0.13.1
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
 %if 0%{?rhel} == 0 || 0%{?rhel} != 6
@@ -59,7 +59,7 @@ Requires: python2-configparser
 %endif
 
 Requires: %python
-Requires: %{python}-copr-common >= 0.12.1.dev
+Requires: %{python}-copr-common >= 0.13.1
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
