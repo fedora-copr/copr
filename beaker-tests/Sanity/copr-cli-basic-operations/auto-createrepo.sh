@@ -45,7 +45,7 @@ rlJournalStart
         rlRun "copr-cli build $PROJECT_T $HELLO"
 
         rlLog "The devel repo must not exist in $PROJECT_F, till we flip the config"
-        rlRun "check_repo $BACKEND_URL/results/$PROJECT_F/$CHROOT/devel" 1
+        rlRun "check_repo $BACKEND_URL/results/$PROJECT_F/$CHROOT/devel" 22
 
 
         rlRun "copr-cli modify --disable_createrepo true $PROJECT_F"
