@@ -15,7 +15,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.113
+Version:    1.114
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -233,6 +233,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.114-1
+- Depend on setuptools for the pkg_resources
+- APIv3 /monitor route
 * Thu Sep 30 2021 Silvie Chlupova 1.113-1
 - cli: add regenerate-repos command
 - doc: fix typo and installation dir for python-copr
