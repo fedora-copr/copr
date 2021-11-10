@@ -9,7 +9,7 @@
 %global copr_common_version 0.11.1.dev
 
 Name:       copr-backend
-Version:    1.151
+Version:    1.152
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.152-1
+- Fixup ACR handling
+- Drop the unused pid file from the specfile
 * Thu Sep 30 2021 Silvie Chlupova 1.151-1
 - backend: use lock(timeout=5) to work-around fair-locks
 
