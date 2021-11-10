@@ -20,7 +20,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.54.1.dev
+Version: 0.54.2.dev
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -329,6 +329,12 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.54.2.dev-1
+- Fixup ACR handling
+- Always set 'requests.get()' timeout
+- Drop ANSI escape sequences from logs again
+- Install fedora-review-plugin-java
+
 * Mon Oct 11 2021 Pavel Raiskup <praiskup@redhat.com> 0.54-1
 - %%auto{spec,changelog} support for DistGit method
 
