@@ -1,0 +1,79 @@
+#! /usr/bin/python3
+
+"""
+Helper script to execute a given (root) command on all Copr infrastructure
+machines related to given Copr instance.  Use like:
+
+    $ ./releng/run-on-all-infra 'rpm -qa | grep copr'
+    === host: copr-fe.aws.fedoraproject.org
+    copr-selinux-1.53-4.fc33.noarch
+    python3-copr-common-0.12-1.fc33.noarch
+    copr-frontend-fedora-1.182-1.fc33.noarch
+    copr-frontend-1.182-1.fc33.noarch
+    === host: copr-be.aws.fedoraproject.org
+    copr-selinux-1.53-4.fc33.noarch
+    python3-copr-messaging-0.5-1.fc33.noarch
+    python3-copr-common-0.12-1.fc33.noarch
+    python3-copr-1.113-1.fc33.noarch
+    copr-cli-1.96-1.fc33.noarch
+    copr-backend-1.151-1.fc33.noarch
+    === host: copr-dist-git.aws.fedoraproject.org
+    copr-selinux-1.53-4.fc33.noarch
+    python3-copr-common-0.12-1.fc33.noarch
+    copr-dist-git-0.51-1.fc33.noarch
+    python3-copr-1.113-1.fc33.noarch
+    === host: copr-keygen.aws.fedoraproject.org
+    copr-selinux-1.53-4.fc33.noarch
+    copr-keygen-1.81-1.fc33.noarch
+"""
+
+import argparse
+import subprocess
+
+INSTANCES = {
+    "fedora": {
+        "prod": [
+            "copr-fe.aws.fedoraproject.org",
+            "copr-be.aws.fedoraproject.org",
+            "copr-dist-git.aws.fedoraproject.org",
+            "copr-keygen.aws.fedoraproject.org",
+        ],
+        "dev": [
+            "copr-fe-dev.aws.fedoraproject.org",
+            "copr-be-dev.aws.fedoraproject.org",
+            "copr-dist-git-dev.aws.fedoraproject.org",
+            "copr-keygen-dev.aws.fedoraproject.org",
+        ],
+    },
+    "redhat": {
+        "prod": [
+            "copr.devel.redhat.com",
+            "coprbe.devel.redhat.com",
+            "copr-dist-git.devel.redhat.com",
+            "copr-keygen.devel.redhat.com",
+        ],
+        "dev": [
+            "dev-copr.devel.redhat.com",
+            "dev-coprbe.devel.redhat.com",
+            "dev-copr-dist-git.devel.redhat.com",
+            "dev-copr-keygen.devel.redhat.com",
+        ],
+    },
+}
+
+
+def _get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--instance", default="fedora")
+    parser.add_argument("--devel", default=False, action="store_true")
+    parser.add_argument("command")
+    return parser
+
+
+if __name__ == "__main__":
+    args = _get_parser().parse_args()
+
+    for host in INSTANCES[args.instance]["dev" if args.devel else "prod"]:
+        command = ["ssh", "root@" + host, args.command]
+        print(f"=== host: {host}")
+        subprocess.call(command)
