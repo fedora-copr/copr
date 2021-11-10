@@ -115,6 +115,9 @@ version=%version %py2_install
 
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.13.1-1
+- Fixing copr-common version
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.12.2.dev-1
 - Always set 'requests.get()' timeout
 
