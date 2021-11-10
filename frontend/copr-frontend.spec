@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.182
+Version:    1.183
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -383,6 +383,31 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.183-1
+- ACR toggle - handle NO_VALUE specially too
+- Fixup ACR handling
+- "Rebuild All" form to respect chroot denylist
+- "rebuild all packages" from successful builds
+- Large project modification timeout fix
+- Homepage redesign
+- Speedup BuildChroot removals
+- Add BuildChroot(s) to Build ASAP if package is known
+- APIv3 /monitor route
+- Single before_request hook
+- Checkpoint measurement helpers
+- Assure error_handler error is 500
+- Handle CoprDir.get_by_copr consistently
+- Search by attributes using the input value
+- Print searched string with attributes
+- Add dropdown with hints for searching
+- Support searching by attributes and improve searching overall
+- Openid,login by email: guide user, don't do infinite loop
+- Conscious language (group blacklist -> denylist)
+- Conscious language (chroot blacklist -> denylist)
+- Change prompt from $ to #> in Quick Enable box
+- Accept admin permissions for Copr build
+- Explain what fedora-review project is
+
 * Fri Oct 01 2021 Pavel Raiskup <praiskup@redhat.com> 1.182-1
 - fixup SubqueryPaginator for older sqlalchemy versions
 
