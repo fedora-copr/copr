@@ -28,3 +28,13 @@ def step_impl(context):
     context.cli.run(cmd)
     context.add_cleanup(clean_project, context, name)
     context.last_project_name = name
+
+
+@given(u'a project with {chroot} chroot enabled')
+def step_impl(context, chroot):
+    name = context.scenario.name.replace(" ", "-").lower()
+    name = "{}-{}".format(name, context.started)
+    cmd = ["create", name, "--chroot", chroot]
+    context.cli.run(cmd)
+    context.add_cleanup(clean_project, context, name)
+    context.last_project_name = name

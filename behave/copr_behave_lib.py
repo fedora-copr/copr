@@ -136,6 +136,13 @@ class CoprCli:
         print("Found packages: {}".format(" ".join(packages)))
         return packages
 
+    def get_package_builds(self, owner, project, package):
+        """ Get the list of builds for given package """
+        cmd = self._base + ["get-package", "{}/{}".format(owner, project),
+                            "--name", package, "--with-all-builds"]
+        out, _ = run_check(cmd)
+        return json.loads(out)["builds"]
+
 
 def assert_is_subset(set_a, set_b):
     """ assert that SET_A is subset of SET_B """

@@ -2,6 +2,8 @@
 Steps related to Copr builds
 """
 
+import random
+from hamcrest import assert_that, equal_to, contains_string
 from behave import when, then  # pylint: disable=no-name-in-module
 
 from copr_behave_lib import run_check, run, assert_is_subset
@@ -41,6 +43,33 @@ def step_impl(context):
     finally:
         # do the tests
         run(['sudo', 'dnf', 'copr', 'remove', project_id])
+
+
+@then("there's a package {package} build with source version-release {vr} (without dist tag)")
+def step_impl(context, package, vr):
+    owner = context.cli.whoami()
+    project = context.last_project_name
+    found = False
+    for build in context.cli.get_package_builds(owner, project, package):
+        if build["source_package"]["version"] == vr:
+            found = True
+            break
+    assert_that(found, equal_to(True))
+
+
+@then('package changelog for {package_name} in {chroot} chroot contains "{string}" string')
+def step_impl(context, package_name, chroot, string):
+    owner = context.cli.whoami()
+    project = context.last_project_name
+    repo_id = "hell-{}".format(random.random())
+    repo_url = "/".join([context.backend_url, "results", owner, project, chroot])
+    repoquery = [
+        "dnf", "repoquery", "--disablerepo=*", "--enablerepo", repo_id,
+        "--repofrompath", "{},{}".format(repo_id, repo_url)
+    ]
+
+    out, _ = run_check(repoquery + ["--changelog", package_name])
+    assert_that(out, contains_string(string))
 
 
 @when(u'the package build is requested')
