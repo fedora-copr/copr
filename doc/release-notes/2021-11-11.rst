@@ -1,0 +1,87 @@
+.. _release_notes_2021_11_11:
+
+Highlights from 2021-11-11 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_, `Fedora 34`_, `Fedora 33`_,
+`EPEL 8`_, and `EPEL 7`_ Bodhi updates.
+
+Searching by attributes
+-----------------------
+
+It is now possible to search by using specific attributes such as project name,
+owner name, or package name. Searching strings such as @copr/copr of copr-cli
+returns the exact same results as previously but on top of that,
+it now recognizes the following GET parameters - `ownername`, `projectname`, `packagename`
+and their combinations. Dropdown button has been added to Web-UI next to the search
+box with predefined values to be searched.
+
+APIv3 /monitor route
+--------------------
+
+The monitor route was added to our API and it can be used also with the copr-cli as:
+
+.. code-block:: python
+
+    copr-cli monitor @copr/copr-dev --fields "name, chroot, state, url_build_log"
+
+Using this `monitor` command you can get information about package build state.
+You can also choose which fields you want to print out.
+
+Homepage redesign
+-----------------
+
+Our homepage was redesigned to a more modern form showing useful information about Copr.
+There is now information about number of Copr projects and number of Fedora users.
+We also added large search bar with instructions how to search by attributes such as username, group name, etc.
+and row of cards with some interesting documentation sections
+
+When you're logged in you can see your pinned projects. For users, that
+didn't customize their pinned projects, we show their most recent
+projects as a fallback.
+
+The "Rebuild all" packages feature enhanced
+-------------------------------------------
+
+Previously, when all packages were rebuilt, Copr built all the selected packages
+against all enabled chroots, ignoring the "chroot denylist" config (when some
+packages are not supposed to be in particular chroots). Newly, we respect the
+denylist by default, but users can opt-out from this.  `rhbz#2003474`_.
+
+Bugfixes
+--------
+
+- `#1951`_ - We now accept admin permissions for submitting Copr builds without
+  a need to explicitly grant the builder permissions either manually or automatically.
+
+- We fixed login issues that occurred when the user entered their email instead
+  of FAS username. This led to that the user was redirected to /login again
+  and again which caused an infinite loop. So now we inform the user to use
+  the FAS username instead of email.
+
+- `#1925`_ - Editing settings for rubygems/rubygems projects didn't work.
+  On @rubygems/rubygems in Fedora Copr, we faced timeouts when we tried to
+  disable mock chroots with too many BuildChroots. We prepared a custom
+  query for related BuildChroots that can be used with limit() safely.
+
+- `rhbz#2015964`_ - Removing of builds was too slow, so removing of corresponding project
+  with dozens of builds was taking too much time so the request was even able to
+  timeout.
+
+- `#1145`_ - Previously, user disabled the "automatic createrepo" feature, the builds
+  done against the "staging" `devel/` repository were done with `skip_if_unavailable=True`.
+  This had a potential for a very ugly problems, if the devel/ repository was really
+  temporarily unavailable (built failures, or even build successes against an unexpected
+  set of packages).
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-c0bdefd473
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-f6b2858d9d
+.. _`Fedora 33`: https://bodhi.fedoraproject.org/updates/FEDORA-2021-dad028058b
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-eedbf1f47d
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-e74efdc371
+
+.. _`#1951`: https://pagure.io/copr/copr/issue/1951
+.. _`#1925`: https://pagure.io/copr/copr/issue/1925
+.. _`#1145`: https://pagure.io/copr/copr/issue/1145
+.. _`rhbz#2015964`: https://bugzilla.redhat.com/2015964
+.. _`rhbz#2003474`: https://bugzilla.redhat.com/2003474
