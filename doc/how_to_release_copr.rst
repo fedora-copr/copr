@@ -143,6 +143,10 @@ Then, after some time (when the package is signed by Koji), you can use the
 staging infra repo on the devel copr stack (used by default), so for example you
 can re-run te tests against the soon-to-be production packages.
 
+Wait until the package is available in the staging infra repo::
+
+    ./releng/koji-infratag-available --stg --wait copr-rpmbuild-0.53-1.fc34.x86_64.rpm
+
 Prepare release notes
 .....................
 
@@ -192,9 +196,9 @@ rpmbuild, e.g.). ::
 
     ./releng/koji-infratag-move-prod copr-rpmbuild-0.53-1.fc34 ...
 
-This takes some time.  Wait till you see the packages in the infra repo (example
-for F33)::
+This takes some time. Wait until the packages are available in the infra repo::
 
+    ./releng/koji-infratag-available --prod --wait copr-rpmbuild-0.53-1.fc34.x86_64.rpm ...
     https://kojipkgs.fedoraproject.org/repos-dist/f33-infra/
 
 

@@ -1,0 +1,136 @@
+#! /usr/bin/python3
+
+"""
+Check if all expected packages are available in Fedora Infra tags or not"
+"""
+
+import os
+import sys
+import time
+import argparse
+import requests
+import hawkey
+from dnf.subject import Subject
+
+
+# Example URLs:
+# https://kojipkgs.fedoraproject.org/repos-dist/f33-infra-stg/latest/x86_64/kojipkgs
+# https://kojipkgs.fedoraproject.org/repos-dist/f33-infra/latest/x86_64/kojipkgs
+
+KOJIPKGS_HOSTNAME = "https://kojipkgs.fedoraproject.org"
+KOJIPKGS_PATH = "repos-dist/{repo_dist}/latest/{arch}/kojipkgs"
+PRODUCTION_DIST = "f{fversion}-infra"
+STAGING_DIST = "f{fversion}-infra-stg"
+
+
+def get_argparser():
+    name = "koji-infratag-available"
+    description = (
+        "Moving packages into the Fedora Infrastructure repositories is not "
+        "instant. The task finishes instantly but then we need to wait an "
+        "amount of time for the repository to regenerate. "
+        "This tool checks if all the expected packages are available or not."
+    )
+    parser = argparse.ArgumentParser(name, description=description)
+    instance_parser = parser.add_mutually_exclusive_group(required=True)
+    instance_parser.add_argument(
+        "--stg",
+        "--staging",
+        dest="staging",
+        action="store_true",
+        help="Check if the packages are available in the staging infra tag",
+    )
+    instance_parser.add_argument(
+        "--prod",
+        "--production",
+        dest="production",
+        action="store_true",
+        help="Check if the packages are available in the production infra tag",
+    )
+    parser.add_argument(
+        "--wait",
+        action="store_true",
+        help="Wait until all packages are available",
+    )
+    parser.add_argument(
+        "packages",
+        nargs="+",
+        help=("List of packages that we expect to be in the infra tag repo. "
+              "Full package names are expected, e.g. "
+              "copr-rpmbuild-0.53-1.fc34.x86_64.rpm"),
+    )
+    return parser
+
+
+def kojipkgs_url(staging, fversion, arch):
+    repo_dist = STAGING_DIST if staging else PRODUCTION_DIST
+    repo_dist = repo_dist.format(fversion=fversion)
+    path = KOJIPKGS_PATH.format(repo_dist=repo_dist, arch=arch)
+    return os.path.join(KOJIPKGS_HOSTNAME, path)
+
+
+def fetch_kojipkgs(staging, fversion, arch):
+    url = kojipkgs_url(staging, fversion, arch)
+    response = requests.get(url)
+    return response.json()
+
+
+def is_available(package, staging):
+    subject = Subject(package.rstrip(".rpm"))
+    nevras = subject.get_nevra_possibilities(forms=[hawkey.FORM_NEVRA])
+
+    if not nevras:
+        raise RuntimeError("Error 3")
+
+    nevra = nevras[0]
+    fversion = nevra.release.split(".")[-1]
+    arch = nevra.arch
+
+    if fversion.startswith("fc"):
+        fversion = fversion[2:]
+    if fversion.startswith("f"):
+        fversion = fversion[1:]
+    if not fversion.isnumeric():
+        raise RuntimeError("ERROR 1")
+
+    kojipkgs = fetch_kojipkgs(staging, fversion, arch)
+    return package in kojipkgs
+
+
+def are_available(packages, staging):
+    all_available = True
+    for package in packages:
+        available = is_available(package, staging)
+        print("{verb}: {package}"
+            .format(package=package,
+                    verb="Found" if available else "Missing"))
+
+        if not available:
+            all_available = False
+    return all_available
+
+
+def main():
+    parser = get_argparser()
+    args = parser.parse_args()
+
+    try:
+        while True:
+            available = are_available(args.packages, args.staging)
+            exitstatus = 0 if available else 1
+
+            if args.wait and not available:
+                print("Waiting ...")
+                print("")
+                time.sleep(5)
+                continue
+
+            sys.exit(exitstatus)
+
+    except RuntimeError as ex:
+        sys.stderr.write(str(ex) + "\n")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
