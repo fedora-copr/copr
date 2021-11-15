@@ -21,6 +21,11 @@ that can be done post-release.
 Tag untagged packages that have changes in them
 ...............................................
 
+Make sure you are on the ``main`` branch and that it is up-to-date::
+
+  git checkout main
+  git pull --rebase
+
 Run::
 
     tito report --untagged-commits
@@ -29,7 +34,7 @@ and walk the directories of packages listed, and tag them. During development,
 we sometimes put `.dev` suffix into our packages versions. See what packages has
 such version::
 
-    cat ../.tito/packages/* |grep .dev
+    cat ./.tito/packages/* |grep ".dev"
 
 If a package has `.dev` suffix, manually increment its version::
 
@@ -55,8 +60,8 @@ Build packages
 
 Build all the updated packages into ``@copr/copr`` copr project::
 
-    copr build-package @copr/copr --name python-copr
-    copr build-package @copr/copr --name copr-frontend
+    copr build-package @copr/copr --nowait --name python-copr
+    copr build-package @copr/copr --nowait --name copr-frontend
     ...
 
 
@@ -132,7 +137,30 @@ For each package do::
     # run this for other (server) packages (copr-frontend, copr-backend, ...)
     tito release fedora-git
 
-And submit them into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
+.. note::
+
+    Koji doesn't automatically put successfully built packages into the buildroot
+    for the following builds and therefore you can easily encounter failures of
+    ``copr-cli`` or copr server pacakges because of a missing dependency to
+    ``python3-copr`` or ``python3-copr-common`` that you have just built in Koji. To
+    fix this, you need to create a
+    `Bodhi override for those dependencies <https://fedoraproject.org/wiki/Bodhi/BuildRootOverrides>`_.
+    It takes up to 30 minutes to for the override to be available in the buildroot::
+
+        koji wait-repo f34-build --build=python-copr-common-0.13-1.fc34
+
+.. warning::
+
+   Tito doesn't work properly with more than one source, and when releasing
+   backend, it removes ``test-data-copr-backend-2.tar.gz`` from the DistGit
+   ``sources`` file. Until it gets resolved,
+   `fix this way <https://src.fedoraproject.org/rpms/copr-backend/c/65e663d23e5caaac01123bf8c0fc0e636fd08ee3>`_.
+
+
+Submit packages into stg infra tags
+...................................
+
+Submit the pacakges into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
 If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or someone on ``#fedora-admin`` libera.chat channel.
 We have wrappers around the ``koji`` tool for this.  First move the package to
 staging repo::
@@ -165,7 +193,7 @@ Schedule outage
 
 Schedule outage even if it has to happen in the next 5 minutes!
 
-Follow the instructions in `Outage SOP <https://docs.pagure.org/infra-docs/sysadmin-guide/sops/outage.html#id1>`_.
+Follow the instructions in `Outage SOP <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/outage/>`_.
 
 
 Announce the release
@@ -205,7 +233,7 @@ This takes some time. Wait until the packages are available in the infra repo::
 Upgrade production machines
 ...........................
 
-It is advised to stop ``copr-backend.service`` before upgrading production machines to avoid failing
+It is advised to stop ``copr-backend.target`` before upgrading production machines to avoid failing
 builds due to temporarily having installed incompatible versions of Copr packages.
 
 Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
