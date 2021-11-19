@@ -2,7 +2,7 @@
 .. _how_to_upgrade_persistent_instances_aws:
 
 How to upgrade persistent instances (Amazon AWS)
-================================================
+************************************************
 
 .. note::
    This document is specific to Amazon AWS. For OpenStack, see
@@ -13,11 +13,23 @@ a new Fedora version.
 
 
 Requirements
-------------
+============
 
 * access to `Amazon AWS`_
 * ssh access to batcave01
 * permissions to update aws.fedoraproject.org DNS records
+
+
+
+Pre-upgrade
+===========
+
+The goal is to do as much work pre-upgrade as possible while focusing
+only on important things and not creating a work overload with tasks,
+that can be done post-upgrade.
+
+Don't do the pre-upgrade too long before the actual upgrade. Ideally a couple of
+hours or a day before.
 
 
 Launch a new instance
@@ -72,7 +84,8 @@ the cheapest available instance type according to our needs.
 
 - Update the ``Size (GiB)`` value to resemble root partition size of
   the currently running instance
-- Select ``Encryption`` key, don't leave the partition unencrypted
+- Select ``Encryption`` key, don't leave the partition
+  unencrypted. Use whatever is ``(default)``
 
 
 5. Add Tags
@@ -89,6 +102,7 @@ the cheapest available instance type according to our needs.
 ...........................
 
 - Select an existing security group and pick one of
+
     - ``copr-frontend-sg``
     - ``copr-backend-sg``
     - ``copr-distgit-sg``
@@ -108,73 +122,172 @@ the cheapest available instance type according to our needs.
   run the playbooks on ``batcave01`` box against the newly spawned VM.
 
 
-9. Pre-prepare the new Backend VM
-.................................
-
-It's possible to run the playbook against the new copr-backend server before we
-actually shut-down the old one.  But to make sure that ansible won't complain,
-there needs to (a) exist a volume attached to the new box with label 'copr-repo'
-and we need to have (b) an existing complementary DNS record (copr-be-temp)
-poiting to non-elastic IP of the new server.
-
-
-10. Note the private IP addresses
-.................................
-
-Most of the communication within Copr stack happens on public interfaces via hostnames
-with one exception. Communication between ``backend`` and ``keygen`` is done on a private
-network behind a firewall through IP addresses that change when spawning a fresh instance.
-
-Change its IP address in ``inventory/group_vars/copr_dev``::
-
-    keygen_host: "172.XX.XX.XX"
-
-Whereas after updating a ``copr-backend`` (or dev) instance change the configuration in
-``inventory/group_vars/copr_keygen`` (or dev) and update the iptables rules::
-
-    custom_rules: [ ... ]
-
-
-"Not yet described" section
----------------------------
+Pre-prepare the new VM
+----------------------
 
 .. note::
-   This document was rewritten during our first upgrade since
-   migration to Amazon AWS and we haven't figure out how to do it
-   properly. Moreover, we needed to do a couple of one-time things
-   (regarding elastic IP addresses), that we probably won't have to do
-   the next upgrade. Once things gets clearer, we are going to update
-   this section.
 
-.. warning::
-   backend - You have to terminate existing resalloc resources.
-   See `Terminate resalloc resources`_.
+   Backend - It's possible to run the playbook against the new copr-backend
+   server before we actually shut-down the old one.  But to make sure that
+   ansible won't complain, we need
 
-By the end of this section, you should have your DNS records updated
-and hostnames pointing to the new unprovisioned instances. By this
-point, the outage starts.
+   - A volume attached to the new box with label 'copr-repo'. Use already
+     existing volume named ``data-copr-be-dev-initial-playbook-run``
+   - An existing complementary DNS record (``copr-be-temp`` or
+     ``copr-be-dev-temp``). poiting to the non-elastic IP of the new
+     server. See the `DNS SOP`_.
 
 
-Stop the old services
----------------------
+Note the private IP addresses
+-----------------------------
 
-Except for the `lighttpd.service` on the old copr-backend (still serving
-repositories to users), stop all of our services, timers and cron jobs so they
-don't collide or talk with the newly provisioned servers.
+Most of the communication within Copr stack happens on public interfaces via
+hostnames with one exception. Communication between ``backend`` and ``keygen``
+is done on a private network behind a firewall through IP addresses that change
+when spawning a fresh instance.
 
+.. note::
 
-Flip the elastic IPs
---------------------
+   Backend - Whereas after updating a ``copr-backend`` (or dev) instance change
+   the configuration in ``inventory/group_vars/copr_keygen_aws`` or
+   ``inventory/group_vars/copr_keygen_dev_aws`` and update the iptables rules::
 
-Except for copr-be, flip the Elastic IPs to the new instances.  This is needed
-to allow successful run of playbooks.
+        custom_rules: [ ... ]
 
 
 Don't start the services after first playbook run
 -------------------------------------------------
 
-Set the `services_disabled: true` in proper `inventory/group_vars/copr_*`
-grop.
+Set the ``services_disabled: true`` for your instance in
+``inventory/group_vars/copr_*_dev_aws`` for devel, or
+``inventory/group_vars/copr_*_aws`` for production.
+
+
+Outage window
+=============
+
+Once you start this section, try to be time-efficient because the services are
+down and unreachable by users.
+
+
+Stop the old services
+---------------------
+
+Except for the ``lighttpd.service`` on the old copr-backend (still serving
+repositories to users), and ``postgresql.service`` on the old copr-frontend (we
+will need it to backup the database), stop all of our services.
+
+.. warning::
+   Backend - You have to terminate existing resalloc resources.
+   See :ref:`Terminate resalloc resources <terminate_resalloc_vms>`.
+
++----------------+-----------------------------------------+
+|                | Command                                 |
++================+=========================================+
+| **frontend**   | ``systemctl stop httpd``                |
++----------------+-----------------------------------------+
+| **backend**    | ``systemctl stop copr-backend.target``  |
++----------------+-----------------------------------------+
+| **keygen**     | ``systemctl stop httpd signd``          |
++----------------+-----------------------------------------+
+| **distgit**    | ``systemctl stop copr-dist-git httpd``  |
++----------------+-----------------------------------------+
+
+Stop all timers and cron jobs so they don't collide or talk with the newly
+provisioned servers::
+
+    systemctl stop crond
+    systemctl stop *timer
+
+.. warning::
+   Backend - Do not forget to kill all ``/usr/bin/prunerepo`` and
+   ``/usr/bin/copr-backend-process-build`` processes. Ideally, you
+   should wait until ``/usr/bin/copr-backend-process-action`` gets finished.
+
+
+Umount data volumes from old instances
+--------------------------------------
+
+.. warning::
+   Backend - Keep the backend volume mounted to the old instance. We will take
+   care of that later
+
+.. note::
+   Distgit - Please be aware that production distgit has 3 volumes in
+   total (two of them mounted by label in ansible playbook). This is
+   different from all other instances (including ``copr-dist-git-dev``)
+
+.. note::
+   Frontend - On the new instance, it will be probably necessary to manually
+   upgrade the database to a new PostgreSQL version. This is our last chance to
+   :ref:`Backup the database <database_backup>` before the upgrade. Do it.
+
+   Once the backup is created, stop the PostgreSQL server::
+
+       systemctl stop postgresql
+
+
+It might not be clear what data volumes are mounted. You can checkout
+``roles/copr/*/tasks/mount_fs.yml`` in the ansible playbooks to see the data
+volumes.
+
+Umount data volumes and make sure everything is written::
+
+    umount /the/data/directory/mount/point
+    sync
+
+Perhaps you can shutdown the instance (but you don't have to)::
+
+    shutdown -h now
+
+
+Attach data volumes to the new instances
+----------------------------------------
+
+.. warning::
+   Backend - Keep the backend volume attached to the old instance. We will take
+   care of that later
+
+Open Amazon AWS web UI, select ``Volumes`` in the left panel, filter them with
+``CoprPurpose: infrastructure`` and ``CoprInstance`` either ``devel`` or
+``production``. Find the correct volume, select it, and ``Detach Volume``.
+
++----------------+-------------------------+------------------------------+
+|                | Dev                     | Production                   |
++================+=========================+==============================+
+| **frontend**   | data-copr-fe-dev        | data-copr-frontend-prod      |
++----------------+-------------------------+------------------------------+
+| **backend**    | data-copr-be-dev        | data-copr-backend-prod       |
++----------------+-------------------------+------------------------------+
+| **keygen**     | data-copr-keygen-dev    | data-copr-keygen-prod        |
++----------------+-------------------------+------------------------------+
+| **distgit**    | data-copr-distgit-dev   | | data-copr-distgit-prod     |
+|                |                         | | data-copr-distgit-log-prod |
+|                |                         | | copr-dist-git-swap         |
++----------------+-------------------------+------------------------------+
+
+Once it is done, right-click the volume again, and click to ``Attach Volume``
+(it can be safely attached to a running instance).
+
+
+Flip the elastic IPs
+--------------------
+
+.. warning::
+   Backend - Keep the backend elastic IP associated to the old instance. We will
+   take care of that later
+
+Except for copr-be, flip the Elastic IPs to the new instances.  This is needed
+to allow successful run of playbooks.
+
+Open Amazon AWS, in the left panel under ``Network & Security`` click to
+``Elastic IPs``. Filter them by either ``CoprInstance : devel`` or
+``CoprInstance : production``. Select the IP for your instance, and click
+``Actions``, ``Associate Elastic IP address`` (don't care that it is already
+associated to the old instance).
+
+- In the ``Instance`` field, search for your instance with ``-new`` suffix
+- Check-in the ``Check Allow this Elastic IP address to be reassociated`` option
 
 
 Provision new instance from scratch
@@ -186,17 +299,21 @@ file and set ``birthday=yes`` variable for your host, e.g.::
     [copr_front_dev_aws]
     copr-fe-dev.aws.fedoraproject.org birthday=yes
 
-On batcave01 run playbook to provision the instance.  Note that for backend, you
-need to **slightly modify the calls** to use `-l copr-be*-temp...`.
+On batcave01 run playbook to provision the instance (ignore the playbook for
+upgrading Copr packages).
 
-To make the playbook work with the new `copr-be*-temp` DNS record, we have to
-specify the host name on **TWO PLACES** in inventory inside  ansible.git::
+.. note::
+   Backend - You need to **slightly modify the calls** to use `-l
+   copr-be*-temp...`.
 
-    inventory/inventory -- copr_back_aws vs. copr_back_dev_aws groups
-    inventory/cloud -- cloud_aws
+    To make the playbook work with the new `copr-be*-temp` DNS record, we have to
+    specify the host name on **TWO PLACES** in inventory inside  ansible.git::
 
-If we don't, when the playbook is run, this breaks the nagios monitoring
-miserably.
+	inventory/inventory -- copr_back_aws vs. copr_back_dev_aws groups
+	inventory/cloud -- cloud_aws
+
+    If we don't, when the playbook is run, this breaks the nagios monitoring
+    miserably.
 
 For the dev instance, see
 
@@ -206,78 +323,54 @@ and for production, see
 
 https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-machines
 
-The playbook will fail on mounting a data volume (it wasn't attached
-to the instance yet). At this point (or if the provisioning got at
-least through the ``base`` role), revert the commit to remove the
-``birthday`` variable.
+It is possible that the playbook fails, it isn't important now. If the
+provisioning gets at least thgourh the ``base`` role, revert the commit to
+remove the ``birthday`` variable.
 
 
-Re-Attach the data volume
---------------------------
+Dealing with backend
+--------------------
 
-.. note::
-   Frontend - It will most likely be necessary to manualy upgrade the PostgreSQL
-   database once you migrated to the new Fedora (new PG major version).
-   Don't forget to `Backup the database`_ first.
-
-.. note::
-   Distgit - Please be aware that production distgit has 3 volumes in
-   total (two of them mounted by label in ansible playbook). This is
-   different from all other instances (including ``copr-dist-git-dev``)
+This is a backend-specific section. For other instaces, skip it completely.
 
 .. note::
     Backend - On the new `copr-be*-temp` hostname, stop the lighttpd
     etc. and umount the temporary volume.  It needs to be detached in
     AWS cli, too.
 
-Connect to the old instance via SSH. It doesn't have a hostname
-anymore, so you will need to use its public IP address.
-
-Stop all services using the data volume, e.g.::
-
-   systemctl stop lighttpd
+.. warning::
+    Backend - You should **hurry up** and go through this section quickly. The
+    storage will be down and end-users will see failed `dnf update ...`
+    processes in terminals.
 
 .. note::
-   Backend - Do not forget to kill all ``/usr/bin/prunerepo`` and
-   ``/usr/bin/copr-backend-process-build`` processes. Ideally, you
-   should wait until ``/usr/bin/copr-backend-process-action`` gets finished.
+    Backend - Connect to the old instance via SSH. It doesn't have a hostname
+    anymore, so you will need to use its public IP address.
 
-.. warning::
-    Backend - At this moment you should start **hurry up**, storage is
-    down and end-users see failed `dnf update ...` processes in
-    terminals.
+    Stop all services using the data volume, e.g.::
 
-Umount the data volume and make sure everything is written::
+        systemctl stop lighttpd
 
-    umount /the/data/directory/mount/point
-    sync
+    Safely ummount the data volume
 
-Perhaps you can shutdown the instance (but you don't have to)::
+    See `Umount data volumes from old instances`_
 
-    shutdown -h now
+.. note::
+   Backend - Open Amazon AWS, detach the data volume from the old backend
+   instance, and a attach it to the new one.
 
-And finally open Amazon AWS web UI, select ``Volumes`` in the left
-panel, filter them with ``CoprPurpose: infrastructure`` and
-``CoprInstance`` either ``devel`` or ``production``. Find the correct
-volume, see the instance it is attached to and make sure its stopped.
+   See `Attach data volumes to the new instances`_
 
-Then and only then right-click the volume and click to ``Detach
-Volume``. Once it is done, right-click the volume again, and click to
-``Attach Volume`` (it can be safely attached to a running instance).
+.. note::
+   Backend - Open Amazon AWS and finally flip the backend elastic IP address
+   from the old instance to the new one.
 
+   See `Flip the elastic IPs`_
 
-Finally flip the BE IP
-----------------------
+.. note::
+   Backend - Re-run the playbook again, this time with the correct hostname
+   (without ``-temp``) and drop the ``birthday=yes`` parameter.
 
-In the AWS attach the copr be elastic IP to the new server.
-
-
-Fix IPv6 DNS records
---------------------
-
-There is no support for Elastic IPs for IPv6, so we have to update AAAA records
-every time we spawn a new infrastructure machine.  SSH to batcave, and setup the
-DNS records there according to `the DNS SOP`_.
 
 Get it working
 --------------
@@ -295,16 +388,63 @@ point, you need to debug and fix the issues from running it. If required, adjust
 the playbook and re-run it again and again (pay attention to start lighttpd
 serving the repositories ASAP).
 
-You probably need to `Upgrade the database`_ now on frontend.
+.. note::
+   Frontend - It will most likely be necessary to manualy upgrade the PostgreSQL
+   database once you migrated to the new Fedora (new PG major version).
+   See how to :ref:`Upgrade the database <postgresql_upgrade>`.
 
 
-"Not yet described" section
----------------------------
+.. note::
+   Keygen - If you upgraded keygen before backend, you need to re-run keygen
+   playbook once more to allow the new backend private IP address in the
+   iptables.
+
+
+Update IPv6 addresses
+---------------------
+
+Update the ``aws_ipv6_addr`` for your instance in
+``inventory/group_vars/copr_*_dev_aws`` for devel, or
+``inventory/group_vars/copr_*_aws`` for production.
+
+Then run the playbooks once more with ``-t ipv6_config`` and reboot the
+instance (or figure out a better way to get them working).
+
+
+Fix IPv6 DNS records
+--------------------
+
+There is no support for Elastic IPs for IPv6, so we have to update AAAA records
+every time we spawn a new infrastructure machine.  SSH to batcave, and setup the
+DNS records there according to the `DNS SOP`_.
+
+
+Post-upgrade
+============
+
+At this moment, every Copr service should be up and running.
+
+
+Drop suffix from instances names
+--------------------------------
 
 Open Amazon AWS web UI, select ``Instances`` in the left panel, and filter
 them with ``CoprPurpose: infrastructure``. Rename all instances
 without ``-new`` suffix to end with ``-old`` suffix. Then drop
 ``-new`` suffix from the instances that have it.
+
+
+.. _`terminate_os_vms`:
+
+Terminate the old instances
+---------------------------
+
+Once you don't need the old VMs, you can terminate them e.g. in Amazon web
+UI. You can do it right after the upgrade or wait a couple of days to be sure.
+
+The instances should be protected against accidental termination, and therefore
+you need to click ``Actions``, go to ``Instance settings``,
+``Change termination protection``, and disable this option.
 
 
 Final steps
@@ -313,76 +453,7 @@ Final steps
 Don't forget to announce on `fedora devel`_ and `copr devel`_ mailing lists and also on
 ``#fedora-buildsys`` that everything should be working again.
 
-Close the infrastructure ticket.
-
-Troubleshooting
----------------
-
-Please note two addresses needs to be updated, both are backend's.
-
-Run provision playbooks for ``copr-backend`` and ``copr-keygen`` to propagate the changes
-to the respective instances.
-
-Terminate the old instance
---------------------------
-
-Once you don't need the old VMs, you can terminate them e.g. in Amazon web UI.
-
-.. _`terminate_resalloc_vms`:
-
-
-Terminate resalloc resources
-............................
-
-It is easier to close all resalloc tickets otherwise there will be dangling VMs
-preventing the backend from starting new ones.
-
-Edit the ``/etc/resallocserver/pools.yaml`` file and in all section, set::
-
-    max: 0
-
-Then delete all current resources::
-
-    su - resalloc
-    resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
-
-
-.. _`terminate_os_vms`:
-
-
-Backup the database
-...................
-
-We periodically create a databse dump and offer users to download
-it. At the same time, it can be used as a database backup if something
-wrong happens. Please see ``/etc/cron.d/cron-backup-database-coprdb``.
-To backup the databse before upgrading it, run::
-
-    [root@copr-fe ~][PROD]# su postgres
-    bash-5.0$ /usr/local/bin/backup-database coprdb
-
-Please be aware that the script does ``sleep`` for some
-undeterministic amount of time. You might want to kill the ``sleep``
-process to speed it up a little.
-
-
-Upgrade the database
-....................
-
-When upgrading to a distribution that provides a new major version of PostgreSQL server,
-there is a manual intervention required.
-
-Upgrade the database::
-
-    [root@copr-fe-dev ~][STG]# dnf install postgresql-upgrade
-    [root@copr-fe-dev ~][STG]# postgresql-setup --upgrade
-    [root@copr-fe-dev ~][STG]# systemctl start postgresql
-
-And rebuild indexes::
-
-    [root@copr-fe-dev ~][STG]# su postgres
-    bash-5.0$ cd
-    bash-5.0$ reindexdb --all
+Close the infrastructure ticket, the upgrade is done.
 
 
 
@@ -394,5 +465,5 @@ And rebuild indexes::
 .. _`copr devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`Amazon AWS`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
 .. _`Cloud Base Images`: https://alt.fedoraproject.org/cloud/
-.. _`the DNS SOP`: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/dns.html
+.. _`DNS SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/dns/
 .. _`ec2instances.info`: https://ec2instances.info/
