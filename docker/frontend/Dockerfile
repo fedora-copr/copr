@@ -1,4 +1,4 @@
-FROM fedora:33
+FROM fedora:35
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 # TERM is to make the tito work in container, rhbz#1733043

@@ -1,4 +1,4 @@
-FROM fedora:33
+FROM fedora:35
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 # Copy files from the host into the container

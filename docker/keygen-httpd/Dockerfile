@@ -1,4 +1,4 @@
-FROM fedora:33
+FROM fedora:35
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
@@ -22,8 +22,7 @@ RUN dnf -y update && \
                    python3-alembic \
                    postgresql-server \
                    redis \
-                   uwsgi \
-                   uwsgi-plugin-python3 && \
+                   && \
     dnf -y install copr-keygen && \
     dnf clean all
 
