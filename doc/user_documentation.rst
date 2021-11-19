@@ -76,10 +76,15 @@ list for the full option description:
 The last optional thing to configure (except for common build configuration option) is the SRPM build method. There are four choices available:
 **rpkg**, **tito**, **tito test**, and **make srpm**:
 
-**rpkg**: The default choice and the most versatile one. Apart from building packages from any Git or SVN repository,
-it also supports building directly from any `DistGit <https://clime.github.io/2017/05/20/DistGit-1.0.html>`_ repository.
-Note that **rpkg** (as well as **tito**) is not only a tool to generate SRPMs but, in fact, it is also a full-fledged package manager
-that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-util>`__.
+**rpkg**: The default method.  Apart from building packages from any Git or SVN
+repository, it also supports building directly from `DistGit`_ repositories.
+Note that **rpkg** (as well as **tito** below) is not only a tool to generate
+SRPMs but, in fact, it is also a full-fledged package manager
+that you can use from your command-line to maintain your (upstream) projects.
+You can read more about this tool `here <https://pagure.io/rpkg-util>`__.
+Note that starting from December 2021, Copr migrated to the **rpkg-util v3**,
+and so :ref:`your spec files need to use the {{{ }}} templates to comply
+<rpkg_util_v3>`.
 
 **tito**: is a robust RPM package manager with lots of features and if your project is managed with Tito, this is the tool you want to pick for SRPM generation (which is
 one of the many package manager's features). When this option is selected, the latest package GIT tag will be used to build an SRPM. Note that this utility has currently
@@ -120,6 +125,8 @@ Example of what can be put into ``.copr/Makefile``:
         tito build --builder=SomeBuilder --test --srpm --output=$(outdir)
 
 Note that the other tools (**tito** and **rpkg**) are run in the specified **Subdirectory** as well.
+
+.. _`dist-git method`:
 
 DistGit
 ^^^^^^^
@@ -631,6 +638,17 @@ contents of the directories.  Either please ignore the inconsistency, or visit
 the `non-cached host variant
 <http://copr-be.cloud.fedoraproject.org/results/>`_.
 
+.. _`Weird SCM build failure?`:
+
+.. rubric:: Weird SCM build failure? :ref:`¶ <Weird SCM build failure?>`
+
+It worked for me before, but I newly see the ``rpkg`` errors like::
+
+    Running: rpkg srpm --outdir /var/lib/copr-rpmbuild/results ...
+    Copr build error: error: Bad source: /var/lib/copr-rpmbuild/results/example-1.0.13.tar.gz: No such file or directory
+
+Please take a look at :ref:`rpkg_util_v3`.
+
 
 .. _`I have a problem and I need to talk to a human.`:
 
@@ -638,3 +656,4 @@ the `non-cached host variant
 
 We do not provide support per se, but try your luck here: :ref:`communication`
 
+.. _`DistGit`: https://clime.github.io/2017/05/20/DistGit-1.0.html
