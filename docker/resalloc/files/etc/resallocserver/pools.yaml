@@ -4,6 +4,7 @@ local_x86_64_normal_prod:
     max_prealloc: 1
     tags:
     - copr_builder
+    - arch_noarch
     - arch_x86_64
     - arch_x86_64_native
     - arch_i386
