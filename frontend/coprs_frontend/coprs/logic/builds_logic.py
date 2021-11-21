@@ -1454,7 +1454,8 @@ class BuildsMonitorLogic(object):
             .join(models.Package)
             .options(
                 load_only("build_id", "status", "mock_chroot_id", "result_dir"),
-                contains_eager("build").load_only("package_id", "copr_dir_id")
+                contains_eager("build").load_only("package_id", "copr_dir_id",
+                                                  "pkg_version")
                     .contains_eager("package").load_only("name"),
             )
             .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))

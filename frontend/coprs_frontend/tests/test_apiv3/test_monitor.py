@@ -51,6 +51,7 @@ class TestAPIv3Monitor(CoprsTestCase):
                             "build_id": 5,
                             "state": "succeeded",
                             "status": 1,
+                            "pkg_version": "1",
                     } | ({
                             "url_backend_log": (
                                 "http://copr-be-dev.cloud.fedoraproject.org/"
@@ -69,6 +70,7 @@ class TestAPIv3Monitor(CoprsTestCase):
                         "build_id": 2,
                         "state": "waiting",
                         "status": 9,
+                        "pkg_version": None,
                     } | ({
                         "url_backend_log": None,
                         "url_build_log": None,
@@ -118,11 +120,13 @@ class TestAPIv3Monitor(CoprsTestCase):
                         "build_id": 1,
                         "state": "succeeded",
                         "status": 1,
+                        "pkg_version": "1",
                     },
                     "fedora-rawhide-i386": {
                         "build_id": 1,
                         "state": "succeeded",
                         "status": 1,
+                        "pkg_version": "1",
                     },
                 },
             }]
@@ -162,6 +166,7 @@ class TestAPIv3Monitor(CoprsTestCase):
                         'status': 9,
                         # we don't have build log here
                         'url_build_log': None,
+                        'pkg_version': None,
                     },
                     'fedora-18-x86_64': {
                         'build_id': 1,
@@ -169,6 +174,7 @@ class TestAPIv3Monitor(CoprsTestCase):
                         'status': 9,
                         # we don't have build log here
                         'url_build_log': None,
+                        'pkg_version': None,
                     },
                 },
             }]

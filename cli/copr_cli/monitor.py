@@ -13,6 +13,7 @@ DEFAULT_FIELDS = [
     "chroot",
     "build_id",
     "state",
+    "pkg_version",
 ]
 
 ADDITIONAL_FIELDS = [

@@ -40,6 +40,7 @@ def monitor_generator(copr_dir, additional_fields):
             # anti-gc, this is a very small set of items
             anti_garbage_collector.add(bch.mock_chroot)
             anti_garbage_collector.add(bch.build.copr_dir)
+            chroot["pkg_version"] = bch.build.pkg_version
         yield {
             "name": package["name"],
             "chroots": chroots,
