@@ -121,6 +121,8 @@ services:
       - POSTGRESQL_DATABASE=coprdb
     ports:
       - 5009:5432
+    volumes:
+      - database:/var/lib/pgsql/data
 
   distgit:
     build:
@@ -168,3 +170,4 @@ volumes:
   results:
   copr-keygen:
   dist-git:
+  database:
