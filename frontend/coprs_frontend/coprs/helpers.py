@@ -753,3 +753,10 @@ def format_search_string(params):
     if not fulltext:
         return result
     return ", ".join([result, fulltext])
+
+def db_column_length(column):
+    """
+    Return the maximum string length for a given database column.
+    Call with e.g. `column=models.Package.name`
+    """
+    return getattr(column, "property").columns[0].type.length

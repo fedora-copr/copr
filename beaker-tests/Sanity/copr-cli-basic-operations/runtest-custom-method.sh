@@ -205,9 +205,25 @@ rlJournalStart
     rlRun 'copr watch-build $BUILD_ID'
     rlRun 'copr download-build $BUILD_ID --dest $RESULTDIR'
     rlRun 'FILES="success" check_resultdir quick-package-0-0'
+
+
+    rlLogInfo "Test too-long package name failure"
+    rlRun 'cleanup_resultdir'
+    rlRun 'quick_package_script generate_specfile'
+    package_name="8393c911463547b196d8914faa0b00848393c911463547b196d8914faa0b00848393c911463547b196d8914faa0b008412345678"
+    rlRun 'sed -i "s/Name.*$/Name: $package_name/g" script'
+    rlRun -s "copr buildcustom '$PROJECT' \
+        --script script \
+        --script-chroot fedora-rawhide-x86_64 \
+        --nowait"
+    rlRun 'parse_build_id'
+    rlRun "copr watch-build $BUILD_ID" 4
+    rlRun "wget $BACKEND_URL/results/$USER/$PROJECT/srpm-builds/$(printf %08d "$BUILD_ID")/backend.log.gz"
+    rlRun "zcat backend.log.gz |grep 'Too long package name'"
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        rlRun 'cleanup_resultdir'
         cleanProject "custom-1-$NAME_VAR"
     rlPhaseEnd
 

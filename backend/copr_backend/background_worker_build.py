@@ -18,7 +18,7 @@ from copr_common.enums import StatusEnum
 from copr_backend.background_worker import BackgroundWorker
 from copr_backend.cancellable_thread import CancellableThreadTask
 from copr_backend.constants import build_log_format
-from copr_backend.exceptions import CoprSignError
+from copr_backend.exceptions import CoprSignError, CoprBackendError
 from copr_backend.helpers import (
     call_copr_repo, pkg_name_evr, run_cmd, register_build_result,
 )
@@ -740,6 +740,7 @@ class BuildBackgroundWorker(BackgroundWorker):
             self._parse_results()
             build_details = self._get_build_details(self.job)
             self.job.update(build_details)
+            self.job.validate()
             self._add_pubkey()
         except:
             failed = True
@@ -786,7 +787,7 @@ class BuildBackgroundWorker(BackgroundWorker):
         """ called by WorkerManager (entry point) """
         try:
             self.handle_build()
-        except (BackendError, BuildCanceled) as err:
+        except (BackendError, BuildCanceled, CoprBackendError) as err:
             self.log.error(str(err))
         except CoprSignError as err:
             self.log.error("Copr GPG signing problems: %s", str(err))

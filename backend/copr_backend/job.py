@@ -1,6 +1,7 @@
 import copy
 import os
 
+from copr_backend.exceptions import CoprBackendSrpmError
 from copr_backend.helpers import build_target_dir
 
 
@@ -58,6 +59,7 @@ class BuildJob(object):
         self.source_type = None
         self.source_json = None
 
+        self.pkg_name = None
         self.pkg_main_version = None
         self.pkg_epoch = None
         self.pkg_release = None
@@ -144,6 +146,17 @@ class BuildJob(object):
         """
         # TODO: validate update data
         self.__dict__.update(data_dict)
+
+    def validate(self):
+        """
+        Make sure the build results don't contain anything problematic
+        """
+        if self.pkg_name and len(self.pkg_name) > 100:
+            msg = "Too long package name: {0}".format(self.pkg_name)
+            # Truncate the package name otherwise frontend won't be able to
+            # handle it
+            self.pkg_name = None
+            raise CoprBackendSrpmError(msg)
 
     def to_dict(self):
         """

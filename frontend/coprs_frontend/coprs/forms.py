@@ -782,6 +782,9 @@ class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[
+            wtforms.validators.Length(
+                max=helpers.db_column_length(models.Package.name)
+            ),
             wtforms.validators.Regexp(
                 re.compile(package_name_regex),
                 message="Please enter a valid package name in " \
@@ -859,7 +862,13 @@ class PackageFormScm(BasePackageForm):
 class PackageFormPyPI(BasePackageForm):
     pypi_package_name = wtforms.StringField(
         "PyPI package name",
-        validators=[wtforms.validators.DataRequired()])
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.Length(
+                max=(helpers.db_column_length(models.Package.name)
+                     - len("python-"))
+            ),
+        ])
 
     pypi_package_version = wtforms.StringField(
         "PyPI package version",
@@ -898,7 +907,13 @@ class PackageFormPyPI(BasePackageForm):
 class PackageFormRubyGems(BasePackageForm):
     gem_name = wtforms.StringField(
         "Gem Name",
-        validators=[wtforms.validators.DataRequired()])
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.Length(
+                max=(helpers.db_column_length(models.Package.name)
+                     - len("rubygem-"))
+            ),
+        ])
 
     @property
     def source_json(self):
