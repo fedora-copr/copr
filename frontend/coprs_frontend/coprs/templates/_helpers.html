@@ -963,7 +963,8 @@ https://accounts.fedoraproject.org/group/{{name}}
 {% endmacro %}
 
 
-{% macro projects_header(new_project=True, fedora_review=True, customize_pinned=True) %}
+{% macro projects_header(new_project=True, fedora_review=True,
+                         customize_pinned=True, my_projects=True) %}
 <div class="btn-group pull-right" role="group">
 
   {% if new_project %}
@@ -974,13 +975,21 @@ https://accounts.fedoraproject.org/group/{{name}}
 
   {% if fedora_review %}
   <a href="{{url_for('coprs_ns.copr_add_fedora_review', username=g.user.name) }}"
-      class="btn button-new btn-secondary">
+      class="btn button-new btn-default">
     <span class="pficon pficon-add-circle-o"></span> Fedora Review </a>
   {% endif %}
 
+  {% if my_projects %}
+  <a href="{{ url_for('coprs_ns.coprs_by_user', username=g.user.name) }}"
+      class="btn button-new btn-default">
+    <span class="fa fa-bars"></span> My Projects</a>
+  {% endif %}
+
+
   {% if customize_pinned %}
-  <a href="{{ url_for('user_ns.pinned_projects') }}" class="btn button-new btn-secondary">
-    <span class="pficon pficon-edit"></span> Customize pinned
+  <a href="{{ url_for('user_ns.pinned_projects') }}"
+     class="btn button-new btn-default">
+    <span class="pficon pficon-edit"></span> Customize Pinned
   </a>
   {% endif %}
 
