@@ -12,10 +12,10 @@ import logging
 import argparse
 import multiprocessing
 from datetime import datetime, timedelta
+from copr_common.tree import walk_limited
 from copr_backend.helpers import (
     BackendConfigReader,
     get_redis_logger,
-    walk_limited,
 )
 
 

@@ -1,6 +1,11 @@
 #!/usr/bin/sh
 
 runuser -c 'find /var/lib/copr-dist-git/per-task-logs -name *.log -mtime +30 -delete' - copr-dist-git
+# WARNING:  Destructive option!
+# When you uncomment this, all the sources from the dist-git lookaside cache
+# will be periodically unlinked, except for those sources mentioned in the
+# last commits of the git repo branches.
+# runuser -c 'dist-git-clear-tarballs.py' - copr-dist-git
 
 # From time to time assure that the CGIT caches are consistent, and that the
 # ownership of cache files is correct (run this as root).

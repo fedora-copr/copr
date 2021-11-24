@@ -10,7 +10,9 @@ import sys
 import pwd
 import argparse
 
-from copr_backend.helpers import BackendConfigReader, walk_limited
+from copr_common.tree import walk_limited
+from copr_backend.helpers import BackendConfigReader
+
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger()
