@@ -189,7 +189,7 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
     # rpkg gets module_name as a basename of git url
     # we use module_name as "username/projectname/package_name"
     # basename is not working here - so I'm setting it manually
-    commands.module_name = reponame
+    commands.repo_name = reponame
 
     # rpkg calls upload.cgi script on the dist git server
     # here, I just copy the source files manually with custom function

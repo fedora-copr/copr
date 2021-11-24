@@ -32,7 +32,7 @@ Requires: crudini
 Requires: dist-git
 Requires: python3-copr-common
 Requires: python3-requests
-Requires: python3-rpkg >= 1.61
+Requires: python3-rpkg >= 1.63-5
 Requires: python3-munch
 Requires: python3-oslo-concurrency
 Requires: python3-setproctitle
