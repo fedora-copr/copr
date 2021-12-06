@@ -436,7 +436,8 @@ def send_build_icon(build, no_cache=False):
         response = send_file("static/status_images/unknown.png", mimetype='image/png')
 
     if no_cache:
-        response.headers['Cache-Control'] = 'public, max-age=60'
+        response.headers['Cache-Control'] = 'no-cache'
+        response.headers['Pragma'] = 'no-cache'
     return response
 
 
