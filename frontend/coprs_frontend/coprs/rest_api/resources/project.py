@@ -4,7 +4,7 @@ import flask
 from flask import url_for, make_response
 from flask_restful import Resource
 
-from ... import db, models
+from ... import db
 from ...logic.builds_logic import BuildsLogic
 from ...logic.complex_logic import ComplexLogic
 from ...logic.helpers import slice_query
@@ -69,22 +69,27 @@ class ProjectListR(Resource):
         req_args = parser.parse_args()
 
         if req_args["search_query"]:
-            query = CoprsLogic.get_multiple_fulltext(req_args["search_query"])
+            ownername = req_args["owner"]
+            if req_args["group"]:
+                ownername = "@" + req_args["group"]
+
+            query = CoprsLogic.get_multiple_fulltext(
+                req_args["search_query"],
+                projectname=req_args["name"],
+                ownername=ownername)
+
         else:
             query = CoprsLogic.get_multiple(flask.g.user)
+            if req_args["owner"]:
+                query = CoprsLogic.filter_by_user_name(query, req_args["owner"])
+
+            if req_args["group"]:
+                query = CoprsLogic.filter_by_group_name(query, req_args["group"])
+
+            if req_args["name"]:
+                query = CoprsLogic.filter_by_name(query, req_args["name"])
 
         query = CoprsLogic.set_query_order(query)
-
-        if req_args["owner"]:
-            query = query.join(models.User, models.Copr.user_id == models.User.id)
-            query = CoprsLogic.filter_by_user_name(query, req_args["owner"])
-
-        if req_args["group"]:
-            query = query.join(models.Group)
-            query = CoprsLogic.filter_by_group_name(query, req_args["group"])
-
-        if req_args["name"]:
-            query = CoprsLogic.filter_by_name(query, req_args["name"])
 
         limit = 100
         offset = 0
