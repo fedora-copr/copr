@@ -72,8 +72,9 @@ RUN chmod 700 /root && \
 # copr user needs permissions for /bin/sign
 RUN gpasswd -a copr obsrun
 
-# copr user needs permissions to create lock files
-RUN chmod o+w /var/lock
+# Not sure why the directory wasn't created automatically
+RUN mkdir /var/lock/copr-backend
+RUN chown copr:copr /var/lock/copr-backend
 
 # using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
 RUN rngd -r /dev/urandom
