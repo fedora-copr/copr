@@ -649,6 +649,11 @@ It worked for me before, but I newly see the ``rpkg`` errors like::
 
 Please take a look at :ref:`rpkg_util_v3`.
 
+.. _`What is difference between Koji vs. Copr?`:
+
+.. rubric:: What is difference between Koji vs. Copr? :ref:`¶ <What is difference between Koji vs. Copr?>`
+
+See separate page :ref:`koji_vs_copr`.
 
 .. _`I have a problem and I need to talk to a human.`:
 
