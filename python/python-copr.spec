@@ -1,16 +1,10 @@
 %global srcname copr
 
-%if 0%{?rhel} && 0%{?rhel} <= 6
-%{!?_licensedir:%global license %%doc}
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%global sphinxbuild SPHINXBUILD=%_bindir/sphinx-1.0-build
-%endif
-
 %if 0%{?fedora} || 0%{?rhel} > 7
 %global with_python3 1
 %endif
 
-%if 0%{?fedora} < 28 || 0%{?rhel} && 0%{?rhel} <= 7
+%if 0%{?rhel} && 0%{?rhel} <= 7
 %global with_python2 1
 %endif
 
@@ -45,11 +39,7 @@ BuildRequires: python-configparser
 BuildRequires: pytest
 BuildRequires: python2-devel
 # for doc package
-%if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: python-sphinx10
-%else
 BuildRequires: python-sphinx
-%endif
 BuildRequires: python-docutils
 %else
 BuildRequires: python2-setuptools
@@ -84,7 +74,7 @@ for developers only.\
 %package -n python2-copr
 Summary: %summary
 
-%if 0%{?rhel} < 8 && 0%{?rhel} > 0
+%if 0%{?rhel} == 7
 Requires: python-configparser
 Requires: python-marshmallow
 Requires: python-munch
@@ -112,8 +102,8 @@ Requires: python2-six >= 1.9.0
 %package -n python3-copr
 Summary:        Python interface for Copr
 
-# for recent fedoras the requires are generated dynamically
-%if 0%{?fedora} && 0%{?fedora} < 31 || 0%{?rhel} && 0%{?rhel} <= 8
+# for recent distributions the requires are generated dynamically
+%if 0%{?rhel} && 0%{?rhel} <= 8
 
 BuildRequires: python3-devel
 BuildRequires: python3-docutils
@@ -137,7 +127,7 @@ Requires: python3-six
 
 %{?python_provide:%python_provide python3-copr}
 
-%if 0%{?fedora} > 30
+%if 0%{?fedora} > 30 || 0%{?rhel} > 8
 BuildRequires: pyproject-rpm-macros
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
