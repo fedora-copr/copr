@@ -227,22 +227,22 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project4"
 
         # PyPI package creation
-        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3 2"
+        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
         cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3", "2"]'` 0 "package.source_dict.python_versions == [\"3\", \"2\"]"
+        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3"]'` 0 "package.source_dict.python_versions == [\"3\"]"
         rlAssertEquals "package.source_dict.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"pyp2rpm"'
         rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.5"'
 
         # PyPI package editing
-        rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 2 3"
+        rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 3"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
         cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["2", "3"]'` 0 "package.source_dict.python_versions == [\"2\", \"3\"]"
+        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3"]'` 0 "package.source_dict.python_versions == [\"3\"]"
         rlAssertEquals "package.source_dict.pypi_package_name == \"motionpaint\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"motionpaint"'
         rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.4"'
         rlAssertEquals "package.source_dict.spec_template == \"\"" `cat $SOURCE_DICT | jq '.spec_template'` '""'
@@ -331,7 +331,7 @@ rlJournalStart
         rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
 
         # create pyp2rpm package
-        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename motionpaint --pythonversions 3 2"
+        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename motionpaint --pythonversions 3"
 
         # build the package
         rlRun "copr-cli build-package --name test_package_pypi ${NAME_PREFIX}Project6 -r $CHROOT"
