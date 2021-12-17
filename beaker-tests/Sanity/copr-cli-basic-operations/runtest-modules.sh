@@ -114,9 +114,9 @@ rlJournalStart
 
         # Test URL submit
         PROJECT=module-testmoduleurl-beakertest-$DATE
-        # meh, the testmodule is hardwired to f33 so we can not simply rely on
+        # meh, the testmodule is hardwired to f35 so we can not simply rely on
         # $CHROOT variable
-        rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
+        rlRun "copr-cli create $PROJECT --chroot $PREV_CHROOT --chroot $CHROOT --chroot fedora-rawhide-i386"
         rlRun "copr-cli build-module --distgit fedora --url https://src.fedoraproject.org/modules/testmodule/raw/fancy/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 $PACKAGES
@@ -124,9 +124,9 @@ rlJournalStart
 
         # Test building modulemd in v2 format
         PROJECT=module-testmodulev2-beakertest-$DATE
-        # meh, the testmodule is hardwired to f33 so we can not simply rely on
+        # meh, the testmodule is hardwired to f35 so we can not simply rely on
         # $CHROOT variable
-        rlRun "copr-cli create $PROJECT --chroot fedora-33-x86_64 --chroot $CHROOT --chroot fedora-rawhide-i386"
+        rlRun "copr-cli create $PROJECT --chroot $PREV_CHROOT --chroot $CHROOT --chroot fedora-rawhide-i386"
         # move back to modules/testmodule once this is merged https://src.fedoraproject.org/modules/testmodule/pull-request/1
         rlRun "copr-cli build-module --distgit fedora --url https://src.fedoraproject.org/fork/praiskup/modules/testmodule/raw/fix-rawhide/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
