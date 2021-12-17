@@ -17,9 +17,21 @@ trap cleanup EXIT
 
 COVPARAMS=(--cov-report term-missing --cov run --cov coprs --cov commands)
 
+KEEP_ARGS=()
+for arg; do
+    case $arg in
+    --nocov|--no-cov)
+        COVPARAMS=()
+        ;;
+    *)
+        KEEP_ARGS+=( "$arg" )
+        ;;
+    esac
+done
+
 common_path=$(readlink -f ../common)
 export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
 export COPR_CONFIG="$(pwd)/coprs_frontend/config/copr_unit_test.conf"
 
 cd coprs_frontend
-./manage.py test "$@" "${COVPARAMS[@]}"
+./manage.py "${COVPARAMS[@]}" test "${KEEP_ARGS[@]}"

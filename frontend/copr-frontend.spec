@@ -108,7 +108,6 @@ BuildRequires: python3-openid-teams
 BuildRequires: python3-pygments
 BuildRequires: python3-pylibravatar
 BuildRequires: python3-pytest
-BuildRequires: python3-pytest-cov
 BuildRequires: python3-pytz
 BuildRequires: python3-redis
 BuildRequires: python3-requests
@@ -299,7 +298,7 @@ EOF
 
 %check
 %if %{with check}
-./run_tests.sh -vv
+./run_tests.sh -vv --no-cov
 %endif
 
 %pre

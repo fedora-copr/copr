@@ -27,7 +27,6 @@ BuildRequires: make
 
 # for tests
 BuildRequires: python3-pytest
-BuildRequires: python3-pytest-cov
 
 Requires:   crontabs
 Requires:   haveged
@@ -123,7 +122,7 @@ cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_sign
 cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 
 %check
-PYTHONPATH=./src:$PYTHONPATH %{__python3} -B -m pytest -vv --cov-report term-missing --cov ./src tests
+./run_tests.sh -vv --no-cov
 
 
 %pre

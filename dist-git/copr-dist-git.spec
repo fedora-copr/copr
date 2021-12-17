@@ -21,7 +21,6 @@ BuildRequires: python3-munch
 BuildRequires: python3-requests
 BuildRequires: python3-rpkg
 BuildRequires: python3-pytest
-BuildRequires: python3-pytest-cov
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-setproctitle
@@ -101,7 +100,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 
 %check
-./run_tests.sh -vv
+./run_tests.sh -vv --no-cov
 
 %post
 %systemd_post copr-dist-git.service

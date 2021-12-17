@@ -52,7 +52,6 @@ BuildRequires: python3-munch
 BuildRequires: python3-netaddr
 BuildRequires: python3-packaging
 BuildRequires: python3-pytest
-BuildRequires: python3-pytest-cov
 BuildRequires: python3-pytz
 BuildRequires: python3-requests
 BuildRequires: python3-resalloc
@@ -184,7 +183,7 @@ cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 
 
 %check
-./run_tests.sh -vv
+./run_tests.sh -vv --no-cov
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
