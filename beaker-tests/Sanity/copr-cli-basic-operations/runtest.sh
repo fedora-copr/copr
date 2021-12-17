@@ -276,7 +276,7 @@ rlJournalStart
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
 
         ## Package reseting
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url $COPR_HELLO_GIT --method tito"
 
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
@@ -297,7 +297,7 @@ rlJournalStart
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
         ## Package deletion
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url $COPR_HELLO_GIT --method tito"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete > /dev/null"
 
         ## Package listing
@@ -325,7 +325,7 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project6"
 
         # create a package
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url $COPR_HELLO_GIT --method tito"
 
         # build the package
         rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
@@ -352,7 +352,7 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url $COPR_HELLO_GIT" # insert package to the copr
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url $COPR_HELLO_GIT --commit rpkg-util" # insert package to the copr
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
@@ -420,7 +420,7 @@ rlJournalStart
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
         # TODO: Remove this.
         rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url $COPR_HELLO_GIT --commit rpkg-util"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python3 <<< \"from copr.v3 import Client; client = Client.create_from_config_file('/root/.config/copr'); client.package_proxy.delete('$OWNER', '${NAME_VAR}TestConsequentDeleteActions', 'example'); client.project_proxy.delete('$OWNER', '${NAME_VAR}TestConsequentDeleteActions')\""
@@ -440,15 +440,15 @@ rlJournalStart
 
         # Bug 1370704 - Internal Server Error (too many values to unpack)
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url $COPR_HELLO_GIT --method tito"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         # rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot $CHROOT" 0
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot $CHROOT" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url $COPR_HELLO_GIT" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url $COPR_HELLO_GIT" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url $COPR_HELLO_GIT --method tito" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url $COPR_HELLO_GIT --commit rpkg-util" 0
         # rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/$CHROOT" 0
         # rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/$CHROOT" 0
 
@@ -466,8 +466,8 @@ rlJournalStart
 
         ## test building in copr dirs
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}CoprDirTest"
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT" 0
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT --method tito" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT --method tito" 0
 
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1

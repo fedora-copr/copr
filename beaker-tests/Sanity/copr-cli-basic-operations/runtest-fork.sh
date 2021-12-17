@@ -42,7 +42,7 @@ rlJournalStart
     rlPhaseStartTest
         OUTPUT=`mktemp`
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project10"
-        rlRun "copr-cli buildscm ${NAME_PREFIX}Project10 --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli buildscm ${NAME_PREFIX}Project10 --clone-url $COPR_HELLO_GIT --commit rpkg-util"
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork > $OUTPUT"
         rlAssertEquals "Forking project" `grep -r 'Forking project' $OUTPUT |wc -l` 1
         rlAssertEquals "Info about backend data" `grep -r 'Please be aware that it may take a few minutes to duplicate backend data.' $OUTPUT |wc -l` 1

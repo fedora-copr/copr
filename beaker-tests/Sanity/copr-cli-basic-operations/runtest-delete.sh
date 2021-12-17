@@ -36,7 +36,7 @@ rlJournalStart
         TIMEOUT=180
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url $COPR_HELLO_GIT --commit rpkg-util"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteGroupBuild_example_build_id.txt"
         BUILD_ID=$(cat "$TMP"/TestDeleteGroupBuild_example_build_id.txt)
 
@@ -54,7 +54,7 @@ rlJournalStart
 
         # Test deleting builds specified by a list of IDs
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteBuilds --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteBuilds --name example --clone-url $COPR_HELLO_GIT"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteBuilds --name example --clone-url $COPR_HELLO_GIT --method tito"
         build_ids=()
         for i in {0..2}; do
             rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteBuilds | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > $TMP/TestDeleteBuilds_example_build_id.txt"

@@ -49,7 +49,8 @@ rlJournalStart
 
         rlRun "copr create ${NAME_PREFIX}PackageScm --enable-net on --chroot $CHROOT" 0
         rlRun "copr add-package-scm --name example --clone-url $COPR_HELLO_GIT --method tito ${NAME_PREFIX}PackageScm" 0
-        rlRun "copr edit-package-scm --name example --clone-url $COPR_HELLO_GIT --method rpkg ${NAME_PREFIX}PackageScm" 0
+        rlRun "copr build-package --name example ${NAME_PREFIX}PackageScm" 0
+        rlRun "copr edit-package-scm --name example --commit rpkg-util --clone-url $COPR_HELLO_GIT --method rpkg ${NAME_PREFIX}PackageScm" 0
         rlRun "copr build-package --name example ${NAME_PREFIX}PackageScm" 0
     rlPhaseEnd
 
