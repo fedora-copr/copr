@@ -21,6 +21,12 @@ Feature: Building from external DistGit instances
         And the package build is requested
         Then the build results are distributed
 
+    @packages @builds @centos_stream
+    Scenario: Test that we can build from CentOS Stream dist-git
+        When a DistGit CentOS-Stream "filesystem" package from branch "c9s" is added
+        And the package build is requested
+        Then the build results are distributed
+
     @builds
     Scenario: Test that dist-git builds from forks work
         When build of Fedora DistGit namespaced hello package from rawhide branch in forks/frostyx is done
