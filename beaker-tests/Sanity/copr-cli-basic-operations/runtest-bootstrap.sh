@@ -43,7 +43,7 @@ rlJournalStart
         rlRun "bootstrap=\$($detail_cmd | jq -r '.bootstrap')"
         rlAssertEquals "Check that bootstrap is enabled" "$bootstrap" on
 
-        rlRun "copr-cli edit-chroot $PROJECT/epel-8-x86_64 --bootstrap-image=$CHROOT"
+        rlRun "copr-cli edit-chroot $PROJECT/epel-8-x86_64 --bootstrap-image=fedora:$FEDORA_VERSION"
         rlRun "copr-cli edit-chroot $PROJECT/fedora-rawhide-x86_64 --bootstrap=default"
         rlRun -s "copr-cli build $PROJECT $HELLO --nowait"
         rlRun "parse_build_id"
@@ -58,7 +58,7 @@ rlJournalStart
         rlRun "curl $BACKEND_URL/results/$PROJECT/$chroot/$(printf %08d "$BUILD_ID")-hello/configs.tar.gz | tar xz -O '*configs/child.cfg' > child.cfg"
         rlRun 'grep -F "config_opts['\''use_bootstrap'\''] = True" child.cfg'
         rlRun 'grep -F "config_opts['\''use_bootstrap_image'\''] = True" child.cfg'
-        rlRun 'grep -F "config_opts['\''bootstrap_image'\'']" child.cfg | grep $CHROOT'
+        rlRun 'grep -F "config_opts['\''bootstrap_image'\'']" child.cfg | grep fedora:$FEDORA_VERSION'
 
         chroot=fedora-rawhide-x86_64
         rlRun "curl $BACKEND_URL/results/$PROJECT/$chroot/$(printf %08d "$BUILD_ID")-hello/configs.tar.gz | tar xz -O '*configs/child.cfg' > child.cfg"
