@@ -32,8 +32,8 @@ import os
 import signal
 import time
 
-WORKDIR = "/var/lib/copr-rpmbuild"
-PIDFILE = os.path.join(WORKDIR, "pid")
+from copr_rpmbuild.helpers import read_config
+
 INTERRUPT_TIMEOUT = 30
 INTERRUPT_SLEEP = 3
 
@@ -64,7 +64,9 @@ def _send_signal(pgid, signum):
                     pgid, err, signum)
 
 def _main():
-    with open(PIDFILE, "r") as pidfd:
+    config = read_config()
+    pidfile = config.get("main", "pidfile")
+    with open(pidfile, "r") as pidfd:
         pid = int(pidfd.read().strip())
 
     start = time.time()

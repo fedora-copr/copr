@@ -29,10 +29,8 @@ import logging
 import os
 import sys
 import time
+from copr_rpmbuild.helpers import read_config
 
-WORKDIR = "/var/lib/copr-rpmbuild"
-LIVE_LOG = os.path.join(WORKDIR, "main.log")
-PIDFILE = os.path.join(WORKDIR, "logger_pid")
 MAX_WAIT_FOR_RPMBUILD = 120
 
 def _get_stdout_logger():
@@ -44,27 +42,31 @@ def _get_stdout_logger():
 
 LOG = _get_stdout_logger()
 
-def _tail_log():
-    for fname in [PIDFILE, LIVE_LOG]:
+def _tail_log(config):
+    live_log = config.get("main", "logfile")
+    pidfile = config.get("main", "logger_pidfile")
+
+    for fname in [pidfile, live_log]:
         if not os.path.exists(fname):
             LOG.warning("File %s doesn't exist, yet", fname)
             return
 
-    with open(PIDFILE, "r") as pidfd:
+    with open(pidfile, "r") as pidfd:
         pid = int(pidfd.read().strip())
 
     tail = "/usr/bin/tail"
     args = [
         tail, "-F", "-n", "+0",
         "--pid={}".format(pid),
-        LIVE_LOG,
+        live_log,
     ]
     os.execv(tail, args)
 
 def _main():
+    config = read_config()
     start = time.time()
     while True:
-        _tail_log()
+        _tail_log(config)
         if time.time() - start > MAX_WAIT_FOR_RPMBUILD:
             LOG.fatal("Unable to wait for copr-rpmbuild process")
         time.sleep(5)
