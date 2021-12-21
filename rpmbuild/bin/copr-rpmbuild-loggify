@@ -4,7 +4,7 @@
 # Copyright (C) 2021 Red Hat, Inc.
 #
 # Use like:
-# $ some_terminal_app_with_output | copr-loggify > /var/log/the.log
+# $ some_terminal_app_with_output | copr-rpmbuild-loggify > /var/log/the.log
 
 cmd=(
     sed --unbuffered

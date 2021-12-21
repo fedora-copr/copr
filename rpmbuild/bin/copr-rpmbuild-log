@@ -32,7 +32,7 @@ import time
 
 WORKDIR = "/var/lib/copr-rpmbuild"
 LIVE_LOG = os.path.join(WORKDIR, "main.log")
-PIDFILE = os.path.join(WORKDIR, "pid")
+PIDFILE = os.path.join(WORKDIR, "logger_pid")
 MAX_WAIT_FOR_RPMBUILD = 120
 
 def _get_stdout_logger():

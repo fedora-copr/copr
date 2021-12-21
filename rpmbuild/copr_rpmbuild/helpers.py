@@ -153,6 +153,7 @@ def read_config(config_path=None):
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",
         "pidfile": "/var/lib/copr-rpmbuild/pid",
+        "logger_pidfile": "/var/lib/copr-rpmbuild/logger_pid",
         "enabled_source_protocols": "https ftps",
         "rpm_vendor_copr_name": "Unknown Copr",
     })
@@ -240,6 +241,7 @@ def dump_live_log(logfile):
     tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
     os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
     os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
+    return tee.pid
 
 
 class GentlyTimeoutedPopen(subprocess.Popen):
