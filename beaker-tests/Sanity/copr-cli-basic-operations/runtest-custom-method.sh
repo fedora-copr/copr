@@ -65,7 +65,7 @@ rlJournalStart
     rlRun "test -n \"\$WORKDIR\""
 
     rlRun 'cd "$WORKDIR"'
-    rlRun 'echo workdir: $WORKDIR'
+    rlRun "echo workdir: $WORKDIR"
 
 
     PROJECT=custom-1-$NAME_VAR
