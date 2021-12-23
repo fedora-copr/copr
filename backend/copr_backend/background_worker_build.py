@@ -37,7 +37,8 @@ CANCEL_CHECK_PERIOD = 5
 MESSAGES = {
     "give_up_repo":
         "Giving up waiting for copr_base repository, "
-        "please try to manually regenerate the DNF repository",
+        "please try to manually regenerate the DNF repository "
+        "(e.g. by 'copr-cli regenerate-repos <project_name>')",
     "repo_waiting":
         "Waiting for copr_base repository",
     "copr_rpmbuild_missing":
