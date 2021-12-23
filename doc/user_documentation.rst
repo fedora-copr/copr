@@ -278,6 +278,37 @@ system regardless of the project settings, those repofile can e.g. look like::
     cost=1100
     enabled=1
 
+Advanced searching
+------------------
+
+There is a large search box on the Copr homepage and a small search
+box at the top of every subpage. Both behave in the exact same way, so
+use which one you prefer.
+
+Input formats:
+
+- A number - If the searched value is a valid build ID, the page is redirected
+  to the build detail page. Otherwise, a fulltext search is performed.
+- A string starting with ``@`` (e.g. ``@copr``) - A fulltext search for a group
+  name is performed. For example, searching ``@co`` finds all ``@copr``,
+  ``@CoreOS``, ``@cockpit``, etc, and all of their projects.
+- A string without any formatting - Performs a fulltext search for user
+  names, project names, summaries, descriptions, etc.
+- A string containing a forward slash (e.g. ``frostyx/foo`` or
+  ``@copr/@copr``) - A fulltext is performed for the both owner name and the
+  project name. For example, by searching ``@co/co`` a ``@copr/copr-dev`` can be
+  found.
+
+
+Additionally, a part of the search box is a dropdown menu (a button with a caret
+symbol) with more searching options:
+
+- A fulltext search limited to the user name
+- A fulltext search limited to the group name (this option is equal to searching
+  a string that starts with ``@``)
+- A fulltext search limited to the project name
+- A fulltext search for package names within projects
+
 Status Badges
 -------------
 
