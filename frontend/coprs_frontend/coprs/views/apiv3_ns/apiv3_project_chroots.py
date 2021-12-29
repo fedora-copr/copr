@@ -1,12 +1,12 @@
 import flask
-from . import query_params, get_copr, file_upload, GET, PUT
-from .json2form import get_form_compatible_data
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.exceptions import ObjectNotFound, InvalidForm
 from coprs import db, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
+from . import query_params, get_copr, file_upload, GET, PUT
+from .json2form import get_form_compatible_data
 
 
 def to_dict(project_chroot):
