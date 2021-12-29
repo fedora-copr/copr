@@ -11,7 +11,8 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
-                              InsufficientRightsException, BadRequest, ObjectNotFound)
+                              InsufficientRightsException, BadRequest, ObjectNotFound,
+                              InvalidForm)
 from . import editable_copr
 
 
@@ -130,7 +131,7 @@ def add_project(ownername):
     form = form_class(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
     validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
     bootstrap = None
@@ -185,7 +186,7 @@ def edit_project(ownername, projectname):
     form = forms.CoprForm(data, meta={'csrf': False})
 
     if not form.validate_on_submit():
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
     validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
     for field in form:
@@ -243,7 +244,7 @@ def fork_project(ownername, projectname):
             db.session.rollback()
             raise err
     else:
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
 
     return flask.jsonify(to_dict(fcopr))
 
@@ -265,7 +266,7 @@ def delete_project(ownername, projectname):
         else:
             db.session.commit()
     else:
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
     return flask.jsonify(copr_dict)
 
 @apiv3_ns.route("/project/regenerate-repos/<ownername>/<projectname>", methods=PUT)

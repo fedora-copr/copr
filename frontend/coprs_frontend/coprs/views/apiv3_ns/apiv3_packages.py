@@ -8,6 +8,7 @@ from coprs.exceptions import (
         DuplicateException,
         ApiError,
         UnknownSourceTypeException,
+        InvalidForm,
 )
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms, helpers
@@ -176,7 +177,7 @@ def package_build():
             raise BadRequest(str(e))
         db.session.commit()
     else:
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
     return flask.jsonify(build_to_dict(build))
 
 

@@ -5,7 +5,7 @@ from wtforms import ValidationError
 from coprs import forms, db_session_scope
 from coprs.views.apiv3_ns import apiv3_ns, get_copr, file_upload, POST
 from coprs.views.misc import api_login_required
-from coprs.exceptions import DuplicateException, BadRequest
+from coprs.exceptions import DuplicateException, BadRequest, InvalidForm
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
 
@@ -22,7 +22,7 @@ def build_module(ownername, projectname):
     copr = get_copr(ownername, projectname)
     form = forms.get_module_build_form(meta={'csrf': False})
     if not form.validate_on_submit():
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
 
     facade = None
     try:

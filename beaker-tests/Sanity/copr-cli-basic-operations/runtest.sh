@@ -56,6 +56,13 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project3"
         ### left after this section: Project1, Project2, Project3
 
+        # Test validation output
+        OUTPUT=`mktemp`
+        rlRun "copr-cli create ${NAME_PREFIX}Project1 --chroot wrong-chroot-name 2> $OUTPUT" 1
+        rlRun "cat $OUTPUT |grep -E '^Error: $'"
+        rlRun "cat $OUTPUT |grep \"\- name: Group copr (fas: gitcopr) already have project named\""
+        rlRun "cat $OUTPUT |grep \"\- chroots: 'wrong-chroot-name' is not a valid choice for this field\""
+
         rlRun "yes | copr-cli new-webhook-secret ${NAME_PREFIX}Project1 | grep -E 'Generated new token: .*-.*-.*-.*-.*'"
 
         ### ---- BUILDING --------------- ###

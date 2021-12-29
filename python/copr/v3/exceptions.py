@@ -14,7 +14,19 @@ class CoprRequestException(CoprException):
     """
     Raised when the API request doesn't proceed successfully
     """
-    pass
+    def __str__(self):
+        errors = self.result.error.split("\n")
+
+        # A list of errors signalizes a form validation error
+        # If there is only one error in the list, just return its value
+        if len(errors) == 1:
+            return str(errors[0])
+
+        # Show one error per line
+        result = ""
+        for error in errors:
+            result += "\n- {0}".format(error)
+        return result
 
 
 class CoprNoResultException(CoprException):

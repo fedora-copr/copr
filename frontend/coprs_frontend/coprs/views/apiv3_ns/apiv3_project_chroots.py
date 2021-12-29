@@ -4,7 +4,7 @@ from .json2form import get_form_compatible_data
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
-from coprs.exceptions import ObjectNotFound, BadRequest
+from coprs.exceptions import ObjectNotFound, InvalidForm
 from coprs import db, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
 
@@ -88,7 +88,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
-        raise BadRequest(form.errors)
+        raise InvalidForm(form)
 
     buildroot_pkgs = repos = comps_xml = comps_name = with_opts = without_opts = None
     if "buildroot_pkgs" in data:

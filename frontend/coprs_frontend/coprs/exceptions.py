@@ -45,6 +45,27 @@ class ApiError(CoprHttpException):
     _code = 500
 
 
+class InvalidForm(BadRequest):
+    """
+    An exception raised by APIv3 code when form validation fails
+    """
+
+    def __init__(self, form):
+        super().__init__()
+        self.form = form
+        self.message = self._message()
+
+    def _message(self):
+        """
+        Create a human-readable error message from validators
+        """
+        result = []
+        for key, value in self.form.errors.items():
+            for message in value:
+                result.append("{0}: {1}".format(key, message))
+        return "\n".join(result)
+
+
 class InsufficientStorage(CoprHttpException):
     """When there is not enough space left on the server for the src rpm."""
     _default = "Not enough space left"
