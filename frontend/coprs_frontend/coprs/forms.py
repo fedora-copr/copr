@@ -892,7 +892,7 @@ class PackageFormPyPI(BasePackageForm):
             ('3', 'python3'),
             ('2', 'python2')
         ],
-        default=['3', '2'])
+        default=['3'])
 
     @property
     def source_json(self):
