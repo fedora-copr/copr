@@ -18,7 +18,7 @@ from coprs.logic.packages_logic import PackagesLogic
 # @TODO if we need to do this on several places, we should figure a better way to do it
 from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 
-from . import query_params, pagination, get_copr, ListPaginator, GET, POST, PUT, DELETE
+from . import query_params, pagination, get_copr, GET, POST, PUT, DELETE, Paginator
 from .json2form import get_form_compatible_data
 
 def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False):
@@ -28,7 +28,19 @@ def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False)
 
     latest = None
     if with_latest_build:
-        latest = package.last_build()
+        # If the package was obtained via performance-friendly method
+        # `PackagesLogic.get_packages_with_latest_builds_for_dir`,
+        # the `package` is still a `models.Package` object but it has one more
+        # attribute to it (if the package indeed has at least one build).
+        # In such case, the `latest_build` value is already set and using it
+        # costs us nothing (no additional SQL query)
+        latest = getattr(package, "latest_build", None)
+
+        # If the performance-friendly `latest_build` variable wasn't set because
+        # the `package` was obtained differently, e.g. `PackagesLogic.get`, we
+        # need to fetch it
+        if not latest:
+            latest = package.last_build()
         latest = build_to_dict(latest) if latest else None
 
     latest_succeeded = None
@@ -106,11 +118,21 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
 
     copr = get_copr(ownername, projectname)
-    packages = PackagesLogic.get_packages_with_latest_builds_for_dir(copr.main_dir.id, small_build=False)
-    paginator = ListPaginator(packages, models.Package, **kwargs)
+    query = PackagesLogic.get_all(copr.main_dir.id)
+    paginator = Paginator(query, models.Package, **kwargs)
+    packages = paginator.get().all()
 
-    packages = paginator.map(lambda x: to_dict(x, with_latest_build, with_latest_succeeded_build))
-    return flask.jsonify(items=packages, meta=paginator.meta)
+    # Query latest builds for all packages at once. We can't use this solution
+    # for querying latest successfull builds, so that will be a little slower
+    if with_latest_build:
+        packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
+            copr.main_dir.id,
+            small_build=False,
+            packages=packages)
+
+    items = [to_dict(p, with_latest_build, with_latest_succeeded_build)
+             for p in packages]
+    return flask.jsonify(items=items, meta=paginator.meta)
 
 
 @apiv3_ns.route("/package/add/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=POST)

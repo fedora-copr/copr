@@ -791,17 +791,35 @@ class Commands(object):
 
     def action_list_packages(self, args):
         ownername, projectname = self.parse_name(args.copr)
-        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname,
-                                                      with_latest_build=args.with_latest_build,
-                                                      with_latest_succeeded_build=args.with_latest_succeeded_build)
-        packages_with_builds = [self._package_with_builds(p, args) for p in packages]
-        fields = ["id", "auto_rebuild", "name", "ownername", "projectname", "source_dict",
-                  "source_type", "latest_succeeded_build", "latest_build"]
+        fields = [
+            "id",
+            "auto_rebuild",
+            "name",
+            "ownername",
+            "projectname",
+            "source_dict",
+            "source_type",
+            "latest_succeeded_build",
+            "latest_build"
+        ]
         if args.with_all_builds:
             fields.insert(1, "builds")
+
+        pagination = {"limit": 1000}
+        packages = self.client.package_proxy.get_list(
+            ownername=ownername, projectname=projectname,
+            with_latest_build=args.with_latest_build,
+            with_latest_succeeded_build=args.with_latest_succeeded_build,
+            pagination=pagination,
+        )
+
         printer = get_printer(args.output_format, fields, True)
-        for data in packages_with_builds:
-            printer.add_data(data)
+        while packages:
+            packages_with_builds = [self._package_with_builds(p, args)
+                                    for p in packages]
+            for data in packages_with_builds:
+                printer.add_data(data)
+            packages = next_page(packages)
         printer.finish()
 
     def action_list_package_names(self, args):

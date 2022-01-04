@@ -133,7 +133,7 @@
     }
   ],
   "meta": {
-    "limit": null,
+    "limit": 1000,
     "offset": 0,
     "order": "id",
     "order_type": "ASC"

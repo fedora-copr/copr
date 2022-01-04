@@ -218,8 +218,9 @@ def test_list_builds(config_from_file, next_page, capsys):
     assert out.split("\n") == expected_output.split("\n")
 
 @responses.activate
+@mock.patch("copr_cli.main.next_page")
 @mock.patch('copr_cli.main.config_from_file')
-def test_list_packages(config_from_file, capsys):
+def test_list_packages(config_from_file, next_page, capsys):
     response_data = json.loads(read_res('list_packages_response.json'))
     expected_output = read_res('list_packages_expected.json')
 
@@ -230,6 +231,7 @@ def test_list_packages(config_from_file, capsys):
 
     # no config
     config_from_file.side_effect = copr.v3.CoprNoConfigException("Dude, your config is missing")
+    next_page.return_value = None
 
     main.main(argv=["list-packages", "praiskup/ping"])
     out, _ = capsys.readouterr()
