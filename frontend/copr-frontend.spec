@@ -74,6 +74,7 @@ BuildRequires: python3-devel
 
 %if %{with check}
 BuildRequires: fedora-messaging
+BuildRequires: python3-alembic
 BuildRequires: python3-anytree
 BuildRequires: python3-click
 BuildRequires: python3-CommonMark
