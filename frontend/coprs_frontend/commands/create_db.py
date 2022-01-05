@@ -16,6 +16,7 @@ def create_db(alembic_ini):
     """
     create_sqlite_file_function()
     db.create_all()
+    db.session.commit()
     # load the Alembic configuration and generate the
     # version table, "stamping" it with the most recent rev:
     from alembic.config import Config

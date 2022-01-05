@@ -2448,4 +2448,3 @@ def insert_fedora_distgit(*args, **kwargs):
         clone_package_uri="{namespace}/rpms/{pkgname}",
         default_namespace="",
     ))
-    db.session.commit()
