@@ -59,7 +59,7 @@ class PackagesLogic(object):
             use the given 'packages' array.
         :return: array of Package objects, with assigned latest Build object
         """
-        if not packages:
+        if packages is None:
             packages = cls.get_all_ordered(copr_dir_id).all()
 
         pkg_ids = [package.id for package in packages]
