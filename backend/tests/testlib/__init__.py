@@ -76,6 +76,7 @@ VALID_RPM_JOB = {
     "with_opts": [],
     "without_opts": [],
     "appstream": True,
+    "tags": ["test_tag"],
 }
 
 

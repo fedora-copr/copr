@@ -881,3 +881,9 @@ def test_failed_build_retry(f_build_rpm_case, caplog):
     assert config.bw.job.status == 0
     # Only build.end sent by this worker (after reset)
     assert_messages_sent(["build.end"], config.bw.sender)
+
+def test_buildjob_tags(f_build_rpm_case):
+    config = f_build_rpm_case
+    worker = config.bw
+    worker.job = _get_rpm_job_object(worker.opts)
+    assert worker.job.tags == ['arch_x86_64', 'test_tag']

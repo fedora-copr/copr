@@ -91,6 +91,11 @@ class BuildQueueTask(QueueTask):
         return self._task["project_owner"]
 
     @property
+    def tags(self):
+        """ Explicitly requested build tags """
+        return self._task.get("tags", [])
+
+    @property
     def requested_arch(self):
         """
         What is the requested "native" builder architecture for which this
@@ -130,6 +135,16 @@ class ArchitectureWorkerLimit(PredicateWorkerLimit):
         def predicate(x):
             return x.requested_arch == architecture
         super().__init__(predicate, limit, name="arch_{}".format(architecture))
+
+
+class BuildTagLimit(PredicateWorkerLimit):
+    """
+    Limit the amount of concurrently running builds per given build tag.
+    """
+    def __init__(self, tag, limit):
+        def predicate(x):
+            return tag in x.tags
+        super().__init__(predicate, limit, name="tag_{}".format(tag))
 
 
 class RPMBuildWorkerManager(WorkerManager):

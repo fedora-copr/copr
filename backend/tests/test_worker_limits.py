@@ -12,6 +12,7 @@ from copr_backend.worker_manager import (
 )
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
+    BuildTagLimit,
     BuildQueueTask,
 )
 
@@ -34,6 +35,7 @@ TASKS = [{
     "task_id": "7-fedora-31-x86_64",
     "project_owner": "bedrich",
     "sandbox": "sb2",
+    "tags": ["special_requirement"],
 }]
 
 class _QT(QueueTask):
@@ -113,6 +115,7 @@ def test_worker_limit_info():
         GroupWorkerLimit(lambda x: x.sandbox, 2, name='sandbox'),
         ArchitectureWorkerLimit("x86_64", 3),
         ArchitectureWorkerLimit("aarch64", 2),
+        BuildTagLimit("special_requirement", 1),
     ]
     tasks = [BuildQueueTask(t) for t in TASKS]
     for limit in limits:
@@ -127,6 +130,7 @@ def test_worker_limit_info():
         "limit info: 'sandbox', counter: sb1=1, sb2=2",
         "limit info: 'arch_x86_64'",
         "limit info: 'arch_aarch64'",
+        "limit info: 'tag_special_requirement', matching: w:7-fedora-31-x86_64",
     ]
 
 def test_string_counter():

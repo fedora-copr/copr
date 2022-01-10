@@ -1535,6 +1535,10 @@ class MockChroot(db.Model, helpers.Serializer):
         'x86_64': 'i386',
     }
 
+    # A space separated list of tags.  Typically used as additional tags for the
+    # Resalloc system to match appropriate builder.
+    tags_raw = db.Column(db.String(50), nullable=True)
+
     @classmethod
     def latest_fedora_branched_chroot(cls, arch='x86_64'):
         return (cls.query
@@ -1572,6 +1576,13 @@ class MockChroot(db.Model, helpers.Serializer):
         attr_list = super(MockChroot, self).serializable_attributes
         attr_list.extend(["name", "os"])
         return attr_list
+
+    @property
+    def tags(self):
+        """
+        Return the list (of strings) of MockChroot tags.
+        """
+        return self.tags_raw.split() if self.tags_raw else []
 
 
 class CoprChroot(db.Model, helpers.Serializer):

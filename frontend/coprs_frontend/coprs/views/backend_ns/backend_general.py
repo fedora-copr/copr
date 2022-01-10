@@ -27,7 +27,7 @@ def send_frontend_version(response):
     do something new with the protocol.  On the Backend/builder side we can
     setup the version according to our needs.
     """
-    response.headers['Copr-FE-BE-API-Version'] = '3'
+    response.headers['Copr-FE-BE-API-Version'] = '4'
     return response
 
 
@@ -126,6 +126,7 @@ def get_build_record(task, for_backend=False):
             "sandbox": task.build.sandbox,
             "background": bool(task.build.is_background),
             "chroot": task.mock_chroot.name,
+            "tags": task.mock_chroot.tags,
         }
 
         if for_backend:

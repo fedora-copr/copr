@@ -196,28 +196,31 @@ def _get_conf(cp, section, option, default, mode=None):
 
 
 def _get_limits_conf(parser):
-    err1 = ("Unexpected format of 'builds_max_workers_arch' configuration "
+    err1 = ("Unexpected format of 'builds_max_workers_{0}' configuration "
             "option.  Please use format: "
-            "builds_max_workers_arch = ARCH1=COUNT,ARCH2=COUNT")
-    err2 = ("Duplicate arch {} in 'builds_max_workers_arch' configuration")
-    limits = {"arch": {},}
+            "builds_max_workers_{0} = {1}1=COUNT,{1}2=COUNT")
+    err2 = ("Duplicate left value '{}' in 'builds_max_workers_{}' configuration")
+    limits = {"arch": {}, "tag": {}}
 
-    raw = _get_conf(parser, "backend", "builds_max_workers_arch", None)
-    if raw:
-        raw_arches = raw.split(',')
-        for arch_spec in raw_arches:
-            try:
-                arch, count = arch_spec.split("=")
-                arch = arch.strip()
-                count = int(count.strip())
-                if not arch or not count:
-                    raise CoprBackendError("Empty builds_max_workers_arch spec")
-                if arch in limits["arch"]:
-                    raise CoprBackendError(err2.format(arch))
-                limits["arch"][arch] = count
-            except ValueError:
-                raise CoprBackendError(err1)
-
+    for config_type in ["arch", "tag"]:
+        option = "builds_max_workers_{}".format(config_type)
+        raw = _get_conf(parser, "backend", option, None)
+        if raw:
+            raw_configs = raw.split(',')
+            for limit_spec in raw_configs:
+                try:
+                    key, count = limit_spec.split("=")
+                    key = key.strip()
+                    count = int(count.strip())
+                    if not key or not count:
+                        raise CoprBackendError("Empty '{}' spec".format(option))
+                    if key in limits[config_type]:
+                        raise CoprBackendError(err2.format(key, config_type))
+                    limits[config_type][key] = count
+                except ValueError as orig:
+                    new = CoprBackendError(err1.format(config_type,
+                                                       config_type.upper()))
+                    raise new from orig
     limits['sandbox'] = _get_conf(
         parser, "backend", "builds_max_workers_sandbox", 10, mode="int")
     limits['owner'] = _get_conf(

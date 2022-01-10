@@ -37,7 +37,7 @@ class TestBackendConfigReader:
     def test_minimal_file_and_defaults(self):
         opts = BackendConfigReader(self.get_minimal_config_file()).read()
         assert opts.destdir == "/tmp"
-        assert opts.builds_limits == {'arch': {}, 'owner': 20, 'sandbox': 10}
+        assert opts.builds_limits == {'arch': {}, 'tag': {}, 'owner': 20, 'sandbox': 10}
 
     def test_correct_build_limits(self):
         opts = BackendConfigReader(
@@ -45,6 +45,7 @@ class TestBackendConfigReader:
                 self.minimal_config_snippet + (
                     "builds_max_workers= 666\n"
                     "builds_max_workers_arch= x86_64 =5, aarch64= 11\n"
+                    "builds_max_workers_tag = Power9=9\n"
                     "builds_max_workers_owner = 5\n"
                     "builds_max_workers_sandbox = 3\n"
                 ))).read()
@@ -52,6 +53,9 @@ class TestBackendConfigReader:
             'arch': {
                 'x86_64': 5,
                 'aarch64': 11,
+            },
+            'tag': {
+                'Power9': 9,
             },
             'owner': 5,
             'sandbox': 3
@@ -71,6 +75,7 @@ class TestBackendConfigReader:
         "builds_max_workers_arch=abc=asdf\n",
         "builds_max_workers_arch=abc=10=\n",
         "builds_max_workers_arch=abc=1,\n",
+        "builds_max_workers_tag=abc=1,\n",
     ])
     def test_invalid_build_limits(self, broken_config):
         config = self.minimal_config_snippet + broken_config

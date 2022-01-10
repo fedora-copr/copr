@@ -390,15 +390,9 @@ class BuildBackgroundWorker(BackgroundWorker):
         """
         self.log.info("Trying to allocate VM")
 
-        tags = []
-        if self.job.arch:
-            tags.append("arch_{}".format(self.job.arch))
-        else:
-            tags.append("arch_noarch")
-
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
         while True:
-            self.host = vm_factory.get_host(tags, self.job.sandbox)
+            self.host = vm_factory.get_host(self.job.tags, self.job.sandbox)
             self._proctitle("Waiting for VM, info: {}".format(self.host.info))
             success = CancellableThreadTask(
                 self.host.wait_ready,

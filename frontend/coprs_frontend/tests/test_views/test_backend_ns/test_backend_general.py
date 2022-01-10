@@ -107,6 +107,8 @@ class TestWaitingBuilds(CoprsTestCase):
         self.b2.is_background = True
         for bch in self.b3_bc:
             bch.status = StatusEnum("pending")
+
+        self.mc2.tags_raw = "foo 	 bar"
         self.db.session.commit()
 
         with app.app_context():
@@ -135,6 +137,7 @@ class TestWaitingBuilds(CoprsTestCase):
             'chroot': 'fedora-17-x86_64',
             'project_owner': 'user2',
             'sandbox': 'user2/foocopr--user2',
+            'tags': ['foo', 'bar'],
         }, {
             'build_id': 3,
             'task_id': '3-fedora-17-i386',
@@ -142,6 +145,7 @@ class TestWaitingBuilds(CoprsTestCase):
             'chroot': 'fedora-17-i386',
             'project_owner': 'user2',
             'sandbox': 'user2/foocopr--user2',
+            'tags': [],
         }]
 
 # status = 0 # failure

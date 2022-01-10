@@ -104,6 +104,10 @@ class BuildJob(object):
 
         self.built_packages = ""
 
+        self.tags = ["arch_{}".format(self.arch if self.arch else "noarch")]
+        if "tags" in task_data:
+            self.tags.extend(task_data["tags"])
+
     @property
     def results_dir_url(self):
         return os.path.join(self.results_repo_url, self.chroot, self.target_dir_name)

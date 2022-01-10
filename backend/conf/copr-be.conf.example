@@ -48,6 +48,9 @@ sleeptime=30
 # Maximum number of concurrently running tasks per build sandbox.
 #builds_max_workers_sandbox=10
 
+# Maximum number of concurrently running tasks per a build tag.
+#builds_max_workers_tag=Power9=5,Power8=10
+
 # Maximum number of concurrent background processes spawned for handling
 # actions.
 #actions_max_workers=10

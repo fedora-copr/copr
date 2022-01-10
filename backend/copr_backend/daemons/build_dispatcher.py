@@ -5,6 +5,7 @@ BuildDispatcher related classes.
 from copr_backend.dispatcher import Dispatcher
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
+    BuildTagLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
 )
@@ -46,9 +47,14 @@ class BuildDispatcher(Dispatcher):
     def __init__(self, backend_opts):
         super().__init__(backend_opts)
         self.max_workers = backend_opts.builds_max_workers
-        for arch, limit  in backend_opts.builds_limits['arch'].items():
-            self.log.info("setting %s limit to %s", arch, limit)
-            self.limits.append(ArchitectureWorkerLimit(arch, limit))
+
+        for tag_type in ["arch", "tag"]:
+            lclass = ArchitectureWorkerLimit if tag_type == "arch" else \
+                     BuildTagLimit
+            for tag, limit in backend_opts.builds_limits[tag_type].items():
+                self.log.info("setting %s(%s) limit to %s", tag_type, tag, limit)
+                self.limits.append(lclass(tag, limit))
+
         for limit_type in ['sandbox', 'owner']:
             max_builders = backend_opts.builds_limits[limit_type]
             self.log.info("setting %s limit to %s", limit_type, max_builders)
