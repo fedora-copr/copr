@@ -186,7 +186,7 @@
 
 {% macro friendly_os_name(os_release, os_version=None) %}
   {% if os_release == 'epel' %}
-    Epel for CentOS {{ os_version }}
+    EPEL {{ os_version }}
   {% elif os_release == 'opensuse-leap' %}
     openSUSE Leap {{ os_version }}
   {% elif os_release == 'opensuse' and os_version == 'tumbleweed' %}
