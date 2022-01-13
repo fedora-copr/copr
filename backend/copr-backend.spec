@@ -96,6 +96,7 @@ Requires:   python3-resalloc >= 3.0
 Requires:   python3-retask
 Requires:   python3-setproctitle
 Requires:   python3-tabulate
+Requires:   python3-boto3
 Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync

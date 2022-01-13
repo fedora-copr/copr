@@ -88,36 +88,9 @@ def get_hit_data():
             if spider_regex.match(m.group('agent')):
                 continue
 
-            url_match = repomd_url_regex.match(m.group('url'))
-            if url_match:
-                chroot_key = (
-                    'chroot_repo_metadata_dl_stat',
-                    url_match.group('owner'),
-                    url_match.group('project'),
-                    url_match.group('chroot')
-                )
-                chroot_key_str = '|'.join(chroot_key)
-                hits[chroot_key_str] += 1
-                continue
+            for key_str in url_to_key_strings(m.group('url')):
+                hits[key_str] += 1
 
-            url_match = rpm_url_regex.match(m.group('url'))
-            if url_match:
-                chroot_key = (
-                    'chroot_rpms_dl_stat',
-                    url_match.group('owner'),
-                    url_match.group('project'),
-                    url_match.group('chroot')
-                )
-                chroot_key_str = '|'.join(chroot_key)
-                hits[chroot_key_str] += 1
-                project_key = (
-                    'project_rpms_dl_stat',
-                    url_match.group('owner'),
-                    url_match.group('project')
-                )
-                project_key_str = '|'.join(project_key)
-                hits[project_key_str] += 1
-                continue
         last_line = logline
 
     return {
@@ -125,6 +98,41 @@ def get_hit_data():
         'ts_to': get_timestamp(last_line),
         'hits': hits,
     }
+
+
+def url_to_key_strings(url):
+    """
+    Take a full URL and return a list of unique strings representing it,
+    that copr-frontend will understand.
+    """
+    url_match = repomd_url_regex.match(url)
+    if url_match:
+        chroot_key = (
+            'chroot_repo_metadata_dl_stat',
+            url_match.group('owner'),
+            url_match.group('project'),
+            url_match.group('chroot')
+        )
+        chroot_key_str = '|'.join(chroot_key)
+        return [chroot_key_str]
+
+    url_match = rpm_url_regex.match(url)
+    if url_match:
+        chroot_key = (
+            'chroot_rpms_dl_stat',
+            url_match.group('owner'),
+            url_match.group('project'),
+            url_match.group('chroot')
+        )
+        chroot_key_str = '|'.join(chroot_key)
+        project_key = (
+            'project_rpms_dl_stat',
+            url_match.group('owner'),
+            url_match.group('project')
+        )
+        project_key_str = '|'.join(project_key)
+        return [chroot_key_str, project_key_str]
+    return []
 
 
 def get_timestamp(logline):
