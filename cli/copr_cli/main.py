@@ -218,6 +218,7 @@ class Commands(object):
 
         prevstatus = defaultdict(lambda: None)
         failed_ids = []
+        canceled_ids = []
 
         watched = set(build_ids)
         done = set()
@@ -241,6 +242,8 @@ class Commands(object):
 
                     if build_details.state in ["failed"]:
                         failed_ids.append(build_id)
+                    if build_details.state in ["canceled"]:
+                        canceled_ids.append(build_id)
                     if build_details.state in ["succeeded", "skipped",
                                                "failed", "canceled"]:
                         done.add(build_id)
@@ -253,10 +256,16 @@ class Commands(object):
 
                 time.sleep(30)
 
+            exception_message = ""
+            separator = ""
             if failed_ids:
-                raise copr_exceptions.CoprBuildException(
-                    "Build(s) {0} failed.".format(
-                        ", ".join(str(x) for x in failed_ids)))
+                exception_message = "Build(s) {0} failed.".format(", ".join(str(x) for x in failed_ids))
+                separator = " "
+            if canceled_ids:
+                exception_message += separator + "Build(s) {0} canceled.".format(", ".join(str(x) for x in canceled_ids))
+
+            if failed_ids or canceled_ids:
+                raise copr_exceptions.CoprBuildException(exception_message)
 
         except KeyboardInterrupt:
             pass
