@@ -122,7 +122,7 @@ class Pruner(object):
         self.pool.close()
         self.pool.join()
 
-        LOG.info("Setting final_prunerepo_done for deactivated chroots")
+        LOG.info("Checking if final_prunerepo_done needs to be set")
         chroots_finalized = []
         for chroot, info in self.chroots.items():
             if info["final_prunerepo_done"]:
@@ -132,7 +132,11 @@ class Pruner(object):
                 # This chroot can still get new builds
                 continue
             chroots_finalized.append(chroot)
-        self.frontend_client.post("final-prunerepo-done", chroots_finalized)
+        if chroots_finalized:
+            LOG.info("Setting final_prunerepo_done for deactivated chroots: %s",
+                     chroots_finalized)
+            self.frontend_client.post("final-prunerepo-done", chroots_finalized)
+
         LOG.info("--------------------------------------------")
 
     def should_run_in_chroot(self, username, projectdir, chroot_name):
