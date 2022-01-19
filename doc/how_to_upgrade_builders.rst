@@ -3,15 +3,21 @@
 How to upgrade builders
 =======================
 
-This article explains how to upgrade the Copr builders in AWS (x86_64 and
-aarch64) and libvirt (x86_64 and ppc64le) to a newer Fedora once it is released.
+This article explains how to upgrade the Copr builders images in
+
+- :ref:`AWS <prepare_aws_source_images>` (x86_64 and aarch64),
+- :ref:`LibVirt <prepare_libvirt_source_images>` (x86_64 and ppc64le),
+- :ref:`IBM Cloud <prepare_ibmcloud_source_images>` (s390x),
+- |ss| :ref:`We currently don't work with OpenStack <how_to_upgrade_builders_openstack>` |se|.
+
+This HOWTO is useful for upgrading images to a newer Fedora release, or for just
+updating all the packages contained within the builder images.  This image
+"refreshing" also significantly speeds up the following VM startup times, and
+fixes bugs (when a builder virtual machine is started the image, only a limited
+subset of packages is always automatically updated).
 
 Keep amending this page if you find something not matching reality or
 expectations.
-
-We don't currently use OpenStack, but we
-:ref:`still keep the docs <how_to_upgrade_builders_openstack>`.
-
 
 Requirements
 ------------
@@ -74,6 +80,8 @@ The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
 options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev_aws``
 and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 
+
+.. _prepare_libvirt_source_images:
 
 Prepare libvirt source images
 -----------------------------
@@ -167,6 +175,81 @@ address (can be an IPv6 one), you are mostly done::
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
     145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
 
+
+.. _prepare_ibmcloud_source_images:
+
+Prepare the IBM Cloud images
+----------------------------
+
+For IBM Cloud we prepare a ``qcow2``, ``s390x`` image.  This is very similar to
+the :ref:`LibVirt <prepare_libvirt_source_images>` case above — notable
+difference is that we don't have a native hypervisor to run the scripts on.
+
+Fortunately, the `Z Architecture`_ virtual machines we start in IBM Cloud give
+us a possibility to run the scripting directly on the VMs (nested virt support).
+So we use Copr Backend machine as a hop-box — to work on one of our builder
+machines::
+
+    $ ssh root@copr-be-dev.cloud.fedoraproject.org
+    # su - resalloc
+    $ copr-prepare-s390x-image-builder
+    ... takes one s390x builder ...
+    ... installs additional packages ...
+    ... does some preparation, and says ...
+    Now you can start the work on the machine:
+    $ ssh root@165.192.137.98
+    ...
+
+So we can switch to the builder machine::
+
+    $ ssh root@165.192.137.98
+
+Now, find a ``qcow2`` image we'll be updating, take a look at the
+`Alternate Architectures page`_.  At this moment you want the **s390x
+Architecture** category, and **Fedora Cloud qcow2**.  Being on the remote VM,
+start with::
+
+    #> copr-image https://download.fedoraproject.org/pub/fedora-secondary/releases/35/Cloud/s390x/images/Fedora-Cloud-Base-35-1.2.s390x.qcow2
+    ...
+    + qemu-img convert -f qcow2 /tmp/wip-image-HkgkS.qcow2 -c -O qcow2 -o compat=0.10 /tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
+    ...
+
+From the output you see the generated image ``eimg-fixed-2022-01-19.qcow2`` —
+that needs to be uploaded to IBM Cloud now, under our community account.
+Unfortunately, we can not _easily_ do this from Fedora machine directly as
+`ibmcloud tool is not FLOSS`_.  That's why we have prepared `container image for
+uploading`_, pushed to **quay.io** service  as
+``quay.io/praiskup/ibmcloud-cli``::
+
+    $ qcow_image=/tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
+    $ podman_image=quay.io/praiskup/ibmcloud-cli
+    $ podman run --rm -ti -v $qcow_image:/image.qcow2:z $podman_image upload-image
+    ....
+    + ibmcloud login -r jp-tok -u coprteam@fedoraproject.org
+    API endpoint: https://cloud.ibm.com
+    Password> <use our team password here, stored in bitwaarden>
+    ....
+    Uploaded image "r022-8509865b-0347-4a00-bbfe-bb6df1c5a384"
+    ("copr-builder-image-s390x-20220119-142944")
+
+Note the image ID somewhere, will be used in Ansible inventory, as
+``copr_builder_images.ibm_cloud.s390x`` value.  You can test that the new image
+starts well on ``copr-be-dev``,  by::
+
+    # su - resalloc
+    $ /var/lib/resallocserver/resalloc_provision/ibm-cloud-vm \
+        --log-level debug \
+        create test-machine \
+        --image-uuid r022-2a904fb5-e69c-4ba7-b5ea-d6215ba4a6ee
+
+... but note that the first start takes some time, till the image is properly
+populated!  So if the script timeouts on ssh, please re-try.
+
+When prepared, don't forget to drop the VM we used for the image preparation::
+
+    $ resalloc ticket-close <your_id>
+
+
 .. _testing:
 
 Testing
@@ -220,3 +303,6 @@ the old but currently unused builders by::
 .. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
 .. _`staging copr instance`: https://copr-fe-dev.cloud.fedoraproject.org
 .. _`AWS login link`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
+.. _`ibmcloud tool is not FLOSS`: https://github.com/IBM-Cloud/ibm-cloud-cli-release/issues/162
+.. _`container image for uploading`: https://github.com/praiskup/ibmcloud-cli-fedora-container
+.. _`Z Architecture`: https://www.ibm.com/it-infrastructure/z

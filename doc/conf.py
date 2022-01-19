@@ -273,6 +273,16 @@ texinfo_documents = [
     ),
 ]
 
+rst_epilog = """
+.. |ss| raw:: html
+
+    <strike>
+
+.. |se| raw:: html
+
+    </strike>
+"""
+
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []
 
