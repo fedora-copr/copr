@@ -1249,6 +1249,12 @@ class MockChrootsLogic(object):
 
     @classmethod
     def edit_by_name(cls, name, is_active):
+        """
+        Set the "MockChroot.active" status from 'is_active'.  When re-activating
+        (we occasionally disable some chroots temporarily) we need to re-set the
+        'final_prunerepo_done' otherwise it would never be cleaned up in the
+        future.
+        """
         name_tuple = cls.tuple_from_name(name)
         mock_chroot = cls.get(*name_tuple).first()
         if not mock_chroot:
@@ -1256,6 +1262,8 @@ class MockChrootsLogic(object):
                 "Mock chroot with this name doesn't exist.")
 
         mock_chroot.is_active = is_active
+        if is_active:
+            mock_chroot.final_prunerepo_done = False
         cls.update(mock_chroot)
         return mock_chroot
 
