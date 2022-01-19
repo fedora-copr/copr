@@ -156,8 +156,8 @@ class Pruner(object):
                 LOG.info("Re-running prunerepo in finalized %s/%s:%s",
                          username, projectdir, chroot_name)
                 return True
-            LOG.debug("Final pruning already done for chroot %s/%s:%s",
-                      username, projectdir, chroot_name)
+            LOG.info("Final pruning already done for chroot %s/%s:%s",
+                     username, projectdir, chroot_name)
             return False
 
         return True
