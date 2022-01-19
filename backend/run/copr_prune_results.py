@@ -146,8 +146,9 @@ class Pruner(object):
         happened since the previous run).
         """
         if chroot_name not in self.chroots:
-            LOG.error("Wrong chroot name %s/%s:%s",
-                      username, projectdir, chroot_name)
+            if chroot_name != "srpm-builds":
+                LOG.error("Wrong chroot name %s/%s:%s",
+                          username, projectdir, chroot_name)
             return False
 
         info = self.chroots[chroot_name]
