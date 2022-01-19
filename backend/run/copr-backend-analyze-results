@@ -168,12 +168,13 @@ def _main(arguments):
         stats_file  = arguments.output_filename
 
     chroots = Stats("chroots", 5)
+    pchroots = Stats("project_chroots", 5)
     arches = Stats("arches")
     owners = Stats("owners", 5)
     projects = Stats("projects", 5)
     distros = Stats("distros", 6)
 
-    all_stats = [chroots, arches, owners, projects, distros]
+    all_stats = [chroots, arches, owners, projects, distros, pchroots]
 
     checker = TimeToPrint(print_per_seconds=arguments.log_progress_delay)
 
@@ -225,6 +226,8 @@ def _main(arguments):
                     # how much storage the srpm-builds or modules eat.
                     chroots.add(chroot, kbytes)
                 else:
+                    project_chroot_path = "/".join(parts)
+                    pchroots.add(project_chroot_path, kbytes)
                     chroots.add(chroot, kbytes)
                     distro, arch = chroot.rsplit("-", 1)
                     arches.add(arch, kbytes)
