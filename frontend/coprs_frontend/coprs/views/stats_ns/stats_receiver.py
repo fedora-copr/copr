@@ -5,6 +5,7 @@ import json
 from coprs import rcp
 from coprs import app
 from coprs import db
+from coprs.exceptions import CoprHttpException
 from ..misc import intranet_required
 from . import stats_rcv_ns
 from ...logic.stat_logic import CounterStatLogic, handle_be_stat_message
@@ -32,5 +33,6 @@ def backend_stat_message_handler():
         handle_be_stat_message(rcp.get_connection(), json.loads(flask.request.json))
     except Exception as err:
         app.logger.exception(err)
+        raise CoprHttpException from err
 
     return "OK", 201
