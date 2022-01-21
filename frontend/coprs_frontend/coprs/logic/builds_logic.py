@@ -871,6 +871,7 @@ class BuildsLogic(object):
             scm_object_id=scm_object_id,
             scm_object_url=scm_object_url,
             submitted_by=submitted_by,
+            is_background=True,
         )
         db.session.add(build)
         cls.assign_buildchroots_from_package(build)
