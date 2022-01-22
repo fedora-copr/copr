@@ -21,6 +21,10 @@ from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 from . import query_params, pagination, get_copr, GET, POST, PUT, DELETE, Paginator
 from .json2form import get_form_compatible_data
 
+
+MAX_PACKAGES_WITHOUT_PAGINATION = 10000
+
+
 def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False):
     source_dict = package.source_json_dict
     if "srpm_build_method" in source_dict:
@@ -121,6 +125,11 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     query = PackagesLogic.get_all(copr.main_dir.id)
     paginator = Paginator(query, models.Package, **kwargs)
     packages = paginator.get().all()
+
+    if len(packages) > MAX_PACKAGES_WITHOUT_PAGINATION:
+        raise ApiError("Too many packages, please use pagination. "
+                       "Requests are limited to only {0} packages at once."
+                       .format(MAX_PACKAGES_WITHOUT_PAGINATION))
 
     # Query latest builds for all packages at once. We can't use this solution
     # for querying latest successfull builds, so that will be a little slower
