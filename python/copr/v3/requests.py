@@ -111,5 +111,14 @@ def handle_errors(response):
         raise CoprRequestException(response_json["error"], response=response)
 
     except ValueError:
+        # When the request timeouted on the apache layer, we couldn't return a
+        # nice JSON response and therefore its parsing fails.
+        if response.status_code == 504:
+            message = ("{0}\nConsider using pagination for large queries."
+                       .format(response.reason))
+            # We can't raise-from because of EPEL7
+            # pylint: disable=raise-missing-from
+            raise CoprTimeoutException(message, response=response)
+
         raise CoprRequestException("Request is not in JSON format, there is probably a bug in the API code.",
                                    response=response)
