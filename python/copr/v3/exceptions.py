@@ -7,6 +7,7 @@ class CoprException(Exception):
     """
     def __init__(self, msg=None, response=None):
         super(CoprException, self).__init__(msg)
+        msg = msg or "Unspecified error"
         self.result = Munch(error=msg, __response__=response)
 
 
