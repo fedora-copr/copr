@@ -307,5 +307,12 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
     if committish:
         # Do the checkout only if explicitly requested, otherwise build against
         # the default branch.
+
+        # First, fetch a remote reference if used.
+        # This is a guesstimate for GitHub, GitLab and Pagure.
+        if committish.startswith("refs/"):
+            fetch_cmd = ['git', 'fetch', 'origin', '{0}:{0}'.format(committish)]
+            run_cmd(fetch_cmd, cwd=repo_path)
+
         checkout_cmd = ['git', 'checkout', committish]
         run_cmd(checkout_cmd, cwd=repo_path)
