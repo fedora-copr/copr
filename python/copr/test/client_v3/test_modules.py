@@ -1,9 +1,9 @@
 import os
-import mock
 import pytest
 import tempfile
 import shutil
 from json import loads
+from copr.test import mock
 from copr.v3 import ModuleProxy
 
 

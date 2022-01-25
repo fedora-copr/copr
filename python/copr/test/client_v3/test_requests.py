@@ -1,6 +1,6 @@
 import pytest
-import mock
 from requests import Response
+from copr.test import mock
 from copr.v3.requests import Request, handle_errors, CoprRequestException, munchify
 
 

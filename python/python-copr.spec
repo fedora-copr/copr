@@ -107,7 +107,6 @@ Summary:        Python interface for Copr
 
 BuildRequires: python3-devel
 BuildRequires: python3-docutils
-BuildRequires: python3-mock
 BuildRequires: python3-munch
 BuildRequires: python3-marshmallow
 BuildRequires: python3-pytest
@@ -131,7 +130,6 @@ Requires: python3-six
 BuildRequires: pyproject-rpm-macros
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
-BuildRequires: python3-mock
 
 %generate_buildrequires
 %pyproject_buildrequires -r

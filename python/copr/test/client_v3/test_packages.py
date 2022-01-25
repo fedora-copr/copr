@@ -2,11 +2,10 @@
 Test for adding packages
 """
 
-import mock
 import pytest
 
 from copr.v3 import Client
-from copr.test import config_location
+from copr.test import config_location, mock
 
 
 @pytest.mark.parametrize('method_name', ['add', 'edit'])

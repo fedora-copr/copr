@@ -1,6 +1,6 @@
 import pytest
-import mock
 from munch import Munch
+from copr.test import mock
 from copr.v3.helpers import wait, succeeded, List
 from copr.v3 import BuildProxy, CoprException
 
