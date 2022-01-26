@@ -192,10 +192,7 @@ class ModuleBuildFacade(object):
             batch.blocked_by_id = blocked_by_id
             db.session.add(batch)
             for pkgname, rpm in group.items():
-                clone_url = self.get_clone_url(pkgname, rpm)
-                build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
-                                                                     clone_url=clone_url, committish=rpm.get_ref(),
-                                                                     chroot_names=self.platform_chroots)
+                build = self.get_build(rpm, pkgname)
                 build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
@@ -203,6 +200,26 @@ class ModuleBuildFacade(object):
 
             # Every batch needs to by blocked by the previous one
             blocked_by_id = batch.id
+
+    def get_build(self, rpm, pkgname):
+        """
+        Create a (DistGit method) Build instance for the given RPM and PKGNAME
+        """
+        build_options = {}
+
+        # User wants to use a different clone_url, using the
+        # 'components.rpms.<component>.repository' option.  Perhaps
+        # a different dist-git instance is needed.
+        if rpm.get_repository():
+            build_options["clone_url"] = rpm.get_repository()
+
+        return builds_logic.BuildsLogic.create_new_from_distgit(
+            self.user, self.copr,
+            pkgname, distgit_name=self.distgit.name,
+            committish=rpm.get_ref(),
+            chroot_names=self.platform_chroots,
+            **build_options,
+        )
 
     def get_clone_url(self, pkgname, rpm):
         if rpm.get_repository():

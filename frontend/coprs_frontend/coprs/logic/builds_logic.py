@@ -547,10 +547,18 @@ class BuildsLogic(object):
                                 copr_dirname=None, **build_options):
         """ Request build of package from DistGit repository """
         source_type = helpers.BuildSourceEnum("distgit")
-        source_dict = {
-            "clone_url": DistGitLogic.get_clone_url(distgit_name, package_name,
-                                                    distgit_namespace),
-        }
+
+        source_dict = {}
+
+        if "clone_url" in build_options:
+            # Even though the DistGit instance is (probably) chosen, use a
+            # different clone URL.  If the pattern for this URL isn't configured
+            # on the builder side, the build may fail.
+            source_dict["clone_url"] = build_options["clone_url"]
+        else:
+            source_dict["clone_url"] = DistGitLogic.get_clone_url(
+                    distgit_name, package_name, distgit_namespace)
+
         if committish:
             source_dict["committish"] = committish
 
