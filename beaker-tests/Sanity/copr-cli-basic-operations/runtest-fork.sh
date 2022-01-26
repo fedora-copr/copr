@@ -50,8 +50,8 @@ rlJournalStart
         # attempt to fork into existing project
         OUTPUT=`mktemp`
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork &> $OUTPUT" 1
-        rlAssertEquals "Error existing project" `grep -r 'Error: You are about to fork into existing project' $OUTPUT |wc -l` 1
-        rlAssertEquals "Use --confirm" `grep -r 'Please use --confirm if you really want to do this' $OUTPUT |wc -l` 1
+        rlAssertEquals "Error existing project" `grep -r '\- You are about to fork into existing project' $OUTPUT |wc -l` 1
+        rlAssertEquals "Use --confirm" `grep -r '\- Please use --confirm if you really want to do this' $OUTPUT |wc -l` 1
         rlRun "copr-cli list-builds ${NAME_PREFIX}Project10Fork > $OUTPUT"
         rlAssertEquals "No build was forked" `cat $OUTPUT | wc -l` 1
 
