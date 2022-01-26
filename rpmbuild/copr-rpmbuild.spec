@@ -163,7 +163,7 @@ Summary: Utility to download sources from dist-git
 
 Requires: %{_bindir}/git
 Requires: curl
-%if 0%{?fedora} || 0%{?rhel} > 8
+%if 0%{?fedora} || 0%{?rhel} > 9
 Requires: %{python_pfx}-rpmautospec
 BuildRequires: %{python_pfx}-rpmautospec
 %endif
