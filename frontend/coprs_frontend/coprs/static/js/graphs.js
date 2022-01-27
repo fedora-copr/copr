@@ -71,8 +71,8 @@ function chrootGraph(data, bind) {
         columns: data,
         type: 'bar'
     };
-    chart.size = {height: 550,
-                  width: 400};
+    chart.size = {height: 800,
+                  width: undefined};
     chart.tooltip = {
         format: {
             title: function (x) {return ''}
