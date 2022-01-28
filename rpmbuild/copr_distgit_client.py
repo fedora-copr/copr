@@ -48,11 +48,6 @@ def check_call(cmd, comment="Checked call"):
     log_cmd(cmd, comment)
     subprocess.check_call(cmd)
 
-def _load_configfile(filename):
-    config = configparser.ConfigParser()
-    config.read(filename)
-
-
 def _load_config(directory):
     config = configparser.ConfigParser()
     files = glob.glob(os.path.join(directory, "*.ini"))
