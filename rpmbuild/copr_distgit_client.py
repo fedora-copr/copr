@@ -10,6 +10,7 @@ import logging
 import pipes
 import os
 import subprocess
+import sys
 from six.moves.urllib.parse import urlparse
 
 try:
@@ -173,9 +174,14 @@ def get_spec(distgit_config):
     """
     Find the specfile name inside distgit_config["specs"] directory
     """
-    specfiles = glob.glob(os.path.join(distgit_config["specs"], '*.spec'))
+    spec_dir = distgit_config["specs"]
+    specfiles = glob.glob(os.path.join(spec_dir, '*.spec'))
     if len(specfiles) != 1:
-        raise RuntimeError("Exactly one spec file expected")
+        abs_spec_dir = os.path.join(os.getcwd(), spec_dir)
+        message = "Exactly one spec file expected in {0} directory, {1} found".format(
+            abs_spec_dir, len(specfiles),
+        )
+        raise RuntimeError(message)
     specfile = os.path.basename(specfiles[0])
     return specfile
 
@@ -381,7 +387,11 @@ def main():
     )
     config = _load_config(args.configdir)
 
-    if args.action == "srpm":
-        srpm(args, config)
-    else:
-        sources(args, config)
+    try:
+        if args.action == "srpm":
+            srpm(args, config)
+        else:
+            sources(args, config)
+    except RuntimeError as err:
+        logging.error("%s", err)
+        sys.exit(1)
