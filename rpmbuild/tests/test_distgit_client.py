@@ -58,6 +58,7 @@ class TestDistGitDownload(object):
         class _Args:
             # pylint: disable=too-few-public-methods
             dry_run = False
+            forked_from = None
         self.args = _Args()
         self.workdir = tempfile.mkdtemp(prefix="copr-distgit-test-")
         os.chdir(self.workdir)

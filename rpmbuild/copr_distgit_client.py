@@ -141,12 +141,7 @@ def download_file_and_check(url, params, distgit_config):
         ))
 
 
-def get_distgit_config(config):
-    """
-    Given the '.git/config' file from current directory, return the
-    appropriate part of dist-git configuration.
-    Returns tuple: (urlparse(clone_url), distgit_config)
-    """
+def _detect_clone_url():
     git_config = ".git/config"
     if not os.path.exists(git_config):
         msg = "{0} not found, $PWD is not a git repository".format(git_config)
@@ -154,7 +149,18 @@ def get_distgit_config(config):
 
     git_conf_reader = configparser.ConfigParser()
     git_conf_reader.read(git_config)
-    url = git_conf_reader['remote "origin"']["url"]
+    return git_conf_reader['remote "origin"']["url"]
+
+
+def get_distgit_config(config, forked_from=None):
+    """
+    Given the '.git/config' file from current directory, return the
+    appropriate part of dist-git configuration.
+    Returns tuple: (urlparse(clone_url), distgit_config)
+    """
+    url = forked_from
+    if not url:
+        url = _detect_clone_url()
     parsed_url = urlparse(url)
     if parsed_url.hostname is None:
         hostname = "localhost"
@@ -179,7 +185,7 @@ def sources(args, config):
     Locate the sources, and download them from the appropriate dist-git
     lookaside cache.
     """
-    parsed_url, distgit_config = get_distgit_config(config)
+    parsed_url, distgit_config = get_distgit_config(config, args.forked_from)
     namespace = parsed_url.path.lstrip('/').split('/')
     # drop the last {name}.git part
     repo_name = namespace.pop()
@@ -265,7 +271,7 @@ def srpm(args, config):
     Using the appropriate dist-git configuration, generate source RPM
     file.  This requires running 'def sources()' first.
     """
-    _, distgit_config = get_distgit_config(config)
+    _, distgit_config = get_distgit_config(config, args.forked_from)
 
     cwd = os.getcwd()
     sources_dir = os.path.join(cwd, distgit_config["sources"])
@@ -305,8 +311,9 @@ def _get_argparser():
                                      description="""\
 A simple, configurable python utility that is able to download sources from
 various dist-git instances, and generate source RPMs.
-The utility is able to automatically map the .git/config clone URL into the
-corresponding dist-git instance configuration.
+The utility is able to automatically map the "origin" .git/config clone URL
+(or --forked-from URL, if specified) to a corresponding dist-git instance
+configured in /etc/copr-distgit-client directory.
 """)
 
     # main parser
@@ -318,6 +325,15 @@ corresponding dist-git instance configuration.
     parser.add_argument(
         "--loglevel", default="info",
         help="Python logging level, e.g. debug, info, error")
+    parser.add_argument(
+        "--forked-from",
+        metavar="CLONE_URL",
+        help=("Specify that this git clone directory is a dist-git repository "
+              "fork.  If used, the default clone url detection from the "
+              ".git/config file is disabled and CLONE_URL is used instead. "
+              "This specified CLONE_URL is used to detect the appropriate "
+              "lookaside cache pattern to download the sources."))
+
     subparsers = parser.add_subparsers(
         title="actions", dest="action")
 
