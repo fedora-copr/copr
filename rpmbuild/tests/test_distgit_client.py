@@ -5,12 +5,17 @@ copr-distgit-client testsuite
 import os
 import shutil
 import tempfile
+
+import pytest
+
 try:
     from unittest import mock
 except ImportError:
     import mock
 
-from copr_distgit_client import sources, srpm, _load_config, check_output
+from copr_distgit_client import (sources, srpm, _load_config, check_output,
+        _detect_clone_url, get_distgit_config,
+)
 
 # pylint: disable=useless-object-inheritance
 
@@ -48,13 +53,14 @@ class TestDistGitDownload(object):
     config = None
     args = None
     workdir = None
+    config_dir = None
 
     def setup_method(self, method):
         _unused_but_needed_for_el6 = (method)
         testdir = os.path.dirname(__file__)
         projdir = os.path.dirname(testdir)
-        config_dir = os.path.join(projdir, 'etc/copr-distgit-client')
-        self.config = _load_config(config_dir)
+        self.config_dir = os.path.join(projdir, 'etc/copr-distgit-client')
+        self.config = _load_config(self.config_dir)
         class _Args:
             # pylint: disable=too-few-public-methods
             dry_run = False
@@ -174,3 +180,50 @@ class TestDistGitDownload(object):
             '--define', '_srcrpmdir ' + self.workdir + '/result',
             '--define', '_disable_source_fetch 1',
         ]
+
+    def test_duplicate_prefix(self):
+        modified_dir = os.path.join(self.workdir, "config")
+        shutil.copytree(self.config_dir, modified_dir)
+        modified_file = os.path.join(modified_dir, "default.ini")
+        with open(modified_file, "a+") as fmodify:
+            fmodify.write(
+                "\n\n[hack]\n"
+                "clone_hostnames = gitlab.com\n"
+                "path_prefixes = /redhat/centos-stream/rpms\n"
+            )
+        with pytest.raises(RuntimeError) as err:
+            _load_config(modified_dir)
+            assert "Duplicate prefix /redhat" in str(err)
+
+    @staticmethod
+    def test_no_git_config():
+        with pytest.raises(RuntimeError) as err:
+            _detect_clone_url()
+            assert "is not a git" in str(err)
+
+    def test_load_prefix(self):
+        prefixed_url = "git://gitlab.com/redhat/centos-stream/rpms/test.git"
+        _, config = get_distgit_config(self.config, forked_from=prefixed_url)
+        assert config["lookaside_location"] == "https://sources.stream.centos.org"
+
+    def test_load_prefix_fail(self):
+        prefixed_url = "git://gitlab.com/non-existent/centos-stream/rpms/test.git"
+        with pytest.raises(RuntimeError) as err:
+            get_distgit_config(self.config, forked_from=prefixed_url)
+            msg = "Path /non-existent/centos-stream/rpms/test.git does not " + \
+                  "match any of 'path_prefixes' for 'gitlab.com' hostname"
+            assert msg in str(err)
+
+    def test_no_spec(self):
+        init_git([
+            ("sources", "0ced6f20b9fa1bea588005b5ad4b52c1  tar-1.26.tar.xz\n"),
+        ])
+        git_origin_url("ssh://praiskup@pkgs.fedoraproject.org/rpms/tar")
+        with pytest.raises(RuntimeError) as err:
+            sources(self.args, self.config)
+            strings = [
+                "directory, 0 found",
+                "Exactly one spec file expected in",
+            ]
+            for string in strings:
+                assert string in str(err)

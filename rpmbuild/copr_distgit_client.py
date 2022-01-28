@@ -70,7 +70,7 @@ def _load_config(directory):
         instance = instances[section_name] = {}
         for key in section.keys():
             # array-like config options
-            if key in ["clone_hostnames"]:
+            if key in ["clone_hostnames", "path_prefixes"]:
                 hostnames = section[key].split()
                 instance[key] = [h.strip() for h in hostnames]
             else:
@@ -88,7 +88,16 @@ def _load_config(directory):
             instance["default_sum"] = "md5"
 
         for host in instance["clone_hostnames"]:
-            config_dict["clone_host_map"][host] = instance
+            if host not in config_dict["clone_host_map"]:
+                config_dict["clone_host_map"][host] = {}
+            host_dict = config_dict["clone_host_map"][host]
+            for prefix in instance.get("path_prefixes", ["DEFAULT"]):
+                if prefix in host_dict:
+                    msg = "Duplicate prefix {0} for {1} hostname".format(
+                        prefix, host,
+                    )
+                    raise RuntimeError(msg)
+                host_dict[prefix] = instance
 
     return config_dict
 
@@ -167,7 +176,22 @@ def get_distgit_config(config, forked_from=None):
         hostname = "localhost"
     else:
         hostname = parsed_url.hostname
-    return parsed_url, config["clone_host_map"][hostname]
+
+    prefixes = config["clone_host_map"][hostname]
+    prefix_found = None
+    for prefix in prefixes.keys():
+        if not parsed_url.path.startswith(prefix):
+            continue
+        prefix_found = prefix
+
+    if not prefix_found:
+        if "DEFAULT" not in prefixes:
+            raise RuntimeError("Path {0} does not match any of 'path_prefixes' "
+                               "for '{1}' hostname".format(parsed_url.path,
+                                                           hostname))
+        prefix_found = "DEFAULT"
+
+    return parsed_url, prefixes[prefix_found]
 
 
 def get_spec(distgit_config):
