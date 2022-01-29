@@ -136,7 +136,7 @@ class BuildsLogic(object):
             .with_entities(BuildChroot.mock_chroot_id,
                            func.count(BuildChroot.mock_chroot_id))\
             .group_by(BuildChroot.mock_chroot_id)\
-            .order_by(BuildChroot.mock_chroot_id)
+            .order_by(func.count(BuildChroot.mock_chroot_id).desc())
 
         for chroot in chroot_query:
             chroots.append([chroot[0], chroot[1]])
@@ -146,9 +146,7 @@ class BuildsLogic(object):
             for l in chroots:
                 if l[0] == mock_chroot.id:
                     l[0] = mock_chroot.name
-
-        # sort by chroot name
-        return sorted(chroots, key=lambda x: x[0])
+        return chroots
 
     @classmethod
     def get_pending_jobs_bucket(cls, start, end):
