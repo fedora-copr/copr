@@ -45,9 +45,17 @@ Or even something like::
 
     Copr build error: error: Bad source: /var/lib/copr-rpmbuild/results/example-1.0.13.tar.gz: No such file or directory
 
+The utility in ``v3`` version also stopped automatically loading the
+``rpkg.macros`` file stored in git repository.   Newly, one must tell the
+utility `where the rpkg.macros file resides`_.  That's done using the git-root
+``rpkg.conf`` file::
 
-How am I supposed to fix this
------------------------------
+    [rpkg]
+    user_macros = "${git_props:root}/rpkg.macros"
+
+
+How am I supposed to fix the ``auto_pack`` issue
+------------------------------------------------
 
 First, if you build your package from a DistGit instance (e.g. from
 ``src.fedoraproject.org``, ``git.centos.org``, etc.), you are encouraged to use
@@ -69,3 +77,4 @@ If for any reason you can not use the new `rpkg-util` syntax, take a look at the
 .. _`rpkg-util documentation`: https://pagure.io/rpkg-util
 .. _`example commit`: https://pagure.io/copr/copr-hello/c/739ff9910ee8a9c76d7e97de2f6176106dc19a09?branch=rpkg-util
 .. _`DistGit`: https://github.com/release-engineering/dist-git
+.. _`where the rpkg.macros file resides`: https://docs.pagure.org/rpkg-util/v3/macro_reference.html#user-defined-macros
