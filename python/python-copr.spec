@@ -127,7 +127,7 @@ Requires: python3-six
 %{?python_provide:%python_provide python3-copr}
 
 %if 0%{?fedora} > 30 || 0%{?rhel} > 8
-BuildRequires: pyproject-rpm-macros
+BuildRequires: python3-devel
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
 
