@@ -21,6 +21,24 @@ class AbstractPrinter(object):
         """Print the data according to the set format"""
         raise NotImplementedError
 
+    def _iterate_fields_for_data(self, data):
+        for field in self.fields:
+            key = field
+            value = None
+            try:
+                if callable(field):
+                    key = field.__code__.co_varnames[0]
+                    value = field(data)
+                else:
+                    value = data[field]
+            except KeyError:
+                # If client requests such a field, and server doesn't provide
+                # it, this likely means that the copr-frontend side is just
+                # out-dated.  Rather than raising an ugly KeyError here we skip
+                # the field.
+                continue
+            yield key, value
+
 
 class RowTextPrinter(AbstractPrinter):
     """The class takes care of printing the data in row text format"""
@@ -30,11 +48,8 @@ class RowTextPrinter(AbstractPrinter):
 
     def add_data(self, data):
         row_data = []
-        for field in self.fields:
-            if callable(field):
-                row_data.append(str(field(data)))
-            else:
-                row_data.append(str(data[field]))
+        for _, value in self._iterate_fields_for_data(data):
+            row_data.append(str(value))
         print("\t".join(row_data))
 
 
@@ -50,11 +65,8 @@ class ColumnTextPrinter(AbstractPrinter):
         if not self.first_line:
             print()
         self.first_line = False
-        for field in self.fields:
-            if callable(field):
-                print("{0}: {1}".format(field.__code__.co_varnames[0], str(field(data))))
-            else:
-                print("{0}: {1}".format(field, str(data[field])))
+        for key, value in self._iterate_fields_for_data(data):
+            print("{0}: {1}".format(key, str(value)))
 
 
 class JsonPrinter(AbstractPrinter):
@@ -62,12 +74,8 @@ class JsonPrinter(AbstractPrinter):
 
     def _get_result_json(self, data):
         result = {}
-        for field in self.fields:
-            if callable(field):
-                name = field.__code__.co_varnames[0]
-                result[name] = field(data)
-            else:
-                result[field] = data[field]
+        for key, value in self._iterate_fields_for_data(data):
+            result[key] = value
         return json_dumps(result)
 
     def add_data(self, data):
