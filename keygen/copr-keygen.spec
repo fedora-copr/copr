@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.81
+Version:    1.82
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -170,6 +170,9 @@ service httpd condrestart &>/dev/null || :
 
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.82-1
+- Disable coverage analysis during RPM build
+
 * Thu Sep 30 2021 Silvie Chlupova 1.81-1
 - keygen: various improvements for setup.py
 - keygen: remove multiline description
