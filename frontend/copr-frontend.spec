@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.183
+Version:    1.184
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -383,6 +383,32 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.184-1
+- sort chroot-histogram graphs by number of builds
+- use dist-git method for builds by default
+- fix size of graphs on status page
+- limit max number of packages per request
+- paginate packages list in APIv3
+- don't query all packages when empty list is specified
+- webhook rebuilds are background jobs now
+- re-enabled chroots should reset final_prunerepo_done
+- fix import order reported by pylint
+- print human-readable validation errors in APIv3
+- basic build tagging
+- use new Fedora chroot icon
+- use official EPEL log for chroot icon
+- PyLint fixes for create_db.py
+- fix ./run_tests.sh script for coverage args
+- don't insert+commit in create_after event
+- build PyPI only for python3 by default
+- describe advanced searching possibilities
+- limit RubyGems and PyPI package names length
+- Disable coverage analysis during RPM build
+- 2029379 - workaround GitHub caching proxy
+- drop duplicit "group" table join
+- add "My Projects" button to the homepage
+- api monitor page to contain pkg_version
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.183-1
 - ACR toggle - handle NO_VALUE specially too
 - Fixup ACR handling
