@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.13.1.dev
+Version:    0.13.2.dev
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,9 @@ version=%version %py2_install
 
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.13.2.dev-1
+- dist-git: python code for removing unused tarballs on dist-git server
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.13.1-1
 - Fixing copr-common version
 
