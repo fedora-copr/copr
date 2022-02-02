@@ -1,7 +1,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-dist-git
-Version:    0.51
+Version:    0.52
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.52-1
+- dist-git: python code for removing unused tarballs on dist-git server
+
 * Tue Jun 15 2021 Pavel Raiskup <praiskup@redhat.com> 0.51-1
 - add a --foreground option for importer_runner.py
 - install debugging helpers for indefinite imports (rhbz#1963954)
