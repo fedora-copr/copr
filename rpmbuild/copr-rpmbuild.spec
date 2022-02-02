@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.55.1
+Version: 0.55.2
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -330,6 +330,12 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.55.2-1
+- don't depend on autospec in EL9
+- use config file in *-cancel and *-log scripts
+- better PID for copr-rpmbuild-log
+- keep the required common version on one place
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 0.55.1-1
 - Fixing copr-common version
 
