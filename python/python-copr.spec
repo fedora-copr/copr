@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.114
+Version:    1.115
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -221,6 +221,13 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.115-1
+- don't BuildRequires pyproject-rpm-macros directly
+- fix exception caused by default msg value
+- raise user-friendly exception when on request timeout
+- print human-readable validation errors in APIv3
+- remove macros that reference old Fedoras and EL6 and instroduce EL9
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.114-1
 - Depend on setuptools for the pkg_resources
 - APIv3 /monitor route
