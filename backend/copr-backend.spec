@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.152
+Version:    1.153
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,15 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.153-1
+- less aggressive final_prunerepo setting
+- analyze-results: dump data for projects' chroots
+- basic build tagging
+- better "regenerate repo" instructions
+- limit RubyGems and PyPI package names length
+- Disable coverage analysis during RPM build
+- python code for removing unused tarballs on dist-git server
+
 * Wed Nov 10 2021 Silvie Chlupova <schlupov@redhat.com> 1.152-1
 - Fixup ACR handling
 - Drop the unused pid file from the specfile
