@@ -1,0 +1,70 @@
+.. _release_notes_2022_02_03:
+
+Highlights from 2022-02-03 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_, `Fedora 34`_,
+`EPEL 8`_, and `EPEL 7`_ Bodhi updates.
+
+Removing unused tarballs
+------------------------
+
+We automatized removing all tarballs in the package lookaside directory except
+for tarballs that are referenced by the latest commit of each branch in the package git directory.
+
+More human-readable validation errors in APIv3
+----------------------------------------------
+
+We changed the error messages in APIv3 because not all of them were completely human-readable.
+Previously we showed something like a dictionary. This changed to string which better shows what was wrong.
+
+Basic build tagging
+-------------------
+
+We needed per-mock-chroot tag propagated to builds, as we have two kinds of the
+ppc64le builders. Power8 machines (might be used for building Fedora
+and older Enterprise Linux chroots), and Power9 (can be used for
+Enterprise Linux 9+, but also other/older chroots).
+The point here is to never assign Power8 machine for the EL 9 chroot
+build task. For this, we need to have a special tag and a correspondingly tagged resalloc resources.
+As the result, this allowed us to add epel-9-ppc64le and centos-stream-9-ppc64le chroots.
+
+Webhook rebuilds are background jobs now
+----------------------------------------
+
+We run webhook rebuilds as background jobs now.
+In the future, we'd like to have an option in the webhook URL to let users decide if they prefer background jobs.
+
+The dist-git method used for modular builds by default
+------------------------------------------------------
+
+The custom clone URL is somewhat problematic. We used to have
+'/etc/copr-rpmbuild/main.ini' configured so rpkg-util could use several
+DistGit instances, but that did not really cover lot of DistGit
+instances.
+With the new rpkg-util, building from DistGit is not that flexible,
+and the set of packages it can correctly build shrank a bit.
+Therefore we use the DistGit method that we can configure well against
+all the DistGit instances we currently know of.
+
+Bugfixes
+--------
+
+- `#1993`_ *pkg_version* field was added to monitor action. It allows to detect package version and package mismatches across chroots.
+- `#1924`_ We added a limit for RubyGems and PyPI package name length because it was causing a build to hang.
+- `#1985`_ When you submit a build using copr-cli and cancel the build using web UI then the exit code will be 4.
+- `rhbz#1870320`_ `Documentation`_  added on how to use advanced searching possibilities.
+- `rhbz#2036631`_  Command `copr list-packages` was timing out for large Copr repositories.
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-103e6db92c
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-b1f6928408
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-e55d502a93
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-2fae22aa0b
+
+.. _`#1993`: https://pagure.io/copr/copr/issue/1993
+.. _`#1924`: https://pagure.io/copr/copr/issue/1924
+.. _`rhbz#1870320`: https://bugzilla.redhat.com/show_bug.cgi?id=1870320
+.. _`rhbz#2036631`: https://bugzilla.redhat.com/show_bug.cgi?id=2036631
+.. _`#1985`: https://pagure.io/copr/copr/issue/1985
+.. _`Documentation`: https://docs.pagure.org/copr.copr/user_documentation.html#advanced-searching
