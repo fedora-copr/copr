@@ -53,6 +53,12 @@ def get_argparser():
         help="Wait until all packages are available",
     )
     parser.add_argument(
+        "--arch",
+        default="x86_64",
+        help=("Default package architecture, in case the parsed architecture "
+              "from NEVRA is noarch. We need to select the correct repo."),
+    )
+    parser.add_argument(
         "packages",
         nargs="+",
         help=("List of packages that we expect to be in the infra tag repo. "
@@ -75,7 +81,7 @@ def fetch_kojipkgs(staging, fversion, arch):
     return response.json()
 
 
-def is_available(package, staging):
+def is_available(package, staging, default_arch):
     subject = Subject(package.rstrip(".rpm"))
     nevras = subject.get_nevra_possibilities(forms=[hawkey.FORM_NEVRA])
 
@@ -85,6 +91,8 @@ def is_available(package, staging):
     nevra = nevras[0]
     fversion = nevra.release.split(".")[-1]
     arch = nevra.arch
+    if arch == "noarch":
+        arch = default_arch
 
     if fversion.startswith("fc"):
         fversion = fversion[2:]
@@ -97,10 +105,10 @@ def is_available(package, staging):
     return package in kojipkgs
 
 
-def are_available(packages, staging):
+def are_available(packages, staging, default_arch):
     all_available = True
     for package in packages:
-        available = is_available(package, staging)
+        available = is_available(package, staging, default_arch)
         print("{verb}: {package}"
             .format(package=package,
                     verb="Found" if available else "Missing"))
@@ -116,7 +124,7 @@ def main():
 
     try:
         while True:
-            available = are_available(args.packages, args.staging)
+            available = are_available(args.packages, args.staging, args.arch)
             exitstatus = 0 if available else 1
 
             if args.wait and not available:
