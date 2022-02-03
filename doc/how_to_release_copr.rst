@@ -160,7 +160,7 @@ For each package do::
 Submit packages into stg infra tags
 ...................................
 
-Submit the pacakges into `Infra tags repo <https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html>`_.
+Submit the pacakges into `Infra tags repo <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/infra-repo/>`_.
 If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or someone on ``#fedora-admin`` libera.chat channel.
 We have wrappers around the ``koji`` tool for this.  First move the package to
 staging repo::
