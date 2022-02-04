@@ -49,7 +49,7 @@ class ProjectChrootProxy(BaseProxy):
 
     # pylint: disable=too-many-arguments
     def edit(self, ownername, projectname, chrootname, additional_packages=None, additional_repos=None,
-             comps=None, delete_comps=False, with_opts=None, without_opts=None,
+             additional_modules=None, comps=None, delete_comps=False, with_opts=None, without_opts=None,
              bootstrap=None, bootstrap_image=None, isolation=None):
         """
         Edit a chroot configuration in a project
@@ -59,6 +59,7 @@ class ProjectChrootProxy(BaseProxy):
         :param str chrootname:
         :param list additional_packages: buildroot packages for the chroot
         :param list additional_repos: buildroot additional additional_repos
+        :param list additional_modules: additional modules for the chroot
         :param str comps: file path to the comps.xml file
         :param bool delete_comps: if True, current comps.xml will be removed
         :param list with_opts: Mock --with option
@@ -83,6 +84,7 @@ class ProjectChrootProxy(BaseProxy):
         data = {
             "additional_repos": additional_repos,
             "additional_packages": additional_packages,
+            "additional_modules": additional_modules,
             "delete_comps": delete_comps,
             "with_opts": with_opts,
             "without_opts": without_opts,

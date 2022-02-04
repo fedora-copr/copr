@@ -17,6 +17,7 @@ def to_dict(project_chroot):
         "comps_name": project_chroot.comps_name,
         "additional_repos": project_chroot.repos_list,
         "additional_packages": project_chroot.buildroot_pkgs_list,
+        "additional_modules": project_chroot.module_toggle,
         "with_opts": str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
         "delete_after_days": project_chroot.delete_after_days,
@@ -31,6 +32,7 @@ def to_build_config_dict(project_chroot):
         "repos": config["repos"],
         "additional_repos": BuildConfigLogic.generate_additional_repos(project_chroot),
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
+        "additional_modules": project_chroot.module_toggle,
         "enable_net": project_chroot.copr.enable_net,
         "with_opts":  str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
@@ -46,6 +48,7 @@ def rename_fields(input):
     replace = {
         "additional_repos": "repos",
         "additional_packages": "buildroot_pkgs",
+        "additional_modules": "module_toggle",
     }
     output = input.copy()
     for from_name, to_name in replace.items():
@@ -90,11 +93,13 @@ def edit_project_chroot(ownername, projectname, chrootname):
     if not form.validate_on_submit():
         raise InvalidForm(form)
 
-    buildroot_pkgs = repos = comps_xml = comps_name = with_opts = without_opts = None
+    buildroot_pkgs = repos = module_toggle = comps_xml = comps_name = with_opts = without_opts = None
     if "buildroot_pkgs" in data:
         buildroot_pkgs = form.buildroot_pkgs.data
     if "repos" in data:
         repos = form.repos.data
+    if "module_toggle" in data:
+        module_toggle = form.module_toggle.data
     if "with_opts" in data:
         with_opts = form.with_opts.data
     if "without_opts" in data:
@@ -106,7 +111,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
         CoprChrootsLogic.remove_comps(flask.g.user, chroot)
     CoprChrootsLogic.update_chroot(
         flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name,
-        with_opts=with_opts, without_opts=without_opts,
+        with_opts=with_opts, without_opts=without_opts, module_toggle=module_toggle,
         bootstrap=form.bootstrap.data,
         bootstrap_image=form.bootstrap_image.data,
         isolation=form.isolation.data)
