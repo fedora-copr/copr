@@ -651,7 +651,6 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-
         if args.bootstrap_image:
             args.bootstrap = 'image'
         owner, copr, chroot = self.parse_chroot_path(args.coprchroot)
@@ -659,8 +658,10 @@ class Commands(object):
             ownername=owner, projectname=copr, chrootname=chroot,
             comps=args.upload_comps, delete_comps=args.delete_comps,
             additional_packages=args.packages, additional_repos=args.repos,
-            additional_modules=args.modules, bootstrap=args.bootstrap,
-            bootstrap_image=args.bootstrap_image, isolation=args.isolation,
+            additional_modules=args.modules, with_opts=' '.join(args.rpmbuild_with),
+            without_opts=' '.join(args.rpmbuild_without), bootstrap=args.bootstrap,
+            bootstrap_image=args.bootstrap_image,
+            isolation=args.isolation,
         )
         print("Edit chroot operation was successful.")
 
@@ -1406,6 +1407,10 @@ def setup_parser():
                                       help="space separated string of additional repo urls for chroot")
     parser_edit_chroot.add_argument("--modules",
                                       help="comma separated list of modules that will be enabled or disabled in the given chroot, e.g. 'module1:stream,!module2:stream'")
+    parser_edit_chroot.add_argument("--rpmbuild-with", action='append', default=[],
+                                      help="rpmbuild --with option, can be set multiple times")
+    parser_edit_chroot.add_argument("--rpmbuild-without", action='append', default=[],
+                                      help="rpmbuild --without options, can be set multiple times")
     parser_edit_chroot.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",
                                     help="Choose the isolation method for running commands in buildroot.")
 
