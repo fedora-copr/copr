@@ -40,12 +40,6 @@ def generate_api_token(size=30):
     return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
-REPO_DL_STAT_FMT = "repo_dl_stat::{copr_user}@{copr_project_name}:{copr_name_release}"
-CHROOT_REPO_MD_DL_STAT_FMT = "chroot_repo_metadata_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
-CHROOT_RPMS_DL_STAT_FMT = "chroot_rpms_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
-PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project_name}"
-
-
 FINISHED_STATES = ["succeeded", "forked", "canceled", "skipped", "failed"]
 FINISHED_STATUSES = [StatusEnum(s) for s in FINISHED_STATES]
 
@@ -100,7 +94,99 @@ class WorkList:
 
 
 class CounterStatType(object):
+    # When a .repo file is generated on the frontend.
+    # It is displayed in the "Repo Download" column on project overview pages.
     REPO_DL = "repo_dl"
+
+    # When an RPM or SRPM file is downloaded directly from the backend
+    # or from Amazon AWS CDN.
+    # It is displayed in the "Architectures" column on project overview pages.
+    CHROOT_RPMS_DL = "chroot_rpms_dl"
+
+    # When a repodata/repomd.xml RPM or SRPM file is downloaded directly from
+    # the backend or from Amazon AWS CDN.
+    # We are counting but not using this information anywhere.
+    CHROOT_REPO_MD_DL = "chroot_repo_metadata_dl"
+
+    # This should equal to the sum of all `CHROOT_RPMS_DL` stats within
+    # a project. It is a redundant information to be stored, since it can be
+    # calculated. But our `model.CounterStat` design isn't friendly for querying
+    # based on owner/project.
+    # We are counting but not using this information anywhere.
+    PROJECT_RPMS_DL = "project_rpms_dl"
+
+
+def get_stat_name(stat_type, copr_dir=None, copr_chroot=None,
+                  name_release=None, key_string=None):
+    """
+    Generate a `models.CounterStat.name` value based on various optional
+    parameters. Only a subset of parameters needs to be set based on the context
+    and `stat_type`.
+
+    This method is too complicated and messy, we should either minimize the
+    number of input parameters if possible, or turn this into a class with
+    methods for each `stat_type` or use-case.
+    """
+
+    # TODO These are way too complicated
+    # We should get rid of the redis syntax (hset::)
+    #
+    # We should not start the value with `stat_type` because we already have
+    # `CounterStat.counter_type` for that.
+    #
+    # We should probably add `CounterStat.copr_id` to remove `copr_user`
+    # and `copr_project` from the strings
+    # pylint: disable=invalid-name
+    REPO_DL_STAT_FMT = "repo_dl_stat::{copr_user}@{copr_project_name}:{copr_name_release}"
+    CHROOT_REPO_MD_DL_STAT_FMT = "chroot_repo_metadata_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
+    CHROOT_RPMS_DL_STAT_FMT = "chroot_rpms_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
+    PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project_name}"
+
+    stat_fmt = {
+        CounterStatType.REPO_DL: REPO_DL_STAT_FMT,
+        CounterStatType.CHROOT_REPO_MD_DL: CHROOT_REPO_MD_DL_STAT_FMT,
+        CounterStatType.CHROOT_RPMS_DL: CHROOT_RPMS_DL_STAT_FMT,
+        CounterStatType.PROJECT_RPMS_DL: PROJECT_RPMS_DL_STAT_FMT,
+    }.get(stat_type)
+
+    if not stat_fmt:
+        raise ValueError("Unexpected stat_type")
+
+    kwargs = {}
+    if name_release:
+        kwargs["copr_name_release"] = name_release
+
+    if copr_dir:
+        kwargs.update({
+            "copr_user": copr_dir.copr.owner_name,
+            "copr_project_name": copr_dir.copr.name,
+        })
+
+    if copr_chroot:
+        kwargs.update({
+            "copr_user": copr_chroot.copr.owner_name,
+            "copr_project_name": copr_chroot.copr.name,
+            "copr_chroot": copr_chroot.name,
+        })
+
+    # The key strings come from backend hitcounter scripts, e.g.
+    # 'project_rpms_dl_stat|jvanek|java17'
+    if key_string:
+        keys = key_string.split("|")
+        kwargs.update({
+            "copr_user": keys[0],
+            "copr_project_name": keys[1],
+        })
+
+    # Also from backend hitcounter scripts, e.g.
+    # 'chroot_repo_metadata_dl_stat|jose_exposito|touchegg|fedora-35-x86_64'
+    # 'chroot_rpms_dl_stat|packit|psss-tmt-896|fedora-rawhide-x86_64'
+    if key_string and stat_type in [CounterStatType.CHROOT_RPMS_DL,
+                                    CounterStatType.CHROOT_REPO_MD_DL]:
+        keys = key_string.split("|")
+        kwargs["copr_chroot"] = keys[2]
+
+    return stat_fmt.format(**kwargs)
 
 
 class PermissionEnum(metaclass=EnumType):

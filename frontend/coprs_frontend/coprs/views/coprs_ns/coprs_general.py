@@ -49,7 +49,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import generate_repo_url, \
-    url_for_copr_view, REPO_DL_STAT_FMT, CounterStatType, generate_repo_name, \
+    url_for_copr_view, CounterStatType, generate_repo_name, \
     WorkList
 
 
@@ -998,11 +998,11 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
     response.headers["Content-Disposition"] = \
         "filename={0}.repo".format(copr_dir.repo_name)
 
-    name = REPO_DL_STAT_FMT.format(**{
-        'copr_user': copr_dir.copr.user.name,
-        'copr_project_name': copr_dir.copr.name,
-        'copr_name_release': name_release,
-    })
+    name = helpers.get_stat_name(
+        CounterStatType.REPO_DL,
+        copr_dir=copr_dir,
+        name_release=name_release,
+    )
     CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
     db.session.commit()
 

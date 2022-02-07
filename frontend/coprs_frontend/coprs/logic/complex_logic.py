@@ -10,7 +10,6 @@ import sqlalchemy
 from copr_common.enums import StatusEnum
 from coprs import app
 from coprs import db
-from coprs import rcp
 from coprs import helpers
 from coprs import models
 from coprs import exceptions
@@ -19,10 +18,10 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.batches_logic import BatchesLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.actions_logic import ActionsLogic
+from coprs.logic.stat_logic import CounterStatLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
-from coprs.rmodels import TimedStatEvents
 from coprs.logic.coprs_logic import (CoprsLogic, CoprDirsLogic, CoprChrootsLogic,
                                      PinnedCoprsLogic, MockChrootsLogic)
 
@@ -569,15 +568,13 @@ class ReposLogic:
         """
         Calculate how many times a repo for given `copr_chroot` was downloaded
         """
-        chroot_rpms_dl_stat_key = helpers.CHROOT_RPMS_DL_STAT_FMT.format(
-            copr_user=copr_chroot.copr.owner_name,
-            copr_project_name=copr_chroot.copr.name,
-            copr_chroot=copr_chroot.name,
+        stat_type = helpers.CounterStatType.CHROOT_RPMS_DL
+        stat_name = helpers.get_stat_name(
+            stat_type=stat_type,
+            copr_chroot=copr_chroot,
         )
-        return TimedStatEvents.get_count(
-            rconnect=rcp.get_connection(),
-            name=chroot_rpms_dl_stat_key,
-        )
+        stat = CounterStatLogic.get(stat_name).first()
+        return stat.counter if stat else 0
 
     @classmethod
     def _delete_reason(cls, copr_chroots):

@@ -6,9 +6,6 @@ from coprs import app
 from coprs import db
 from coprs.models import CounterStat
 from coprs import helpers
-from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT
-from coprs.rmodels import TimedStatEvents
 
 
 class CounterStatLogic(object):
@@ -36,16 +33,16 @@ class CounterStatLogic(object):
         return csl
 
     @classmethod
-    def incr(cls, name, counter_type):
+    def incr(cls, name, counter_type, count=1):
         """
         Warning: dirty method: does commit if missing stat record.
         """
         try:
             csl = CounterStatLogic.get(name).one()
-            csl.counter = CounterStat.counter + 1
+            csl.counter = CounterStat.counter + count
         except NoResultFound:
             csl = CounterStatLogic.add(name, counter_type)
-            csl.counter = 1
+            csl.counter = count
 
         db.session.add(csl)
         return csl
@@ -55,12 +52,12 @@ class CounterStatLogic(object):
         # chroot -> stat_name
         chroot_by_stat_name = {}
         for chroot in copr.active_chroots:
-            kwargs = {
-                "copr_user": copr.user.name,
-                "copr_project_name": copr.name,
-                "copr_name_release": chroot.name_release
-            }
-            chroot_by_stat_name[REPO_DL_STAT_FMT.format(**kwargs)] = chroot.name_release
+            stat_name = helpers.get_stat_name(
+                stat_type=helpers.CounterStatType.REPO_DL,
+                copr_dir=copr.main_dir,
+                name_release=chroot.name_release,
+            )
+            chroot_by_stat_name[stat_name] = chroot.name_release
 
         # [{counter: <value>, name: <stat_name>}, ...]
         stats = cls.get_multiply_same_type(counter_type=helpers.CounterStatType.REPO_DL,
@@ -74,59 +71,29 @@ class CounterStatLogic(object):
         return repo_dl_stats
 
 
-def handle_be_stat_message(rc, stat_data):
+def handle_be_stat_message(stat_data):
     """
-    :param rc: connection to redis
-    :type rc: StrictRedis
-
     :param stat_data: stats from backend
     :type stat_data: dict
     """
     app.logger.debug('Got stat data: {}'.format(stat_data))
 
-    ts_from = int(stat_data['ts_from'])
-    ts_to = int(stat_data['ts_to'])
     hits = stat_data['hits']
-
-    if not ts_from or not ts_to or ts_from > ts_to or not hits:
-        raise Exception("Invalid or empty data received.")
-
-    ts_from_stored = int(rc.get('handle_be_stat_message_ts_from') or 0)
-    ts_to_stored = int(rc.get('handle_be_stat_message_ts_to') or 0)
-
-    app.logger.debug('ts_from: {}'.format(ts_from))
-    app.logger.debug('ts_to: {}'.format(ts_to))
-    app.logger.debug('ts_from_stored: {}'.format(ts_from_stored))
-    app.logger.debug('ts_to_stored: {}'.format(ts_to_stored))
-
-    if (ts_from < ts_to_stored and ts_to > ts_from_stored):
-        app.logger.debug('Time overlap with already stored data. Skipping.')
-        return
-
-    hits_formatted = defaultdict(int)
     for key_str, count in hits.items():
-        key = key_str.split('|')
-        if key[0] == 'chroot_repo_metadata_dl_stat':
-            redis_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
-                copr_user=key[1],
-                copr_project_name=key[2],
-                copr_chroot=key[3])
-        elif key[0] == 'chroot_rpms_dl_stat':
-            redis_key = CHROOT_RPMS_DL_STAT_FMT.format(
-                copr_user=key[1],
-                copr_project_name=key[2],
-                copr_chroot=key[3])
-        elif key[0] == 'project_rpms_dl_stat':
-            redis_key = PROJECT_RPMS_DL_STAT_FMT.format(
-                copr_user=key[1],
-                copr_project_name=key[2])
-        else:
-            raise Exception('Unknown key {}'.format(key[0]))
+        stat_type, key_string = key_str.split("|", 1)
 
-        hits_formatted[redis_key] += count
+        # FIXME the keys from backend doesn't match CounterStatType exactly
+        stat_type = stat_type.rstrip("_stat")
 
-    for redis_key, count in hits_formatted.items():
-        TimedStatEvents.add_event(rc, redis_key, count=count, timestamp=ts_to)
+        assert stat_type in [
+            helpers.CounterStatType.REPO_DL,
+            helpers.CounterStatType.CHROOT_REPO_MD_DL,
+            helpers.CounterStatType.CHROOT_RPMS_DL,
+            helpers.CounterStatType.PROJECT_RPMS_DL,
+        ]
 
-    rc.set('handle_be_stat_message_ts_from', ts_from)
-    rc.set('handle_be_stat_message_ts_to', ts_to)
+        stat_name = helpers.get_stat_name(
+            stat_type=stat_type,
+            key_string=key_string,
+        )
+        CounterStatLogic.incr(stat_name, stat_type, count)

@@ -7,7 +7,6 @@ import time
 from functools import wraps
 import datetime
 import uuid
-from unittest import mock
 
 import pytest
 import decorator
@@ -67,11 +66,6 @@ class CoprsTestCase(object):
         #    os.makedirs(datadir)
         coprs.db.create_all()
         self.db.session.commit()
-        #coprs/views/coprs_ns/coprs_general.py
-        self.rmodel_TSE_coprs_general_patcher = mock.patch("coprs.logic.complex_logic.TimedStatEvents")
-        self.rmodel_TSE_coprs_general_mc = self.rmodel_TSE_coprs_general_patcher.start()
-        self.rmodel_TSE_coprs_general_mc.return_value.get_count.return_value = 0
-        self.rmodel_TSE_coprs_general_mc.return_value.add_event.return_value = None
 
         self.web_ui = WebUIRequests(self)
         self.api3 = API3Requests(self)
@@ -88,7 +82,6 @@ class CoprsTestCase(object):
         # we actually need to drop it so the setup_method() re-creates the data
         self.db.engine.execute('drop table dist_git_instance')
 
-        self.rmodel_TSE_coprs_general_patcher.stop()
         self.app.config = self.original_config.copy()
         cache.clear()
 

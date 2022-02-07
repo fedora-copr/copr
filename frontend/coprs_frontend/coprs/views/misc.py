@@ -3,12 +3,12 @@ import base64
 import datetime
 import functools
 from functools import wraps, partial
+from urllib.parse import urlparse
 
 import re
 import flask
 from flask import send_file
 
-from urllib.parse import urlparse
 from openid_teams.teams import TeamsRequest
 
 from copr_common.enums import RoleEnum

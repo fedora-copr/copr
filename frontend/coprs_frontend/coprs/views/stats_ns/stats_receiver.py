@@ -1,8 +1,6 @@
 # coding: utf-8
 
 import flask
-import json
-from coprs import rcp
 from coprs import app
 from coprs import db
 from coprs.exceptions import CoprHttpException
@@ -30,7 +28,8 @@ def increment(counter_type, name):
 @backend_authenticated
 def backend_stat_message_handler():
     try:
-        handle_be_stat_message(rcp.get_connection(), json.loads(flask.request.json))
+        handle_be_stat_message(flask.request.json)
+        db.session.commit()
     except Exception as err:
         app.logger.exception(err)
         raise CoprHttpException from err
