@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright (c) 2019 Red Hat, Inc.
+# Copyright (c) 2019-2022 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -29,15 +29,31 @@ rlJournalStart
     rlPhaseStartSetup
         setup_checks
         rlAssertRpm "jq"
+        setupProjectName "Architectures"
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create --chroot fedora-$FEDORA_VERSION-aarch64 ${NAME_PREFIX}Aarch64"
-        rlRun "copr-cli build ${NAME_PREFIX}Aarch64 ${HELLO}"
+        # We support aarch64 both in Red Hat and Fedora Copr
+        chroots=(
+            --chroot "fedora-$FEDORA_VERSION-aarch64"
+        )
+
+        case $FRONTEND_URL in
+        *fedora*.org*)
+            chroots+=(
+                --chroot "fedora-$FEDORA_VERSION-s390x"
+                --chroot "fedora-$FEDORA_VERSION-ppc64le"
+                --chroot "epel-9-ppc64le"
+            )
+            ;;
+        esac
+
+        rlRun "copr-cli create ${chroots[*]} $PROJECT"
+        rlRun "copr-cli build $PROJECT ${HELLO}"
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}Aarch64"
+        cleanProject
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
