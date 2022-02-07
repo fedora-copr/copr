@@ -6,9 +6,9 @@ How to upgrade builders
 This article explains how to upgrade the Copr builders images in
 
 - :ref:`AWS <prepare_aws_source_images>` (x86_64 and aarch64),
-- :ref:`LibVirt <prepare_libvirt_source_images>` (x86_64 and ppc64le),
+- :ref:`LibVirt/OpenStack <prepare_libvirt_source_images>` (x86_64 and ppc64le),
 - :ref:`IBM Cloud <prepare_ibmcloud_source_images>` (s390x),
-- |ss| :ref:`We currently don't work with OpenStack <how_to_upgrade_builders_openstack>` |se|.
+- |ss| :ref:`We currently don't work with OpenStack separately <how_to_upgrade_builders_openstack>` |se|.
 
 This HOWTO is useful for upgrading images to a newer Fedora release, or for just
 updating all the packages contained within the builder images.  This image
@@ -86,9 +86,16 @@ and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 Prepare libvirt source images
 -----------------------------
 
-We prepare images for Libvirt on our hypervisors.  We start with the official
-Fedora images as the "base images", and we just modify them (easier than
-generating images from scratch).
+We prepare the LibVirt images directly on our hypervisors.  We start with the
+official Fedora images as the "base images", and just modify them (this is
+easier for us compared to generating images from scratch).
+
+The Power9 architecture (note: Power9+ is required by Enterprise Linux 9+) is
+currently hosted in the `OSU Open Source Lab`_.  That is an OpenStack-based
+cloud, but no special actions are needed — we are able to share the same
+``.qcow2`` image generate for our other ``ppc64le`` hypervisors.  When
+uploading the image (see below), the image is as well automatically uploaded to
+the OSUOSL OpenStack.
 
 Find source images
 ^^^^^^^^^^^^^^^^^^
@@ -147,14 +154,21 @@ Test that the image spawns correctly::
     $ ssh root@copr-be-dev.cloud.fedoraproject.org
     Last login: Fri Jun 14 12:16:48 2019 from 77.92.220.242
 
-    # use a different image, set the "VOLUMES.x86_64" to 'copr-builder-20210524_085845'"
+    # use a different spawning image for hypervisors, set the "VOLUMES.x86_64"
+    # to 'copr-builder-20210524_085845'".
     [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/provision/libvirt-new
 
-    # increase the `max_prealloc` value in one of the hypervisors by 1
-    # (e.g. 2=>3, e.g.) so resalloc server starts a new machine.
+    # use a different image for the OSUOSL OpenStack.  Set the
+    # `resalloc-openstack-new --image` argument to
+    # 'copr-builder-20210524_085845'.
+    [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/resalloc_provision/osuosl-vm
+
+    # increase the `max_prealloc` value in one of the hypervisors and OSUOSL
+    # (when testing ppc64le images) by a value 1 (e.g. 2=>3) so resalloc server
+    # begins starting new machine(s)
     [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
 
-    # wait a minute for the new VMs
+    # wait a minute or so for the new VMs
     [root@copr-be-dev ~][STG]# su - resalloc
     Last login: Fri Jun 14 12:43:16 UTC 2019 on pts/0
 
@@ -306,3 +320,4 @@ the old but currently unused builders by::
 .. _`ibmcloud tool is not FLOSS`: https://github.com/IBM-Cloud/ibm-cloud-cli-release/issues/162
 .. _`container image for uploading`: https://github.com/praiskup/ibmcloud-cli-fedora-container
 .. _`Z Architecture`: https://www.ibm.com/it-infrastructure/z
+.. _`OSU Open Source Lab`: https://osuosl.org/
