@@ -19,22 +19,57 @@ class _PriorityCounter:
 
     def get_priority(self, task):
         """
-        Calculate the "dynamic" task priority, based on the queue size on
-        backend.  We have a matrix of counters
-            '_counter["background"]["user"]["arch"]',
-        This is because we want to have separate counters for normal and
-        background builds, and each architecture (including source builds).
-        According to the counter - simply - the later tasks is submitted (higher
-        build ID) the less priority it has (higher priority number).
+        Calculate the "dynamic" task priority, based on the actual queue size
+        and queue structure.  We have this matrix of counters:
+
+            _counter["background"]["user"]["arch"]["sandbox"] = value
+
+        Each dimension "re-sets" the priority and starts counting from zero.
+        Simply, the later the task is submitted (higher build ID) the less
+        priority it gets (== gets higher priority number).
+
+        We want to have separate counters for:
+
+        - normal and background builds (background jobs are always penalized by
+          the BuildQueueTask.frontend_priority), those are two separate but
+          equivalent queues here
+
+        - for each architecture (includes the source builds), that's because
+          each architecture needs to have it's own "queue"/pool of builders
+          (doesn't make sense to penalize e.g. ppc64le tasks and delay them
+          because of a heavy x86_64 queue)
+
+        - For each sandbox.  Each sandbox is equivalent to each other.  This
+          means that builds submitted to 'jdoe/foo--user1' should be taken with
+          the same priority as 'jdoe/baz-user1' (note the same owner pattern!)
+          no matter *when* they are submitted.  This is useful when 'jdoe/foo'
+          get's huge batch of builds, and _then_ after some time some _other_
+          builds are submitted into the 'jdoe/baz'; those 'jdoe/baz builds could
+          be blocked for a very long time.  See below.
+
+        Note that for large queues, build_dispatcher isn't sometimes able to
+        handle all the tasks in the priority queue in one cycle (we are able to
+        process several hundreds, or at most thousands of tasks — depending on
+        the 'sleeptime' value).  Therefore, the priority really matters here, as
+        we want to avoid all kinds of the weird builder/queue starving
+        situations.  In other words — if task isn't processed in one
+        WorkerManager.run(timeout=???) cycle — it may stay "pending" for many
+        other cycles too (depending on how quickly the overall queue get's
+        processed).
         """
-        self._counter.setdefault(task.background, {})
-        background = self._counter[task.background]
-        background.setdefault(task.owner, {})
-        owner = background[task.owner]
-        arch = task.requested_arch or 'srpm'
-        owner.setdefault(arch, 0)
-        owner[arch] += 1
-        return owner[arch]
+
+        def _get_subdict(source, arg):
+            source.setdefault(arg, {})
+            return source[arg]
+
+        background = _get_subdict(self._counter, task.background)
+        owner = _get_subdict(background, task.owner)
+        arch = _get_subdict(owner, task.requested_arch or "srpm")
+
+        # calculate from zero
+        arch.setdefault(task.sandbox, 0)
+        arch[task.sandbox] += 1
+        return arch[task.sandbox]
 
 
 class BuildDispatcher(Dispatcher):
