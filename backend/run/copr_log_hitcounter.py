@@ -19,16 +19,18 @@ from dateutil.parser import parse as dt_parse
 from netaddr import IPNetwork, IPAddress
 
 from collections import defaultdict
-from copr_backend.helpers import BackendConfigReader
+from copr_backend.helpers import BackendConfigReader, create_file_logger
+from copr_backend.constants import script_log_format
 
 opts = BackendConfigReader().read()
 
-logging.basicConfig(
-    filename="/var/log/copr-backend/hitcounter.log",
-    format='[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s',
-    level=logging.INFO)
-
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
+log.addHandler(create_file_logger(
+    "hitcounter.log",
+    filepath="/var/log/copr-backend/hitcounter.log",
+    fmt=script_log_format,
+))
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 spider_regex = re.compile('.*(ahrefs|bot/[0-9]|bingbot|borg|google|googlebot|yahoo|slurp|msnbot|msrbot'

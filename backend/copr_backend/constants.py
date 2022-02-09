@@ -41,3 +41,5 @@ default_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][PID:%(process)d][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
 build_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][PID:%(process)d] %(message)s')
+script_log_format = Formatter(
+    "[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s")
