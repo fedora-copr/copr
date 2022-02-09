@@ -21,16 +21,14 @@ import sys
 import argparse
 import logging
 import tempfile
-import json
 import gzip
-import requests
-import boto3
 from datetime import datetime
 from socket import gethostname
+import boto3
 from copr_common.request import SafeRequest
+from copr_log_hitcounter import url_to_key_strings
 from copr_backend.helpers import BackendConfigReader, create_file_logger
 from copr_backend.constants import script_log_format
-from copr_log_hitcounter import url_to_key_strings
 
 
 # We will allow only this hostname to delete files from the S3 storage
