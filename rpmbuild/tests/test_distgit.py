@@ -4,6 +4,7 @@ Test the DistGit provider
 
 import os
 import shutil
+import subprocess
 import tempfile
 
 import configparser
@@ -96,6 +97,38 @@ lookaside_uri_pattern = lookaside/{{filename}}
         # check presence of the cloned file
         cloned_file = os.path.join(dgp.workdir, "origin", "datafile")
         assert os.path.exists(cloned_file)
+
+    def test_remote_refs(self):
+        os.chdir(self.workdir)
+        cmd = """
+set -xe
+mkdir origin-bare && cd origin-bare
+git init --bare
+cd ..
+git clone origin-bare modifying-clone
+cd modifying-clone
+git config user.email "you@example.com"
+git config user.name "Your Name"
+git checkout -b pr
+git commit --allow-empty -m 'new commit'
+git push -u origin pr
+cd ../origin-bare
+mkdir -p refs/pull/50/
+mv refs/heads/pr refs/pull/50/head
+"""
+        try:
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as err:
+            if hasattr(err, "stdout"):
+                print(err.stdout.decode("utf-8"))
+            else:
+                print(str(err))
+            raise
+
+        clone_url = "file://" + os.path.join(os.getcwd(), "origin-bare")
+        dest = os.path.join(self.workdir, "dest")
+        os.makedirs(dest)
+        git_clone_and_checkout(clone_url, "refs/pull/50/head", dest)
 
 
 @pytest.mark.parametrize('committish', ["main", None, ""])
