@@ -175,6 +175,9 @@ Wait until the package is available in the staging infra repo::
 
     ./releng/koji-infratag-available --stg --wait copr-rpmbuild-0.53-1.fc34.x86_64.rpm
 
+Besides the obvious server packages, don't forget to submit also
+`python-copr` and `copr-cli` (we use it on the backend).
+
 Prepare release notes
 .....................
 
