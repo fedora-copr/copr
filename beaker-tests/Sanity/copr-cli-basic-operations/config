@@ -6,7 +6,7 @@
 # tests against a local dev stack). For this reason, the following
 # settings are override-able from command line.
 
-: "${FRONTEND_URL=https://copr-fe-dev.cloud.fedoraproject.org}"
+: "${FRONTEND_URL=https://copr.stg.fedoraproject.org}"
 : "${BACKEND_URL=https://copr-be-dev.cloud.fedoraproject.org}"
 : "${DISTGIT_URL=https://copr-dist-git-dev.fedorainfracloud.org}"
 : "${OWNER=@copr}"

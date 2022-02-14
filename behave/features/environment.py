@@ -22,7 +22,7 @@ def before_all(context):
 
     context.frontend_url = os.environ.get(
         "FRONTEND_URL",
-        "https://copr-fe-dev.cloud.fedoraproject.org")
+        "https://copr.stg.fedoraproject.org")
     context.backend_url = os.environ.get(
         "BACKEND_URL",
         "https://copr-be-dev.cloud.fedoraproject.org")

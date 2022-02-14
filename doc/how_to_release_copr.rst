@@ -78,9 +78,9 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
                        manual/copr/copr-keygen-upgrade.yml
     sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org groups/copr-keygen.yml
 
-    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org \
+    sudo rbac-playbook -l copr.stg.fedoraproject.org \
                        manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend.yml
+    sudo rbac-playbook -l copr.stg.fedoraproject.org groups/copr-frontend.yml
 
     sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml

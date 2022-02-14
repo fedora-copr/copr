@@ -297,7 +297,7 @@ In the fedora-infra ansible repository, edit ``inventory/inventory``
 file and set ``birthday=yes`` variable for your host, e.g.::
 
     [copr_front_dev_aws]
-    copr-fe-dev.aws.fedoraproject.org birthday=yes
+    copr.stg.fedoraproject.org birthday=yes
 
 On batcave01 run playbook to provision the instance (ignore the playbook for
 upgrading Copr packages).

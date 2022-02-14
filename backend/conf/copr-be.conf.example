@@ -6,7 +6,7 @@ results_baseurl=https://copr-be.cloud.fedoraproject.org/results
 # Mandatory http address of running Copr Frontend instance.  Backend talks to
 # Frontend e.g. over <frontend_base_url>/backend/ URL.
 # default is http://copr-fe
-frontend_base_url=http://copr-fe-dev.cloud.fedoraproject.org
+frontend_base_url=http://copr.stg.fedoraproject.org
 
 # must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
 # default is PASSWORDHERE but you really should change it. really.

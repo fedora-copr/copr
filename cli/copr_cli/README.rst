@@ -14,7 +14,7 @@ About this project:
 - Website: https://pagure.io/copr/copr
 - Git: http://git.fedorahosted.org/cgit/copr.git
 - Production Fedora instance: https://copr.fedorainfracloud.org/
-- Development Fedora instance: http://copr-fe-dev.cloud.fedoraproject.org/
+- Development Fedora instance: http://copr.stg.fedoraproject.org/
 
 
 Dependencies:
@@ -31,7 +31,7 @@ The CLI depends on:
 Usage:
 ------
 
-.. _test instance: http://copr-fe-dev.cloud.fedoraproject.org/
+.. _test instance: http://copr.stg.fedoraproject.org/
 
 - Create an account on copr `test instance`_
 - Go to the API page: http://copr.fedoraproject.org/api

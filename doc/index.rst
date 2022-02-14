@@ -46,7 +46,7 @@ Instances
 ---------
 
 * https://copr.fedorainfracloud.org/ (preferred)
-* http://copr-fe-dev.cloud.fedoraproject.org/ (staging instance, broken most of the time).
+* http://copr.stg.fedoraproject.org/ (staging instance, broken most of the time).
 
 Need To Edit This Wiki?
 -----------------------

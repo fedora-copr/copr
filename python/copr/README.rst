@@ -14,7 +14,7 @@ About this project:
 - Website: https://pagure.io/copr/copr
 - Python-copr documentation: http://python-copr.readthedocs.org
 - Git: https://pagure.io/copr/copr.git
-- Test instance: http://copr-fe-dev.cloud.fedoraproject.org/
+- Test instance: http://copr.stg.fedoraproject.org/
 
 Usage:
 ------

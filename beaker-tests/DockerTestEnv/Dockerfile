@@ -30,7 +30,7 @@ COPY bashrc /root/.bashrc_copr
 
 RUN echo "source /root/.bashrc_copr" >> /root/.bashrc
 
-RUN echo -e "[tested-copr]\nhostname = copr-fe-dev.cloud.fedoraproject.org\nprotocol = https\nport = 443\n" \
+RUN echo -e "[tested-copr]\nhostname = copr.stg.fedoraproject.org\nprotocol = https\nport = 443\n" \
     >  /etc/dnf/plugins/copr.d/tested-copr.conf
 
 # Run this container with -ti to avoid an immediate shutdown!

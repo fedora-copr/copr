@@ -12,7 +12,7 @@ all projects with name ``copr`` we would receive collection :py:class:`~copr.cli
 
         >>> from copr import create_client2_from_params
         # using dev server for test
-        >>> cl = create_client2_from_params(root_url="http://copr-fe-dev.cloud.fedoraproject.org/")
+        >>> cl = create_client2_from_params(root_url="http://copr.stg.fedoraproject.org/")
 
         >>> projects = cl.projects.get_list(name="copr", limit=3)
         >>> for p in projects:

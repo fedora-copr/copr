@@ -285,7 +285,7 @@ MUST be uploaded as binary  ``srpm`` file.
 
         >>> import json
         >>> from requests import post
-        >>> api_url = "http://copr-fe-dev.cloud.fedoraproject.org/api_2/builds"
+        >>> api_url = "http://copr.stg.fedoraproject.org/api_2/builds"
         >>> api_login = "my api login"
         >>> api_token = "my api token"
         >>> metadata = {
@@ -302,7 +302,7 @@ MUST be uploaded as binary  ``srpm`` file.
         >>> r.status_code
         201
         >>> r.headers["Location"]
-        http://copr-fe-dev.cloud.fedoraproject.org/api_2/builds/106899
+        http://copr.stg.fedoraproject.org/api_2/builds/106899
 
 Get build details
 -----------------

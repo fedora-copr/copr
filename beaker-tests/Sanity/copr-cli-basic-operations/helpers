@@ -95,7 +95,7 @@ setup_checks()
     # we currently support only staging instances
     _frontend_url=$(grep ^copr_url "$_config" | cut -d= -f2)
     case $_frontend_url in
-        *copr-fe-dev.cloud.fedoraproject.org) ;;
+        *copr.stg.fedoraproject.org) ;;
         *dev-copr.devel.redhat.com) ;;
         *) rlDie "improper copr_url in $_config" ;;
     esac

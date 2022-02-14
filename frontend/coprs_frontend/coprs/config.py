@@ -44,12 +44,12 @@ class Config(object):
     # post-process url leading to frontend
     ENFORCE_PROTOCOL_FOR_FRONTEND_URL = None
 
-    PUBLIC_COPR_BASE_URL = "https://copr-fe-dev.cloud.fedoraproject.org"
-    PUBLIC_COPR_HOSTNAME = "copr-fe-dev.cloud.fedoraproject.org"
+    PUBLIC_COPR_BASE_URL = "https://copr.stg.fedoraproject.org"
+    PUBLIC_COPR_HOSTNAME = "copr.stg.fedoraproject.org"
 
     DIST_GIT_URL = None
     COPR_DIST_GIT_LOGS_URL = None
-    MBS_URL = "http://copr-fe-dev.cloud.fedoraproject.org/module/1/module-builds/"
+    MBS_URL = "http://copr.stg.fedoraproject.org/module/1/module-builds/"
 
     # primary log file
     LOG_FILENAME = "/var/log/copr-frontend/frontend.log"

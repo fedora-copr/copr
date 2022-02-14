@@ -315,7 +315,7 @@ the old but currently unused builders by::
 .. _`Alternate Architectures page`:  https://alt.fedoraproject.org/alt
 .. _`Koji compose directory listing`: https://kojipkgs.fedoraproject.org/compose/cloud/
 .. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
-.. _`staging copr instance`: https://copr-fe-dev.cloud.fedoraproject.org
+.. _`staging copr instance`: https://copr.stg.fedoraproject.org
 .. _`AWS login link`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
 .. _`ibmcloud tool is not FLOSS`: https://github.com/IBM-Cloud/ibm-cloud-cli-release/issues/162
 .. _`container image for uploading`: https://github.com/praiskup/ibmcloud-cli-fedora-container

@@ -39,7 +39,7 @@ INSTANCES = {
             "copr-keygen.aws.fedoraproject.org",
         ],
         "dev": [
-            "copr-fe-dev.aws.fedoraproject.org",
+            "copr.stg.fedoraproject.org",
             "copr-be-dev.aws.fedoraproject.org",
             "copr-dist-git-dev.aws.fedoraproject.org",
             "copr-keygen-dev.aws.fedoraproject.org",
