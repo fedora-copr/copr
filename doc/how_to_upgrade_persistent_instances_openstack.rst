@@ -188,7 +188,7 @@ Edit the ``/etc/resallocserver/pools.yaml`` file and in all section, set::
 Then delete all current resources::
 
     su - resalloc
-    resalloc-maint resource-delete $(resalloc-maint resource-list | cut -d' ' -f1)
+    resalloc-maint resource-delete --all
 
 
 Terminate OpenStack VMs

@@ -288,7 +288,7 @@ the devel instance behaves sanely.  If not, consider running
 You can try to kill all the old currently unused builders, and check the spawner
 log what is happening::
 
-    [copr@copr-be-dev ~][STG]$ resalloc-maint resource-delete $(resalloc-maint resource-list | grep ticket=NULL | grep status=UP | cut -d' ' -f1)
+    [copr@copr-be-dev ~][STG]$ resalloc-maint resource-delete --unused
 
 
 Production
@@ -308,7 +308,7 @@ Optionally, when you need to propagate the new images quickly, you can terminate
 the old but currently unused builders by::
 
     $ su - resalloc
-    $ resalloc-maint resource-delete $(resalloc-maint resource-list | grep ticket=NULL | grep status=UP | cut -d' ' -f1)
+    $ resalloc-maint resource-delete --unused
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Cloud page`: https://alt.fedoraproject.org/cloud
