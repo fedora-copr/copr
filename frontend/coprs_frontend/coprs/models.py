@@ -1012,7 +1012,7 @@ class Build(db.Model, helpers.Serializer):
 
     chroots = association_proxy("build_chroots", "mock_chroot")
 
-    batch_id = db.Column(db.Integer, db.ForeignKey("batch.id"))
+    batch_id = db.Column(db.Integer, db.ForeignKey("batch.id"), index=True)
     batch = db.relationship("Batch", backref=db.backref("builds"))
 
     module_id = db.Column(db.Integer, db.ForeignKey("module.id"), index=True)

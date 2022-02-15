@@ -52,7 +52,7 @@ class BatchesLogic:
         Query for all still not-finished batches, order by id ASC
         """
         batches = set()
-        query = bl.BuildsLogic.processing_builds()
+        query = bl.BuildsLogic.processing_builds().filter(Build.batch_id.isnot(None))
         for build in query.all():
             if build.batch:
                 batches.add(build.batch)
