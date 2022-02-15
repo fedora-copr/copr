@@ -271,7 +271,7 @@ class ComplexLogic(object):
             pending=pending,
             running=running,
             starting=starting,
-            batches=len(BatchesLogic.pending_batches()),
+            batches=BatchesLogic.pending_batch_count_cached(),
         )
 
     @classmethod

@@ -4,7 +4,7 @@ Methods for working with build Batches.
 
 import anytree
 
-from coprs import db
+from coprs import db, cache
 from coprs.helpers import WorkList
 from coprs.models import Batch, Build
 from coprs.exceptions import BadRequest
@@ -57,6 +57,17 @@ class BatchesLogic:
             if build.batch:
                 batches.add(build.batch)
         return batches
+
+    @classmethod
+    @cache.memoize(timeout=60)
+    def pending_batch_count_cached(cls):
+        """
+        Return the number of currently processed Batch instances (where at least
+        one build is not yet fully finished).  This is a pretty expensive number
+        and yet we show it on every /stats/ page (and on many others) — that's
+        why we cache it.
+        """
+        return len(cls.pending_batches())
 
     @classmethod
     def pending_batch_trees(cls):
