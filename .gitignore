@@ -3,7 +3,7 @@
 *.swp
 .coverage
 frontend/data/
-cli/dist/
+*/dist/
 build/
 _build/
 python-doc/
