@@ -226,7 +226,8 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
         try:
             if not branch_commits:
                 upload_files = commands.import_srpm(srpm_path)
-                commands.upload(upload_files, replace=True)
+                if upload_files:
+                    commands.upload(upload_files, replace=True)
                 try:
                     log.debug("commit")
                     commands.commit(message)
