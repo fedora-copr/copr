@@ -5,6 +5,7 @@ A place for exception-handling logic
 import logging
 
 import flask
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from coprs.exceptions import CoprHttpException
 from coprs.views.misc import (
@@ -89,8 +90,13 @@ class UIErrorHandler(BaseErrorHandler):
         if code in error_views:
             return error_views[code](message)
 
+        message = "Server error, contact admin"
+        if isinstance(error, SQLAlchemyError):
+            code = 500
+            message = "Database error, contact admin"
+
         self._log_admin_only_exception()
-        return generic_error("Server error, contact admin", code)
+        return generic_error(message, code)
 
 
 class APIErrorHandler(BaseErrorHandler):

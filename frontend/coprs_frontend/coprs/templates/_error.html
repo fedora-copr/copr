@@ -13,4 +13,12 @@
   {% else %}
     Something went wrong
   {% endif %}
+
+  {% if config.debug or config.env != "production" %}
+    <p>
+      Administrators should take a look at
+      <code>/var/log/copr-frontend/frontend.log</code>
+      to analyze the full error output.
+    </p>
+  {% endif %}
 {% endblock %}
