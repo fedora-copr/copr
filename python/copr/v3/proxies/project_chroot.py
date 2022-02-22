@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, munchify, POST
+from ..requests import FileRequest, munchify, POST
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -24,8 +24,7 @@ class ProjectChrootProxy(BaseProxy):
             "projectname": projectname,
             "chrootname": chrootname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_build_config(self, ownername, projectname, chrootname):
@@ -43,8 +42,7 @@ class ProjectChrootProxy(BaseProxy):
             "projectname": projectname,
             "chrootname": chrootname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     # pylint: disable=too-many-arguments
@@ -103,7 +101,7 @@ class ProjectChrootProxy(BaseProxy):
             comps_f = open(comps, "rb")
             files["upload_comps"] = (os.path.basename(comps_f.name), comps_f, "application/text")
 
-        request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
-                              params=params, data=data, files=files, auth=self.auth)
-        response = request.send()
+        request = FileRequest(api_base_url=self.api_base_url, files=files, auth=self.auth,
+                              connection_attempts=self.config.get("connection_attempts", 1))
+        response = request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)

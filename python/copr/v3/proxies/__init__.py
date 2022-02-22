@@ -21,6 +21,7 @@ class BaseProxy(object):
     def __init__(self, config):
         self.config = config
         self._auth_token_cached = None
+        self.request = Request(api_base_url=self.api_base_url, connection_attempts=config.get("connection_attempts", 1))
 
     @classmethod
     def create_from_config_file(cls, path=None):
@@ -71,8 +72,7 @@ class BaseProxy(object):
         :return: Munch
         """
         endpoint = ""
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)
 
     def auth_check(self):
@@ -82,6 +82,6 @@ class BaseProxy(object):
         :return: Munch
         """
         endpoint = "/auth-check"
-        request = Request(endpoint, api_base_url=self.api_base_url, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)

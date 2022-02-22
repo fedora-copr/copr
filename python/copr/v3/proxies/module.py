@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, munchify, POST
+from ..requests import FileRequest, munchify, POST
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -31,9 +31,8 @@ class ModuleProxy(BaseProxy):
         }
         if distgit is not None:
             data["distgit"] = distgit
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def build_from_file(self, ownername, projectname, path, distgit=None):
@@ -57,7 +56,7 @@ class ModuleProxy(BaseProxy):
         data = None
         if distgit is not None:
             data = {"distgit": distgit}
-        request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
-                              params=params, files=files, data=data, auth=self.auth)
-        response = request.send()
+        request = FileRequest(files=files, api_base_url=self.api_base_url, auth=self.auth,
+                              connection_attempts=self.config.get("connection_attempts", 1))
+        response = request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)

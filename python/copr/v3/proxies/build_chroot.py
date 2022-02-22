@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from . import BaseProxy
-from ..requests import Request, munchify
+from ..requests import munchify
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -20,8 +20,7 @@ class BuildChrootProxy(BaseProxy):
             "build_id": build_id,
             "chrootname": chrootname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_list(self, build_id, pagination=None):
@@ -38,8 +37,7 @@ class BuildChrootProxy(BaseProxy):
             "build_id": build_id,
         }
         params.update(pagination or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_build_config(self, build_id, chrootname):
@@ -55,8 +53,7 @@ class BuildChrootProxy(BaseProxy):
             "build_id": build_id,
             "chrootname": chrootname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_built_packages(self, build_id, chrootname):
@@ -72,6 +69,5 @@ class BuildChrootProxy(BaseProxy):
             "build_id": build_id,
             "chrootname": chrootname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)

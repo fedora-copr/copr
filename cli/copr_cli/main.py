@@ -144,6 +144,7 @@ class Commands(object):
 
         if not self.config.get("token"):
             self.config["gssapi"] = True
+        self.config["connection_attempts"] = 3
         self.client = Client(self.config)
 
     def requires_api_auth(func):

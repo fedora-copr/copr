@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import warnings
 
 from . import BaseProxy
-from ..requests import Request, munchify, POST, GET, PUT
+from ..requests import munchify, POST, GET, PUT
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -30,8 +30,7 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_list(self, ownername=None, pagination=None):
@@ -47,8 +46,7 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
         }
         params.update(pagination or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def search(self, query, pagination=None):
@@ -64,8 +62,7 @@ class ProjectProxy(BaseProxy):
             "query": query,
         }
         params.update(pagination or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
@@ -136,9 +133,8 @@ class ProjectProxy(BaseProxy):
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
 
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
@@ -207,9 +203,8 @@ class ProjectProxy(BaseProxy):
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
 
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def delete(self, ownername, projectname):
@@ -228,9 +223,8 @@ class ProjectProxy(BaseProxy):
         data = {
             "verify": True,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
@@ -255,9 +249,8 @@ class ProjectProxy(BaseProxy):
             "ownername": dstownername,
             "confirm": confirm,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def get_permissions(self, ownername, projectname):
@@ -277,14 +270,8 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(
-                endpoint,
-                api_base_url=self.api_base_url,
-                auth=self.auth,
-                method=GET,
-                params=params)
-
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def set_permissions(self, ownername, projectname, permissions):
@@ -312,15 +299,8 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(
-                endpoint,
-                api_base_url=self.api_base_url,
-                auth=self.auth,
-                method=PUT,
-                params=params,
-                data=permissions)
-
-        request.send()
+        self.request.auth = self.auth
+        self.request.send(endpoint=endpoint, method=PUT, params=params, data=permissions)
 
     def request_permissions(self, ownername, projectname, permissions):
         """
@@ -341,15 +321,8 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(
-                endpoint,
-                api_base_url=self.api_base_url,
-                auth=self.auth,
-                method=PUT,
-                params=params,
-                data=permissions)
-
-        request.send()
+        self.request.auth = self.auth
+        self.request.send(endpoint=endpoint, method=PUT, params=params, data=permissions)
 
     def regenerate_repos(self, ownername, projectname):
         """
@@ -363,13 +336,6 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname
         }
-        request = Request(
-                endpoint,
-                api_base_url=self.api_base_url,
-                auth=self.auth,
-                method=PUT,
-                params=params)
-
-        request.send()
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=PUT, params=params)
         return munchify(response)

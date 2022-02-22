@@ -7,7 +7,7 @@ from copr.test import config_location, mock
 
 @mock.patch.object(Request, "send")
 class TestBuildProxy(object):
-    config = {"copr_url": "http://copr"}
+    config = {"copr_url": "http://copr", "login": "test", "token": "test"}
 
     def test_get(self, send):
         response = mock.Mock(spec=Response)
@@ -20,14 +20,14 @@ class TestBuildProxy(object):
         assert build.foo == "bar"
 
 
-@mock.patch("copr.v3.proxies.build.Request")
-def test_build_distgit(request):
+@mock.patch('copr.v3.proxies.Request.send')
+def test_build_distgit(send):
     mock_client = Client.create_from_config_file(config_location)
     mock_client.build_proxy.create_from_distgit(
         "praiskup", "ping", "mock", committish="master",
     )
-    assert len(request.call_args_list) == 1
-    call = request.call_args_list[0]
+    assert len(send.call_args_list) == 1
+    call = send.call_args_list[0]
     args = call[1]
     assert args['method'] == 'POST'
     assert args['endpoint'] == '/build/create/distgit'

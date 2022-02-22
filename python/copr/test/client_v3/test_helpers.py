@@ -39,7 +39,8 @@ class TestWait(object):
 
     @mock.patch("copr.v3.proxies.build.BuildProxy.get")
     def test_wait_custom_list(self, mock_get):
-        builds = List([Munch(id=1, state="succeeded"), Munch(id=2, state="failed")], proxy=BuildProxy({}))
+        builds = List([Munch(id=1, state="succeeded"), Munch(id=2, state="failed")],
+                      proxy=BuildProxy({"copr_url": "http://copr", "login": "test", "token": "test"}))
         mock_get.side_effect = lambda id: builds[id-1]
         assert wait(builds)
 
@@ -65,4 +66,4 @@ class TestWait(object):
 
 
 class MunchMock(Munch):
-    __proxy__ = BuildProxy({})
+    __proxy__ = BuildProxy({"copr_url": "http://copr", "login": "test", "token": "test"})

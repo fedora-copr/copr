@@ -5,7 +5,7 @@ Webhook related actions in APIv3
 from __future__ import absolute_import
 
 from . import BaseProxy
-from ..requests import Request, munchify, POST
+from ..requests import munchify, POST
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -29,7 +29,6 @@ class WebhookProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params)
         return munchify(response)

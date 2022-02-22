@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import os
 import json
+import time
 import requests
 import requests_gssapi
 from copr.v3.helpers import List
@@ -19,8 +20,9 @@ PUT = "PUT"
 class Request(object):
     # This should be a replacement of the _fetch method from APIv1
     # We can have Request, FileRequest, AuthRequest/UnAuthRequest, ...
+    # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, endpoint, api_base_url=None, method=None, data=None, params=None, auth=None):
+    def __init__(self, api_base_url=None, auth=None, connection_attempts=1):
         """
         :param endpoint:
         :param api_base_url:
@@ -32,12 +34,13 @@ class Request(object):
         @TODO maybe don't have both params and data, but rather only one variable
         @TODO and send it as data on POST and as params on GET
         """
-        self.endpoint = endpoint
         self.api_base_url = api_base_url
-        self._method = method or GET
-        self.data = data
-        self.params = params or {}
         self.auth = auth
+        self.connection_attempts = connection_attempts
+        self._method = GET
+        self.endpoint = None
+        self.data = None
+        self.params = {}
         self.headers = None
 
     @property
@@ -49,20 +52,41 @@ class Request(object):
     def method(self):
         return self._method.upper()
 
-    def send(self):
+    def send(self, endpoint, method=GET, data=None, params=None, headers=None):
+        if params is None:
+            self.params = {}
+        else:
+            self.params = params
+        self.endpoint = endpoint
+        self._method = method
+        self.data = data
+        self.headers = headers
+
         session = requests.Session()
         if not isinstance(self.auth, tuple):
             # api token not available, set session cookie obtained via gssapi
             session.cookies.set("session", self.auth)
 
-        try:
-            response = session.request(**self._request_params)
-        except requests.exceptions.ConnectionError:
-            raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
-        except requests_gssapi.exceptions.SPNEGOExchangeError as e:
-            raise_from(CoprGssapiException("Kerberos ticket has expired."), e)
+        response = self._send_request_repeatedly(session)
         handle_errors(response)
         return response
+
+    def _send_request_repeatedly(self, session):
+        """
+        Repeat the request until it succeeds, or connection retry reaches its limit.
+        """
+        sleep = 5
+        for i in range(1, self.connection_attempts + 1):
+            try:
+                response = session.request(**self._request_params)
+            except requests_gssapi.exceptions.SPNEGOExchangeError as e:
+                raise_from(CoprGssapiException("Kerberos ticket has expired."), e)
+            except requests.exceptions.ConnectionError:
+                if i < self.connection_attempts:
+                    time.sleep(sleep)
+            else:
+                return response
+        raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
 
     @property
     def _request_params(self):
@@ -81,8 +105,8 @@ class Request(object):
 
 
 class FileRequest(Request):
-    def __init__(self, endpoint, files=None, progress_callback=None, **kwargs):
-        super(FileRequest, self).__init__(endpoint, **kwargs)
+    def __init__(self, files=None, progress_callback=None, **kwargs):
+        super(FileRequest, self).__init__(**kwargs)
         self.files = files
         self.progress_callback = progress_callback
 

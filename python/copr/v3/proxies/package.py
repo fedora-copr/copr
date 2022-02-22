@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from . import BaseProxy
 from .build import BuildProxy
-from ..requests import Request, munchify, POST
+from ..requests import munchify, POST
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -31,8 +31,7 @@ class PackageProxy(BaseProxy):
             "with_latest_build": with_latest_build,
             "with_latest_succeeded_build": with_latest_succeeded_build,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def get_list(self, ownername, projectname, pagination=None,
@@ -59,8 +58,7 @@ class PackageProxy(BaseProxy):
         }
         params.update(pagination or {})
 
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def add(self, ownername, projectname, packagename, source_type, source_dict):
@@ -85,9 +83,8 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         data.update(source_dict)
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def edit(self, ownername, projectname, packagename, source_type=None, source_dict=None):
@@ -112,9 +109,8 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         data.update(source_dict or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
-                          params=params, data=data, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
         return munchify(response)
 
     def reset(self, ownername, projectname, packagename):
@@ -134,8 +130,8 @@ class PackageProxy(BaseProxy):
             "projectname": projectname,
             "package_name": packagename,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, data=data, method=POST)
         return munchify(response)
 
     def build(self, ownername, projectname, packagename, buildopts=None, project_dirname=None):
@@ -174,6 +170,6 @@ class PackageProxy(BaseProxy):
             "projectname": projectname,
             "package_name": packagename,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, data=data, method=POST)
         return munchify(response)

@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 
-import os
 from . import BaseProxy
-from ..requests import Request, munchify
+from ..requests import munchify
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -10,11 +9,11 @@ from ..helpers import for_all_methods, bind_proxy
 class MockChrootProxy(BaseProxy):
 
     def get_list(self, pagination=None):
+        # TODO: implement pagination
         """List all currently available chroots.
 
         :return: Munch
         """
         endpoint = "/mock-chroots/list"
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)

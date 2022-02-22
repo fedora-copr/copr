@@ -1,7 +1,6 @@
-import pytest
 from requests import Response
 from copr.test import mock
-from copr.v3.requests import Request, handle_errors, CoprRequestException, munchify
+from copr.v3.requests import Request, munchify
 
 
 class TestResponse(object):
@@ -20,17 +19,19 @@ class TestResponse(object):
 
 class TestRequest(object):
     def test_endpoint_url(self):
-        r1 = Request(endpoint="foo", api_base_url="http://copr/api_3")
+        r1 = Request(api_base_url="http://copr/api_3")
+        r1.endpoint = "foo"
         assert r1.endpoint_url == "http://copr/api_3/foo"
 
         # Leading and/or trailing slash should not be a problem
-        r2 = Request(endpoint="/foo/bar", api_base_url="http://copr/api_3/")
+        r2 = Request(api_base_url="http://copr/api_3/")
+        r2.endpoint = "/foo/bar"
         assert r2.endpoint_url == "http://copr/api_3/foo/bar"
 
     @mock.patch('requests.Session.request')
     def test_send(self, request):
-        req1 = Request(endpoint="foo", api_base_url="http://copr/api_3")
-        resp1 = req1.send()
+        req1 = Request(api_base_url="http://copr/api_3")
+        resp1 = req1.send(endpoint="foo")
 
         request.assert_called_once()
         args, kwargs = request.call_args

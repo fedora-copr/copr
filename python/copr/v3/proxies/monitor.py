@@ -3,7 +3,7 @@ APIv3 /monitor Python client code
 """
 
 from copr.v3 import proxies
-from copr.v3.requests import Request, munchify
+from copr.v3.requests import munchify
 from copr.v3.helpers import for_all_methods, bind_proxy
 
 
@@ -47,6 +47,5 @@ class MonitorProxy(proxies.BaseProxy):
             "project_dirname": project_dirname,
             "additional_fields[]": additional_fields,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)

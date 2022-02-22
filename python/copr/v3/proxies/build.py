@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, munchify, POST
+from ..requests import FileRequest, munchify, POST
 from ..exceptions import CoprValidationException
 from ..helpers import for_all_methods, bind_proxy
 
@@ -17,8 +17,7 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)
 
     def get_source_chroot(self, build_id):
@@ -29,8 +28,7 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/source-chroot/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)
 
     def get_source_build_config(self, build_id):
@@ -41,8 +39,7 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/source-build-config/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)
 
     def get_built_packages(self, build_id):
@@ -53,8 +50,7 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/built-packages/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint)
         return munchify(response)
 
     def get_list(self, ownername, projectname, packagename=None, status=None, pagination=None):
@@ -77,8 +73,7 @@ class BuildProxy(BaseProxy):
         }
         params.update(pagination or {})
 
-        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
-        response = request.send()
+        response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
 
     def cancel(self, build_id):
@@ -89,8 +84,8 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/cancel/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST)
         return munchify(response)
 
     def create_from_urls(self, ownername, projectname, urls, buildopts=None, project_dirname=None):
@@ -296,20 +291,21 @@ class BuildProxy(BaseProxy):
     def _create(self, endpoint, data, files=None, buildopts=None):
         data = data.copy()
 
-        request_class = Request
-        kwargs = {"endpoint": endpoint, "api_base_url": self.api_base_url,
-                  "data": data,"method": POST, "auth": self.auth}
-        if files:
-            request_class = FileRequest
-            kwargs["files"] = files
-
+        kwargs = {"api_base_url": self.api_base_url}
         if files and buildopts and "progress_callback" in buildopts:
             kwargs["progress_callback"] = buildopts["progress_callback"]
             del buildopts["progress_callback"]
 
         data.update(buildopts or {})
-        request = request_class(**kwargs)
-        response = request.send()
+        if not files:
+            self.request.auth = self.auth
+            response = self.request.send(endpoint=endpoint, data=data, method=POST)
+        else:
+            kwargs["files"] = files
+            kwargs["auth"] = self.auth
+            kwargs["connection_attempts"] = self.config.get("connection_attempts", 1)
+            request = FileRequest(**kwargs)
+            response = request.send(endpoint=endpoint, data=data, method=POST)
         return munchify(response)
 
     def delete(self, build_id):
@@ -320,8 +316,8 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/delete/{0}".format(build_id)
-        request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, method=POST)
         return munchify(response)
 
     def delete_list(self, build_ids):
@@ -334,6 +330,6 @@ class BuildProxy(BaseProxy):
 
         endpoint = "/build/delete/list"
         data = {"builds": build_ids}
-        request = Request(endpoint, data=data, api_base_url=self.api_base_url, method=POST, auth=self.auth)
-        response = request.send()
+        self.request.auth = self.auth
+        response = self.request.send(endpoint=endpoint, data=data, method=POST)
         return munchify(response)
