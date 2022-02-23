@@ -33,15 +33,20 @@ chroot for new Fedora release is enabled, it should be automatically turned-on
 for such projects.  Moreover, builds from Rawhide should be forked into this new
 chroot.
 
-So **immediately** after Fedora branching (for exmaple to version **31**), you
-want to do this (the command takes a very long time, be prepared)::
+So **before** Fedora branching happens (for exmaple to version **31**), you want
+to run the following command on Copr Frontend, under the ``copr-fe`` user::
 
-    copr-frontend branch-fedora 31
+    $ copr-frontend branch-fedora 31
 
-This command creates ``fedora-31-*`` chroots from corresponding
-``fedora-rawhide-*`` chroots, and it also copies (duplicates/forks) latest
-successful rawhide package builds into the new chroots.  This can be done
-manually for each architecture by::
+This command takes a long time — even tens of minutes.  And then processing of
+all the actions on the backend side will take about a day or so!  Be prepared to
+this.
+
+This command creates ``fedora-31-*`` chroots from the corresponding
+``fedora-rawhide-*`` chroots, and it also copies (duplicates/forks) the latest
+successful rawhide package builds into the new chroots.
+
+This could be done also manually for each supported architecture like::
 
     copr-frontend create-chroot fedora-31-x86_64 --deactivated
     copr-frontend rawhide-to-release fedora-rawhide-x86_64 fedora-31-x86_64
@@ -49,41 +54,35 @@ manually for each architecture by::
 From the manual steps you can see that the new chroots are **deactivated** at
 the beginning.
 
-It's important to do ``rawhide-to-release`` as soon as possible, because right
-after branching action - Fedora Rawhide starts to live it's own separate life -
-and the builds in Rawhide become more and more incompatible with the branched
-Fedora.  So - if we copied the packages later - the branched chroot in copr
-could become unusable.  You may consider sending an email to mailing list that
-rawhide packages were copied.
-
-The next needs to wait a bit, namely
-* till there's a working compose for the freshly branched Fedora, and
-* till the new mock configs are available on the builders.
+It's important to do the ``branch-fedora`` action before the branching in Fedora
+happens because the builds with bumped ``%dist`` did not happen yet -- and the
+copied packages in the new (Fedora 31) chroots will have the old dist tag
+(``.fc31``, not ``.fc32``).
 
 Copr uses `Mock <https://github.com/rpm-software-management/mock>`_ for building packages, so you should check if
 the mock configs
 `are already available <https://github.com/rpm-software-management/mock/tree/devel/mock-core-configs/etc/mock>`_
-and in which version of the :code:`mock-core-configs` package they were added. If that version is not installed
-on builders, you should keep the chroots deactivated for now and continue later.
+and in which version of the :code:`mock-core-configs` package they were added.
+This package needs to be on the Copr builders.
 
-But the sooner we can enable the new chroots, the better -- all the builds that
-happened in the time window between ``rawhide-to-release`` and chroot enablement
-will be missed in the branched chroot later (users will have to rebuild them
-manually).  So as soon as it is possible, do::
+Now activate the new chroots (ASAP after all the builds were copied, you can
+check the `FE statistics`_ page if the Actions peak is processed)::
 
-    copr-frontend alter-chroot --action activate fedora-32-x86_64 fedora-32-i386 \
-        fedora-32-ppc64le fedora-32-aarch64 fedora-32-armhfp fedora-32-s390x
+    copr-frontend alter-chroot --action activate fedora-31-x86_64 fedora-31-i386 \
+        fedora-31-ppc64le fedora-31-aarch64 fedora-31-armhfp fedora-31-s390x
 
-Update the the ``CHROOT_NAME_RELEASE_ALIAS`` option in the
-``copr.conf`` stored in our ansible configuration and run the frontend
-playbook. It should map the numeric ``$releasever`` value for Fedora
-Rawhide to our existing chroots.
+The sooner this is done the better.  Since the ``branch-fedora`` action have
+been executed, there have been a time window when users kept building **new
+builds** into the "being forked" Rawhide chroots, and those new builds will
+**not be copied** into the branched chroots.  The longer the activation takes,
+the more inconsistent the branched chroot is.
 
-.. code-block:: python
-
-    CHROOT_NAME_RELEASE_ALIAS = {
-        "fedora-35": "fedora-rawhide",
-    }
+Note that you don't have to care about the new (F31) official Fedora compose
+creation time at all, the ``mock-core-configs`` package (and deps, like
+``distribution-gpg-keys``) is prepared so both the Rawhide and the new branched
+chroot (31) will work during the tranisition period (both before and after the
+branched chroot has it's first own mirroed compose, see the `rel-eng thread`_
+when this was tested).
 
 When everything is done, `send an information email to a mailing list <#mailing-lists>`_.
 
@@ -114,3 +113,6 @@ Mailing lists
 
 After adding or disabling chroots on the production instance, an information email about the action should be sent to
 copr-devel@lists.fedorahosted.org . When doing both actions at the same time, describing it in one email is sufficient.
+
+.. _`FE statistics`: https://copr.fedorainfracloud.org/status/stats/
+.. _`rel-eng thread`: https://lists.fedoraproject.org/archives/list/rel-eng@lists.fedoraproject.org/thread/4NJDLL7KSACTRFT6TTURPRF2SI5N2STK/
