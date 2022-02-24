@@ -86,9 +86,11 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
                        manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
 
+.. note::
 
-Note: If there is a new version of copr-rpmbuild, follow the
-:ref:`terminate_os_vms` and :ref:`terminate_resalloc_vms` instructions.
+    If there is a new version of copr-rpmbuild, follow the
+    :ref:`terminate_os_vms` and :ref:`terminate_resalloc_vms` instructions.
+
 
 
 Call for QA
@@ -257,7 +259,9 @@ Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mi
                        manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org groups/copr-dist-git.yml
 
-Note: You shouldn't need to upgrade DB manually, playbook covers it.
+.. note::
+
+    You shouldn't need to upgrade DB manually, playbook covers it.
 
 
 Test production machine
