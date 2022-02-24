@@ -91,6 +91,10 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
     If there is a new version of copr-rpmbuild, follow the
     :ref:`terminate_os_vms` and :ref:`terminate_resalloc_vms` instructions.
 
+Make sure expected versions of Copr packages are installed on the dev
+instances::
+
+    ./releng/run-on-all-infra --devel 'rpm -qa | grep copr'
 
 
 Call for QA
@@ -262,6 +266,15 @@ Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mi
 .. note::
 
     You shouldn't need to upgrade DB manually, playbook covers it.
+
+Make sure expected versions of Copr packages are installed on the
+production instances::
+
+    ./releng/run-on-all-infra 'rpm -qa | grep copr'
+
+And make sure there is no unexpected update available::
+
+    ./releng/run-on-all-infra 'dnf copr list'
 
 
 Test production machine
