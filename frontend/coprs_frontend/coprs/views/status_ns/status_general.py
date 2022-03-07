@@ -1,12 +1,16 @@
-import flask
+from collections import Counter, defaultdict
 from time import time
+
+import flask
 
 from copr_common.enums import StatusEnum
 from coprs.views.status_ns import status_ns
 from coprs.logic import batches_logic
 from coprs.logic import builds_logic
 from coprs.logic import complex_logic
+from coprs import cache
 
+PENDING_ALL_CACHE_SECONDS = 2*60
 
 @status_ns.context_processor
 def inject_common_blueprint_variables():
@@ -28,6 +32,72 @@ def pending():
                           srpm_tasks))
     tasks.extend(srpm_tasks)
     return render_status("pending", tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
+
+@status_ns.route("/pending/all/")
+@cache.memoize(timeout=PENDING_ALL_CACHE_SECONDS)
+def pending_all():
+    """
+    Provide the overview for _all_ the pending jobs.
+    """
+
+    # Get "for_backend" type of data, which are much cheaper to get.  This page
+    # is for admins, to analyze the build queue (to allow us to understand best
+    # what backend sees).
+    rpm_tasks = builds_logic.BuildsLogic.get_pending_build_tasks(data_type="overview")
+
+    owner_stats = Counter()
+    owner_substats = defaultdict(lambda: {
+        "projects": Counter(),
+        "chroots": Counter(),
+        "background": Counter(),
+    })
+
+    project_stats = Counter()
+    background_stats = Counter()
+    chroot_stats = Counter()
+
+    def _calc_task(owner_name, project_name, chroot_name, background):
+        owner_stats[owner_name] += 1
+        owner = owner_substats[owner_name]
+        owner["projects"][project_name] += 1
+        owner["chroots"][chroot_name] += 1
+        owner["background"][background] += 1
+        project_stats[project_name] += 1
+        chroot_stats[chroot_name] += 1
+        background_stats[background] += 1
+
+
+    for task in rpm_tasks:
+        _calc_task(
+            task.build.copr.owner.name,
+            task.build.copr.full_name,
+            task.mock_chroot.name,
+            task.build.is_background,
+        )
+
+    srpm_tasks = builds_logic.BuildsLogic.get_pending_srpm_build_tasks(data_type="overview").all()
+    for task in srpm_tasks:
+        _calc_task(
+            task.copr.owner.name,
+            task.copr.full_name,
+            "srpm-builds",
+            task.is_background,
+        )
+
+    calculated_stats = {
+        "owners": owner_stats,
+        "owners_details": owner_substats,
+        "projects": project_stats,
+        "chroots": chroot_stats,
+        "background": background_stats,
+    }
+
+    return flask.render_template(
+        "status_overview.html",
+        stats=calculated_stats,
+        state_of_tasks="pending",
+        cache_seconds=PENDING_ALL_CACHE_SECONDS,
+    )
 
 
 @status_ns.route("/running/")

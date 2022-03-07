@@ -305,12 +305,13 @@ def pending_jobs():
         cache.add(build.batch)
         return not build.blocked
 
+    args = {"data_type": "for_backend"}
     build_records = (
         [get_srpm_build_record(task, for_backend=True)
-         for task in BuildsLogic.get_pending_srpm_build_tasks(for_backend=True)
+         for task in BuildsLogic.get_pending_srpm_build_tasks(**args)
          if build_ready(task)] +
         [get_build_record(task, for_backend=True)
-         for task in BuildsLogic.get_pending_build_tasks(for_backend=True)
+         for task in BuildsLogic.get_pending_build_tasks(**args)
          if build_ready(task.build)]
     )
 

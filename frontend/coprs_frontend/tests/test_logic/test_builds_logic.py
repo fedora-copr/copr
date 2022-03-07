@@ -151,7 +151,7 @@ class TestBuildsLogic(CoprsTestCase):
                 build_chroot.ended_on = None
 
         self.db.session.commit()
-        data = BuildsLogic.get_pending_build_tasks(for_backend=True).all()
+        data = BuildsLogic.get_pending_build_tasks(data_type="for_backend").all()
 
         assert len(data) == 2
         assert set([data[0], data[1]]) == set([self.b1_bc[0], self.b2_bc[0]])
@@ -178,7 +178,7 @@ class TestBuildsLogic(CoprsTestCase):
         models.Build.query.get(2).source_status = StatusEnum("starting")
         models.Build.query.get(3).source_status = StatusEnum("running")
         assert len(BuildsLogic.get_pending_srpm_build_tasks().all()) == 1
-        assert len(BuildsLogic.get_pending_srpm_build_tasks(for_backend=True).all()) == 3
+        assert len(BuildsLogic.get_pending_srpm_build_tasks(data_type="for_backend").all()) == 3
 
     def test_delete_build_exceptions(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

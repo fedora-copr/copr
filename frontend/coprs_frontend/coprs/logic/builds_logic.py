@@ -278,9 +278,9 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def _todo_states(cls, for_backend):
+    def _todo_states(cls, data_type):
         """
-        When "for_backend" is False, we only return builds which are in
+        When data_type is not "for_backend", we only return builds which are in
         "pending" state.  That queries are used by the Frontend Web-UI/API and
         that's what is the end-user interested in when looking at pending tasks.
 
@@ -290,20 +290,20 @@ class BuildsLogic(object):
         tasks too (otherwise they stay in starting/running states forever).
         """
         todo_states = ["pending"]
-        if for_backend:
+        if data_type == "for_backend":
             todo_states += ["starting", "running"]
         return [StatusEnum(x) for x in todo_states]
 
     @classmethod
-    def get_pending_srpm_build_tasks(cls, background=None, for_backend=False):
+    def get_pending_srpm_build_tasks(cls, background=None, data_type=None):
         query = (
             models.Build.query
             .join(models.Copr)
             .filter(models.Build.canceled == false())
-            .filter(models.Build.source_status.in_(cls._todo_states(for_backend)))
+            .filter(models.Build.source_status.in_(cls._todo_states(data_type)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc())
         )
-        if for_backend:
+        if data_type in ["for_backend", "overview"]:
             query = query.options(
                 load_only("is_background", "source_type", "source_json",
                           "submitted_by"),
@@ -320,7 +320,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_pending_build_tasks(cls, background=None, for_backend=False):
+    def get_pending_build_tasks(cls, background=None, data_type=None):
         """
         Get list of BuildChroot objects that are to be (re)processed.
         """
@@ -335,10 +335,10 @@ class BuildsLogic(object):
             # BuildChroot processing.
             .join(models.Package, models.Package.id == models.Build.package_id)
             .filter(models.Build.canceled == false())
-            .filter(models.BuildChroot.status.in_(cls._todo_states(for_backend)))
+            .filter(models.BuildChroot.status.in_(cls._todo_states(data_type)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
 
-        if for_backend:
+        if data_type in ["for_backend", "overview"]:
             query = query.options(
                 joinedload('build').load_only("is_background", "submitted_by",
                                               "source_json", "source_type")

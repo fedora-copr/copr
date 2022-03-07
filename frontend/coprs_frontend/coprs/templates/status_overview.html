@@ -1,0 +1,93 @@
+{% extends "status.html" %}
+
+{% block status_breadcrumb %}
+<li> Overview </li>
+{% endblock %}
+
+{% block status_body %}
+{% set right_column_width = "160px" %}
+
+<h1>Full job queue statistics</h1>
+<p>
+The normal "Pending" stats provide info only about the normal (or "foreground")
+tasks, but the project maintainers can submit also the background jobs (with
+lower priority) that are processed only when there's enough computation power
+left in the Copr cloud that is not taken by normal tasks.  This page provides
+some statistics related to the queue, mostly useful for the system
+administrators (for queue analysis).
+</p>
+<p>
+This page is cached for <strong>{{ cache_seconds }} seconds</strong>.
+</p>
+
+<h2>All jobs</h2>
+
+<p>There's crurrently <strong>{{ stats["background"].total() }}</strong> jobs.</p>
+
+<h2>Sort pending tasks per ownership</h2>
+<div class="table-responsive">
+<table class="table table-bordered table-hover table-treegrid">
+<thead>
+  <th></th>
+  <th style="width: {{ right_column_width }};">Count</th>
+</thead>
+<tbody>
+{% for owner_name, full_count in stats.owners.most_common() %}
+<tr id="owner_name_{{ owner_name }}" class="collapsed">
+  <td class="treegrid-node">
+    <span class="icon node-icon fa fa-tasks"></span>
+    {{ owner_name }}
+  </td>
+  <td>{{ full_count }}</td>
+</tr>
+{% for stattype in ["chroots", "projects", "background"] %}
+<tr id="owner_name_{{ owner_name }}_{{ stattype }}"
+  data-parent="#owner_name_{{ owner_name }}"
+  class="collapsed"
+>
+  <td class="treegrid-node">{{ stattype }}</td>
+  <td> {{ stats.owners_details[owner_name][stattype].total() }}  </td>
+</tr>
+{% for key, count in stats.owners_details[owner_name][stattype].most_common() %}
+<tr id="owner_name_{{ owner_name }}_{{ stattype }}_{{ key }}"
+  data-parent="#owner_name_{{ owner_name }}_{{ stattype }}"
+  class="collapsed"
+>
+  <td class="treegrid-node">{{ key}}</td>
+  <td>{{ count }}</td>
+</tr>
+{% endfor %}
+{% endfor %}
+{% endfor %}
+</tbody>
+</table>
+
+
+{% for stattype in ["projects", "chroots", "background"] %}
+<h2>Queue by {{ stattype }}</h2>
+<table class="table table-bordered table-hover">
+<thead>
+  <th></th>
+  <th style="width: {{ right_column_width }};">Count</th>
+</thead>
+<tbody>
+{% for key, count in stats[stattype].most_common() %}
+<tr id="owner_name_{{ owner_name }}_{{ stattype }}_{{ key }}"
+  data-parent="#owner_name_{{ owner_name }}_{{ stattype }}"
+>
+  <td>{{ key }}</td>
+  <td>{{ count }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endfor %}
+
+
+</div>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('.table-treegrid').treegrid({ });
+  });
+</script>
+{% endblock %}

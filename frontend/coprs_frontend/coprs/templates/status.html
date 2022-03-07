@@ -49,6 +49,9 @@
     {% endif %}
     in the {{ state_of_tasks }} state.
 </h2>
+{% if state_of_tasks == "pending" %}
+<p>See more <a href="{{ url_for('status_ns.pending_all') }}">detailed</a> statistics.</p>
+{% endif %}
 <p>{{ build_state_text(state_of_tasks) }} - {{ state_of_tasks|build_state_description }}</p>
 {{ status_info(type=state_of_tasks, tasks=tasks) }}
 {{ initialize_datatables(order="desc") }}
