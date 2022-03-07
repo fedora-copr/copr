@@ -329,12 +329,19 @@ class BuildsLogic(object):
             models.BuildChroot.query
             .join(models.Build)
             .join(models.CoprDir)
+        )
+
+        # We need the Package information for the /get-pending-srpm-task/ and
+        # /get-build-task/ routes, but anywhere else.
+        if data_type is None:
             # TODO: BuildChroot objects should be self-standing.  The thing is
             # that this is racy -- Package reference provides some build
             # configuration which can be changed in the middle of the
             # BuildChroot processing.
-            .join(models.Package, models.Package.id == models.Build.package_id)
-            .filter(models.Build.canceled == false())
+            query = query.join(models.Package, models.Package.id == models.Build.package_id)
+
+        query = (
+            query.filter(models.Build.canceled == false())
             .filter(models.BuildChroot.status.in_(cls._todo_states(data_type)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
 
