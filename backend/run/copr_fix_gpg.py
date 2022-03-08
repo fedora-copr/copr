@@ -28,6 +28,11 @@ re-signs its rpms and regenerates pubkey.gpg.
 """)
 
 parser.add_argument('coprs_file_path', action='store', help='Path to the text file with copr full names (owner/coprname) to be fixed.')
+parser.add_argument("--chroot", action="append", default=[],
+                    help=("Only re-sign CHROOT.  CHROOT can be a full chroot "
+                          "or a shortened chroot name without architecture ("
+                          "e.g. fedora-rawhide-x86_64 or just fedora-rawhide)."
+                          " (can be specified multiple times)"))
 args = parser.parse_args()
 
 
@@ -62,6 +67,15 @@ def fix_copr(opts, copr_full_name):
         if chroot in ["srpm-builds", "modules", "repodata"]:
             log.debug("Ignoring %s, not a chroot", chroot)
             continue
+
+        if args.chroot:
+            parts = chroot.split("-")
+            parts.pop()
+            chroot_without_arch = "-".join(parts)
+            if not (chroot in args.chroot or chroot_without_arch in args.chroot):
+                log.info("Skipping %s, not included by --chroot (%s)", chroot,
+                         ", ".join(args.chroot))
+                continue
 
         log.info("Signing in %s chroot", chroot)
         for builddir_name in os.listdir(dir_path):
