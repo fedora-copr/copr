@@ -1,7 +1,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-dist-git
-Version:    0.52
+Version:    0.53
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Mar 08 2022 Jakub Kadlcik <frostyx@email.cz> 0.53-1
+- upload sources only if there are some
+- update copr-fe-dev hostname
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.52-1
 - dist-git: python code for removing unused tarballs on dist-git server
 

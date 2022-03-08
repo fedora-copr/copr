@@ -17,7 +17,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name='copr-dist-git',
-    version="0.52",
+    version="0.53",
     description=__description__,
     long_description=__doc__,
     author=__author__,
