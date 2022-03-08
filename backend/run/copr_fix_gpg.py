@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import re
 import sys
 import os
 import logging
@@ -46,6 +47,9 @@ def fix_copr(opts, copr_full_name):
     log.info('> Regenerate pubkey.gpg in copr {}.'.format(copr_path))
     get_pubkey(owner, coprname, log, os.path.join(copr_path, 'pubkey.gpg'))
 
+    # Match the "00001231-anycharacer" directory names.  Compile once, use many.
+    builddir_matcher = re.compile(r"\d{8,}-")
+
     log.info('> Re-sign rpms and call createrepo in copr\'s chroots:')
     for chroot in os.listdir(copr_path):
         dir_path = os.path.join(copr_path, chroot)
@@ -53,10 +57,18 @@ def fix_copr(opts, copr_full_name):
             log.info('> > Ignoring {}'.format(dir_path))
             continue
 
+        if chroot in ["srpm-builds", "modules", "repodata"]:
+            log.debug("Ignoring %s, not a chroot", chroot)
+            continue
+
         for builddir_name in os.listdir(dir_path):
             builddir_path = os.path.join(dir_path, builddir_name)
             if not os.path.isdir(builddir_path):
                 continue
+            if not builddir_matcher.match(builddir_name):
+                log.debug("Skipping %s, not a build dir", builddir_name)
+                continue
+
             log.info('> > Processing rpms in builddir {}:'.format(builddir_path))
             try:
                 unsign_rpms_in_dir(builddir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign
