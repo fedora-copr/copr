@@ -10,6 +10,8 @@ import json
 import os
 from requests import request
 
+from packaging import version
+
 from .exceptions import CoprSignError, CoprSignNoKeyError, \
     CoprKeygenRequestError
 
@@ -81,8 +83,8 @@ def get_pubkey(username, projectname, log, outfile=None):
     return stdout
 
 
-def _sign_one(path, email, log):
-    cmd = [SIGN_BINARY, "-u", email, "-r", path]
+def _sign_one(path, email, hashtype, log):
+    cmd = [SIGN_BINARY, "-h", hashtype, "-u", email, "-r", path]
     returncode, stdout, stderr = call_sign_bin(cmd, log)
     if returncode != 0:
         raise CoprSignError(
@@ -92,7 +94,28 @@ def _sign_one(path, email, log):
     return stdout, stderr
 
 
-def sign_rpms_in_dir(username, projectname, path, opts, log):
+def gpg_hashtype_for_chroot(chroot):
+    """
+    Given the chroot name (in "mock format", like "fedora-rawhide-x86_64")
+    return the expected GPG hash type.
+    """
+
+    parts = chroot.split("-")
+    if parts[0] in ["rhel", "epel", "centos", "oraclelinux"]:
+        chroot_version = parts[1]
+        if chroot_version in ["rawhide", "stream"]:
+            return "sha256"
+        if version.parse(chroot_version) <= version.parse("7"):
+            return "sha1"
+    if parts[0] == "fedora" and parts[1].isnumeric():
+        # Fedora 27 moved to RPM v2.14 with the OpenSSL backend.
+        if int(parts[1]) < 27:
+            return "sha1"
+    # fallback to sha256
+    return "sha256"
+
+
+def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
     """
     Signs rpms using obs-signd.
 
@@ -102,6 +125,7 @@ def sign_rpms_in_dir(username, projectname, path, opts, log):
     :param username: copr username
     :param projectname: copr projectname
     :param path: directory with rpms to be signed
+    :param chroot: chroot name where we sign packages, affects the hash type
     :param Munch opts: backend config
 
     :type log: logging.Logger
@@ -117,6 +141,8 @@ def sign_rpms_in_dir(username, projectname, path, opts, log):
     if not rpm_list:
         return
 
+    hashtype = gpg_hashtype_for_chroot(chroot)
+
     try:
         get_pubkey(username, projectname, log)
     except CoprSignNoKeyError:
@@ -125,7 +151,8 @@ def sign_rpms_in_dir(username, projectname, path, opts, log):
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _sign_one(rpm, create_gpg_email(username, projectname), log)
+            _sign_one(rpm, create_gpg_email(username, projectname),
+                      hashtype, log)
             log.info("signed rpm: {}".format(rpm))
 
         except CoprSignError as e:

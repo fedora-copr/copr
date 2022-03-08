@@ -47,8 +47,8 @@ def fix_copr(opts, copr_full_name):
     get_pubkey(owner, coprname, log, os.path.join(copr_path, 'pubkey.gpg'))
 
     log.info('> Re-sign rpms and call createrepo in copr\'s chroots:')
-    for dir_name in os.listdir(copr_path):
-        dir_path = os.path.join(copr_path, dir_name)
+    for chroot in os.listdir(copr_path):
+        dir_path = os.path.join(copr_path, chroot)
         if not os.path.isdir(dir_path):
             log.info('> > Ignoring {}'.format(dir_path))
             continue
@@ -60,7 +60,7 @@ def fix_copr(opts, copr_full_name):
             log.info('> > Processing rpms in builddir {}:'.format(builddir_path))
             try:
                 unsign_rpms_in_dir(builddir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign
-                sign_rpms_in_dir(owner, coprname, builddir_path, opts, log)
+                sign_rpms_in_dir(owner, coprname, builddir_path, chroot, opts, log)
             except Exception as e:
                 log.exception(str(e))
                 continue

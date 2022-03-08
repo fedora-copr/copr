@@ -209,7 +209,8 @@ class Fork(Action, GPGMixin):
                     # Drop old signatures coming from original repo and re-sign.
                     unsign_rpms_in_dir(dst_path, opts=self.opts, log=self.log)
                     if sign:
-                        sign_rpms_in_dir(data["user"], data["copr"], dst_path, opts=self.opts, log=self.log)
+                        sign_rpms_in_dir(data["user"], data["copr"], dst_path,
+                                         chroot, opts=self.opts, log=self.log)
 
                     self.log.info("Forked build %s as %s", src_path, dst_path)
 

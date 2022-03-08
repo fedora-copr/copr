@@ -2,17 +2,17 @@ import os
 import tempfile
 import shutil
 import time
+from unittest import mock
+from unittest.mock import MagicMock
 
 from munch import Munch
 import pytest
 
 from copr_backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
-
-from unittest import mock
-from unittest.mock import MagicMock
-
-from copr_backend.sign import get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys
-
+from copr_backend.sign import (
+    get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys,
+    gpg_hashtype_for_chroot,
+)
 
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -118,10 +118,11 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         fake_path = "/tmp/pkg.rpm"
-        result = _sign_one(fake_path, self.usermail, MagicMock())
+        result = _sign_one(fake_path, self.usermail, "sha1", MagicMock())
         assert STDOUT, STDERR == result
 
-        expected_cmd = ['/bin/sign', '-u', self.usermail, '-r', fake_path]
+        expected_cmd = ['/bin/sign', "-h", "sha1", "-u", self.usermail,
+                        "-r", fake_path]
         assert mc_popen.call_args[0][0] == expected_cmd
 
     @mock.patch("copr_backend.sign.Popen")
@@ -130,7 +131,7 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail, MagicMock())
+            _sign_one(fake_path, self.usermail, "sha256", MagicMock())
 
     @mock.patch("copr_backend.sign.Popen")
     def test_sign_one_cmd_erro(self, mc_popen):
@@ -141,7 +142,7 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail, MagicMock())
+            _sign_one(fake_path, self.usermail, "sha256", MagicMock())
 
     @mock.patch("copr_backend.sign.request")
     def test_create_user_keys(self, mc_request):
@@ -182,7 +183,8 @@ class TestSign(object):
                                       tmp_dir):
         # empty target dir doesn't produce error
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts, log=MagicMock())
+                         self.tmp_dir_path, "epel-8-x86_64", self.opts,
+                         log=MagicMock())
 
         assert not mc_gp.called
         assert not mc_cuk.called
@@ -195,7 +197,8 @@ class TestSign(object):
                                       tmp_dir, tmp_files):
 
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts, log=MagicMock())
+                         self.tmp_dir_path, "fedora-rawhide-x86_64",
+                         self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -218,7 +221,8 @@ class TestSign(object):
         mc_gp.side_effect = CoprSignError("foobar")
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, log=MagicMock())
+                             self.tmp_dir_path, "epel-7-x86_64", self.opts,
+                             log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -233,7 +237,8 @@ class TestSign(object):
         mc_gp.side_effect = CoprSignNoKeyError("foobar")
 
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts, log=MagicMock())
+                         self.tmp_dir_path, "rhel-7-x86_64", self.opts,
+                         log=MagicMock())
 
         assert mc_gp.called
         assert mc_cuk.called
@@ -250,7 +255,8 @@ class TestSign(object):
         ]
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, log=MagicMock())
+                             self.tmp_dir_path, "fedora-36-x86_64", self.opts,
+                             log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -266,9 +272,36 @@ class TestSign(object):
         mc_so.side_effect = CoprSignError("foobar")
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, log=MagicMock())
+                             self.tmp_dir_path, "fedora-36-i386", self.opts,
+                             log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
 
         assert mc_so.called
+
+
+def test_chroot_gpg_hashes():
+    chroots = [
+        ("fedora-26-x86_64", "sha1"),
+        ("fedora-27-s390x", "sha256"),
+        ("fedora-eln-x86_64", "sha256"),
+        ("fedora-rawhide-x86_64", "sha256"),
+        ("mageia-8-x86_64", "sha256"),
+        ("opensuse-tumbleweed-aarch64", "sha256"),
+        ("epel-7-ppc64", "sha1"),
+        ("centos-7.dev-aarch64", "sha1"),
+        ("epel-8-aarch64", "sha256"),
+        ("rhel-8.dev-ppc64le", "sha256"),
+        ("oraclelinux-9-s390x", "sha256"),
+        ("centos-stream-8-s390x", "sha256"),
+        ("centos-stream-9-s390x", "sha256"),
+        ("rhel-rawhide-s390x", "sha256"),
+        # we don't expect stream 7 will ever exist, otherwise we'll have to
+        # check for sha1 here
+        ("centos-stream-7-aarch64", "sha256"),
+        ("srpm-builds", "sha256"),
+    ]
+
+    for chroot, exp_type in chroots:
+        assert (chroot, exp_type) == (chroot, gpg_hashtype_for_chroot(chroot))

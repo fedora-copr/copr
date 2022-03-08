@@ -596,6 +596,7 @@ class BuildBackgroundWorker(BackgroundWorker):
             self.job.project_owner,
             self.job.project_name,
             os.path.join(self.job.chroot_dir, self.job.target_dir_name),
+            self.job.chroot,
             opts=self.opts,
             log=self.log
         )
