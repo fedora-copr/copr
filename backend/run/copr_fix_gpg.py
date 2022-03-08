@@ -32,35 +32,38 @@ args = parser.parse_args()
 
 
 def fix_copr(opts, copr_full_name):
-    log.info('Going to fix {}:'.format(copr_full_name))
+    log.info("Going to fix %s", copr_full_name)
 
     owner, coprname = tuple(copr_full_name.split('/'))
     copr_path = os.path.abspath(os.path.join(opts.destdir, owner, coprname))
 
     if not os.path.isdir(copr_path):
-        log.info('Ignoring {}. Directory does not exist.'.format(copr_path))
+        log.info('Ignoring %s. Directory does not exist.', copr_path)
         return
 
-    log.info('> Generate key-pair on copr-keygen (if not generated) for email {}.'.format(create_gpg_email(owner, coprname)))
+    log.info("Generate key-pair on copr-keygen (if not generated) for email %s",
+             create_gpg_email(owner, coprname))
     create_user_keys(owner, coprname, opts)
 
-    log.info('> Regenerate pubkey.gpg in copr {}.'.format(copr_path))
+    log.info("Regenerate pubkey.gpg in copr %s", copr_path)
     get_pubkey(owner, coprname, log, os.path.join(copr_path, 'pubkey.gpg'))
 
     # Match the "00001231-anycharacer" directory names.  Compile once, use many.
     builddir_matcher = re.compile(r"\d{8,}-")
 
-    log.info('> Re-sign rpms and call createrepo in copr\'s chroots:')
+    log.info("Re-sign rpms and call createrepo in copr's chroots")
+
     for chroot in os.listdir(copr_path):
         dir_path = os.path.join(copr_path, chroot)
         if not os.path.isdir(dir_path):
-            log.info('> > Ignoring {}'.format(dir_path))
+            log.debug("Ignoring %s, not a directory", dir_path)
             continue
 
         if chroot in ["srpm-builds", "modules", "repodata"]:
             log.debug("Ignoring %s, not a chroot", chroot)
             continue
 
+        log.info("Signing in %s chroot", chroot)
         for builddir_name in os.listdir(dir_path):
             builddir_path = os.path.join(dir_path, builddir_name)
             if not os.path.isdir(builddir_path):
@@ -69,7 +72,7 @@ def fix_copr(opts, copr_full_name):
                 log.debug("Skipping %s, not a build dir", builddir_name)
                 continue
 
-            log.info('> > Processing rpms in builddir {}:'.format(builddir_path))
+            log.info("Processing rpms in builddir %s", builddir_path)
             try:
                 unsign_rpms_in_dir(builddir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign
                 sign_rpms_in_dir(owner, coprname, builddir_path, chroot, opts, log)
@@ -77,7 +80,7 @@ def fix_copr(opts, copr_full_name):
                 log.exception(str(e))
                 continue
 
-        log.info("> > Running add_appdata for %s", dir_path)
+        log.info("Running add_appdata for %s", dir_path)
         call_copr_repo(dir_path, logger=log)
 
 
