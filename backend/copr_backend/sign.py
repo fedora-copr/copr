@@ -94,14 +94,29 @@ def _sign_one(path, email, hashtype, log):
     return stdout, stderr
 
 
-def gpg_hashtype_for_chroot(chroot):
+def gpg_hashtype_for_chroot(chroot, opts):
     """
     Given the chroot name (in "mock format", like "fedora-rawhide-x86_64")
     return the expected GPG hash type.
     """
 
+    el_chroots = ["rhel", "epel", "centos", "oraclelinux"]
+
     parts = chroot.split("-")
-    if parts[0] in ["rhel", "epel", "centos", "oraclelinux"]:
+
+    if opts.gently_gpg_sha256:
+        # For a few weeks we would use the sha256 hash type only for EL8+.
+        # This is a safety belt, in case of any failure we'll just re-sign
+        # epel-8+ and not _all_ the package data on backend.
+        if parts[0] in el_chroots:
+            el_version = parts[1]
+            if el_version == "stream":
+                el_version = parts[2]
+            if version.parse(el_version) > version.parse("7"):
+                return "sha256"
+        return "sha1"
+
+    if parts[0] in el_chroots:
         chroot_version = parts[1]
         if chroot_version in ["rawhide", "stream"]:
             return "sha256"
@@ -141,7 +156,7 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
     if not rpm_list:
         return
 
-    hashtype = gpg_hashtype_for_chroot(chroot)
+    hashtype = gpg_hashtype_for_chroot(chroot, opts)
 
     try:
         get_pubkey(username, projectname, log)

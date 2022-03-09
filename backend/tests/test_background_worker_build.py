@@ -228,6 +228,7 @@ def f_build_rpm_sign_on(f_build_rpm_case):
     with open(config.be_config_file, "a+") as fdconfig:
         fdconfig.write("do_sign=true\n")
         fdconfig.write("keygen_host=keygen.example.com\n")
+        fdconfig.write("gently_gpg_sha256=false\n")
     config.bw = _reset_build_worker()
     return config
 
