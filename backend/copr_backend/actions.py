@@ -165,7 +165,7 @@ class Fork(Action, GPGMixin):
         if not os.path.exists(old_path):
             self.log.info("Source copr directory doesn't exist: %s", old_path)
             result = ActionResult.FAILURE
-            return
+            return result
 
         try:
             pubkey_path = os.path.join(new_path, "pubkey.gpg")
@@ -282,7 +282,7 @@ class DeleteProject(Delete):
         if not ownername:
             self.log.error("Received empty ownername!")
             result = ActionResult.FAILURE
-            return
+            return result
 
         for dirname in project_dirnames:
             if not dirname:
