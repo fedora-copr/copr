@@ -654,12 +654,21 @@ class Commands(object):
         if args.bootstrap_image:
             args.bootstrap = 'image'
         owner, copr, chroot = self.parse_chroot_path(args.coprchroot)
+
+        with_opts = None
+        if args.rpmbuild_with:
+            with_opts = ' '.join(args.rpmbuild_with)
+
+        without_opts = None
+        if args.rpmbuild_without:
+            without_opts = ' '.join(args.rpmbuild_without)
+
         self.client.project_chroot_proxy.edit(
             ownername=owner, projectname=copr, chrootname=chroot,
             comps=args.upload_comps, delete_comps=args.delete_comps,
             additional_packages=args.packages, additional_repos=args.repos,
-            additional_modules=args.modules, with_opts=' '.join(args.rpmbuild_with),
-            without_opts=' '.join(args.rpmbuild_without), bootstrap=args.bootstrap,
+            additional_modules=args.modules, with_opts=with_opts,
+            without_opts=without_opts, bootstrap=args.bootstrap,
             bootstrap_image=args.bootstrap_image,
             isolation=args.isolation,
         )
@@ -1407,11 +1416,11 @@ def setup_parser():
                                       help="space separated string of additional repo urls for chroot")
     parser_edit_chroot.add_argument("--modules",
                                       help="comma separated list of modules that will be enabled or disabled in the given chroot, e.g. 'module1:stream,!module2:stream'")
-    parser_edit_chroot.add_argument("--rpmbuild-with", action='append', default=[],
+    parser_edit_chroot.add_argument("--rpmbuild-with", action='append',
                                       help="rpmbuild --with option, can be set multiple times")
-    parser_edit_chroot.add_argument("--rpmbuild-without", action='append', default=[],
+    parser_edit_chroot.add_argument("--rpmbuild-without", action='append',
                                       help="rpmbuild --without options, can be set multiple times")
-    parser_edit_chroot.add_argument("--isolation", choices=["simple", "nspawn", "default"], default="unchanged",
+    parser_edit_chroot.add_argument("--isolation", choices=["simple", "nspawn", "default"],
                                     help="Choose the isolation method for running commands in buildroot.")
 
     parser_edit_chroot.add_argument(
