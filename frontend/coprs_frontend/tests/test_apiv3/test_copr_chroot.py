@@ -55,6 +55,60 @@ class TestCoprChroots(CoprsTestCase):
         for chroot in copr.active_copr_chroots:
             assert chroot.isolation == "nspawn"
 
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_v3_edit_chroot_reset(self):
+        chrootname = "fedora-rawhide-i386"
+        project = "test"
+
+        # Create a new project and edit some chroot attributes
+        self.api3.new_project(project, [chrootname])
+        self.api3.edit_chroot(
+            project,
+            chrootname,
+            additional_packages=["pkg1", "pkg2", "pkg3"],
+            isolation="nspawn",
+        )
+
+        # Make sure all the chroot attributes are configured
+        chroot = self.models.CoprChroot.query.get(1)
+        assert chroot.isolation == "nspawn"
+        assert chroot.buildroot_pkgs == "pkg1 pkg2 pkg3"
+
+        # Reset one of the fields and make sure nothing else was changed
+        response = self.api3.edit_chroot(
+            project,
+            chrootname,
+            reset_fields=["additional_packages"]
+        )
+        assert response.status_code == 200
+        chroot = self.models.CoprChroot.query.get(1)
+        assert chroot.isolation == "nspawn"
+        assert chroot.buildroot_pkgs is None
+
+        # Reset the rest of the fields
+        response = self.api3.edit_chroot(
+            project,
+            chrootname,
+            reset_fields=["additional_packages", "isolation"]
+        )
+        chroot = self.models.CoprChroot.query.get(1)
+        assert chroot.isolation == "unchanged"
+        assert chroot.buildroot_pkgs is None
+
+        # Try to reset a non-existing attribute
+        response = self.api3.edit_chroot(
+            project,
+            chrootname,
+            reset_fields=["nonexisting"],
+        )
+        assert response.status_code == 400
+        assert ("Trying to reset an invalid attribute: nonexisting"
+                in response.json["error"])
+        assert ("See `copr-cli get-chroot user1/test/fedora-rawhide-i386' for "
+                "all the possible attributes"
+                in response.json["error"])
+
     @TransactionDecorator("u2")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
     def test_edit_chroot_permission(self):

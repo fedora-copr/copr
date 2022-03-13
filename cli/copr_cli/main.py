@@ -671,6 +671,7 @@ class Commands(object):
             without_opts=without_opts, bootstrap=args.bootstrap,
             bootstrap_image=args.bootstrap_image,
             isolation=args.isolation,
+            reset_fields=args.reset,
         )
         print("Edit chroot operation was successful.")
 
@@ -1437,6 +1438,15 @@ def setup_parser():
         "--bootstrap-image",
         help=("Use a custom container image for initializing Mock's "
               "bootstrap (Implies --bootstrap=image)"))
+
+    parser_edit_chroot.add_argument(
+        "--reset",
+        action="append",
+        help=("Reset this parameters to their respective defaults. "
+              "Possible values are additional_packages, additional_modules, "
+              "isolation, etc. See the output of `copr-cli get-chroot' for all "
+              "the possible field names."),
+    )
 
     parser_edit_chroot.set_defaults(func="action_edit_chroot")
 

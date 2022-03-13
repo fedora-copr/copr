@@ -5,7 +5,15 @@ from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.exceptions import ObjectNotFound, InvalidForm
 from coprs import db, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
-from . import query_params, get_copr, file_upload, GET, PUT
+from . import (
+    query_params,
+    get_copr,
+    file_upload,
+    GET,
+    PUT,
+    str_to_list,
+    reset_to_defaults,
+)
 from .json2form import get_form_compatible_data
 
 
@@ -58,10 +66,6 @@ def rename_fields(input):
     return output
 
 
-def str_to_list(value):
-    return (value or "").split()
-
-
 @apiv3_ns.route("/project-chroot", methods=GET)
 @query_params()
 def get_project_chroot(ownername, projectname, chrootname):
@@ -92,6 +96,10 @@ def edit_project_chroot(ownername, projectname, chrootname):
 
     if not form.validate_on_submit():
         raise InvalidForm(form)
+
+    more_fields = ("See `copr-cli get-chroot {0}' for all the possible "
+                   "attributes".format(chroot.full_name))
+    reset_to_defaults(chroot, form, rename_fields, more_fields)
 
     buildroot_pkgs = repos = module_toggle = comps_xml = comps_name = with_opts = without_opts = None
     if "buildroot_pkgs" in data:

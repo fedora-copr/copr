@@ -1677,6 +1677,14 @@ class CoprChroot(db.Model, helpers.Serializer):
         return self.mock_chroot.name
 
     @property
+    def full_name(self):
+        """
+        Return a full path for identifying some chroot, e.g.
+        `@copr/copr-dev/fedora-rawhide-x86_64`
+        """
+        return "{0}/{1}".format(self.copr.full_name, self.name)
+
+    @property
     def is_active(self):
         return self.mock_chroot.is_active
 

@@ -14,6 +14,7 @@ from coprs.exceptions import (
     CoprHttpException,
     InsufficientStorage,
     ObjectNotFound,
+    BadRequest,
 )
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -291,3 +292,47 @@ def streamed_json_array_response(array_or_generator, message, field="data"):
         _stream(),
         mimetype="application/json",
     )
+
+
+def str_to_list(value):
+    """
+    We have a lot of module attributes that are stored as space-separeted
+    strings, their default value is `None` and we want to return them as lists.
+    It's tiresome to always check if the value is not `None` before splitting.
+    """
+    return (value or "").split()
+
+
+def reset_to_defaults(obj, form, rename_fields=None, more_fields=None):
+    """
+    If the `form` contains a `reset` with a list of attributes that user wishes
+    to reset, set such values to their respective defaults. We find out the
+    default value from `obj`, which should be any database model.
+
+    Sometimes an attribute within the API schema can have a different name than
+    its model counterpart. For such cases this method takes an `rename_fields`,
+    function, see e.g. `apiv3_project_chroots.rename_fields`.
+
+    Use `more_fields` to specify a message saying where a user can find all the
+    possible attribute names
+    """
+    reset = getattr(form, "reset_fields")
+    if not reset or not reset.data:
+        return
+    fields = str_to_list(reset.data)
+
+    # Some fields may have different name in the API schema than their
+    # respective attributes in the database models.
+    if rename_fields:
+        fields = rename_fields(dict.fromkeys(fields)).keys()
+
+    for field in fields:
+        try:
+            default = getattr(obj.__class__, field).default
+            value = default.arg if default else None
+            setattr(obj, field, value)
+        except AttributeError as ex:
+            msg = "Trying to reset an invalid attribute: {0}".format(field)
+            if more_fields:
+                msg += "\n{0}".format(more_fields)
+            raise BadRequest(msg) from ex

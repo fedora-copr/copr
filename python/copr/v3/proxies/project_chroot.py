@@ -50,7 +50,8 @@ class ProjectChrootProxy(BaseProxy):
     # pylint: disable=too-many-arguments
     def edit(self, ownername, projectname, chrootname, additional_packages=None, additional_repos=None,
              additional_modules=None, comps=None, delete_comps=False, with_opts=None, without_opts=None,
-             bootstrap=None, bootstrap_image=None, isolation=None):
+             bootstrap=None, bootstrap_image=None, isolation=None,
+             reset_fields=None):
         """
         Edit a chroot configuration in a project
 
@@ -69,6 +70,10 @@ class ProjectChrootProxy(BaseProxy):
         :param str bootstrap_image: Implies 'bootstrap=image'.
         :param str isolation: Mock isolation feature setup.
             Possible values are 'default', 'simple', 'nspawn'.
+        :param list reset_fields: list of chroot attributes, that should be
+            reseted to their respective defaults. Possible values are
+            `additional_packages`, `additional_modules`, `isolation`, etc. See
+            the output of `ProjectProxy.get` for all the possible field names.
         :return: Munch
         """
         endpoint = "/project-chroot/edit/{ownername}/{projectname}/{chrootname}"
@@ -91,6 +96,7 @@ class ProjectChrootProxy(BaseProxy):
             "bootstrap": bootstrap,
             "bootstrap_image": bootstrap_image,
             "isolation": isolation,
+            "reset_fields": reset_fields,
         }
         files = {}
         if comps:

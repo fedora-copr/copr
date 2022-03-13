@@ -1589,6 +1589,7 @@ class ModifyChrootForm(ChrootForm):
     comps = None
     upload_comps = FileField("Upload comps.xml")
     delete_comps = wtforms.BooleanField("Delete comps.xml", false_values=FALSE_VALUES)
+    reset_fields = wtforms.StringField("Reset these fields to their defaults")
 
 
 class SelectMultipleFieldNoValidation(wtforms.SelectMultipleField):

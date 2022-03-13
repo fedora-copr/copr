@@ -50,7 +50,8 @@ class _RequestsInterface:
         raise NotImplementedError
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None, isolation=None):
+                    bootstrap_image=None, owner=None, isolation=None,
+                    additional_packages=None, reset_fields=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -94,7 +95,8 @@ class WebUIRequests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None, isolation=None):
+                    bootstrap_image=None, owner=None, isolation=None,
+                    additional_packages=None, reset_fields=None):
         """ Change CoprChroot using the web-UI """
         route = "/coprs/{user}/{project}/update_chroot/{chroot}/".format(
             user=owner or self.transaction_username,
@@ -233,7 +235,8 @@ class API3Requests(_RequestsInterface):
         return resp
 
     def edit_chroot(self, project, chroot, bootstrap=None,
-                    bootstrap_image=None, owner=None, isolation=None):
+                    bootstrap_image=None, owner=None, isolation=None,
+                    additional_packages=None, reset_fields=None):
         route = "/api_3/project-chroot/edit/{owner}/{project}/{chroot}".format(
             owner=owner or self.transaction_username,
             project=project,
@@ -246,6 +249,10 @@ class API3Requests(_RequestsInterface):
             data["bootstrap_image"] = bootstrap_image
         if isolation is not None:
             data["isolation"] = isolation
+        if additional_packages is not None:
+            data["additional_packages"] = additional_packages
+        if reset_fields is not None:
+            data["reset_fields"] = reset_fields
         resp = self.post(route, data)
         return resp
 
