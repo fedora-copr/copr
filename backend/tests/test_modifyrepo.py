@@ -92,12 +92,6 @@ class TestModifyRepo(object):
         proc.kill()
         assert b"acquired lock" in err
 
-    @staticmethod
-    def _run_copr_repo(args):
-        with mock.patch("sys.argv", ["copr-repo"] + args):
-            filedict = runpy.run_path(modifyrepo)
-            filedict["main"]()
-
     @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
     def test_copr_repo_add_subdir(self, f_second_build):
         _unused = self
