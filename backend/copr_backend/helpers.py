@@ -85,6 +85,9 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False,
         if the command should be interpreted by shell
     timeout:
         passed down to Popen.communicate().  See catch_timeout, too.
+    logger:
+        A logging.getLogger()-like object to use for dumping a useful info.  The
+        method is log-silent by default.
     catch_timeout:
         When set to True, we catch timeout exceptions and log them, and return
         the status code 124.
