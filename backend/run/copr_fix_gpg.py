@@ -5,9 +5,10 @@ import sys
 import os
 import logging
 import argparse
+from urllib.parse import urlparse
 import pwd
 
-from copr_backend.helpers import BackendConfigReader, call_copr_repo
+from copr_backend.helpers import BackendConfigReader, call_copr_repo, run_cmd
 from copr_backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, create_user_keys, create_gpg_email
 
 logging.basicConfig(
@@ -38,6 +39,24 @@ def _get_argparser():
               "e.g. fedora-rawhide-x86_64 or just fedora-rawhide)."
               " (can be specified multiple times)"))
     return parser
+
+
+def invalidate_aws_cloudfront_data(opts, owner, project, chroot):
+    """
+    Request a AWS CF cache invalidation for the recently updated chroot.  This
+    method requires a valid ~/.aws [default] configuration!
+    """
+    distro_id = opts.aws_cloudfront_distribution
+    if not distro_id:
+        return
+
+    base = urlparse(opts.results_baseurl).path
+    path_pattern = "/".join([base, owner, project, chroot]) + "/*"
+    log.info("Invalidating CDN cache %s", path_pattern)
+    command = ["aws", "cloudfront", "create-invalidation",
+               "--distribution-id", distro_id,
+               "--paths", path_pattern]
+    run_cmd(command, logger=log)
 
 
 def fix_copr(args, opts, copr_full_name):
@@ -100,6 +119,7 @@ def fix_copr(args, opts, copr_full_name):
 
         log.info("Running add_appdata for %s", dir_path)
         call_copr_repo(dir_path, logger=log, do_stat=True)
+        invalidate_aws_cloudfront_data(opts, owner, coprname, chroot)
 
 
 def main():

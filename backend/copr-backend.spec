@@ -65,6 +65,7 @@ BuildRequires: dnf
 
 Requires:   (copr-selinux if selinux-policy-targeted)
 Requires:   ansible
+Suggests:   awscli
 Requires:   createrepo_c >= 0.16.1
 Requires:   crontabs
 Requires:   gawk

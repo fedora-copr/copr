@@ -35,6 +35,7 @@ from copr_backend.helpers import (
 
 
 modifyrepo = 'run/copr-repo'
+fix_gpg_script = 'run/copr_fix_gpg.py'
 
 # pylint: disable=attribute-defined-outside-init
 # pylint: disable=too-many-public-methods
@@ -612,3 +613,22 @@ class TestModifyRepo(object):
             assert repodata['names'] == {'example'}
         else:
             assert repodata['names'] == set()
+
+
+@mock.patch("copr_backend.helpers.subprocess.Popen")
+def test_aws_cdn_refresh(popen):
+    """ Check that we run createrepo_c with appropriate arguments """
+
+    # Mock the run_prunerepo properly
+    popen.return_value.communicate.return_value = ("","")
+    popen.return_value.returncode = 0
+    method = runpy.run_path(fix_gpg_script)["invalidate_aws_cloudfront_data"]
+
+    opts = munch.Munch()
+    opts.results_baseurl = "https://example.com/results"
+    opts.aws_cloudfront_distribution = "XYZ"
+    method(opts, "jdoe", "foo", "fedora-rawhide-x86_64")
+
+    assert popen.call_args_list[0][0][0] == \
+        ["aws", "cloudfront", "create-invalidation", "--distribution-id", "XYZ",
+         "--paths", "/results/jdoe/foo/fedora-rawhide-x86_64/*"]

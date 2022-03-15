@@ -84,6 +84,9 @@ prune_days=14
 #redis_port=6379
 #redis_db=0
 
+# AWS CloudFront distribution ID.  In some cases we might want to invalidate
+# some CDN caches (e.g. when RPMs in repository are re-signed).
+#aws_cloudfront_distribution=EX55ITR8LVMOH
 
 [builder]
 # default is 1800
