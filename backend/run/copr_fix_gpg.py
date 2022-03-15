@@ -17,26 +17,30 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description="""
-Script to generate missing keys for copr owners, regenerate pubkey.gpg and fix signatures on rpms in coprs:
-    a) that were forked
-    b) influenced by gpgdup bug (bz#1330322)
-    c) ...
-As input, takes file with new-line separated copr full names (owner/coprname).
-For all coprs in this file, generates key-pairs on copr-keygen machine (if not generated),
-re-signs its rpms and regenerates pubkey.gpg.
-""")
+def _get_argparser():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description="""
+    Script to generate missing keys for copr owners, regenerate pubkey.gpg and fix signatures on rpms in coprs:
+        a) that were forked
+        b) influenced by gpgdup bug (bz#1330322)
+        c) ...
+    As input, takes file with new-line separated copr full names (owner/coprname).
+    For all coprs in this file, generates key-pairs on copr-keygen machine (if not generated),
+    re-signs its rpms and regenerates pubkey.gpg.
+    """)
 
-parser.add_argument('coprs_file_path', action='store', help='Path to the text file with copr full names (owner/coprname) to be fixed.')
-parser.add_argument("--chroot", action="append", default=[],
-                    help=("Only re-sign CHROOT.  CHROOT can be a full chroot "
-                          "or a shortened chroot name without architecture ("
-                          "e.g. fedora-rawhide-x86_64 or just fedora-rawhide)."
-                          " (can be specified multiple times)"))
-args = parser.parse_args()
+    parser.add_argument(
+        'coprs_file_path', action='store',
+        help='Path to the text file with copr full names (owner/coprname) to be fixed.')
+    parser.add_argument(
+        "--chroot", action="append", default=[],
+        help=("Only re-sign CHROOT.  CHROOT can be a full chroot "
+              "or a shortened chroot name without architecture ("
+              "e.g. fedora-rawhide-x86_64 or just fedora-rawhide)."
+              " (can be specified multiple times)"))
+    return parser
 
 
-def fix_copr(opts, copr_full_name):
+def fix_copr(args, opts, copr_full_name):
     log.info("Going to fix %s", copr_full_name)
 
     owner, coprname = tuple(copr_full_name.split('/'))
@@ -99,11 +103,12 @@ def fix_copr(opts, copr_full_name):
 
 
 def main():
+    args = _get_argparser().parse_args()
     opts = BackendConfigReader().read()
     with open(args.coprs_file_path) as coprs_file:
         for copr_full_name in coprs_file:
             try:
-                fix_copr(opts, copr_full_name.strip())
+                fix_copr(args, opts, copr_full_name.strip())
             except Exception as e:
                 log.exception(str(e))
 
