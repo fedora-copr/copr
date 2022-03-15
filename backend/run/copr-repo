@@ -66,6 +66,10 @@ def get_arg_parser():
                              "process needs an access to Redis DB.")
     parser.add_argument('--rpms-to-remove', action='append', default=[],
                         help="list of (s)RPM path names that should be removed")
+    parser.add_argument("--do-stat", action='store_true', default=False,
+                        help=("Run createrepo_c without the --skip-stat "
+                              "option, this e.g. helps to recognize that "
+                              "RPM files were re-signed (copr_fix_gpg.py)"))
     parser.add_argument('directory')
     return parser
 
@@ -140,7 +144,11 @@ def run_createrepo(opts):
 
     if repodata_exist:
         # optimized createrepo run
-        createrepo_cmd += ["--update", "--skip-stat"]
+        createrepo_cmd += ["--update"]
+        if not opts.do_stat:
+            # We never change the RPM files, therefore we can rely on the
+            # caches.  Exception to this rule is e.g. copr_fix_gpg.py file.
+            createrepo_cmd += ["--skip-stat"]
         if not opts.full:
             createrepo_cmd += ["--recycle-pkglist"]
 

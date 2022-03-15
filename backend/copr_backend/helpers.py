@@ -693,7 +693,7 @@ def format_filename(name, version, release, epoch, arch, zero_epoch=False):
 
 
 def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete=None, timeout=None,
-                   logger=None, appstream=True):
+                   logger=None, appstream=True, do_stat=False):
     """
     Execute 'copr-repo' tool, and return True if the command succeeded.
     """
@@ -716,6 +716,9 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
         cmd += ['--no-appstream-metadata']
     if devel:
         cmd += ['--devel']
+
+    if do_stat:
+        cmd += ["--do-stat"]
 
     result = run_cmd(cmd, timeout=timeout, logger=logger, catch_timeout=True)
     if result.returncode and logger:

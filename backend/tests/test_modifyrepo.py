@@ -380,6 +380,52 @@ class TestModifyRepo(object):
         call = popen.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--add', 'xxx']
 
+    @staticmethod
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
+    def test_copr_repo_do_stat(popen):
+        """ do_stat=True adds --do-stat option """
+        popen.return_value.communicate.return_value = ("", "")
+        popen.return_value.returncode = 0
+        assert call_copr_repo("/some/dir", do_stat=True) is True
+        assert len(popen.call_args_list) == 1
+        call = popen.call_args_list[0]
+        assert call[0][0] == ["copr-repo", "--batched", "/some/dir", "--do-stat"]
+
+    @pytest.mark.parametrize('do_stat', [True, False])
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
+    def test_copr_repo_run_createrepo(self, popen, do_stat):
+        """ Check that we run createrepo_c with appropriate arguments """
+
+        # Mock the run_prunerepo properly
+        popen.return_value.communicate.return_value = ("","")
+        popen.return_value.returncode = 0
+        repodir = os.path.join(self.workdir, "testrepo")
+        repodata = os.path.join(repodir, "repodata")
+        xml = os.path.join(repodata, "repomd.xml")
+        os.makedirs(repodata)
+        with open(xml, 'w'):
+            pass
+        filedict = runpy.run_path(modifyrepo)
+        opts = munch.Munch()
+        opts.directory = repodir
+        opts.add = []
+        opts.delete = []
+        opts.full = True
+        opts.devel = False
+        opts.do_stat = do_stat
+        opts.log = logging.getLogger()
+        opts.rpms_to_remove = []
+
+        # run the method
+        filedict["run_createrepo"](opts)
+
+        additional_args = [] if do_stat else ["--skip-stat"]
+
+        assert popen.call_args_list[0][0][0] == \
+            ["/usr/bin/createrepo_c", repodir, "--database",
+             "--ignore-lock", "--local-sqlite", "--cachedir", "/tmp/",
+             "--workers", "8", "--update"] + additional_args
+
     @pytest.mark.skipif(
         distro.id() == 'fedora' and int(distro.version()) >= 36,
         reason="createrepo_c dropped md5 checksum support"
