@@ -71,6 +71,8 @@ services:
   redis:
     image: centos/redis-32-centos7
     hostname: redis
+    volumes:
+      - redis:/var/lib/redis/data
 
   backend_httpd:
     build:
@@ -171,3 +173,4 @@ volumes:
   copr-keygen:
   dist-git:
   database:
+  redis:
