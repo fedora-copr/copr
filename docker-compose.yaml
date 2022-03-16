@@ -28,7 +28,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
+      - results:/var/lib/copr/public_html/results:z
 
   backend-build:
     build:
@@ -42,7 +42,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
+      - results:/var/lib/copr/public_html/results:z
 
   backend-action:
     build:
@@ -56,7 +56,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - results:/var/lib/copr/public_html/results
+      - results:/var/lib/copr/public_html/results:z
 
   resalloc:
     build:
@@ -81,7 +81,7 @@ services:
     ports:
       - "5002:5002"
     volumes:
-      - results:/var/lib/copr/public_html/results
+      - results:/var/lib/copr/public_html/results:z
 
   builder:
     build:
@@ -132,7 +132,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - dist-git:/var/lib/dist-git
+      - dist-git:/var/lib/dist-git:z
 
   distgit-httpd:
     build:
@@ -144,7 +144,7 @@ services:
       - "5001:80"
     volumes:
       - .:/opt/copr:z
-      - dist-git:/var/lib/dist-git
+      - dist-git:/var/lib/dist-git:z
 
   keygen-signd:
     build:
@@ -154,7 +154,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - copr-keygen:/var/lib/copr-keygen
+      - copr-keygen:/var/lib/copr-keygen:z
 
   keygen-httpd:
     build:
@@ -164,7 +164,7 @@ services:
     tty: true
     volumes:
       - .:/opt/copr:z
-      - copr-keygen:/var/lib/copr-keygen
+      - copr-keygen:/var/lib/copr-keygen:z
 
 volumes:
   results:
