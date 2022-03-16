@@ -1,0 +1,6 @@
+#! /bin/sh
+
+cd
+./manage.py create-db --alembic alembic.ini
+./manage.py create-chroot fedora-rawhide-x86_64
+exec /usr/sbin/httpd -DFOREGROUND

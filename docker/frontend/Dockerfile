@@ -75,4 +75,4 @@ ENV PS1="[\u@\h \W]\$ "
 
 EXPOSE 5000
 
-CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
+CMD ["/entrypoint"]
