@@ -175,7 +175,7 @@ class TestCoprNew(CoprsTestCase):
         assert len(self.models.Copr.query
                    .order_by(desc(models.Copr.created_on))
                    .filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
-        assert b"You already have project named" in r.data
+        assert b"You already have a project named" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_new_with_initial_pkgs(self, f_users, f_mock_chroots, f_db):

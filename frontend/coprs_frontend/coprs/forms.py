@@ -266,9 +266,9 @@ class CoprUniqueNameValidator(object):
     def __init__(self, message=None, user=None, group=None):
         if not message:
             if group is None:
-                message = "You already have project named '{}'."
+                message = "You already have a project named '{}'."
             else:
-                message = "Group {} ".format(group) + "already have project named '{}'."
+                message = "Group {} ".format(group) + "already has a project named '{}'."
         self.message = message
         if not user:
             user = flask.g.user
