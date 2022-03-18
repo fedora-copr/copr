@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.184
+Version:    1.185
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -383,6 +383,20 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.185-1
+- added support for resetting fields in chroots over the API
+- get-chroot - return modules as a list
+- add a link to comps.xml documentation into the chroot edit form
+- user-friendly error for devel stack(s) when there is a database problem
+- optimize the SQL for the /pending/ routes a bit
+- a new route /pending/all/ giving a rough stats
+- cache the number of currently processed batches to speedup the overall web-UI
+- speed-up the models.Batch related routes
+- don't use redis as a middleman when updating hitcounter stats
+- use standard backend auth for updating stats
+- hitcounter: don't return 201 when there is an exception
+- add API routes for editing module list in chroot
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.184-1
 - sort chroot-histogram graphs by number of builds
 - use dist-git method for builds by default
