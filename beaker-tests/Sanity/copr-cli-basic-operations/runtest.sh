@@ -60,7 +60,11 @@ rlJournalStart
         OUTPUT=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project1 --chroot wrong-chroot-name 2> $OUTPUT" 1
         rlRun "cat $OUTPUT |grep -E '^Error: $'"
-        rlRun "cat $OUTPUT |grep \"\- name: Group copr (fas: gitcopr) already has a project named\""
+        case $OWNER in
+        @copr) msg_exp="Group copr (fas: gitcopr) already has a project named" ;;
+        *) msg_exp="You already have a project named" ;;
+        esac
+        rlRun "cat $OUTPUT |grep \"\- name: $msg_exp\""
         rlRun "cat $OUTPUT |grep \"\- chroots: 'wrong-chroot-name' is not a valid choice for this field\""
 
         rlRun "yes | copr-cli new-webhook-secret ${NAME_PREFIX}Project1 | grep -E 'Generated new token: .*-.*-.*-.*-.*'"
