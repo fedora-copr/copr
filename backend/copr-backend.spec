@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.153
+Version:    1.154
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,16 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.154-1
+- copr_fix_gpg: automatically refresh CDN cache
+- copr_fix_gpg: don't use --skip-stat for copr-repo when RPMs are re-signed
+- action processor: properly return failures of the fork action
+- sign EL8+ with sha256 hash algorithm
+- copr_fix_gpg: add a new --chroot option
+- copr_fix_gpg: skip non-chroot directories
+- add hitcounter script for AWS CDN
+- backend: tasks in concurrent sandboxes reprioritized to be more fair
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.153-1
 - less aggressive final_prunerepo setting
 - analyze-results: dump data for projects' chroots
