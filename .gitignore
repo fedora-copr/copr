@@ -3,6 +3,7 @@
 *.swp
 .coverage
 frontend/data/
+frontend/dump.rdb
 */dist/
 build/
 _build/
