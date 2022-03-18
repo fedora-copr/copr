@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.55.2
+Version: 0.55.4
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -330,6 +330,18 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 0.55.4-1
+- copr-distgit-client: document the configuration for the dist-git subpackage
+- copr-distgit-client: add the centos-stream configuration
+- copr-distgit-client: new --forked-from option that allows builds from (any) forks
+- rpmbuild: support for remote refs in committish (PR#2049 and PR#2081)
+
+* Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com>
+- added configuration documentation for the copr-distgit-client subpackage
+- copr-distgit-client: addding centos-stream dist-git configuration
+- copr-distgit-client: new--forked-from option
+- support for remote refs in committish (PR#2081)
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.55.2-1
 - don't depend on autospec in EL9
 - use config file in *-cancel and *-log scripts
