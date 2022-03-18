@@ -37,7 +37,11 @@
     {{ copr_build_repeat_form(build, page, class="pull-right button-build-action") }}
 {% endif %}
 
-<h2 class="page-title">Build {{ build.id }} </h2>
+<h2 class="page-title">Build {{ build.id }}
+    {% if build.is_background %}
+           <span class="badge">background</span>
+    {% endif %}
+</h2>
 
 <div class="row">
   <div class="col-sm-12">
