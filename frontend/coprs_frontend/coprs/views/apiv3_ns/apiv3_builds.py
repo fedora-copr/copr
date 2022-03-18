@@ -42,6 +42,7 @@ def to_dict(build):
         "submitter": build.user.name if build.user else None,
         "chroots": [chroot.name for chroot in build.build_chroots],
         "project_dirname": build.copr_dir.name,
+        "is_background": build.is_background,
     }
 
 
