@@ -747,6 +747,9 @@ https://accounts.fedoraproject.org/group/{{name}}
               <a href="{{ build_href(build_chroot) }}">
                 {{ build_chroot.id }}
               </a>
+              {% if build_chroot.is_background %}
+              <span class="badge">background</span>
+              {% endif %}
             </td>
             {% if type != 'importing' %}
               {% if task_type == 'srpm' %}
