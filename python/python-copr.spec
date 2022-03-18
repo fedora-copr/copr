@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.115
+Version:    1.116
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -221,6 +221,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.116-1
+- add support for resetting fields
+- allow setting modules in 'edit-chroot' methods
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.115-1
 - don't BuildRequires pyproject-rpm-macros directly
 - fix exception caused by default msg value
