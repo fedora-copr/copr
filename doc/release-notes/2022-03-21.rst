@@ -1,0 +1,109 @@
+.. _release_notes_2022_03_21:
+
+Highlights from 2022-03-21 release
+==================================
+
+Updated client packages are shipped in `Fedora 34`_, `Fedora 35`_,
+`Fedora 36`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Large queue improvements
+------------------------
+
+Lately, there have been multiple concurrent `mass rebuilds`_ pushing
+Copr to its limits. When reaching 70k builds in the queue,
+`several problems`_ start to appear. We will focus on each of them
+in the following release, with a goal to handle at least twice as
+large of a queue.
+
+In this release, we optimized some queries for listing pending builds
+and implemented `more detailed statistics`_ about the task queue
+allowing anyone to see the owners, projects, or chroots with the most
+builds in the queue.  See `PR#2108`_ for more information.
+
+We also improved the performance of batch-related routes by caching
+and indexing the data (`PR#2091`_).
+
+We also made the priority queue to be much fairer in `PR#2080`_.
+
+
+More copr-cli options for editing chroots
+-----------------------------------------
+
+There is now ``additional_modules`` field when listing chroots in
+``copr-cli``::
+
+    copr-cli get-chroot owner/project/chroot
+
+Also, thanks to the contribution (`PR#2072`_) from `@pbrezina`_, there
+are additional options for ``copr-cli edit-chroot`` - namely
+``--modules``, ``--rpmbuild-with``, and ``--rpmbuild-without``.
+
+Lastly, there is a new option for resetting chroot fields to their
+respective defaults, e.g.::
+
+    copr-cli edit-chroot owner/project/chroot --reset additional_packages
+
+
+Signing packages with SHA256
+----------------------------
+
+Due to dropped support for SHA1 keys in RHEL9, we are moving towards
+signing packages in Copr with SHA256 keys (`PR#2111`_).
+
+Since this release, all new Enterprise Linux 8+ packages are going to be signed with
+SHA256 keys, and all existing Enterprise Linux 9 packages are going to be
+re-signed with SHA256.  The mass re-sign of EL9 packages is going to be done
+on Monday and Tuesday 2022-03-21 -- 2022-03-22.
+
+Gradually, we will make this change for older distributions and
+start signing all chroots with SHA256, except for
+Enterprise Linux 7 and older where SHA256 isn't work.  This change
+should happen in the following weeks (we we have this fully tested on EL8).
+
+Remote refs in committish
+-------------------------
+
+`@churchyard`_ `implemented`_ support for building from remote refs when
+`submitting builds from DistGit`_. This is especially useful for
+example when submitting builds from DistGit pull requests::
+
+    copr-cli build-distgit owner/copr --name foo --commit refs/pull/50/head
+    # or
+    copr-cli add-package-distgit owner/copr --name foo --commit refs/pull/50/head
+
+
+Bugfixes
+--------
+
+- `#2076`_ - Show a user-friendly message when there is a database
+  problem
+- `#2113`_ - Fix infinitely running and failing forking action
+- `#1263`_ - This issue is not resolved yet but we added a new
+  `hitcounter`_ script for counting downloaded packages from Amazon
+  CDN and made some architecture changes.
+
+
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-befc0f35a2
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-9340c26660
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-9efcc71b0d
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-d59b5b318c
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-39e4fd10dc
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-6fb4f3e501
+
+.. _`mass rebuilds`: https://docs.pagure.org/copr.copr/user_documentation.html#mass-rebuilds
+.. _`several problems`: https://pagure.io/copr/copr/issue/2095
+.. _`PR#2108`: https://pagure.io/copr/copr/pull-request/2108
+.. _`PR#2091`: https://pagure.io/copr/copr/pull-request/2091
+.. _`PR#2080`: https://pagure.io/copr/copr/pull-request/2080
+.. _`PR#2111`: https://pagure.io/copr/copr/pull-request/2111
+.. _`PR#2072`: https://pagure.io/copr/copr/pull-request/2072
+.. _`submitting builds from DistGit`: https://docs.pagure.org/copr.copr/user_documentation.html#distgit
+.. _`implemented`: https://pagure.io/copr/copr/pull-request/2049
+.. _`#2076`: https://pagure.io/copr/copr/issue/2076
+.. _`#2113`: https://pagure.io/copr/copr/issue/2113
+.. _`#1263`: https://pagure.io/copr/copr/issue/1263
+.. _`hitcounter`: https://pagure.io/copr/copr/issue/1263
+.. _`@pbrezina`: https://accounts.fedoraproject.org/user/pbrezina
+.. _`@churchyard`: https://accounts.fedoraproject.org/user/churchyard
+.. _`more detailed statistics`: https://copr.fedorainfracloud.org/status/pending/all/
