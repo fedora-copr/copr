@@ -45,10 +45,6 @@ Requires:   python3-flask
 Requires:   python3-pytest
 Requires:   python3-pytest-cov
 
-# scriptlets
-Requires(post): initscripts
-Requires(postun): initscripts
-
 
 %description -n copr-keygen
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -133,12 +129,10 @@ getent passwd copr-signer >/dev/null || \
 
 
 %post
-service httpd condrestart &>/dev/null || :
-
+systemctl condrestart httpd &>/dev/null || :
 
 %postun
-service httpd condrestart &>/dev/null || :
-
+systemctl condrestart httpd &>/dev/null || :
 
 %files
 %license LICENSE
