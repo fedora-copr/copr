@@ -236,7 +236,9 @@ rpmbuild, e.g.). ::
 This takes some time. Wait until the packages are available in the infra repo::
 
     ./releng/koji-infratag-available --prod --wait copr-rpmbuild-0.53-1.fc34.x86_64.rpm ...
-    https://kojipkgs.fedoraproject.org/repos-dist/f33-infra/
+
+Or you can check the repository manually, e.g.
+https://kojipkgs.fedoraproject.org/repos-dist/f35-infra/latest/x86_64/
 
 
 Upgrade production machines
