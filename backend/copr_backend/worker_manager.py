@@ -2,7 +2,6 @@ import os
 import time
 from heapq import heappop, heappush
 import itertools
-import redis
 import logging
 import subprocess
 
