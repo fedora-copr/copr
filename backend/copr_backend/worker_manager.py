@@ -4,6 +4,7 @@ from heapq import heappop, heappush
 import itertools
 import redis
 import logging
+import subprocess
 
 
 class WorkerLimit:
@@ -446,6 +447,7 @@ class WorkerManager():
 
             self._start_worker(task, now)
 
+        self.log.debug("Reaped %s processes", self._clean_daemon_processes())
         self.log.debug("Worker.run() stop at time %s", time.time())
 
     def _start_worker(self, task, time_now):
@@ -515,3 +517,36 @@ class WorkerManager():
                 # The worker could finish in the meantime, make sure we
                 # hgetall() once more.
                 self.redis.hset(worker_id, 'delete', 1)
+
+    def start_daemon_on_background(self, command, env=None):
+        """
+        The daemon.DaemonContext() is pretty slow thing, it may take up to 1s
+        to finish and return the exit status to the parent process.  But if the
+        calling logic is properly prepared for potential startup failures, we
+        don't have to wait at all and we can start the background process on
+        background, too.  Typical work-around for starting the
+        'copr-backend-process-*' scripts that are based on the
+        BackgroundWorker.process() logic.
+        """
+        # pylint: disable=consider-using-with
+        process = subprocess.Popen(command, env=env)
+        self.log.debug("background pid=%s started (%s)", process.pid, command)
+
+    def _clean_daemon_processes(self):
+        """
+        Wait for all the finished subprocesses to avoid the leftover zombies.
+        Return the number of successfully waited processes.  Complements the
+        start_daemon_on_background() above, but called automatically.
+        """
+        counter = 0
+        try:
+            # Wait for any background process (pid=-1), and no additional
+            # options are needed (options=0).  All the background processes
+            # should quit relatively fast (within one second).
+            while True:
+                (pid, _) = os.waitpid(-1, 0)
+                self.log.debug("Worker Manager waited for pid=%s", pid)
+                counter += 1
+        except ChildProcessError:
+            pass
+        return counter

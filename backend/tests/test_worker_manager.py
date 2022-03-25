@@ -5,7 +5,6 @@ import sys
 import copy
 import time
 import logging
-import subprocess
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -28,11 +27,15 @@ REDIS_OPTS = Munch(
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
+# pylint: disable=too-many-instance-attributes,protected-access
+
 
 class ToyWorkerManager(WorkerManager):
-    # pylint: disable=abstract-method,too-many-instance-attributes
+    # pylint: disable=abstract-method
     process_counter = 0
     task_sleep = 0
+    started_in_cycle = 0
+    expected_terminations_in_cycle = None
 
     def start_task(self, worker_id, task):
         self.process_counter += 1
@@ -51,7 +54,30 @@ class ToyWorkerManager(WorkerManager):
         if task_env:
            environ.update(task_env)
 
-        subprocess.check_call(list(map(str, cmd)), env=environ)
+        start = time.time()
+        #subprocess.check_call(list(map(str, cmd)), env=environ)
+        retyped_cmd = list(map(str, cmd))
+        self.start_daemon_on_background(retyped_cmd, env=environ)
+        self.log.debug("starting-on-background-took %s (%s)",
+                       time.time() - start, retyped_cmd)
+        self.started_in_cycle += 1
+
+    def _clean_daemon_processes(self):
+        """
+        Check that we are not leaving any zombies behind us
+        """
+        waited = super()._clean_daemon_processes()
+        self.log.debug("cleaned up %s, started %s", waited, self.started_in_cycle)
+        if waited != self.started_in_cycle:
+            if self.expected_terminations_in_cycle is not None:
+                assert self.expected_terminations_in_cycle == waited
+                return waited
+            assert False
+        return waited
+
+    def run(self, *args, **kwargs):
+        self.started_in_cycle = 0
+        return super().run(*args, **kwargs)
 
     def finish_task(self, _w_id, _tinfo):
         pass
@@ -232,6 +258,7 @@ class TestWorkerManager(BaseTestWorkerManager):
         self.worker_manager._start_worker(task, time.time())
         worker_id = self.worker_manager.get_worker_id(repr(task))
         assert len(self.redis.keys(worker_id)) == 1
+        self.worker_manager._clean_daemon_processes()
 
     def test_number_of_tasks(self):
         assert self.remaining_tasks() == 10
@@ -378,6 +405,12 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         assert self.w0 not in keys
 
     def test_all_passed(self, caplog):
+        # It is a lot of fun with Popen().  It seems it has some zombie reaping
+        # mechanism.  If the calling function objects are destroyed (including
+        # the Popen() return value reference), the future call to Popen() seems
+        # to just reap the old Popen() processes.
+        self.worker_manager.expected_terminations_in_cycle = 5
+
         self.worker_manager.run(timeout=100)
         for i in range(0, 10):
             smsg = "Starting worker {}{}, task.priority=0"

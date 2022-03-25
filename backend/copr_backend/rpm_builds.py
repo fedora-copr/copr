@@ -2,8 +2,6 @@
 Abstraction for RPM and SRPM builds on backend.
 """
 
-import subprocess
-
 from copr_backend.helpers import get_chroot_arch
 from copr_backend.worker_manager import (
     PredicateWorkerLimit,
@@ -163,7 +161,7 @@ class RPMBuildWorkerManager(WorkerManager):
             "--worker-id", worker_id,
         ]
         self.log.info("running worker: %s", " ".join(command))
-        subprocess.check_call(command)
+        self.start_daemon_on_background(command)
 
     def finish_task(self, worker_id, task_info):
         self.get_task_id_from_worker_id(worker_id)

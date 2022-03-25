@@ -136,7 +136,7 @@ class TestAction(object):
     @mock.patch("copr_backend.actions.copy_tree")
     @mock.patch("copr_backend.actions.os.path.exists")
     @mock.patch("copr_backend.actions.unsign_rpms_in_dir")
-    @mock.patch("copr_backend.actions.subprocess.Popen")
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
     def test_action_handle_forks(self, mc_popen, mc_unsign_rpms_in_dir,
                                  mc_exists, mc_copy_tree, mc_time):
         mc_popen.return_value.communicate.return_value = ("", "")
@@ -747,7 +747,7 @@ class TestAction(object):
     # We want to test that ACR flag doesn't make any difference here, explicit
     # createrepo always works with non-devel directory.
     @pytest.mark.parametrize('devel', [False, True])
-    @mock.patch("copr_backend.actions.subprocess.Popen")
+    @mock.patch("copr_backend.helpers.subprocess.Popen")
     @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_handle_createrepo_ok(self, mc_devel, mc_sp_popen, mc_time, devel):
         mc_sp_popen.return_value.communicate.return_value = ("", "")

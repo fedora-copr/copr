@@ -5,7 +5,6 @@ import shutil
 import time
 import traceback
 import base64
-import subprocess
 
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
@@ -577,7 +576,7 @@ class ActionWorkerManager(WorkerManager):
             '--worker-id', worker_id,
         ]
         # TODO: mark as started on FE, and let user know in UI
-        subprocess.check_call(command)
+        self.start_daemon_on_background(command)
 
     def finish_task(self, worker_id, task_info):
         task_id = self.get_task_id_from_worker_id(worker_id)
