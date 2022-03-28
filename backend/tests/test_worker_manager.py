@@ -145,6 +145,7 @@ class BaseTestWorkerManager:
     worker_manager = None
 
     def setup_method(self, method):
+        log.setLevel(logging.DEBUG)
         self.setup_redis()
         self.setup_worker_manager()
         self.setup_tasks()
@@ -283,6 +284,32 @@ class TestWorkerManager(BaseTestWorkerManager):
         self.worker_manager.cancel_task_id(666)
         assert self.redis.hgetall('worker:3') == {}
         assert "cancel_request" in self.redis.hgetall('worker:4')
+
+    def test_slow_priority_queue_filling(self):
+        """
+        We discovered that adding tasks to a priority queue was a bottleneck
+        when having a large (70k+ builds) queue, see #2095. Make sure this never
+        happen again.
+        """
+        tasks = [ToyQueueTask(i) for i in range(100000)]
+
+        # We need to run this test with logging only INFO, otherwise we waste
+        # around 5 seconds just on running self.log.debug because we need to
+        # connect to redis for each call
+        # The point of this test is to make sure that adding tasks to priority
+        # queue is not a bottleneck on production, and we don't use DEBUG there
+        # anyway.
+        log.setLevel(logging.INFO)
+
+        t1 = time.time()
+        for task in tasks:
+            self.worker_manager.add_task(task)
+        t2 = time.time()
+
+        # It should actually be faster than 1 second but I am adding one to
+        # prevent false alarms in case somebody has a slow machine
+        assert t2 - t1 < 2
+
 
 def wait_pid_exit(pid):
     """ wait till pid stops responding to no-op kill 0 """

@@ -357,9 +357,7 @@ class WorkerManager():
         task_id = repr(task)
         worker_id = self.get_worker_id(task_id)
 
-        # TODO: We now track workers in-memory, no need to re-query Redis for
-        # self.worker_ids() all the time (we can cache it for one run)
-        if worker_id in self.worker_ids():
+        if worker_id in self._tracked_workers:
             # No need to re-add this to queue.
             self._start_tracking_worker(worker_id, task)
             self.log.debug("Task %s already has a worker process", task_id)
@@ -468,6 +466,7 @@ class WorkerManager():
 
     def _delete_worker(self, worker_id):
         self.redis.delete(worker_id)
+        self._tracked_workers.discard(worker_id)
 
     def _cleanup_workers(self, now):
         for worker_id in self.worker_ids():
