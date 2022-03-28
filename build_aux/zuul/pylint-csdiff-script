@@ -24,7 +24,7 @@ get_changed_packages()
         -e ^backend$
         -e ^behave$
         -e ^frontend$
-        -e ^distgit$
+        -e ^dist-git$
         -e ^cli$
         -e ^common$
         -e ^messaging$
