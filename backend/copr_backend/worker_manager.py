@@ -412,7 +412,7 @@ class WorkerManager():
 
             self._cleanup_workers(now)
 
-            worker_count = len(self.worker_ids())
+            worker_count = len(self._tracked_workers)
             if worker_count >= self.max_workers:
                 time.sleep(1)
                 continue
