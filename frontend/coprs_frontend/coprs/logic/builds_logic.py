@@ -303,17 +303,27 @@ class BuildsLogic(object):
             .filter(models.Build.source_status.in_(cls._todo_states(data_type)))
             .order_by(models.Build.is_background.asc(), models.Build.id.asc())
         )
+
         if data_type in ["for_backend", "overview"]:
+
+            load_build_fields = ["is_background", "submitted_by", "batch_id",
+                                 "user_id"]
+            if data_type == "for_backend":
+                # The custom method allows us to set the chroot for SRPM builds
+                load_build_fields += ["source_type", "source_json"]
+
             query = query.options(
-                load_only("is_background", "source_type", "source_json",
-                          "submitted_by"),
+                load_only(*load_build_fields),
                 # from copr project info we only need the project name
                 joinedload('copr').load_only("user_id", "group_id", "name")
-                .joinedload('user', 'group'),
-                # who submitted the build?
+                .options(
+                    joinedload('user').load_only("username"),
+                    joinedload("group").load_only("name")
+                ),
+                # submitter
                 joinedload('user').load_only("username"),
-                # is this blocked?
-                joinedload('batch'),
+                # preload also batch info
+                joinedload('batch').load_only("blocked_by_id"),
             )
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
@@ -347,16 +357,21 @@ class BuildsLogic(object):
 
         if data_type in ["for_backend", "overview"]:
             query = query.options(
-                joinedload('build').load_only("is_background", "submitted_by",
-                                              "source_json", "source_type")
-                # from copr project info we only need the project name
-                .joinedload('copr').load_only("user_id", "group_id", "name")
-                .joinedload('user', 'group'),
-                joinedload('mock_chroot'),
-                # submitter
-                joinedload('build').load_only('id').joinedload('user').load_only("username"),
-                # preload also batch info
-                joinedload('build').load_only('id').joinedload('batch'),
+                load_only("build_id"),
+                joinedload('build').load_only("id", "is_background", "submitted_by", "batch_id")
+                .options(
+                    # from copr project info we only need the project name
+                    joinedload('copr').load_only("user_id", "group_id", "name")
+                    .options(
+                        joinedload('user').load_only("username"),
+                        joinedload("group").load_only("name")
+                    ),
+                    # submitter
+                    joinedload('user').load_only("username"),
+                    # preload also batch info
+                    joinedload('batch').load_only("blocked_by_id"),
+                ),
+                joinedload('mock_chroot').load_only("os_version", "os_release", "arch", "tags_raw"),
             )
 
         if background is not None:
