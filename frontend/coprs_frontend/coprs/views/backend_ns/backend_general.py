@@ -10,6 +10,7 @@ from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
 from coprs.exceptions import MalformedArgumentException, ObjectNotFound
+from coprs.helpers import streamed_json
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
@@ -305,19 +306,24 @@ def pending_jobs():
         cache.add(build.batch)
         return not build.blocked
 
-    args = {"data_type": "for_backend"}
-    build_records = (
-        [get_srpm_build_record(task, for_backend=True)
-         for task in BuildsLogic.get_pending_srpm_build_tasks(**args)
-         if build_ready(task)] +
-        [get_build_record(task, for_backend=True)
-         for task in BuildsLogic.get_pending_build_tasks(**args)
-         if build_ready(task.build)]
-    )
+    def _stream():
+        args = {"data_type": "for_backend"}
 
-    log.info('Number of selected build records: %s', len(build_records))
-    log.debug('Selected build records: %s', build_records)
-    return flask.jsonify(build_records)
+        log.info("Generating SRPM builds")
+        for build in BuildsLogic.get_pending_srpm_build_tasks(**args):
+            if not build_ready(build):
+                continue
+            record = get_srpm_build_record(build, for_backend=True)
+            yield record
+
+        log.info("Generating RPM builds")
+        for build_chroot in BuildsLogic.get_pending_build_tasks(**args):
+            if not build_ready(build_chroot.build):
+                continue
+            record = get_build_record(build_chroot, for_backend=True)
+            yield record
+
+    return streamed_json(_stream())
 
 
 @backend_ns.route("/get-build-task/<task_id>/")

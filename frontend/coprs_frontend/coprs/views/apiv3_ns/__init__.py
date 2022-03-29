@@ -17,6 +17,7 @@ from coprs.exceptions import (
     BadRequest,
 )
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.helpers import streamed_json
 
 
 apiv3_ns = flask.Blueprint("apiv3_ns", __name__, url_prefix="/api_3")
@@ -270,28 +271,14 @@ def streamed_json_array_response(array_or_generator, message, field="data"):
     items (or fetch from generator), so we don't have to keep the large dataset
     in memory (or wait till it is fully fetched from DB).
     """
-
-    def _stream():
-        start_string = (
-            '{{'
-            '"output": "ok",'
-            '"message": {message},'
-            '{field}: [\n'
-        )
-        yield start_string.format(message=json.dumps(message),
-                                  field=json.dumps(field))
-        for item in array_or_generator:
-            if start_string:
-                yield json.dumps(item)
-                start_string = None
-            else:
-                yield ",\n" + json.dumps(item)
-        yield "]}"
-
-    return flask.Response(
-        _stream(),
-        mimetype="application/json",
-    )
+    start_string = (
+        '{{'
+        '"output": "ok",'
+        '"message": {message},'
+        '{field}: [\n'
+    ).format(message=json.dumps(message),
+             field=json.dumps(field))
+    return streamed_json(array_or_generator, start_string, "]}")
 
 
 def str_to_list(value):

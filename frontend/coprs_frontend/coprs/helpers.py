@@ -846,3 +846,48 @@ def db_column_length(column):
     Call with e.g. `column=models.Package.name`
     """
     return getattr(column, "property").columns[0].type.length
+
+
+@flask.stream_with_context
+def streamed_json(stream, start_string=None, stop_string=None):
+    """
+    Flask response generator for JSON structures (arrays only for now)
+    """
+
+    start_string = start_string or "["
+    stop_string = stop_string or "]"
+
+    def _stream():
+        yield start_string
+        first = True
+        for item in stream:
+            if first:
+                yield json.dumps(item)
+                first = False
+            else:
+                yield ",\n" + json.dumps(item)
+        yield stop_string
+
+    def _batched_stream(count=100):
+        """
+        Don't dump all the JSON items separately, but batch them by COUNT.  This
+        makes the upper-level Flask generator logic called less frequently
+        increasing the overall throughput.
+        """
+        output = ""
+        counter = 0
+        for chunk in _stream():
+            counter += 1
+            output += chunk
+            if counter % count == 0:
+                yield output
+                output = ""
+        yield output
+
+    def _response():
+        return app.response_class(
+            _batched_stream(),
+            mimetype="application/json",
+        )
+
+    return _response()
