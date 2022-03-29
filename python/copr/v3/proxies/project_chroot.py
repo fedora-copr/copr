@@ -101,7 +101,16 @@ class ProjectChrootProxy(BaseProxy):
             comps_f = open(comps, "rb")
             files["upload_comps"] = (os.path.basename(comps_f.name), comps_f, "application/text")
 
-        request = FileRequest(api_base_url=self.api_base_url, files=files, auth=self.auth,
-                              connection_attempts=self.config.get("connection_attempts", 1))
-        response = request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        request = FileRequest(
+            api_base_url=self.api_base_url,
+            files=files,
+            connection_attempts=self.config.get("connection_attempts", 1)
+        )
+        response = request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)

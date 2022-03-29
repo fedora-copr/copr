@@ -21,17 +21,15 @@ class Request(object):
     # This should be a replacement of the _fetch method from APIv1
     # We can have Request, FileRequest, AuthRequest/UnAuthRequest, ...
 
-    def __init__(self, api_base_url=None, auth=None, connection_attempts=1):
+    def __init__(self, api_base_url=None, connection_attempts=1):
         """
         :param api_base_url:
-        :param auth: tuple (login, token)
         :param connection_attempts:
 
         @TODO maybe don't have both params and data, but rather only one variable
         @TODO and send it as data on POST and as params on GET
         """
         self.api_base_url = api_base_url
-        self.auth = auth
         self.connection_attempts = connection_attempts
 
     def endpoint_url(self, endpoint, params=None):
@@ -39,15 +37,15 @@ class Request(object):
         endpoint = endpoint.strip("/").format(**params)
         return os.path.join(self.api_base_url, endpoint)
 
-
-    def send(self, endpoint, method=GET, data=None, params=None, headers=None):
+    def send(self, endpoint, method=GET, data=None, params=None, headers=None,
+             auth=None):
         session = requests.Session()
-        if not isinstance(self.auth, tuple):
+        if not isinstance(auth, tuple):
             # api token not available, set session cookie obtained via gssapi
-            session.cookies.set("session", self.auth)
+            session.cookies.set("session", auth)
 
         request_params = self._request_params(
-            endpoint, method, data, params, headers)
+            endpoint, method, data, params, headers, auth)
 
         response = self._send_request_repeatedly(session, request_params)
         handle_errors(response)
@@ -71,7 +69,7 @@ class Request(object):
         raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
 
     def _request_params(self, endpoint, method=GET, data=None, params=None,
-                        headers=None):
+                        headers=None, auth=None):
         params = {
             "url": self.endpoint_url(endpoint, params),
             "json": data,
@@ -81,8 +79,8 @@ class Request(object):
         }
         # We usually use a tuple (login, token). If this is not available,
         # we use gssapi auth, which works with cookies.
-        if isinstance(self.auth, tuple):
-            params["auth"] = self.auth
+        if isinstance(auth, tuple):
+            params["auth"] = auth
         return params
 
 

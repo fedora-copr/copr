@@ -31,8 +31,13 @@ class ModuleProxy(BaseProxy):
         }
         if distgit is not None:
             data["distgit"] = distgit
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def build_from_file(self, ownername, projectname, path, distgit=None):
@@ -56,7 +61,16 @@ class ModuleProxy(BaseProxy):
         data = None
         if distgit is not None:
             data = {"distgit": distgit}
-        request = FileRequest(files=files, api_base_url=self.api_base_url, auth=self.auth,
-                              connection_attempts=self.config.get("connection_attempts", 1))
-        response = request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        request = FileRequest(
+            files=files,
+            api_base_url=self.api_base_url,
+            connection_attempts=self.config.get("connection_attempts", 1)
+        )
+        response = request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)

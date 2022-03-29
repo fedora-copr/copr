@@ -133,8 +133,13 @@ class ProjectProxy(BaseProxy):
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
 
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
@@ -203,8 +208,13 @@ class ProjectProxy(BaseProxy):
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
 
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def delete(self, ownername, projectname):
@@ -223,8 +233,13 @@ class ProjectProxy(BaseProxy):
         data = {
             "verify": True,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
@@ -249,8 +264,13 @@ class ProjectProxy(BaseProxy):
             "ownername": dstownername,
             "confirm": confirm,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def get_permissions(self, ownername, projectname):
@@ -270,8 +290,8 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, params=params)
+        response = self.request.send(
+            endpoint=endpoint, params=params, auth=self.auth)
         return munchify(response)
 
     def set_permissions(self, ownername, projectname, permissions):
@@ -299,8 +319,13 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        self.request.auth = self.auth
-        self.request.send(endpoint=endpoint, method=PUT, params=params, data=permissions)
+        self.request.send(
+            endpoint=endpoint,
+            method=PUT,
+            params=params,
+            data=permissions,
+            auth=self.auth,
+        )
 
     def request_permissions(self, ownername, projectname, permissions):
         """
@@ -321,8 +346,13 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        self.request.auth = self.auth
-        self.request.send(endpoint=endpoint, method=PUT, params=params, data=permissions)
+        self.request.send(
+            endpoint=endpoint,
+            method=PUT,
+            params=params,
+            data=permissions,
+            auth=self.auth,
+        )
 
     def regenerate_repos(self, ownername, projectname):
         """
@@ -336,6 +366,6 @@ class ProjectProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=PUT, params=params)
+        response = self.request.send(
+            endpoint=endpoint, method=PUT, params=params, auth=self.auth)
         return munchify(response)

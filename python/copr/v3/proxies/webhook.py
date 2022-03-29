@@ -29,6 +29,6 @@ class WebhookProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params)
+        response = self.request.send(
+            endpoint=endpoint, method=POST, params=params, auth=self.auth)
         return munchify(response)

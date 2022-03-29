@@ -134,8 +134,7 @@ class BaseProxy(object):
         :return: Munch
         """
         endpoint = "/auth-check"
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint)
+        response = self.request.send(endpoint=endpoint, auth=self.auth)
         return munchify(response)
 
 

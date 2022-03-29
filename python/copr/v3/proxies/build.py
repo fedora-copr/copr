@@ -84,8 +84,8 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/cancel/{0}".format(build_id)
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST)
+        response = self.request.send(
+            endpoint=endpoint, method=POST, auth=self.auth)
         return munchify(response)
 
     def create_from_urls(self, ownername, projectname, urls, buildopts=None, project_dirname=None):
@@ -298,14 +298,14 @@ class BuildProxy(BaseProxy):
 
         data.update(buildopts or {})
         if not files:
-            self.request.auth = self.auth
-            response = self.request.send(endpoint=endpoint, data=data, method=POST)
+            response = self.request.send(
+                endpoint=endpoint, data=data, method=POST, auth=self.auth)
         else:
             kwargs["files"] = files
-            kwargs["auth"] = self.auth
             kwargs["connection_attempts"] = self.config.get("connection_attempts", 1)
             request = FileRequest(**kwargs)
-            response = request.send(endpoint=endpoint, data=data, method=POST)
+            response = request.send(
+                endpoint=endpoint, data=data, method=POST, auth=self.auth)
         return munchify(response)
 
     def delete(self, build_id):
@@ -316,8 +316,8 @@ class BuildProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/build/delete/{0}".format(build_id)
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST)
+        response = self.request.send(
+            endpoint=endpoint, method=POST, auth=self.auth)
         return munchify(response)
 
     def delete_list(self, build_ids):
@@ -330,6 +330,6 @@ class BuildProxy(BaseProxy):
 
         endpoint = "/build/delete/list"
         data = {"builds": build_ids}
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, data=data, method=POST)
+        response = self.request.send(
+            endpoint=endpoint, data=data, method=POST, auth=self.auth)
         return munchify(response)

@@ -83,8 +83,13 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         data.update(source_dict)
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def edit(self, ownername, projectname, packagename, source_type=None, source_dict=None):
@@ -109,8 +114,13 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         data.update(source_dict or {})
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, method=POST, params=params, data=data)
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            params=params,
+            data=data,
+            auth=self.auth,
+        )
         return munchify(response)
 
     def reset(self, ownername, projectname, packagename):
@@ -130,8 +140,8 @@ class PackageProxy(BaseProxy):
             "projectname": projectname,
             "package_name": packagename,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, data=data, method=POST)
+        response = self.request.send(
+            endpoint=endpoint, data=data, method=POST, auth=self.auth)
         return munchify(response)
 
     def build(self, ownername, projectname, packagename, buildopts=None, project_dirname=None):
@@ -170,6 +180,6 @@ class PackageProxy(BaseProxy):
             "projectname": projectname,
             "package_name": packagename,
         }
-        self.request.auth = self.auth
-        response = self.request.send(endpoint=endpoint, data=data, method=POST)
+        response = self.request.send(
+            endpoint=endpoint, data=data, method=POST, auth=self.auth)
         return munchify(response)
