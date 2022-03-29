@@ -20,13 +20,11 @@ class TestResponse(object):
 class TestRequest(object):
     def test_endpoint_url(self):
         r1 = Request(api_base_url="http://copr/api_3")
-        r1.endpoint = "foo"
-        assert r1.endpoint_url == "http://copr/api_3/foo"
+        assert r1.endpoint_url("foo") == "http://copr/api_3/foo"
 
         # Leading and/or trailing slash should not be a problem
         r2 = Request(api_base_url="http://copr/api_3/")
-        r2.endpoint = "/foo/bar"
-        assert r2.endpoint_url == "http://copr/api_3/foo/bar"
+        assert r2.endpoint_url("/foo/bar") == "http://copr/api_3/foo/bar"
 
     @mock.patch('requests.Session.request')
     def test_send(self, request):

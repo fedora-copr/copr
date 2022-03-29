@@ -20,16 +20,12 @@ PUT = "PUT"
 class Request(object):
     # This should be a replacement of the _fetch method from APIv1
     # We can have Request, FileRequest, AuthRequest/UnAuthRequest, ...
-    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, api_base_url=None, auth=None, connection_attempts=1):
         """
-        :param endpoint:
         :param api_base_url:
-        :param method:
-        :param data: dict
-        :param params: dict for constructing query params in URL (e.g. ?key1=val1)
         :param auth: tuple (login, token)
+        :param connection_attempts:
 
         @TODO maybe don't have both params and data, but rather only one variable
         @TODO and send it as data on POST and as params on GET
@@ -37,48 +33,34 @@ class Request(object):
         self.api_base_url = api_base_url
         self.auth = auth
         self.connection_attempts = connection_attempts
-        self._method = GET
-        self.endpoint = None
-        self.data = None
-        self.params = {}
-        self.headers = None
 
-    @property
-    def endpoint_url(self):
-        endpoint = self.endpoint.strip("/").format(**self.params)
+    def endpoint_url(self, endpoint, params=None):
+        params = params or {}
+        endpoint = endpoint.strip("/").format(**params)
         return os.path.join(self.api_base_url, endpoint)
 
-    @property
-    def method(self):
-        return self._method.upper()
 
     def send(self, endpoint, method=GET, data=None, params=None, headers=None):
-        if params is None:
-            self.params = {}
-        else:
-            self.params = params
-        self.endpoint = endpoint
-        self._method = method
-        self.data = data
-        self.headers = headers
-
         session = requests.Session()
         if not isinstance(self.auth, tuple):
             # api token not available, set session cookie obtained via gssapi
             session.cookies.set("session", self.auth)
 
-        response = self._send_request_repeatedly(session)
+        request_params = self._request_params(
+            endpoint, method, data, params, headers)
+
+        response = self._send_request_repeatedly(session, request_params)
         handle_errors(response)
         return response
 
-    def _send_request_repeatedly(self, session):
+    def _send_request_repeatedly(self, session, request_params):
         """
         Repeat the request until it succeeds, or connection retry reaches its limit.
         """
         sleep = 5
         for i in range(1, self.connection_attempts + 1):
             try:
-                response = session.request(**self._request_params)
+                response = session.request(**request_params)
             except requests_gssapi.exceptions.SPNEGOExchangeError as e:
                 raise_from(CoprAuthException("GSSAPI authentication failed."), e)
             except requests.exceptions.ConnectionError:
@@ -88,14 +70,14 @@ class Request(object):
                 return response
         raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
 
-    @property
-    def _request_params(self):
+    def _request_params(self, endpoint, method=GET, data=None, params=None,
+                        headers=None):
         params = {
-            "url": self.endpoint_url,
-            "json": self.data,
-            "method": self.method,
-            "params": self.params,
-            "headers": self.headers,
+            "url": self.endpoint_url(endpoint, params),
+            "json": data,
+            "method": method.upper(),
+            "params": params,
+            "headers": headers,
         }
         # We usually use a tuple (login, token). If this is not available,
         # we use gssapi auth, which works with cookies.
@@ -110,12 +92,11 @@ class FileRequest(Request):
         self.files = files
         self.progress_callback = progress_callback
 
-    @property
-    def _request_params(self):
-        params = super(FileRequest, self)._request_params
+    def _request_params(self, *args, **kwargs):
+        params = super(FileRequest, self)._request_params(*args, **kwargs)
 
         data = self.files or {}
-        data["json"] = ("json", json.dumps(self.data), "application/json")
+        data["json"] = ("json", json.dumps(params["json"]), "application/json")
 
         callback = self.progress_callback or (lambda x: x)
         m = MultipartEncoder(data)
