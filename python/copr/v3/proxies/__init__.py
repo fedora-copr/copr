@@ -2,6 +2,7 @@ import errno
 import json
 import time
 import os
+from filelock import FileLock
 
 try:
     from urllib.parse import urlparse
@@ -14,7 +15,7 @@ import requests_gssapi
 
 from ..requests import Request, munchify, requests, handle_errors
 from ..helpers import for_all_methods, bind_proxy, config_from_file
-from ..exceptions import CoprAuthException, CoprConfigException
+from ..exceptions import CoprAuthException
 
 
 @for_all_methods(bind_proxy)
@@ -63,7 +64,6 @@ class BaseProxy(object):
         cached, new self.get_session_via_gssapi() is performed and result is
         cached into ~/.config/copr/<session_file>.
         """
-        session_data = None
         url = urlparse(self.config["copr_url"]).netloc
         cachedir = os.path.join(os.path.expanduser("~"), ".cache", "copr")
 
@@ -73,27 +73,41 @@ class BaseProxy(object):
             if err.errno != errno.EEXIST:
                 raise
 
-        session_file = os.path.join(cachedir, url+"-session")
+        session_file = os.path.join(cachedir, url + "-session")
+        session_data = self._load_or_download_session(session_file)
+        return session_data
 
+    @staticmethod
+    def _load_session_from_file(session_file):
+        session_data = None
         if os.path.exists(session_file):
             with open(session_file, "r") as file:
                 session_data = json.load(file)
 
         if session_data and session_data["expiration"] > time.time():
             return session_data
+        return None
 
-        # TODO: create Munch sub-class that returns serializable dict, we
-        # have something like that in Cli: cli/copr_cli/util.py:serializable()
-        session_data = self.get_session_via_gssapi()
-        session_data = session_data.__dict__
-        session_data.pop("__response__", None)
-        session_data.pop("__proxy__", None)
+    def _load_or_download_session(self, session_file):
+        lock = FileLock(session_file + ".lock")
+        with lock:
+            session = BaseProxy._load_session_from_file(session_file)
+            if session:
+                return session
+            # TODO: create Munch sub-class that returns serializable dict, we
+            # have something like that in Cli: cli/copr_cli/util.py:serializable()
+            session_data = self.get_session_via_gssapi()
+            session_data = session_data.__dict__
+            session_data.pop("__response__", None)
+            session_data.pop("__proxy__", None)
+            BaseProxy._save_session(session_file, session_data)
+            return session_data
 
+    @staticmethod
+    def _save_session(session_file, session_data):
         with open(session_file, "w") as file:
-            session_data["expiration"] = time.time() + 10*3600  # +10 hours
+            session_data["expiration"] = time.time() + 10 * 3600  # +10 hours
             file.write(json.dumps(session_data, indent=4) + "\n")
-
-        return session_data
 
     def get_session_via_gssapi(self):
         """
@@ -107,7 +121,7 @@ class BaseProxy(object):
         auth = requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True)
         try:
             response = session.get(url, auth=auth)
-        except  requests_gssapi.exceptions.SPNEGOExchangeError as err:
+        except requests_gssapi.exceptions.SPNEGOExchangeError as err:
             msg = "Can not get session for {0} cookie via GSSAPI: {1}".format(
                 self.config["copr_url"], err)
             raise_from(CoprAuthException(msg), err)
@@ -136,7 +150,6 @@ class BaseProxy(object):
         endpoint = "/auth-check"
         response = self.request.send(endpoint=endpoint, auth=self.auth)
         return munchify(response)
-
 
     def auth_username(self):
         """

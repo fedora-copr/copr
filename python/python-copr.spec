@@ -35,6 +35,7 @@ BuildRequires: python-marshmallow
 BuildRequires: python-six >= 1.9.0
 BuildRequires: python-mock
 BuildRequires: python-munch
+BuildRequires: python-filelock
 BuildRequires: python-configparser
 BuildRequires: pytest
 BuildRequires: python2-devel
@@ -53,6 +54,7 @@ BuildRequires: python2-mock
 BuildRequires: python2-pytest
 BuildRequires: python2-devel
 BuildRequires: python-munch
+BuildRequires: python2-filelock
 BuildRequires: python2-configparser
 BuildRequires: python2-requests-gssapi
 BuildRequires: python-future
@@ -82,6 +84,7 @@ Summary: %summary
 Requires: python-configparser
 Requires: python-marshmallow
 Requires: python-munch
+Requires: python-filelock
 Requires: python-requests
 Requires: python-requests-toolbelt
 Requires: python-setuptools
@@ -91,6 +94,7 @@ Requires: python-future
 Requires: python2-configparser
 Requires: python2-marshmallow
 Requires: python2-munch
+Requires: python2-filelock
 Requires: python2-requests
 Requires: python2-requests-toolbelt
 Requires: python2-setuptools
@@ -115,6 +119,7 @@ Summary:        Python interface for Copr
 BuildRequires: python3-devel
 BuildRequires: python3-docutils
 BuildRequires: python3-munch
+BuildRequires: python3-filelock
 BuildRequires: python3-marshmallow
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
@@ -127,6 +132,7 @@ BuildRequires: python3-future
 
 Requires: python3-marshmallow
 Requires: python3-munch
+Requires: python3-filelock
 Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-setuptools
@@ -144,6 +150,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-mock
 BuildRequires: python3-requests-gssapi
 BuildRequires: python3-future
+BuildRequires: python3-filelock
 
 %generate_buildrequires
 %pyproject_buildrequires -r
