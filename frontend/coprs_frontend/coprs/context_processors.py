@@ -59,7 +59,7 @@ def login_menu():
 
         if config['KRB5_LOGIN']:
             menu.append({
-                'link': config['KRB5_LOGIN_BASEURI'],
+                'link': flask.url_for("misc.krb5_login"),
                 'desc': config['KRB5_LOGIN']['log_text'],
             })
 

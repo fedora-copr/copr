@@ -110,7 +110,7 @@ conflict_request_handler = partial(generic_error, code=409, title="Conflict")
 misc = flask.Blueprint("misc", __name__)
 
 
-@misc.route(app.config['KRB5_LOGIN_BASEURI'], methods=["GET"])
+@misc.route("/api_v3/gssapi_login/", methods=["GET"])
 def krb5_login():
     """
     Handle the Kerberos authentication.

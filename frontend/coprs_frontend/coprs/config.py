@@ -13,7 +13,6 @@ class Config(object):
     BACKEND_BASE_URL = "http://copr-be-dev.cloud.fedoraproject.org"
     BACKEND_STATS_URI = None
 
-    KRB5_LOGIN_BASEURI = "/api_v3/gssapi_login/"
     KRB5_LOGIN = {}
 
     OPENID_PROVIDER_URL = "https://id.fedoraproject.org"
