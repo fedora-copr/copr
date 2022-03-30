@@ -80,7 +80,7 @@ class Request(object):
             try:
                 response = session.request(**self._request_params)
             except requests_gssapi.exceptions.SPNEGOExchangeError as e:
-                raise_from(CoprGssapiException("Kerberos ticket has expired."), e)
+                raise_from(CoprGssapiException("GSSAPI authentication failed."), e)
             except requests.exceptions.ConnectionError:
                 if i < self.connection_attempts:
                     time.sleep(sleep)

@@ -68,5 +68,5 @@ class CoprConfigException(CoprException):
 
 class CoprGssapiException(CoprException):
     """
-    Exception thrown when the kerberos authentication failed.
+    Exception thrown when the GSSAPI authentication failed.
     """
