@@ -7,7 +7,8 @@ import configparser
 import requests
 import requests_gssapi
 from munch import Munch
-from .exceptions import CoprConfigException, CoprException
+from future.utils import raise_from
+from .exceptions import CoprConfigException, CoprException, CoprGssapiException
 
 
 class List(list):
@@ -147,6 +148,13 @@ def get_session_cookie(config):
     """
     url = config["copr_url"] + "/api_v3/gssapi_login/"
     session = requests.Session()
-    response = session.get(url, auth=requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True), allow_redirects=False)
+    response = None
+    try:
+        response = session.get(url, auth=requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True), allow_redirects=False)
+    except requests_gssapi.exceptions.SPNEGOExchangeError as e:
+        error_msg = """Operation requires api authentication, take a kerberos ticket
+      (https://fedoraproject.org/wiki/Infrastructure/Kerberos), or obtain an API token
+      (https://python-copr.readthedocs.io/en/latest/ClientV3.html#example-usage)"""
+        raise_from(CoprGssapiException(error_msg), e)
     cookies = response.cookies.get("session")
     return cookies

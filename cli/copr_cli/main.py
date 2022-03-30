@@ -153,7 +153,10 @@ class Commands(object):
 
         def wrapper(self, args):
             if "no_config" in self.config:
-                sys.stderr.write("Error: Operation requires api authentication\n")
+                sys.stderr.write("Error: Operation requires api authentication\n"
+                                 "Take a kerberos ticket https://fedoraproject.org/wiki/Infrastructure/Kerberos, "
+                                 "or obtain an API token, "
+                                 "https://python-copr.readthedocs.io/en/latest/ClientV3.html#example-usage\n")
                 sys.exit(6)
 
             return func(self, args)
