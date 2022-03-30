@@ -125,6 +125,7 @@ Requires: crontabs
 Requires: curl
 Requires: httpd
 Recommends: logrotate
+Recommends: mod_auth_gssapi
 Requires: redis
 
 Requires: %flavor_guard
