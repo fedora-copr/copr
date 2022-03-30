@@ -21,6 +21,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
+#from coprs.views.apiv3_ns import apiv3_general
 
 
 def create_user_wrapper(username, email, timezone=None):
@@ -110,20 +111,30 @@ conflict_request_handler = partial(generic_error, code=409, title="Conflict")
 misc = flask.Blueprint("misc", __name__)
 
 
+def gssapi_login_action():
+    """
+    Redirect the successful log-in attempt, or return the JSON data that user
+    expects.
+    """
+    if "web-ui" in flask.request.full_path:
+        return flask.redirect(oid.get_next_url())
+    return flask.jsonify(apiv3_general.auth_check_response())
+
+
 @misc.route("/api_v3/gssapi_login/", methods=["GET"])
+@misc.route("/api_v3/gssapi_login/web-ui/", methods=["GET"])
 def krb5_login():
     """
-    Handle the Kerberos authentication.
+    Log-in using the GSSAPI/Kerberos credentials
 
     Note that if we are able to get here, either the user is authenticated
     correctly, or apache is mis-configured and it does not perform KRB
-    authentication at all.  Note also, even if that can be considered ugly, we
-    are reusing oid's get_next_url feature with kerberos login.
+    authentication at all (REMOTE_USER wouldn't be set, see below).
     """
 
     # Already logged in?
     if flask.g.user is not None:
-        return flask.redirect(oid.get_next_url())
+        return gssapi_login_action()
 
     krb_config = app.config['KRB5_LOGIN']
 
@@ -151,7 +162,7 @@ def krb5_login():
         flask.g.user = krb_login.user
         flask.session['krb5_login'] = krb_login.user.name
         flask.flash(u"Welcome, {0}".format(flask.g.user.name), "success")
-        return flask.redirect(oid.get_next_url())
+        return gssapi_login_action()
 
     # We need to create row in 'krb5_login' table
     user = models.User.query.filter(models.User.username == username).first()
@@ -168,7 +179,7 @@ def krb5_login():
     flask.flash(u"Welcome, {0}".format(user.name), "success")
     flask.g.user = user
     flask.session['krb5_login'] = user.name
-    return flask.redirect(oid.get_next_url())
+    return gssapi_login_action()
 
 
 def workaround_ipsilon_email_login_bug_handler(f):
