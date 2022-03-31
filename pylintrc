@@ -45,7 +45,9 @@ load-plugins=pylint_copr_plugin
 #     warn us if parent method doesn't provide the minimal amount of methods,
 #     reported here: https://github.com/PyCQA/pylint/issues/4352
 #     It's inconvenient to silence this per-class.
-disable=import-error,too-few-public-methods
+# consider-using-f-string
+#     "style" warnings, usage of the f-strings is not yet approved by our team
+disable=import-error,too-few-public-methods,consider-using-f-string
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
