@@ -1,9 +1,7 @@
-import os
 import base64
 import datetime
 import functools
 from functools import wraps, partial
-import re
 from urllib.parse import urlparse
 import flask
 
@@ -21,23 +19,6 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-#from coprs.views.apiv3_ns import apiv3_general
-
-
-def create_user_wrapper(username, email, timezone=None):
-    expiration_date_token = datetime.date.today() + \
-        datetime.timedelta(
-            days=flask.current_app.config["API_TOKEN_EXPIRATION"])
-
-    copr64 = base64.b64encode(b"copr") + b"##"
-    user = models.User(username=username, mail=email,
-                       timezone=timezone,
-                       api_login=copr64.decode("utf-8") + helpers.generate_api_token(
-                           app.config["API_TOKEN_LENGTH"] - len(copr64)),
-                       api_token=helpers.generate_api_token(
-                           app.config["API_TOKEN_LENGTH"]),
-                       api_token_expiration=expiration_date_token)
-    return user
 
 
 def fed_raw_name(oidname):
@@ -46,20 +27,6 @@ def fed_raw_name(oidname):
         return oidname
     config_parse = urlparse(app.config["OPENID_PROVIDER_URL"])
     return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
-
-
-def krb_straighten_username(krb_remote_user):
-    # Input should look like 'USERNAME@REALM.TLD', strip realm.
-    username = re.sub(r'@.*', '', krb_remote_user)
-
-    # But USERNAME part can consist of USER/DOMAIN.TLD.
-    # TODO: Do we need more clever thing here?
-    username = re.sub('/', '_', username)
-
-    # Based on restrictions for project name: "letters, digits, underscores,
-    # dashes and dots", it is worth limitting the username here, too.
-    # TODO: Store this pattern on one place.
-    return username if re.match(r"^[\w.-]+$", username) else None
 
 
 @app.before_request
@@ -109,77 +76,6 @@ bad_request_handler = partial(generic_error, code=400, title="Bad Request")
 conflict_request_handler = partial(generic_error, code=409, title="Conflict")
 
 misc = flask.Blueprint("misc", __name__)
-
-
-def gssapi_login_action():
-    """
-    Redirect the successful log-in attempt, or return the JSON data that user
-    expects.
-    """
-    if "web-ui" in flask.request.full_path:
-        return flask.redirect(oid.get_next_url())
-    return flask.jsonify(apiv3_general.auth_check_response())
-
-
-@misc.route("/api_v3/gssapi_login/", methods=["GET"])
-@misc.route("/api_v3/gssapi_login/web-ui/", methods=["GET"])
-def krb5_login():
-    """
-    Log-in using the GSSAPI/Kerberos credentials
-
-    Note that if we are able to get here, either the user is authenticated
-    correctly, or apache is mis-configured and it does not perform KRB
-    authentication at all (REMOTE_USER wouldn't be set, see below).
-    """
-
-    # Already logged in?
-    if flask.g.user is not None:
-        return gssapi_login_action()
-
-    krb_config = app.config['KRB5_LOGIN']
-
-    if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
-        # For local testing (without krb5 keytab and other configuration)
-        flask.request.environ['REMOTE_USER'] = os.environ['TEST_REMOTE_USER']
-
-    if 'REMOTE_USER' not in flask.request.environ:
-        nocred = "Kerberos authentication failed (no credentials provided)"
-        return flask.render_template("403.html", message=nocred), 403
-
-    krb_username = flask.request.environ['REMOTE_USER']
-    app.logger.debug("krb5 login attempt: " + krb_username)
-    username = krb_straighten_username(krb_username)
-    if not username:
-        message = "invalid krb5 username: " + krb_username
-        return flask.render_template("403.html", message=message), 403
-
-    krb_login = (
-        models.Krb5Login.query
-        .filter(models.Krb5Login.primary == username)
-        .first()
-    )
-    if krb_login:
-        flask.g.user = krb_login.user
-        flask.session['krb5_login'] = krb_login.user.name
-        flask.flash(u"Welcome, {0}".format(flask.g.user.name), "success")
-        return gssapi_login_action()
-
-    # We need to create row in 'krb5_login' table
-    user = models.User.query.filter(models.User.username == username).first()
-    if not user:
-        # Even the item in 'user' table does not exist, create _now_
-        email = username + "@" + krb_config['email_domain']
-        user = create_user_wrapper(username, email)
-        db.session.add(user)
-
-    krb_login = models.Krb5Login(user=user, primary=username)
-    db.session.add(krb_login)
-    db.session.commit()
-
-    flask.flash(u"Welcome, {0}".format(user.name), "success")
-    flask.g.user = user
-    flask.session['krb5_login'] = user.name
-    return gssapi_login_action()
 
 
 def workaround_ipsilon_email_login_bug_handler(f):
@@ -253,7 +149,8 @@ def create_or_login(resp):
         user = models.User.query.filter(
             models.User.username == username).first()
         if not user:  # create if not created already
-            user = create_user_wrapper(username, resp.email, resp.timezone)
+            user = UsersLogic.create_user_wrapper(username, resp.email,
+                                                  resp.timezone)
         else:
             user.mail = resp.email
             user.timezone = resp.timezone
@@ -322,7 +219,7 @@ def api_login_required(f):
 def krb5_login_redirect(next=None):
     if app.config['KRB5_LOGIN']:
         # Pick the first one for now.
-        return flask.redirect(flask.url_for("misc.krb5_login",
+        return flask.redirect(flask.url_for("apiv3_ns.krb5_login",
                                             next=next))
     flask.flash("Unable to pick krb5 login page", "error")
     return flask.redirect(flask.url_for("coprs_ns.coprs_show"))

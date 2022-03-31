@@ -59,7 +59,7 @@ def login_menu():
 
         if config['KRB5_LOGIN']:
             menu.append({
-                'link': flask.url_for("misc.krb5_login"),
+                'link': flask.url_for("apiv3_ns.gssapi_login"),
                 'desc': config['KRB5_LOGIN']['log_text'],
             })
 

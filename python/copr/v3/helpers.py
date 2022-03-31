@@ -146,7 +146,7 @@ def get_session_cookie(config):
 
     :return: Munch
     """
-    url = config["copr_url"] + "/api_v3/gssapi_login/"
+    url = config["copr_url"] + "/api_3/gssapi_login/"
     session = requests.Session()
     response = None
     try:

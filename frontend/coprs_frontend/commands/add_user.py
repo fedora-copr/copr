@@ -1,7 +1,7 @@
 import click
 from coprs import db, app
 from coprs import models
-from coprs.views.misc import create_user_wrapper
+from coprs.logic.users_logic import UsersLogic
 
 @click.command()
 @click.argument("name")
@@ -28,7 +28,7 @@ def add_user_function(name, mail, api_token=None, api_login=None):
         print("User named {0} already exists.".format(name))
         return
 
-    user = create_user_wrapper(name, mail)
+    user = UsersLogic.create_user_wrapper(name, mail)
     if api_token:
         user.api_token = api_token
     if api_login:

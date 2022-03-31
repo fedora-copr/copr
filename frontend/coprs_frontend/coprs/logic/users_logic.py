@@ -1,11 +1,12 @@
+import base64
 import json
-from datetime import date
+import datetime
 from coprs import exceptions
 from flask import url_for
 
 from coprs import app, db
 from coprs.models import User, Group
-from coprs.helpers import copr_url
+from coprs.helpers import copr_url, generate_api_token
 from sqlalchemy import update
 
 
@@ -125,10 +126,30 @@ class UsersLogic(object):
                 "admin": False,
                 "api_login": "",
                 "api_token": "",
-                "api_token_expiration": date(1970, 1, 1),
+                "api_token_expiration": datetime.date(1970, 1, 1),
                 "openid_groups": None}
         for k, v in null.items():
             setattr(user, k, v)
+
+    @classmethod
+    def create_user_wrapper(cls, username, email, timezone=None):
+        """
+        Initial creation of Copr user (creates the API token, too).
+        Create user + token configuration.
+        """
+        expiration_date_token = datetime.date.today() + \
+            datetime.timedelta(
+                days=app.config["API_TOKEN_EXPIRATION"])
+
+        copr64 = base64.b64encode(b"copr") + b"##"
+        user = User(username=username, mail=email,
+                    timezone=timezone,
+                    api_login=copr64.decode("utf-8") + generate_api_token(
+                        app.config["API_TOKEN_LENGTH"] - len(copr64)),
+                    api_token=generate_api_token(
+                        app.config["API_TOKEN_LENGTH"]),
+                    api_token_expiration=expiration_date_token)
+        return user
 
 
 class UserDataDumper(object):
