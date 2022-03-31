@@ -849,9 +849,13 @@ class Commands(object):
 
     def action_list_package_names(self, args):
         ownername, projectname = self.parse_name(args.copr)
-        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
-        for package in packages:
-            print(package.name)
+        pagination = {"limit": 1000}
+        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname,
+                                                      pagination=pagination)
+        while packages:
+            for package in packages:
+                print(package.name)
+            packages = next_page(packages)
 
     def action_get_package(self, args):
         ownername, projectname = self.parse_name(args.copr)
