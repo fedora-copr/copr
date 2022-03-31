@@ -10,10 +10,10 @@ else:
 import pytest
 
 config = {
-    "username": None,
+    "username": "jdoe",
     "copr_url": "http://copr/",
-    "login": "",
-    "token": "",
+    "login": "xyz",
+    "token": "abc",
 }
 
 @pytest.yield_fixture

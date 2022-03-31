@@ -4,11 +4,8 @@ from functools import wraps
 import os
 import time
 import configparser
-import requests
-import requests_gssapi
 from munch import Munch
-from future.utils import raise_from
-from .exceptions import CoprConfigException, CoprException, CoprGssapiException
+from .exceptions import CoprConfigException, CoprException
 
 
 class List(list):
@@ -36,7 +33,8 @@ def config_from_file(path=None):
         for field in ["username", "login", "token", "copr_url", "gssapi"]:
             config[field] = raw_config["copr-cli"].get(field, None)
         config["encrypted"] = raw_config["copr-cli"].getboolean("encrypted", True)
-        config["gssapi"] = raw_config["copr-cli"].getboolean("gssapi", False)
+        config["gssapi"] = raw_config["copr-cli"].getboolean("gssapi")
+
 
     except configparser.Error as err:
         raise CoprConfigException("Bad configuration file: {0}".format(err))
@@ -138,23 +136,3 @@ def succeeded(builds):
         if build.state != "succeeded":
             return False
     return True
-
-
-def get_session_cookie(config):
-    """
-    Call an endpoint to check whether the user has a valid kerberos ticket.
-
-    :return: Munch
-    """
-    url = config["copr_url"] + "/api_3/gssapi_login/"
-    session = requests.Session()
-    response = None
-    try:
-        response = session.get(url, auth=requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True), allow_redirects=False)
-    except requests_gssapi.exceptions.SPNEGOExchangeError as e:
-        error_msg = """Operation requires api authentication, take a kerberos ticket
-      (https://fedoraproject.org/wiki/Infrastructure/Kerberos), or obtain an API token
-      (https://python-copr.readthedocs.io/en/latest/ClientV3.html#example-usage)"""
-        raise_from(CoprGssapiException(error_msg), e)
-    cookies = response.cookies.get("session")
-    return cookies

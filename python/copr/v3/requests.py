@@ -9,7 +9,7 @@ from copr.v3.helpers import List
 from munch import Munch
 from future.utils import raise_from
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
-from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException, CoprGssapiException
+from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException, CoprAuthException
 
 
 GET = "GET"
@@ -80,7 +80,7 @@ class Request(object):
             try:
                 response = session.request(**self._request_params)
             except requests_gssapi.exceptions.SPNEGOExchangeError as e:
-                raise_from(CoprGssapiException("GSSAPI authentication failed."), e)
+                raise_from(CoprAuthException("GSSAPI authentication failed."), e)
             except requests.exceptions.ConnectionError:
                 if i < self.connection_attempts:
                     time.sleep(sleep)

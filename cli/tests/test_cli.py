@@ -1,13 +1,20 @@
 import os
 import argparse
 import json
+import shutil
+import tempfile
 import pytest
 import responses
 from munch import Munch
 
 import copr
-from copr.exceptions import CoprUnknownResponseException, CoprBuildException
-from cli_tests_lib import mock, MagicMock, config as mock_config
+from copr.exceptions import (
+    CoprBuildException,
+    CoprConfigException,
+    CoprUnknownResponseException,
+)
+from copr.v3.exceptions import CoprAuthException
+from cli_tests_lib import config as mock_config, mock, MagicMock
 from copr_cli import main
 from copr_cli.main import FrontendOutdatedCliException
 
@@ -30,12 +37,29 @@ def exit_wrap(value):
 # log = logging.getLogger()
 # log.info("Logger initiated")
 
-@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
-def test_parse_name(config_from_file):
-    cmd = main.Commands(config_path=None)
-    assert cmd.parse_name("foo") == (None, "foo")
-    assert cmd.parse_name("frostyx/foo") == ("frostyx", "foo")
-    assert cmd.parse_name("@copr/foo") == ("@copr", "foo")
+class TestCliWrapper:
+    tmpdir = None
+    configfile = None
+
+    def setup_method(self, _method):
+        self.tmpdir = tempfile.mkdtemp(prefix="test-cli-name-parseing")
+        self.configfile = os.path.join(self.tmpdir, "config")
+
+        with open(self.configfile, 'w') as fd:
+            fd.write("[copr-cli]\n")
+            fd.write("copr_url = https://xyz/\n")
+            fd.write("token = xyz\n")
+            fd.write("username = jdoe\n")
+            fd.write("login = login\n")
+
+    def teardown_method(self, _method):
+        shutil.rmtree(self.tmpdir)
+
+    def test_parse_name(self):
+        cmd = main.Commands(config_path=self.configfile)
+        assert cmd.parse_name("foo") == ("jdoe", "foo")
+        assert cmd.parse_name("frostyx/foo") == ("frostyx", "foo")
+        assert cmd.parse_name("@copr/foo") == ("@copr", "foo")
 
 
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
@@ -146,9 +170,8 @@ def test_error_copr_unknown_response(config_from_file, action_status, capsys):
 
 @responses.activate
 @mock.patch('copr.v3.proxies.build.BuildProxy.cancel')
-@mock.patch('configparser.ConfigParser.read')
-def test_cancel_build_no_config(read, build_proxy_cancel, capsys):
-    read.return_value = []
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_cancel_build_no_config(_cff, build_proxy_cancel, capsys):
     response_status = "foobar"
     build_proxy_cancel.return_value = MagicMock(state=response_status)
     main.main(argv=["cancel", "123"])
@@ -251,17 +274,20 @@ def test_get_package(read, capsys):
     assert json.loads(out) == json.loads(expected_output)
 
 
-@mock.patch('configparser.ConfigParser.read')
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name=None))
-def test_list_project_no_username(_auth_check, read, capsys):
-    read.return_value = []
-
+@mock.patch('copr.v3.proxies.BaseProxy.auth_username')
+@mock.patch('copr_cli.main.config_from_file')
+def test_list_project_no_username(ac, cff, capsys):
+    """
+    Config unset (and gssapi ON by default in cli)
+    """
+    ac.side_effect = CoprAuthException("gssapi fail")
+    cff.side_effect = CoprConfigException("foo")
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
-
-    assert exit_wrap(err.value) == 6
-    out, err = capsys.readouterr()
-    assert "Pass username to command or add it to `~/.config/copr`" in err
+    assert exit_wrap(err.value) == 7
+    _, err = capsys.readouterr()
+    msg = "Operation requires API authentication. See the 'AUTHENTICATION'"
+    assert msg in err
 
 
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -271,13 +297,16 @@ def test_list_project_no_username2(config_from_file, capsys):
         "copr_url": "http://copr/",
         "login": "",
         "token": "test_token_XXX",
+        "gssapi": False,
     }
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
 
     assert exit_wrap(err.value) == 6
     out, err = capsys.readouterr()
-    assert "Pass username to command or add it to `~/.config/copr`" in err
+    exp = "This operation tries to detect your username, but it is not " + \
+          "possible to find it in configuration, and GSSAPI is disabled"
+    assert exp in err
 
 
 @mock.patch('copr.v3.proxies.project.ProjectProxy.get_list')
@@ -427,7 +456,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
     args, kwargs = project_proxy_add.call_args
     assert kwargs == {
         "auto_prune": True,
-        "ownername": None, "persistent": False, "projectname": "foo", "description": "desc string",
+        "ownername": "jdoe", "persistent": False, "projectname": "foo", "description": "desc string",
         "instructions": "instruction string", "chroots": ["f20", "f21"],
         "additional_repos": ["repo1", "repo2"],
         "unlisted_on_hp": None, "devel_mode": None, "enable_net": False,
@@ -518,7 +547,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
     args, kwargs = project_proxy_add.call_args
     assert kwargs == {
         "auto_prune": True,
-        "ownername": None, "persistent": False, "projectname": "foo",
+        "ownername": "jdoe", "persistent": False, "projectname": "foo",
         "description": None,
         "instructions": "instruction string",
         "chroots": ["fedora-rawhide-x86_64", "fedora-rawhide-i386"],
@@ -736,7 +765,6 @@ def test_edit_permissions_output(_config, action):
         main.main(['edit-permissions'] + args)
         args = action.call_args[0][0]
         assert args.permissions == expected_output
-
 
     with pytest.raises(SystemExit) as err:
         main.main(['edit-permissions'])

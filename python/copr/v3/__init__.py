@@ -16,7 +16,7 @@ from .exceptions import (CoprException,
                          CoprValidationException,
                          CoprNoConfigException,
                          CoprConfigException,
-                         CoprGssapiException)
+                         CoprAuthException)
 
 
 __all__ = [
@@ -37,5 +37,5 @@ __all__ = [
     "CoprValidationException",
     "CoprNoConfigException",
     "CoprConfigException",
-    "CoprGssapiException",
+    "CoprAuthException",
 ]

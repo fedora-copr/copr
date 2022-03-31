@@ -29,8 +29,8 @@ except ImportError:
 
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
-    Client, config_from_file, CoprException, CoprRequestException, CoprConfigException, CoprNoResultException,
-    CoprGssapiException
+    Client, config_from_file, CoprException, CoprRequestException,
+    CoprConfigException, CoprNoResultException, CoprAuthException,
 )
 from copr.v3.pagination import next_page
 from copr_cli.helpers import cli_use_output_format
@@ -132,6 +132,26 @@ def buildopts_from_args(args, progress_callback):
     return buildopts
 
 
+def requires_api_auth(func):
+    """
+    For operations that need authentication with server, check early that we
+    have either the user/token pair in hand, or that we can use the GSSAPI
+    session for authentication.  IOW, this decorator contacts the server
+    only if the GSSAPI is ON and preferred -- and the session cookie is not
+    initialized.
+    """
+    def wrapper(self, args):
+        # This call implies that either login+token is specified, GSSAPI
+        # session file exists, or (as a fallback) that we are able to do
+        # GSSAPI handshake and initialize the GSSAPI session.
+        self.client.base_proxy.auth_username()
+        return func(self, args)
+
+    wrapper.__doc__ = func.__doc__
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
 class Commands(object):
     def __init__(self, config_path):
         self.config_path = config_path or '~/.config/copr'
@@ -140,58 +160,47 @@ class Commands(object):
             self.config = config_from_file(self.config_path)
         except CoprConfigException as ex:
             sys.stderr.write(no_config_warning.format(self.config_path, ex))
-            self.config = {"copr_url": "http://copr.fedoraproject.org", "no_config": True}
+            self.config = {"copr_url": "http://copr.fedoraproject.org"}
 
-        if not self.config.get("token"):
+        if self.config.get("gssapi") is None:
+            # Contrary to what is set in python-copr, we set GSSAPI on by
+            # default (unless user explicitly says otherwise).
             self.config["gssapi"] = True
         self.config["connection_attempts"] = 3
         self.client = Client(self.config)
 
-    def requires_api_auth(func):
-        """ Decorator that checks config presence
+    @property
+    def username(self):
         """
-
-        def wrapper(self, args):
-            if "no_config" in self.config:
-                sys.stderr.write("Error: Operation requires api authentication\n"
-                                 "Take a kerberos ticket https://fedoraproject.org/wiki/Infrastructure/Kerberos, "
-                                 "or obtain an API token, "
-                                 "https://python-copr.readthedocs.io/en/latest/ClientV3.html#example-usage\n")
-                sys.exit(6)
-
-            return func(self, args)
-
-        wrapper.__doc__ = func.__doc__
-        wrapper.__name__ = func.__name__
-        return wrapper
-
-    def check_username_presence(func):
-        """ Decorator that checks if username was provided
+        Get the username from config, or obtain it via auth_check (transitively
+        via GSSAPI).
         """
+        if self.config.get("username"):
+            return self.config["username"]
 
-        def wrapper(self, args):
-            if self.config["username"] is None and args.username is None:
-                if self.config.get("gssapi"):
-                    log.debug("Username is not set in the config file")
-                    log.debug("Trying to detect via gssapi")
-                    log.debug("Disable the use of gssapi by setting gssapi = False in the config file")
-                    response = self.client.base_proxy.auth_check()
-                    try:
-                        self.config["username"] = response.name
-                    except AttributeError:
-                        pass
+        if self.config.get("gssapi"):
+            try:
+                return self.client.base_proxy.auth_username()
+            except CoprAuthException:
+                log.error("Failed to determine Copr username from authentication.")
+                raise
+        raise CoprConfigException(
+            "This operation tries to detect your username, but it is not "
+            "possible to find it in configuration, and GSSAPI is disabled "
+        )
 
-            if self.config["username"] is None and args.username is None:
-                sys.stderr.write(
-                    "Error: Operation requires username\n"
-                    "Pass username to command or add it to `{0}`\n".format(self.config_path))
-                sys.exit(6)
-
-            return func(self, args)
-
-        wrapper.__doc__ = func.__doc__
-        wrapper.__name__ = func.__name__
-        return wrapper
+    @property
+    def ownername(self):
+        """
+        Determine the project ownername (== username) when not specified on
+        commandline.
+        """
+        try:
+            return self.username
+        except:
+            log.error("This operation needs a project ownername specified, "
+                      "fallback to your username failed.")
+            raise
 
     def parse_name(self, name):
         m = re.match(r"([^/]+)/(.*)", name)
@@ -199,7 +208,7 @@ class Commands(object):
             owner = m.group(1)
             name = m.group(2)
         else:
-            owner = self.config["username"]
+            owner = self.ownername
         return owner, name
 
     def build_url(self, build_id):
@@ -217,7 +226,7 @@ class Commands(object):
         """
         m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
         if m:
-            owner = m.group(2) or self.config["username"]
+            owner = m.group(2) or self.username
             return owner, m.group(3), m.group(4)
         raise CoprException("Unexpected chroot path format")
 
@@ -281,11 +290,11 @@ class Commands(object):
         except KeyboardInterrupt:
             pass
 
-    def action_whoami(self, args):
+    def action_whoami(self, _args):
         """
         Simply print out the current user as defined in copr config.
         """
-        print(self.config["username"])
+        print(self.username)
 
     def action_new_webhook_secret(self, args):
         """
@@ -313,8 +322,10 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        response = self.client.base_proxy.auth_check()
-        self.config["username"] = response.name
+
+        # Before we start uploading potentially large source RPM file, make sure
+        # that the user actually has a valid credentials.
+        self.client.base_proxy.auth_check()
 
         builds = []
         for pkg in args.pkgs:
@@ -588,7 +599,6 @@ class Commands(object):
         print(MockProfile(build_config))
 
 
-    @check_username_presence
     def action_list(self, args):
         """ Method called when the 'list' action has been selected by the
         user.
@@ -596,7 +606,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        username = args.username or self.config["username"]
+        username = args.username or self.ownername
         projects = self.client.project_proxy.get_list(username)
         if not projects:
             sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
@@ -1790,6 +1800,7 @@ def _handle_frontend_api_request_error(e, args):
 
 
 def main(argv=sys.argv[1:]):
+    # pylint: disable=too-many-branches
     try:
         # Set up parser for global args
         parser = setup_parser()
@@ -1827,8 +1838,13 @@ def main(argv=sys.argv[1:]):
     except argparse.ArgumentTypeError as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(2)
-    except CoprGssapiException as e:
-        sys.stderr.write("\nError: {0}\n".format(e))
+    except CoprConfigException as err:
+        sys.stderr.write("\nError: Copr configuration error. {0}\n".format(err))
+        sys.exit(6)
+    except CoprAuthException as err:
+        sys.stderr.write("\nError: Operation requires API authentication. "
+                         "See the 'AUTHENTICATION' section in man copr-cli(1).\n"
+                         "\nError: {0}\n".format(err))
         sys.exit(7)
     except CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
@@ -1836,10 +1852,6 @@ def main(argv=sys.argv[1:]):
     except FrontendOutdatedCliException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(5)
-
-        # except Exception as e:
-        # print "Error: {0}".format(e)
-        # sys.exit(100)
 
 
 if __name__ == "__main__":

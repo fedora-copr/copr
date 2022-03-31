@@ -17,7 +17,7 @@ DESCRIPTION
 
 This command allows you to interact with the Copr service from the command line.
 
-You need to generate an API key first (see the API KEY section below).
+You need to to configure authentication first (see the AUTHENTICATION section below).
 
 OPTIONS
 -------
@@ -792,25 +792,47 @@ Normally, the exit code is 0 when everything goes well. But if not, we could get
 4 - Build failed or was canceled.
 5 - Communication error between Cli and server.
     This issue probably means bug and should be reported.
-6 - Configuration file is missing.
-7 - GSSAPI authentication failed.
+6 - Configuration error.
+7 - Authentication with Copr server failed.
 
 
-API KEY
--------
+AUTHENTICATION
+--------------
+
+Copr client supports token-based and GSSAPI authentication.
 
 Visit the page https://copr.fedorainfracloud.org/api/ to obtain an API token.
-This token must be saved in the file `~/.config/copr` in the following
-format:
+This token must be saved in the configuration file `~/.config/copr` in the
+following format:
 
  [copr-cli]
  username = msuchy
  login = Y57wcg==##fkfaxbkjhuoiebfafadl
  token = vbfseelqdebzedukgombekmuvbkqwo
- copr_url = https://copr.fedoraproject.org
+ copr_url = https://copr.fedorainfracloud.org
+ # expiration date: 2023-01-01
 
-Be aware that API tokens have an expiration date. The expiration date for
-your token is listed on the /api page.
+Be aware that API tokens have an expiration date!
+
+To enable GSSAPI you need to obtain a Kerberos ticket.  If you want to work with
+Fedora Copr, you can just do:
+
+    $ fkinit
+    Enter your password and OTP concatenated. (Ignore that the prompt is for only the token)
+    Enter OTP Token Value: <your password + OTP token>
+
+To work with a different (non-Fedora Copr) instance, you will obtain the
+ticket differently and you still need to have a configuration file referring
+appropriate `copr_url`:
+
+    $ kinit username@EXAMPLE.COM
+    $ cat ~/.config/copr
+    [copr-cli]
+    copr_url = https://copr.example.com/
+
+Copr client uses the python API internally, for more info take a look at the
+page https://python-copr.readthedocs.io/en/latest/ClientV3.html#example-usage
+
 
 USING DIFFERENT COPR INSTANCE
 -----------------------------

@@ -33,7 +33,7 @@ class TestDistGitMethodBuild(object):
         "Created builds: 1\n"
     )
     default_build_call = {
-        'ownername': None,
+        'ownername': "jdoe",
         'projectname': 'project',
         'project_dirname': 'project',
         'buildopts': {
@@ -66,7 +66,6 @@ class TestDistGitMethodBuild(object):
             capsys)
         assert len(f_patch_create_from_distgit.call_args_list) == 1
         call = f_patch_create_from_distgit.call_args_list[0]
-        self.default_build_call['ownername'] = "test"
         assert call[1] == self.default_build_call
 
     @pytest.mark.parametrize('enable_net', ["on", "off"])
@@ -109,7 +108,7 @@ class TestDistGitMethodPackage(object):
             with mock.patch("copr.v3.proxies.package.PackageProxy.edit") as p2:
                 yield p1, p2
 
-    def test_add_package_normal(self, f_patch_package_distgit, capsys, ):
+    def test_add_package_normal(self, f_patch_package_distgit, capsys):
         _assert_output(['add-package-distgit', '--name', 'package',
                         'project'], self.success_stdout, "", capsys)
         assert len(f_patch_package_distgit[0].call_args_list) == 1
@@ -117,7 +116,7 @@ class TestDistGitMethodPackage(object):
 
         call = f_patch_package_distgit[0].call_args_list[0]
         assert call == mock.call(
-            "test", "project", "package", "distgit",
+            "jdoe", "project", "package", "distgit",
             {'distgit': None,
              'namespace': None,
              'committish': None,

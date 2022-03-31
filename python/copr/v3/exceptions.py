@@ -66,7 +66,7 @@ class CoprConfigException(CoprException):
     pass
 
 
-class CoprGssapiException(CoprException):
+class CoprAuthException(CoprException):
     """
-    Exception thrown when the GSSAPI authentication failed.
+    Copr authentication failure
     """
