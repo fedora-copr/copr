@@ -45,15 +45,7 @@ if six.PY2:
 else:
     from urllib.parse import urljoin, urlparse
 
-if sys.version_info < (2, 7):
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
-else:
-    from logging import NullHandler
-
 log = logging.getLogger(__name__)
-log.addHandler(NullHandler())
 
 
 ON_OFF_MAP = {
@@ -1760,13 +1752,26 @@ def setup_parser():
     return parser
 
 
-def enable_debug():
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S'
-    )
-    sys.stderr.write("#  Debug log enabled  #\n")
+def setup_logging(debug):
+    """
+    Configure the global 'log' object so it prints to standard error output
+    (INFO+ messages).  When --debug is used, all logging (even external
+    libraries) is turned on for DEBUG+ level.
+    """
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+            datefmt='%H:%M:%S'
+        )
+        sys.stderr.write("#  Debug log enabled  #\n")
+        return
+
+    stderr = logging.StreamHandler()
+    stderr.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(levelname)s: %(message)s")
+    stderr.setFormatter(formatter)
+    log.addHandler(stderr)
 
 
 def str2bool(v):
@@ -1806,8 +1811,7 @@ def main(argv=sys.argv[1:]):
         parser = setup_parser()
         # Parse the commandline
         arg = parser.parse_args(argv)
-        if arg.debug:
-            enable_debug()
+        setup_logging(arg.debug)
 
         if not "func" in arg:
             parser.print_help()
