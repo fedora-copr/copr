@@ -26,7 +26,9 @@ load-plugins=pylint_copr_plugin
 #     We need to keep compatibility with Python 2 for EL6 and EL7.
 # consider-using-f-string
 #     We still support Python 2.7 (EL7) for clients.
-disable=import-error,useless-object-inheritance,super-with-arguments,consider-using-f-string
+# unspecified-encoding
+#     Python2.7: TypeError: 'encoding' is an invalid keyword argument for this function
+disable=import-error,useless-object-inheritance,super-with-arguments,consider-using-f-string,unspecified-encoding
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
