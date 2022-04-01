@@ -5,6 +5,7 @@ import flask
 
 from coprs import app, oid, db, models
 from coprs.views.apiv3_ns import apiv3_ns
+from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
 from coprs.logic.users_logic import UsersLogic
 
@@ -55,6 +56,16 @@ def auth_check():
     return flask.jsonify(auth_check_response())
 
 
+def auth_403(message):
+    """
+    Return appropriately formatted GSSAPI 403 error for both web-ui and API
+    """
+    message = "Can't log-in using GSSAPI: " + message
+    if "web-ui" in flask.request.full_path:
+        return flask.render_template("403.html", message=message), 403
+    raise AccessRestricted(message)
+
+
 @apiv3_ns.route("/gssapi_login/", methods=["GET"])
 @apiv3_ns.route("/gssapi_login/web-ui/", methods=["GET"])
 def gssapi_login():
@@ -78,22 +89,19 @@ def gssapi_login():
 
     if 'REMOTE_USER' not in flask.request.environ:
         nocred = "Kerberos authentication failed (no credentials provided)"
-        return flask.render_template("403.html", message=nocred), 403
+        return auth_403(nocred)
 
     krb_username = flask.request.environ['REMOTE_USER']
     app.logger.debug("krb5 login attempt: " + krb_username)
     username = krb_straighten_username(krb_username)
     if not username:
-        message = "invalid krb5 username: " + krb_username
-        return flask.render_template("403.html", message=message), 403
+        return auth_403("invalid krb5 username: " + krb_username)
 
     krb_login = (
         models.Krb5Login.query
         .filter(models.Krb5Login.primary == username)
         .first()
     )
-
-    # TODO: require the FAS login first!
 
     if krb_login:
         flask.g.user = krb_login.user
@@ -104,7 +112,15 @@ def gssapi_login():
     # We need to create row in 'krb5_login' table
     user = models.User.query.filter(models.User.username == username).first()
     if not user:
-        # Even the item in 'user' table does not exist, create _now_
+        if app.config["FAS_LOGIN"] is True:
+            # We can not create a new user now because we wouldn't get the necessary
+            # e-mail and groups info.
+            return auth_403(
+                "Valid GSSAPI authentication supplied for user '{}', but this "
+                "user doesn't exist in the Copr build system.  Please log-in "
+                "using the web-UI (without GSSAPI) first.".format(username)
+            )
+        # Create the user in the database
         email = username + "@" + krb_config['email_domain']
         user = UsersLogic.create_user_wrapper(username, email)
         db.session.add(user)
