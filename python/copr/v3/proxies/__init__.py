@@ -12,7 +12,7 @@ from future.utils import raise_from
 
 import requests_gssapi
 
-from ..requests import Request, munchify, requests
+from ..requests import Request, munchify, requests, handle_errors
 from ..helpers import for_all_methods, bind_proxy, config_from_file
 from ..exceptions import CoprAuthException, CoprConfigException
 
@@ -112,11 +112,7 @@ class BaseProxy(object):
                 self.config["copr_url"], err)
             raise_from(CoprAuthException(msg), err)
 
-        if response.status_code != 200:
-            raise CoprAuthException("GSSAPI route {0} returned status {1}".format(
-                url, response.status_code,
-            ))
-
+        handle_errors(response)
         retval = munchify(response)
         retval.session = response.cookies.get("session")
         return retval

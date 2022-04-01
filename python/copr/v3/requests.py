@@ -139,6 +139,9 @@ def handle_errors(response):
         if "error" not in response_json:
             return
 
+        if response.status_code == 403:
+            raise CoprAuthException(response_json["error"], response=response)
+
         if response.status_code == 404:
             raise CoprNoResultException(response_json["error"], response=response)
 
