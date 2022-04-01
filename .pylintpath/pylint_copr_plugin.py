@@ -4,7 +4,7 @@ which we can not easily ignore because the ignore mechanisms don't have the
 needed granularity.
 """
 
-from astroid import MANAGER, scoped_nodes, extract_node
+from astroid import MANAGER, scoped_nodes, nodes, extract_node
 
 def register(_linter):
     """ required pylint entrypoint """
@@ -17,6 +17,16 @@ def is_test_method(method):
         return True
     return False
 
+
+def add_fake_docs(the_object):
+    """
+    Add fake docs to the specified object so PyLint later doesn't complain about
+    missing docs.
+    """
+    the_object.doc_node = nodes.Const("fake docs")
+    the_object.doc = "fake docs"
+
+
 def transform_functions(function):
     """
     Transformate some function definitions so pylint doesn't object.
@@ -27,14 +37,14 @@ def transform_functions(function):
 
     if function.name in ["upgrade", "downgrade"]:
         # ignore missing-function-docstring in migrations
-        function.doc = "fake docs"
+        add_fake_docs(function)
 
     if function.name == "step_impl":
         # behave step definition
-        function.doc = "fake docs"
+        add_fake_docs(function)
 
     if is_test_method(function):
-        function.doc = "fake docs"
+        add_fake_docs(function)
 
 def transform_classes(classdef):
     """
@@ -43,6 +53,7 @@ def transform_classes(classdef):
     if classdef.name.startswith("Test"):
         # ignore missing-function-docstring in migrations
         classdef.doc = "fake docs"
+        classdef.doc_node = nodes.Const("fake docs")
 
 
 MANAGER.register_transform(scoped_nodes.FunctionDef, transform_functions)
