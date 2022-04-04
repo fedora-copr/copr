@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.117
+Version:    1.118
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -240,6 +240,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.118-1
+- drop the python-mock build-requires again
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.117-1
 - support for GSSAPI added (gssapi=true config option)
 - better error message when authentication fails
