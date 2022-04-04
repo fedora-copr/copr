@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.82
+Version:    1.83
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -164,6 +164,9 @@ systemctl condrestart httpd &>/dev/null || :
 
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.83-1
+- replace initscripts scriptlets by systemctl
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 1.82-1
 - Disable coverage analysis during RPM build
 
