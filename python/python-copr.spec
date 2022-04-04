@@ -50,7 +50,6 @@ BuildRequires: python2-requests
 BuildRequires: python2-requests-toolbelt
 BuildRequires: python2-marshmallow
 BuildRequires: python2-six >= 1.9.0
-BuildRequires: python2-mock
 BuildRequires: python2-pytest
 BuildRequires: python2-devel
 BuildRequires: python-munch
@@ -147,7 +146,6 @@ Requires: python3-future
 BuildRequires: python3-devel
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
-BuildRequires: python3-mock
 BuildRequires: python3-requests-gssapi
 BuildRequires: python3-future
 BuildRequires: python3-filelock
