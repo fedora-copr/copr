@@ -1,7 +1,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-dist-git
-Version:    0.53
+Version:    0.54
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 0.54-1
+- do not remove the PR directories too early
+
 * Tue Mar 08 2022 Jakub Kadlcik <frostyx@email.cz> 0.53-1
 - upload sources only if there are some
 - update copr-fe-dev hostname
