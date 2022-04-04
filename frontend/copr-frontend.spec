@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.185
+Version:    1.186
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -384,6 +384,14 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.186-1
+- support for api_3 gssapi login
+- the /pending-jobs/ is now a streamed page
+- a bit more optimized /pending-jobs/ route
+- web-UI: make sure that background builds are more visible
+- build "is_background" info in the api_3 calls
+- indicate low priority builds in status overview
+
 * Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.185-1
 - added support for resetting fields in chroots over the API
 - get-chroot - return modules as a list
