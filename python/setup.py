@@ -14,6 +14,7 @@ is used to allow packagers to create third party repositories.
 This part is a python client to the copr service."""
 
 requires = [
+    'filelock',
     'marshmallow',
     'requests',
     'requests-toolbelt',

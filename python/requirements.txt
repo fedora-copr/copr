@@ -3,4 +3,3 @@
 
 pytest
 sphinx
-filelock
