@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.116.2.dev
 
 Name:       copr-cli
-Version:    1.99
+Version:    1.100
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -136,6 +136,12 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.100-1
+- list-package-names now uses pagination
+- ensure that (error/info) logging is printed even without --debug
+- support for GSSAPI authentication added
+- re-try 3x the connection to Frontend upon failures
+
 * Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.99-1
 - add 'edit-chroot --reset' option
 - add 'edit-chroot --rpmbuild-with{,out}'
