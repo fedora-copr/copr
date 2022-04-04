@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.154
+Version:    1.155
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.155-1
+- fix slow priority queue filling
+- speedup the background-process spawner
+
 * Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.154-1
 - copr_fix_gpg: automatically refresh CDN cache
 - copr_fix_gpg: don't use --skip-stat for copr-repo when RPMs are re-signed
