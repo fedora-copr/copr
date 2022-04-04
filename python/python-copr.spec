@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.116.2.dev
+Version:    1.117
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -242,6 +242,11 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.117-1
+- support for GSSAPI added (gssapi=true config option)
+- better error message when authentication fails
+- add a connection_attempts, retries connection to Frontend upon failure
+
 * Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 1.116-1
 - add support for resetting fields
 - allow setting modules in 'edit-chroot' methods
