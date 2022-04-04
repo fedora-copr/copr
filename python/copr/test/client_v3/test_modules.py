@@ -4,6 +4,7 @@ import tempfile
 import shutil
 from json import loads
 from copr.test import mock
+from copr.test.client_v3.test_auth import FakeCache
 from copr.v3 import ModuleProxy
 
 
@@ -27,6 +28,7 @@ class TestModuleProxy(object):
     @mock.patch('copr.v3.requests.requests.Session.request')
     def test_module_dist_git_choice_url(self, request, distgit_opt):
         proxy = ModuleProxy(self.config_auth)
+        proxy.auth.cache = FakeCache(None)
         proxy.build_from_url('owner', 'project', 'http://test.yaml',
                              distgit=distgit_opt)
 
@@ -45,6 +47,7 @@ class TestModuleProxy(object):
     @mock.patch('copr.v3.requests.requests.Session.request')
     def test_module_dist_git_choice_upload(self, request, distgit_opt):
         proxy = ModuleProxy(self.config_auth)
+        proxy.auth.cache = FakeCache(None)
         proxy.build_from_file('owner', 'project',
                               self.yaml_file,
                               distgit=distgit_opt)

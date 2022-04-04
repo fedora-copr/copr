@@ -8,11 +8,11 @@ from munch import Munch
 import pytest
 
 import copr
-from copr_cli import main
-from cli_tests_lib import mock
-
 # pylint: disable=unused-import
 from cli_tests_lib import f_test_config
+from cli_tests_lib import mock
+from cli_tests_lib import config as mock_config
+from copr_cli import main
 
 def _main(args, capsys):
     main.main(args)
@@ -142,8 +142,9 @@ class TestDistGitMethodPackage(object):
              'webhook_rebuild': True})
 
     @staticmethod
-    @mock.patch('copr.v3.proxies.BaseProxy.auth', new_callable=mock.PropertyMock, return_value="test")
-    def test_edit_package_fail(auth, capsys):
+    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+    @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+    def test_edit_package_fail(auth_check, mock_config, capsys):
         with mock.patch("copr.v3.proxies.package.PackageProxy.edit") as p1:
             p1.side_effect = copr.v3.CoprRequestException("Unable to connect to http://copr/api_3/.")
             with pytest.raises(SystemExit) as exc:

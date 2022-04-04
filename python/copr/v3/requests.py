@@ -39,32 +39,32 @@ class Request(object):
 
     def send(self, endpoint, method=GET, data=None, params=None, headers=None,
              auth=None):
-        session = requests.Session()
-        if not isinstance(auth, tuple):
-            # api token not available, set session cookie obtained via gssapi
-            session.cookies.set("session", auth)
 
         request_params = self._request_params(
             endpoint, method, data, params, headers, auth)
 
-        response = self._send_request_repeatedly(session, request_params)
+        response = self._send_request_repeatedly(request_params, auth)
+
         handle_errors(response)
         return response
 
-    def _send_request_repeatedly(self, session, request_params):
+    def _send_request_repeatedly(self, request_params, auth):
         """
         Repeat the request until it succeeds, or connection retry reaches its limit.
         """
         sleep = 5
         for i in range(1, self.connection_attempts + 1):
             try:
-                response = session.request(**request_params)
+                response = requests.request(**request_params)
             except requests_gssapi.exceptions.SPNEGOExchangeError as e:
                 raise_from(CoprAuthException("GSSAPI authentication failed."), e)
             except requests.exceptions.ConnectionError:
                 if i < self.connection_attempts:
                     time.sleep(sleep)
             else:
+                if response.status_code == 401:
+                    self._update_auth_params(request_params, auth, reauth=True)
+                    continue
                 return response
         raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
 
@@ -77,11 +77,19 @@ class Request(object):
             "params": params,
             "headers": headers,
         }
-        # We usually use a tuple (login, token). If this is not available,
-        # we use gssapi auth, which works with cookies.
-        if isinstance(auth, tuple):
-            params["auth"] = auth
+        self._update_auth_params(params, auth)
         return params
+
+    def _update_auth_params(self, request_params, auth, reauth=False):
+        # pylint: disable=no-self-use
+        if not auth:
+            return
+
+        auth.make(reauth)
+        request_params.update({
+            "auth": auth.auth,
+            "cookies": auth.cookies,
+        })
 
 
 class FileRequest(Request):
