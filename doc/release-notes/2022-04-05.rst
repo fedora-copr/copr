@@ -1,0 +1,74 @@
+.. _release_notes_2022_04_05: 
+
+Highlights from 2022-04-05 release 
+================================== 
+
+Updated client packages are shipped in `Fedora 34`_, `Fedora 35`_, 
+`Fedora 36`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates. 
+
+
+Kerberos/GSSAPI authentication for API and copr-cli
+---------------------------------------------------
+
+Newly, when working with the `Fedora Copr instance`_, users
+don't have to install the ``~/.config/copr`` token.  It is enough
+to take a Fedora Kerberos ticket, and ``copr-cli`` starts working::
+    
+    $ fkinit # optionally with "-u username"
+    Enter your password and OTP concatenated. (Ignore that the prompt is for only the token) 
+    Enter OTP Token Value: <your password>
+    $ copr whoami
+    your_username
+
+If you have Kerberos ticket, you can also use this authentication method in WebUI by clicking on the ``gssapi-login`` link (negotiate needs to be allowed for the
+``.fedorainfracloud.org`` domain in the browser).
+
+For other Copr instances, a simplified configuration referring the Copr
+frontpage is still needed.  For more info see ``man copr-cli``, the
+``AUTHENTICATION`` section.
+
+
+Copr-cli re-tries connections with Copr Frontend
+------------------------------------------------
+
+When there's some temporary Copr Frontend server (Web-UI & API) issue,
+and thus copr-cli fails to communicate over API - it newly doesn't give
+up immediately but re-tries (3x with several seconds delay between the
+attempts).  The number of attempts can be specified using the python3-copr
+API, too (by default set to one attempt).
+
+
+Large queue improvements 
+------------------------ 
+
+Lately, there have been multiple concurrent mass rebuilds pushing 
+Copr to its limits.  When reaching tens of thousands builds in the queue, 
+several problems started to appear.  Newly we significantly optimized
+the backend part of the build system so it should handle large queues
+promptly and thus successfully delegate the tasks to the builders.  Also
+the ``Backend <=> Frontend`` protocol was optimized for large queues.
+
+
+Smaller fixes
+-------------
+
+- On several places in the web-UI we differentiated the background
+  tasks from the normal tasks.  Background jobs have lower priority
+  and if they are being processed, it means there's enough resources
+  to handle normal jobs and still take some background jobs.
+  
+- We fixed a bug in our DistGit cleanup script that garbage-collected
+  some of the temporarily imported sources too early, this caused
+  build failures before, `PR#2078`_.
+
+
+
+.. _`Fedora 34`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-d35ecdf4d2
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-62d97ba4b2
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-d56c2496e3
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-49ba5c52a1
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-67cef08054
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-d2a8b0e47d
+
+.. _`Fedora Copr instance`: https://copr.fedorainfracloud.org/
+.. _`PR#2078`: https://pagure.io/copr/copr/issue/2078
