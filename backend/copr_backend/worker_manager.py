@@ -431,6 +431,7 @@ class WorkerManager():
 
             worker_count = len(self._tracked_workers)
             if worker_count >= self.max_workers:
+                self.log.debug("Worker count on a limit %s", worker_count)
                 time.sleep(1)
                 continue
 
@@ -441,6 +442,7 @@ class WorkerManager():
                 # Empty queue!
                 if worker_count:
                     # It still makes sense to cycle to finish the workers.
+                    self.log.debug("No more tasks, waiting for workers")
                     time.sleep(1)
                     continue
                 # Optimization part, nobody is working now, and there's nothing
