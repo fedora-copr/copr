@@ -252,7 +252,7 @@ class WorkerManager():
 
     worker_prefix = 'worker' # make sure this is unique in each class
     worker_timeout_start = 30
-    worker_timeout_deadcheck = 60
+    worker_timeout_deadcheck = 3*60
     worker_cleanup_period = 3.0
 
 
