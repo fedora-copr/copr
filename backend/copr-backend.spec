@@ -200,7 +200,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %systemd_preun copr-backend.target
 
 %postun
-%systemd_postun_with_restart copr-backend.target
+%systemd_postun_with_restart copr-backend-log.service
+%systemd_postun_with_restart copr-backend-build.service
+%systemd_postun_with_restart copr-backend-action.service
 
 %files
 %license LICENSE
