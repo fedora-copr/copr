@@ -145,7 +145,7 @@ class TestSign(object):
         with pytest.raises(CoprSignError):
             _sign_one(fake_path, self.usermail, "sha256", MagicMock())
 
-    @mock.patch("copr_backend.sign.request")
+    @mock.patch("copr_backend.sign.SafeRequest.send")
     def test_create_user_keys(self, mc_request):
         mc_request.return_value.status_code = 200
         create_user_keys(self.username, self.projectname, self.opts)
@@ -158,7 +158,7 @@ class TestSign(object):
         )
         assert mc_request.call_args == expected_call
 
-    @mock.patch("copr_backend.sign.request")
+    @mock.patch("copr_backend.sign.SafeRequest.send")
     def test_create_user_keys_error_1(self, mc_request):
         mc_request.side_effect = IOError()
         with pytest.raises(CoprKeygenRequestError) as err:
@@ -167,7 +167,7 @@ class TestSign(object):
         assert "Failed to create key-pair" in str(err)
 
 
-    @mock.patch("copr_backend.sign.request")
+    @mock.patch("copr_backend.sign.SafeRequest.send")
     def test_create_user_keys(self, mc_request):
         for code in [400, 401, 404, 500, 599]:
             mc_request.return_value.status_code = code

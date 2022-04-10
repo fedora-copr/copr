@@ -6,12 +6,12 @@ Wrapper for /bin/sign from obs-sign package
 
 from subprocess import Popen, PIPE, SubprocessError
 import json
-
 import os
-from requests import request
 
 from packaging import version
 
+from copr_common.request import SafeRequest
+from copr_backend.helpers import get_redis_logger
 from .exceptions import CoprSignError, CoprSignNoKeyError, \
     CoprKeygenRequestError
 
@@ -194,10 +194,12 @@ def create_user_keys(username, projectname, opts):
         "name_email": create_gpg_email(username, projectname)
     })
 
+    log = get_redis_logger(opts, "sign", "actions")
     keygen_url = "http://{}/gen_key".format(opts.keygen_host)
     query = dict(url=keygen_url, data=data, method="post")
     try:
-        response = request(**query)
+        request = SafeRequest(log=log)
+        response = request.send(**query)
     except Exception as e:
         raise CoprKeygenRequestError(
             msg="Failed to create key-pair for user: {},"
