@@ -41,11 +41,14 @@ class FedoraReview(AutomationTool):
             "--mock-config", self.mock_config_file,
         ]
 
-        result = run_cmd(cmd, cwd=self.resultdir)
-        self.log.info(result.stdout)
-        if result.returncode:
-            self.log.warning("Fedora review failed\nerr:\n%s", result.stderr)
-        self._filter_results_directory()
+        try:
+            result = run_cmd(cmd, cwd=self.resultdir)
+            self.log.info(result.stdout)
+            self._filter_results_directory()
+        except RuntimeError as ex:
+            self.log.warning("Fedora review failed\nerr:\n%s", ex)
+            self.log.warning("The build itself will not be marked "
+                             "as failed because of this")
 
     def _filter_results_directory(self):
         """
