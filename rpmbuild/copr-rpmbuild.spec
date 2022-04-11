@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.56
+Version: 0.57
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -330,6 +330,10 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Mon Apr 11 2022 Jakub Kadlcik <frostyx@email.cz> 0.57-1
+- Don't fail a build because of fedora-review
+- Require a new version of fedora-review tool
+
 * Fri Mar 18 2022 Pavel Raiskup <praiskup@redhat.com> 0.56-1
 - copr-distgit-client: document the configuration for the dist-git subpackage
 - copr-distgit-client: add the centos-stream configuration
