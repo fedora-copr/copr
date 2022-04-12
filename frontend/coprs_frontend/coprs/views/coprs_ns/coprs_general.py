@@ -27,7 +27,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.exceptions import ObjectNotFound
+from coprs.exceptions import ObjectNotFound, BadRequest, CoprHttpException
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
@@ -37,9 +37,7 @@ from coprs.logic.complex_logic import ComplexLogic, ReposLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 
 from coprs.views.misc import (
-    generic_error,
     login_required,
-    page_not_found,
     req_with_copr,
     req_with_copr_dir,
     req_with_pagination,
@@ -114,8 +112,7 @@ def coprs_show(page=1):
 def coprs_by_user(username=None, page=1):
     user = users_logic.UsersLogic.get(username).first()
     if not user:
-        return page_not_found(
-            "User {0} does not exist.".format(username))
+        raise ObjectNotFound("User {0} does not exist.".format(username))
 
     pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_user_id(user.id)] if page == 1 else []
     query = CoprsLogic.get_multiple_owned_by_username(username)
@@ -952,7 +949,7 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
         dnf_copr_plugin_headers = {
             "Copr-Error-Data": base64.b64encode(dnf_copr_error_data),
         }
-        return page_not_found(html_error_msg, headers=dnf_copr_plugin_headers)
+        raise ObjectNotFound(html_error_msg, headers=dnf_copr_plugin_headers)
 
     # append multilib counterpart repo only upon explicit request (ach != None),
     # and only if the chroot actually is multilib capable
@@ -1095,7 +1092,7 @@ def copr_fork_post(copr):
     if form.validate_on_submit():
         dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
         if flask.g.user.name != form.owner.data and not dstgroup:
-            return generic_error("There is no such group: {}".format(form.owner.data))
+            raise BadRequest("There is no such group: {}".format(form.owner.data))
 
         dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
         if dst_copr and not form.confirm.data:
@@ -1251,7 +1248,7 @@ def copr_module(copr, id):
         msg = ("Unable to parse module YAML. The most probable reason is that "
                "the module YAML is in an old modulemd version and/or has some "
                "mistake in it. Hint: {}".format(ex))
-        return generic_error(msg, code=422, title="Unable to parse module YAML")
+        raise CoprHttpException(msg, code=422) from ex
 
     return flask.render_template("coprs/detail/module.html", copr=copr, module=module,
                                  yaml=pretty_yaml, unique_chroots=unique_chroots)

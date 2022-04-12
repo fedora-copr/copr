@@ -7,10 +7,9 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 
-from coprs.exceptions import ObjectNotFound
+from coprs.exceptions import ObjectNotFound, AccessRestricted
 
 from coprs.views.webhooks_ns import webhooks_ns
-from coprs.views.misc import page_not_found, access_restricted
 
 import logging
 import os
@@ -77,13 +76,9 @@ def package_name_required(route):
 def webhooks_bitbucket_push(copr_id, uuid):
     # For the documentation of the data we receive see:
     # https://confluence.atlassian.com/bitbucket/event-payloads-740262817.html
-    try:
-        copr = ComplexLogic.get_copr_by_id_safe(copr_id)
-    except ObjectNotFound:
-        return page_not_found("Project does not exist")
-
+    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
     if copr.webhook_secret != uuid:
-        return access_restricted("This webhook is not valid")
+        raise AccessRestricted("This webhook is not valid")
 
     try:
         payload = flask.request.json
@@ -123,13 +118,9 @@ def webhooks_git_push(copr_id, uuid):
         return "OK", 200
     # For the documentation of the data we receive see:
     # https://developer.github.com/v3/activity/events/types/#pushevent
-    try:
-        copr = ComplexLogic.get_copr_by_id_safe(copr_id)
-    except ObjectNotFound:
-        return page_not_found("Project does not exist")
-
+    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
     if copr.webhook_secret != uuid:
-        return access_restricted("This webhook is not valid")
+        raise AccessRestricted("This webhook is not valid")
 
     try:
         payload = flask.request.json
@@ -171,13 +162,9 @@ def webhooks_git_push(copr_id, uuid):
 def webhooks_gitlab_push(copr_id, uuid):
     # For the documentation of the data we receive see:
     # https://gitlab.com/help/user/project/integrations/webhooks#events
-    try:
-        copr = ComplexLogic.get_copr_by_id_safe(copr_id)
-    except ObjectNotFound:
-        return page_not_found("Project does not exist")
-
+    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
     if copr.webhook_secret != uuid:
-        return access_restricted("This webhook is not valid")
+        raise AccessRestricted("This webhook is not valid")
 
     try:
         payload = flask.request.json

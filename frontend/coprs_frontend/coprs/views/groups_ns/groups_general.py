@@ -2,7 +2,7 @@
 
 import flask
 from flask import render_template, url_for
-from coprs.exceptions import InsufficientRightsException
+from coprs.exceptions import InsufficientRightsException, ObjectNotFound
 from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
 from coprs.logic import builds_logic
@@ -12,7 +12,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs import app
 
 from ... import db
-from ..misc import login_required, page_not_found
+from ..misc import login_required
 from ..user_ns import user_general
 
 from . import groups_ns
@@ -86,7 +86,7 @@ def list_projects_by_group(group_name, page=1):
 @login_required
 def list_user_groups():
     if not app.config['FAS_LOGIN']:
-        return page_not_found("FAS Login not enabled")
+        raise ObjectNotFound("Logging via Fedora Accounts not enabled")
 
     teams = flask.g.user.user_teams
     active_map = {

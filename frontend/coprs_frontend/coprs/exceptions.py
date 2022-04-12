@@ -3,9 +3,10 @@ class CoprHttpException(Exception):
     _default = "Generic copr exception"
     _code = 500
 
-    def __init__(self, message=None, code=None, **kwargs):
+    def __init__(self, message=None, code=None, headers=None, **kwargs):
         self.message = str(message) if message else None
         self.code = code or self._code
+        self.headers = headers
         self.kwargs = kwargs
 
     def __unicode__(self):

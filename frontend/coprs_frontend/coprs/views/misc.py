@@ -1,7 +1,7 @@
 import base64
 import datetime
 import functools
-from functools import wraps, partial
+from functools import wraps
 from urllib.parse import urlparse
 import flask
 
@@ -51,29 +51,6 @@ def before_request():
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
 
-
-def generic_error(message, code=500, title=None, headers=None):
-    """
-    :type message: str
-    :type err: CoprHttpException
-    """
-
-    template = flask.render_template("html-error.html",
-                                     message=message,
-                                     error_code=code,
-                                     error_title=title)
-    retval = [template, code]
-    if headers is not None:
-        # custom headers needed
-        retval.append(headers)
-    return tuple(retval)
-
-
-server_error_handler = partial(generic_error, code=500, title="Internal Server Error")
-bad_request_handler = partial(generic_error, code=400, title="Bad Request")
-conflict_request_handler = partial(generic_error, code=409, title="Conflict")
-access_restricted = partial(generic_error, code=403, title="Access Restricted")
-page_not_found = partial(generic_error, code=404, title="Page Not Found")
 
 misc = flask.Blueprint("misc", __name__)
 

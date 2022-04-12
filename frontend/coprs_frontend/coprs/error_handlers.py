@@ -3,20 +3,38 @@ A place for exception-handling logic
 """
 
 import logging
+from functools import partial
 
 import flask
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from coprs.exceptions import CoprHttpException
-from coprs.views.misc import (
-    generic_error,
-    access_restricted,
-    bad_request_handler,
-    conflict_request_handler,
-    page_not_found,
-)
 
 LOG = logging.getLogger(__name__)
+
+
+def generic_error(message, code=500, title=None, headers=None):
+    """
+    :type message: str
+    :type err: CoprHttpException
+    """
+
+    template = flask.render_template("html-error.html",
+                                     message=message,
+                                     error_code=code,
+                                     error_title=title)
+    retval = [template, code]
+    if headers is not None:
+        # custom headers needed
+        retval.append(headers)
+    return tuple(retval)
+
+
+bad_request_handler = partial(generic_error, code=400, title="Bad Request")
+conflict_request_handler = partial(generic_error, code=409, title="Conflict")
+access_restricted = partial(generic_error, code=403, title="Access Restricted")
+page_not_found = partial(generic_error, code=404, title="Page Not Found")
+unprocessable_entity = partial(generic_error, code=422, title="Unprocessable Entity")
 
 
 def get_error_handler():
@@ -24,7 +42,8 @@ def get_error_handler():
     Determine what error handler should be used for this request
     See http://flask.pocoo.org/docs/1.0/blueprints/#error-handlers
     """
-    if flask.request.path.startswith('/api_3/'):
+    path = flask.request.path
+    if path.startswith('/api_3/') and "gssapi_login/web-ui" not in path:
         return APIErrorHandler()
     return UIErrorHandler()
 
@@ -77,6 +96,7 @@ class UIErrorHandler(BaseErrorHandler):
     def handle_error(self, error):
         code = self.code(error)
         message = self.message(error)
+        headers = getattr(error, "headers", None)
 
         # The most common error has their own custom error pages. When catching
         # a new exception, try to keep it simple and just the the generic one.
@@ -86,9 +106,10 @@ class UIErrorHandler(BaseErrorHandler):
             403: access_restricted,
             404: page_not_found,
             409: conflict_request_handler,
+            422: unprocessable_entity,
         }
         if code in error_views:
-            return error_views[code](message)
+            return error_views[code](message, headers=headers)
 
         message = "Server error, contact admin"
         if isinstance(error, SQLAlchemyError):
