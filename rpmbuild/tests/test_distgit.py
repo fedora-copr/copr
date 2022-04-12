@@ -137,7 +137,7 @@ def test_with_without_committish(run_cmd, committish):
     git_clone_and_checkout("clone_url", committish, "/dir")
     expected = []
     expected += [mock.call(['git', 'clone', 'clone_url', '/dir', '--depth',
-                            '500', '--no-single-branch'])]
+                            '500', '--no-single-branch', '--recursive'])]
     if committish:
         expected += [mock.call(['git', 'checkout', committish], cwd='/dir')]
 

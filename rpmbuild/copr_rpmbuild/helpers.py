@@ -289,7 +289,8 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
     if scm_type == 'git':
         clone_cmd = ['git', 'clone', url,
                      repo_path, '--depth', '500',
-                     '--no-single-branch']
+                     '--no-single-branch',
+                     "--recursive"]
     else:
         clone_cmd = ['git', 'svn', 'clone', url,
                      repo_path]
