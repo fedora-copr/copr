@@ -52,28 +52,28 @@ def before_request():
             models.User.username == username).first()
 
 
-def page_not_found(message):
-    return flask.render_template("404.html", message=message), 404
-
-
-def access_restricted(message):
-    return flask.render_template("403.html", message=message), 403
-
-
-def generic_error(message, code=500, title=None):
+def generic_error(message, code=500, title=None, headers=None):
     """
     :type message: str
     :type err: CoprHttpException
     """
-    return flask.render_template("_error.html",
-                                 message=message,
-                                 error_code=code,
-                                 error_title=title), code
+
+    template = flask.render_template("html-error.html",
+                                     message=message,
+                                     error_code=code,
+                                     error_title=title)
+    retval = [template, code]
+    if headers is not None:
+        # custom headers needed
+        retval.append(headers)
+    return tuple(retval)
 
 
 server_error_handler = partial(generic_error, code=500, title="Internal Server Error")
 bad_request_handler = partial(generic_error, code=400, title="Bad Request")
 conflict_request_handler = partial(generic_error, code=409, title="Conflict")
+access_restricted = partial(generic_error, code=403, title="Access Restricted")
+page_not_found = partial(generic_error, code=404, title="Page Not Found")
 
 misc = flask.Blueprint("misc", __name__)
 

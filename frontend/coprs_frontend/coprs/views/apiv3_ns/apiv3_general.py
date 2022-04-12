@@ -6,7 +6,7 @@ import flask
 from coprs import app, oid, db, models
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.exceptions import AccessRestricted
-from coprs.views.misc import api_login_required
+from coprs.views.misc import api_login_required, access_restricted
 from coprs.logic.users_logic import UsersLogic
 
 
@@ -62,7 +62,7 @@ def auth_403(message):
     """
     message = "Can't log-in using GSSAPI: " + message
     if "web-ui" in flask.request.full_path:
-        return flask.render_template("403.html", message=message), 403
+        return access_restricted(message)
     raise AccessRestricted(message)
 
 

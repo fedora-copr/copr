@@ -947,9 +947,12 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
                 available_chroots.append(available_chroot.name)
                 html_error_msg += available_chroot.name + "\n"
 
-        cmd_error_msg = {"available chroots": available_chroots}
-        return flask.render_template("404.html", message=html_error_msg), 404, {
-            'Copr-Error-Data': base64.b64encode(json.dumps(cmd_error_msg).encode("utf-8"))}
+        dnf_copr_error = {"available chroots": available_chroots}
+        dnf_copr_error_data = json.dumps(dnf_copr_error).encode("utf-8")
+        dnf_copr_plugin_headers = {
+            "Copr-Error-Data": base64.b64encode(dnf_copr_error_data),
+        }
+        return page_not_found(html_error_msg, headers=dnf_copr_plugin_headers)
 
     # append multilib counterpart repo only upon explicit request (ach != None),
     # and only if the chroot actually is multilib capable

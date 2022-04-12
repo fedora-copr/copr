@@ -25,7 +25,7 @@ class TestExceptionHandling(CoprsTestCase):
     def test_both_nonexisting_page_and_object(self):
         r1 = self.tc.get("/nonexisting/endpoint/")
         assert r1.status_code == 404
-        assert "<h1> Error 404: Not Found </h1>" in str(r1.data)
+        assert "<h1> Error 404: Page Not Found</h1>" in str(r1.data)
 
         r2 = self.tc.get("/coprs/nonexisting/nonexisting/")
         assert r2.status_code == 404

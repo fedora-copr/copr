@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% set error_title = error_title or "Unknown error" %}
+{% block title %}Copr Build System – {{ error_title }}{% endblock %}
+{% block body %}
+<h1> Error {{ error_code }}: {{ error_title }}</h1>
+{% if message %}
+{% for line in message.split("\n") %}
+  {{ line }} {% if not loop.last %}<br />{% endif %}
+{% endfor %}
+{% else %}
+   <p>Something went wrong.  Contact admins.</p>
+   {% if config.debug or config.env != "production" %}
+     <p>
+       Administrators should take a look at
+       <code>/var/log/copr-frontend/frontend.log</code>
+       to analyze the full error output.
+     </p>
+   {% endif %}
+{% endif %}
+{% endblock %}
