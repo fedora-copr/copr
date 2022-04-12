@@ -1037,20 +1037,6 @@ def render_generate_module_repo_file(copr, name_release, module_nsv):
 
 #########################################################
 
-@coprs_ns.route("/<username>/<coprname>/rpm/<name_release>/<rpmfile>")
-def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
-    try:
-        packages_dir = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
-        with open(os.path.join(packages_dir, rpmfile), "rb") as rpm:
-            response = flask.make_response(rpm.read())
-            response.mimetype = "application/x-rpm"
-            response.headers["Content-Disposition"] = \
-                "filename={0}".format(rpmfile)
-            return response
-    except IOError:
-        return flask.render_template("404.html")
-
-
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 @coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
