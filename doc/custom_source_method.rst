@@ -77,6 +77,13 @@ Since this all is in user's hands, it is not technically incorrect to have empty
 hook payload, e.g. it is valid to call `curl -X POST <THE_CUSTOM_HOOK_URL>` to
 trigger the custom source build method.
 
+Src.RPM
+-------
+
+Copr expects that `script` creates SPEC file, tar ball, and patches in the working
+directory. We cannot process SRC.RPM. Because some chroots can use technology
+which our server cannot recognize. E.g., in the past `rpm` changed compression and
+checksum algorithm and rpm from RHEL was unable to process packages from Fedora.
 
 Examples
 --------
@@ -93,6 +100,20 @@ Examples
 
     $ copr build-package --name quick-package PROJECT # trigger the build
 
+- Trivial example (use SRC.RPM)::
+
+    $ cat script
+    #! /bin/sh -x
+    make dist-srpm
+    rpmdev-extract redhat/rpm/SRPMS/quick-package-*.src.rpm
+    mv quick-package*src/* ./
+
+    $ copr add-package-custom PROJECT \
+            --name quick-package \
+            --script-builddeps "make rpmdevtools" \
+            --script script
+
+    $ copr build-package --name quick-package PROJECT # trigger the build
 
 - Simple example with Python package with git submodules and in-tree sources::
 
