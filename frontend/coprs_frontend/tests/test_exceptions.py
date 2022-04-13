@@ -113,7 +113,7 @@ class TestExceptionHandling(CoprsTestCase):
         assert r1.status_code == 500
         data = json.loads(r1.data)
         assert ("Request wasn't successful, there is probably "
-                "a bug in the API code.") in data["error"]
+                "a bug in the Copr code.") in data["error"]
 
     @new_app_context
     def test_api_500_storage(self):
