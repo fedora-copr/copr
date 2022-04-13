@@ -6,7 +6,12 @@ import logging
 
 import flask
 from sqlalchemy.exc import SQLAlchemyError
-from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
+from werkzeug.exceptions import (
+    ClientDisconnected,
+    GatewayTimeout,
+    HTTPException,
+    NotFound,
+)
 from coprs.exceptions import CoprHttpException
 
 LOG = logging.getLogger(__name__)
@@ -37,6 +42,7 @@ class BaseErrorHandler:
         message = self.message(error)
         headers = getattr(error, "headers", None)
         message = self.override_message(message, error)
+        LOG.error("Response error: %s %s", code, message)
         return self.render(message, code), code, headers
 
     @staticmethod
@@ -74,7 +80,10 @@ class BaseErrorHandler:
         # is missing or incorrect, something cannot be done, something doesn't
         # exist.
         if isinstance(error, HTTPException):
-            return error.description
+            message = error.description
+            if isinstance(error, ClientDisconnected):
+                message = "Client disconnected: " + message
+            return message
 
         if isinstance(error, CoprHttpException):
             return str(error)
