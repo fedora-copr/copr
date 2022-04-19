@@ -25,9 +25,10 @@ def lock(name):
     of the same package cannot be imported in paralel.
     """
     title = getproctitle()
-    setproctitle("{0} [locked]".format(title))
+    setproctitle("{0} [locking]".format(title))
     with lockutils.lock(name=name, external=True, lock_path=LOCK_PATH,
                         fair=True, delay=0):
+        setproctitle("{0} [locked]".format(title))
         yield
     setproctitle(title)
 
