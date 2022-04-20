@@ -153,7 +153,7 @@ class TestSign(object):
         assert mc_request.called
         expected_call = mock.call(
             url="http://example.com/gen_key",
-            data='{"name_real": "foo_bar", "name_email": "foo_bar@copr.fedorahosted.org"}',
+            data={"name_real": "foo_bar", "name_email": "foo#bar@copr.fedorahosted.org"},
             method="post"
         )
         assert mc_request.call_args == expected_call
@@ -168,7 +168,7 @@ class TestSign(object):
 
 
     @mock.patch("copr_backend.sign.SafeRequest.send")
-    def test_create_user_keys(self, mc_request):
+    def test_create_user_keys_err(self, mc_request):
         for code in [400, 401, 404, 500, 599]:
             mc_request.return_value.status_code = code
             mc_request.return_value.content = "error: {}".format(code)

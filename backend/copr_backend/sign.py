@@ -5,7 +5,6 @@ Wrapper for /bin/sign from obs-sign package
 """
 
 from subprocess import Popen, PIPE, SubprocessError
-import json
 import os
 
 from packaging import version
@@ -189,10 +188,10 @@ def create_user_keys(username, projectname, opts):
 
     :return: None
     """
-    data = json.dumps({
+    data = {
         "name_real": "{}_{}".format(username, projectname),
         "name_email": create_gpg_email(username, projectname)
-    })
+    }
 
     log = get_redis_logger(opts, "sign", "actions")
     keygen_url = "http://{}/gen_key".format(opts.keygen_host)
