@@ -379,6 +379,14 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b4.id).one()
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds")
+    def test_resubmit_build_inherit_git_hash(self):
+        orig_git_hash = self.b1.build_chroots[0].git_hash
+        self.b1.source_type = 2  # builds from upload should inherit the git hash
+        new_build = BuildsLogic.create_new_from_other_build(self.u1, self.c1, self.b1)
+        new_git_hash = new_build.build_chroots[0].git_hash
+        assert orig_git_hash == new_git_hash
+
     def test_mark_as_failed(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.b1.source_status = StatusEnum("succeeded")
         self.db.session.commit()

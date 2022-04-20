@@ -731,7 +731,7 @@ class BuildsLogic(object):
             something_added = True
             additional_args = {}
             if git_hashes:
-                additional_args["git_hash"] = git_hashes.get(chroot)
+                additional_args["git_hash"] = git_hashes.get(chroot.name)
             if status is None:
                 status = StatusEnum("waiting")
             buildchroot = BuildChrootsLogic.new(
