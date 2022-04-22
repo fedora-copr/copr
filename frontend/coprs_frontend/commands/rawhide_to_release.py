@@ -94,6 +94,8 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
 
         # no builds to fork in this copr
         if not len(fork_builds):
+            print("Createrepo for copr '{}', chroot '{}'".format(copr.full_name, mock_chroot.name))
+            actions_logic.ActionsLogic.send_createrepo(copr, chroots=[mock_chroot.name])
             continue
 
         new_build_chroots = 0

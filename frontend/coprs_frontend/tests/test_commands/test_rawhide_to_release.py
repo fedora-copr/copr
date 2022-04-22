@@ -129,30 +129,33 @@ class TestBranchFedora(CoprsTestCase):
         assert bch.status == StatusEnum("forked")
         assert bch.build.package == self.p3
 
-        assert self._get_actions() == ["rawhide_to_release"]
+        assert self._get_actions() == ["rawhide_to_release", "createrepo"]
 
         # re-run the command, this is no-op
         branch_fedora_function(19, False, 'f19')
-        assert self._get_actions() == ["rawhide_to_release"]
+        assert self._get_actions() == ["rawhide_to_release", "createrepo", "createrepo"]
 
         # re-run, and re-fork all the builds, generates new action
         branch_fedora_function(19, True, 'f19')
-        assert self._get_actions() == ["rawhide_to_release",
-                                       "rawhide_to_release"]
+        assert self._get_actions() == ["rawhide_to_release", "createrepo", "createrepo",
+                                       "rawhide_to_release", "createrepo"]
 
         stdout, _ = capsys.readouterr()
         assert stdout == "\n".join([
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
             "  Fresh new build chroots: 1, regenerate 0",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Createrepo for copr 'user1/foocopr', chroot 'fedora-19-x86_64'",
             "fedora-19-i386 - already exists.",
             "fedora-19-x86_64 - already exists.",
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Createrepo for copr 'user1/foocopr', chroot 'fedora-19-x86_64'",
             "fedora-19-i386 - already exists.",
             "fedora-19-x86_64 - already exists.",
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
             "  Fresh new build chroots: 0, regenerate 1",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Createrepo for copr 'user1/foocopr', chroot 'fedora-19-x86_64'",
             ""
         ])
