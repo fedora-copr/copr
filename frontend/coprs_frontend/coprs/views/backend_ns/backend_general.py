@@ -141,7 +141,7 @@ def get_build_record(task, for_backend=False):
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
-            "git_repo": task.build.package.dist_git_clone_url,
+            "git_repo": task.distgit_clone_url,
             "git_hash": task.git_hash,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,

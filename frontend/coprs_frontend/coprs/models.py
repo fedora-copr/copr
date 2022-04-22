@@ -2003,6 +2003,16 @@ class BuildChroot(db.Model, helpers.Serializer):
             built_packages.append(result_dict)
         return {"packages": built_packages}
 
+    @property
+    def distgit_clone_url(self):
+        """
+        Considering self.build.copr_dir and self.build.package is correctly set,
+        return the dist git clone url for that package.  We can not use
+        self.build.package.dist_git_clone_url because of issue#617.
+        """
+        dirname = self.build.copr_dir.full_name
+        package = self.build.package.name
+        return "{}/{}/{}".format(app.config["DIST_GIT_CLONE_URL"], dirname, package)
 
 
 class BuildChrootResult(db.Model, helpers.Serializer):

@@ -96,3 +96,30 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert action.action_type == 11
         assert set(json.loads(action.data)) == set(["user1/test-pr-dirs:pr:2",
                                                     "user1/test-pr-dirs:pr:3"])
+
+    @TransactionDecorator("u1")
+    @new_app_context
+    @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
+    def test_coprdir_build_normal_then_pr(self):
+        chroot = "fedora-17-i386"
+        self.api3.new_project("test-pr-dirs", [chroot])
+        self.api3.create_distgit_package("test-pr-dirs", "tar", {"webhook_rebuild": True})
+        self.api3.rebuild_package("test-pr-dirs", "tar")
+        self.backend.finish_build(1, package_name="tar")
+        assert models.Build.query.count() == 1
+
+        url = "/backend/get-build-task/1-{}".format(chroot)
+        response = self.test_client.get(url)
+        assert response.status_code == 200
+        result_dict = json.loads(response.data)
+
+        repo_url = "http://copr-dist-git-dev.fedorainfracloud.org/git/user1/{}/tar"
+        assert result_dict["git_repo"] == repo_url.format("test-pr-dirs")
+
+        self.pr_trigger.build_package_with_args("test-pr-dirs", "tar", 1)
+
+        url = "/backend/get-build-task/2-{}".format(chroot)
+        response = self.test_client.get(url)
+        assert response.status_code == 200
+        result_dict = json.loads(response.data)
+        assert result_dict["git_repo"] == repo_url.format("test-pr-dirs:pr:1")
