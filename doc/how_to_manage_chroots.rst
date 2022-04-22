@@ -19,6 +19,7 @@ Chroots can be easily managed with these few commands.
     copr-frontend alter-chroot --action deactivate <name>
     copr-frontend branch-fedora <new-branched-version>
     copr-frontend rawhide-to-release <rawhide-chroot> <newly-created-chroot>
+    copr-frontend chroots-template [--template PATH]
 
 However, `enablement process upon Fedora branching <#branching-process>`_ and also
 `chroot deactivation when Fedora reaches it's EOL phase <#eol-deactivation-process>`_, are not that simple.
@@ -106,6 +107,48 @@ disabled and users can't build new packages in it anymore.
 
 When it is done, `send an information email to a mailing list <#mailing-lists>`_.
 See the :ref:`the disable chroots template <disable_chroots_template>`.
+
+
+.. _managing_chroot_comments:
+
+Managing chroot comments
+------------------------
+
+Some of the available Mock chroots deserve a special care in documentation, e.g.
+that `epel-8-*` chroots are nowadays built against Red Hat Enterprise Linux 8,
+not CentOS 8 (which is EOL).  There's an administrator command for this::
+
+    $ copr-frontend comment-chroot --chroot epel-8-x86_64 --comment '<strong>Built against RHEL 8!</strong>'
+
+Note that HTML text is supported!
+
+This was though a single-chroot command.  There's a better option for those Copr
+instances that contain dozens of chroots::
+
+    $ copr-frontend chroots-template [--template /etc/copr/chroots.conf]
+
+This file reads the template file in the following format (a Python file
+defining the ``config`` dictionary)::
+
+    config = {}
+    config["emulated"] = "This is an emulated chroot"
+    config["rules"] = [{
+        "match": "fedora-rawhide-i386",
+        "comment": "This is soon to be removed",
+    }, {
+        "match": ["fedora-32", "fedora-33"],
+        "comment": "<strong>Currently EOL</strong>, on your own risk",
+    },
+    {
+        "match": ["aarch64", "ppc64le"],
+        "match_type", "arch",
+        "comment_append": "{{ emulated }}",
+    }]
+
+When (manually) executed, the command recursively iterates across all the active
+Mock chroots, and applies the specified rules (only ``comment`` or
+``comment_append`` currently) when the chroot matches the rules (``match`` and
+``match_type`` statements).
 
 
 Mailing lists

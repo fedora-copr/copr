@@ -37,6 +37,7 @@ import commands.clean_expired_projects
 import commands.clean_old_builds
 import commands.delete_orphans
 import commands.fixup_unnoticed_chroots
+import commands.chroots_template
 
 from coprs import app
 
@@ -63,6 +64,7 @@ commands_list =	[
     "branch_fedora",
     "comment_chroot",
     "fixup_unnoticed_chroots",
+    "chroots_template",
 
     # User commands
     "alter_user",

@@ -85,6 +85,7 @@ BuildRequires: python3-email-validator
 BuildRequires: python3-dateutil
 BuildRequires: python3-decorator
 BuildRequires: python3-flask
+BuildRequires: python3-templated-dictionary
 %if 0%{?fedora} >= 31
 BuildRequires: python3-flask-caching
 %else
@@ -171,6 +172,7 @@ Requires: python3-pylibravatar
 Requires: python3-pytz
 Requires: python3-redis
 Requires: python3-requests
+Requires: python3-templated-dictionary
 Requires: python3-wtforms >= 2.2.1
 Requires: python3-zmq
 Requires: xstatic-bootstrap-scss-common
@@ -352,6 +354,7 @@ usermod -L copr-fe
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
+%config(noreplace)  %{_sysconfdir}/copr/chroots.conf
 
 %defattr(-, root, root, -)
 %config %{_sysconfdir}/cron.hourly/copr-frontend
