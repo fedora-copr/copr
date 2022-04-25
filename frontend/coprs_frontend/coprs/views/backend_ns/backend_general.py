@@ -40,8 +40,7 @@ def dist_git_importing_queue():
     tasks = []
 
     builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == false()).limit(100).all()
-    if not builds_for_import:
-        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30).all()
+    builds_for_import += BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30).all()
 
     for build in builds_for_import:
         branches = set()
