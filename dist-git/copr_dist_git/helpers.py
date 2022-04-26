@@ -5,13 +5,12 @@ import munch
 
 from oslo_concurrency import lockutils
 from setproctitle import getproctitle, setproctitle
-from .exceptions import FileDownloadException, RunCommandException, SrpmQueryException
+from copr_common.request import SafeRequest, RequestError
+from munch import Munch
+from .exceptions import FileDownloadException, RunCommandException
 
 from contextlib import contextmanager
 from configparser import ConfigParser
-from munch import Munch
-from requests import get
-from functools import wraps
 
 log = logging.getLogger(__name__)
 LOCK_PATH = "/var/lock/copr-dist-git"
@@ -159,9 +158,9 @@ def download_file(url, destination):
     """
     log.debug("Downloading {0}".format(url))
     try:
-        log.info(url)
-        r = get(url, stream=True, verify=False)
-    except Exception as e:
+        request = SafeRequest(log=log, timeout=10 * 60)
+        r = request.send(url, method='get')
+    except RequestError as e:
         raise FileDownloadException(str(e))
 
     if 200 <= r.status_code < 400:

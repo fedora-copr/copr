@@ -18,13 +18,11 @@ class SafeRequest:
     # Prolong the sleep time before asking frontend again
     SLEEP_INCREMENT_TIME = 5
 
-    # Reasonable timeout for requests that block the client
-    TIMEOUT = 2*60
-
-    def __init__(self, auth=None, log=None, try_indefinitely=False):
+    def __init__(self, auth=None, log=None, try_indefinitely=False, timeout=2 * 60):
         self.auth = auth
         self.log = log
         self.try_indefinitely = try_indefinitely
+        self.timeout = timeout
 
     def get(self, url, **kwargs):
         """
@@ -60,7 +58,7 @@ class SafeRequest:
             req_args.update(kwargs)
             req_args["auth"] = auth
             req_args["headers"] = headers
-            req_args["timeout"] = self.TIMEOUT / 5
+            req_args["timeout"] = self.timeout / 5
             method = method.lower()
             if method in ['post', 'put']:
                 req_args['data'] = json.dumps(data)
@@ -95,7 +93,7 @@ class SafeRequest:
         """
         sleep = self.SLEEP_INCREMENT_TIME
         start = time.time()
-        stop = start + self.TIMEOUT
+        stop = start + self.timeout
 
         i = 0
         while True:
