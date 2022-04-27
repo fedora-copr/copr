@@ -12,6 +12,7 @@ from copr_backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeyge
 from copr_backend.sign import (
     get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys,
     gpg_hashtype_for_chroot,
+    call_sign_bin,
 )
 
 STDOUT = "stdout"
@@ -19,6 +20,7 @@ STDERR = "stderr"
 
 
 class TestSign(object):
+    # pylint: disable=too-many-public-methods
 
     def setup_method(self, method):
         self.username = "foo"
@@ -70,8 +72,9 @@ class TestSign(object):
             get_pubkey(self.username, self.projectname, MagicMock())
 
 
+    @mock.patch("copr_backend.sign.time.sleep")
     @mock.patch("copr_backend.sign.Popen")
-    def test_get_pubkey_unknown_key(self, mc_popen):
+    def test_get_pubkey_unknown_key(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, "unknown key: foobar")
         mc_handle.returncode = 1
@@ -82,8 +85,9 @@ class TestSign(object):
 
         assert "There are no gpg keys for user foo in keyring" in str(err)
 
+    @mock.patch("copr_backend.sign.time.sleep")
     @mock.patch("copr_backend.sign.Popen")
-    def test_get_pubkey_unknown_error(self, mc_popen):
+    def test_get_pubkey_unknown_error(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
         mc_handle.returncode = 1
@@ -134,8 +138,9 @@ class TestSign(object):
         with pytest.raises(CoprSignError):
             _sign_one(fake_path, self.usermail, "sha256", MagicMock())
 
+    @mock.patch("copr_backend.sign.time.sleep")
     @mock.patch("copr_backend.sign.Popen")
-    def test_sign_one_cmd_erro(self, mc_popen):
+    def test_sign_one_cmd_erro(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
         mc_handle.returncode = 1
@@ -144,6 +149,21 @@ class TestSign(object):
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
             _sign_one(fake_path, self.usermail, "sha256", MagicMock())
+
+    @staticmethod
+    @mock.patch("copr_backend.sign.time.sleep")
+    @mock.patch("copr_backend.sign.Popen")
+    def test_call_sign_bin_repeatedly(mc_popen, _sleep):
+        """
+        Test that we attempt to run /bin/sign multiple times if it returns
+        non-zero exit status
+        """
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 1
+        mc_popen.return_value = mc_handle
+        call_sign_bin(cmd=[], log=MagicMock())
+        assert mc_popen.call_count == 3
 
     @mock.patch("copr_backend.sign.SafeRequest.send")
     def test_create_user_keys(self, mc_request):

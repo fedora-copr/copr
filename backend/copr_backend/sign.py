@@ -6,6 +6,7 @@ Wrapper for /bin/sign from obs-sign package
 
 from subprocess import Popen, PIPE, SubprocessError
 import os
+import time
 
 from packaging import version
 
@@ -42,8 +43,12 @@ def call_sign_bin(cmd, log):
             new_err = CoprSignError("Failed to invoke '{}'".format(cmd_pretty))
             raise new_err from err
 
-        if handle.returncode != 0 and "Connection timed out" in stderr:
-            log.warning("Timeout on %s, re-trying", cmd_pretty)
+        if handle.returncode != 0:
+            log.warning("Command '%s' failed with: %s",
+                        cmd_pretty, stderr.rstrip())
+            sleeptime = 20
+            log.warning("Going to sleep %ss and re-try.", sleeptime)
+            time.sleep(sleeptime)
             continue
         break
     return handle.returncode, stdout, stderr
