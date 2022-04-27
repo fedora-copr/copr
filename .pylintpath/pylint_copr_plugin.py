@@ -27,6 +27,7 @@ class Cache:
         None: False,
     }
     test_paths = {
+        "backend/tests",
         "cli/tests",
         "common/tests",
         "dist-git/tests",
