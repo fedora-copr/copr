@@ -1,10 +1,10 @@
-FROM fedora/nginx
+# Crafted with the help of the SCLOrg docs:
+# https://github.com/sclorg/nginx-container/tree/master/1.20#3-prepare-an-application-inside-a-container
+
+FROM quay.io/centos7/nginx-120-centos7
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
-# Stop listening on port 80 (taken by dist-git).  We don't need the port 666
-# here, but we need to use something for the sake of config "patching"
-# simplicity.
-RUN sed -i  's/80 /666 /' /etc/nginx/nginx.conf
+COPY files/etc/nginx/conf.d/copr-be.conf /opt/app-root/etc/nginx.d/
 
-COPY files/ /
+CMD nginx -g "daemon off;"
