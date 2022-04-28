@@ -1100,8 +1100,12 @@ class BuildsLogic(object):
             'build', str(build.id)
         )
 
+        username = "Copr build"
+        if build.package:
+            username += " - " + build.package.name
+
         data = {
-            'username': 'Copr build',
+            'username': username,
             'comment': '#{}'.format(build.id),
             'url': build_url,
             'status': state_table[build.state][0],
