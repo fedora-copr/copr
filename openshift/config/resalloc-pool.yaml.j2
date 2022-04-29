@@ -1,0 +1,51 @@
+# vi: ft=yaml
+---
+copr_os_{{ project.replace("-", "_") }}_{{ deployment }}_aws_x86:
+  max: 4
+  max_starting: 1
+  max_prealloc: 1
+  tags:
+    - copr_builder
+    - arch_noarch
+    - arch_x86_64
+    - arch_x86_64_native
+    - arch_i386
+    - arch_i386_native
+    - arch_i586
+    - arch_i586_native
+    - arch_i686
+    - arch_i686_native
+    - arch_s390x
+    - arch_s390x_emulated
+    - arch_ppc64le
+    - arch_ppc64le_emulated
+    - arch_aarch64
+    - arch_aarch64_emulated
+  cmd_new: |
+    set -x
+    /usr/bin/resalloc-aws-new \
+    --aws-profile default \
+    --ami ami-09127a5df568314d3 \
+    --ssh-key-name "{{ aws_config.ssh_key.name }}" \
+    --debug \
+    --private-ip \
+    --security-group-id sg-07a0adee998a8fcde \
+    --possible-subnet subnet-0b853a752f0f7eba5 \
+    --possible-subnet subnet-05dd25fba5582bb6a \
+    --instance-type t3a.medium \
+    --tag RedHatGroup=copr \
+    --tag ServiceName=copr \
+    --tag ServiceComponent=builder-testing-copr-openshift \
+    --tag ServiceOwner=Copr \
+    --tag AppCode=COPR-001 \
+    --tag ServicePhase=Dev \
+    --tag CoprInstance=testing-openshift \
+    --tag arch=x86_64 \
+    --playbook /etc/resallocserver/spinup-playbook.yml
+
+  cmd_delete: /usr/bin/resalloc-aws-delete --aws-profile default
+  cmd_livecheck: "resalloc-check-vm-ip"
+  livecheck_period: 180
+  reuse_opportunity_time: 180
+  reuse_max_count: 8
+  reuse_max_time: 1800

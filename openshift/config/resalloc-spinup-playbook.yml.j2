@@ -1,0 +1,68 @@
+---
+- name: provision AWS builder
+  hosts: all
+  become: true
+  user: fedora
+
+  vars:
+    devel: true
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: setup the hostname so we can easily identify the box
+      hostname: name="{% raw %}{{ lookup('env', 'RESALLOC_NAME') | default('unknown-builder') | replace('_', '-') }}{% endraw %}"
+
+    - name: disable updates-testing
+      file:
+        path: /etc/yum.repos.d/fedora-updates-testing.repo
+        state: absent
+
+    - name: stop and disable systemd-oomd, rhbz 2051154
+      service:
+        name: systemd-oomd
+        state: stopped
+        enabled: no
+
+    - name: install copr-builder and other latest packages
+      dnf: state=latest pkg=copr-builder
+
+    - name: run /bin/copr-update-builder from copr-builder package
+      shell: /usr/bin/copr-update-builder
+
+    - name: put copr-rpmbuild configuration file in the right place
+      copy:
+        dest: /etc/copr-rpmbuild/main.ini
+        content: |
+          [main]
+          frontend_url = {{ frontend_base_url }}
+          distgit_lookaside_url = https://{{ '${%' }} raw {{ '%}{{' }} git_props:remote_netloc {{ '}}{%' }} endraw {{ '%}' }}/repo/pkgs/%(repo_path)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
+          distgit_clone_url = {scheme}://{netloc}/%(repo_path)s
+          rpm_vendor_copr_name = Testing Copr
+
+          [distgit0]
+          distgit_hostname_pattern = src.fedoraproject.org
+          distgit_lookaside_url = https://src.fedoraproject.org/repo/pkgs/%(ns1)s/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
+          distgit_clone_url = https://src.fedoraproject.org/%(repo_path)s
+
+    - name: install copr-distgit-client configuration
+      copy:
+        dest: /etc/copr-distgit-client/local-copr.ini
+        content: |
+          [local-copr]
+          clone_hostnames = {{ distgit_fqdn }}
+          lookaside_location = http://{{ distgit_fqdn }}
+          lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hash}/{filename}
+
+    - name: mockbuilder authorized_keys
+      authorized_key: user=mockbuilder key="{{ aws_config.ssh_key.public }}"
+
+    - name: root authorized_keys
+      authorized_key: user=root key="{{ aws_config.ssh_key.public }}"
+
+    - name: mount cache filesystem on /var/cache/mock
+      mount: path=/var/cache/mock state=mounted src=mock_cache_tmpfs fstype=tmpfs opts="size=32G"
+
+    - name: Collect facts about builder hardware
+      setup:
+        gather_subset:
+          - hardware

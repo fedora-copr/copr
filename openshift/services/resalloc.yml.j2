@@ -1,0 +1,143 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: resalloc-config
+type: Opaque
+data:
+  pools.yaml: "{{ resalloc_pool_yaml | b64encode }}"
+  server.yaml: "{{ resalloc_server_yaml | b64encode }}"
+  spinup-playbook.yml: "{{ resalloc_spinup_playbook | b64encode }}"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: resalloc-home
+type: Opaque
+data:
+  aws_config: W2RlZmF1bHRdCnJlZ2lvbiA9IHVzLWVhc3QtMQo=
+  aws_credentials: "{{ aws_credentials | b64encode }}"
+  id_rsa: "{{ aws_config.ssh_key.private | b64encode }}"
+  ssh_config: SG9zdCAqCiAgIElkZW50aXR5RmlsZSB+Ly5zc2gvaWRfcnNhCiAgIFN0cmljdEhvc3RLZXlDaGVja2luZyAgbm8KICAgVXNlcktub3duSG9zdHNGaWxlIC9kZXYvbnVsbAogICBTZXJ2ZXJBbGl2ZUludGVydmFsIDIwCiAgIFNlcnZlckFsaXZlQ291bnRNYXggNQogICBDb25uZWN0VGltZW91dCA2MAo=
+
+  ansible_conf: "{{ '[defaults]\nlocal_tmp=/tmp/.ansible\n[ssh_connection]\ncontrol_path_dir=/tmp/.ansible\n' | b64encode }}"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resalloc-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resalloc
+spec:
+  ports:
+    - name: resalloc
+      port: 49100
+      targetPort: 49100
+  selector:
+    name: resalloc
+
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: resalloc
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/copr/resalloc:test
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: resalloc
+spec:
+  template:
+    metadata:
+      labels:
+        name: resalloc
+    spec:
+      containers:
+        - name: server
+          image: "{{ resalloc_image }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: resalloc-data
+              mountPath: /var/lib/resallocserver
+            - name: resalloc-data
+              mountPath: /var/log/resallocserver
+            - name: resalloc-config
+              mountPath: /etc/resallocserver
+            - name: resalloc-home
+              mountPath: /resalloc-home
+          env:
+            - name: CONFIG_DIR
+              value: /etc/resallocserver
+            - name: HOME
+              value: /resalloc-home
+
+          command: ["/usr/bin/resalloc-server"]
+
+      volumes:
+        - name: resalloc-config
+          secret:
+            secretName: resalloc-config
+            optional: false
+
+        - name: resalloc-home
+          secret:
+            secretName: resalloc-home
+            optional: false
+            defaultMode: 0600
+            items:
+              - key: aws_config
+                path: .aws/config
+              - key: aws_credentials
+                path: .aws/credentials
+              - key: id_rsa
+                path: .ssh/id_rsa
+              - key: ssh_config
+                path: .ssh/config
+              - key: ansible_conf
+                path: .ansible.cfg
+
+        - name: resalloc-data
+          persistentVolumeClaim:
+            claimName: resalloc-data
+
+      restartPolicy: Always
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - server
+        from:
+          kind: ImageStreamTag
+          name: resalloc:test
+      type: ImageChange
+
+    - type: ConfigChange
+
+# vim: ft=yaml

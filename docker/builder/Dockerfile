@@ -4,8 +4,6 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
 
-RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
-
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
@@ -26,7 +24,8 @@ RUN dnf -y update && \
                    glib2 \
                    ca-certificates \
                    scl-utils-build \
-                   ethtool
+                   ethtool \
+    && dnf clean all
 
 COPY files/ /
 

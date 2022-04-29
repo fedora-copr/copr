@@ -5,8 +5,6 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 ENV TERM=linux
 ENV PYTHONPATH=/usr/share/copr/
 
-RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
-
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
@@ -15,10 +13,18 @@ RUN dnf -y update && \
                    vim \
                    cgit \
                    python3-rpkg \
-                   python3-ipdb
-
-RUN dnf -y install copr-dist-git && \
+                   python3-ipdb \
+                   tini \
+                   && \
+    dnf -y install copr-dist-git && \
     dnf clean all
+
+RUN rm /etc/httpd/conf.d/ssl.conf
+
+RUN echo "AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside\\$1\\$2\"" >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
+    echo "Alias /repo/ /var/lib/dist-git/cache/lookaside/" >>  /etc/httpd/conf.d/dist-git/lookaside-copr.conf
+
+RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
 
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
@@ -36,4 +42,11 @@ RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
 RUN sed -i "s/^cache-size.*//" /etc/cgitrc
 RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
 
-CMD ["/usr/sbin/runuser", "-u", "root", "-g", "packager", "/usr/bin/importer_runner.py"]
+RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock" ; \
+    chown -R copr-dist-git:root $directories && \
+    chmod -R g+rwX $directories
+
+USER copr-dist-git
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/importer_runner.py"]

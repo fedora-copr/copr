@@ -1,0 +1,119 @@
+# vi: ft=yaml
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: copr-keygen
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/copr/keygen:test
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-keygen-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-keygen-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-keygen
+spec:
+  ports:
+    - name: copr-keygen-httpd
+      port: 5003
+      targetPort: 5003
+    - name: copr-keygen-signd
+      port: 5167
+      targetPort: 5167
+  selector:
+    name: copr-keygen
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: copr-keygen
+spec:
+  template:
+    metadata:
+      labels:
+        name: copr-keygen
+    spec:
+      containers:
+        - name: signer
+          image: "{{ copr_keygen_image }}"
+          imagePullPolicy: IfNotPresent
+          command: ["/signd-entrypoint", "0.0.0.0/0"]
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/copr-keygen
+            - name: logs
+              mountPath: /var/log/copr-keygen
+          ports:
+            - containerPort: 5167
+              protocol: TCP
+
+        - name: httpd
+          image: "{{ copr_keygen_image }}"
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/sbin/httpd", "-DFOREGROUND"]
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/copr-keygen
+            - name: logs
+              mountPath: /var/log/copr-keygen
+          ports:
+            - containerPort: 5003
+              protocol: TCP
+
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: copr-keygen-data
+        - name: logs
+          persistentVolumeClaim:
+            claimName: copr-keygen-logs
+
+      restartPolicy: Always
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - signer
+          - httpd
+        from:
+          kind: ImageStreamTag
+          name: copr-keygen:test
+      type: ImageChange
+
+    - type: ConfigChange

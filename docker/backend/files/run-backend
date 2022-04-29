@@ -1,0 +1,38 @@
+#! /bin/bash
+
+option_variable()
+{
+    opt=$1
+    opt=${1##--}
+    opt=${opt##-}
+    opt=${opt//-/_}
+    option_variable_result=opt_$opt
+}
+
+opt_sign_user=$(id -u)
+opt_sign_host=keygen-signd
+
+ARGS=$(getopt -o "" -l "sign-user:,sign-host:" -n "getopt" -- "$@") \
+    || show_help 1
+eval set -- "$ARGS"
+while true; do
+    case $1 in
+    # options with arguments
+    --sign-host|--sign-user)
+        option_variable "$1"
+        eval "$option_variable_result=\$2"
+        shift 2
+        ;;
+    --) shift; break;;  # end
+    *) echo "programmer mistake ($1)" >&2; exit 1;;
+    esac
+done
+
+cat >/etc/sign.conf <<EOF
+server: $opt_sign_host
+allowuser: $opt_sign_user
+allow-unprivileged-ports: true
+EOF
+
+# execute the remaining part of the command
+exec "$@"

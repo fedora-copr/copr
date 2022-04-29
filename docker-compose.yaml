@@ -5,7 +5,7 @@
 # pod that listen on the same port.  Therefore we start httpd servers on ports
 # (host:pod):
 #   5000:5000 -- Frontend Apache (API/WebUI)
-#   5001:80   -- DistGit Apache
+#   5001:5001 -- DistGit Apache
 #   5002:5002 -- Backend Nginx
 #     --:5003 -- Keygen Apache (obtaining keys)
 #
@@ -21,7 +21,7 @@ services:
     build:
       context: docker/backend
     hostname: backend-log
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr_run_logger.py
+    command: "/usr/bin/copr_run_logger.py"
     depends_on:
       - redis
     stdin_open: true
@@ -34,7 +34,7 @@ services:
     build:
       context: docker/backend
     hostname: backend-build
-    command: /usr/sbin/runuser -u copr -g copr -G obsrun -- /usr/bin/copr-run-dispatcher builds
+    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher", "builds"]
     depends_on:
       - backend-log
       - resalloc
@@ -48,7 +48,7 @@ services:
     build:
       context: docker/backend
     hostname: backend-action
-    command: /usr/sbin/runuser -u copr -g copr -- /usr/bin/copr-run-dispatcher actions
+    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher", "actions"]
     depends_on:
       - backend-log
       - resalloc
@@ -138,29 +138,31 @@ services:
 
   distgit-httpd:
     build:
-      context: docker/distgit-httpd/
+      context: docker/distgit/
     hostname: distgit-httpd
     stdin_open: true
     tty: true
     ports:
-      - "5001:80"
+      - "5001:5001"
     volumes:
       - .:/opt/copr:z
       - dist-git:/var/lib/dist-git:z
+    command: /usr/sbin/httpd -DFOREGROUND
 
   keygen-signd:
     build:
-      context: docker/keygen-signd/
+      context: docker/keygen/
     hostname: keygen-signd
     stdin_open: true
     tty: true
     volumes:
       - .:/opt/copr:z
       - copr-keygen:/var/lib/copr-keygen:z
+    command: /signd-entrypoint
 
   keygen-httpd:
     build:
-      context: docker/keygen-httpd/
+      context: docker/keygen/
     hostname: keygen-httpd
     stdin_open: true
     tty: true

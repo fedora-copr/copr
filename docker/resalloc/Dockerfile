@@ -7,12 +7,15 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 # Copr production deployment is described here
 # https://pagure.io/fedora-infra/ansible/blob/master/f/roles/copr/backend/tasks/resalloc.yml
 
-RUN dnf install -y vim \
+RUN dnf install -y ansible \
+                   vim \
                    resalloc \
+                   resalloc-aws \
                    resalloc-server \
                    sqlite \
                    findutils \
-                   openssh-clients
+                   openssh-clients \
+    && dnf clean all
 
 # copy filesystem setup
 COPY files/ /

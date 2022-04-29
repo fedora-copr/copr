@@ -1,0 +1,226 @@
+---
+- name: Copr deployment
+  hosts: all
+  vars:
+    validate_certs: false
+    service: copr
+    deployment: dev
+    sandbox_namespace: "{{ service }}-{{ deployment }}-sandbox"
+    project_dir: "{{ playbook_dir }}"
+    path_to_secrets: "{{ project_dir }}/secrets"
+    path_to_services: "{{ project_dir }}/services"
+
+    postgres_user: copr-fe
+    postgres_database_name: copr-db
+
+  vars_files:
+    "{{ project_dir }}/secret-vars.yml"
+
+  tasks:
+    - name: detect the currently operated OpenShift cluster
+      shell: oc config view --minify -o jsonpath='{.clusters[*].cluster.server}'
+      register: oc_api_endpoint_detected
+      changed_when: false
+      tags: always
+
+    - name: check that we work with the right OpenShift cluster
+      assert:
+        that:
+          - oc_api_endpoint_detected.stdout_lines[0] == oc_api_endpoint
+        msg: "OpenShift API mismatch"
+      tags: always
+
+    - name: detect the OpenShift API key - ARE YOU LOGGED IN?
+      command: oc whoami -t
+      register: openshift_token_detected
+      no_log: true
+      changed_when: false
+      tags: always
+
+    - name: define the api_key variable
+      set_fact:
+        api_key: "{{ openshift_token_detected.stdout_lines[0] }}"
+      tags: always
+
+    - name: Create the project
+      k8s:
+        definition: "{{ lookup('template', 'project.yaml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: always
+
+    # Normally we would use 'image: " "' in the PG template, but the k8s Ansible
+    # module doesn't seem to realize it means "no change" and reports "changed"
+    # all the time.  Therefore we detect it first.
+    - name: Get the actual PostgreSQL image from ImageStream
+      shell: oc get dc postgresql -o jsonpath='{.spec.template.spec.containers[0].image}'
+      register: pgis
+      changed_when: false
+      failed_when: false
+
+    - set_fact: postgresql_image={{ pgis.stdout }}
+
+    - name: Deploy PostgreSQL service
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/postgres.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+
+
+    # Normally we would use 'image: " "' in the PG template, but the k8s Ansible
+    # module doesn't seem to realize it means "no change" and reports "changed"
+    # all the time.  Therefore we detect it first.
+    - name: Get the actual Redis image from ImageStream
+      shell: oc get dc redis -o jsonpath='{.spec.template.spec.containers[0].image}'
+      register: r_is
+      changed_when: false
+      failed_when: false
+    - set_fact: redis_image={{ r_is.stdout }}
+
+    - name: Deploy Redis service
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/redis.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+
+    # Normally we would use 'image: " "' in the PG template, but the k8s Ansible
+    # module doesn't seem to realize it means "no change" and reports "changed"
+    # all the time.  Therefore we detect it first.
+    - name: Get the actual Copr Frontend image from an ImageStream
+      shell: oc get dc copr-frontend -o jsonpath='{.spec.template.spec.containers[0].image}'
+      register: cf_is
+      changed_when: false
+      failed_when: false
+      tags: frontend
+
+    - set_fact: copr_frontend_image={{ cf_is.stdout }}
+      tags: frontend
+
+    - name: Instantiate Frontend config
+      set_fact:
+        frontend_config: "{{ lookup('template', '{{ project_dir }}/config/frontend-copr.conf') }}"
+      tags:
+        - frontend
+      no_log: true
+
+    - name: Deploy Copr Frontend pod
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/frontend.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: frontend
+
+    - name: get the latest resalloc image
+      shell: oc get istag/resalloc:test -o jsonpath='{.image.dockerImageReference}'
+      register: resalloc_is
+      changed_when: false
+      failed_when: false
+      tags: resalloc
+
+    - name: Instantiate Frontend config
+      set_fact:
+        frontend_config: "{{ lookup('template', '{{ project_dir }}/config/frontend-copr.conf') }}"
+      tags:
+        - frontend
+      no_log: true
+
+    - name: instantiate Resalloc config
+      set_fact:
+        resalloc_pool_yaml: "{{ lookup('template', '{{ project_dir }}/config/resalloc-pool.yaml.j2') }}"
+        resalloc_server_yaml: "{{ lookup('template', '{{ project_dir }}/config/resalloc-server.yaml.j2') }}"
+        resalloc_image: "{{ resalloc_is.stdout }}"
+        aws_credentials: "{{ lookup('template', '{{ project_dir }}/config/resalloc-aws-credentials.j2') }}"
+        resalloc_spinup_playbook: "{{ lookup('file', '{{ project_dir }}/config/resalloc-spinup-playbook.yml.j2') }}"
+      no_log: true
+      tags: resalloc
+
+    - name: Deploy the Resalloc pod
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/resalloc.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: resalloc
+
+    - name: Instantiate Backend config
+      set_fact:
+        backend_config: "{{ lookup('template', '{{ project_dir }}/config/backend-copr-be.conf') }}"
+        backend_httpd_config: "{{ lookup('template', '{{ project_dir }}/config/backend-nginx.conf') }}"
+      no_log: true
+      tags: backend
+
+    - name: Get the actual Copr Backend image from an ImageStream
+      shell: oc get dc copr-backend -o jsonpath='{.spec.template.spec.containers[0].image}'
+      register: cb_is
+      changed_when: false
+      failed_when: false
+      tags: backend
+
+    - name: get the latest nginx image
+      shell: oc get istag/copr-backend-httpd:test -o jsonpath='{.image.dockerImageReference}'
+      register: nginx_is
+      changed_when: false
+      failed_when: false
+      tags: backend
+
+    - set_fact:
+        copr_backend_image: "{{ cb_is.stdout }}"
+        nginx_image: "{{ nginx_is.stdout }}"
+      tags: backend
+
+    - name: Deploy Copr Backend pod
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/backend.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: backend
+
+    - name: Instantiate DistGit configs
+      set_fact:
+        distgit_config: "{{ lookup('template', '{{ project_dir }}/config/distgit-distgit.conf.j2') }}"
+        distgit_copr_config: "{{ lookup('template', '{{ project_dir }}/config/distgit-copr.conf.j2') }}"
+      no_log: true
+      tags: distgit
+
+    - name: Get the actual Copr DistGit image from an ImageStream
+      shell: oc get dc copr-distgit -o jsonpath='{.spec.template.spec.containers[0].image}'
+      register: cdg_is
+      changed_when: false
+      failed_when: false
+      tags: distgit
+
+    - set_fact:
+        copr_distgit_image: "{{ cdg_is.stdout or ' ' }}"
+      tags: distgit
+
+    - name: Deploy Copr DistGit pod
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/distgit.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: distgit
+
+
+    - name: get the latest keygen image
+      shell: oc get istag/copr-keygen:test -o jsonpath='{.image.dockerImageReference}'
+      register: copr_keygen_is
+      changed_when: false
+      failed_when: false
+      tags: keygen
+
+    - set_fact:
+        copr_keygen_image: "{{ copr_keygen_is.stdout or ' ' }}"
+      tags: keygen
+
+    - name: Deploy Copr Keygen pod
+      k8s:
+        namespace: "{{ project }}"
+        definition: "{{ lookup('template', '{{ path_to_services }}/keygen.yml.j2') }}"
+        api_key: "{{ api_key }}"
+        validate_certs: "{{ validate_certs }}"
+      tags: keygen

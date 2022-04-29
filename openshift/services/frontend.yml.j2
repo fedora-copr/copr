@@ -1,0 +1,95 @@
+# vim: ft=yaml
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: copr-frontend-config
+type: Opaque
+data:
+  copr.conf: "{{ frontend_config | b64encode }}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-frontend
+spec:
+  ports:
+    - name: copr-frontend-httpd
+      port: 5000
+      targetPort: 5000
+  selector:
+    name: copr-frontend
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: copr-frontend
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/copr/frontend:test
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: copr-frontend
+spec:
+  template:
+    metadata:
+      labels:
+        name: copr-frontend
+    spec:
+      containers:
+        - name: copr-frontend
+          image: "{{ copr_frontend_image }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          resources:
+            limits:
+              memory: "500Mi"
+              cpu: "200m"
+          volumeMounts:
+            - name: copr-frontend-config
+              mountPath: /etc/copr
+      volumes:
+        - name: copr-frontend-config
+          secret:
+            secretName: copr-frontend-config
+            optional: false
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - copr-frontend
+        from:
+          kind: ImageStreamTag
+          name: copr-frontend:test
+      type: ImageChange
+    - type: ConfigChange
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: copr-frontend
+spec:
+  port:
+    targetPort: copr-frontend-httpd
+  to:
+    kind: Service
+    name: copr-frontend

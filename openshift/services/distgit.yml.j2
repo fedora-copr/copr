@@ -1,0 +1,182 @@
+# vi: ft=yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-distgit-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "3Gi"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-distgit-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-distgit-locks
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10M"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: distgit-config
+type: Opaque
+data:
+  dist-git.conf: "{{ distgit_config | b64encode }}"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: distgit-copr-config
+type: Opaque
+data:
+  copr-dist-git.conf: "{{ distgit_copr_config | b64encode }}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-distgit
+spec:
+  ports:
+    - name: copr-distgit-http
+      port: 5001
+      targetPort: 5001
+  selector:
+    name: copr-distgit
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: copr-distgit
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/copr/distgit:test
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: copr-distgit
+spec:
+  template:
+    metadata:
+      labels:
+        name: copr-distgit
+    spec:
+      containers:
+        - name: imports
+          image: "{{ copr_distgit_image }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: distgit-copr-config
+              mountPath: /etc/copr
+            - name: distgit-config
+              mountPath: /etc/dist-git
+            - name: storage
+              mountPath: /var/lib/dist-git
+            - name: logs
+              mountPath: /var/lib/copr-dist-git
+            - name: logs
+              mountPath: /var/log/copr-dist-git
+            - name: locks
+              mountPath: /var/lock/copr-dist-git
+
+        - name: httpd
+          image: "{{ copr_distgit_image }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: distgit-copr-config
+              mountPath: /etc/copr
+            - name: distgit-config
+              mountPath: /etc/dist-git
+            - name: storage
+              mountPath: /var/lib/dist-git
+            - name: logs
+              mountPath: /var/lib/copr-dist-git
+            - name: logs
+              mountPath: /var/log/copr-dist-git
+            - name: logs
+              mountPath: /var/log/httpd
+          command: ["/usr/sbin/httpd", "-DFOREGROUND"]
+
+      volumes:
+        - name: distgit-config
+          secret:
+            secretName: distgit-config
+            optional: false
+
+        - name: distgit-copr-config
+          secret:
+            secretName: distgit-copr-config
+            optional: false
+
+        - name: storage
+          persistentVolumeClaim:
+            claimName: copr-distgit-data
+
+        - name: logs
+          persistentVolumeClaim:
+            claimName: copr-distgit-logs
+
+        - name: locks
+          persistentVolumeClaim:
+            claimName: copr-distgit-locks
+
+      restartPolicy: Always
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - imports
+          - httpd
+        from:
+          kind: ImageStreamTag
+          name: copr-distgit:test
+      type: ImageChange
+
+    - type: ConfigChange
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: copr-distgit
+spec:
+  port:
+    targetPort: copr-distgit-http
+  to:
+    kind: Service
+    name: copr-distgit

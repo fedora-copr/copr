@@ -1,0 +1,281 @@
+# vi: ft=yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-backend-results
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "3Gi"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-backend-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "1Gi"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-backend-locks
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10M"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: copr-backend-config
+type: Opaque
+data:
+  copr-be.conf: "{{ backend_config | b64encode }}"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-home
+type: Opaque
+data:
+  id_rsa: "{{ aws_config.ssh_key.private | b64encode }}"
+  ssh_config: SG9zdCAqCiAgIElkZW50aXR5RmlsZSB+Ly5zc2gvaWRfcnNhCiAgIFN0cmljdEhvc3RLZXlDaGVja2luZyAgbm8KICAgVXNlcktub3duSG9zdHNGaWxlIC9kZXYvbnVsbAogICBTZXJ2ZXJBbGl2ZUludGVydmFsIDIwCiAgIFNlcnZlckFsaXZlQ291bnRNYXggNQogICBDb25uZWN0VGltZW91dCA2MAo=
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: copr-backend-httpd-config
+type: Opaque
+data:
+  nginx-copr-be.conf: "{{ backend_httpd_config | b64encode }}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-backend
+spec:
+  ports:
+    - name: copr-backend-httpd
+      port: 8080
+      targetPort: 8080
+  selector:
+    name: copr-backend-httpd
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: copr-backend
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/copr/backend:test
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: copr-backend-httpd
+spec:
+  tags:
+    - from:
+        kind: DockerImage
+        name: quay.io/centos7/nginx-120-centos7
+      importPolicy:
+        scheduled: true
+      name: test
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: copr-backend
+spec:
+  template:
+    metadata:
+      labels:
+        name: copr-backend
+    spec:
+      containers:
+        - name: log
+          image: "{{ copr_backend_image }}"
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/bin/copr_run_logger.py"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/copr
+            - name: logs
+              mountPath: /var/log/copr-backend
+
+        - name: actions
+          image: "{{ copr_backend_image }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              mountPath: /etc/copr
+            - name: results
+              mountPath: /var/lib/copr/public_html
+            - name: locks
+              mountPath: /var/lock/copr-backend
+          command: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "actions"]
+
+        - name: builds
+          image: "{{ copr_backend_image }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              mountPath: /etc/copr
+            - name: results
+              mountPath: /var/lib/copr/public_html
+            - name: locks
+              mountPath: /var/lock/copr-backend
+            - name: home
+              mountPath: /backend-home
+          env:
+            - name: HOME
+              value: /backend-home
+          command: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "builds"]
+
+      # start these containers on the same node with copr-backend-httpd!
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: name
+                    operator: In
+                    values:
+                      - copr-backend-httpd
+              topologyKey: kubernetes.io/hostname
+
+
+      volumes:
+        - name: config
+          secret:
+            secretName: copr-backend-config
+            optional: false
+
+        - name: home
+          secret:
+            secretName: backend-home
+            optional: false
+            defaultMode: 0600
+            items:
+              - key: id_rsa
+                path: .ssh/id_rsa
+              - key: ssh_config
+                path: .ssh/config
+
+        - name: logs
+          persistentVolumeClaim:
+            claimName: copr-backend-logs
+
+        - name: results
+          persistentVolumeClaim:
+            claimName: copr-backend-results
+
+        - name: locks
+          persistentVolumeClaim:
+            claimName: copr-backend-locks
+
+      restartPolicy: Always
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - actions
+          - builds
+          - log
+        from:
+          kind: ImageStreamTag
+          name: copr-backend:test
+      type: ImageChange
+
+    - type: ConfigChange
+
+
+---
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: copr-backend-httpd
+spec:
+  template:
+    metadata:
+      labels:
+        name: copr-backend-httpd
+    spec:
+      containers:
+        - name: httpd
+          image: "{{ nginx_image }}"
+          imagePullPolicy: IfNotPresent
+          command: ["nginx", "-g", "daemon off;"]
+          volumeMounts:
+            - name: results
+              mountPath: /opt/app-root/src
+            - name: config
+              mountPath: /opt/app-root/etc/nginx.d/
+
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: copr-backend-results
+
+        - name: config
+          secret:
+            secretName: copr-backend-httpd-config
+            optional: false
+
+      restartPolicy: Always
+
+  replicas: 1
+  strategy:
+    type: Recreate
+
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - httpd
+        from:
+          kind: ImageStreamTag
+          name: copr-backend-httpd:test
+      type: ImageChange
+
+    - type: ConfigChange
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: copr-backend
+spec:
+  port:
+    targetPort: copr-backend-httpd
+  to:
+    kind: Service
+    name: copr-backend

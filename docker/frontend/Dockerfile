@@ -6,8 +6,6 @@ ENV TERM=linux
 ENV LANG=en_US.UTF-8
 ENV REDIS_HOST=redis
 
-RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
-
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
@@ -25,7 +23,8 @@ RUN dnf -y update && \
                    mock-core-configs \
                    findutils \
                    copr-frontend \
-                   modulemd-tools
+                   modulemd-tools \
+    && dnf clean all
 
 COPY files/ /
 

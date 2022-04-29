@@ -1,0 +1,21 @@
+#! /bin/bash
+
+allow_statement=$1
+test -z "$allow_statement" && allow_statement="0.0.0.0/0"
+
+# Backend sends signature request to keygen.  We need to configure the /bin/sign
+# client utility.
+
+cat >/etc/sign.conf <<EOF
+allow: $allow_statement
+phrases: /var/lib/copr-keygen/phrases
+gpg: /usr/bin/gpg-copr
+allowuser: $(id -u)
+# we can't open a privileged (for the remote keygen server)
+allow-unprivileged-ports: true
+EOF
+
+# In case the volume is empty.
+mkdir --mode=0700 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg
+
+exec /usr/sbin/signd
