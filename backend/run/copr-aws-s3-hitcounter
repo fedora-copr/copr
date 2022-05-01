@@ -52,10 +52,16 @@ class S3Bucket:
         """
         List all files within our AWS s3 bucket
         """
-        objects = self.s3.list_objects(
+        paginator = self.s3.get_paginator("list_objects")
+        page_iterator = paginator.paginate(
             Bucket=self.bucket,
             Prefix=self.directory)
-        return [x["Key"] for x in objects["Contents"]]
+
+        result = []
+        for page in page_iterator:
+            for obj in page["Contents"]:
+                result.append(obj["Key"])
+        return result
 
     def download_file(self, s3file, dstdir):
         """
