@@ -138,6 +138,10 @@ def get_hit_data(accesses):
             log.debug("Skipping: %s (404 Not Found)", url)
             continue
 
+        if access["cs(User-Agent)"].startswith("Mock"):
+            log.debug("Skipping: %s (user-agent: Mock)", url)
+            continue
+
         # We don't want to count every accessed URL, only those pointing to
         # RPM files and repo file
         key_strings = url_to_key_strings(url)
