@@ -194,7 +194,7 @@ def update_frontend(accesses, dry_run=False):
         "from_backend",
     )
     if not dry_run:
-        SafeRequest(auth=opts.frontend_auth).post(url, result)
+        SafeRequest(auth=opts.frontend_auth, log=log).post(url, result)
 
 
 def get_arg_parser():
