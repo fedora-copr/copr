@@ -2156,7 +2156,7 @@ class CounterStat(db.Model, helpers.Serializer):
     Generic store for simple statistics.
     """
 
-    name = db.Column(db.String(127), primary_key=True)
+    name = db.Column(db.Text, primary_key=True)
     counter_type = db.Column(db.String(30))
 
     counter = db.Column(db.Integer, default=0, server_default="0")
