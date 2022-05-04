@@ -1,170 +1,91 @@
 #!/usr/bin/python3
 
-# This is script is supposed to be run daily from lighttpd logrotate, e.g.
-#    prerotate
-#        /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log --ignore-subnets 172.25.80.0/20 209.132.184.33/24 || :
-#    endscript
+"""
+This is script is supposed to be run daily from lighttpd logrotate, e.g.
+   prerotate
+       /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log \
+           --ignore-subnets 172.25.80.0/20 209.132.184.33/24 || :
+   endscript
+"""
 
 import re
-import sys
-import requests
-import json
 import os
 import logging
 import argparse
-import netaddr
-import time
+from datetime import datetime
+from copr_backend.helpers import setup_script_logger
+from copr_backend.hitcounter import update_frontend
 
-from dateutil.parser import parse as dt_parse
-from netaddr import IPNetwork, IPAddress
-
-from collections import defaultdict
-from copr_backend.helpers import BackendConfigReader, setup_script_logger
-
-opts = BackendConfigReader().read()
 
 log = logging.getLogger(__name__)
 setup_script_logger(log, "/var/log/copr-backend/hitcounter.log")
-
-spider_regex = re.compile('.*(ahrefs|bot/[0-9]|bingbot|borg|google|googlebot|yahoo|slurp|msnbot|msrbot'
-                          '|openbot|archiver|netresearch|lycos|scooter|altavista|teoma|gigabot|baiduspider'
-                          '|blitzbot|oegp|charlotte|furlbot|http://client|polybot|htdig|ichiro|mogimogi'
-                          '|larbin|pompos|scrubby|searchsight|seekbot|semanticdiscovery|silk|snappy|speedy'
-                          '|spider|voila|vortex|voyager|zao|zeal|fast-webcrawler|converacrawler|dataparksearch'
-                          '|findlinks|crawler|yandex|blexbot|semrushbot).*', re.IGNORECASE)
 
 logline_regex = re.compile(
     r'(?P<ip_address>.*)\s+(?P<hostname>.*)\s+-\s+\[(?P<timestamp>.*)\]\s+'
     r'"GET (?P<url>.*)\s+(?P<protocol>.*)"\s+(?P<code>.*)\s+(?P<bytes_sent>.*)\s+'
     r'"(?P<referer>.*)"\s+"(?P<agent>.*)"', re.IGNORECASE)
 
-repomd_url_regex = re.compile("/results/(?P<owner>[^/]*)/(?P<project>[^/]*)/(?P<chroot>[^/]*)/repodata/repomd.xml", re.IGNORECASE)
-rpm_url_regex = re.compile("/results/(?P<owner>[^/]*)/(?P<project>[^/]*)/(?P<chroot>[^/]*)/(?P<build_dir>[^/]*)/(?P<rpm>[^/]*\.rpm)", re.IGNORECASE)
 
-datetime_regex = re.compile(".*\[(?P<date>[^:]*):(?P<time>\S*)\s(?P<zone>[^\]]*)\].*")
-datetime_parse_template = '{date} {time} {zone}'
-
-parser = argparse.ArgumentParser(description='Read lighttpd access.log and count repo accesses.')
-parser.add_argument('--ignore-subnets', action='store', help='What IPs to ignore', nargs='+', default=[], metavar="SUBNET")
-parser.add_argument('logfile', action='store', help='Path to the input logfile')
-
-
-def get_hit_data():
-    hits = defaultdict(int)
-
-    first_line = None
-    last_line = None
-    ignore_networks = map(IPNetwork, args.ignore_subnets)
-    with open(sys.argv[1], 'r') as logfile:
-        logline = None
-        for logline in logfile:
-            if not first_line:
-                first_line = logline
-
-            m = logline_regex.match(logline)
-            if not m:
-                continue
-
-            if m.group('code') != str(200):
-                continue
-
-            ignore = False
-            for ignore_subnet in ignore_networks:
-                try:
-                    if IPAddress(m.group('ip_address')) in ignore_subnet:
-                        ignore = True
-                        break
-                except netaddr.core.AddrFormatError:
-                    ignore = True
-                    break
-            if ignore:
-                continue
-
-            if spider_regex.match(m.group('agent')):
-                continue
-
-            for key_str in url_to_key_strings(m.group('url')):
-                hits[key_str] += 1
-
-        last_line = logline
-
-    return {
-        'ts_from': get_timestamp(first_line),
-        'ts_to': get_timestamp(last_line),
-        'hits': hits,
-    }
-
-
-def url_to_key_strings(url):
+def parse_access_file(path):
     """
-    Take a full URL and return a list of unique strings representing it,
-    that copr-frontend will understand.
+    Take a raw access file and return its contents as a list of dicts.
     """
-    url_match = repomd_url_regex.match(url)
-    if url_match:
-        chroot_key = (
-            'chroot_repo_metadata_dl_stat',
-            url_match.group('owner'),
-            url_match.group('project'),
-            url_match.group('chroot')
-        )
-        chroot_key_str = '|'.join(chroot_key)
-        return [chroot_key_str]
+    with open(path, 'r') as logfile:
+        content = logfile.readlines()
+    assert content[0].startswith("=== start:")
 
-    url_match = rpm_url_regex.match(url)
-    if url_match:
-        chroot_key = (
-            'chroot_rpms_dl_stat',
-            url_match.group('owner'),
-            url_match.group('project'),
-            url_match.group('chroot')
-        )
-        chroot_key_str = '|'.join(chroot_key)
-        project_key = (
-            'project_rpms_dl_stat',
-            url_match.group('owner'),
-            url_match.group('project')
-        )
-        project_key_str = '|'.join(project_key)
-        return [chroot_key_str, project_key_str]
-    return []
+    accesses = []
+    for line in content[1:]:
+        m = logline_regex.match(line)
+        if not m:
+            continue
+        # Rename dict keys to match `copr-aws-s3-hitcounter`
+        access = m.groupdict()
+        access["cs-uri-stem"] = access.pop("url")
+        access["sc-status"] = access.pop("code")
+        access["cs(User-Agent)"] = access.pop("agent")
+        timestamp = datetime.strptime(access.pop("timestamp"),
+                                      "%d/%b/%Y:%H:%M:%S %z")
+        access["time"] = timestamp.strftime("%H:%M:%S")
+        access["date"] = timestamp.strftime("%Y-%m-%d")
+        accesses.append(access)
+    return accesses
 
 
-def get_timestamp(logline):
-    if not logline:
-        return None
+def get_arg_parser():
+    """
+    Generate argument parser for this script
+    """
+    name = os.path.basename(__file__)
+    description = 'Read lighttpd access.log and count repo accesses.'
+    parser = argparse.ArgumentParser(name, description=description)
+    parser.add_argument(
+        'logfile',
+        action='store',
+        help='Path to the input logfile')
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help=("Do not perform any destructive changes, only print what "
+              "would happen"))
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help=("Print verbose information about what is going on"))
+    return parser
 
-    m = datetime_regex.match(logline)
-    if not m:
-        return None
 
-    datetime_str = datetime_parse_template.format(
-        date=m.group('date'),
-        time=m.group('time'),
-        zone=m.group('zone')
-    )
+def main():
+    "Main function"
+    parser = get_arg_parser()
+    args = parser.parse_args()
 
-    return int(dt_parse(datetime_str).strftime('%s'))
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
+
+    accesses = parse_access_file(args.logfile)
+    update_frontend(accesses, log=log, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    result = get_hit_data()
-    result_json = json.dumps(result)
-    target_uri = os.path.join(opts.frontend_base_url, 'stats_rcv' , 'from_backend')
-
-    log.info('Sending: {} results from {} to {}'.format(
-        len(result['hits']),
-        result['ts_from'],
-        result['ts_to']))
-
-    for i in range(10):
-        try:
-            log.info('Trying to post data to frontend {}. time'.format(i+1))
-            r = requests.post(target_uri, json=result_json, timeout=20)
-        except Exception as e:
-            log.error(str(e))
-            time.sleep(10)
-        else:
-            log.info('Received: {} {}'.format(r.status_code, r.text))
-            break
+    main()

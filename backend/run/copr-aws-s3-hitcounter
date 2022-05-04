@@ -21,12 +21,10 @@ import argparse
 import logging
 import tempfile
 import gzip
-from datetime import datetime
 from socket import gethostname
 import boto3
-from copr_common.request import SafeRequest
-from copr_log_hitcounter import url_to_key_strings
-from copr_backend.helpers import BackendConfigReader, setup_script_logger
+from copr_backend.hitcounter import update_frontend
+from copr_backend.helpers import setup_script_logger
 
 
 # We will allow only this hostname to delete files from the S3 storage
@@ -124,79 +122,6 @@ def parse_access_file(path):
     return accesses
 
 
-def get_hit_data(accesses):
-    """
-    Prepare body for the frontend request in the same format that
-    copr_log_hitcounter.py does.
-    """
-    hits = {}
-    timestamps = []
-    for access in accesses:
-        url = access["cs-uri-stem"]
-
-        if access["sc-status"] == "404":
-            log.debug("Skipping: %s (404 Not Found)", url)
-            continue
-
-        if access["cs(User-Agent)"].startswith("Mock"):
-            log.debug("Skipping: %s (user-agent: Mock)", url)
-            continue
-
-        # We don't want to count every accessed URL, only those pointing to
-        # RPM files and repo file
-        key_strings = url_to_key_strings(url)
-        if not key_strings:
-            log.debug("Skipping: %s", url)
-            continue
-
-        log.debug("Processing: %s", url)
-
-        # When counting RPM access, we want to iterate both project hits and
-        # chroot hits. That way we can get multiple `key_strings` for one URL
-        for key_str in key_strings:
-            hits.setdefault(key_str, 0)
-            hits[key_str] += 1
-
-        # Remember this access timestamp
-        datetime_format = "%Y-%m-%d %H:%M:%S"
-        datetime_string = "{0} {1}".format(access["date"], access["time"])
-        datetime_object = datetime.strptime(datetime_string, datetime_format)
-        timestamps.append(int(datetime_object.timestamp()))
-
-    return {
-        "ts_from": min(timestamps),
-        "ts_to": max(timestamps),
-        "hits": hits,
-    } if hits else {}
-
-
-def update_frontend(accesses, dry_run=False):
-    """
-    Increment frontend statistics based on these `accesses`
-    """
-    result = get_hit_data(accesses)
-    if not result:
-        log.debug("No recognizable hits among these accesses, skipping.")
-        return
-
-    log.info(
-        "Sending: %i results from %i to %i",
-        len(result["hits"]),
-        result["ts_from"],
-        result["ts_to"]
-    )
-    log.debug("Hits: %s", result["hits"])
-
-    opts = BackendConfigReader().read()
-    url = os.path.join(
-        opts.frontend_base_url,
-        "stats_rcv",
-        "from_backend",
-    )
-    if not dry_run:
-        SafeRequest(auth=opts.frontend_auth, log=log).post(url, result)
-
-
 def get_arg_parser():
     """
     Generate argument parser for this script
@@ -240,7 +165,7 @@ def main():
         # a scenario when we increment the accesses on the frontend but then
         # leave the s3 file untouched, which would result in parsing and
         # incrementing from the same file again in the next run
-        update_frontend(accesses, dry_run=args.dry_run)
+        update_frontend(accesses, log=log, dry_run=args.dry_run)
         s3.delete_file(s3file)
 
         # Clean all temporary files
