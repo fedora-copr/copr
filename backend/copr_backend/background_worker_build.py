@@ -403,6 +403,7 @@ class BuildBackgroundWorker(BackgroundWorker):
             if self.canceled:
                 raise BuildCanceled
             if success:
+                self.log.info("Allocated host %s", self.host.info)
                 self.last_hostname = self.host.hostname
                 return
             time.sleep(60)
