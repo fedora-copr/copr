@@ -28,12 +28,6 @@ def mc_os_setgid():
 
 
 @pytest.yield_fixture
-def mc_grp_getgrnam():
-    with mock.patch("{}.grp.getgrnam".format(MODULE_REF)) as handle:
-        yield handle
-
-
-@pytest.yield_fixture
 def mc_subprocess_check_output():
     with mock.patch("{}.subprocess.check_output".format(MODULE_REF)) as handle:
         yield handle
@@ -77,7 +71,7 @@ def mc_pyrpkg_commands():
 
 class TestPackageImport(Base):
 
-    def test_my_upload(self, mc_os_setgid, mc_grp_getgrnam):
+    def test_my_upload(self, mc_os_setgid):
          filename = "source"
          source_path = os.path.join(self.tmp_dir_name, filename)
          with open(source_path, "w") as handle:

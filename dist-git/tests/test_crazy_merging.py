@@ -30,11 +30,6 @@ def mc_group():
 
 
 @pytest.yield_fixture
-def mc_grp_getgrnam():
-    with mock.patch("grp.getgrnam") as handle:
-        yield handle
-
-@pytest.yield_fixture
 def mc_chroot():
     with mock.patch("os.chroot") as handle:
         yield handle
@@ -175,7 +170,7 @@ def compare_branches(branches, remote, local=None, result_hash=None):
 
 
 @pytest.fixture
-def initial_commit_everywhere(request, branches, mc_group, mc_chroot, opts_basic, mc_setup_git_repo, mc_grp_getgrnam):
+def initial_commit_everywhere(request, branches, mc_group, mc_chroot, opts_basic, mc_setup_git_repo):
     origin, all_branches, _, _ = branches
 
     # Commit first version and compare remote side with local side.
@@ -196,7 +191,7 @@ class TestMerging(object):
     def setup_method(self, method):
         srpm_cache = {}
 
-    def test_merged_everything(self, initial_commit_everywhere, mc_setup_git_repo, mc_grp_getgrnam):
+    def test_merged_everything(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 
@@ -215,7 +210,7 @@ class TestMerging(object):
         assert v3_hash != v1_hash
         assert v3_hash != v2_hash
 
-    def test_diverge_middle_branches(self, initial_commit_everywhere, mc_setup_git_repo, mc_grp_getgrnam):
+    def test_diverge_middle_branches(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 
@@ -237,7 +232,7 @@ class TestMerging(object):
         assert v3_hash_a != v1_hash
         assert v3_hash_b != v1_hash
 
-    def test_no_op_1(self, initial_commit_everywhere, mc_setup_git_repo, mc_grp_getgrnam):
+    def test_no_op_1(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 

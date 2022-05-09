@@ -4,7 +4,6 @@ import logging
 import os
 import shutil
 import types
-import grp
 import subprocess
 import tempfile
 import munch
@@ -38,11 +37,6 @@ def my_upload_fabric(opts):
         destination = os.path.join(opts.lookaside_location, reponame,
                                    filename, filehash, filename)
 
-        # hack to allow "uploading" into lookaside
-        current_gid = os.getgid()
-        apache_gid = grp.getgrnam("apache").gr_gid
-        os.setgid(apache_gid)
-
         if not os.path.isdir(os.path.dirname(destination)):
             try:
                 os.makedirs(os.path.dirname(destination))
@@ -51,8 +45,6 @@ def my_upload_fabric(opts):
 
         if not os.path.exists(destination):
             shutil.copyfile(abs_filename, destination)
-
-        os.setgid(current_gid)
 
     return my_upload
 
