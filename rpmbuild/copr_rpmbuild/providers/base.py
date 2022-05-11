@@ -7,7 +7,6 @@ import tempfile
 
 from copr_common.request import SafeRequest
 
-from ..helpers import string2list
 
 log = logging.getLogger("__main__")
 
@@ -16,10 +15,13 @@ class Provider(object):
     # pylint: disable=too-many-instance-attributes
     _safe_resultdir = None
 
-    def __init__(self, source_dict, config):
+    def __init__(self, source_dict, config, macros=None):
         self.source_dict = source_dict
         self.config = config
         self.request = SafeRequest(log=log)
+
+        # Additional macros that should be defined in the buildroot
+        self.macros = macros or {}
 
         # Where we should produce output, everything there gets copied to
         # backend once build ends!
@@ -104,10 +106,8 @@ class Provider(object):
     def create_rpmmacros(self):
         path = os.path.join(self.workdir, ".rpmmacros")
         with open(path, "w") as rpmmacros:
-            rpmmacros.write("%_disable_source_fetch 0\n")
-            enabled_protocols = string2list(self.config.get("main", "enabled_source_protocols"))
-            rpmmacros.write("%__urlhelper_localopts --proto -all,{0}\n"
-                            .format(','.join(["+"+protocol for protocol in enabled_protocols])))
+            for key, value in self.macros.items():
+                rpmmacros.write("{0} {1}\n".format(key, value))
 
     def produce_srpm(self):
         """

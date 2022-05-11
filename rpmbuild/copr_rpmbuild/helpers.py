@@ -11,8 +11,11 @@ import configparser
 import datetime
 import pipes
 from threading import Timer
+from collections import OrderedDict
 
 from six.moves.urllib.parse import urlparse
+from copr_common.enums import BuildSourceEnum
+
 
 log = logging.getLogger("__main__")
 
@@ -317,3 +320,43 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
 
         checkout_cmd = ['git', 'checkout', committish]
         run_cmd(checkout_cmd, cwd=repo_path)
+
+
+def macros_for_task(task, config):
+    """
+    Based on a task definition, generate RPM macros that should be defined in
+    the buildroot. Macros are simply returned as a `dict` and it is up to the
+    caller to pass them into Mock via `--define`, dump `~/.rpmmacros`, etc.
+
+    Each macro is to be defined with %-sign at the begining.
+    """
+    # We use OdrderedDict just to be sure that we generate the macros in the
+    # same order. It doesn't really matter in production, but is easier to test.
+    macros = OrderedDict({
+        "%copr_username": task["project_owner"],
+        "%copr_projectname": task["project_name"],
+    })
+
+    rpm_vendor_copr_name = config.get("main", "rpm_vendor_copr_name", fallback=None)
+    if rpm_vendor_copr_name:
+        vendor = "{0} - {1} {2}".format(
+            rpm_vendor_copr_name,
+            "group" if task["project_owner"].startswith("@") else "user",
+            task["project_owner"],
+        )
+        macros["%vendor"] = vendor
+
+    task_id = task.get("task_id")
+    if task_id:
+        macros["%buildtag"] = ".copr" + re.sub("-.*", "", task_id)
+
+    if not task["chroot"]:
+        macros["%_disable_source_fetch"] = "0"
+
+    protocols_str = config.get("main", "enabled_source_protocols", fallback=None)
+    if task["source_type"] != BuildSourceEnum.upload and protocols_str:
+        protocols_list = string2list(protocols_str)
+        protocols = ",".join(["+" + protocol for protocol in protocols_list])
+        macros["%__urlhelper_localopts"] = "--proto -all,{0}".format(protocols)
+
+    return macros

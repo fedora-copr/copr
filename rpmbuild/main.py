@@ -22,7 +22,7 @@ from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.automation import run_automation_tools
 from copr_rpmbuild.helpers import read_config, \
-     parse_copr_name, dump_live_log, copr_chroot_to_task_id
+     parse_copr_name, dump_live_log, copr_chroot_to_task_id, macros_for_task
 from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
@@ -158,8 +158,9 @@ def produce_srpm(task, config):
     Use *Provider() classes to create source RPM in config.get("resultdir")
     """
     try:
-        provider = providers.factory(task["source_type"])(
-            task["source_json"], config)
+        macros = macros_for_task(task, config)
+        clazz = providers.factory(task["source_type"])
+        provider = clazz(task["source_json"], config, macros=macros)
         provider.produce_srpm()
         provider.copy_insecure_results()
     finally:
@@ -246,10 +247,11 @@ def build_rpm(args, config):
     log_task(task)
 
     try:
-        distgit = providers.DistGitProvider(
-            {"clone_url": task["git_repo"], "committish": task["git_hash"]},
-            config,
-        )
+        source_json = {
+            "clone_url": task["git_repo"],
+            "committish": task["git_hash"],
+        }
+        distgit = providers.DistGitProvider(source_json, config)
 
         # Just clone and download sources, don't create source RPM (aka
         # produce_srpm).  We want to create the source RPM using Mock

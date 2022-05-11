@@ -152,16 +152,14 @@ config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
 
 config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'
 
-config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True
 
 config_opts['isolation'] = 'nspawn'
-
 config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'
-# Build-system's (or build) ID
+config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 config_opts['macros']['%buildtag'] = '.copr10'
 
 """  # TODO: make the output nicer

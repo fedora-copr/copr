@@ -7,7 +7,6 @@ config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
 {% if buildroot_pkgs %}
 config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
 {% endif %}
-config_opts['macros']['%vendor'] = '{{ vendor }}'
 {% if enable_net %}
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True
@@ -19,10 +18,9 @@ config_opts['use_host_resolv'] = False
 config_opts['isolation'] = '{{ isolation }}'
 {%- endif %}
 
-config_opts['macros']['%copr_username'] = '{{ copr_username }}'
-config_opts['macros']['%copr_projectname'] = '{{ copr_projectname }}'
-# Build-system's (or build) ID
-config_opts['macros']['%buildtag'] = '.copr{{ copr_build_id }}'
+{%- for key, value in macros.items() %}
+config_opts['macros']['{{ key }}'] = '{{ value }}'
+{%- endfor %}
 
 {%- if bootstrap == "on" %}
 config_opts['use_bootstrap'] = True

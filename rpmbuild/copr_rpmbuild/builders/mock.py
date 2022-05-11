@@ -6,7 +6,14 @@ import shutil
 import subprocess
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext, GentlyTimeoutedPopen
+from ..helpers import (
+    locate_spec,
+    locate_srpm,
+    CONF_DIRS,
+    get_mock_uniqueext,
+    GentlyTimeoutedPopen,
+    macros_for_task,
+)
 
 log = logging.getLogger("__main__")
 
@@ -33,12 +40,7 @@ class MockBuilder(object):
         self.copr_projectname = task.get("project_name")
         self.modules = task.get("modules")
         self.isolation = task.get("isolation")
-        rpm_vendor_copr_name = self.config.get("main", "rpm_vendor_copr_name")
-        self.vendor = "{0} - {1} {2}".format(
-            rpm_vendor_copr_name,
-            "group" if self.copr_username.startswith("@") else "user",
-            self.copr_username,
-        )
+        self.macros = macros_for_task(task, config)
         self.uniqueext = get_mock_uniqueext()
 
     def run(self):
@@ -72,15 +74,18 @@ class MockBuilder(object):
     def render_config_template(self):
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("mock.cfg.j2")
-        return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
-                               enable_net=self.enable_net,
-                               bootstrap=self.bootstrap,
-                               bootstrap_image=self.bootstrap_image,
-                               repos=self.repos,
-                               copr_username=self.copr_username, copr_projectname=self.copr_projectname,
-                               modules=self.module_setup_commands,
-                               copr_build_id=self.build_id,
-                               vendor=self.vendor, isolation=self.isolation)
+        return template.render(
+            chroot=self.chroot,
+            buildroot_pkgs=self.buildroot_pkgs,
+            enable_net=self.enable_net,
+            bootstrap=self.bootstrap,
+            bootstrap_image=self.bootstrap_image,
+            repos=self.repos,
+            modules=self.module_setup_commands,
+            copr_build_id=self.build_id,
+            isolation=self.isolation,
+            macros=self.macros,
+        )
 
     def produce_srpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [

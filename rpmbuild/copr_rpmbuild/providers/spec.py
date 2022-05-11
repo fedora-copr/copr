@@ -25,8 +25,11 @@ class UrlProvider(Provider):
         spec_path = self.save_spec()
         cmd = ["mock", "-r", "/etc/copr-rpmbuild/mock-source-build.cfg",
                "--buildsrpm", "--spec", spec_path,
-               "--define", "_disable_source_fetch 0",
                "--resultdir", self.resultdir]
+
+        for key, value in self.macros.items():
+            cmd += ["--define", "{0} {1}".format(key, value)]
+
         return run_cmd(cmd, cwd=self.workdir)
 
     def download_srpm(self):

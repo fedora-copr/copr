@@ -22,8 +22,13 @@ class TestTmpCleanup(TestCase):
     resultdir = None
     workspace = None
 
-    task = {"source_type": BuildSourceEnum.upload,
-            "source_json": {"url": "http://foo.ex/somepackage.spec"}}
+    task = {
+        "chroot": None,
+        "source_type": BuildSourceEnum.upload,
+        "source_json": {"url": "http://foo.ex/somepackage.spec"},
+        "project_owner": "u1",
+        "project_name": "p1",
+    }
 
     def auto_test_setup(self):
         self.config_basic_dirs()
