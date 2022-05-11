@@ -279,80 +279,6 @@ Name of the PyPI package to be built, required.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
-`copr-cli buildtito [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr buildtito [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--background]
-                      [-r CHROOTS] [--git-url URL] [--git-dir DIRECTORY]
-                      [--git-branch BRANCH] [--test]
-                      project
-
-Deprecated by SCM source type.
-
---git-url URL::
-Url to a project managed by Tito, required.
-
---git-dir DIRECTORY::
-Relative path from Git root to directory containing .spec file.
-
---git-branch BRANCH::
-Checokut specific branch on the repository.
-
---test::
-To build from the last commit instead of the last release tag.
-
-
-For the rest of the arguments, see `copr-cli build` command above.
-
-
-`copr-cli buildmock [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr buildmock [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--background]
-                      [-r CHROOTS] [--scm-type TYPE] [--scm-url URL]
-                      [--scm-branch BRANCH] [--spec FILE]
-                      project
-
-Deprecated by SCM source type.
-
---scm-type TYPE::
-Specify versioning tool, default is 'git'.
-
---scm-url URL::
-Url to a project versioned by Git or SVN, required.
-
---scm-branch BRANCH::
-Checokut specific branch on the repository.
-
---spec FILE::
-Relative path from SCM root to .spec file, required.
-
-
-For the rest of the arguments, see `copr-cli build` command above.
-
-
-`copr-cli buildfedpkg [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr buildfedpkg [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--background]
-                      [-r CHROOTS] [--clone-url URL] [--branch BRANCH]
-                      project
-
-Deprecated by SCM source type.
-
---clone-url URL::
-Specify clone url to the dist-git project on pkgs.fedoraproject.org.
-
---branch BRANCH::
-Specify branch in the dist-git project to be be built from.
-
-
-For the rest of the arguments, see `copr-cli build` command above.
-
-
 `copr-cli buildscm [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -473,44 +399,6 @@ The text-row format prints all information separated by a space on a single line
 PACKAGE ACTIONS
 ---------------
 
-`copr-cli add-package-tito [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-usage: copr add-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
-                             [--git-branch BRANCH] [--test {on,off}] --name
-                             PKGNAME [--webhook-rebuild {on,off}]
-                             project
-
-Deprecated by SCM source type.
-
---git-url URL::
-URL to a project managed by Tito
-
---git-dir DIRECTORY::
-Relative path from Git root to directory containing .spec file
-
---git-branch BRANCH::   
-Git branch that you want to build from
-
---test {on,off}::
-Build the last commit instead of the last release tag
-
---name PKGNAME::
-Name of the package to be edited or created
-
---webhook-rebuild {on,off}::
-Enable auto-rebuilding.
-
-
-`copr-cli edit-package-tito [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr edit-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
-                              [--git-branch BRANCH] [--test {on,off}] --name
-                              PKGNAME [--webhook-rebuild {on,off}]
-                              project
-
-Deprecated by SCM source type.
-
 
 `copr-cli add-package-pypi [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,46 +437,6 @@ usage: copr edit-package-pypi [-h] [--pythonversions [VERSION [VERSION ...]]]
                              project
 
 Edit source definition and type of an existing package. Options are shared with add-package-pypi.
-
-
-`copr-cli add-package-mockscm [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr add-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
-                                [--scm-branch BRANCH] [--spec FILE] --name
-                                PKGNAME [--webhook-rebuild {on,off}]
-                                project
-
-Deprecated by SCM source type.
-
---scm-type TYPE::
-Specify versioning tool, default is 'git'
-
---scm-url URL::
-Url to a project versioned by Git or SVN, required
-
---scm-branch BRANCH::
-Branch in the target repository to build from
-
---spec FILE::
-Relative path from SCM root to .spec file, required
-
---name PKGNAME::
-Name of the package to be edited or created
-
---webhook-rebuild {on,off}::
-Enable auto-rebuilding
-
-
-`copr-cli edit-package-mockscm [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr edit-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
-                                [--scm-branch BRANCH] [--spec FILE] --name
-                                PKGNAME [--webhook-rebuild {on,off}]
-                                project
-
-Deprecated by SCM source type.
 
 
 `copr-cli add-package-scm [options]`
