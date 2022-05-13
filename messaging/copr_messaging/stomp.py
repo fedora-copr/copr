@@ -51,7 +51,13 @@ def message_object_from_raw(headers, body):
 
 class Consumer(stomp.listener.ConnectionListener, _GenericConsumer):
 
-    def on_message(self, headers, body):
+    def on_message(self, headers, body=None):
+        if body is None:
+            # Stomp 6.1+ has changed the API, and it returns "frame" instead of
+            # "headers" and "body":
+            # https://github.com/jasonrbriggs/stomp.py/commit/eba178b5dda5cab873a4b45ac040587a9f55b7f3
+            body = headers.body
+            headers = headers.headers
         message = message_object_from_raw(headers, body)
         message.validate()
 
