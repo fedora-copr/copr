@@ -1,8 +1,6 @@
 import errno
 import logging
-import munch
 import subprocess
-import rpm
 import glob
 import os
 import sys
@@ -12,6 +10,8 @@ import datetime
 import pipes
 from threading import Timer
 from collections import OrderedDict
+import rpm
+import munch
 
 from six.moves.urllib.parse import urlparse
 from copr_common.enums import BuildSourceEnum
