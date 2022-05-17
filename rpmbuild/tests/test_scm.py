@@ -4,7 +4,7 @@ import stat
 import configparser
 import shutil
 
-from copr_rpmbuild.providers.scm import ScmProvider
+from copr_rpmbuild.providers.scm import ScmProvider, MAKE_SRPM_TEPMLATE
 from copr_rpmbuild.helpers import read_config
 from . import TestCase
 
@@ -143,11 +143,11 @@ class TestScmProvider(TestCase):
         bind_mount_cmd_part = '--plugin-option=bind_mount:dirs=(("{0}", "/mnt/{1}"), ("{2}", "/mnt/{3}"))'\
                               .format(provider.workdir, workdir_base,
                                       resultdir, basename)
-        make_srpm_cmd_part = 'cd /mnt/{wb}/somerepo/subpkg; make -f /mnt/{wb}/somerepo/.copr/Makefile srpm '\
-                             'outdir="/mnt/{rb}" spec="/mnt/{wb}/somerepo/subpkg/pkg.spec"'\
-                             .format(
-            wb=workdir_base,
-            rb=basename,
+        make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(
+            "/mnt/{0}/somerepo/subpkg".format(workdir_base),
+            "/mnt/{0}/somerepo/.copr/Makefile".format(workdir_base),
+            "/mnt/{0}".format(basename),
+            "/mnt/{0}/somerepo/subpkg/pkg.spec".format(workdir_base),
         )
         assert_cmd = ['mock', '--uniqueext', '2', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
                       bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]

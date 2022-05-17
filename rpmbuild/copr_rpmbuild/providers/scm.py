@@ -14,6 +14,12 @@ from six.moves.urllib.parse import urlparse
 
 log = logging.getLogger("__main__")
 
+MAKE_SRPM_TEPMLATE = (
+    "set -x && "
+    'cd {0} && '
+    'echo -e "[safe]\ndirectory = {0}" > ~/.gitconfig && '
+    'make -f {1} srpm outdir="{2}" spec="{3}"'
+)
 
 class ScmProvider(Provider):
 
@@ -111,9 +117,8 @@ class ScmProvider(Provider):
             .format(self.workdir, mock_workdir, self.resultdir, mock_resultdir)
 
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
-        make_srpm_cmd_part = \
-            'cd {0}; make -f {1} srpm outdir="{2}" spec="{3}"'\
-            .format(mock_cwd, makefile_path, mock_resultdir, mock_spec_path)
+        make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(mock_cwd, makefile_path,
+                mock_resultdir, mock_spec_path)
 
         return ['mock', '--uniqueext', get_mock_uniqueext(),
                 '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
