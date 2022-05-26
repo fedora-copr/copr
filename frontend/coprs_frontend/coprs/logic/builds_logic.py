@@ -777,7 +777,7 @@ class BuildsLogic(object):
                 raise MalformedArgumentException(
                     "No chroots selected (or automatically selectable) for "
                     "the package \"%s\" in \"%s\""
-                    % (package.name, package.copr_dir.name))
+                    % (package.name, package.copr.name))
 
         elif chroots is None:
             # when package is unknown, we assign the chroots later when the
@@ -968,11 +968,11 @@ class BuildsLogic(object):
         pkg_name = upd_dict.get('pkg_name', None)
         if not build.package and pkg_name:
             # assign the package if it isn't already
-            if not PackagesLogic.get(build.copr_dir.id, pkg_name).first():
+            if not PackagesLogic.get(build.copr.id, pkg_name).first():
                 # create the package if it doesn't exist
                 try:
                     package = PackagesLogic.add(
-                        build.copr.user, build.copr_dir,
+                        build.copr.user, build.copr,
                         pkg_name, build.source_type, build.source_json)
                     db.session.add(package)
                     db.session.commit()
@@ -980,7 +980,7 @@ class BuildsLogic(object):
                     app.logger.exception(e)
                     db.session.rollback()
                     return
-            build.package = PackagesLogic.get(build.copr_dir.id, pkg_name).first()
+            build.package = PackagesLogic.get(build.copr.id, pkg_name).first()
 
         for attr in ["built_packages", "srpm_url", "pkg_version"]:
             value = upd_dict.get(attr, None)
@@ -1626,7 +1626,7 @@ class BuildsMonitorLogic(object):
                 BuildChroots (can span multiple Builds!) for the given package
         """
 
-        packages_query = PackagesLogic.get_all_ordered(copr.main_dir.id)
+        packages_query = PackagesLogic.get_all_ordered(copr.id)
         packages_count = packages_query.count()
 
         if packages_count > paginate_if_more_than:

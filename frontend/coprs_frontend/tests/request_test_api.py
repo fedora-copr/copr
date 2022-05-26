@@ -55,7 +55,8 @@ class _RequestsInterface:
         """ Modify CoprChroot """
         raise NotImplementedError
 
-    def create_distgit_package(self, project, pkgname, options=None):
+    def create_distgit_package(self, project, pkgname, options=None,
+                               expected_status_code=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -120,7 +121,8 @@ class WebUIRequests(_RequestsInterface):
             assert resp.status_code == 302
         return resp
 
-    def create_distgit_package(self, project, pkgname, options=None):
+    def create_distgit_package(self, project, pkgname, options=None,
+                               expected_status_code=None):
         if options:
             raise NotImplementedError
         data = {
@@ -131,7 +133,7 @@ class WebUIRequests(_RequestsInterface):
             project=project,
         )
         resp = self.client.post(route, data=data)
-        assert resp.status_code == 302
+        assert resp.status_code == (expected_status_code or 302)
         return resp
 
     @staticmethod
@@ -166,7 +168,7 @@ class WebUIRequests(_RequestsInterface):
         """ There's a button "rebuild-all" in web-UI, hit that button """
         copr = models.Copr.query.get(project_id)
         if not package_names:
-            packages = copr.main_dir.packages
+            packages = copr.packages
             package_names = [p.name for p in packages]
 
         chroots = [mch.name for mch in copr.mock_chroots]
@@ -280,7 +282,8 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, data)
         return resp
 
-    def create_distgit_package(self, project, pkgname, options=None):
+    def create_distgit_package(self, project, pkgname, options=None,
+                               expected_status_code=None):
         route = "/api_3/package/add/{}/{}/{}/distgit".format(
             self.transaction_username, project, pkgname)
         data = {"package_name": pkgname}
@@ -289,13 +292,15 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, data)
         return resp
 
-    def rebuild_package(self, project, pkgname, build_options=None):
+    def rebuild_package(self, project_dirname, pkgname, build_options=None):
         """ Rebuild one package in a given project using API """
+        project_name = project_dirname.split(":")[0]
         route = "/api_3/package/build"
         rebuild_data = {
             "ownername": self.transaction_username,
-            "projectname": project,
+            "projectname": project_name,
             "package_name": pkgname,
+            "project_dirname": project_dirname,
         }
         rebuild_data.update(self._form_data_from_build_options(build_options))
         return self.post(route, rebuild_data)

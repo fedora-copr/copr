@@ -97,7 +97,7 @@ class ComplexLogic(object):
         srpm_builds_src = []
         srpm_builds_dst = []
 
-        for package in copr.main_dir.packages:
+        for package in copr.packages:
             fpackage = forking.fork_package(package, fcopr)
 
             builds = PackagesLogic.last_successful_build_chroots(package)
@@ -217,13 +217,13 @@ class ComplexLogic(object):
                 message="Package {} does not exist.".format(package_id))
 
     @staticmethod
-    def get_package_safe(copr_dir, package_name):
+    def get_package_safe(copr, package_name):
         try:
-            return PackagesLogic.get(copr_dir.id, package_name).one()
+            return PackagesLogic.get(copr.id, package_name).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
-                message="Package {} in the copr_dir {} does not exist."
-                .format(package_name, copr_dir))
+                message="Package {} in the copr {} does not exist."
+                .format(package_name, copr))
 
     @staticmethod
     def get_group_by_name_safe(group_name):
@@ -343,11 +343,10 @@ class ProjectForking(object):
         return fcopr
 
     def fork_package(self, package, fcopr):
-        fpackage = PackagesLogic.get(fcopr.main_dir.id, package.name).first()
+        fpackage = PackagesLogic.get(fcopr.id, package.name).first()
         if not fpackage:
-            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "copr_dir_id", "webhook_rebuild"])
+            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "webhook_rebuild"])
             fpackage.copr = fcopr
-            fpackage.copr_dir = fcopr.main_dir
             db.session.add(fpackage)
         return fpackage
 

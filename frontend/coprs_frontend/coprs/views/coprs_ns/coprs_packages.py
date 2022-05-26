@@ -34,8 +34,7 @@ from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPacka
 def copr_packages(copr, page=1):
     flashes = flask.session.pop('_flashes', [])
 
-    copr_dir_id = copr.main_dir.id
-    query_packages = PackagesLogic.get_all_ordered(copr_dir_id)
+    query_packages = PackagesLogic.get_all_ordered(copr.id)
 
     pagination = None
     if query_packages.count() > 1000:
@@ -46,7 +45,7 @@ def copr_packages(copr, page=1):
 
     # Assign the latest builds to the package array set.
     packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
-        copr.main_dir.id, packages=packages)
+        copr.main_dir, packages=packages)
 
     response = flask.Response(
         stream_with_context(helpers.stream_template(
@@ -63,7 +62,7 @@ def copr_packages(copr, page=1):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/")
 @req_with_copr
 def copr_package(copr, package_name):
-    package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
+    package = ComplexLogic.get_package_safe(copr, package_name)
     return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/status_image/last_build.png")
@@ -71,7 +70,7 @@ def copr_package(copr, package_name):
 @req_with_copr
 def copr_package_icon(copr, package_name):
     try:
-        package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
+        package = ComplexLogic.get_package_safe(copr, package_name)
     except ObjectNotFound:
         return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
@@ -82,14 +81,15 @@ def copr_package_icon(copr, package_name):
 @coprs_ns.route("/g/<group_name>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
 @req_with_copr
 def copr_rebuild_all_packages(copr):
+    # pylint: disable=not-callable
     form = forms.RebuildAllPackagesFormFactory(
-        copr.active_chroots, [package.name for package in copr.main_dir.packages])()
+        copr.active_chroots, [package.name for package in copr.packages])()
 
     if flask.request.method == "POST" and form.validate_on_submit():
         try:
             packages = []
             for package_name in form.packages.data:
-                packages.append(ComplexLogic.get_package_safe(copr.main_dir, package_name))
+                packages.append(ComplexLogic.get_package_safe(copr, package_name))
 
             PackagesLogic.batch_build(
                 flask.g.user,
@@ -119,7 +119,7 @@ def copr_rebuild_all_packages(copr):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
 def copr_rebuild_package(copr, package_name):
-    package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
+    package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
 
     if package.source_type_text == "scm":
@@ -193,7 +193,7 @@ def copr_new_package(copr, source_type_text):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type_text>")
 @req_with_copr
 def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
-    package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
+    package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
     data["chroot_denylist"] = package.chroot_denylist_raw
@@ -265,7 +265,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
             if package_name:
                 package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
             else:
-                package = PackagesLogic.add(flask.app.g.user, copr.main_dir, form.package_name.data)
+                package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
 
             package.source_type = helpers.BuildSourceEnum(source_type_text)
             package.webhook_rebuild = form.webhook_rebuild.data

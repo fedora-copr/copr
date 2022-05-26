@@ -18,7 +18,6 @@ from coprs import db, app, models
 from coprs.logic.coprs_logic import CoprDirsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.packages_logic import PackagesLogic
 from coprs import helpers
 
 from urllib.parse import urlparse
@@ -60,25 +59,18 @@ class ScmPackage(object):
     def build(self, source_dict_update, copr_dir, update_callback,
               scm_object_type, scm_object_id, scm_object_url, agent_url):
 
-        if self.package.copr_dir.name != copr_dir.name:
-            package = PackagesLogic.get_or_create(copr_dir, self.package.name, self.package)
-        else:
-            package = self.package
-
         if db.engine.url.drivername != 'sqlite':
             db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
 
         return BuildsLogic.rebuild_package(
-            package, source_dict_update, copr_dir, update_callback,
+            self.package, source_dict_update, copr_dir, update_callback,
             scm_object_type, scm_object_id, scm_object_url, submitted_by=agent_url)
 
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
         rows = models.Package.query \
-            .join(models.CoprDir) \
             .filter(models.Package.source_type.in_(SUPPORTED_SOURCE_TYPES)) \
             .filter(models.Package.webhook_rebuild) \
-            .filter(models.CoprDir.main) \
             .filter(models.Package.source_json.ilike('%' + clone_url + '%'))
 
         return [ScmPackage(row) for row in rows]
@@ -298,7 +290,7 @@ class build_on_fedmsg_loop():
                     if build:
                         log.info('\t -> {}'.format(build.to_dict()))
                 except Exception as e:
-                    log.error(str(e))
+                    log.exception(str(e))
                     db.session.rollback()
                 else:
                     db.session.commit()

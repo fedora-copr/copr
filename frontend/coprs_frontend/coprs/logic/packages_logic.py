@@ -25,34 +25,29 @@ class PackagesLogic(object):
         return models.Package.query.filter(models.Package.id == package_id)
 
     @classmethod
-    def get_all(cls, copr_dir_id):
+    def get_all(cls, copr_id):
         """
-        Get all packages assigned to 'copr_dir_id'
+        Get all packages assigned to given project ID.
         """
-        return (models.Package.query
-                .filter(models.Package.copr_dir_id == copr_dir_id))
-
-    @classmethod
-    def get_all_ordered(cls, copr_dir_id):
-        """
-        Get all packages in 'copr_dir_id' ordered by package name
-        """
-        return cls.get_all(copr_dir_id).order_by(models.Package.name)
-
-    @classmethod
-    def get_all_in_copr(cls, copr_id):
         return (models.Package.query
                 .filter(models.Package.copr_id == copr_id))
 
     @classmethod
-    def get_packages_with_latest_builds_for_dir(
-            cls, copr_dir_id, small_build=True, packages=None):
+    def get_all_ordered(cls, copr_id):
         """
-        Obtain the list of package objects for given copr_dir_id, with the
+        Get all packages in given project ID.
+        """
+        return cls.get_all(copr_id).order_by(models.Package.name)
+
+    @classmethod
+    def get_packages_with_latest_builds_for_dir(
+            cls, copr_dir, small_build=True, packages=None):
+        """
+        Obtain the list of package objects for given copr_dir, with the
         latest build assigned.
         Parameters:
 
-        :param copr_dir_id: CoprDir ID (int)
+        :param copr_dir: CoprDir ID (int)
         :param small_build: Don't assign full Build objects, but only a limited
             objects with necessary info.
         :param packages: Don't query the list of Package objects from DB, but
@@ -60,13 +55,16 @@ class PackagesLogic(object):
         :return: array of Package objects, with assigned latest Build object
         """
         if packages is None:
-            packages = cls.get_all_ordered(copr_dir_id).all()
+            packages = cls.get_all_ordered(copr_dir.copr.id).all()
 
         pkg_ids = [package.id for package in packages]
-        builds_ids = models.Build.query \
-            .filter(models.Build.package_id.in_(pkg_ids)) \
-            .with_entities(func.max(models.Build.id)) \
+        builds_ids = (
+            models.Build.query.join(models.CoprDir)
+            .filter(models.Build.package_id.in_(pkg_ids))
+            .filter(models.CoprDir.id==copr_dir.id)
+            .with_entities(func.max(models.Build.id))
             .group_by(models.Build.package_id)
+        )
 
         # map package.id => package object in packages array
         packages_map = {package.id: package for package in packages}
@@ -104,8 +102,8 @@ class PackagesLogic(object):
                                            models.Package.name == package_name)
 
     @classmethod
-    def get(cls, copr_dir_id, package_name):
-        return models.Package.query.filter(models.Package.copr_dir_id == copr_dir_id,
+    def get(cls, copr_id, package_name):
+        return models.Package.query.filter(models.Package.copr_id == copr_id,
                                            models.Package.name == package_name)
 
     @classmethod
@@ -186,20 +184,19 @@ class PackagesLogic(object):
         return False
 
     @classmethod
-    def add(cls, user, copr_dir, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
+    def add(cls, user, copr, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
-            user, copr_dir.copr,
+            user, copr,
             "You don't have permissions to build in this copr.")
 
-        if cls.exists(copr_dir.id, package_name).all():
+        if cls.exists(copr, package_name).all():
             raise exceptions.DuplicateException(
-                "Project dir {} already has a package '{}'"
-                .format(copr_dir.full_name, package_name))
+                "Project {} already has a package '{}'"
+                .format(copr.full_name, package_name))
 
         package = models.Package(
             name=package_name,
-            copr=copr_dir.copr,
-            copr_dir=copr_dir,
+            copr=copr,
             source_type=source_type,
             source_json=source_json,
         )
@@ -208,9 +205,9 @@ class PackagesLogic(object):
         return package
 
     @classmethod
-    def exists(cls, copr_dir_id, package_name):
+    def exists(cls, copr, package_name):
         return (models.Package.query
-                .filter(models.Package.copr_dir_id == copr_dir_id)
+                .filter(models.Package.copr_id == copr.id)
                 .filter(models.Package.name == package_name))
 
 

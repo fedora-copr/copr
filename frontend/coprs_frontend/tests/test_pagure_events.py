@@ -61,7 +61,7 @@ class TestPagureEvents(CoprsTestCase):
 
     def test_negative_is_dir_in_commit(self, f_users, f_coprs):
         self.p2 = self.models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}'
         )
         candidates = ScmPackage.get_candidates_for_rebuild("https://pagure.io/test")
@@ -76,7 +76,7 @@ class TestPagureEvents(CoprsTestCase):
             'tests/integration/conftest.py b/tests/integration/conftest.py index '
             '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
         self.p2 = self.models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}'
         )
         candidates = ScmPackage.get_candidates_for_rebuild("https://pagure.io/test")
@@ -94,7 +94,7 @@ class TestPagureEvents(CoprsTestCase):
             'tests/integration/conftest.py b/tests/integration/conftest.py index '
             '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
         self.p1 = self.models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test/copr/copr"}'
         )
         build = build_on_fedmsg_loop()
@@ -176,7 +176,7 @@ class TestPagureEvents(CoprsTestCase):
             'tests/integration/conftest.py b/tests/integration/conftest.py index '
             '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
         self.p1 = self.models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}'
         )
         build = build_on_fedmsg_loop()
@@ -195,7 +195,7 @@ class TestPagureEvents(CoprsTestCase):
         self._setup_push_msg()
         f_raw_commit_changes.return_value = {''}
         self.p1 = self.models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=8, webhook_rebuild=True,
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}',
         )
         build = build_on_fedmsg_loop()

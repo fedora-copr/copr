@@ -786,15 +786,9 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
 
     __table_args__ = (
-        db.UniqueConstraint('copr_dir_id', 'name', name='packages_copr_dir_pkgname'),
-        db.Index('package_copr_id_name', 'copr_id', 'name'),
+        db.Index('package_copr_id_name', 'copr_id', 'name', unique=True),
         db.Index('package_webhook_sourcetype', 'webhook_rebuild', 'source_type'),
     )
-
-    def __init__(self, *args, **kwargs):
-        if kwargs.get('copr') and not kwargs.get('copr_dir'):
-            kwargs['copr_dir'] = kwargs.get('copr').main_dir
-        super(Package, self).__init__(*args, **kwargs)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -820,16 +814,13 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("packages"))
 
-    copr_dir_id = db.Column(db.Integer, db.ForeignKey("copr_dir.id"), index=True)
-    copr_dir = db.relationship("CoprDir", backref=db.backref("packages"))
-
     # comma-separated list of wildcards of chroot names that this package should
     # not be built against, e.g. "fedora-*, epel-*-i386"
     chroot_denylist_raw = db.Column(db.Text)
 
     @property
     def dist_git_repo(self):
-        return "{}/{}".format(self.copr_dir.full_name, self.name)
+        return "{}/{}".format(self.copr.full_name, self.name)
 
     @property
     def source_json_dict(self):
@@ -930,10 +921,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     def chroots(self):
         chroots = list(self.copr.active_chroots)
         if not self.chroot_denylist_raw:
-            # no specific denylist
-            if self.copr_dir.main:
-                return chroots
-            return self.main_pkg.chroots
+            return chroots
 
         filtered = [c for c in chroots if not self.matched_chroot(c, self.chroot_denylist)]
         # We never want to filter everything, this is a misconfiguration.
@@ -2006,9 +1994,9 @@ class BuildChroot(db.Model, helpers.Serializer):
     @property
     def distgit_clone_url(self):
         """
-        Considering self.build.copr_dir and self.build.package is correctly set,
-        return the dist git clone url for that package.  We can not use
-        self.build.package.dist_git_clone_url because of issue#617.
+        Return a CoprDir specific DistGit clone URL.  We can not just use
+        self.build.package.dist_git_clone_url because that one is not
+        CoprDir-specific.
         """
         dirname = self.build.copr_dir.full_name
         package = self.build.package.name

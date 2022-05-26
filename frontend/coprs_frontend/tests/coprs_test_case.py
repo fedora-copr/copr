@@ -360,11 +360,11 @@ def foo():
     @pytest.fixture
     def f_builds(self):
         self.p1 = models.Package(
-            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=0)
+            copr=self.c1, name="hello-world", source_type=0)
         self.p2 = models.Package(
-            copr=self.c2, copr_dir=self.c2_dir, name="whatsupthere-world", source_type=0)
+            copr=self.c2, name="whatsupthere-world", source_type=0)
         self.p3 = models.Package(
-            copr=self.c3, copr_dir=self.c3_dir, name="goodbye-world", source_type=0)
+            copr=self.c3, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
             copr=self.c1, copr_dir=self.c1_dir, package=self.p1,
@@ -416,7 +416,7 @@ def foo():
     def f_fork_prepare(self, f_coprs, f_mock_chroots, f_builds):
 
         self.p4 = models.Package(
-            copr=self.c2, copr_dir=self.c2_dir, name="hello-world", source_type=0)
+            copr=self.c2, name="hello-world", source_type=0)
         self.b5 = models.Build(
             copr=self.c2, copr_dir=self.c2_dir, package=self.p4,
             user=self.u1, submitted_on=50, srpm_url="http://somesrpm",
@@ -460,7 +460,7 @@ def foo():
         self.db.session.add_all([self.b5, self.b6, self.b7, self.b8])
 
         self.p5 = models.Package(
-            copr=self.c2, copr_dir=self.c2_dir, name="new-package", source_type=0)
+            copr=self.c2, name="new-package", source_type=0)
         self.b9 = models.Build(
             copr=self.c2, copr_dir=self.c2_dir, package=self.p5,
             user=self.u1, submitted_on=100, srpm_url="http://somesrpm",
@@ -531,7 +531,6 @@ def foo():
         self.db.session.add(self.c1)
         self.pHook = models.Package(
             copr=self.c1,
-            copr_dir=self.c1_dir,
             name="hook-package",
             source_type=helpers.BuildSourceEnum('scm'))
 
@@ -691,9 +690,6 @@ def foo():
     def f_pr_dir(self):
         self.c4_dir = models.CoprDir(name=u"foocopr:PR", copr=self.c1,
                 main=False)
-        self.p4 = models.Package(
-            copr=self.c1, copr_dir=self.c4_dir, name="hello-world",
-            source_type=0)
 
     @pytest.fixture
     def f_pr_build(self, f_mock_chroots, f_builds, f_pr_dir):

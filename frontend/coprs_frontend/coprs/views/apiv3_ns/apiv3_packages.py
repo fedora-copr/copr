@@ -106,7 +106,7 @@ def get_package(ownername, projectname, packagename,
 
     copr = get_copr(ownername, projectname)
     try:
-        package = PackagesLogic.get(copr.main_dir.id, packagename)[0]
+        package = PackagesLogic.get(copr.id, packagename)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
     return flask.jsonify(to_dict(package, with_latest_build, with_latest_succeeded_build))
@@ -122,7 +122,7 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
 
     copr = get_copr(ownername, projectname)
-    query = PackagesLogic.get_all(copr.main_dir.id)
+    query = PackagesLogic.get_all(copr.id)
     paginator = Paginator(query, models.Package, **kwargs)
     packages = paginator.get().all()
 
@@ -135,7 +135,7 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     # for querying latest successfull builds, so that will be a little slower
     if with_latest_build:
         packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
-            copr.main_dir.id,
+            copr.main_dir,
             small_build=False,
             packages=packages)
 
@@ -150,7 +150,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
     process_package_add_or_edit(copr, source_type_text, data=data)
-    package = PackagesLogic.get(copr.main_dir.id, package_name).first()
+    package = PackagesLogic.get(copr.id, package_name).first()
     return flask.jsonify(to_dict(package))
 
 
@@ -160,7 +160,7 @@ def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
     try:
-        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
+        package = PackagesLogic.get(copr.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text
     except IndexError:
         raise ObjectNotFound("Package {name} does not exists in copr {copr}."
@@ -176,7 +176,7 @@ def package_reset():
     copr = get_copr()
     form = forms.BasePackageForm()
     try:
-        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
@@ -194,7 +194,7 @@ def package_build():
         preserve=["python_versions", "chroots", "exclude_chroots"]))
     form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, meta={'csrf': False})
     try:
-        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
@@ -218,7 +218,7 @@ def package_delete():
     copr = get_copr()
     form = forms.BasePackageForm()
     try:
-        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
@@ -248,7 +248,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
     if form.validate_on_submit():
         if not package:
             try:
-                package = PackagesLogic.add(flask.app.g.user, copr.main_dir, form.package_name.data)
+                package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
             except InsufficientRightsException:
                 raise ApiError("Insufficient permissions.")
             except DuplicateException:

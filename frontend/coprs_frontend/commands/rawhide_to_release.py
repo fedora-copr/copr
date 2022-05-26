@@ -77,11 +77,10 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
             db.session.query(
                 func.max(models.Build.id),
             )
-            .join(models.BuildChroot)
-            .join(models.Package)
+            .join(models.BuildChroot, models.CoprDir, models.Package)
             .filter(models.BuildChroot.mock_chroot_id == mock_rawhide_chroot.id)
             .filter(models.BuildChroot.status == StatusEnum("succeeded"))
-            .filter(models.Package.copr_dir == copr.main_dir)
+            .filter(models.CoprDir.id == copr.main_dir.id)
             .group_by(models.Package.name)
         )
 

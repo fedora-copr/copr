@@ -57,10 +57,10 @@ class PullRequestTrigger:
 
     @staticmethod
     def _get_the_package(project, pkgname):
-        return models.Package.query.join(models.CoprDir).filter(
+        return models.Package.query.filter(
             models.Package.copr_id==project.id,
             models.Package.name==pkgname,
-            models.CoprDir.main).one_or_none()
+        ).one_or_none()
 
     @mock.patch('pagure_events.get_repeatedly', mock.Mock())
     def build_package(self, project_name, pkgname, pr_id):
