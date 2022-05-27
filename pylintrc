@@ -22,6 +22,7 @@ ignored-classes=SQLAlchemy,scoped_session
 ignored-modules=alembic,setproctitle
 
 init-hook=
+    import os
     import subprocess
     gitrootdir = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
     sys.path.insert(0, os.path.join(gitrootdir, '.pylintpath'))
