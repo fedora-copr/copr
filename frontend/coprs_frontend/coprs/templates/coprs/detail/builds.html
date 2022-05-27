@@ -37,7 +37,6 @@
         </a>
         {% for copr_dir_info in copr_dirs %}
           {% set copr_dir = copr_dir_info.copr_dir %}
-          {% if copr_dir.main or (copr_dir.packages | count) > 0 %}
             <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}"
                 {% if copr_dir_info.removal_candidate %}
                     title="Will be removed in {{ copr_dir_info.remaining_days }} days if no other build is done here"
@@ -50,7 +49,6 @@
             >
                 {{ copr_dir.name }}
             </a>
-          {% endif %}
         {% endfor %}
       </div>
     </div>
