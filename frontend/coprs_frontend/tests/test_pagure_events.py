@@ -3,6 +3,7 @@ import pytest
 from pagure_events import (event_info_from_pr_comment, event_info_from_push,
                            event_info_from_pr, ScmPackage, build_on_fedmsg_loop,
                            TOPICS)
+from tests.lib.pagure_pull_requests import get_pagure_pr_event
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -16,34 +17,7 @@ class TestPagureEvents(CoprsTestCase):
     def setup_method(self, method):
         super().setup_method(method)
         # pylint: disable=attribute-defined-outside-init
-        self.data = {
-            "msg": {
-                "agent": "test",
-                "pullrequest": {
-                    "branch": "master",
-                    "branch_from": "test_PR",
-                    "id": 1,
-                    "commit_start": "78a74b02771506daf8927b3391a669cbc32ccf10",
-                    "commit_stop": "da3d120f2ff24fa730067735c19a0b52c8bc1a44",
-                    "repo_from": {
-                        "fullname": "test/copr/copr",
-                        "url_path": "test/copr/copr",
-                    },
-                    "project": {
-                        "fullname": "test/copr/copr",
-                        "url_path": "test/copr/copr",
-                    },
-                    'status': 'Open',
-                    "comments": [],
-                    'user': {
-                        "fullname": "John Doe",
-                        "url_path": "user/jdoe",
-                        "full_url": "https://src.fedoraproject.org/user/jdoe",
-                        "name": "jdoe"
-                    },
-                }
-            }
-        }
+        self.data = get_pagure_pr_event()
         self.base_url = "https://pagure.io/"
 
     def _setup_push_msg(self):

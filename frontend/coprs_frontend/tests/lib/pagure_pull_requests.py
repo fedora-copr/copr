@@ -12,17 +12,8 @@ from copr_common.enums import StatusEnum
 from pagure_events import build_on_fedmsg_loop
 
 
-class _Message:
-    def __init__(self, topic, body):
-        self.topic = topic
-        self.body = body
-
-
-class PullRequestTrigger:
-    """ Trigger builds using "Pagure-like" message """
-    test_object = None
-
-    data = {
+def get_pagure_pr_event():
+    return copy.deepcopy({
         "msg": {
             "agent": "test",
             "pullrequest": {
@@ -49,7 +40,19 @@ class PullRequestTrigger:
                 },
             }
         }
-    }
+    })
+
+
+class _Message:
+    def __init__(self, topic, body):
+        self.topic = topic
+        self.body = body
+
+
+class PullRequestTrigger:
+    """ Trigger builds using "Pagure-like" message """
+    test_object = None
+    data = get_pagure_pr_event()
 
     def __init__(self, test_object):
         self.test_object = test_object
