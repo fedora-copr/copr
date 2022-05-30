@@ -1773,7 +1773,7 @@ def str2bool(v):
 
 
 def _handle_frontend_api_request_error(e, args):
-    if "Request is not in JSON format" not in str(e):
+    if "is not in JSON format" not in str(e):
         return
     if not args.debug:
         sys.stderr.write("Try 'copr-cli --debug' for more info.\n")

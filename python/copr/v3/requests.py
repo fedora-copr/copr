@@ -147,5 +147,5 @@ def handle_errors(response):
             # pylint: disable=raise-missing-from
             raise CoprTimeoutException(message, response=response)
 
-        raise CoprRequestException("Request is not in JSON format, there is probably a bug in the API code.",
+        raise CoprRequestException("Response is not in JSON format, there is probably a bug in the API code.",
                                    response=response)
