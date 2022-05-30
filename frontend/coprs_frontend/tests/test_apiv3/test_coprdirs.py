@@ -81,3 +81,20 @@ class TestCoprDir(CoprsTestCase):
         assert latest_build["project_dirname"] == "test"
         latest_build = packages[1]["builds"]["latest"]
         assert latest_build["project_dirname"] == "test:custom:subdir"
+
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs", "f_builds",
+                             "f_mock_chroots", "f_other_distgit", "f_db")
+    def test_custom_dir_validation(self):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"])
+        self.web_ui.create_distgit_package("test", "copr-cli")
+        # succeeds
+        assert self.api3.rebuild_package("test:custom:subdir", "copr-cli").status_code == 200
+        assert self.api3.rebuild_package("test:custom:123", "copr-cli").status_code  == 200
+        assert self.api3.rebuild_package("test:custom:žluťoučký", "copr-cli").status_code  == 200
+        assert self.api3.rebuild_package("test:custom:", "copr-cli").status_code == 400
+        assert self.api3.rebuild_package("test:custom:.", "copr-cli").status_code == 400
+        assert self.api3.rebuild_package("test:custom:@", "copr-cli").status_code == 400
+        # This can only be created by pagure-events.py code for now.
+        assert self.api3.rebuild_package("test:pr:13", "copr-cli").status_code == 400

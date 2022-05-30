@@ -567,7 +567,7 @@ class CoprDirsLogic(object):
         return coprdir
 
     @classmethod
-    def get_or_create(cls, copr, dirname):
+    def get_or_create(cls, copr, dirname, trusted_caller=False):
         """
         Create a CoprDir on-demand, e.g. before pull-request builds is
         submitted.  We don't create the "main" CoprDirs here (those are created
@@ -582,6 +582,17 @@ class CoprDirsLogic(object):
                 "Copr dirname must start with '{}:' prefix".format(
                 copr.name,
             ))
+
+        if not trusted_caller:
+            if not dirname.startswith(copr.name+":custom:"):
+                raise exceptions.BadRequest(
+                    f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE>"
+                )
+
+        if not all(x.isalnum() for x in dirname.split(":")[1:]):
+            raise exceptions.BadRequest(
+                f"Wrong directory '{dirname}' specified.  Directory name can "
+                "consist of alpha-numeric strings separated by colons.")
 
         copr_dir = models.CoprDir(name=dirname, copr=copr, main=False)
         ActionsLogic.send_createrepo(copr, dirnames=[dirname])
