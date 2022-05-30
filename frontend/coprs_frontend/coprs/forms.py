@@ -56,10 +56,6 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormPyPI
     elif source_type_text == 'rubygems':
         return PackageFormRubyGems
-    elif source_type_text == 'git_and_tito':
-        return PackageFormTito # deprecated
-    elif source_type_text == 'mock_scm':
-        return PackageFormMock # deprecated
     elif source_type_text == "custom":
         return PackageFormCustom
     elif source_type_text == "distgit":
@@ -922,84 +918,6 @@ class PackageFormRubyGems(BasePackageForm):
         })
 
 
-class PackageFormTito(BasePackageForm):
-    """
-    @deprecated
-    """
-    git_url = wtforms.StringField(
-        "Git URL",
-        validators=[
-            wtforms.validators.DataRequired(),
-            wtforms.validators.URL()])
-
-    git_directory = wtforms.StringField(
-        "Git Directory",
-        validators=[
-            wtforms.validators.Optional()])
-
-    git_branch = wtforms.StringField(
-        "Git Branch",
-        validators=[
-            wtforms.validators.Optional()])
-
-    tito_test = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
-
-    @property
-    def source_json(self):
-        return json.dumps({
-            "type": 'git',
-            "clone_url": self.git_url.data,
-            "committish": self.git_branch.data,
-            "subdirectory": self.git_directory.data,
-            "spec": '',
-            "srpm_build_method": 'tito_test' if self.tito_test.data else 'tito',
-        })
-
-
-class PackageFormMock(BasePackageForm):
-    """
-    @deprecated
-    """
-    scm_type = wtforms.SelectField(
-        "SCM Type",
-        choices=[("git", "Git"), ("svn", "SVN")])
-
-    scm_url = wtforms.StringField(
-        "SCM URL",
-        validators=[
-            wtforms.validators.DataRequired(),
-            wtforms.validators.URL()])
-
-    scm_branch = wtforms.StringField(
-        "Git Branch",
-        validators=[
-            wtforms.validators.Optional()])
-
-    scm_subdir = wtforms.StringField(
-        "Subdirectory",
-        validators=[
-            wtforms.validators.Optional()])
-
-    spec = wtforms.StringField(
-        "Spec File",
-        validators=[
-            wtforms.validators.Optional(),
-            wtforms.validators.Regexp(
-                r"^.+\.spec$",
-                message="RPM spec file must end with .spec")])
-
-    @property
-    def source_json(self):
-        return json.dumps({
-            "type": self.scm_type.data,
-            "clone_url": self.scm_url.data,
-            "committish": self.scm_branch.data,
-            "subdirectory": self.scm_subdir.data,
-            "spec": self.spec.data,
-            "srpm_build_method": 'rpkg',
-        })
-
-
 class PackageFormDistGit(BasePackageForm):
     """
     @deprecated
@@ -1341,22 +1259,6 @@ def _get_build_form(active_chroots, form, package=None):
 class BuildFormScmFactory(object):
     def __new__(cls, active_chroots, package=None):
         return _get_build_form(active_chroots, PackageFormScm, package)
-
-
-class BuildFormTitoFactory(object):
-    """
-    @deprecated
-    """
-    def __new__(cls, active_chroots):
-        return _get_build_form(active_chroots, PackageFormTito)
-
-
-class BuildFormMockFactory(object):
-    """
-    @deprecated
-    """
-    def __new__(cls, active_chroots):
-        return _get_build_form(active_chroots, PackageFormMock)
 
 
 class BuildFormPyPIFactory(object):
