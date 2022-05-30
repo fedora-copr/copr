@@ -112,7 +112,7 @@ def get_package(ownername, projectname, packagename,
     return flask.jsonify(to_dict(package, with_latest_build, with_latest_succeeded_build))
 
 
-@apiv3_ns.route("/package/list/", methods=GET)
+@apiv3_ns.route("/package/list", methods=GET)
 @pagination()
 @query_params()
 def get_package_list(ownername, projectname, with_latest_build=False,
