@@ -311,6 +311,10 @@ class CoprsLogic(object):
         if not user.admin and not copr.auto_prune:
             raise exceptions.NonAdminCannotDisableAutoPrunning()
 
+        if helpers.being_server_admin(user, copr):
+            app.logger.info("Admin '%s' using their permissions to update "
+                            "project '%s' settings", user.name, copr.full_name)
+
         db.session.add(copr)
 
     @classmethod
@@ -444,6 +448,12 @@ class CoprPermissionsLogic(object):
             user, copr, "Only owners and admins may update"
                         " their projects permissions.")
 
+        app.logger.info("User '%s' authorized permission change for project '%s'"
+                        " - The '%s' user is now 'builder=%s', 'admin=%s'",
+                        user.name, copr.full_name, copr_permission.user.name,
+                        helpers.PermissionEnum(new_builder),
+                        helpers.PermissionEnum(new_admin))
+
         (models.CoprPermission.query
          .filter(models.CoprPermission.copr_id == copr.id)
          .filter(models.CoprPermission.user_id == copr_permission.user_id)
@@ -452,6 +462,13 @@ class CoprPermissionsLogic(object):
 
     @classmethod
     def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
+        app.logger.info("User '%s' requests 'builder=%s', 'admin=%s' "
+                        "permissions for project '%s'",
+                        user.name,
+                        helpers.PermissionEnum(new_builder),
+                        helpers.PermissionEnum(new_admin),
+                        copr.full_name)
+
         if copr_permission:
             # preserve approved permissions if set
             if (not new_builder or
@@ -502,6 +519,11 @@ class CoprPermissionsLogic(object):
 
         cls.validate_permission(user, copr, permission, state)
 
+        app.logger.info("User '%s' authorized permission change for project '%s'"
+                        " - The '%s' user is now '%s=%s'",
+                        request_user.name, copr.full_name, user.name,
+                        permission, state)
+
         perm_o = models.CoprPermission(user_id=user.id, copr_id=copr.id)
         perm_o = db.session.merge(perm_o)
         old_state = perm_o.get_permission(permission)
@@ -524,6 +546,9 @@ class CoprPermissionsLogic(object):
             raise BadRequest("invalid '{0}' permission request '{1}', "
                              "expected True or False".format(permission,
                                  req_bool))
+
+        app.logger.info("User '%s' requests '%s=%s' permission for project '%s'",
+                        user.name, permission, state, copr.full_name)
 
         cls.validate_permission(user, copr, permission, state)
         perm_o = models.CoprPermission(user_id=user.id, copr_id=copr.id)
@@ -918,6 +943,10 @@ class CoprChrootsLogic(object):
         UsersLogic.raise_if_cant_update_copr(
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
+
+        if helpers.being_server_admin(user, copr_chroot.copr):
+            app.logger.info("Admin '%s' using their permissions to update "
+                            "chroot '%s'", user.name, copr_chroot.full_name)
 
         cls._update_chroot(buildroot_pkgs, repos, comps, comps_name,
                            copr_chroot, with_opts, without_opts, delete_after, delete_notify, module_toggle,

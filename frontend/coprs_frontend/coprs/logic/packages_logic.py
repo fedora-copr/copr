@@ -328,3 +328,16 @@ class PackagesLogic(object):
                     builds[build].append(build_chroot)
                 break
         return builds
+
+
+    @classmethod
+    def log_being_admin(cls, user, package):
+        """
+        Log if a package is being updated by a Copr maintainer
+        """
+        if helpers.being_server_admin(user, package.copr):
+            app.logger.info("Admin '%s' using their permissions to update "
+                            "package '%s' in project '%s'",
+                            user.name,
+                            package.name,
+                            package.copr.full_name)

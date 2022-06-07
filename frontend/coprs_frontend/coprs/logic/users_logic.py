@@ -14,6 +14,7 @@ class UsersLogic(object):
 
     @classmethod
     def get(cls, username):
+        app.logger.info("Querying user '%s' by username", username)
         return User.query.filter(User.username == username)
 
     @classmethod
@@ -40,6 +41,9 @@ class UsersLogic(object):
         if not user.can_edit(copr):
             raise exceptions.InsufficientRightsException(message)
 
+        app.logger.info("User '%s' allowed to update project '%s'",
+                        user.name, copr.full_name)
+
     @classmethod
     def raise_if_cant_build_in_copr(cls, user, copr, message):
         """
@@ -50,12 +54,18 @@ class UsersLogic(object):
         if not user.can_build_in(copr):
             raise exceptions.InsufficientRightsException(message)
 
+        app.logger.info("User '%s' allowed to build in project '%s'",
+                        user.name, copr.full_name)
+
     @classmethod
     def raise_if_not_in_group(cls, user, group):
         if not user.admin and group.fas_name not in user.user_teams:
             raise exceptions.InsufficientRightsException(
                 "User '{}' doesn't have access to the copr group '{}' (fas_name='{}')"
                 .format(user.username, group.name, group.fas_name))
+
+        app.logger.info("User '%s' allowed to access group '%s' (fas_name='%s')",
+                        user.name, group.name, group.fas_name)
 
     @classmethod
     def get_group_by_alias(cls, name):
@@ -130,6 +140,7 @@ class UsersLogic(object):
                 "openid_groups": None}
         for k, v in null.items():
             setattr(user, k, v)
+        app.logger.info("Deleting user '%s' data", user.name)
 
     @classmethod
     def create_user_wrapper(cls, username, email, timezone=None):
@@ -149,6 +160,7 @@ class UsersLogic(object):
                     api_token=generate_api_token(
                         app.config["API_TOKEN_LENGTH"]),
                     api_token_expiration=expiration_date_token)
+        app.logger.info("Creating user '%s <%s>'", user.name, user.mail)
         return user
 
 
@@ -157,6 +169,7 @@ class UserDataDumper(object):
         self.user = user
 
     def dumps(self, pretty=False):
+        app.logger.info("Dumping all user data for '%s'", self.user.name)
         if pretty:
             return json.dumps(self.data, indent=2)
         return json.dumps(self.data)

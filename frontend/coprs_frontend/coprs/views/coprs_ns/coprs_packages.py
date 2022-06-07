@@ -273,6 +273,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
             package.chroot_denylist_raw = form.chroot_denylist.data
             package.max_builds = form.max_builds.data
 
+            PackagesLogic.log_being_admin(flask.g.user, package)
             db.session.add(package)
             db.session.commit()
         except (InsufficientRightsException, IndexError) as e:

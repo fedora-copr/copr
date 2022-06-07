@@ -126,6 +126,8 @@ def create_or_login(resp):
         user = models.User.query.filter(
             models.User.username == username).first()
         if not user:  # create if not created already
+            app.logger.info("First login for user '%s', "
+                            "creating a database record", username)
             user = UsersLogic.create_user_wrapper(username, resp.email,
                                                   resp.timezone)
         else:
@@ -140,6 +142,10 @@ def create_or_login(resp):
         flask.flash(u"Welcome, {0}".format(user.name), "success")
         flask.g.user = user
 
+        app.logger.info("%s '%s' logged in",
+                        "Admin" if user.admin else "User",
+                        user.name)
+
         if flask.request.url_root == oid.get_next_url():
             return flask.redirect(flask.url_for("coprs_ns.coprs_by_user",
                                                 username=user.name))
@@ -151,6 +157,8 @@ def create_or_login(resp):
 
 @misc.route("/logout/")
 def logout():
+    if flask.g.user:
+        app.logger.info("User '%s' logging out", flask.g.user.name)
     flask.session.pop("openid", None)
     flask.session.pop("krb5_login", None)
     flask.flash(u"You were signed out")
@@ -181,6 +189,9 @@ def api_login_required(f):
         if not token_auth:
             url = 'https://' + app.config["PUBLIC_COPR_HOSTNAME"]
             url = helpers.fix_protocol_for_frontend(url)
+
+            msg = "Attempting to use invalid or expired API login '%s'"
+            app.logger.info(msg, api_login)
 
             output = {
                 "output": "notok",

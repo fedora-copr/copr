@@ -268,6 +268,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
         if "chroot_denylist" in formdata:
             package.chroot_denylist_raw = form.chroot_denylist.data
 
+        PackagesLogic.log_being_admin(flask.g.user, package)
         db.session.add(package)
         db.session.commit()
     else:
