@@ -265,6 +265,8 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
             package.webhook_rebuild = form.webhook_rebuild.data
         if "max_builds" in formdata:
             package.max_builds = form.max_builds.data
+        if "chroot_denylist" in formdata:
+            package.chroot_denylist_raw = form.chroot_denylist.data
 
         db.session.add(package)
         db.session.commit()
