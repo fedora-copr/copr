@@ -21,16 +21,16 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.57
+Version: 0.58
 Summary: Run COPR build tasks
-Release: 1%{?dist}
+Release: 1.git.1.8ceebf5%{?dist}
 URL: https://pagure.io/copr/copr
 License: GPLv2+
 
 # Source is created by:
 # git clone %%url && cd copr
 # tito build --tgz --tag %%name-%%version-%%release
-Source0:    %name-%version.tar.gz
+Source0: copr-rpmbuild-git-38.9e98ec4.tar.gz
 
 BuildRequires: %{python}-copr-common >= %copr_common_version
 BuildRequires: %{python}-devel
@@ -178,7 +178,7 @@ the corresponding dist-git instance configuration.
 
 
 %prep
-%setup -q
+%setup -q -n copr-rpmbuild-git-38.9e98ec4
 for script in bin/copr-rpmbuild* \
               bin/copr-distgit*
 do
@@ -330,6 +330,12 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Fri Jun 10 2022 Pavel Raiskup <praiskup@redhat.com> 0.58-1.git.1.8ceebf5
+- fix make_srpm with new git
+- fix import order
+- define copr-specific macros also for SRPM builds
+- SCM method to clone recursively
+
 * Mon Apr 11 2022 Jakub Kadlcik <frostyx@email.cz> 0.57-1
 - Don't fail a build because of fedora-review
 - Require a new version of fedora-review tool
