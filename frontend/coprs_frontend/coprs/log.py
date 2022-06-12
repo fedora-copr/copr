@@ -1,6 +1,7 @@
 import logging
 from logging import Formatter
 from logging.handlers import SMTPHandler, WatchedFileHandler
+import flask
 
 from coprs import app
 
@@ -19,8 +20,34 @@ Message:
 
 default_formatter = Formatter(
     "%(asctime)s [%(levelname)s]"
-    "[%(pathname)s:%(lineno)d|%(module)s:%(funcName)s] %(message)s"
+    "[%(pathname)s:%(lineno)d|%(module)s:%(funcName)s][%(user)s] %(message)s"
 )
+
+
+class FlaskUserFilter(logging.Filter):
+    """
+    Define `%(user)s` key for the formatter string
+    """
+
+    def filter(self, record):
+        record.user = self._user()
+        return True
+
+    def _user(self):
+        if not flask.g or not hasattr(flask.g, "user"):
+            return "SERVER"
+
+        if flask.g.user:
+            return flask.g.user.name
+
+        return self._backend() or "ANON"
+
+    @staticmethod
+    def _backend():
+        auth = flask.request.authorization
+        if auth and auth.password == app.config["BACKEND_PASSWORD"]:
+            return "backend: {0}".format(flask.request.remote_addr)
+        return None
 
 
 def setup_log():
@@ -44,6 +71,7 @@ def setup_log():
     log_level_text = app.config.get("LOGGING_LEVEL", 'info')
     log_level = getattr(logging, log_level_text.upper())
     handler.setLevel(log_level)
+    app.logger.addFilter(FlaskUserFilter())
     app.logger.setLevel(log_level)
     app.logger.addHandler(handler)
 

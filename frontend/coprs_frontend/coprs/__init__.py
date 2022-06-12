@@ -146,7 +146,8 @@ from coprs.exceptions import (
 from coprs.error_handlers import get_error_handler
 import coprs.context_processors
 
-setup_log()
+with app.app_context():
+    setup_log()
 
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(apiv3_ns.apiv3_ns)
