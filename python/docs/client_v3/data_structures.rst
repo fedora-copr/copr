@@ -1,7 +1,7 @@
 Data structures
 ===============
 
-A data returned from successful API calls are transformed and presented to you as a Munch (it is a subclass of a
+A data returned from successful API calls are transformed and presented to you as a [Munch](https://github.com/Infinidat/munch) (it is a subclass of a
 ``dict`` with all its features, with an additional support of accessing its attributes like object properties, etc).
 This page shows how to work with the results, how to access the original responses from frontend and what are the
 specifics for lists of results.
@@ -17,7 +17,7 @@ First, let's just initialize an API client, and obtain some object (in this exam
     pprint(build)
 
 
-As advertised, the data is represented as a Munch.
+As advertised, the data is represented as a [Munch](https://github.com/Infinidat/munch).
 
 ::
 

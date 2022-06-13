@@ -1,7 +1,7 @@
 Error handling
 ==============
 
-All methods from proxy classes return Munch with data only when the API call succeeds. Otherwise, an exception is raised.
+All methods from proxy classes return [Munch](https://github.com/Infinidat/munch) with data only when the API call succeeds. Otherwise, an exception is raised.
 
 This example code tries to cancel a build. Such thing is possible only when the build is not already finished.
 
@@ -35,7 +35,7 @@ Debugging
 ---------
 
 Sometimes it is useful to dig deeper and examine the failure. Exceptions contain a ``result`` attribute
-returning a Munch with additional information.
+returning a [Munch](https://github.com/Infinidat/munch) with additional information.
 
 ::
 
