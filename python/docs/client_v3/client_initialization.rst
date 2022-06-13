@@ -8,6 +8,7 @@ https://copr.fedorainfracloud.org/api/ for more information about API token.
 ::
 
     from copr.v3 import Client
+    from pprint import pprint
     client = Client.create_from_config_file()
     pprint(client.config)
 

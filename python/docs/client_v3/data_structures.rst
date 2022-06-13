@@ -12,6 +12,7 @@ First, let's just initialize an API client, and obtain some object (in this exam
 ::
 
     from copr.v3 import Client
+    from pprint import pprint
     client = Client.create_from_config_file()
     build = client.build_proxy.get(2545)
     pprint(build)
