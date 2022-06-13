@@ -16,10 +16,6 @@ from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
-import logging
-
-log = logging.getLogger(__name__)
-
 
 @backend_ns.after_request
 def send_frontend_version(response):
@@ -308,14 +304,14 @@ def pending_jobs():
     def _stream():
         args = {"data_type": "for_backend"}
 
-        log.info("Generating SRPM builds")
+        app.logger.info("Generating SRPM builds")
         for build in BuildsLogic.get_pending_srpm_build_tasks(**args):
             if not build_ready(build):
                 continue
             record = get_srpm_build_record(build, for_backend=True)
             yield record
 
-        log.info("Generating RPM builds")
+        app.logger.info("Generating RPM builds")
         for build_chroot in BuildsLogic.get_pending_build_tasks(**args):
             if not build_ready(build_chroot.build):
                 continue
@@ -432,7 +428,7 @@ def reschedule_build_chroot():
 
     if task_id == build.task_id:
         if build.source_status in run_statuses:
-            log.info("rescheduling source build %s", build.id)
+            app.logger.info("rescheduling source build %s", build.id)
             BuildsLogic.update_state_from_dict(build, {
                 "task_id": task_id,
                 "status": StatusEnum("pending")
@@ -445,7 +441,8 @@ def reschedule_build_chroot():
     else:
         build_chroot = build.chroots_dict_by_name.get(chroot)
         if build_chroot and build_chroot.status in run_statuses:
-            log.info("rescheduling build {} chroot: {}".format(build.id, build_chroot.name))
+            app.logger.info("rescheduling build {} chroot: {}"
+                            .format(build.id, build_chroot.name))
             BuildsLogic.update_state_from_dict(build, {
                 "task_id": task_id,
                 "chroot": chroot,

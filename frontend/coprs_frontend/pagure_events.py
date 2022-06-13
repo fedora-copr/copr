@@ -4,7 +4,6 @@ import json
 import pprint
 import sys
 import os
-import logging
 import requests
 import re
 import munch
@@ -27,8 +26,7 @@ SUPPORTED_SOURCE_TYPES = [
     helpers.BuildSourceEnum("distgit"),
 ]
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log = app.logger
 
 TOPICS = {}
 for topic, url in app.config["PAGURE_EVENTS"].items():

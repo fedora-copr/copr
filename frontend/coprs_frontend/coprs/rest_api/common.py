@@ -2,7 +2,6 @@
 import base64
 import datetime
 import functools
-from logging import getLogger
 
 from flask import url_for
 import flask
@@ -17,8 +16,6 @@ from .exceptions import AuthFailed
 from .schemas import CoprChrootSchema, BuildSchema, ProjectSchema
 from .util import mm_serialize_one
 from coprs import app
-
-log = getLogger(__name__)
 
 
 def render_copr_chroot(chroot):
@@ -93,7 +90,7 @@ def rest_api_auth_required(f):
                 userstring = base64.b64decode(base64string)
                 (api_login, token) = userstring.decode("utf-8").split(":")
         except Exception:
-            log.exception("Failed to get auth token from headers")
+            app.logger.exception("Failed to get auth token from headers")
             api_login = token = None
 
         token_auth = False

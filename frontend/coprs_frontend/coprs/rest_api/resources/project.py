@@ -1,5 +1,3 @@
-from logging import getLogger
-
 import flask
 from flask import url_for, make_response
 from flask_restful import Resource
@@ -17,8 +15,6 @@ from ..common import rest_api_auth_required, render_copr_chroot, render_build, r
 from ..schemas import ProjectSchema, ProjectCreateSchema
 from ..exceptions import ObjectAlreadyExists, CannotProcessRequest, AccessForbidden
 from ..util import mm_deserialize, get_request_parser, arg_bool
-
-log = getLogger(__name__)
 
 
 class ProjectListR(Resource):

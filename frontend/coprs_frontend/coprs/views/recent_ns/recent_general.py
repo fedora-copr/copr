@@ -4,10 +4,6 @@ from . import recent_ns
 from coprs.logic import builds_logic
 from coprs.views.misc import login_required
 
-import logging
-
-log = logging.getLogger(__name__)
-
 
 @recent_ns.route("/")
 @recent_ns.route("/all/")

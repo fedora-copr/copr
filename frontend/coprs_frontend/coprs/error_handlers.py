@@ -2,8 +2,6 @@
 A place for exception-handling logic
 """
 
-import logging
-
 import flask
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import (
@@ -12,9 +10,8 @@ from werkzeug.exceptions import (
     HTTPException,
     NotFound,
 )
+from coprs import app
 from coprs.exceptions import CoprHttpException
-
-LOG = logging.getLogger(__name__)
 
 
 def get_error_handler():
@@ -42,7 +39,7 @@ class BaseErrorHandler:
         message = self.message(error)
         headers = getattr(error, "headers", None)
         message = self.override_message(message, error)
-        LOG.error("Response error: %s %s", code, message)
+        app.logger.error("Response error: %s %s", code, message)
         return self.render(message, code), code, headers
 
     @staticmethod
@@ -102,10 +99,10 @@ class BaseErrorHandler:
 
     def _log_admin_only_exception(self):
         # pylint: disable=no-self-use
-        LOG.exception("Admin-only exception\nRequest: %s %s\nUser: %s\n",
-                      flask.request.method,
-                      flask.request.url,
-                      flask.g.user.name if flask.g.user else None)
+        app.logger.exception("Admin-only exception\nRequest: %s %s\nUser: %s\n",
+                             flask.request.method,
+                             flask.request.url,
+                             flask.g.user.name if flask.g.user else None)
 
 
 class UIErrorHandler(BaseErrorHandler):
