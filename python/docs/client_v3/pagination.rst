@@ -48,7 +48,7 @@ And finally, in some cases, it may be useful to iterate through all objects, but
 
 .. code-block:: python
 
-    from copr.v3 import next_page
+    from copr.v3.pagination import next_page
 
     package_page = client.package_proxy.get_list("@copr", "copr", pagination={"limit": 3})
     while package_page:
