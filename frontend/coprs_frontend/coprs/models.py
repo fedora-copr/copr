@@ -430,7 +430,8 @@ class Copr(db.Model, helpers.Serializer):
         """
         Return repos of this copr as a list of strings
         """
-        return self.repos.split()
+        result = self.repos or ""
+        return result.split()
 
     @property
     def active_chroots(self):
