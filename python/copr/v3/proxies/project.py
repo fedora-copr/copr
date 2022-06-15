@@ -66,7 +66,7 @@ class ProjectProxy(BaseProxy):
         return munchify(response)
 
     def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
-            contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
+            contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=False, persistent=False,
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None,
