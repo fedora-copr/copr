@@ -9,7 +9,8 @@ from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
     fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, \
     parse_repo_params, pagure_html_diff_changed, SubdirMatch, \
-    raw_commit_changes, WorkList, pluralize, clone_sqlalchemy_instance
+    raw_commit_changes, WorkList, pluralize, clone_sqlalchemy_instance, \
+    being_server_admin
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -260,6 +261,20 @@ class TestHelpers(CoprsTestCase):
         target_copr = self.models.Copr.query.get(1)
         assert "fedora-17-x86_64" in \
                 [m.name for m in target_copr.mock_chroots]
+
+    @pytest.mark.usefixtures("f_users", "f_fas_groups", "f_coprs",
+                             "f_group_copr", "f_db")
+    def test_being_server_admin(self):
+        assert self.u1.admin
+
+        assert not being_server_admin(self.u1, self.c1)
+        assert being_server_admin(self.u1, self.c2)
+
+        self.gc1.user = self.u2
+        assert not being_server_admin(self.u1, self.gc1)
+
+        self.u1.openid_groups["fas_groups"] = []
+        assert being_server_admin(self.u1, self.gc1)
 
 
 def test_worklist_class():

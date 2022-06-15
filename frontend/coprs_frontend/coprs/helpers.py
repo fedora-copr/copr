@@ -891,3 +891,22 @@ def streamed_json(stream, start_string=None, stop_string=None):
         )
 
     return _response()
+
+
+def being_server_admin(user, copr):
+    """
+    Is Copr maintainer using their special permissions to edit the project?
+    """
+    if not user:
+        return False
+
+    if not user.admin:
+        return False
+
+    if user == copr.user:
+        return False
+
+    if user.can_edit(copr, ignore_admin=True):
+        return False
+
+    return True

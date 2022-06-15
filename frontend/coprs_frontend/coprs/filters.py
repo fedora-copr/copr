@@ -258,3 +258,11 @@ def int_with_commas(number):
     e.g. display 16,724 instead of 16724, it's more readable.
     """
     return format(int(number), ',d')
+
+
+@app.template_global("being_server_admin")
+def being_server_admin(user, copr):
+    """
+    Is Copr maintainer using their special permissions to edit the project?
+    """
+    return helpers.being_server_admin(user, copr)

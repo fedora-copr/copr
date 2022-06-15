@@ -162,13 +162,20 @@ class User(db.Model, helpers.Serializer):
         else:
             return False
 
-    def can_edit(self, copr):
+    def can_edit(self, copr, ignore_admin=False):
         """
         Determine if this user can edit the given copr.
         """
-
-        if copr.user == self or self.admin:
+        # People can obviously edit their personal projects, but the person who
+        # created a group project doesn't get any exclusive permissions to it.
+        # We still need to validate their group membership every time.
+        if not copr.group and copr.user == self:
             return True
+
+        # Copr maintainers can edit every project
+        if not ignore_admin and self.admin:
+            return True
+
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_admin ==
                 helpers.PermissionEnum("approved")):
