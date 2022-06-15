@@ -244,7 +244,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
 
     if "reset" in flask.request.form:
         try:
-            package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
+            package = PackagesLogic.get(copr.id, package_name)[0]
         except IndexError:
             flask.flash("Package {0} does not exist in copr_dir {1}."
                         .format(package_name, copr.main_dir.full_name))
@@ -263,7 +263,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
     if form.validate_on_submit():
         try:
             if package_name:
-                package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
+                package = PackagesLogic.get(copr.id, package_name)[0]
             else:
                 package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
 
