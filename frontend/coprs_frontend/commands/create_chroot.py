@@ -7,9 +7,9 @@ from coprs.logic import coprs_logic
 
 
 def print_invalid_format(chroot_name):
-    print(
-        "{0} - invalid chroot format, must be '{release}-{version}-{arch}'."
-            .format(chroot_name))
+    msg = ("{0} - invalid chroot format, "
+           "must be '{{release}}-{{version}}-{{arch}}'.")
+    print(msg.format(chroot_name))
 
 
 def print_already_exists(chroot_name):
