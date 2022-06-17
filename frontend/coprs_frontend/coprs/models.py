@@ -40,7 +40,7 @@ from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus
 
 class CoprSearchRelatedData(object):
     def get_search_related_copr_id(self):
-        raise "Not Implemented"
+        raise NotImplementedError
 
 
 class _UserPublic(db.Model, helpers.Serializer):
@@ -257,7 +257,7 @@ class CoprScore(db.Model, helpers.Serializer):
 _group_unique_where = text("deleted is not true and group_id is not null")
 _user_unique_where = text("deleted is not true and group_id is null")
 
-class _CoprPublic(db.Model, helpers.Serializer, CoprSearchRelatedData):
+class _CoprPublic(db.Model, helpers.Serializer):
     """
     Represents public part of a single copr (personal repo with builds, mock
     chroots, etc.).
@@ -364,7 +364,7 @@ class _CoprPrivate(db.Model, helpers.Serializer):
     scm_api_auth_json = db.Column(db.Text)
 
 
-class Copr(db.Model, helpers.Serializer):
+class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     Represents private a single copr (personal repo with builds, mock chroots,
     etc.).
