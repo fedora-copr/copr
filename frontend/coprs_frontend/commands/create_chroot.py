@@ -24,10 +24,15 @@ def create_chroot_function(chroot_names, branch=None, activated=True,
                            comment=None):
     """Creates a mock chroot in DB"""
     for chroot_name in chroot_names:
-        if not branch:
-            branch = chroot_to_branch(chroot_name)
-        branch_object = coprs_logic.BranchesLogic.get_or_create(branch)
         try:
+            # Just a validation that chroot name is in an expected format
+            # Otherwise we get traceback when determining its branch value
+            coprs_logic.MockChrootsLogic.tuple_from_name(chroot_name)
+
+            if not branch:
+                branch = chroot_to_branch(chroot_name)
+            branch_object = coprs_logic.BranchesLogic.get_or_create(branch)
+
             chroot = coprs_logic.MockChrootsLogic.add(chroot_name)
             chroot.distgit_branch = branch_object
             chroot.is_active = activated
