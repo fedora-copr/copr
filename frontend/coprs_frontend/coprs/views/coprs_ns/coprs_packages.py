@@ -246,7 +246,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
         try:
             package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
         except IndexError:
-            flask.flash("Package {package_name} does not exist in copr_dir {copr_dir}."
+            flask.flash("Package {0} does not exist in copr_dir {1}."
                         .format(package_name, copr.main_dir.full_name))
             return flask.redirect(url_on_success) # should be url_on_fail
 
