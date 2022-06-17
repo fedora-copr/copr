@@ -29,7 +29,7 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts, chroot_dir, devel
     logger = create_file_logger("run.check_signed_rpms_in_pkg_dir",
                                 "/tmp/copr_check_signed_rpms.log")
     try:
-        sign_rpms_in_dir(user, project, pkg_dir, opts, log=logger)
+        sign_rpms_in_dir(user, project, pkg_dir, chroot_dir, opts, log=logger)
         log.info("running createrepo for {}".format(pkg_dir))
         call_copr_repo(directory=chroot_dir, devel=devel, logger=log)
     except Exception as err:
