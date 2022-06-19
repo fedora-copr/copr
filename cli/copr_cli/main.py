@@ -351,6 +351,7 @@ class Commands(object):
         data = {
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
+            "spec_generator": args.spec_generator,
             "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
         }
@@ -725,6 +726,7 @@ class Commands(object):
             "package_name": args.name,
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
+            "spec_generator": args.spec_generator,
             "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
             "max_builds": args.max_builds,
@@ -1214,6 +1216,15 @@ def setup_parser():
                                          help="For what Python versions to build (by default: 3 2)")
     parser_pypi_args_optional.add_argument("--packageversion", metavar = "PYPIVERSION",
                                          help="Version of the PyPI package to be built (by default latest)")
+
+    parser_pypi_args_optional.add_argument(
+        "--spec-generator",
+        dest="spec_generator",
+        help="Tool for generating specfile from a PyPI package",
+        choices=["pyp2rpm", "pyp2spec"],
+        default="pyp2rpm",
+    )
+
     parser_pypi_args_optional.add_argument("--template", "-t", dest="spec_template",
                                          help="Spec template to be used to build srpm with pyp2rpm")
 

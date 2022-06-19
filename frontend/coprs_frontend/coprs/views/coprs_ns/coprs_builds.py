@@ -291,6 +291,7 @@ def process_new_build_pypi(copr, add_view, url_on_success):
             copr,
             form.pypi_package_name.data,
             form.pypi_package_version.data,
+            form.spec_generator.data,
             form.spec_template.data,
             form.python_versions.data,
             form.selected_chroots,

@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from copr_common.request import SafeRequest
 from copr_rpmbuild.helpers import CONF_DIRS
+from copr_rpmbuild.helpers import run_cmd
 
 
 log = logging.getLogger("__main__")
@@ -136,3 +137,17 @@ class Provider(object):
         RESULTDIR.  Each method needs to override this one.
         """
         raise NotImplementedError
+
+    def build_srpm_from_spec(self, spec_path):
+        """
+        Generate a SRPM package for a locally stored spec file
+        """
+        mock_config_file = self.generate_mock_config()
+        cmd = ["mock", "-r", mock_config_file,
+               "--buildsrpm", "--spec", spec_path,
+               "--resultdir", self.resultdir]
+
+        for key, value in self.macros.items():
+            cmd += ["--define", "{0} {1}".format(key, value)]
+
+        return run_cmd(cmd, cwd=self.workdir)

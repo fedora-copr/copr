@@ -89,8 +89,34 @@
 {% macro copr_package_form_pypi(form, view, copr, package) %}
     {{ copr_package_form_begin(form, view, copr, package) }}
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
-    {{ render_field(form.spec_template, placeholder="Spec template to be used for generating srpm.") }}
-    {{ render_pypi_python_versions_field(form.python_versions) }}
+
+    {{ render_field(
+         form.spec_generator,
+         info="Tool for generating specfile from a PyPI package. The options "
+               "are full-featured <strong>pyp2rpm</strong> with cross "
+               "distribution support, and <strong>pyp2spec</strong> that is "
+               "being actively developed and considered to be the future."
+       )
+    }}
+
+    {# End the previous instructions box #}
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          {{ counter('instructions') }}. Options specific for pyp2rpm
+        </h3>
+      </div>
+      <div class="panel-body">
+        {{ render_field(
+               form.spec_template,
+               placeholder="Distribution specific spec template",
+               info="Limited to <strong>pyp2rpm</strong> spec generator")
+        }}
+        {{ render_pypi_python_versions_field(form.python_versions) }}
+
     {{ render_generic_pkg_form(form) }}
     {{ render_anitya_autorebuild(form) }}
     {{ copr_package_form_end(form, package, 'rubygems') }}

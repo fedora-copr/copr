@@ -52,13 +52,21 @@
   <dd>{{ source_json_dict["pypi_package_version"] }}</dd>
   {% endif %}
 
-  {% if source_json_dict["spec_template"] %}
-  <dt>Spec template</dt>
-  <dd>{{ source_json_dict["spec_template"] }}</dd>
+  {% if source_json_dict["spec_generator"] %}
+  <dt>Spec generator</dt>
+  <dd>{{ source_json_dict["spec_generator"] }}</dd>
   {% endif %}
 
-  <dt>for Python</dt>
-  <dd>{{ ', '.join(source_json_dict["python_versions"]).strip(', ') }}</dd>
+  {# These options are not available for pyp2spec #}
+  {% if source_json_dict["spec_generator"] == "pyp2rpm" %}
+    {% if source_json_dict["spec_template"] %}
+    <dt>Spec template</dt>
+    <dd>{{ source_json_dict["spec_template"] }}</dd>
+    {% endif %}
+
+    <dt>for Python</dt>
+    <dd>{{ ', '.join(source_json_dict["python_versions"]).strip(', ') }}</dd>
+    {% endif %}
   {% endif %}
 
   {% if source_type_text == "rubygems" %}

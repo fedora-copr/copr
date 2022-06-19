@@ -872,6 +872,13 @@ class PackageFormPyPI(BasePackageForm):
             wtforms.validators.Optional(),
         ])
 
+    spec_generator = wtforms.SelectField(
+        "Spec generator",
+        choices=[
+            ("pyp2rpm", "pyp2rpm"),
+            ("pyp2spec", "pyp2spec"),
+        ], default="pyp2rpm")
+
     spec_template = wtforms.SelectField(
         "Spec template",
         choices=[
@@ -895,6 +902,7 @@ class PackageFormPyPI(BasePackageForm):
         return json.dumps({
             "pypi_package_name": self.pypi_package_name.data,
             "pypi_package_version": self.pypi_package_version.data,
+            "spec_generator": self.spec_generator.data,
             "spec_template": self.spec_template.data,
             "python_versions": self.python_versions.data
         })

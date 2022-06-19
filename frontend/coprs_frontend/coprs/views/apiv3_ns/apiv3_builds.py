@@ -256,6 +256,7 @@ def create_from_pypi():
             copr,
             form.pypi_package_name.data,
             form.pypi_package_version.data,
+            form.spec_generator.data,
             form.spec_template.data,
             form.python_versions.data,
             **options,

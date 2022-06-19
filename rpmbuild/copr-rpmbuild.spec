@@ -80,6 +80,7 @@ Recommends: python-srpm-macros
 Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
+Suggests: pyp2spec
 %endif
 
 %description
@@ -116,6 +117,7 @@ Requires: nosync(x86-32)
 Requires: openssh-clients
 Requires: podman
 Requires: pyp2rpm
+Requires: pyp2spec
 # We need %%pypi_source defined, which is in 3-29+
 Requires: python-srpm-macros >= 3-29
 Requires: rpkg

@@ -3,7 +3,6 @@ import logging
 
 from six.moves.urllib.parse import urlparse
 
-from copr_rpmbuild.helpers import run_cmd
 from copr_rpmbuild.providers.base import Provider
 
 log = logging.getLogger("__main__")
@@ -21,18 +20,6 @@ class UrlProvider(Provider):
             spec.write(response.text)
         return path
 
-    def build_srpm_from_spec(self):
-        mock_config_file = self.generate_mock_config()
-        spec_path = self.save_spec()
-        cmd = ["mock", "-r", mock_config_file,
-               "--buildsrpm", "--spec", spec_path,
-               "--resultdir", self.resultdir]
-
-        for key, value in self.macros.items():
-            cmd += ["--define", "{0} {1}".format(key, value)]
-
-        return run_cmd(cmd, cwd=self.workdir)
-
     def download_srpm(self):
         basename = os.path.basename(self.parsed_url.path)
         filename = os.path.join(self.resultdir, basename)
@@ -48,7 +35,8 @@ class UrlProvider(Provider):
 
     def produce_srpm(self):
         if self.parsed_url.path.endswith(".spec"):
-            return self.build_srpm_from_spec()
+            spec_path = self.save_spec()
+            return self.build_srpm_from_spec(spec_path)
         if self.parsed_url.path.endswith(".src.rpm"):
             return self.download_srpm()
         raise RuntimeError("Url is not a path to .spec nor .src.rpm file")

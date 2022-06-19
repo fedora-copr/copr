@@ -38,7 +38,7 @@ class TestUrlProvider(TestCase):
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
     @mock.patch('copr_common.request.SafeRequest.get')
-    @mock.patch("copr_rpmbuild.providers.spec.run_cmd")
+    @mock.patch("copr_rpmbuild.providers.base.run_cmd")
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.create_rpmmacros")
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.generate_mock_config")

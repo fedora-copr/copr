@@ -212,8 +212,10 @@ class BuildProxy(BaseProxy):
         return self._create(endpoint, data, buildopts=buildopts)
 
 
-    def create_from_pypi(self, ownername, projectname, pypi_package_name, pypi_package_version=None,
-                         spec_template='', python_versions=None, buildopts=None, project_dirname=None):
+    def create_from_pypi(self, ownername, projectname, pypi_package_name,
+                         pypi_package_version=None, spec_template='',
+                         python_versions=None, buildopts=None,
+                         project_dirname=None, spec_generator=None):
         """
         Create a build from PyPI - https://pypi.org/
 
@@ -225,6 +227,7 @@ class BuildProxy(BaseProxy):
         :param list python_versions: list of python versions to build for
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
+        :param str spec_generator: what tool should be used for spec generation
         :return: Munch
         """
         endpoint = "/build/create/pypi"
@@ -233,6 +236,7 @@ class BuildProxy(BaseProxy):
             "projectname": projectname,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
+            "spec_generator": spec_generator,
             "spec_template": spec_template,
             "python_versions": python_versions or [3, 2],
             "project_dirname": project_dirname,

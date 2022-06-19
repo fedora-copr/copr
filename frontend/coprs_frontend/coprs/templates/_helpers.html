@@ -72,6 +72,12 @@
       <label for="python_versions-0">3</label>&nbsp;&nbsp;&nbsp;
       <input id="python_versions-1" name="python_versions" value="2" type="checkbox" {% if '2' in field.data %}checked="checked"{% endif %}>
       <label for="python_versions-1">2</label>
+
+      <p class="help-block">
+        <small class="text-muted pficon pficon-info"></small>
+        Limited to <strong>pyp2rpm</strong> spec generator
+      </p>
+
     </div>
     {% if field.errors %}
       {% for error in field.errors %}

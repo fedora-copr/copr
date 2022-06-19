@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.120.2.dev
+Version:    1.120.3.dev
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
