@@ -48,7 +48,10 @@ load-plugins=pylint_copr_plugin
 #     It's inconvenient to silence this per-class.
 # consider-using-f-string
 #     "style" warnings, usage of the f-strings is not yet approved by our team
-disable=import-error,too-few-public-methods,consider-using-f-string
+# cyclic-import
+#     Seems like cyclic-import is just a style check which is not going to be
+#     fixed: https://github.com/PyCQA/pylint/issues/6983
+disable=import-error,too-few-public-methods,consider-using-f-string,cyclic-import
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
