@@ -27,7 +27,6 @@ from coprs.whoosheers import CoprWhoosheer
 from coprs.helpers import fix_protocol_for_backend, clone_sqlalchemy_instance
 
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.users_logic import UsersLogic
 
 
 class CoprsLogic(object):
@@ -267,7 +266,7 @@ class CoprsLogic(object):
 
 
         if group is not None:
-            UsersLogic.raise_if_not_in_group(user, group)
+            users_logic.UsersLogic.raise_if_not_in_group(user, group)
             copr.group = group
 
         copr_dir = models.CoprDir(
@@ -406,7 +405,7 @@ class CoprsLogic(object):
             return
 
         if copr.group:
-            return UsersLogic.raise_if_not_in_group(user, copr.group)
+            return users_logic.UsersLogic.raise_if_not_in_group(user, copr.group)
 
         if user == copr.user:
             return
@@ -899,7 +898,7 @@ class CoprChrootsLogic(object):
             buildroot_pkgs = ""
         if repos is None:
             repos = ""
-        UsersLogic.raise_if_cant_update_copr(
+        users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr,
             "Only owners and admins may update their projects.")
 
@@ -940,7 +939,7 @@ class CoprChrootsLogic(object):
         :type user: models.User
         :type copr_chroot: models.CoprChroot
         """
-        UsersLogic.raise_if_cant_update_copr(
+        users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
@@ -1008,7 +1007,7 @@ class CoprChrootsLogic(object):
         :type user: models.User
         """
 
-        UsersLogic.raise_if_cant_update_copr(
+        users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr,
             "Only owners and admins may update their projects.")
 
@@ -1101,7 +1100,7 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def remove_comps(cls, user, copr_chroot):
-        UsersLogic.raise_if_cant_update_copr(
+        users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
@@ -1115,7 +1114,7 @@ class CoprChrootsLogic(object):
         """
         :param models.CoprChroot chroot:
         """
-        UsersLogic.raise_if_cant_update_copr(
+        users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 

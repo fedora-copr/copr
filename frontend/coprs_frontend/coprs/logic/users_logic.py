@@ -5,6 +5,7 @@ from coprs import exceptions
 from flask import url_for
 
 from coprs import app, db
+from coprs.logic import coprs_logic
 from coprs.models import User, Group
 from coprs.helpers import copr_url, generate_api_token
 from sqlalchemy import update
@@ -202,11 +203,10 @@ class UserDataDumper(object):
 
     @property
     def projects(self):
-        # @FIXME We get into circular import when this import is on module-level
-        from coprs.logic.coprs_logic import CoprsLogic
         return [{"full_name": p.full_name,
                  "url": copr_url("coprs_ns.copr_detail", p, _external=True)}
-                for p in CoprsLogic.filter_by_user_name(CoprsLogic.get_multiple(), self.user.name)]
+                for p in coprs_logic.CoprsLogic.filter_by_user_name(
+                        coprs_logic.CoprsLogic.get_multiple(), self.user.name)]
 
     @property
     def builds(self):
