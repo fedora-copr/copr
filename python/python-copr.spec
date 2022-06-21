@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.119
+Version:    1.120
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -240,6 +240,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.120-1
+- Disable network on builders by default
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.119-1
 - really depend on filelock component
 
