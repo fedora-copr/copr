@@ -1,7 +1,7 @@
 %global copr_common_version 0.14.1.dev
 
 Name:       copr-dist-git
-Version:    0.54
+Version:    0.55
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 0.55-1
+- Don't setgid(apache) while importing ("uploading")
+- More obvious "locking" importer proctitle
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 0.54-1
 - do not remove the PR directories too early
 
