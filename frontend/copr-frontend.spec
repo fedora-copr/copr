@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.186
+Version:    1.187
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,17 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.187-1
+- Start logging important events
+- Change logging formatter to show also flask.g.user
+- APIv3 support for chroot_denylist
+- Restrict the CoprDir names to <copr>:custom:<suffix>
+- Don't require trailing slash in APIv3 /package/list
+- Don't hide CoprDir buttons in Builds web-ui
+- New command 'copr-frontend chroots-template'
+- More understandable Pagure badges
+- Detect ClientDisconnected errors
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.186-1
 - support for api_3 gssapi login
 - the /pending-jobs/ is now a streamed page
