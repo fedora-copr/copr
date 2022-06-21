@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.155
+Version:    1.156
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.156-1
+- Consolidate the two hitcounter scripts
+- Dump Resalloc ticket ID and hostname to backend.log
+- Automatically restart services in %%post
+- Don't count RPMs downloaded from Mock
+- Attempt to sign multiple times
+- Try multiple attempts of creating GPG keys
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.155-1
 - fix slow priority queue filling
 - speedup the background-process spawner
