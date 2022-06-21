@@ -478,7 +478,8 @@ rlJournalStart
         ## test building in copr dirs
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}CoprDirTest"
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}CoprDirTest --name example --clone-url $COPR_HELLO_GIT --method tito" 0
-        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT --method tito" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:example --clone-url $COPR_HELLO_GIT --method tito" 1
+        rlRun "copr-cli buildscm ${NAME_PREFIX}CoprDirTest:custom:example --clone-url $COPR_HELLO_GIT --method tito" 0
 
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
