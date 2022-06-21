@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.5
+Version:    0.6
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -86,6 +86,9 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 0.6-1
+- Adapt to the changed stomppy API
+
 * Mon Nov 09 2020 Jakub Kadlcik <frostyx@email.cz> 0.5-1
 - explicitely requires python3-setuptools
 - all: run pytest with -vv in package build

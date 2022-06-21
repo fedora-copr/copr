@@ -36,7 +36,7 @@ with open(os.path.join(here, "requirements.txt")) as f:
 
 setup(
     name=__name__,
-    version="0.5",
+    version="0.6",
     description=__description__,
     long_description=README,
     url=__url__,
