@@ -154,7 +154,7 @@ rlJournalStart
 
         ## test distgit builds
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}ProjectDistGitBuilds"
-        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/cpio.git --branch f$FEDORA_VERSION ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli buildscm --clone-url https://src.fedoraproject.org/rpms/cpio.git --branch f$FEDORA_VERSION ${NAME_PREFIX}ProjectDistGitBuilds"
 
         ## test mock-config feature
         mc_project=${NAME_PREFIX}MockConfig
