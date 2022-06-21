@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.116.2.dev
 
 Name:       copr-cli
-Version:    1.100
+Version:    1.101
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -136,6 +136,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.101-1
+- Remove depraceted method `copr-cli buildfedpkg'
+
 * Mon Apr 04 2022 Pavel Raiskup <praiskup@redhat.com> 1.100-1
 - list-package-names now uses pagination
 - ensure that (error/info) logging is printed even without --debug
