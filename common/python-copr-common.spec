@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.14.1.dev
+Version:    0.15
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,9 @@ version=%version %py2_install
 
 
 %changelog
+* Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 0.15-1
+- Allow SafeRequest's timeout to be specified
+
 * Wed Feb 02 2022 Silvie Chlupova <schlupov@redhat.com> 0.14-1
 - Fixing copr-common version
 
