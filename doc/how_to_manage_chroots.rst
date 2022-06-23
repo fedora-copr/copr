@@ -99,8 +99,9 @@ comfortably deal with it. It can be done like this
 
 ::
 
-    copr-frontend alter-chroot --action eol fedora-31-x86_64 fedora-31-i386 \
-        fedora-31-ppc64le fedora-31-aarch64 fedora-31-armhfp fedora-31-s390x
+    fv=34
+    copr-frontend alter-chroot --action eol fedora-$fv-x86_64 fedora-$fv-i386 \
+        fedora-$fv-ppc64le fedora-$fv-aarch64 fedora-$fv-armhfp fedora-$fv-s390x
 
 After running such command, no data are going to be removed. All repositories for the chroot are preserved. It is just
 disabled and users can't build new packages in it anymore.
