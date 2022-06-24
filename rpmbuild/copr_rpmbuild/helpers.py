@@ -185,22 +185,6 @@ def get_mock_uniqueext():
     return datetime.datetime.now().strftime('%s.%f')
 
 
-def extract_srpm(srpm_path, destination):
-    """
-    Extracts srpm content to the target directory.
-
-    raises: CheckOutputError
-    """
-    cwd = os.getcwd()
-    os.chdir(destination)
-    log.debug('Extracting srpm {0} to {1}'.format(srpm_path, destination))
-    try:
-        cmd = "rpm2cpio {path} | cpio -idmv".format(path=pipes.quote(srpm_path))
-        subprocess.check_call(cmd, shell=True)
-    finally:
-        os.chdir(cwd)
-
-
 def build_srpm(srcdir, destdir):
     cmd = [
         'rpmbuild', '-bs',
