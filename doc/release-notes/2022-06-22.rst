@@ -1,0 +1,97 @@
+.. _release_notes_2022_06_22:
+
+Highlights from 2022-06-22 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_,
+`Fedora 36`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Better build badges in Pagure
+-----------------------------
+
+For a long time, Copr supports automatical rebuilds for pull requests
+in any Pagure instance. We enhanced the information that is sent back
+to Pagure, and show package names for each build displayed in the
+PR. This is especially useful for projects with multiple packages.
+
+
+Resalloc WebUI
+--------------
+
+We took inspiration from the `OBS Monitor page`_ and created a page
+that shows `statistics about available builder pools`_ (e.g., how many
+x86_64 builders are up and running in Amazon AWS, how many s390x
+builders are in IBM Cloud, etc) and also a page
+`listing all available builders`_ and who is using them.
+
+
+Notable changes
+---------------
+
+- It is now possible to specify ``chroot_denylist`` for a package via
+  APIv3
+
+- Stomp 6.1+ support for our fedora-messaging package
+
+- The long-time deprecated action ``copr-cli buildfedpkg`` is now removed
+
+- Improvements to error handling and logging to make debugging
+  and occasional security-related investigations easier
+
+
+Bugfixes
+--------
+
+- Fixed APIv3 call for listing all projects - it tracebacked for
+  projects with no active chroots
+
+- `#2082`_ - Because of a mistake in our database schema, see `#617`_,
+  it was possible to stuck CI builds in an infinitely running state.
+
+- `#2194`_ - The ``make_srpm`` SCM method stopped working because
+  of the `safe directories`_ feature introduced by a new ``git``
+  version.
+
+- `#2094`_ - Copr-specific macros ``%copr_username``,
+  ``%copr_projectname`` are now defined also in a SRPM buildroot
+
+- `#2098`_ - When branching a new Fedora version, we now make sure to
+  create a repository even if there are no builds
+
+- `#2130`_ - The original ``committish`` value is now used when
+  resubmitting a build
+
+- `#2163`_ - The SCM method now uses ``git clone --recursive`` to clone
+  the repositories
+
+- `#2131`_, `#2133`_ - If not successful, we attempt to create project GPG
+  keys, and sign built RPM packages multiple times.
+
+- `packit/1386`_ - The networking is now by default disabled when
+  submitting builds via ``python3-copr`` library. The default was
+  changed to match the behavior of the WebUI and ``copr-cli``
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-13b756f53f
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-12234faaef
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-6d38336660
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-6fe6d98425
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-5d55ddc5ee
+
+.. _`Fedora Copr instance`: https://copr.fedorainfracloud.org/
+.. _`Safe directories`: https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
+.. _`OBS Monitor page`: https://build.opensuse.org/monitor
+.. _`statistics about available builder pools`: https://copr-be.cloud.fedoraproject.org/resalloc/pools
+.. _`listing all available builders`: https://copr-be.cloud.fedoraproject.org/resalloc/resources
+
+.. _`#617`: https://pagure.io/copr/copr/issue/617
+.. _`#2082`: https://pagure.io/copr/copr/issue/2082
+.. _`#2194`: https://pagure.io/copr/copr/issue/2194
+.. _`#2094`: https://pagure.io/copr/copr/issue/2094
+.. _`#2098`: https://pagure.io/copr/copr/issue/2098
+.. _`#2130`: https://pagure.io/copr/copr/issue/2130
+.. _`#2163`: https://pagure.io/copr/copr/issue/2163
+.. _`#2131`: https://pagure.io/copr/copr/issue/2131
+.. _`#2133`: https://pagure.io/copr/copr/issue/2133
+.. _`packit/1386`: https://github.com/packit/packit/issues/1386
