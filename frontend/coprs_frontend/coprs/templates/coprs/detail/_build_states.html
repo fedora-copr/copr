@@ -2,7 +2,8 @@
 {% from "_helpers.html" import build_state_text %}
     <dl class="aligned">
         <div>
-            <dt> Possible build states: </dt>
+            <details>
+            <summary style="display: list-item"> Possible build states</summary>
             {% for state in [
               "importing",
               "pending",
@@ -15,12 +16,12 @@
               "canceled",
               "waiting",
             ]%}
-            <dd>
                 {{ build_state_text(state) }}
                 - {{state|build_state_description}}
-            </dd>
+            <br />
 
             {% endfor %}
+            </details>
         </div>
     </dl>
 {% endmacro %}
