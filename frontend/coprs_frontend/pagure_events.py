@@ -67,6 +67,8 @@ class ScmPackage(object):
     @classmethod
     def get_candidates_for_rebuild(cls, clone_url):
         rows = models.Package.query \
+            .join(models.Copr) \
+            .filter(models.Copr.deleted.is_(False)) \
             .filter(models.Package.source_type.in_(SUPPORTED_SOURCE_TYPES)) \
             .filter(models.Package.webhook_rebuild) \
             .filter(models.Package.source_json.ilike('%' + clone_url + '%'))
