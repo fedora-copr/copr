@@ -19,6 +19,16 @@ app.config.from_envvar("COPR_KEYGEN_CONFIG", silent=True)
 
 
 # setup logger
+class RemoteAddrFilter(logging.Filter):
+    """
+    Define `%(remote_addr)s` key for the formatter string
+    """
+
+    def filter(self, record):
+        record.remote_addr = request.remote_addr if request else "SERVER"
+        return True
+
+
 if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
     filename = os.path.join(app.config["LOG_DIR"], "main.log")
     if os.path.exists(app.config["LOG_DIR"]):
@@ -26,12 +36,14 @@ if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
         handler.setLevel(app.config["LOG_LEVEL"])
         handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s'
-            '[%(module)s:%(pathname)s:%(lineno)d]'
+            '[%(module)s:%(pathname)s:%(lineno)d][%(remote_addr)s]'
             ': %(message)s '
         ))
+        handler.addFilter(RemoteAddrFilter())
         app.logger.addHandler(handler)
 
     app.logger.setLevel(app.config["LOG_LEVEL"])
+    app.logger.addFilter(RemoteAddrFilter())
 # end setup logger
 
 
