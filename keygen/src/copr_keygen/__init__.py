@@ -130,12 +130,6 @@ def gen_key():
 
 
 @app.errorhandler(500)
-def handle_invalid_usage(error):
-    response = Response(error.msg, content_type="text/plain;charset=UTF-8")
-    response.status_code = error.status_code
-    response.data = str(error)
-    return response
-
 @app.errorhandler(KeygenServiceBaseException)
 def handle_invalid_usage(error):
     response = Response(error.msg, content_type="text/plain;charset=UTF-8")
