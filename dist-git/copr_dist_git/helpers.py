@@ -159,7 +159,7 @@ def download_file(url, destination):
     log.debug("Downloading {0}".format(url))
     try:
         request = SafeRequest(log=log, timeout=10 * 60)
-        r = request.send(url, method='get')
+        r = request.send(url, method='get', stream=True)
     except RequestError as e:
         raise FileDownloadException(str(e))
 
