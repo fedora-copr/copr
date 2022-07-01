@@ -44,6 +44,7 @@ INSTANCES = {
             "copr-dist-git-dev.aws.fedoraproject.org",
             "copr-keygen-dev.aws.fedoraproject.org",
         ],
+        "user": "root",
     },
     "redhat": {
         "prod": [
@@ -66,6 +67,7 @@ def _get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--instance", default="fedora")
     parser.add_argument("--devel", default=False, action="store_true")
+    parser.add_argument("--username")
     parser.add_argument("command")
     return parser
 
@@ -73,7 +75,14 @@ def _get_parser():
 if __name__ == "__main__":
     args = _get_parser().parse_args()
 
+    instance = INSTANCES[args.instance]
+    user = instance.get("user")
+    if args.username:
+        user = args.username
+
     for host in INSTANCES[args.instance]["dev" if args.devel else "prod"]:
-        command = ["ssh", "root@" + host, args.command]
+        connection = user + "@" if user else ""
+        connection += host
+        command = ["ssh", connection, args.command]
         print(f"=== host: {host}")
         subprocess.call(command)
