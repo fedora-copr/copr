@@ -36,7 +36,7 @@ from copr.v3.pagination import next_page
 from copr_cli.helpers import cli_use_output_format
 from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
-from .util import ProgressBar, serializable
+from copr_cli.util import get_progress_callback, serializable
 from .build_config import MockProfile
 
 
@@ -321,25 +321,19 @@ class Commands(object):
 
         builds = []
         for pkg in args.pkgs:
+            progress_callback = None
             if os.path.exists(pkg):
-                bar = ProgressBar(max=os.path.getsize(pkg))
+                progress_callback = get_progress_callback(os.path.getsize(pkg))
                 build_function = self.client.build_proxy.create_from_file
                 data = {"path": pkg}
-
-                # pylint: disable=function-redefined
-                def progress_callback(monitor):
-                    bar.next(n=8192)
-
                 print('Uploading package {0}'.format(pkg))
             elif not urlparse(pkg).scheme:
                 raise CoprException("File {0} not found".format(pkg))
             else:
-                bar = None
-                progress_callback = None
                 build_function = self.client.build_proxy.create_from_url
                 data = {"url": pkg}
 
-            builds.append(self.process_build(args, build_function, data, bar=bar, progress_callback=progress_callback))
+            builds.append(self.process_build(args, build_function, data, progress_callback=progress_callback))
 
         return builds
 
@@ -412,14 +406,21 @@ class Commands(object):
             data[arg] = getattr(args, arg)
         return self.process_build(args, self.client.build_proxy.create_from_custom, data)
 
-    def process_build(self, args, build_function, data, bar=None, progress_callback=None):
+    def process_build(self, args, build_function, data, progress_callback=None):
         username, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
 
         try:
             buildopts = buildopts_from_args(args, progress_callback)
-            result = build_function(ownername=username, projectname=projectname,
-                                    project_dirname=project_dirname, buildopts=buildopts, **data)
+            try:
+                result = build_function(ownername=username,
+                                        projectname=projectname,
+                                        project_dirname=project_dirname,
+                                        buildopts=buildopts, **data)
+            finally:
+                if progress_callback:
+                    progress_callback.finish()
+
 
             builds = result if type(result) == list else [result]
             print("Build was added to {0}:".format(builds[0].projectname))
@@ -436,9 +437,6 @@ class Commands(object):
         except CoprException as ex:
             sys.stderr.write(str(ex) + "\n")
             sys.exit(1)
-        finally:
-            if bar:
-                bar.finish()
 
 
     @requires_api_auth

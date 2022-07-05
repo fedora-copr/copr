@@ -6,43 +6,54 @@ import simplejson
 
 try:
     from progress.bar import Bar
+
+    class SpeedProgressBar(Bar):
+        """
+        Modified progress.bar.Bar with additional formatters %(download_speed)
+        and %(downloaded), with additional interface supported by
+        MultipartEncoderMonitor API.
+        Bar accepts the last N downloaded bytes, while MultipartEncoderMonitor
+        callback provides the total number of downloaded bytes.  N needs to be
+        calculated.
+        """
+
+        message = "%(percent)d%%"
+        suffix = "%(downloaded)s %(download_speed)s eta %(eta_td)s"
+        read_last = 0
+
+        @property
+        def download_speed(self):
+            """ Inverted value of Bar.avg """
+            if self.avg == 0.0:
+                return "..."
+            return "{0}/s".format(humanize.naturalsize(1 / self.avg))
+
+        @property
+        def downloaded(self):
+            """ How many bytes are already downloaded """
+            return humanize.naturalsize(self.index)
+
+        def __call__(self, monitor):
+            """ MultipartEncoderMonitor expects callable """
+            read = monitor.bytes_read - self.read_last
+            self.read_last = monitor.bytes_read
+            self.next(read)
+
+
 except ImportError:
     progress = False
 else:
     progress = True
 
 
-class ProgressMixin(object):
-
-    @property
-    def download_speed(self):
-        if self.avg == 0.0:
-            return "..."
-        return "{0}/s".format(humanize.naturalsize(1 / self.avg))
-
-    @property
-    def downloaded(self):
-        return humanize.naturalsize(self.index)
-
-
-class DummyBar(object):
-    # pylint: disable=redefined-builtin
-    def __init__(self, max=None):
-        pass
-
-    def next(self, n=None):
-        pass
-
-    def finish(self):
-        pass
-
-
-if progress:
-    class ProgressBar(Bar, ProgressMixin):
-        message = "%(percent)d%%"
-        suffix = "%(downloaded)s %(download_speed)s eta %(eta_td)s"
-else:
-    ProgressBar = DummyBar
+def get_progress_callback(length):
+    """
+    If python-progress is installed, instantiate progress bar object.  Otherwise
+    just return None.
+    """
+    if not progress:
+        return None
+    return SpeedProgressBar(max=length)
 
 
 def serializable(result):
