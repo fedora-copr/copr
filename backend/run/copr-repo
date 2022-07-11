@@ -135,7 +135,7 @@ def run_createrepo(opts):
         # this is because rhel-5 doesn't know sha256
         createrepo_cmd.extend(['-s', 'sha', '--checksum', 'md5'])
 
-    mb_comps_xml_path = os.path.join(opts.directory, "repodata", "comps.xml")
+    mb_comps_xml_path = os.path.join(opts.directory, "comps.xml")
     if os.path.exists(mb_comps_xml_path):
         createrepo_cmd += ['--groupfile', mb_comps_xml_path, '--keep-all-metadata']
 

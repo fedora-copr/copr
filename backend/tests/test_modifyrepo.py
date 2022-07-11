@@ -533,7 +533,7 @@ class TestModifyRepo(object):
         ctx = f_third_build
         chroot = ctx.chroots[0]
         chrootdir = os.path.join(ctx.empty_dir, chroot)
-        copms_path = os.path.join(chrootdir, "repodata", "comps.xml")
+        copms_path = os.path.join(chrootdir, "comps.xml")
         with open(copms_path, "w"):
             pass
 
