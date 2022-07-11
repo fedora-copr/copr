@@ -137,7 +137,7 @@ def run_createrepo(opts):
 
     mb_comps_xml_path = os.path.join(opts.directory, "comps.xml")
     if os.path.exists(mb_comps_xml_path):
-        createrepo_cmd += ['--groupfile', mb_comps_xml_path, '--keep-all-metadata']
+        createrepo_cmd += ['--groupfile', mb_comps_xml_path]
 
     repodata_xml = os.path.join(opts.directory, 'repodata', 'repomd.xml')
     repodata_exist = os.path.exists(repodata_xml)
