@@ -65,8 +65,8 @@ class Request(object):
                 if response.status_code == 401:
                     self._update_auth_params(request_params, auth, reauth=True)
                     continue
-                return response
-        raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
+                break
+        return response
 
     def _request_params(self, endpoint, method=GET, data=None, params=None,
                         headers=None, auth=None):
