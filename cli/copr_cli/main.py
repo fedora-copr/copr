@@ -410,33 +410,27 @@ class Commands(object):
         username, project_dirname = self.parse_name(args.copr_repo)
         projectname = project_dirname.split(':')[0]
 
+        buildopts = buildopts_from_args(args, progress_callback)
         try:
-            buildopts = buildopts_from_args(args, progress_callback)
-            try:
-                result = build_function(ownername=username,
-                                        projectname=projectname,
-                                        project_dirname=project_dirname,
-                                        buildopts=buildopts, **data)
-            finally:
-                if progress_callback:
-                    progress_callback.finish()
+            result = build_function(ownername=username,
+                                    projectname=projectname,
+                                    project_dirname=project_dirname,
+                                    buildopts=buildopts, **data)
+        finally:
+            if progress_callback:
+                progress_callback.finish()
 
+        builds = result if type(result) == list else [result]
+        print("Build was added to {0}:".format(builds[0].projectname))
 
-            builds = result if type(result) == list else [result]
-            print("Build was added to {0}:".format(builds[0].projectname))
+        for build in builds:
+            print("  {0}".format(self.build_url(build.id)))
 
-            for build in builds:
-                print("  {0}".format(self.build_url(build.id)))
+        build_ids = [build.id for build in builds]
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
 
-            build_ids = [build.id for build in builds]
-            print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-            if not args.nowait:
-                self._watch_builds(build_ids)
-
-        except CoprException as ex:
-            sys.stderr.write(str(ex) + "\n")
-            sys.exit(1)
+        if not args.nowait:
+            self._watch_builds(build_ids)
 
 
     @requires_api_auth
