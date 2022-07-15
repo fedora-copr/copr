@@ -203,6 +203,16 @@ class Commands(object):
             owner = self.ownername
         return owner, name
 
+    def parse_dirname(self, name):
+        """
+        From specified <owner>/<dirname> or just <dirname> return the
+        tripled (owner, project, dirname).
+        """
+        owner, dirname = self.parse_name(name)
+        project = dirname.split(':')[0]
+        return owner, project, dirname
+
+
     def build_url(self, build_id):
         """
         Return the "generic" predictable url for build_id, which redirects
@@ -407,8 +417,7 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_custom, data)
 
     def process_build(self, args, build_function, data, progress_callback=None):
-        username, project_dirname = self.parse_name(args.copr_repo)
-        projectname = project_dirname.split(':')[0]
+        username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
 
         buildopts = buildopts_from_args(args, progress_callback)
         try:
@@ -895,8 +904,8 @@ class Commands(object):
         print("Package's default source was successfully reseted.")
 
     def action_build_package(self, args):
-        ownername, project_dirname = self.parse_name(args.copr_repo)
-        projectname = project_dirname.split(':')[0]
+        ownername, projectname, project_dirname = self.parse_dirname(args.copr_repo)
+
         buildopts = buildopts_from_args(args, None)
         build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
                                                 packagename=args.name, buildopts=buildopts,
