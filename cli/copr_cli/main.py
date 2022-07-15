@@ -416,6 +416,25 @@ class Commands(object):
             data[arg] = getattr(args, arg)
         return self.process_build(args, self.client.build_proxy.create_from_custom, data)
 
+    def print_build_info_and_wait(self, builds, args):
+        """
+        Print to stdout information about just submitted builds.  Note that our
+        users parse this non-parseable output, because we don't have issue #224
+        fixed.
+        """
+
+        print("Build was added to {0}:".format(builds[0].projectname))
+
+        for build in builds:
+            print("  {0}".format(self.build_url(build.id)))
+
+        build_ids = [build.id for build in builds]
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
+
+        if not args.nowait:
+            self._watch_builds(build_ids)
+
+
     def process_build(self, args, build_function, data, progress_callback=None):
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
 
@@ -430,16 +449,7 @@ class Commands(object):
                 progress_callback.finish()
 
         builds = result if type(result) == list else [result]
-        print("Build was added to {0}:".format(builds[0].projectname))
-
-        for build in builds:
-            print("  {0}".format(self.build_url(build.id)))
-
-        build_ids = [build.id for build in builds]
-        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-        if not args.nowait:
-            self._watch_builds(build_ids)
+        self.print_build_info_and_wait(builds, args)
 
 
     @requires_api_auth
@@ -910,11 +920,7 @@ class Commands(object):
         build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
                                                 packagename=args.name, buildopts=buildopts,
                                                 project_dirname=project_dirname)
-        print("Build was added to {0}.".format(build.projectname))
-        print("Created builds: {0}".format(build.id))
-
-        if not args.nowait:
-            self._watch_builds([build.id])
+        self.print_build_info_and_wait([build], args)
 
     def action_build_module(self, args):
         """
