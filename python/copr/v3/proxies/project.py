@@ -70,7 +70,7 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None,
-            fedora_review=None, appstream=True):
+            fedora_review=None, appstream=True, runtime_dependencies=None):
         """
         Create a project
 
@@ -102,6 +102,9 @@ class ProjectProxy(BaseProxy):
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
         :param bool appstream: Disable or enable generating the appstream metadata
+        :param string runtime_dependencies: List of external repositories
+            (== dependencies, specified as baseurls) that will be automatically
+            enabled together with this project repository.
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -129,6 +132,7 @@ class ProjectProxy(BaseProxy):
             "module_hotfixes": module_hotfixes,
             "fedora_review": fedora_review,
             "appstream": appstream,
+            "runtime_dependencies": runtime_dependencies,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
@@ -147,7 +151,7 @@ class ProjectProxy(BaseProxy):
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
              bootstrap=None, bootstrap_image=None, isolation=None,
-             fedora_review=None, appstream=None):
+             fedora_review=None, appstream=None, runtime_dependencies=None):
         """
         Edit a project
 
@@ -204,6 +208,7 @@ class ProjectProxy(BaseProxy):
             "module_hotfixes": module_hotfixes,
             "fedora_review": fedora_review,
             "appstream": appstream,
+            "runtime_dependencies": runtime_dependencies,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

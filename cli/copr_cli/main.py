@@ -466,6 +466,7 @@ class Commands(object):
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
             fedora_review=args.fedora_review,
             appstream=ON_OFF_MAP[args.appstream],
+            runtime_dependencies=args.runtime_dependencies,
         )
 
         owner_part = username.replace('@', "g/")
@@ -496,6 +497,7 @@ class Commands(object):
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
             fedora_review=ON_OFF_MAP[args.fedora_review],
             appstream=ON_OFF_MAP[args.appstream],
+            runtime_dependencies=args.runtime_dependencies,
         )
 
     @requires_api_auth
@@ -966,6 +968,25 @@ class Commands(object):
                                                       request)
         print("success")
 
+
+def create_and_modify_common_opts(parser):
+    """
+    De-duplicate options for 'copr create' and 'copr modify' options.
+    """
+    parser.add_argument(
+        "--repo", dest="repos", action="append", metavar="REPO_BASEURL", help=(
+            "Repository that will be enabled at package build time, can be "
+            "specified multiple times."
+    ))
+    parser.add_argument(
+        "--runtime-repo-dependency", dest="runtime_dependencies",
+        metavar="REPO_BASEURL", action="append", help=(
+            "Repository that will be automatically enabled together "
+            "with repository from this copr, e.g. by `dnf copr enable`. "
+            "This can be specified multiple times."
+    ))
+
+
 def setup_parser():
     """
     Set the main arguments.
@@ -1036,8 +1057,9 @@ def setup_parser():
                                help="The name of the copr to create")
     parser_create.add_argument("--chroot", dest="chroots", action="append",
                                help="Chroot to use for this copr")
-    parser_create.add_argument("--repo", dest="repos", action="append",
-                               help="Repository to add to this copr")
+
+
+
     parser_create.add_argument("--initial-pkgs", dest="initial_pkgs",
                                action="append",
                                help="List of packages URL to build in this "
@@ -1097,6 +1119,8 @@ def setup_parser():
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
 
+    create_and_modify_common_opts(parser_create)
+
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -1109,8 +1133,6 @@ def setup_parser():
                                help="Description of the copr")
     parser_modify.add_argument("--instructions",
                                help="Instructions for the copr")
-    parser_modify.add_argument("--repo", dest="repos", action="append",
-                               help="Repository to add to this copr")
     parser_modify.add_argument("--disable_createrepo", type=str2bool,
                                help="Disable metadata auto generation")
     parser_modify.add_argument("--enable-net", choices=["on", "off"],
@@ -1154,6 +1176,8 @@ def setup_parser():
         "--appstream", choices=["on", "off"], default="on",
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
+
+    create_and_modify_common_opts(parser_modify)
 
     parser_modify.set_defaults(func="action_modify_project")
 

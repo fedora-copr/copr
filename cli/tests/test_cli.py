@@ -467,6 +467,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "module_hotfixes": False,
         "fedora_review": False,
         "appstream": True,
+        "runtime_dependencies": None,
     }
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
@@ -560,6 +561,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "module_hotfixes": False,
         "fedora_review": False,
         "appstream": True,
+        "runtime_dependencies": None,
     }
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 

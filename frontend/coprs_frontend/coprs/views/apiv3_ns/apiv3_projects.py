@@ -143,9 +143,13 @@ def add_project(ownername):
         bootstrap = form.bootstrap.data
 
     try:
+
+        def _form_field_repos(form_field):
+            return " ".join(form_field.data.split())
+
         copr = CoprsLogic.add(
             name=form.name.data.strip(),
-            repos=" ".join(form.repos.data.split()),
+            repos=_form_field_repos(form.repos),
             user=user,
             selected_chroots=form.selected_chroots,
             description=form.description.data,
@@ -166,7 +170,7 @@ def add_project(ownername):
             module_hotfixes=form.module_hotfixes.data,
             fedora_review=form.fedora_review.data,
             follow_fedora_branching=form.follow_fedora_branching.data,
-            runtime_dependencies=form.runtime_dependencies.data,
+            runtime_dependencies=_form_field_repos(form.runtime_dependencies),
             appstream=form.appstream.data,
         )
         db.session.commit()

@@ -6,7 +6,7 @@
 %global with_python2 1
 %endif
 
-%global min_python_copr_version 1.116.2.dev
+%global min_python_copr_version 1.120.1.dev
 
 Name:       copr-cli
 Version:    1.101
