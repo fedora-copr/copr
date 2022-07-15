@@ -468,7 +468,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "fedora_review": False,
         "appstream": True,
     }
-    assert stdout == "New project was successfully created.\n"
+    assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
 @mock.patch('copr.v3.proxies.project.ProjectProxy.add')
@@ -485,7 +485,7 @@ def test_create_project_with_isolation(_config_from_file, project_proxy_add, cap
     kwargs = project_proxy_add.call_args[1]
     assert stderr == ''
     assert kwargs["isolation"] == "simple"
-    assert stdout == "New project was successfully created.\n"
+    assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
 @mock.patch('copr.v3.proxies.project_chroot.ProjectChrootProxy.edit')
@@ -561,7 +561,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "fedora_review": False,
         "appstream": True,
     }
-    assert stdout == "New project was successfully created.\n"
+    assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
 @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))

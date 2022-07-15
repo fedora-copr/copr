@@ -467,7 +467,11 @@ class Commands(object):
             fedora_review=args.fedora_review,
             appstream=ON_OFF_MAP[args.appstream],
         )
-        print("New project was successfully created.")
+
+        owner_part = username.replace('@', "g/")
+        project_url = '/'.join([self.client.config["copr_url"].strip("/"),
+                                'coprs', owner_part, copr, ""])
+        print("New project was successfully created: {0}".format(project_url))
 
     @requires_api_auth
     def action_modify_project(self, args):
