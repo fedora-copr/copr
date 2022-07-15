@@ -103,7 +103,7 @@ class ActionDeprecated(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-def buildopts_from_args(args, progress_callback):
+def buildopts_from_args(args, progress_callback=None):
     """
     For all the build commands, parse the common set of build options.
     """
@@ -329,23 +329,34 @@ class Commands(object):
         # that the user actually has a valid credentials.
         self.client.base_proxy.auth_check()
 
+        username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
+
         builds = []
         for pkg in args.pkgs:
-            progress_callback = None
             if os.path.exists(pkg):
                 progress_callback = get_progress_callback(os.path.getsize(pkg))
-                build_function = self.client.build_proxy.create_from_file
+                buildopts = buildopts_from_args(args, progress_callback)
                 data = {"path": pkg}
                 print('Uploading package {0}'.format(pkg))
+                try:
+                    builds.append(self.client.build_proxy.create_from_file(
+                        ownername=username, projectname=projectname,
+                        project_dirname=project_dirname, buildopts=buildopts,
+                        **data))
+                finally:
+                    if progress_callback:
+                        progress_callback.finish()
             elif not urlparse(pkg).scheme:
                 raise CoprException("File {0} not found".format(pkg))
             else:
-                build_function = self.client.build_proxy.create_from_url
+                buildopts = buildopts_from_args(args)
                 data = {"url": pkg}
+                builds.append(self.client.build_proxy.create_from_url(
+                    ownername=username, projectname=projectname,
+                    project_dirname=project_dirname, buildopts=buildopts,
+                    **data))
 
-            builds.append(self.process_build(args, build_function, data, progress_callback=progress_callback))
-
-        return builds
+        self.print_build_info_and_wait(builds, args)
 
     @requires_api_auth
     def action_build_pypi(self, args):
@@ -435,19 +446,13 @@ class Commands(object):
             self._watch_builds(build_ids)
 
 
-    def process_build(self, args, build_function, data, progress_callback=None):
+    def process_build(self, args, build_function, data):
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
-
-        buildopts = buildopts_from_args(args, progress_callback)
-        try:
-            result = build_function(ownername=username,
-                                    projectname=projectname,
-                                    project_dirname=project_dirname,
-                                    buildopts=buildopts, **data)
-        finally:
-            if progress_callback:
-                progress_callback.finish()
-
+        buildopts = buildopts_from_args(args)
+        result = build_function(ownername=username,
+                                projectname=projectname,
+                                project_dirname=project_dirname,
+                                buildopts=buildopts, **data)
         builds = result if type(result) == list else [result]
         self.print_build_info_and_wait(builds, args)
 
@@ -916,7 +921,7 @@ class Commands(object):
     def action_build_package(self, args):
         ownername, projectname, project_dirname = self.parse_dirname(args.copr_repo)
 
-        buildopts = buildopts_from_args(args, None)
+        buildopts = buildopts_from_args(args)
         build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
                                                 packagename=args.name, buildopts=buildopts,
                                                 project_dirname=project_dirname)
