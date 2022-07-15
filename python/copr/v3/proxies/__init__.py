@@ -59,4 +59,6 @@ class BaseProxy(object):
         Return the username (string) assigned to this configuration.  May
         contact the server and authenticate if needed.
         """
+        if not self.auth.username:
+            self.auth.make()
         return self.auth.username
