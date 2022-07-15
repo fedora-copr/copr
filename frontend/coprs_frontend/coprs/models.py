@@ -678,7 +678,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         dependencies = set()
         if self.runtime_dependencies:
-            for dep in self.runtime_dependencies.split(" "):
+            for dep in self.runtime_dependencies.split():
                 if not dep:
                     continue
                 dependencies.add(dep)
