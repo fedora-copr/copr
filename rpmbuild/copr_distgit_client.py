@@ -228,7 +228,8 @@ def sources(args, config):
     name = specfile[:-5]
     sources_file = distgit_config["sources_file"].format(name=name)
     if not os.path.exists(sources_file):
-        raise RuntimeError("{0} file not found".format(sources_file))
+        logging.info("'%s' file not found, download skipped", sources_file)
+        return
 
     logging.info("Reading sources specification file: %s", sources_file)
     with open(sources_file, 'r') as sfd:
