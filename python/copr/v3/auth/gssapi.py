@@ -3,7 +3,12 @@ Authentication via GSSAPI
 """
 
 import requests
-import requests_gssapi
+
+try:
+    import requests_gssapi
+except ImportError:
+    requests_gssapi = None
+
 from future.utils import raise_from
 from copr.v3.exceptions import CoprAuthException
 from copr.v3.requests import munchify, handle_errors
@@ -14,6 +19,19 @@ class Gssapi(BaseAuth):
     """
     Authentication via GSSAPI (i.e. Kerberos)
     """
+    def __init__(self, *args, **kwargs):
+        """
+        Gssapi class stub for the systems where requests_gssapi is not
+        installed (typically PyPI installations)
+        """
+        if not requests_gssapi:
+            # Raise an exception if any dependency is not installed
+            raise CoprAuthException(
+                "The 'requests_gssapi' package is not installed. "
+                "Please install it, or use the API token (config file)."
+            )
+        super(Gssapi, self).__init__(*args, **kwargs)
+
     def make_expensive(self):
         url = self.config["copr_url"] + "/api_3/gssapi_login/"
         auth = requests_gssapi.HTTPSPNEGOAuth(opportunistic_auth=True)

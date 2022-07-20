@@ -6,7 +6,7 @@
 %global with_python2 1
 %endif
 
-%global min_python_copr_version 1.120.1.dev
+%global min_python_copr_version 1.120.2.dev
 
 Name:       copr-cli
 Version:    1.101
@@ -35,7 +35,6 @@ Requires:      python3-jinja2
 Requires:      python3-simplejson
 Requires:      python3-humanize
 Requires:      python3-koji
-Requires:      python3-requests-gssapi
 Requires:      python3-future
 
 Recommends:    python3-progress
@@ -50,14 +49,12 @@ BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 BuildRequires: python3-munch
-BuildRequires: python3-requests-gssapi
 BuildRequires: python3-future
 %else
 Requires:      python-copr >= %min_python_copr_version
 Requires:      python-jinja2
 Requires:      python-simplejson
 Requires:      python-humanize
-Requires:      python2-requests-gssapi
 Requires:      python-future
 
 BuildRequires: pytest
@@ -70,7 +67,6 @@ BuildRequires: python2-responses
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
 BuildRequires: python-munch
-BuildRequires: python2-requests-gssapi
 BuildRequires: python-future
 %endif
 

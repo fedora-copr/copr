@@ -4,10 +4,8 @@ import os
 import json
 import time
 import requests
-import requests_gssapi
 from copr.v3.helpers import List
 from munch import Munch
-from future.utils import raise_from
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException, CoprAuthException
 
@@ -56,8 +54,6 @@ class Request(object):
         for i in range(1, self.connection_attempts + 1):
             try:
                 response = requests.request(**request_params)
-            except requests_gssapi.exceptions.SPNEGOExchangeError as e:
-                raise_from(CoprAuthException("GSSAPI authentication failed."), e)
             except requests.exceptions.ConnectionError:
                 if i < self.connection_attempts:
                     time.sleep(sleep)

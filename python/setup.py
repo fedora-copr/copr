@@ -21,7 +21,6 @@ requires = [
     'setuptools',
     'six',
     'munch',
-    'requests-gssapi',
     'future',
 ]
 

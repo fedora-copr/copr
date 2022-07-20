@@ -19,7 +19,6 @@ requires = [
     'simplejson',
     'jinja2',
     'setuptools',
-    'requests-gssapi',
     'future',
 ]
 

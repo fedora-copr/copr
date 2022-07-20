@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.120.1.dev
+Version:    1.120.2.dev
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -86,6 +86,7 @@ Requires: python-munch
 Requires: python-filelock
 Requires: python-requests
 Requires: python-requests-toolbelt
+Requires: python-requests-gssapi
 Requires: python-setuptools
 Requires: python-six >= 1.9.0
 Requires: python-future
@@ -143,6 +144,9 @@ Requires: python3-future
 %{?python_provide:%python_provide python3-copr}
 
 %if 0%{?fedora} > 30 || 0%{?rhel} > 8
+# These are not in requirements.txt
+Requires: python3-requests-gssapi
+
 BuildRequires: python3-devel
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
