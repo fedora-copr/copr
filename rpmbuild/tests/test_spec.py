@@ -40,13 +40,17 @@ class TestUrlProvider(TestCase):
     @mock.patch('copr_common.request.SafeRequest.get')
     @mock.patch("copr_rpmbuild.providers.spec.run_cmd")
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.create_rpmmacros")
+    @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.generate_mock_config")
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
-    def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd, mock_get):
+    def test_produce_srpm(self, mock_mkdir, mock_generate_mock_config,
+                          _mock_create_rpmmacros, mock_open, run_cmd, mock_get):
+        mock_generate_mock_config.return_value = "/path/to/mock-source-build.cfg"
         macros = {"_disable_source_fetch": 0}
         provider = UrlProvider(self.source_json, self.config, macros)
         provider.produce_srpm()
         args = [
-            'mock', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
+            'mock', '-r', '/path/to/mock-source-build.cfg',
             '--buildsrpm',
             '--spec', '{0}/somepackage.spec'.format(provider.workdir),
             '--resultdir', self.config.get("main", "resultdir"),

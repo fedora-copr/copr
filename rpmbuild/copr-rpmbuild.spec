@@ -240,7 +240,7 @@ install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
-install -m 644 mock-source-build.cfg %{buildroot}%{_sysconfdir}/copr-rpmbuild/
+install -m 644 mock-source-build.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/
 
 cat <<EOF > %buildroot%mock_config_overrides/README
 Contents of this directory is used by %_bindir/copr-update-builder script.
@@ -304,7 +304,7 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
-%config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock-source-build.cfg
+%config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock-source-build.cfg.j2
 
 %files -n copr-builder
 %license LICENSE

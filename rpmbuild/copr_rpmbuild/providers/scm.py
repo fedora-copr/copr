@@ -120,8 +120,9 @@ class ScmProvider(Provider):
         make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(mock_cwd, makefile_path,
                 mock_resultdir, mock_spec_path)
 
+        mock_config_file = self.generate_mock_config()
         return ['mock', '--uniqueext', get_mock_uniqueext(),
-                '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
+                '-r', mock_config_file,
                 mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
     def produce_srpm(self):

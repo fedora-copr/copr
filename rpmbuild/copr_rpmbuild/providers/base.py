@@ -4,8 +4,10 @@ import logging
 import shutil
 import stat
 import tempfile
+from jinja2 import Environment, FileSystemLoader
 
 from copr_common.request import SafeRequest
+from copr_rpmbuild.helpers import CONF_DIRS
 
 
 log = logging.getLogger("__main__")
@@ -108,6 +110,23 @@ class Provider(object):
         with open(path, "w") as rpmmacros:
             for key, value in self.macros.items():
                 rpmmacros.write("{0} {1}\n".format(key, value))
+
+    def generate_mock_config(self):
+        """
+        Generate a mock config file for a specific task
+        """
+        mock_config_file = os.path.join(self.workdir, "mock-source-build.cfg")
+        with open(mock_config_file, "w") as fd:
+            fd.write(self.render_mock_config_template())
+        return mock_config_file
+
+    def render_mock_config_template(self):
+        """
+        Return a mock config (as a string) for a specific task
+        """
+        jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
+        template = jinja_env.get_template("mock-source-build.cfg.j2")
+        return template.render(macros=self.macros)
 
     def produce_srpm(self):
         """

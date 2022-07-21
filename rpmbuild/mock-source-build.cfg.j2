@@ -7,3 +7,7 @@ config_opts['chroot_additional_packages'] = 'make dnf'
 config_opts['plugin_conf']['bind_mount_enable'] = True
 config_opts['use_bootstrap'] = False
 config_opts['nspawn_args'] = ['--drop-capability=CAP_SYS_ADMIN,CAP_IPC_OWNER,CAP_KILL,CAP_LEASE,CAP_LINUX_IMMUTABLE,CAP_NET_BIND_SERVICE,CAP_NET_BROADCAST,CAP_NET_RAW,CAP_SETGID,CAP_SETPCAP,CAP_SETUID,CAP_SYS_CHROOT,CAP_SYS_NICE,CAP_SYS_PTRACE,CAP_SYS_TTY_CONFIG,CAP_SYS_RESOURCE,CAP_SYS_BOOT,CAP_AUDIT_WRITE,CAP_AUDIT_CONTROL']
+
+{% for key, value in macros.items() %}
+config_opts['macros']['{{ key }}'] = '{{ value }}'
+{% endfor %}

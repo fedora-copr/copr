@@ -119,8 +119,7 @@ class TestScmProvider(TestCase):
         self.assertEqual(provider.get_tito_test_command(), assert_cmd)
 
     @mock.patch("copr_rpmbuild.providers.scm.get_mock_uniqueext")
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
-    def test_get_make_srpm_command(self, mock_open, get_mock_uniqueext_mock):
+    def test_get_make_srpm_command(self, get_mock_uniqueext_mock):
         tmpdir = tempfile.mkdtemp(prefix="copr-rpmbuild-test-")
         ws = os.path.join(tmpdir, "workspace")
         rd = os.path.join(tmpdir, "resultdir")
@@ -149,8 +148,11 @@ class TestScmProvider(TestCase):
             "/mnt/{0}".format(basename),
             "/mnt/{0}/somerepo/subpkg/pkg.spec".format(workdir_base),
         )
-        assert_cmd = ['mock', '--uniqueext', '2', '-r', '/etc/copr-rpmbuild/mock-source-build.cfg',
-                      bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
+        assert_cmd = [
+            'mock', '--uniqueext', '2',
+            '-r', os.path.join(provider.workdir, "mock-source-build.cfg"),
+            bind_mount_cmd_part, '--chroot', make_srpm_cmd_part
+        ]
 
         self.assertEqual(provider.get_make_srpm_command(), assert_cmd)
         shutil.rmtree(tmpdir)

@@ -22,8 +22,9 @@ class UrlProvider(Provider):
         return path
 
     def build_srpm_from_spec(self):
+        mock_config_file = self.generate_mock_config()
         spec_path = self.save_spec()
-        cmd = ["mock", "-r", "/etc/copr-rpmbuild/mock-source-build.cfg",
+        cmd = ["mock", "-r", mock_config_file,
                "--buildsrpm", "--spec", spec_path,
                "--resultdir", self.resultdir]
 
