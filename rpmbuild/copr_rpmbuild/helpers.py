@@ -335,6 +335,7 @@ def macros_for_task(task, config):
         macros["%buildtag"] = ".copr" + re.sub("-.*", "", task_id)
 
     if not task["chroot"]:
+        macros["%dist"] = "%nil"
         macros["%_disable_source_fetch"] = "0"
 
     protocols_str = config.get("main", "enabled_source_protocols", fallback=None)
