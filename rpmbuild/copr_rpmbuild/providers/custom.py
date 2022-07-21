@@ -49,6 +49,10 @@ class CustomProvider(Provider):
             # /bin/mock calls (when tmpfs_enable is on).
             f.write("config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True\n")
 
+            for key, value in self.macros.items():
+                f.write("config_opts['macros']['{0}'] = '{1}'\n"
+                        .format(key, value))
+
         cmd = [
             'unbuffer',
             'copr-sources-custom',
