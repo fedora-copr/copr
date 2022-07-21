@@ -18,15 +18,20 @@ class List(list):
 
 def config_from_file(path=None):
     raw_config = configparser.ConfigParser()
-    path = os.path.expanduser(path or os.path.join("~", ".config", "copr"))
+
     config = {}
+    default_path = os.path.join("~", ".config", "copr")
 
     try:
-        exists = raw_config.read(path)
+        exists = raw_config.read(os.path.expanduser(path or default_path))
     except configparser.Error as ex:
         raise CoprConfigException(str(ex))
 
     if not exists:
+        if path:
+            # absence of the default_path is acceptable, but missing the
+            # explicitly specified path= argument deserves an exception.
+            raise CoprConfigException("File {0} is missing.".format(path))
         raw_config["copr-cli"] = {"copr_url": "https://copr.fedorainfracloud.org"}
 
     try:

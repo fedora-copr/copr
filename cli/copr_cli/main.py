@@ -62,17 +62,6 @@ BOOTSTRAP_MAP = {
     None: "default",
 }
 
-no_config_warning = """
-================= WARNING: =======================
-File '{0}' is incorrect.
-See documentation: man copr-cli.
-Any operation requiring credentials will fail!
-==================================================
-
-Hint: {1}
-
-"""
-
 try:
     input = raw_input
 except NameError:
@@ -146,13 +135,7 @@ def requires_api_auth(func):
 
 class Commands(object):
     def __init__(self, config_path):
-        self.config_path = config_path or '~/.config/copr'
-
-        try:
-            self.config = config_from_file(self.config_path)
-        except CoprConfigException as ex:
-            sys.stderr.write(no_config_warning.format(self.config_path, ex))
-            self.config = {"copr_url": "http://copr.fedoraproject.org"}
+        self.config = config_from_file(config_path)
 
         if self.config.get("gssapi") is None:
             # Contrary to what is set in python-copr, we set GSSAPI on by
