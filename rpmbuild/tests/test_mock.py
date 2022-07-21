@@ -161,6 +161,8 @@ config_opts['macros']['%copr_username'] = '@copr'
 config_opts['macros']['%copr_projectname'] = 'copr-dev'
 config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 config_opts['macros']['%buildtag'] = '.copr10'
+config_opts['macros']['%dist'] = '%nil'
+config_opts['macros']['%_disable_source_fetch'] = '0'
 
 """  # TODO: make the output nicer
 
@@ -235,14 +237,13 @@ config_opts['macros']['%buildtag'] = '.copr10'
         call = f_mock_calls[1]
         assert call[0][0] == self.mock_rpm_call
 
-        part_of_expected_output = (
-            "config_opts['macros']['%buildtag'] = '.copr10'\n"
-            "config_opts['module_setup_commands'] = {0}\n\n"
-             .format(str([('enable', module) for module in modules]))
-        )
+        expected1 = "config_opts['macros']['%buildtag'] = '.copr10'\n"
+        expected2 = ("config_opts['module_setup_commands'] = {0}\n\n"
+                     .format(str([('enable', module) for module in modules])))
 
         config = ''.join(open(self.child_config, 'r').readlines())
-        assert part_of_expected_output in config
+        assert expected1 in config
+        assert expected2 in config
 
     @pytest.mark.parametrize('modules', [
         [], # dict expected

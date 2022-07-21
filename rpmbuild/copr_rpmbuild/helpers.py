@@ -334,7 +334,7 @@ def macros_for_task(task, config):
     if task_id:
         macros["%buildtag"] = ".copr" + re.sub("-.*", "", task_id)
 
-    if not task["chroot"]:
+    if is_srpm_build(task):
         macros["%dist"] = "%nil"
         macros["%_disable_source_fetch"] = "0"
 
@@ -345,3 +345,10 @@ def macros_for_task(task, config):
         macros["%__urlhelper_localopts"] = "--proto -all,{0}".format(protocols)
 
     return macros
+
+
+def is_srpm_build(task):
+    """
+    Return `True` if the `self.source_dict` belongs to a SRPM build task
+    """
+    return "source_type" in task
