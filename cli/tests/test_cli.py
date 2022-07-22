@@ -1,6 +1,7 @@
 import os
 import argparse
 import json
+import logging
 import shutil
 import tempfile
 import pytest
@@ -337,10 +338,18 @@ def test_debug_by_status_response(config_from_file, build_proxy_get, capsys):
     response_status = "foobar"
     build_proxy_get.return_value = MagicMock(state=response_status)
 
+    # The main() --debug option affects the logger configuration, and capsys has
+    # trouble to restore the state back after the test case.  Let's help it.
+    # More info: # https://github.com/pytest-dev/pytest/issues/14
+    # This handler backup-restore appears to be needed on EL7 only.
+    log = logging.getLogger()
+    old_handlers = list(log.handlers)
+
     main.main(argv=["--debug", "status", "123"])
     stdout, stderr = capsys.readouterr()
     assert "{0}\n".format(response_status) in stdout
     assert "Debug log enabled " in stderr
+    log.handlers = old_handlers
 
 
 def test_status_response_no_args(capsys):
