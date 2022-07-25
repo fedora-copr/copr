@@ -111,21 +111,23 @@ class Provider(object):
             for key, value in self.macros.items():
                 rpmmacros.write("{0} {1}\n".format(key, value))
 
-    def generate_mock_config(self):
+    def generate_mock_config(self, config_name=None):
         """
         Generate a mock config file for a specific task
         """
-        mock_config_file = os.path.join(self.workdir, "mock-source-build.cfg")
+        config_name = config_name or "mock-source-build.cfg"
+        template_name = config_name + ".j2"
+        mock_config_file = os.path.join(self.resultdir, config_name)
         with open(mock_config_file, "w") as fd:
-            fd.write(self.render_mock_config_template())
+            fd.write(self.render_mock_config_template(template_name))
         return mock_config_file
 
-    def render_mock_config_template(self):
+    def render_mock_config_template(self, template_name):
         """
         Return a mock config (as a string) for a specific task
         """
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
-        template = jinja_env.get_template("mock-source-build.cfg.j2")
+        template = jinja_env.get_template(template_name)
         return template.render(macros=self.macros)
 
     def produce_srpm(self):

@@ -36,23 +36,22 @@ class CustomProvider(Provider):
         with open(self.file_script, 'w') as script:
             script.write(source_json['script'])
 
+    def render_mock_config_template(self, *_args):
+        template = "include('/etc/mock/{0}.cfg')\n".format(self.chroot)
+        template += "config_opts['rpmbuild_networking'] = True\n"
+        template += "config_opts['use_host_resolv'] = True\n"
+
+        # Important e.g. to keep '/script' file available across several
+        # /bin/mock calls (when tmpfs_enable is on).
+        template += "config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True\n"
+
+        for key, value in self.macros.items():
+            template += ("config_opts['macros']['{0}'] = '{1}'\n"
+                         .format(key, value))
+        return template
 
     def produce_srpm(self):
-        mock_config_file = os.path.join(self.resultdir, 'mock-config.cfg')
-
-        with open(mock_config_file, 'w') as f:
-            # Enable network.
-            f.write("include('/etc/mock/{0}.cfg')\n".format(self.chroot))
-            f.write("config_opts['rpmbuild_networking'] = True\n")
-            f.write("config_opts['use_host_resolv'] = True\n")
-            # Important e.g. to keep '/script' file available across several
-            # /bin/mock calls (when tmpfs_enable is on).
-            f.write("config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True\n")
-
-            for key, value in self.macros.items():
-                f.write("config_opts['macros']['{0}'] = '{1}'\n"
-                        .format(key, value))
-
+        mock_config_file = self.generate_mock_config("mock-config.cfg")
         cmd = [
             'unbuffer',
             'copr-sources-custom',

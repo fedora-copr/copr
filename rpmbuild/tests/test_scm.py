@@ -150,7 +150,7 @@ class TestScmProvider(TestCase):
         )
         assert_cmd = [
             'mock', '--uniqueext', '2',
-            '-r', os.path.join(provider.workdir, "mock-source-build.cfg"),
+            '-r', os.path.join(provider.resultdir, "mock-source-build.cfg"),
             bind_mount_cmd_part, '--chroot', make_srpm_cmd_part
         ]
 
