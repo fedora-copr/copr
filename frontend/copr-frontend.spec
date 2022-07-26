@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.187
+Version:    1.188
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,12 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.188-1
+- Add support for pyp2spec generator
+- Add API support for runtime_dependencies
+- Runtime_dependencies may be separated by a newline
+- Pagure-events: don't submit builds for disabled projects
+
 * Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.187-1
 - Start logging important events
 - Change logging formatter to show also flask.g.user
