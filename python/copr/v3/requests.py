@@ -54,15 +54,17 @@ class Request(object):
         for i in range(1, self.connection_attempts + 1):
             try:
                 response = requests.request(**request_params)
+                if response.status_code == 401 and i < self.connection_attempts:
+                    # try to authenticate again, don't sleep!
+                    self._update_auth_params(request_params, auth, reauth=True)
+                    continue
+                # Return the response object (even for non-200 status codes!)
+                return response
             except requests.exceptions.ConnectionError:
                 if i < self.connection_attempts:
                     time.sleep(sleep)
-            else:
-                if response.status_code == 401:
-                    self._update_auth_params(request_params, auth, reauth=True)
-                    continue
-                break
-        return response
+
+        raise CoprRequestException("Unable to connect to {0}.".format(self.api_base_url))
 
     def _request_params(self, endpoint, method=GET, data=None, params=None,
                         headers=None, auth=None):
