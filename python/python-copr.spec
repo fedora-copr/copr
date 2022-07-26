@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.120.3.dev
+Version:    1.121
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -244,6 +244,13 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.121-1
+- Add support for pyp2spec generator
+- Make requests-gssapi an opt-in dep in PyPI
+- Return the correct message when all request attempts fail
+- Add API support for runtime_dependencies
+- The auth_username() needs to trigger authentication
+
 * Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.120-1
 - Disable network on builders by default
 
