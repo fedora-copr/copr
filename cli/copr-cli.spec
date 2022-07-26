@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.101
+Version:    1.102
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,18 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.102-1
+- Add support for pyp2spec generator
+- Fix the --debug test on EL7
+- Simplify cli configuration
+- Make requests-gssapi an opt-in dep in PyPI
+- Sync 'copr build' with other 'copr build*' methods
+- De-duplicate printing builds, and waiting
+- De-duplicate logic for taking dirname from arg
+- Simplify and fix progress bar
+- Add API support for runtime_dependencies
+- Print the URL of created project
+
 * Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.101-1
 - Remove depraceted method `copr-cli buildfedpkg'
 
