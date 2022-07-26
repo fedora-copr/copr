@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.156
+Version:    1.157
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.157-1
+- Don't use --keep-all-metadata
+- Search for comps.xml in chroot dir
+
 * Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 1.156-1
 - Consolidate the two hitcounter scripts
 - Dump Resalloc ticket ID and hostname to backend.log
