@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.58
+Version: 0.59
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -332,6 +332,15 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.59-1
+- Add support for pyp2spec generator
+- Define copr-specific macros for make_srpm method
+- Define copr-specific macros for custom builds
+- Determine SRPM builds by having source_type
+- Undefine %%dist for SRPM builds
+- Build SRPM from DistGit even with missing sources
+- Drop an unused extract_srpm method
+
 * Tue Jun 21 2022 Jakub Kadlcik <frostyx@email.cz> 0.58-1
 - Fix make_srpm with new git
 - Define copr-specific macros also for SRPM builds
