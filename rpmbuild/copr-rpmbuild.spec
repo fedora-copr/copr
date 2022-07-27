@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.59
+Version: 0.60
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
@@ -332,6 +332,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Wed Jul 27 2022 Pavel Raiskup <praiskup@redhat.com> 0.60-1
+- fix source build detection needed for %%dist hacks
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.59-1
 - Add support for pyp2spec generator
 - Define copr-specific macros for make_srpm method
