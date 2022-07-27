@@ -351,4 +351,4 @@ def is_srpm_build(task):
     """
     Return `True` if the `self.source_dict` belongs to a SRPM build task
     """
-    return "source_type" in task
+    return task.get("source_type") is not None
