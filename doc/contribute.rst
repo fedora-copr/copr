@@ -15,7 +15,7 @@ Local Development Environment
 
 We support docker-compose to spawn the whole docker stack, including builder, on a local machine:
 
-- `Read the original blog post about COPR docker stack <https://frostyx.cz/posts/copr-stack-dockerized>`_
+- `Read the blog post about COPR docker stack <https://frostyx.cz/posts/copr-docker-compose-without-supervisord>`_
 - `Learn more about docker on Fedora <https://developer.fedoraproject.org/tools/docker/about.html>`_
 
 
@@ -32,6 +32,10 @@ To start your developer environment, simply run ``docker-compose up`` command in
 
     $ docker-compose up -d
 
+    $ docker exec -it copr_frontend_1 bash
+
+    [copr-fe@frontend /]$ init-database.sh
+
 The ``docker-compose up`` command will take several minutes to complete.
 
 You should be now able to access the frontend on http://localhost:5000.
@@ -40,11 +44,9 @@ You should be now able to access the frontend on http://localhost:5000.
 Testing your changes
 --------------------
 
-To test your in frontend or backend, you should restart the respective container for the changes to take effect, e.g.:
-
-::
-
-     $ docker-compose restart frontend
+To test your changes in frontend or backend, you should restart the respective container for the changes to take effect.
+You can read more details on how to do it and tips for troubleshooting in the previously mentioned
+`blog post <https://frostyx.cz/posts/copr-docker-compose-without-supervisord#running-services-from-git>`_.
 
 
 Stopping the machines
@@ -75,12 +77,6 @@ You can get shell to the e.g. backend container and see the logs
     $ docker exec -it docker_backend_1 /bin/bash
     # tail -f /var/log/copr-backend/backend.log
 
-If something went wrong, you can also try to restart all the backend services and see if that helped
-
-::
-
-    # supervisorctl restart all
-
 
 Unit tests
 ^^^^^^^^^^
@@ -89,7 +85,7 @@ Those tests are accessible directly from COPR pagure repository (https://pagure.
 
     $ cd copr/frontend
 
-    $ vim coprs_frontend/manage.py      (and make some change)
+    $ dnf builddep copr-frontend.spec     (or other equivalent command to install the needed dependencies)
 
     $ ./run_tests.sh
 
