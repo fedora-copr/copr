@@ -413,6 +413,16 @@ class CoprsLogic(object):
         raise exceptions.InsufficientRightsException(
             "Only owners may delete their projects.")
 
+    @classmethod
+    def raise_if_packit_forge_project_cant_build_in_copr(cls, copr, packit_forge_project):
+        """
+        Raise InsufficientRightsException if given forge project can't build
+        in given copr via Packit. Return None otherwise.
+        """
+        if packit_forge_project and packit_forge_project not in copr.packit_forge_projects_allowed_list:
+            raise exceptions.InsufficientRightsException(
+                f"Forge project {packit_forge_project} can't build in this Copr via Packit.")
+
 
 class CoprPermissionsLogic(object):
     @classmethod

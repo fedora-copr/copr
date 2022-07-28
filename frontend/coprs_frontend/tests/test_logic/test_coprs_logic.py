@@ -105,6 +105,23 @@ class TestCoprsLogic(CoprsTestCase):
         with pytest.raises(InsufficientRightsException):
             CoprsLogic.raise_if_cant_delete(self.u2, self.c2)
 
+    @pytest.mark.usefixtures("f_users", "f_coprs")
+    def test_raise_if_packit_forge_project_cant_build_in_copr(self):
+        # not defined forge project should not raise
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c1, None)
+
+        # in c1 there are no allowed forge projects
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c1, "github.com/packit/ogr")
+
+        # in c3 github.com/packit/ogr and github.com/packit/requre are allowed
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c3, "github.com/packit/ogr")
+
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c3, "github.com/packit/requre")
+
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c3, "github.com/packit/packit")
+
     @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
     def test_copr_logic_add_sends_create_gpg_key_action(self):

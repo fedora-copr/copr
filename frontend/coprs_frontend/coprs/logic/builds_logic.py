@@ -697,6 +697,7 @@ class BuildsLogic(object):
             after_build_id=build_options.get("after_build_id"),
             with_build_id=build_options.get("with_build_id"),
             package_chroots_subset=package_chroots_subset,
+            packit_forge_project=build_options.get("packit_forge_project"),
         )
 
         if "timeout" in build_options:
@@ -795,10 +796,11 @@ class BuildsLogic(object):
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None, copr_dirname=None, bootstrap=None, isolation=None,
             package=None, after_build_id=None, with_build_id=None,
-            package_chroots_subset=None):
+            package_chroots_subset=None, packit_forge_project=None):
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
+        coprs_logic.CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, packit_forge_project)
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr,
             "You don't have permissions to build in this copr.")
