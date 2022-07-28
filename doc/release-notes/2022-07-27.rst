@@ -1,0 +1,116 @@
+.. _release_notes_2022_07_27:
+
+Highlights from 2022-07-27 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_,
+`Fedora 36`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Undefine ``%dist`` for SRPM builds
+----------------------------------
+
+The Dist Tag (e.g. ``.fc35``) for built SRPM packages,
+was a frequent point of confusion for Copr users as it was
+reported on multiple occasions.
+For more info about the Copr build workflow see https://docs.pagure.org/copr.copr/_images/srpm-build.jpeg
+Basically, the build dist tag was inherited from the
+initial source RPM.  Either uploaded by user, or built from remote sources _on
+Copr builder_ in an isolated environment (e.g. Fedora 35 producing ``.fc35``).  But the initial source
+RPM dist tag had no informational value (a build may be submitted for many chroots, not just F35), and it eventually gets replaced by the target chroot dist-tag (e.g. ``el8`` for EPEL 8 builds).
+
+We decided to set ``%dist`` to ``%nil`` for the source builds to avoid this
+confusion.  The reported NVR in UI and API will look like ``foo-1.1-2`` instead of ``foo-1.1-2.fc35``,
+while the final RPMs in chroot builds will still have appropriate dist tags.
+
+
+Building from PyPI with ``pyp2spec`` generator
+----------------------------------------------
+
+For a long time, it was possible to submit builds directly from
+PyPI. In such a case, ``pyp2rpm`` was used to generate a spec file
+from the python package definition. It is now possible to use
+``pyp2spec`` instead (see `#2203`_).
+
+For example::
+
+    $ copr-cli buildpypi myproject \
+        --packagename argparse-manpage \
+        --spec-generator pyp2spec
+
+Or you can create a package::
+
+    $ copr-cli add-package-pypi myproject \
+        --name python-argparse-manpage \
+        --packagename argparse-manpage \
+        --spec-generator pyp2spec
+
+    $ copr-cli build-package myproject --name python-argparse-manpage -r $CHROOT
+
+
+Submitting multiple builds at once via ``copr-cli``
+---------------------------------------------------
+
+Previously, when multiple packages were passed to ``copr-cli``, it
+submitted the first build and waited, then submitted the second build
+and waited, and so on. Now it submits all the builds right from the
+start to maximally parallelize them. Then we wait for all of them.
+
+During this change, also the progress-bar logic in ``copr-cli`` was
+simplified.
+
+
+Notable changes
+---------------
+
+- The ``copr-dist-git`` doesn't hold the downloaded files in the
+  memory anymore to prevent SWAP issues when multiple large SRPMs are
+  being imported concurrently.
+
+- When creating a project via ``copr-cli``, its URL is printed
+
+
+Bugfixes
+--------
+
+- `#2243`_ - It is now possible to set runtime dependencies when
+  using ``copr-cli create`` and ``copr-cli modify``
+
+- `#2228`_ - We don't try to submit builds for Pagure pull requests
+  into deleted projects
+
+- `#1431`_ - Copr searches for the ``coms.xml`` in the chroot
+  directory (instead of the repodata directory)
+
+- `#2246`_ - The ``copr-cli`` works properly with Kerberos ticket and
+  no ``~/.config/copr``
+
+- `#2235`_ - Correct "Login invalid/expired" messages are now displayed
+  when all attempts to send a request from ``copr-cli`` fail
+
+- `#2253`_ - The GSSAPI dependency for Copr client packages is now
+  optional, which simplifies their installation from PyPI
+
+- `RHBZ 2108401`_ - It is now possible to build DistGit packages
+  that do not use the ``sources`` file
+
+- Copr-specific macros such as ``%copr_username`` and
+  ``%copr_projectname`` are defined also for custom builds and SCM
+  builds using the ``make_srpm`` method
+
+- Runtime dependencies (extenal repositories) may be specified as a white-space separated set of URLs (including newlines, previously only a space separator worked)
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-cc1b7bdccc
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-c6d285c4eb
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-aab6aa4cb1
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-e81f6b6413
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-c857519654
+
+.. _`#2203`: https://pagure.io/copr/copr/issue/2203
+.. _`#2243`: https://pagure.io/copr/copr/issue/2243
+.. _`#2228`: https://pagure.io/copr/copr/issue/2228
+.. _`#1431`: https://pagure.io/copr/copr/issue/1431
+.. _`#2246`: https://pagure.io/copr/copr/issue/2246
+.. _`#2235`: https://pagure.io/copr/copr/issue/2235
+.. _`#2253`: https://pagure.io/copr/copr/issue/2253
+.. _`RHBZ 2108401`: https://bugzilla.redhat.com/show_bug.cgi?id=2108401
