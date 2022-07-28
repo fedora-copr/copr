@@ -169,7 +169,9 @@ def foo():
                               runtime_dependencies=(
                                   "copr://user1/foocopr "
                                   "https://url.to/external/repo"
-                              ))
+                              ),
+                              packit_forge_projects_allowed="github.com/packit/ogr "
+                                                            "github.com/packit/requre")
         self.basic_coprs_list = [self.c1, self.c2, self.c3]
         self.db.session.add_all(self.basic_coprs_list)
 

@@ -349,6 +349,10 @@ class _CoprPublic(db.Model, helpers.Serializer):
 
     appstream = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
+    # string containing forge projects (separated by whitespace)
+    # allowed to build in this Copr via Packit
+    packit_forge_projects_allowed = db.Column(db.Text)
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """
@@ -702,6 +706,15 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     @property
     def score(self):
         return sum([self.upvotes, self.downvotes * -1])
+
+    @property
+    def packit_forge_projects_allowed_list(self):
+        """
+        Return forge projects allowed to build in this copr via Packit
+         as a list of strings.
+        """
+        projects = self.packit_forge_projects_allowed or ""
+        return projects.split()
 
 
 class CoprPermission(db.Model, helpers.Serializer):

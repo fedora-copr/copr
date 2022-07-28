@@ -467,6 +467,7 @@ class Commands(object):
             fedora_review=args.fedora_review,
             appstream=ON_OFF_MAP[args.appstream],
             runtime_dependencies=args.runtime_dependencies,
+            packit_forge_projects_allowed=args.packit_forge_projects_allowed,
         )
 
         owner_part = username.replace('@', "g/")
@@ -498,6 +499,7 @@ class Commands(object):
             fedora_review=ON_OFF_MAP[args.fedora_review],
             appstream=ON_OFF_MAP[args.appstream],
             runtime_dependencies=args.runtime_dependencies,
+            packit_forge_projects_allowed=args.packit_forge_projects_allowed,
         )
 
     @requires_api_auth
@@ -981,6 +983,14 @@ def create_and_modify_common_opts(parser):
             "Repository that will be automatically enabled together "
             "with repository from this copr, e.g. by `dnf copr enable`. "
             "This can be specified multiple times."
+    ))
+
+    parser.add_argument(
+        "--packit-forge-project-allowed", dest="packit_forge_projects_allowed",
+        metavar="FORGE_PROJECT", action="append", help=(
+            "Forge project that will be allowed to build in this project "
+            "via Packit in format github.com/packit/ogr. "
+            "Can be specified multiple times."
     ))
 
 

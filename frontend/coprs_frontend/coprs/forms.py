@@ -429,6 +429,24 @@ class ValueToPermissionNumberFilter(object):
             return helpers.PermissionEnum("request")
         return helpers.PermissionEnum("nothing")
 
+class StripUrlSchemaListFilter():
+    """
+    Strip the URL schema if present for a list of forge projects.
+    """
+
+    def __call__(self, value):
+        if not value:
+            return ''
+
+        items = value.split()
+        result = []
+
+        for item in items:
+            parsed_url = urlparse(item)
+            result.append(parsed_url.netloc + parsed_url.path)
+
+        return "\n".join(result)
+
 def _optional_checkbox_filter(data):
     if data in [True, 'true']:
         return True
@@ -632,6 +650,11 @@ class CoprForm(BaseForm):
             description="""Generate AppStream metadata for this project.
             Generating metadata slows down the builds in large Copr projects.""",
             default=True, false_values=FALSE_VALUES)
+
+    packit_forge_projects_allowed = wtforms.TextAreaField(
+        "Packit allowed forge projects",
+        filters=[StringListFilter(), StripUrlSchemaListFilter()],
+        validators=[wtforms.validators.Optional()],)
 
     @property
     def errors(self):

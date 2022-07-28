@@ -161,6 +161,8 @@ render_bootstrap_options %}
     {{ render_bootstrap_options(form) }}
 
     {{ render_field(form.runtime_dependencies, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used as runtime dependencies. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
+
+    {{ render_field(form.packit_forge_projects_allowed, rows=5, cols=50, placeholder='Optional - forge projects, which can build in this project via Packit. Space separated. E.g.: github.com/packit/ogr', info='These projects will be allowed to build in this project via Packit.') }}
     </div>
   </div>
 

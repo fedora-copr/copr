@@ -279,6 +279,7 @@ def copr_new(username=None, group_name=None):
                 bootstrap=form.bootstrap.data,
                 isolation=form.isolation.data,
                 appstream=form.appstream.data,
+                packit_forge_projects_allowed=form.packit_forge_projects_allowed.data,
             )
 
             db.session.commit()
@@ -542,6 +543,7 @@ def process_copr_update(copr, form):
     copr.bootstrap = form.bootstrap.data
     copr.isolation = form.isolation.data
     copr.appstream = form.appstream.data
+    copr.packit_forge_projects_allowed = form.packit_forge_projects_allowed.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:
