@@ -130,7 +130,8 @@ class TestFrontendClient(object):
         with pytest.raises(FrontendClientException):
             self.fc.post(self.data, self.url_path)
         assert mc_time.sleep.call_args_list == [mock.call(x) for x in [5, 10, 15, 20, 25]]
-        assert len(caplog.records) == 5
+        records = [x for x in caplog.records if "Retry request" in x.msg]
+        assert len(records) == 5
 
     def test_post_to_frontend_repeated_indefinitely(self,
             mask_frontend_request, caplog, mc_time):
@@ -141,7 +142,8 @@ class TestFrontendClient(object):
         with pytest.raises(FrontendClientException):
             self.fc.post(self.data, self.url_path)
         assert mc_time.sleep.called
-        assert len(caplog.records) == 100
+        records = [x for x in caplog.records if "Retry request" in x.msg]
+        assert len(records) == 100
 
     def test_retries_on_outdated_frontend(self, mask_frontend_request, caplog):
         response = self._get_fake_response()
@@ -150,9 +152,10 @@ class TestFrontendClient(object):
             response for _ in range(100)] + [Exception("sorry")]
         with pytest.raises(Exception):
             self.fc.try_indefinitely = True
-            self.fc.post(self.data, self.url_path)
+            self.fc.post(self.url_path, self.data)
         assert len(mask_frontend_request.call_args_list) == 101
-        assert "Copr FE/BE API is too old on Frontend" in str(caplog.records[0])
+        assert "Sending POST request to frontend" in caplog.records[0].getMessage()
+        assert "Copr FE/BE API is too old on Frontend" in caplog.records[1].msg
 
     def test_update(self):
         ptfr = MagicMock()

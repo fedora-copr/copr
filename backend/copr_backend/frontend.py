@@ -66,6 +66,8 @@ class FrontendClient:
         # """
         url = "{}/{}/".format(self.frontend_url, url_path)
         auth = self.frontend_auth if authenticate else None
+        self.log.info("Sending %s request to frontend URL - %s",
+                      method.upper(), url)
 
         try:
             request = SafeRequest(auth=auth, log=self.log,
