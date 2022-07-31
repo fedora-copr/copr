@@ -447,7 +447,41 @@ class EmptyStringToNone:
         return value
 
 
-class CoprBaseForm(FlaskForm):
+class BaseForm(FlaskForm):
+    """
+    Base class for all of our forms. For example, WTForms doesn't automatically
+    remove leading and trailing whitespace from fields, which causes nasty
+    bugs like #2223
+    """
+    class Meta:
+        # pylint: disable=missing-class-docstring
+        # pylint: disable=missing-function-docstring
+        # pylint: disable=no-self-use
+
+        def bind_field(self, form, unbound_field, options):
+            filters = unbound_field.kwargs.get("filters", [])
+
+            # It doesn't make sense to strip whitespace for BooleanField,
+            # IntegerField, etc. But we don't want to strip whitespace from
+            # TextAreaField either, because we want to preserve \n at their end.
+            # We also get custom scripts via TextAreaField and we ideally don't
+            # want to modify them at all
+            if unbound_field.field_class == wtforms.StringField:
+                filters.append(strip_whitespace_filter)
+
+            return unbound_field.bind(form=form, filters=filters, **options)
+
+
+def strip_whitespace_filter(value):
+    """
+    Remove leading and trailing whitespace from a field
+    """
+    if value is not None and hasattr(value, "strip"):
+        return value.strip()
+    return value
+
+
+class CoprBaseForm(BaseForm):
     """
     All forms that modify Copr project should inherit from this.
     """
@@ -472,7 +506,7 @@ class CoprFedoraReviewForm(CoprBaseForm):
         ])
 
 
-class CoprForm(FlaskForm):
+class CoprForm(BaseForm):
     """
     Base form class for adding and modifying projects
     """
@@ -700,7 +734,7 @@ class CoprFormFactory(object):
         return F
 
 
-class CoprDeleteForm(FlaskForm):
+class CoprDeleteForm(BaseForm):
     verify = wtforms.StringField(
         "Confirm deleting by typing 'yes'",
         validators=[
@@ -725,7 +759,7 @@ class BuildFormRebuildFactory(object):
     # TODO: drop, and use _get_build_form directly
     @staticmethod
     def create_form_cls(active_chroots):
-        return _get_build_form(active_chroots, FlaskForm)
+        return _get_build_form(active_chroots, BaseForm)
 
 
 class RebuildPackageFactory(object):
@@ -772,7 +806,7 @@ def validate_chroot_denylist(_form, field):
                 raise wtforms.ValidationError('patterns are deny-listing all chroots')
 
 
-class BasePackageForm(FlaskForm):
+class BasePackageForm(BaseForm):
     package_name_regex = r"^[-+_.a-zA-Z0-9]+$"
 
     package_name = wtforms.StringField(
@@ -1137,7 +1171,7 @@ class PackageFormDistGitSimple(BasePackageForm):
 
 class RebuildAllPackagesFormFactory(object):
     def __new__(cls, active_chroots, package_names):
-        form_cls = _get_build_form(active_chroots, FlaskForm)
+        form_cls = _get_build_form(active_chroots, BaseForm)
         form_cls.packages = MultiCheckboxField(
             "Packages",
             choices=[(name, name) for name in package_names],
@@ -1286,7 +1320,7 @@ class BuildFormDistGitFactory(object):
 
 class BuildFormUploadFactory(object):
     def __new__(cls, active_chroots):
-        form = _get_build_form(active_chroots, FlaskForm)
+        form = _get_build_form(active_chroots, BaseForm)
         form.pkgs = FileField('srpm', validators=[
             FileRequired(),
             SrpmValidator()])
@@ -1308,7 +1342,7 @@ class BuildFormDistGitSimpleFactory:
 
 class BuildFormUrlFactory(object):
     def __new__(cls, active_chroots):
-        form = _get_build_form(active_chroots, FlaskForm)
+        form = _get_build_form(active_chroots, BaseForm)
         form.pkgs = wtforms.TextAreaField(
             "Pkgs",
             validators=[
@@ -1319,7 +1353,7 @@ class BuildFormUrlFactory(object):
         return form
 
 
-class ModuleFormUploadFactory(FlaskForm):
+class ModuleFormUploadFactory(BaseForm):
     modulemd = FileField("modulemd", validators=[
         FileRequired(),
         # @TODO Validate modulemd.yaml file
@@ -1330,7 +1364,7 @@ class ModuleFormUploadFactory(FlaskForm):
 
 
 def get_module_build_form(*args, **kwargs):
-    class ModuleBuildForm(FlaskForm):
+    class ModuleBuildForm(BaseForm):
         modulemd = FileField("modulemd")
         scmurl = wtforms.StringField()
         branch = wtforms.StringField()
@@ -1340,7 +1374,7 @@ def get_module_build_form(*args, **kwargs):
     return ModuleBuildForm(*args, **kwargs)
 
 
-class PagureIntegrationForm(FlaskForm):
+class PagureIntegrationForm(BaseForm):
     repo_url = wtforms.StringField("repo_url", default='')
     api_key = wtforms.StringField("api_key", default='')
 
@@ -1352,7 +1386,7 @@ class PagureIntegrationForm(FlaskForm):
             self.repo_url.data = repo_url
 
 
-class ChrootForm(FlaskForm):
+class ChrootForm(BaseForm):
 
     """
     Validator for editing chroots in project
@@ -1392,14 +1426,14 @@ class ChrootForm(FlaskForm):
         return result
 
 
-class CoprChrootExtend(FlaskForm):
+class CoprChrootExtend(BaseForm):
     extend = wtforms.StringField("Chroot name")
     expire = wtforms.StringField("Chroot name")
     ownername = wtforms.HiddenField("Owner name")
     projectname = wtforms.HiddenField("Project name")
 
 
-class CoprLegalFlagForm(FlaskForm):
+class CoprLegalFlagForm(BaseForm):
     comment = wtforms.TextAreaField("Comment")
 
 
@@ -1407,7 +1441,7 @@ class PermissionsApplierFormFactory(object):
 
     @staticmethod
     def create_form_cls(permission=None):
-        class F(FlaskForm):
+        class F(BaseForm):
             pass
 
         builder_default = False
@@ -1439,7 +1473,7 @@ class PermissionsFormFactory(object):
     """Creates a dynamic form for given set of copr permissions"""
     @staticmethod
     def create_form_cls(permissions):
-        class F(FlaskForm):
+        class F(BaseForm):
             pass
 
         for perm in permissions:
@@ -1467,7 +1501,7 @@ class PermissionsFormFactory(object):
 class CoprForkFormFactory(object):
     @staticmethod
     def create_form_cls(copr, user, groups):
-        class F(FlaskForm):
+        class F(BaseForm):
             source = wtforms.StringField(
                 "Source",
                 default=copr.full_name)
@@ -1510,7 +1544,7 @@ class SelectMultipleFieldNoValidation(wtforms.SelectMultipleField):
         pass
 
 
-class PinnedCoprsForm(FlaskForm):
+class PinnedCoprsForm(BaseForm):
     copr_ids = SelectMultipleFieldNoValidation(wtforms.IntegerField("Pinned Copr ID"))
 
     def __init__(self, owner, *args, **kwargs):
@@ -1537,7 +1571,7 @@ class PinnedCoprsForm(FlaskForm):
         return True
 
 
-class VoteForCopr(FlaskForm):
+class VoteForCopr(BaseForm):
     """
     Form for upvoting and downvoting projects
     """
@@ -1546,11 +1580,11 @@ class VoteForCopr(FlaskForm):
     reset = wtforms.SubmitField("Reset vote")
 
 
-class AdminPlaygroundForm(FlaskForm):
+class AdminPlaygroundForm(BaseForm):
     playground = wtforms.BooleanField("Playground", false_values=FALSE_VALUES)
 
 
-class AdminPlaygroundSearchForm(FlaskForm):
+class AdminPlaygroundSearchForm(BaseForm):
     project = wtforms.StringField("Project")
 
 
@@ -1566,7 +1600,7 @@ class GroupUniqueNameValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
-class ActivateFasGroupForm(FlaskForm):
+class ActivateFasGroupForm(BaseForm):
 
     name = wtforms.StringField(
         validators=[
@@ -1579,7 +1613,7 @@ class ActivateFasGroupForm(FlaskForm):
     )
 
 
-class CreateModuleForm(FlaskForm):
+class CreateModuleForm(BaseForm):
     builds = wtforms.FieldList(wtforms.StringField("Builds ID list"))
     packages = wtforms.FieldList(wtforms.StringField("Packages list"))
     components = wtforms.FieldList(
@@ -1597,7 +1631,7 @@ class CreateModuleForm(FlaskForm):
         super(CreateModuleForm, self).__init__(*args, **kwargs)
 
     def validate(self):
-        if not FlaskForm.validate(self):
+        if not BaseForm.validate(self):
             return False
 
         # Profile names should be unique
@@ -1618,7 +1652,7 @@ class CreateModuleForm(FlaskForm):
         return True
 
 
-class ModuleRepo(FlaskForm):
+class ModuleRepo(BaseForm):
     owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
     copr = wtforms.StringField("Copr Name", validators=[wtforms.validators.DataRequired()])
     name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
