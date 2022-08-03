@@ -52,8 +52,16 @@ class PyPIProvider(Provider):
     def _produce_srpm_pyp2spec(self):
         os.chdir(self.resultdir)
 
+        cmd = [
+            "pyp2spec",
+            self.pypi_package_name,
+            "--fedora-compliant",
+            "--top-level",
+        ]
+        if self.pypi_package_version:
+            cmd += ["-v", self.pypi_package_version]
+
         try:
-            cmd = ["pyp2spec", self.pypi_package_name]
             run_cmd(cmd)
         except RuntimeError as err:
             log.error("Unable to generate spec for `%s'",
