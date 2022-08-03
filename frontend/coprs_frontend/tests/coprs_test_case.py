@@ -794,42 +794,6 @@ def foo():
         with self.setup_user_session(self.u1):
             yield
 
-    def request_rest_api_with_auth(self, url,
-                                   login=None, token=None,
-                                   content=None, method="GET",
-                                   headers=None, data=None,
-                                   content_type="application/json"):
-        """
-        :rtype: flask.wrappers.Response
-        Requires f_users_api fixture
-        """
-        if login is None:
-            login = self.user_api_creds["user1"]["login"]
-        if token is None:
-            token = self.user_api_creds["user1"]["token"]
-
-        req_headers = {
-            "Authorization": self._get_auth_string(login, token),
-        }
-        if headers:
-            req_headers.update(headers)
-
-        kwargs = dict(
-            method=method,
-            content_type=content_type,
-            headers=req_headers,
-            buffered=True,
-        )
-        if content is not None and data is not None:
-            raise RuntimeError("Don't specify content and data together")
-
-        if content:
-            kwargs["data"] = json.dumps(content)
-        if data:
-            kwargs["data"] = data
-
-        return self.tc.open(url, **kwargs)
-
     def _get_auth_string(self, login, token):
         userstring = "{}:{}".format(login, token).encode("utf-8")
         base64string_user = base64.b64encode(userstring)
