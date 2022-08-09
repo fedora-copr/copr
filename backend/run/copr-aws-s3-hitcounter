@@ -141,6 +141,12 @@ def get_arg_parser():
         "--verbose",
         action="store_true",
         help=("Print verbose information about what is going on"))
+    parser.add_argument(
+        "--try-indefinitely",
+        action="store_true",
+        help=("If true, try infinite number of attempts when contacting the "
+              "frontend. Do not use this option for cron tasks because the "
+              "number of simultaneously running instances might go up"))
     return parser
 
 
@@ -170,7 +176,8 @@ def main():
         # a scenario when we increment the accesses on the frontend but then
         # leave the s3 file untouched, which would result in parsing and
         # incrementing from the same file again in the next run
-        update_frontend(accesses, log=log, dry_run=args.dry_run)
+        update_frontend(accesses, log=log, dry_run=args.dry_run,
+                        try_indefinitely=args.try_indefinitely)
         s3.delete_file(s3file)
 
         # Clean all temporary files

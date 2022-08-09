@@ -59,7 +59,7 @@ def url_to_key_strings(url):
     return []
 
 
-def update_frontend(accesses, log, dry_run=False):
+def update_frontend(accesses, log, dry_run=False, try_indefinitely=False):
     """
     Increment frontend statistics based on these `accesses`
     """
@@ -86,7 +86,12 @@ def update_frontend(accesses, log, dry_run=False):
         "from_backend",
     )
     if not dry_run:
-        SafeRequest(auth=opts.frontend_auth, log=log).post(url, result)
+        request = SafeRequest(
+            auth=opts.frontend_auth,
+            log=log,
+            try_indefinitely=try_indefinitely,
+        )
+        request.post(url, result)
 
 
 def get_hit_data(accesses, log):
