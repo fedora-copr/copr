@@ -68,7 +68,7 @@ def update_frontend(accesses, log, dry_run=False):
         log.debug("No recognizable hits among these accesses, skipping.")
         return
 
-    log.info(
+    log.debug(
         "Sending: %i results from %i to %i",
         len(result["hits"]),
         result["ts_from"],

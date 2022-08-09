@@ -156,10 +156,15 @@ def main():
         log.setLevel(logging.DEBUG)
 
     s3 = S3Bucket(dry_run=args.dry_run)
-    for s3file in s3.list_files():
+    files = s3.list_files()
+
+    for i, s3file in enumerate(files, start=1):
         gz = s3.download_file(s3file, dstdir=tmp)
         raw = gunzip(gz)
         accesses = parse_access_file(raw)
+
+        log.info("[%s/%s] %s (%s accesses)",
+                 i, len(files), s3file, len(accesses))
 
         # Maybe we want to use some locking or transaction mechanism to avoid
         # a scenario when we increment the accesses on the frontend but then
