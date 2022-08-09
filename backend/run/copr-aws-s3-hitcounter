@@ -29,6 +29,10 @@ from copr_backend.helpers import setup_script_logger
 
 # We will allow only this hostname to delete files from the S3 storage
 PRODUCTION_HOSTNAME = "copr-be.aws.fedoraproject.org"
+DEVEL_HOSTNAME = "copr-be-dev.aws.fedoraproject.org"
+
+PRODUCTION_CDN_HOSTNAME = "download.copr.fedorainfracloud.org"
+DEVEL_CDN_HOSTNAME = "download.copr-dev.fedorainfracloud.org"
 
 
 log = logging.getLogger(__name__)
@@ -122,6 +126,37 @@ def parse_access_file(path):
     return accesses
 
 
+def get_cdn_hostname(args):
+    """
+    The devel and production accesses are mixed together. Which ones do we want
+    to count?
+    """
+    # If a CDN hostname was explicitly specified when calling the script
+    if args.cdn_hostname:
+        return args.cdn_hostname
+
+    # Count hits from devel CDN hostname on devel instance
+    hostname = gethostname()
+    if hostname == DEVEL_HOSTNAME:
+        return DEVEL_CDN_HOSTNAME
+
+    # Default to production hits. Don't worry, we don't accidentally
+    # remove them from any other instance
+    return PRODUCTION_CDN_HOSTNAME
+
+
+def check_different_cdn_hostname(accesses, cdn_hostname):
+    """
+    If a list of HTTP accesses contain any access for a different CDN hostname
+    (e.g. for devel instance when the script is running on production), return
+    its value. Otherwise `None`.
+    """
+    for access in accesses:
+        if access["x-host-header"] != cdn_hostname:
+            return access["x-host-header"]
+    return None
+
+
 def get_arg_parser():
     """
     Generate argument parser for this script
@@ -147,6 +182,12 @@ def get_arg_parser():
         help=("If true, try infinite number of attempts when contacting the "
               "frontend. Do not use this option for cron tasks because the "
               "number of simultaneously running instances might go up"))
+    parser.add_argument(
+        "--cdn-hostname",
+        help=("By default the devel instance counts only hits from devel, and "
+              "the production instance from production. You can override this "
+              "by explicitly specifying the CDN hostname of interest, e.g. {0}"
+              .format(PRODUCTION_CDN_HOSTNAME)))
     return parser
 
 
@@ -157,6 +198,7 @@ def main():
     parser = get_arg_parser()
     args = parser.parse_args()
     tmp = tempfile.mkdtemp(prefix="copr-aws-s3-hitcounter-")
+    cdn_hostname = get_cdn_hostname(args)
 
     if args.verbose:
         log.setLevel(logging.DEBUG)
@@ -168,6 +210,12 @@ def main():
         gz = s3.download_file(s3file, dstdir=tmp)
         raw = gunzip(gz)
         accesses = parse_access_file(raw)
+
+        different_cdn = check_different_cdn_hostname(accesses, cdn_hostname)
+        if different_cdn:
+            log.debug("Skipping: %s (different hostname: %s)",
+                      s3file, different_cdn)
+            continue
 
         log.info("[%s/%s] %s (%s accesses)",
                  i, len(files), s3file, len(accesses))
