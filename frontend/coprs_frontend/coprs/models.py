@@ -2149,6 +2149,22 @@ class CounterStat(db.Model, helpers.Serializer):
 
     counter = db.Column(db.Integer, default=0, server_default="0")
 
+    @property
+    def pretty_name(self):
+        """
+        Return owner/project, or owner/project/chroot value
+        """
+
+        # TODO Once we add relationships to Copr and CoprChroot, use them here
+        suffix = self.name.rsplit("::", 1)[-1]
+        owner, project = suffix.rsplit("@", 1)
+
+        # Chrootname after colon the separator
+        if ":" in project:
+            project = project.replace(":", "/")
+
+        return "{0}/{1}".format(owner, project)
+
 
 class Group(db.Model, helpers.Serializer):
 

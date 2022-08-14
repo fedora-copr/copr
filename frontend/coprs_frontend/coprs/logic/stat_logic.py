@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from coprs import app
 from coprs import db
 from coprs.models import CounterStat
-from coprs import helpers
+from coprs import helpers, models
 
 
 class CounterStatLogic(object):
@@ -69,6 +69,31 @@ class CounterStatLogic(object):
             repo_dl_stats[chroot_by_stat_name[stat.name]] = stat.counter
 
         return repo_dl_stats
+
+    @classmethod
+    def get_popular_projects(cls):
+        """
+        Return CounterStat results for projects with the most downloaded RPMs
+        """
+        return cls.get_popular(helpers.CounterStatType.PROJECT_RPMS_DL)
+
+    @classmethod
+    def get_popular_chroots(cls):
+        """
+        Return CounterStat results for chroots with the most downloaded RPMs
+        """
+        return cls.get_popular(helpers.CounterStatType.CHROOT_RPMS_DL)
+
+    @classmethod
+    def get_popular(cls, counter_type, limit=10):
+        """
+        Return CounterStat results with the highest counter for a given
+        CounterStatType.
+        """
+        return (CounterStat.query
+                .filter(CounterStat.counter_type == counter_type)
+                .order_by(models.CounterStat.counter.desc())
+                .limit(limit))
 
 
 def handle_be_stat_message(stat_data):

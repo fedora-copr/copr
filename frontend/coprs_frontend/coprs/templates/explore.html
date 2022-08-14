@@ -1,0 +1,50 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import alert %}
+{% block title %}Explore projects{% endblock %}
+{% block header %}Explore projects{% endblock %}
+
+
+{% block content %}
+{{ alert("This page is a feature preview", type="warning") }}
+
+
+<h1>Explore projects</h1>
+<p>Explore popular, featured, and interesting projects</p>
+
+
+<h2>Most downloaded projects</h2>
+
+<ul>
+{% for stat in stats_projects %}
+  <li>
+    {{ stat.counter }} downloads -
+    <strong>{{ stat.pretty_name }}</strong>
+  </li>
+{% endfor %}
+</ul>
+
+
+<h2>Most downloaded chroots</h2>
+
+<ul>
+{% for stat in stats_chroots %}
+  <li>
+    {{ stat.counter }} downloads -
+    <strong>{{ stat.pretty_name }}</strong>
+  </li>
+{% endfor %}
+</ul>
+
+
+<h2>Most upvoted projects</h2>
+
+<ul>
+{% for project in upvoted_projects |sort(attribute='score', reverse=True) %}
+  <li>
+    {{ project.score }} upvotes -
+    <strong>{{ project.full_name }}</strong>
+  </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

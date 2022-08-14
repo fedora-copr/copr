@@ -143,6 +143,7 @@ from coprs.exceptions import (
     NonAdminCannotCreatePersistentProject,
     NonAdminCannotDisableAutoPrunning,
 )
+from coprs.views.explore_ns import explore_ns
 from coprs.error_handlers import get_error_handler
 import coprs.context_processors
 
@@ -164,6 +165,7 @@ app.register_blueprint(groups_ns)
 app.register_blueprint(user_ns)
 app.register_blueprint(webhooks_ns)
 app.register_blueprint(rss_ns)
+app.register_blueprint(explore_ns)
 
 if app.config["MEMORY_ANALYZER"]:
     from coprs.views.memory_analyzer import memory_analyzer

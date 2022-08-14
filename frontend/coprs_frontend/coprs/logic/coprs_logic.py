@@ -10,6 +10,7 @@ import flask
 
 from sqlalchemy import not_
 from sqlalchemy import desc
+from sqlalchemy import func
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
@@ -1233,6 +1234,21 @@ class CoprScoreLogic:
     @classmethod
     def reset(cls, copr):
         cls.get(copr, flask.g.user).delete()
+
+    @classmethod
+    def get_popular_projects(cls, limit=10):
+        """
+        Get projects with the highest score (upvotes/downvotes feature).
+        The result is returned as tuples Copr.id and its score, but may be
+        changed to return tuples of Copr object and its score in the future
+        """
+        query = db.session.query(
+            models.CoprScore.copr_id,
+            func.sum(models.CoprScore.score).label("score_sum")
+        )
+        return (query.group_by(models.CoprScore.copr_id)
+                .order_by(desc("score_sum"))
+                .limit(limit))
 
 
 class MockChrootsLogic(object):
