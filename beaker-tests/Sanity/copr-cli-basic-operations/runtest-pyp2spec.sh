@@ -24,7 +24,7 @@ HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
 source "$HERE/helpers"
 
-PYPI_PACKAGE="motionpaint"
+PYPI_PACKAGE="pello"
 PACKAGE="test_package_pypi"
 
 
