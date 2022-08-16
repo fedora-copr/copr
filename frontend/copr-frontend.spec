@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.188
+Version:    1.189
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,11 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.189-1
+- check packit_forge_project option in build_options for builds
+- add packit_forge_projects_allowed for Copr projects
+- remove leading and trailing whitespace from StringField
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.188-1
 - Add support for pyp2spec generator
 - Add API support for runtime_dependencies
