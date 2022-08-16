@@ -15,8 +15,8 @@ was a frequent point of confusion for Copr users as it was
 reported on multiple occasions.
 For more info about the Copr build workflow see https://docs.pagure.org/copr.copr/_images/srpm-build.jpeg
 Basically, the build dist tag was inherited from the
-initial source RPM.  Either uploaded by user, or built from remote sources _on
-Copr builder_ in an isolated environment (e.g. Fedora 35 producing ``.fc35``).  But the initial source
+initial source RPM.  Either uploaded by user, or built from remote sources *on
+Copr builder* in an isolated environment (e.g. Fedora 35 producing ``.fc35``).  But the initial source
 RPM dist tag had no informational value (a build may be submitted for many chroots, not just F35), and it eventually gets replaced by the target chroot dist-tag (e.g. ``el8`` for EPEL 8 builds).
 
 We decided to set ``%dist`` to ``%nil`` for the source builds to avoid this
