@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.157
+Version:    1.158
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.158-1
+- log every request that is sent to frontend
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.157-1
 - Don't use --keep-all-metadata
 - Search for comps.xml in chroot dir
