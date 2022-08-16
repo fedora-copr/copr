@@ -1,7 +1,7 @@
 %global copr_common_version 0.14.1.dev
 
 Name:       copr-dist-git
-Version:    0.56
+Version:    0.57
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.57-1
+- log the URL that got us new tasks
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.56-1
 - Do not hold the downloaded files in memory
 
