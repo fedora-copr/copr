@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.102
+Version:    1.103
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.103-1
+- add packit_forge_projects_allowed for Copr projects
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.102-1
 - Add support for pyp2spec generator
 - Fix the --debug test on EL7
