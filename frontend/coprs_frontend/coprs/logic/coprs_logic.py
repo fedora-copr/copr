@@ -146,10 +146,6 @@ class CoprsLogic(object):
         return query.filter(models.User.username == username)
 
     @classmethod
-    def filter_by_name(cls, query, name):
-        return query.filter(models.Copr.name == name)
-
-    @classmethod
     def filter_by_user_name(cls, query, username):
         # should be already joined with the User table
         return query.filter(models.User.username == username)

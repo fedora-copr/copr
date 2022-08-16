@@ -1061,10 +1061,6 @@ class Build(db.Model, helpers.Serializer):
     _cached_status_set = None
 
     @property
-    def user_name(self):
-        return self.user.name
-
-    @property
     def group_name(self):
         return self.copr.group.name
 
@@ -1201,16 +1197,6 @@ class Build(db.Model, helpers.Serializer):
     @property
     def source_type_text(self):
         return helpers.BuildSourceEnum(self.source_type)
-
-    @property
-    def source_metadata(self):
-        if self.source_json is None:
-            return None
-
-        try:
-            return json.loads(self.source_json)
-        except (TypeError, ValueError):
-            return None
 
     @property
     def chroot_states(self):
@@ -1673,13 +1659,6 @@ class CoprChroot(db.Model, helpers.Serializer):
     def comps(self):
         if self.comps_zlib:
             return zlib.decompress(self.comps_zlib).decode("utf-8")
-
-    @property
-    def comps_len(self):
-        if self.comps_zlib:
-            return len(zlib.decompress(self.comps_zlib))
-        else:
-            return 0
 
     @property
     def name(self):

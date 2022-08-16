@@ -403,14 +403,6 @@ class BuildsLogic(object):
         return cls.get_multiple().filter(models.Build.copr == copr)
 
     @classmethod
-    def get_multiple_by_user(cls, user):
-        """ Get collection of builds in copr sorted by build_id descending
-        form the copr belonging to `user`
-        """
-        return cls.get_multiple().join(models.Build.copr).filter(
-            models.Copr.user == user)
-
-    @classmethod
     def get_copr_builds_list(cls, copr, dirname=None):
         query = models.Build.query.filter(models.Build.copr_id==copr.id)
         if dirname:
@@ -1381,24 +1373,6 @@ class BuildChrootsLogic(object):
             .outerjoin(models.Group)
         )
         return query
-
-    @classmethod
-    def get_by_results(cls, **kwargs):
-        """
-        Query all `BuildChroot` instances whose `results` corresponds with the
-        specified `kwargs`.
-
-        Supported parameter names:
-
-            name, epoch, version, release, arch
-
-        Example usage:
-
-            cls.get_by_results(name="hello")
-            cls.get_by_results(name="foo", arch="x86_64")
-        """
-        return (models.BuildChroot.query
-                .filter(models.BuildChroot.results.any(**kwargs)))
 
     @classmethod
     def filter_by_build_id(cls, query, build_id):

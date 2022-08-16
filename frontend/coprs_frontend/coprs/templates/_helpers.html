@@ -448,7 +448,7 @@
   {% if build.group_name %}
     {{- url_for('coprs_ns.copr_build', group_name=(build.copr.group.name if build.copr is defined else build.group_name), coprname=build.copr_name, build_id=build.id) -}}
   {% else %}
-    {{- url_for("coprs_ns.copr_build", username=(build.copr.user.name if build.copr is defined else build.user_name), coprname = build.copr_name, build_id = build.id) -}}
+    {{- url_for("coprs_ns.copr_build", username=(build.copr.user.name if build.copr is defined else build.user.name), coprname = build.copr_name, build_id = build.id) -}}
   {% endif %}
 {% endmacro %}
 
