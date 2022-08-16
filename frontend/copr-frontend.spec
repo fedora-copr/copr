@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.189
+Version:    1.190
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.190-1
+- Create field for packit_forge_project when creating build
+
 * Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.189-1
 - check packit_forge_project option in build_options for builds
 - add packit_forge_projects_allowed for Copr projects
