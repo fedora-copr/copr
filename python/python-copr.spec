@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.121
+Version:    1.122
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -244,6 +244,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.122-1
+- add packit_forge_projects_allowed for Copr projects
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.121-1
 - Add support for pyp2spec generator
 - Make requests-gssapi an opt-in dep in PyPI
