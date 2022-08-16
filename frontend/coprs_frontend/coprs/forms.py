@@ -1291,6 +1291,8 @@ def _get_build_form(active_chroots, form, package=None):
         filters=[NoneFilter(None)],
     )
 
+    F.packit_forge_project = wtforms.StringField(default=None)
+
     def _validate_batch_opts(form, field):
         counterpart = form.with_build_id
         modifies = False

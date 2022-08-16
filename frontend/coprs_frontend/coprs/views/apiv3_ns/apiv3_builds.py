@@ -319,6 +319,7 @@ def process_creating_new_build(copr, form, create_new_build):
         'isolation': form.isolation.data,
         'after_build_id': form.after_build_id.data,
         'with_build_id': form.with_build_id.data,
+        'packit_forge_project': form.packit_forge_project.data
     }
 
     if form.enable_net.data is not None:
