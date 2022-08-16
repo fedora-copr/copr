@@ -109,7 +109,8 @@ Ask people to test, verify bugs, and generally help with QA. They will ignore it
 Test
 ....
 
-Run :ref:`beaker_tests` and check the results.
+Run the :ref:`sanity tests<sanity_tests>` from a Podman container (alternatively
+this can be run also from :ref:`Beaker directly <beaker_tests>`).
 
 
 .. _build_packages_for_production:
