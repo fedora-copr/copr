@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.158
+Version:    1.159
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Aug 16 2022 Pavel Raiskup <praiskup@redhat.com> 1.159-1
+- count only hits from an appropriate CDN hostname
+- add option for infinite number of attempts to the hitcounter script
+- print more reasonable output from AWS hitcounter script
+
 * Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.158-1
 - log every request that is sent to frontend
 
