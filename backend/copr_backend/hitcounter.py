@@ -5,6 +5,7 @@ Shared logic for hitcounter scripts
 import os
 import re
 from datetime import datetime
+from requests.utils import unquote
 from copr_common.request import SafeRequest
 from copr_backend.helpers import BackendConfigReader
 
@@ -116,6 +117,21 @@ def get_hit_data(accesses, log):
         if bot:
             log.debug("Skipping: %s (user-agent '%s' is a known bot)",
                       url, bot.group(1))
+            continue
+
+        # Convert encoded characters from their %40 values back to @.
+        url = unquote(url)
+
+        # I don't know how or why but occasionally there is an URL that is
+        # encoded twice (%2540oamg -> %40oamg - > @oamg), and yet its status
+        # code is 200. AFAIK these appear only for EPEL-7 chroots and their
+        # User-Agent is something like urlgrabber/3.10%20yum/3.4.3
+        # I wasn't able to reproduce such accesses, and we decided to not count
+        # them
+        if url != unquote(url):
+            log.warning("Skipping: %s (double encoded URL, user-agent: '%s', "
+                        "status: %s)", access["cs-uri-stem"],
+                        access["cs(User-Agent)"], access["sc-status"])
             continue
 
         # We don't want to count every accessed URL, only those pointing to
