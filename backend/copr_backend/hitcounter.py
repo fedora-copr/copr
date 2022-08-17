@@ -141,6 +141,12 @@ def get_hit_data(accesses, log):
             log.debug("Skipping: %s", url)
             continue
 
+        if any(x for x in key_strings
+               if x.startswith("chroot_rpms_dl_stat|")
+               and x.endswith("|srpm-builds")):
+            log.debug("Skipping %s (SRPM build)", url)
+            continue
+
         log.debug("Processing: %s", url)
 
         # When counting RPM access, we want to iterate both project hits and
