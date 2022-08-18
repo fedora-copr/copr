@@ -1,0 +1,47 @@
+.. _release_notes_2022_08_18:
+
+Highlights from 2022-08-18 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_,
+`Fedora 36`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+Packit integration
+------------------
+
+The `Packit service`_ is using a single Fedora Copr account ``packit`` for doing
+all the heavy Copr work.  Therefore Packit users need to explicitly allow the
+``packit`` user to at least build in, or even administer their Copr projects in
+order to integrate the services.
+
+Packit service reacts on events in many forge (currently GitHub) projects.
+But typically only one forge project (or a small set) should build into
+the pre-configured Copr project.  That's why there's a new option
+Copr-side to specify the set of forge projects that can build in given
+Copr project::
+
+    $ copr create --packit-forge-project-allowed github.com/owner/projectname
+    $ copr modify --packit-forge-project-allowed github.com/owner/projectname
+
+This is going to be better documented Packit-side.
+
+
+RPM download statistics
+-----------------------
+
+Fedora Copr build results have been served through the AWS CloudFront "proxy"
+for some time already.  So it's been a bit harder task to calculate the RPM
+downloads numbers (`RHBZ 1483218`_).  This release brings several enhancements
+and fixes for the stats calculation mechanism, so we should be able to again
+provide the downloads statistics very soon.
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-456b3b30e7
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-456b3b30e7
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-9a10937ed4
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-c61f647658
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-88150b1edf
+
+.. _`Packit service`: https://packit.dev/docs/
+
+.. _`RHBZ 1483218`: https://bugzilla.redhat.com/1483218
