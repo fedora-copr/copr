@@ -53,7 +53,7 @@ def query_params():
 
                     # If parameter has a default value, it is not required
                     if sig.parameters[arg].default == sig.parameters[arg].empty:
-                        raise CoprHttpException("Missing argument {}".format(arg))
+                        raise BadRequest("Missing argument {}".format(arg))
                 kwargs[arg] = flask.request.args.get(arg)
             return f(*args, **kwargs)
         return query_params_wrapper
