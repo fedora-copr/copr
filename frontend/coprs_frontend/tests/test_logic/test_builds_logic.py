@@ -19,8 +19,6 @@ from coprs.exceptions import (ActionInProgressException,
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import (
     BuildsLogic,
-    BuildChrootsLogic,
-    BuildChrootResultsLogic,
 )
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
