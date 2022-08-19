@@ -169,18 +169,28 @@ Submit packages into stg infra tags
 
 Submit the pacakges into `Infra tags repo <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/infra-repo/>`_.
 If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or someone on ``#fedora-admin`` libera.chat channel.
-We have wrappers around the ``koji`` tool for this.  First move the package to
-staging repo::
+
+.. warning::
+
+    There's a long-term `race in Koji <https://pagure.io/fedora-infrastructure/issue/9504>`_.
+    If you plan to submit more packages (and likely you do), submit all **but
+    one** at once.  Keep one package to be submitted later, when other tasks are
+    already processed to "poke through" potencially broken repository.
+
+We have wrappers around the ``koji`` tool for this.  First we "tag" the packages
+into the infra staging repo like (`example stg infra repo`_)::
 
     ./releng/koji-infratag-staging  copr-rpmbuild-0.53-1.fc34
 
-Then, after some time (when the package is signed by Koji), you can use the
-staging infra repo on the devel copr stack (used by default), so for example you
-can re-run te tests against the soon-to-be production packages.
-
-Wait until the package is available in the staging infra repo::
+Now give the Koji automation some time to process the request above (package
+signing, and preparing a new repository).  Wait until the package is available
+in the repo::
 
     ./releng/koji-infratag-available --stg --wait copr-rpmbuild-0.53-1.fc34.x86_64.rpm
+
+When the packages are ready, you can install the packages on the devel copr
+stack (staging infra repository is enabled there by default).  Now for example
+you can re-run te tests against the soon-to-be production packages.
 
 Besides the obvious server packages, don't forget to submit also
 `python-copr` and `copr-cli` (we use it on the backend).
@@ -198,21 +208,30 @@ them in the same way. Then create a pull request with this release
 notes against Copr git repository.
 
 
-Schedule outage
-...............
+Schedule and announce the outage
+................................
 
-Schedule outage even if it has to happen in the next 5 minutes!
+.. warning::
 
-Follow the instructions in `Outage SOP <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/outage/>`_.
+    Schedule outage even if it has to happen in the next 5 minutes!
 
+Get faimiliar with the `Fedora Outage SOP <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/outage/>`_.
+In general, please follow these steps:
 
-Announce the release
-....................
+1. Prepare the infrastructure ticket similar to `this old one <https://pagure.io/fedora-infrastructure/issue/10854>`_.
 
-Send email to copr-dev mailing list informing about an upcomming
-release. We usually copy-paste text of the infrastructure ticket
-created in a previous step. Don't forget to put a link to the ticket
-at the end of the email.
+2. Send email to `copr-devel`_ mailing list informing about an upcomming
+   release. We usually copy-paste text of the infrastructure ticket created in a
+   previous step. Don't forget to put a link to the ticket at the end of the
+   email.  See the `example <https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/message/FVVX3Y7IVRTFW3NYVBTWX3AK3BHNRATX/>`_.
+
+3. Send ``op #fedora-buildsys MyIrcNick`` message to ``ChanServ`` on
+   libera.chat to get the OP rights, and then adjust the channel title so it
+   starts with message similar to::
+
+        Planned outage 2022-08-17 20:00 UTC - https://pagure.io/fedora-infrastructure/issue/10854
+
+4. Create a new "planned" `Fedora Status SOP`_ entry.
 
 
 Release window
@@ -222,8 +241,24 @@ If all the pre-release preparations were done meticulously and everything
 was tested properly, the release window shouldn't take more than ten
 minutes. That is, if nothing goes terribly sideways...
 
+
+Let users know
+--------------
+
+1. Change the "planned" `Fedora Status SOP`_ entry into an "ongoing" entry.
+
+2. Announce on ``#fedora-buildsys``, change title like
+   ``s/Planned outage ../OUTAGE NOW .../`` and send some message like
+   ``WARNING: The scheduled outage just begings!``.
+
+
 Production infra tags
 ---------------------
+
+.. warning::
+
+    The Koji race mentioned above is here, too.  Delay moving one of the NVRs a
+    bit!
 
 You can now move the packages to production infra repo.  Note that the
 production builder machines install/update the ``copr-rpmbuild`` package from
@@ -327,10 +362,21 @@ If schema was modified you should generate new Schema documentation.
 Announce the end of the release
 ...............................
 
-Send email to copr-dev mailing list. If there is some important change you can send email to fedora devel mailing list too.
-Add the link to the "Highlights from XXXX-XX-XX release" documentation page.
+1. Remove the "Outage" note from the ``#fedora-buildsys`` title.
 
-Add the "highlights" `blog post entry <https://github.com/fedora-copr/fedora-copr.github.io>`_.
+2. Send a message on ``fedora-buildsys`` that the outage is over!
+
+3. Send email to `copr-devel`_ mailing list.  If there is some important change
+   you can send email to fedora devel mailing list too.  Mention the link to the
+   "Highlights from XXXX-XX-XX release" documentation page.
+
+4. Propose a new "highlights" post for the `Fedora Copr Blog`_,
+   see `the example
+   <https://github.com/fedora-copr/fedora-copr.github.io/pull/55/files>`_.
+
+5. Close the Fedora Infra ticket.
+
+6. Change the "ongoing" `Fedora Status SOP`_ entry into a "resolved" one.
 
 
 Release packages to PyPI
@@ -387,3 +433,7 @@ to CLOSED/CURRENTRELEASE with comment like 'New Copr has been released.'
 Fix this document to make it easy for the release nanny of the next release to use it.
 
 .. _`Copr release directory`: https://releases.pagure.org/copr/copr
+.. _`copr-devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
+.. _`Fedora Status SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/status-fedora/
+.. _`example stg infra repo`: https://kojipkgs.fedoraproject.org/repos-dist/f36-infra-stg/
+.. _`Fedora Copr Blog`: https://fedora-copr.github.io/
