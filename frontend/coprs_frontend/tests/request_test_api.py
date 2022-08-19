@@ -151,6 +151,16 @@ class WebUIRequests(_RequestsInterface):
         assert resp.status_code == (expected_status_code or 302)
         return resp
 
+    def cancel_build(self, project, build_id):
+        route = "/coprs/{user}/{project}/cancel_build/{build_id}/".format(
+            user=self.transaction_username,
+            project=project,
+            build_id=build_id,
+        )
+        resp = self.client.post(route, data={})
+        assert resp.status_code == 302
+        return resp
+
     @staticmethod
     def _form_data_from_build_options(build_options):
         if build_options is None:

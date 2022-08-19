@@ -329,9 +329,18 @@ class TestCoprDetail(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         self.db.session.add_all([self.u2, self.c2])
+        build_id = self.c2.builds[0].id
         r = self.test_client.get(
-            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, build_id))
+
+        # The button exists!
         assert b"/cancel_build/" in r.data
+
+        # And now cancel the build.
+        self.web_ui.cancel_build(self.c2.name, build_id)
+        build = models.Build.query.get(build_id)
+        assert build.state == "canceled"
+
 
     def test_codeblock_html_in_project_description(self, f_users, f_coprs):
         r = self.tc.get("/coprs/{0}/{1}/".format(self.u1.name, self.c1.name))
