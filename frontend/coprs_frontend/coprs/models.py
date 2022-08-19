@@ -1641,11 +1641,10 @@ class CoprChroot(db.Model, helpers.Serializer):
     deleted = db.Column(db.Boolean, default=False, index=True)
 
     def update_comps(self, comps_xml):
-        if isinstance(comps_xml, str):
-            data = comps_xml.encode("utf-8")
-        else:
-            data = comps_xml
-        self.comps_zlib = zlib.compress(data)
+        """
+        save (compressed) the comps_xml file content (instance of bytes).
+        """
+        self.comps_zlib = zlib.compress(comps_xml)
 
     @property
     def buildroot_pkgs_list(self):
