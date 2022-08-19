@@ -534,7 +534,9 @@ def foo():
         self.pHook = models.Package(
             copr=self.c1,
             name="hook-package",
-            source_type=helpers.BuildSourceEnum('scm'))
+            source_type=helpers.BuildSourceEnum('scm'),
+            source_json='{"clone_url": "example.com"}',
+        )
 
     @pytest.fixture
     def f_build_few_chroots(self, f_mock_chroots_many):

@@ -330,12 +330,13 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, data)
         return resp
 
-    def rebuild_package(self, project_dirname, pkgname, build_options=None):
+    def rebuild_package(self, project_dirname, pkgname, build_options=None,
+                        project_ownername=None):
         """ Rebuild one package in a given project using API """
         project_name = project_dirname.split(":")[0]
         route = "/api_3/package/build"
         rebuild_data = {
-            "ownername": self.transaction_username,
+            "ownername": project_ownername or self.transaction_username,
             "projectname": project_name,
             "package_name": pkgname,
             "project_dirname": project_dirname,

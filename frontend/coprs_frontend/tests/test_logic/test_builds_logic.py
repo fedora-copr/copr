@@ -466,6 +466,17 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(builds) == 2
         assert {b.package.name for b in builds} == {"tar", "cpio"}
 
+    @TransactionDecorator("u2")
+    @pytest.mark.usefixtures("f_hook_package", "f_users_api", "f_db")
+    def test_package_rebuild_permission_error(self):
+
+        # create a package and submit a build
+        result = self.api3.rebuild_package("foocopr", "hook-package",
+                                           project_ownername="user1")
+        assert result.json == {'error': "You don't have permissions to build in this copr."}
+        assert result.status_code == 403
+
+
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
     def test_package_not_updated_after_source_ready(self):
