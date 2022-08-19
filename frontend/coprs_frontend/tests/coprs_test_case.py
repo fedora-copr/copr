@@ -817,6 +817,11 @@ def foo():
         headers = self.api3_auth_headers(user)
         return self.tc.post(url, data=json.dumps(content), headers=headers)
 
+    def post_api3_with_auth_multipart(self, url, content, user):
+        headers = self.api3_auth_headers(user)
+        headers["Content-Type"] = "multipart/form-data"
+        return self.tc.post(url, data=content, headers=headers)
+
     def get_api3_with_auth(self, url, user):
         headers = self.api3_auth_headers(user)
         print(headers)

@@ -2,11 +2,16 @@
 Library that simplifies interacting with Frontend routes.
 """
 
+import os
 import json
 
 from bs4 import BeautifulSoup
+from werkzeug.datastructures import FileStorage
 
 from coprs import models
+
+
+# pylint: disable=consider-using-with
 
 
 def parse_web_form_error(html_text, variant="a"):
@@ -51,7 +56,8 @@ class _RequestsInterface:
 
     def edit_chroot(self, project, chroot, bootstrap=None,
                     bootstrap_image=None, owner=None, isolation=None,
-                    additional_packages=None, reset_fields=None):
+                    additional_packages=None, reset_fields=None,
+                    comps_filename=None):
         """ Modify CoprChroot """
         raise NotImplementedError
 
@@ -97,7 +103,8 @@ class WebUIRequests(_RequestsInterface):
 
     def edit_chroot(self, project, chroot, bootstrap=None,
                     bootstrap_image=None, owner=None, isolation=None,
-                    additional_packages=None, reset_fields=None):
+                    additional_packages=None, reset_fields=None,
+                    comps_filename=None):
         """ Change CoprChroot using the web-UI """
         route = "/coprs/{user}/{project}/update_chroot/{chroot}/".format(
             user=owner or self.transaction_username,
@@ -116,7 +123,15 @@ class WebUIRequests(_RequestsInterface):
         if isolation is not None:
             data["isolation"] = isolation
 
-        resp = self.client.post(route, data=data)
+        if comps_filename:
+            data["comps"] = FileStorage(
+                stream=open(comps_filename, "rb"),
+                filename=os.path.basename(comps_filename),
+                content_type="application/text",
+            )
+
+        resp = self.client.post(route, data=data,
+                                content_type="multipart/form-data")
         if self.success_expected:
             assert resp.status_code == 302
         return resp
@@ -193,7 +208,11 @@ class API3Requests(_RequestsInterface):
 
     def post(self, url, content):
         """ Post API3 form under "user" """
-        return self.test_class_object.post_api3_with_auth(
+
+        method = self.test_class_object.post_api3_with_auth
+        if "upload_comps" in content:
+            method = self.test_class_object.post_api3_with_auth_multipart
+        return method(
             url, content, self.test_class_object.transaction_user)
 
     def get(self, url, content):
@@ -238,7 +257,8 @@ class API3Requests(_RequestsInterface):
 
     def edit_chroot(self, project, chroot, bootstrap=None,
                     bootstrap_image=None, owner=None, isolation=None,
-                    additional_packages=None, reset_fields=None):
+                    additional_packages=None, reset_fields=None,
+                    comps_filename=None):
         route = "/api_3/project-chroot/edit/{owner}/{project}/{chroot}".format(
             owner=owner or self.transaction_username,
             project=project,
@@ -255,6 +275,14 @@ class API3Requests(_RequestsInterface):
             data["additional_packages"] = additional_packages
         if reset_fields is not None:
             data["reset_fields"] = reset_fields
+
+        if comps_filename:
+            data["upload_comps"] = FileStorage(
+                stream=open(comps_filename, "rb"),
+                filename=os.path.basename(comps_filename),
+                content_type="application/text",
+            )
+
         resp = self.post(route, data)
         return resp
 
