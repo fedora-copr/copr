@@ -1379,18 +1379,6 @@ class BuildChrootsLogic(object):
         return query.filter(models.Build.id == build_id)
 
     @classmethod
-    def filter_by_project_id(cls, query, project_id):
-        return query.filter(models.Copr.id == project_id)
-
-    @classmethod
-    def filter_by_project_user_name(cls, query, username):
-        return query.filter(models.User.username == username)
-
-    @classmethod
-    def filter_by_state(cls, query, state):
-        return query.filter(models.BuildChroot.status == StatusEnum(state))
-
-    @classmethod
     def filter_by_group_name(cls, query, group_name):
         return query.filter(models.Group.name == group_name)
 
