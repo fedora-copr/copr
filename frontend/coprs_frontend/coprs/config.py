@@ -145,6 +145,8 @@ class Config(object):
     # 'measure.py' module for more info.
     DEBUG_CHECKPOINTS = False
 
+    FAS_SIGNUP_URL = "https://accounts.fedoraproject.org/"
+
 
 class ProductionConfig(Config):
     DEBUG = False
