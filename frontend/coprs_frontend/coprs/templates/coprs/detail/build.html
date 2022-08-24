@@ -104,6 +104,14 @@
             PR#{{ build.scm_object_id }}
           </dd>
           {% endif %}
+          {% if build.batch_id %}
+            <dt> Batch: </dt>
+            <dd>
+              <a href="{{ url_for('batches_ns.coprs_batch_detail', batch_id=build.batch_id) }}">
+                {{ build.batch_id }}
+              </a>
+            </dd>
+          {% endif %}
           <dt> Directory: </dt>
           <dd>
             <a href="{{ build.copr_dir.repo_url }}">
