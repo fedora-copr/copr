@@ -34,6 +34,9 @@
       | <a href="{{ url_for('user_ns.user_info') }}">User Info</a>
       {% endif %}
 
+      {% if g.user.name == user.name %}
+        | <a href="{{ url_for('user_ns.repositories') }}">Your repositories</a>
+      {% endif %}
 
       {% include "user_meta.html" %}
   </p>
