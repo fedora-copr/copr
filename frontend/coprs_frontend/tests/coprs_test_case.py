@@ -777,6 +777,7 @@ def foo():
         self.transaction_user = user
         self.transaction_username = user.username
         with self.tc as self.test_client:
+            self.test_client.preserve_context = False
             # create one fake request that will setup the session value,
             # and keep the value in the next requests ...
             with self.test_client.session_transaction() as session:
