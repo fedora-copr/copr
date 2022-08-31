@@ -1,5 +1,6 @@
 import os
 import pytest
+from coprs import models
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
@@ -12,6 +13,8 @@ class TestComps(CoprsTestCase):
         client = self.api3 if request_type == "api" else self.web_ui
         self.db.session.add(self.c1)
         chroot = self.c1.copr_chroots[0]
+        chroot_id = chroot.id
+
         workdir = os.path.join(os.path.dirname(__file__))
         comps_f = os.path.join(workdir, "data", "comps.xml")
         client.edit_chroot(
@@ -19,6 +22,8 @@ class TestComps(CoprsTestCase):
             comps_filename=comps_f,
             bootstrap_image="image",
         )
+
+        chroot = models.CoprChroot.query.get(chroot_id)
         data = "<some><xml></xml></some>\n"
         assert chroot.comps == data
         assert chroot.bootstrap_image == "image"
