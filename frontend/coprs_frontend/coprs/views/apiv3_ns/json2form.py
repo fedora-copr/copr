@@ -22,7 +22,7 @@ def get_form_compatible_data(preserve=None):
 
 
 def get_input_dict():
-    return flask.request.json or dict(flask.request.form)
+    return flask.request.get_json(silent=True) or dict(flask.request.form)
 
 
 def get_input():
