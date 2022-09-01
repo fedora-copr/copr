@@ -23,4 +23,6 @@ RUN rm /etc/httpd/conf.d/ssl.conf
 RUN echo "AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside\\$1\\$2\"" >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
     echo "Alias /repo/ /var/lib/dist-git/cache/lookaside/" >>  /etc/httpd/conf.d/dist-git/lookaside-copr.conf
 
+RUN echo "scan-path=/var/lib/dist-git/git/" >> /etc/cgitrc
+
 CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
