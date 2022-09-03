@@ -1579,6 +1579,15 @@ class MockChroot(db.Model, helpers.Serializer):
         """
         return self.tags_raw.split() if self.tags_raw else []
 
+    @property
+    def os_family(self):
+        """
+        Returns family of OS.
+        centos-stream -> centos
+        opensuse-leap -> opensuse
+        """
+        return self.os_release.split("-")[0]
+
 
 class CoprChroot(db.Model, helpers.Serializer):
     """

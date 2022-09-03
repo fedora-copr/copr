@@ -629,6 +629,9 @@ class ReposLogic:
             logo = mock_chroot.name_release + ".png"
         elif mock_chroot.os_release in logoset:
             logo = mock_chroot.os_release + ".png"
+        elif mock_chroot.os_family in logoset:
+            logo = mock_chroot.os_family + ".png"
+
         return logo
 
     @classmethod
