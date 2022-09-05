@@ -8,8 +8,6 @@ ENV REDIS_HOST=redis
 
 RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
-RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
-
 # base packages
 RUN dnf -y update && \
     dnf -y install htop \
