@@ -82,7 +82,14 @@ This package contains document for copr-keygen service.
 
 %build
 %py3_build
+
+# We currently have FTBFS errors for F37/Rawhide, related issues:
+# https://bugzilla.redhat.com/show_bug.cgi?id=2113156
+# https://bugzilla.redhat.com/show_bug.cgi?id=2105348
+# https://bugzilla.redhat.com/show_bug.cgi?id=2007282
+%if 0%{?fedora} <= 36
 make -C docs %{?_smp_mflags} html
+%endif
 
 %install
 %py3_install
@@ -115,7 +122,10 @@ install -d %{buildroot}%{_sysconfdir}/cron.daily
 
 cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
 
+# FTBFS - See above
+%if 0%{?fedora} <= 36
 cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
+%endif
 
 %check
 ./run_tests.sh -vv --no-cov
