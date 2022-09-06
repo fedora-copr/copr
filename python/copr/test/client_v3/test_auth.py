@@ -13,11 +13,7 @@ class TestApiToken:
         """
         config = mock.MagicMock()
         auth = ApiToken(config)
-        assert not auth.auth
-        assert not auth.username
-
         # Make sure all auth values are loaded from the config
-        auth.make_expensive()
         assert auth.auth
         assert auth.username
 

@@ -14,7 +14,7 @@ except ImportError:
     from urlparse import urlparse
 
 
-class BaseAuth:
+class BaseAuth(object):
     """
     Base authentication class
     There is a more standard way of implementing custom authentication classes,
