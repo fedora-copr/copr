@@ -157,6 +157,18 @@ def time_ago(time_in, until=None):
     return humanize.naturaldelta(diff)
 
 
+@app.template_filter("natural_time_delta")
+def natural_time_delta(seconds: int) -> str:
+    """
+    Returns time in human-readable format.
+    """
+    try:
+        return humanize.precisedelta(seconds, format="%.0f")
+    except AttributeError:
+        # TODO: remove this try-except block once we switch to fedora 36+
+        return f"{seconds} seconds"
+
+
 @app.template_filter("markdown")
 def markdown_filter(data):
     if not data:

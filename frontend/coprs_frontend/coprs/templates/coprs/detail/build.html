@@ -86,6 +86,10 @@
           <dd>
             {{ build.min_started_on|time_ago(build.max_ended_on) }}
           </dd>
+          <dt> Build timeout: </dt>
+          <dd>
+            {{ build.timeout|natural_time_delta() }}
+          </dd>
           <dt> Networking enabled: </dt>
           <dd>
               {{ build.enable_net }}
