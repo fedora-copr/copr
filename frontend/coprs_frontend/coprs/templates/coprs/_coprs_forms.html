@@ -70,7 +70,7 @@ render_bootstrap_options %}
             {{ ch }}
             {{ ch.label }}
             {% set chrootname = ch.label.text %}
-            {% if copr and ch.data %}
+            {% if copr and ch.data and ch.checked %}
               <a style="margin-left:20px" class="btn btn-xs btn-default" href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
                 <span class="pficon pficon-edit"> Edit </span>
               </a>
