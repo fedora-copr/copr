@@ -186,6 +186,9 @@ class ProjectProxy(BaseProxy):
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
         :param bool appstream: Disable or enable generating the appstream metadata
+        :param string runtime_dependencies: List of external repositories
+            (== dependencies, specified as baseurls) that will be automatically
+            enabled together with this project repository.
         :param list packit_forge_projects_allowed: List of forge projects that
             will be allowed to build in the project via Packit
         :return: Munch
