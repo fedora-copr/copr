@@ -211,6 +211,10 @@ def main():
         raw = gunzip(gz)
         accesses = parse_access_file(raw)
 
+        # Clean temporary files, we don't need them for the rest of the cycle
+        for path in [gz, raw]:
+            os.remove(path)
+
         different_cdn = check_different_cdn_hostname(accesses, cdn_hostname)
         if different_cdn:
             log.debug("Skipping: %s (different hostname: %s)",
@@ -227,10 +231,6 @@ def main():
         update_frontend(accesses, log=log, dry_run=args.dry_run,
                         try_indefinitely=args.try_indefinitely)
         s3.delete_file(s3file)
-
-        # Clean all temporary files
-        for path in [gz, raw]:
-            os.remove(path)
 
     os.removedirs(tmp)
 
