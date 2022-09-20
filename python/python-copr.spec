@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.122
+Version:    1.123
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -244,6 +244,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.123-1
+- more generic docs for Client initialization
+- add runtime_dependencies param doc for project edit
+
 * Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.122-1
 - add packit_forge_projects_allowed for Copr projects
 
