@@ -1,7 +1,7 @@
 %global with_test 1
 
 Name:       copr-keygen
-Version:    1.84
+Version:    1.85
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -174,6 +174,9 @@ systemctl condrestart httpd &>/dev/null || :
 
 
 %changelog
+* Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.85-1
+- temporarily disable documentation to avoid FTBFS for F37/Rawhide
+
 * Tue Jul 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.84-1
 - Remove redundant error handler
 - Log IP address of the backend that originated a request
