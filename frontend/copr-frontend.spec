@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.190
+Version:    1.191
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,17 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.191-1
+- show timeout in the build detail page
+- disable Edit button in the project settings when chroot unchecked
+- fix FTBFS issues for F37/Rawhide
+- match OS logos by their OS family
+- show the batch ID (if assigned) in the build detail
+- add link to /user/repositories/ on the user detail page
+- stg frontend instance should link to stg FAS instance
+- add page for exploring projects
+- remove APIv2 code
+
 * Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.190-1
 - Create field for packit_forge_project when creating build
 
