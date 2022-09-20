@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.159
+Version:    1.160
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.160-1
+- aws-hitcounter: remove temporary files as soon as possible
+- aws-hitcounter: ignore downloaded SRPM files
+- aws-hitcounter: decode special characters from URLs
+
 * Tue Aug 16 2022 Pavel Raiskup <praiskup@redhat.com> 1.159-1
 - count only hits from an appropriate CDN hostname
 - add option for infinite number of attempts to the hitcounter script
