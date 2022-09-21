@@ -1,0 +1,63 @@
+.. _release_notes_2022_09_21:
+
+Highlights from 2022-09-21 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_,
+`Fedora 36`_,  `Fedora 37`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+All APIv2 code removed
+----------------------
+
+In accordance with the `APIv1 and APIv2 deprecation schedule`_. The
+last bits of APIv2 were removed from the codebase and as consequence,
+Copr service will no longer understand your APIv2 calls.
+
+
+RPM download statistics
+-----------------------
+
+Fedora Copr build results have been served through the AWS CloudFront "proxy"
+for some time already.  So it's been a bit harder task to calculate the RPM
+download numbers (`RHBZ 1483218`_).
+
+The previous release brought several enhancements and fixes for the
+stats calculation mechanism but it wasn't quite enough. This release
+comes with some final follow-ups. We are hoping to start counting
+the RPM downloads shortly after.
+
+
+Minor UI improvements
+---------------------
+
+- In the project settings, the "Edit" button will now show only for
+  enabled chroots
+- The build detail page now shows the build timeout value
+- If a build is a part of a batch, the detail page now shows a link
+  for it
+- The user detail page now shows a link for the /user/repositories/
+
+
+Bugfixes
+--------
+
+- `#2294`_ - Show correct distribution images based on their OS family
+- `#2293`_, `RHBZ 2081915`_ - Fixed copr-frontend FTBFS for F37/Rawhide
+- `RHBZ 2113156`_ - Fixed copr-keygen FTBFS for F37/Rawhide
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-180ba6f36d
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-f32f2192b1
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-917ea9f312
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-917ea9f312
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-f902e3c1dd
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-198e05aa5c
+
+
+.. _`APIv1 and APIv2 deprecation schedule`: https://fedora-copr.github.io/posts/EOL-APIv1-APIv2
+.. _`#2294`: https://pagure.io/copr/copr/issue/2294
+.. _`#2293`: https://pagure.io/copr/copr/issue/2293
+.. _`#2293`: https://pagure.io/copr/copr/issue/2293
+.. _`RHBZ 2081915`: https://bugzilla.redhat.com/show_bug.cgi?id=2081915
+.. _`RHBZ 2113156`: https://bugzilla.redhat.com/show_bug.cgi?id=2113156
+.. _`RHBZ 1483218`: https://bugzilla.redhat.com/show_bug.cgi?id=1483218
