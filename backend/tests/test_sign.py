@@ -318,10 +318,10 @@ def test_chroot_gpg_hashes():
         ("centos-stream-8-s390x", "sha256"),
         ("centos-stream-9-s390x", "sha256"),
         ("rhel-rawhide-s390x", "sha256"),
-        # we don't expect stream 7 will ever exist, otherwise we'll have to
-        # check for sha1 here
-        ("centos-stream-7-aarch64", "sha256"),
+        # we don't expect stream 7 will ever exist
+        ("centos-stream-7-aarch64", "sha1"),
         ("srpm-builds", "sha256"),
+        ("centos-stream+epel-next-9-aarch64", "sha256"),
     ]
 
     opts = Munch()

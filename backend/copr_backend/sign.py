@@ -108,21 +108,21 @@ def gpg_hashtype_for_chroot(chroot, opts):
 
     parts = chroot.split("-")
 
+    version_part = parts[-2]
+
     if opts.gently_gpg_sha256:
         # For a few weeks we would use the sha256 hash type only for EL8+.
         # This is a safety belt, in case of any failure we'll just re-sign
         # epel-8+ and not _all_ the package data on backend.
         if parts[0] in el_chroots:
-            el_version = parts[1]
-            if el_version == "stream":
-                el_version = parts[2]
+            el_version = version_part
             if version.parse(el_version) > version.parse("7"):
                 return "sha256"
         return "sha1"
 
     if parts[0] in el_chroots:
-        chroot_version = parts[1]
-        if chroot_version in ["rawhide", "stream"]:
+        chroot_version = version_part
+        if chroot_version in ["rawhide"]:
             return "sha256"
         if version.parse(chroot_version) <= version.parse("7"):
             return "sha1"
