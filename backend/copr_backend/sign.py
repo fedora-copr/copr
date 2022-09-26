@@ -124,7 +124,7 @@ def gpg_hashtype_for_chroot(chroot, opts):
         chroot_version = version_part
         if chroot_version in ["rawhide"]:
             return "sha256"
-        if version.parse(chroot_version) <= version.parse("7"):
+        if version.parse(chroot_version) <= version.parse("4"):
             return "sha1"
     if parts[0] == "fedora" and parts[1].isnumeric():
         # Fedora 27 moved to RPM v2.14 with the OpenSSL backend.

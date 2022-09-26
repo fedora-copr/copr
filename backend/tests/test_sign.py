@@ -310,8 +310,8 @@ def test_chroot_gpg_hashes():
         ("fedora-rawhide-x86_64", "sha256"),
         ("mageia-8-x86_64", "sha256"),
         ("opensuse-tumbleweed-aarch64", "sha256"),
-        ("epel-7-ppc64", "sha1"),
-        ("centos-7.dev-aarch64", "sha1"),
+        ("epel-7-ppc64", "sha256"),
+        ("centos-7.dev-aarch64", "sha256"),
         ("epel-8-aarch64", "sha256"),
         ("rhel-8.dev-ppc64le", "sha256"),
         ("oraclelinux-9-s390x", "sha256"),
@@ -319,8 +319,10 @@ def test_chroot_gpg_hashes():
         ("centos-stream-9-s390x", "sha256"),
         ("rhel-rawhide-s390x", "sha256"),
         # we don't expect stream 7 will ever exist
-        ("centos-stream-7-aarch64", "sha1"),
+        ("centos-stream-7-aarch64", "sha256"),
         ("srpm-builds", "sha256"),
+        ("epel-4-s390x", "sha1"),
+        ("epel-5-s390x", "sha256"),
         ("centos-stream+epel-next-9-aarch64", "sha256"),
     ]
 
