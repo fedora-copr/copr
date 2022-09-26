@@ -181,7 +181,7 @@ Webhooks allows you to automatically trigger build.
 
 First you need to go to your Copr project and tab "Packages" and define some package. The only source type which make sense together with webhooks is "SCM". Check the "Webhook rebuild" option. You may hit "rebuild" and test the build actually works.
 
-Now you can navigate to "Setting" tab and then "Webhooks" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
+Now you can navigate to "Setting" tab and then "Integrations" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
 
 Then in your GitHub project, go to Settings / Webhooks and services. Click on the Add webhook button.
 Fill in the Payload URL field with the url you noted previously. Set the other fields to the values: `content: application/json; send just push event; no secret`. Click the Add webhook button.
