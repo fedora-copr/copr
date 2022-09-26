@@ -9,7 +9,7 @@
 %global copr_common_version 0.13.1.dev
 
 Name:       copr-backend
-Version:    1.160
+Version:    1.161
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Sep 26 2022 Pavel Raiskup <praiskup@redhat.com> 1.161-1
+- sign everything EPEL-5+ with sha256 hashalgo
+
 * Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.160-1
 - aws-hitcounter: remove temporary files as soon as possible
 - aws-hitcounter: ignore downloaded SRPM files
