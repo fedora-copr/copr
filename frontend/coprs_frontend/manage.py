@@ -4,10 +4,12 @@
 import os
 import sys
 import copy
+import logging
 from functools import wraps
 import pipes
 import importlib
 import click
+from copr_common.log import setup_script_logger
 from commands.flask3_wrapper import get_flask_wrapper_command
 import commands.test
 import commands.create_sqlite_file
@@ -123,5 +125,13 @@ app.cli.add_command(get_flask_wrapper_command('run'))
 app.cli.add_command(get_flask_wrapper_command('shell'))
 
 if __name__ == "__main__":
+    log = logging.getLogger(__name__)
+
+    if "test" not in sys.argv:
+        setup_script_logger(log, "/var/log/copr-frontend/manage.log")
+
+    cmd = " ".join(sys.argv)
+    log.info("Running command: %s", cmd)
+
     with app.app_context():
         app.cli()
