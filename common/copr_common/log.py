@@ -28,6 +28,8 @@ def setup_script_logger(log, path):
 
     # Add file logging
     file_log = logging.FileHandler(path)
+    file_log_format = "[%(asctime)s][%(levelname)6s]: %(message)s"
+    file_log.setFormatter(logging.Formatter(file_log_format))
     log.addHandler(file_log)
 
     return log
