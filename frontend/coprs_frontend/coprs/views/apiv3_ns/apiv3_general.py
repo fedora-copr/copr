@@ -104,6 +104,11 @@ def gssapi_login():
     if krb_login:
         flask.g.user = krb_login.user
         flask.session['krb5_login'] = krb_login.user.name
+        app.logger.info(
+            "%s '%s' logged in",
+            "Admin" if krb_login.user.admin else "User",
+            krb_login.user.name
+        )
         flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
         return gssapi_login_action()
 
@@ -127,6 +132,8 @@ def gssapi_login():
     db.session.add(krb_login)
     db.session.commit()
 
+    app.logger.info("First krb5 login for user '%s', "
+                    "creating a database record", username)
     flask.flash("Welcome, {0}".format(user.name), "success")
     flask.g.user = user
     flask.session['krb5_login'] = user.name
