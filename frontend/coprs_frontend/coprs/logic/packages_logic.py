@@ -1,6 +1,6 @@
 import json
 import re
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import bindparam, Integer, func
 from sqlalchemy.sql import true, text
@@ -134,7 +134,7 @@ class PackagesLogic(object):
 
     @classmethod
     def get_for_webhook_rebuild(
-        cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref, pkg_name: str
+        cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref, pkg_name: Optional[str]
     ) -> List[Package]:
         clone_url_stripped = re.sub(r'(\.git)?/*$', '', clone_url)
 
@@ -163,13 +163,50 @@ class PackagesLogic(object):
 
     @classmethod
     def _belongs_to_package(
-        cls, package: Package, commits, ref_type: str, ref: str, pkg_name: str
+        cls, package: Package, commits, ref_type: str, ref: str, pkg_name: Optional[str]
     ) -> bool:
         if ref_type == "tag":
-            matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
-            return (matches and package.name == matches.group(1)) or package.name == pkg_name
+            return cls._tag_belongs_to_package(package, ref, pkg_name)
 
         return cls.commits_belong_to_package(package, commits, ref)
+
+    @staticmethod
+    def _ref_matches_copr_pkgname(ref: str, copr_pkg_name: str) -> bool:
+        """
+        We accept N-V-R and N-V.  Version and Release needs to contain at least one
+        digit.
+        """
+        separators = ["-", "_"]
+
+        def _parts_match(ref_parts):
+            return any(separator.join(ref_parts) == copr_pkg_name for separator in separators)
+
+        def _has_a_version_part(ref_parts):
+            if len(ref_parts) < 2:
+                return False
+            return any(char.isdigit() for char in ref_parts[-1])
+
+        for sep in separators:
+            parts = ref.split(sep)
+            # in case that ref has both version and release we need to do this twice
+            for _ in range(2):
+                if not _has_a_version_part(parts):
+                    break
+                # drop the last version component, and compare
+                parts.pop()
+                if _parts_match(parts):
+                    return True
+
+        return False
+
+    @classmethod
+    def _tag_belongs_to_package(
+        cls, package: Package, ref: str, pkg_name: Optional[str]
+    ) -> bool:
+        if package.name == pkg_name:
+            return True
+
+        return cls._ref_matches_copr_pkgname(ref, package.name)
 
     @classmethod
     def commits_belong_to_package(cls, package: Package, commits, ref: str) -> bool:
