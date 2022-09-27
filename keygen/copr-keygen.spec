@@ -1,4 +1,5 @@
 %global with_test 1
+%global copr_common_version 0.15.1.dev
 
 Name:       copr-keygen
 Version:    1.85
@@ -18,6 +19,7 @@ BuildRequires: util-linux
 BuildRequires: systemd
 
 BuildRequires: python3-devel
+BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-setuptools
 BuildRequires: python3-six
 BuildRequires: python3-flask
@@ -37,6 +39,7 @@ Requires:   obs-signd
 Requires:   passwd
 
 Recommends: logrotate
+Requires:   python3-copr-common >= %copr_common_version
 Requires:   python3-setuptools
 Requires:   python3-six
 Requires:   python3-flask
