@@ -23,8 +23,8 @@ import tempfile
 import gzip
 from socket import gethostname
 import boto3
+from copr_common.log import setup_script_logger
 from copr_backend.hitcounter import update_frontend
-from copr_backend.helpers import setup_script_logger
 
 
 # We will allow only this hostname to delete files from the S3 storage

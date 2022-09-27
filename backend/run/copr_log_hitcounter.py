@@ -13,7 +13,7 @@ import os
 import logging
 import argparse
 from datetime import datetime
-from copr_backend.helpers import setup_script_logger
+from copr_common.log import setup_script_logger
 from copr_backend.hitcounter import update_frontend
 
 
