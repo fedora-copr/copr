@@ -1,3 +1,5 @@
+from typing import Optional
+
 import flask
 from functools import wraps
 
@@ -73,7 +75,8 @@ def package_name_required(route):
 
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
-def webhooks_bitbucket_push(copr_id, uuid):
+@webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
+def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
     # For the documentation of the data we receive see:
     # https://confluence.atlassian.com/bitbucket/event-payloads-740262817.html
     copr = ComplexLogic.get_copr_by_id_safe(copr_id)
@@ -100,7 +103,7 @@ def webhooks_bitbucket_push(copr_id, uuid):
         return "Bad Request", 400
 
     packages = PackagesLogic.get_for_webhook_rebuild(
-        copr_id, uuid, clone_url, commits, ref_type, ref
+        copr_id, uuid, clone_url, commits, ref_type, ref, pkg_name
     )
 
     for package in packages:
@@ -113,7 +116,8 @@ def webhooks_bitbucket_push(copr_id, uuid):
 
 
 @webhooks_ns.route("/github/<int:copr_id>/<uuid>/", methods=["POST"])
-def webhooks_git_push(copr_id, uuid):
+@webhooks_ns.route("/github/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
+def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     if flask.request.headers["X-GitHub-Event"] == "ping":
         return "OK", 200
     # For the documentation of the data we receive see:
@@ -146,7 +150,9 @@ def webhooks_git_push(copr_id, uuid):
     except KeyError:
         return "Bad Request", 400
 
-    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits, ref_type, ref)
+    packages = PackagesLogic.get_for_webhook_rebuild(
+        copr_id, uuid, clone_url, commits, ref_type, ref, pkg_name
+    )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
     for package in packages:
@@ -159,7 +165,8 @@ def webhooks_git_push(copr_id, uuid):
 
 
 @webhooks_ns.route("/gitlab/<int:copr_id>/<uuid>/", methods=["POST"])
-def webhooks_gitlab_push(copr_id, uuid):
+@webhooks_ns.route("/gitlab/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
+def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     # For the documentation of the data we receive see:
     # https://gitlab.com/help/user/project/integrations/webhooks#events
     copr = ComplexLogic.get_copr_by_id_safe(copr_id)
@@ -192,7 +199,9 @@ def webhooks_gitlab_push(copr_id, uuid):
     except KeyError:
         return "Bad Request", 400
 
-    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits, ref_type, ref)
+    packages = PackagesLogic.get_for_webhook_rebuild(
+        copr_id, uuid, clone_url, commits, ref_type, ref, pkg_name
+    )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
     for package in packages:

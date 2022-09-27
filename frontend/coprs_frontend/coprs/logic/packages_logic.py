@@ -1,5 +1,6 @@
 import json
 import re
+from typing import List
 
 from sqlalchemy import bindparam, Integer, func
 from sqlalchemy.sql import true, text
@@ -13,6 +14,7 @@ from coprs import helpers
 
 from coprs.logic import users_logic
 from coprs.logic import builds_logic
+from coprs.models import Package
 from copr_common.enums import StatusEnum
 
 log = app.logger
@@ -131,7 +133,9 @@ class PackagesLogic(object):
         return package
 
     @classmethod
-    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
+    def get_for_webhook_rebuild(
+        cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref, pkg_name: str
+    ) -> List[Package]:
         clone_url_stripped = re.sub(r'(\.git)?/*$', '', clone_url)
 
         packages = (models.Package.query.join(models.Copr)
@@ -152,20 +156,23 @@ class PackagesLogic(object):
             if not package.copr.active_copr_chroots:
                 continue
 
-            if cls.commits_belong_to_package(package, commits, ref_type, ref):
-                result += [package]
+            if cls._belongs_to_package(package, commits, ref_type, ref, pkg_name):
+                result.append(package)
 
         return result
 
     @classmethod
-    def commits_belong_to_package(cls, package, commits, ref_type, ref):
+    def _belongs_to_package(
+        cls, package: Package, commits, ref_type: str, ref: str, pkg_name: str
+    ) -> bool:
         if ref_type == "tag":
             matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
-            if matches and package.name != matches.group(1):
-                return False
-            else:
-                return True
+            return (matches and package.name == matches.group(1)) or package.name == pkg_name
 
+        return cls.commits_belong_to_package(package, commits, ref)
+
+    @classmethod
+    def commits_belong_to_package(cls, package: Package, commits, ref: str) -> bool:
         committish = package.source_json_dict.get("committish") or ''
         if committish and not ref.endswith(committish):
             return False
