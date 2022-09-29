@@ -48,7 +48,7 @@ get_changed_packages()
 run_linter()
 {
     package=$1
-    linter_cmd=(../build_aux/linter --print-fixed-errors --compare-against)
+    linter_cmd=(vcs-diff-lint --print-fixed-errors --compare-against)
     echo "==== Testing package $package modified by this PR ===="
     ( cd "$package" &&  "${linter_cmd[@]}" "$DIFF_AGAINST" )
 }

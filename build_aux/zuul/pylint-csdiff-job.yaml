@@ -7,7 +7,9 @@
       name:
         - csdiff
         - git
+        - python3-mypy
         - pylint
+        - vcs-diff-lint
     become: yes
 
   - name: Run the differential pylint check

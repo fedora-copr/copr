@@ -11,4 +11,4 @@ unittests:
 	./run_tests.sh -vv -s
 
 lint:
-	../build_aux/linter
+	vcs-diff-lint
