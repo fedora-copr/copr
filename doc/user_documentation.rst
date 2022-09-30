@@ -173,20 +173,82 @@ If you want have your copr project deleted automatically after some time
 "delete after days" option in web UI or on command-line:
 ``copr-cli create your-project ... --delete-after-days 10``
 
+Webhooks
+--------
 
-GitHub Webhooks
----------------
+Set up an integration with a Git hosting website and get Copr rebuilds for pull requests, tags and commits.
 
-Webhooks allows you to automatically trigger build.
-
-First you need to go to your Copr project and tab "Packages" and define some package. The only source type which make sense together with webhooks is "SCM". Check the "Webhook rebuild" option. You may hit "rebuild" and test the build actually works.
-
-Now you can navigate to "Setting" tab and then "Integrations" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
-
-Then in your GitHub project, go to Settings / Webhooks and services. Click on the Add webhook button.
-Fill in the Payload URL field with the url you noted previously. Set the other fields to the values: `content: application/json; send just push event; no secret`. Click the Add webhook button.
+Simple guide:
+  1. Create an SCM package and set its default source by specifying an https:// "Clone URL".
+  2. Make sure the package auto-rebuild option is checked.
+  3. Now you can navigate to **Setting** tab and then **Integrations**
+  4. There is your webhook url in the form of ``https://copr.fedorainfracloud.org/webhooks/<GIT_FORGE>/<ID>/<UUID>/``
+  5. Finish it by following the Git host specific guide below.
 
 And next time you push anything to your git, Copr will automatically rebuild your package.
+
+Triggerring builds by tag events
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+One forge may have multiple packages. For this reason, Copr needs to know what package or set of
+packages should be rebuilt for the tag event. Copr gets this information from the name of the tag, so
+it is important that the tag contains the name of the package, in a predefined format, that will
+have to rebuild.
+
+The tag name should be in this format: ``PKGNAME-VERSION[-RELEASE]`` with possibility of
+replacing the dash with an underscore.
+
+In case you use different tag name patterns (different Copr package name than tag name), Copr
+has no idea what package build should be triggered. You have to be explicit and tell Copr your
+**copr package name** in the webhook URL like this ``https://copr.fedorainfracloud.org/webhooks/<GIT_FORGE>/<ID>/<UUID>/<copr_package_name>/``.
+
+Consider this example:
+
+Your Copr package name is **my-package** and tag name on Github is only a version e.g. **1.22.3**, in that case
+you have to add an optional argument to your URL containing your **copr package name**.
+
+So if your Copr package name is **my-package** your Github URL would be:
+``https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/my_package/``
+
+GitHub
+^^^^^^
+
+How to use it:
+  1. In your GitHub project, go to **Settings** / **Webhooks**
+  2. Click on the **Add webhook** button.
+  3. Fill in the Payload URL field with the url above.
+  4. Select **application/json** as the content type.
+  5. If you want to react to **Tag push events** click **Let me select individual events.** and then select **Branch or tag creation**.
+  6. Click the **Add webhook** button.
+
+Gitlab
+^^^^^^
+
+How to use it:
+  1. In your GitLab project, go to **Settings** / **Webhooks**.
+  2. Fill in the URL field with the url above.
+  3. Select **Push events** and **Tag push events** (if you want to react to tags) as event triggers.
+  4. Click the **Add webhook** button.
+
+Bitbucket
+^^^^^^^^^
+
+How to use it:
+  1. In your Bitbucket project, go to **Settings** / **Workflow** / **integrations** / **Add webhook**.
+  2. Name the hook, e.g., **Copr**.
+  3. Fill in the URL field with the url above.
+  4. Select to trigger on **Repository Push**.
+  5. Click the **Save** button.
+
+Custom webhook
+^^^^^^^^^^^^^^
+
+How to use it:
+Use the GitLab/GitHub/Bitbucket steps above (when needed), or simply::
+
+    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom/<ID>/<UUID>/<PACKAGE_NAME>/
+
+Note that the package of name 'PACKAGE_NAME' must exist within this project, and that the 'POST' http method must be specified.
 
 Pagure Integration
 ------------------

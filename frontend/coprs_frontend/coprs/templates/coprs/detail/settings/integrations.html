@@ -10,24 +10,8 @@
 <div class="row">
     <div class="col-sm-8 col-md-9">
         <h2> Integrations </h2>
-        <p>
-        Set up an integration with a Git hosting website and get Copr build statuses reported
-        in pull requests and commits.
-        </p>
 
-        <h3> Simple guide: </h3>
-        <ol>
-          <li> Create an SCM package and set its default source by specifying an https:// "Clone URL". </li>
-          <li> Make sure the package auto-rebuild option is checked. </li>
-          <li> Finish it by following the Git host specific guide below. </li>
-        </ol>
-
-        <p> Copr will now rebuild the package every time it receives an update event -
-            usually for every new commit, every new tag, or every opened pull request. </p>
-
-        <p> If valid credentials for a source repository are entered below, Copr will
-            report back build results for a particular pull request or commit.
-            Only one source repository at time can be set for pull request and commit flagging. </p>
+        For detailed information, please see <a href="https://docs.pagure.org/copr.copr/user_documentation.html#webhooks">the docs</a>.
 
         <h3> Pagure </h3>
         <ol>
@@ -56,53 +40,30 @@
         <div class="well well-sm">
             {{ github_url }}
         </div>
-        <h4> How to use it: </h4>
-        <ol>
-          <li> In your GitHub project, go to <code>Settings</code> / <code>Webhooks</code>. </li>
-          <li> Click on the <code>Add webhook</code> button. </li>
-          <li> Fill in the <code>Payload URL</code> field with the url above. </li>
-          <li> Select <code>application/json</code> as the content type. </li>
-          <li> Click the <code>Add webhook</code> button. </li>
-        </ol>
+        <div class="well well-sm">
+            {{ github_url }}&ltPKG_NAME&gt/
+        </div>
 
         <h3> Gitlab </h3>
         <div class="well well-sm">
             {{ gitlab_url }}
         </div>
-        <h4> How to use it: </h4>
-        <ol>
-          <li> In your GitLab project, go to <code>Settings</code> / <code>Webhooks</code>. </li>
-          <li> Fill in the <code>URL</code> field with the url above. </li>
-          <li> Select <code>Push events</code> and <code>Tag push events</code> as event triggers. </li>
-          <li> Click the <code>Add webhook</code> button. </li>
-        </ol>
+        <div class="well well-sm">
+            {{ gitlab_url }}&ltPKG_NAME&gt/
+        </div>
 
         <h3> Bitbucket </h3>
         <div class="well well-sm">
             {{ bitbucket_url }}
         </div>
-        <h4> How to use it: </h4>
-        <ol>
-          <li> In your Bitbucket project, go to <code>Settings</code> / <code>Workflow</code> / <code>integrations</code> / <code>Add webhook</code>. </li>
-          <li> Name the hook, e.g., “Copr”.
-          <li> Fill in the <code>URL</code> field with the url above. </li>
-          <li> Select to trigger on <code>Repository Push</code>. </li>
-          <li> Click the <code>Save</code> button. </li>
-        </ol>
+        <div class="well well-sm">
+            {{ bitbucket_url }}&ltPKG_NAME&gt/
+        </div>
 
         <h3> Custom webhook </h3>
         <div class="well well-sm">
             {{ custom_url }}
         </div>
-        <h4> How to use it: </h4>
-        <p> Use the GitLab/GitHub/Bitbucket steps above (when needed), or simply </p>
-        <p>
-          <div class="well well-sm">
-            $ curl -X POST {{ custom_url }}
-          </div>
-          Note that the package of name 'PACKAGE_NAME' must exist within this
-          project, and that the 'POST' http method must be specified.
-        </p>
     </div>
 </div>
 
