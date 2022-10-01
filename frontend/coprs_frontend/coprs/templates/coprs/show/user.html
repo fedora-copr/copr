@@ -35,7 +35,7 @@
       {% endif %}
 
       {% if g.user.name == user.name %}
-        | <a href="{{ url_for('user_ns.repositories') }}">Your repositories</a>
+        | <a href="{{ url_for('user_ns.repositories') }}">Outdated repositories</a>
       {% endif %}
 
       {% include "user_meta.html" %}
