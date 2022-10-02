@@ -31,8 +31,15 @@ from copr_backend.hitcounter import update_frontend
 PRODUCTION_HOSTNAME = "copr-be.aws.fedoraproject.org"
 DEVEL_HOSTNAME = "copr-be-dev.aws.fedoraproject.org"
 
-PRODUCTION_CDN_HOSTNAME = "download.copr.fedorainfracloud.org"
-DEVEL_CDN_HOSTNAME = "download.copr-dev.fedorainfracloud.org"
+PRODUCTION_CDN_HOSTNAMES = [
+    "download.copr.fedorainfracloud.org",
+    "d1nld9ovj32u75.cloudfront.net",
+]
+
+DEVEL_CDN_HOSTNAMES = [
+    "download.copr-dev.fedorainfracloud.org",
+    "d1p7mxc66bhrst.cloudfront.net",
+]
 
 
 log = logging.getLogger(__name__)
@@ -126,33 +133,33 @@ def parse_access_file(path):
     return accesses
 
 
-def get_cdn_hostname(args):
+def get_cdn_hostnames(args):
     """
     The devel and production accesses are mixed together. Which ones do we want
     to count?
     """
     # If a CDN hostname was explicitly specified when calling the script
-    if args.cdn_hostname:
-        return args.cdn_hostname
+    if args.cdn_hostnames:
+        return args.cdn_hostnames
 
     # Count hits from devel CDN hostname on devel instance
     hostname = gethostname()
     if hostname == DEVEL_HOSTNAME:
-        return DEVEL_CDN_HOSTNAME
+        return DEVEL_CDN_HOSTNAMES
 
     # Default to production hits. Don't worry, we don't accidentally
     # remove them from any other instance
-    return PRODUCTION_CDN_HOSTNAME
+    return PRODUCTION_CDN_HOSTNAMES
 
 
-def check_different_cdn_hostname(accesses, cdn_hostname):
+def check_different_cdn_hostname(accesses, cdn_hostnames):
     """
     If a list of HTTP accesses contain any access for a different CDN hostname
     (e.g. for devel instance when the script is running on production), return
     its value. Otherwise `None`.
     """
     for access in accesses:
-        if access["x-host-header"] != cdn_hostname:
+        if access["x-host-header"] not in cdn_hostnames:
             return access["x-host-header"]
     return None
 
@@ -184,10 +191,12 @@ def get_arg_parser():
               "number of simultaneously running instances might go up"))
     parser.add_argument(
         "--cdn-hostname",
+        action="append",
+        dest="cdn_hostnames",
         help=("By default the devel instance counts only hits from devel, and "
               "the production instance from production. You can override this "
               "by explicitly specifying the CDN hostname of interest, e.g. {0}"
-              .format(PRODUCTION_CDN_HOSTNAME)))
+              .format(PRODUCTION_CDN_HOSTNAMES[0])))
     return parser
 
 
@@ -198,7 +207,7 @@ def main():
     parser = get_arg_parser()
     args = parser.parse_args()
     tmp = tempfile.mkdtemp(prefix="copr-aws-s3-hitcounter-")
-    cdn_hostname = get_cdn_hostname(args)
+    cdn_hostnames = get_cdn_hostnames(args)
 
     if args.verbose:
         log.setLevel(logging.DEBUG)
@@ -215,7 +224,7 @@ def main():
         for path in [gz, raw]:
             os.remove(path)
 
-        different_cdn = check_different_cdn_hostname(accesses, cdn_hostname)
+        different_cdn = check_different_cdn_hostname(accesses, cdn_hostnames)
         if different_cdn:
             log.debug("Skipping: %s (different hostname: %s)",
                       s3file, different_cdn)
