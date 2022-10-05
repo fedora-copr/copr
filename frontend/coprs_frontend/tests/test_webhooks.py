@@ -260,7 +260,7 @@ class TestBitbucketWebhook(CoprsTestCase):
             "before": "9e6f31bead67d176a71a198f0c10fc764799a4a7",
             "after": "f956357fe84ba899faf9efadeed1f32c8c8cac85",
             "push": {
-                "changes": [{"new": {"name": "{0}".format(package_name), "type": "tag",
+                "changes": [{"new": {"name": "{0}-1".format(package_name), "type": "tag",
                                      "target": {"hash": "82c876a27ceafd80465c35e601afab604463ae86"}}}]
             },
             "commits": [{"added": ["{0}".format(package_name)], "removed": [], "modified": []}],
