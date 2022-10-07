@@ -220,8 +220,10 @@ class API3Requests(_RequestsInterface):
         """ Post API3 form under "user" """
 
         method = self.test_class_object.post_api3_with_auth
-        if "upload_comps" in content:
-            method = self.test_class_object.post_api3_with_auth_multipart
+        for key in content:
+            if isinstance(content[key], FileStorage):
+                method = self.test_class_object.post_api3_with_auth_multipart
+                break
         return method(
             url, content, self.test_class_object.transaction_user)
 
@@ -319,6 +321,23 @@ class API3Requests(_RequestsInterface):
         data.update(self._form_data_from_build_options(build_options))
         resp = self.post(route, data)
         return resp
+
+    def submit_uploaded_build(self, project, source_rpm, build_options=None):
+        """
+        Submit a build via source RPM
+        """
+        route = "/api_3/build/create/upload"
+        data = {
+            "ownername": self.transaction_username,
+            "projectname": project,
+            "pkgs": FileStorage(
+                stream=open(source_rpm, "rb"),
+                filename=os.path.basename(source_rpm),
+                content_type="application/rpm",
+            )
+        }
+        data.update(self._form_data_from_build_options(build_options))
+        return self.post(route, data)
 
     def create_distgit_package(self, project, pkgname, options=None,
                                expected_status_code=None):

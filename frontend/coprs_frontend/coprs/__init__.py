@@ -16,6 +16,7 @@ from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse
 
 from coprs.redis_session import RedisSessionInterface
+from coprs.request import get_request_class
 
 app = flask.Flask(__name__)
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
@@ -95,6 +96,8 @@ cache = Cache(app, config={
     'CACHE_REDIS_PORT': cache_rcp.port,
 })
 app.cache = cache
+
+app.request_class = get_request_class(app)
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general

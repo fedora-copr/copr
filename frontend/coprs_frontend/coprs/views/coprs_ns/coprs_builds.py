@@ -420,7 +420,7 @@ def process_new_build_upload(copr, add_view, url_on_success):
     def factory(**build_options):
         BuildsLogic.create_new_from_upload(
             flask.g.user, copr,
-            f_uploader=lambda path: form.pkgs.data.save(path),
+            form.pkgs,
             orig_filename=form.pkgs.data.filename,
             chroot_names=form.selected_chroots,
             **build_options

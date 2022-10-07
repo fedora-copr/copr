@@ -188,7 +188,7 @@ def create_from_upload():
     def create_new_build(options):
         return BuildsLogic.create_new_from_upload(
             flask.g.user, copr,
-            f_uploader=lambda path: form.pkgs.data.save(path),
+            form.pkgs,
             orig_filename=secure_filename(form.pkgs.data.filename),
             **options,
         )

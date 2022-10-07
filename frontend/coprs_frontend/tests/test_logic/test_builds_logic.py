@@ -2,12 +2,15 @@
 
 import json
 import os
+import tempfile
 import time
+from unittest import mock
 
 import pytest
 
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
+from coprs.request import NAMED_FILE_FROM_BYTES
 
 from copr_common.enums import StatusEnum
 from coprs.exceptions import (ActionInProgressException,
@@ -429,13 +432,13 @@ class TestBuildsLogic(CoprsTestCase):
         assert "has no active chroots" in str(error.value)
         assert len(self.c1.active_copr_chroots) == 0
 
+    @mock.patch('coprs.logic.builds_logic.save_form_file_field_to')
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
-    def test_create_new_from_upload_no_space_left(self):
-        def f_uploader(file_path):
-            raise OSError("[Errno 28] No space left on device")
+    def test_create_new_from_upload_no_space_left(self, save_form_patch):
+        save_form_patch.side_effect = OSError("[Errno 28] No space left on device")
 
         with pytest.raises(InsufficientStorage) as error:
-            BuildsLogic.create_new_from_upload(self.u1, self.c1, f_uploader,
+            BuildsLogic.create_new_from_upload(self.u1, self.c1, None,
                                                "fake.src.rpm",
                                                chroot_names=["fedora-18-x86_64"],
                                                copr_dirname=None)
@@ -540,22 +543,56 @@ class TestBuildsLogic(CoprsTestCase):
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    # Call SpooledTemporaryFile twice (once in memory, once in file), and
+    # NamedTemporaryFile once.
+    @pytest.mark.parametrize("kbytes", [100, 1024, 100*1024])
+    def test_srpm_upload(self, kbytes):
+        self.web_ui.new_project("test", ["fedora-rawhide-i386"])
+
+        srpm_base = "test.src.rpm"
+        workdir = os.path.dirname(__file__)
+        srpm = os.path.join(workdir, srpm_base)
+        with open(srpm, "w", encoding="utf-8") as fd:
+            string = "x"*1024*kbytes
+            fd.write(string)
+
+        not_patched = tempfile.NamedTemporaryFile
+        with mock.patch("coprs.request.tempfile.NamedTemporaryFile",
+                        wraps=not_patched) as patch:
+            resp = self.api3.submit_uploaded_build("test", srpm)
+            exp_count = 1 if kbytes*1024 > NAMED_FILE_FROM_BYTES else 0
+            assert patch.call_count == exp_count
+
+        assert resp.status_code == 200
+        # url = https://copr.stg.fedoraproject.org/tmp/tmpf_3w8r9i/test.src.rpm'
+        url = json.loads(resp.data)["source_package"]["url"]
+        tmpdir = url.split("/")[-2]
+        storage = os.path.join(self.app.config["STORAGE_DIR"], tmpdir, srpm_base)
+        stat = os.stat(storage)
+        assert stat.st_size == 1024*kbytes
+        assert stat.st_nlink == 1
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
     @pytest.mark.parametrize("fail", [False, True])
     def test_temporary_data_removed(self, fail):
         self.web_ui.new_project("test", ["fedora-rawhide-i386"])
         content = "content"
         filename = "fake.src.rpm"
-        def f_uploader(file_path):
+        def save_field(_field, file_path):
             assert file_path.endswith(filename)
-            with open(file_path, "w") as fd:
+            with open(file_path, "w", encoding="utf-8") as fd:
                 fd.write(content)
 
         user = models.User.query.get(1)
         copr = models.Copr.query.first()
-        build = BuildsLogic.create_new_from_upload(
-            user, copr, f_uploader, os.path.basename(filename),
-            chroot_names=["fedora-18-x86_64"],
-            copr_dirname=None)
+
+        with mock.patch("coprs.logic.builds_logic.save_form_file_field_to",
+                        new=save_field):
+            build = BuildsLogic.create_new_from_upload(
+                user, copr, None, os.path.basename(filename),
+                chroot_names=["fedora-18-x86_64"],
+                copr_dirname=None)
 
         source_dict = build.source_json_dict
         storage = os.path.join(self.app.config["STORAGE_DIR"], source_dict["tmp"])

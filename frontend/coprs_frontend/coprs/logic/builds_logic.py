@@ -21,6 +21,7 @@ from coprs import cache
 from coprs import db
 from coprs import models
 from coprs import helpers
+from coprs.request import save_form_file_field_to
 from coprs.exceptions import (
     ActionInProgressException,
     BadRequest,
@@ -582,12 +583,12 @@ class BuildsLogic(object):
             copr_dirname=copr_dirname, **build_options)
 
     @classmethod
-    def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
+    def create_new_from_upload(cls, user, copr, form_field, orig_filename,
                                chroot_names=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
-        :param f_uploader(file_path): function which stores data at the given `file_path`
+        :param form_field: object representing an uploaded file in form
         :return:
         """
         tmp = None
@@ -596,7 +597,7 @@ class BuildsLogic(object):
             tmp_name = os.path.basename(tmp)
             filename = secure_filename(orig_filename)
             file_path = os.path.join(tmp, filename)
-            f_uploader(file_path)
+            save_form_file_field_to(form_field, file_path)
         except OSError as error:
             if tmp:
                 shutil.rmtree(tmp)
