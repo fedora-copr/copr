@@ -15,7 +15,7 @@ def render_user_info(user):
     graph = BuildsLogic.get_small_graph_data('30min')
     return flask.render_template("user_info.html",
                                  user=user,
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  graph=graph)
 
 
@@ -68,7 +68,7 @@ def render_pinned_projects(owner, form=None):
                                  selected=selected,
                                  coprs=coprs,
                                  form=form,
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  graph=graph)
 
 
@@ -110,7 +110,7 @@ def render_repositories(*_args, **_kwargs):
     OutdatedChrootsLogic.make_review(owner)
     db.session.commit()
     return flask.render_template("repositories.html",
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  graph=BuildsLogic.get_small_graph_data('30min'),
                                  owner=owner,
                                  projects=projects)

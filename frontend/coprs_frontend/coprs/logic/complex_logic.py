@@ -13,6 +13,7 @@ from coprs import db
 from coprs import helpers
 from coprs import models
 from coprs import exceptions
+from coprs import cache
 from coprs.exceptions import ObjectNotFound, ActionInProgressException
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.batches_logic import BatchesLogic
@@ -255,6 +256,16 @@ class ComplexLogic(object):
             return query.filter(User.name == user_name)
         else:
             return []
+
+    @classmethod
+    @cache.memoize(timeout=60)
+    def get_queue_sizes_cached(cls):
+        """
+        The `get_queue_sizes` is IMHO reasonably fast but it is still a major
+        slowdown of rendering the homepage. It is safe to use a cached variant
+        there.
+        """
+        return cls.get_queue_sizes()
 
     @staticmethod
     def get_queue_sizes():

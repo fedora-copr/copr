@@ -102,7 +102,7 @@ def coprs_show(page=1):
                                  projects_count=projects_count,
                                  users_count=users_count,
                                  paginator=paginator,
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  users_builds=users_builds,
                                  graph=data)
 
@@ -133,7 +133,7 @@ def coprs_by_user(username=None, page=1):
                                  coprs=coprs,
                                  pinned=pinned,
                                  paginator=paginator,
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  users_builds=users_builds,
                                  graph=data)
 
@@ -178,7 +178,7 @@ def coprs_fulltext_search(page=1):
                             paginator=paginator,
                             fulltext=fulltext,
                             search_string=helpers.format_search_string(params),
-                            tasks_info=ComplexLogic.get_queue_sizes(),
+                            tasks_info=ComplexLogic.get_queue_sizes_cached(),
                             graph=data)
 
 

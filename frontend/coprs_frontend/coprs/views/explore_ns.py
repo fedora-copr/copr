@@ -26,6 +26,6 @@ def explore_home():
         upvoted_projects=upvoted_projects,
 
         # Meh this should be done automatically
-        tasks_info=ComplexLogic.get_queue_sizes(),
+        tasks_info=ComplexLogic.get_queue_sizes_cached(),
         graph=BuildsLogic.get_small_graph_data('30min'),
     )
