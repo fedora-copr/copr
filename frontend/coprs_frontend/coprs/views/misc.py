@@ -2,12 +2,9 @@ import base64
 import datetime
 import functools
 from functools import wraps
-from urllib.parse import urlparse
 import flask
 
 from flask import send_file
-
-from openid_teams.teams import TeamsRequest
 
 from copr_common.enums import RoleEnum
 from coprs import app
@@ -19,14 +16,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-
-
-def fed_raw_name(oidname):
-    oidname_parse = urlparse(oidname)
-    if not oidname_parse.netloc:
-        return oidname
-    config_parse = urlparse(app.config["OPENID_PROVIDER_URL"])
-    return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
+from coprs.auth import FedoraAccounts, Kerberos
 
 
 @app.before_request
@@ -42,11 +32,8 @@ def before_request():
     # https://github.com/PyCQA/pylint/issues/3793
     # pylint: disable=assigning-non-slot
     flask.g.user = username = None
-    if "openid" in flask.session:
-        username = fed_raw_name(flask.session["openid"])
-    elif "krb5_login" in flask.session:
-        username = flask.session["krb5_login"]
 
+    username = FedoraAccounts.username() or Kerberos.username()
     if username:
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
@@ -94,73 +81,51 @@ def workaround_ipsilon_email_login_bug_handler(f):
 @workaround_ipsilon_email_login_bug_handler
 @oid.loginhandler
 def login():
-    if not app.config['FAS_LOGIN']:
-        if app.config['KRB5_LOGIN']:
-            return krb5_login_redirect(next=oid.get_next_url())
-        flask.flash("No auth method available", "error")
-        return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
+    if app.config['FAS_LOGIN']:
+        return FedoraAccounts.login()
 
-    if flask.g.user is not None:
-        return flask.redirect(oid.get_next_url())
-    else:
-        # a bit of magic
-        team_req = TeamsRequest(["_FAS_ALL_GROUPS_"])
-        return oid.try_login(app.config["OPENID_PROVIDER_URL"],
-                             ask_for=["email", "timezone"],
-                             extensions=[team_req])
+    if app.config['KRB5_LOGIN']:
+        return Kerberos.login()
 
+    # Error
+    flask.flash("No auth method available", "error")
+    return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
 @oid.after_login
 def create_or_login(resp):
     flask.session["openid"] = resp.identity_url
-    fasusername = fed_raw_name(resp.identity_url)
+    fasusername = FedoraAccounts.fed_raw_name(resp.identity_url)
 
-    # kidding me.. or not
-    if fasusername and (
-            (
-                app.config["USE_ALLOWED_USERS"] and
-                fasusername in app.config["ALLOWED_USERS"]
-            ) or not app.config["USE_ALLOWED_USERS"]):
-
-        username = fed_raw_name(resp.identity_url)
-        user = models.User.query.filter(
-            models.User.username == username).first()
-        if not user:  # create if not created already
-            app.logger.info("First login for user '%s', "
-                            "creating a database record", username)
-            user = UsersLogic.create_user_wrapper(username, resp.email,
-                                                  resp.timezone)
-        else:
-            user.mail = resp.email
-            user.timezone = resp.timezone
-        if "lp" in resp.extensions:
-            team_resp = resp.extensions['lp']  # name space for the teams extension
-            user.openid_groups = {"fas_groups": team_resp.teams}
-
-        db.session.add(user)
-        db.session.commit()
-        flask.flash(u"Welcome, {0}".format(user.name), "success")
-        flask.g.user = user
-
-        app.logger.info("%s '%s' logged in",
-                        "Admin" if user.admin else "User",
-                        user.name)
-
-        if flask.request.url_root == oid.get_next_url():
-            return flask.redirect(flask.url_for("coprs_ns.coprs_by_user",
-                                                username=user.name))
-        return flask.redirect(oid.get_next_url())
-    else:
+    if not FedoraAccounts.is_user_allowed(fasusername):
         flask.flash("User '{0}' is not allowed".format(fasusername))
         return flask.redirect(oid.get_next_url())
+
+    user = FedoraAccounts.user_from_response(resp)
+    user.openid_groups = FedoraAccounts.groups_from_response(resp)
+
+    db.session.add(user)
+    db.session.commit()
+    flask.flash(u"Welcome, {0}".format(user.name), "success")
+    flask.g.user = user
+
+    app.logger.info("%s '%s' logged in",
+                    "Admin" if user.admin else "User",
+                    user.name)
+
+    if flask.request.url_root == oid.get_next_url():
+        return flask.redirect(flask.url_for("coprs_ns.coprs_by_user",
+                                            username=user.name))
+    return flask.redirect(oid.get_next_url())
 
 
 @misc.route("/logout/")
 def logout():
     if flask.g.user:
         app.logger.info("User '%s' logging out", flask.g.user.name)
-    flask.session.pop("openid", None)
-    flask.session.pop("krb5_login", None)
+
+    FedoraAccounts.logout()
+    Kerberos.logout()
+
     flask.flash(u"You were signed out")
     return flask.redirect(oid.get_next_url())
 
@@ -202,15 +167,6 @@ def api_login_required(f):
             return jsonout
         return f(*args, **kwargs)
     return decorated_function
-
-
-def krb5_login_redirect(next=None):
-    if app.config['KRB5_LOGIN']:
-        # Pick the first one for now.
-        return flask.redirect(flask.url_for("apiv3_ns.krb5_login",
-                                            next=next))
-    flask.flash("Unable to pick krb5 login page", "error")
-    return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
 
 def login_required(role=RoleEnum("user")):

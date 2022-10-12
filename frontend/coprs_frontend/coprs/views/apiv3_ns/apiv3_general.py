@@ -7,7 +7,7 @@ from coprs import app, oid, db, models
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
-from coprs.logic.users_logic import UsersLogic
+from coprs.auth import Kerberos
 
 
 def auth_check_response():
@@ -79,8 +79,6 @@ def gssapi_login():
     if flask.g.user is not None:
         return gssapi_login_action()
 
-    krb_config = app.config['KRB5_LOGIN']
-
     if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
         # For local testing (without krb5 keytab and other configuration)
         flask.request.environ['REMOTE_USER'] = os.environ['TEST_REMOTE_USER']
@@ -112,22 +110,15 @@ def gssapi_login():
         flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
         return gssapi_login_action()
 
-    # We need to create row in 'krb5_login' table
-    user = models.User.query.filter(models.User.username == username).first()
+    user = Kerberos.user_from_username(username)
     if not user:
-        if app.config["FAS_LOGIN"] is True:
-            # We can not create a new user now because we wouldn't get the necessary
-            # e-mail and groups info.
-            return auth_403(
-                "Valid GSSAPI authentication supplied for user '{}', but this "
-                "user doesn't exist in the Copr build system.  Please log-in "
-                "using the web-UI (without GSSAPI) first.".format(username)
-            )
-        # Create the user in the database
-        email = username + "@" + krb_config['email_domain']
-        user = UsersLogic.create_user_wrapper(username, email)
-        db.session.add(user)
+        return auth_403(
+            "Valid GSSAPI authentication supplied for user '{}', but this "
+            "user doesn't exist in the Copr build system.  Please log-in "
+            "using the web-UI (without GSSAPI) first.".format(username)
+        )
 
+    # We need to create row in 'krb5_login' table
     krb_login = models.Krb5Login(user=user, primary=username)
     db.session.add(krb_login)
     db.session.commit()
