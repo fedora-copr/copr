@@ -9,7 +9,8 @@ COPY files/ /
 RUN groupadd -r copr-signer -g 992
 RUN useradd -r copr-signer -u 993 -g 992 -d /var/lib/copr-keygen
 
-# Install copr-keygen package
-RUN dnf -y update gnupg2 && dnf -y install copr-keygen && dnf clean all
+# Install copr-keygen package and tini
+RUN dnf -y update gnupg2 && dnf -y install copr-keygen tini && dnf clean all
 
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/usr/sbin/signd"]

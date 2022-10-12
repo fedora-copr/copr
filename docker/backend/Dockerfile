@@ -27,6 +27,7 @@ RUN dnf -y update && \
                    nginx \
                    python3-ipdb \
                    findutils \
+                   tini \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package
@@ -79,4 +80,5 @@ RUN chown copr:copr /var/lock/copr-backend
 # using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
 RUN rngd -r /dev/urandom
 
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/bin/run.sh"]
