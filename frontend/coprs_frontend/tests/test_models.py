@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 import pytest
 import coprs
@@ -119,8 +120,9 @@ class TestBuildModel(CoprsTestCase):
         assert self.b1.source_backend_log_url == _pfxd("backend.log")
 
         # importing state
+        self.b1.submitted_on = int(time.time()) - 24*3600
         self.b1.source_status = StatusEnum("importing")
-        assert self.b1.get_source_log_urls(admin=True) == [
+        assert self.b1.get_source_log_urls == [
             _pfxd("builder-live.log.gz"),
             _pfxd("backend.log.gz"),
             "http://example-dist-git/url/1.log",

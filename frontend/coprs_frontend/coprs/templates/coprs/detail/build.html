@@ -201,7 +201,7 @@
             #{{ build.resubmitted_from_id }}
           {% endif %}
         {% else %}
-          {% for url in build.get_source_log_urls(g.user.admin) %}
+          {% for url in build.get_source_log_urls %}
             <a href="{{ url }}">{{ url | basename }}</a> {{ "," if not loop.last }}
           {% else %}
             Source build has not started yet

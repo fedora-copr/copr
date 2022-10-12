@@ -147,6 +147,8 @@ class Config(object):
 
     FAS_SIGNUP_URL = "https://accounts.fedoraproject.org/"
 
+    HIDE_IMPORT_LOG_AFTER_DAYS = 14
+
 
 class ProductionConfig(Config):
     DEBUG = False

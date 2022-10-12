@@ -13,6 +13,7 @@ import operator
 import os
 from urllib.parse import urljoin
 import uuid
+import time
 import zlib
 
 import modulemd_tools.yaml
@@ -1095,18 +1096,25 @@ class Build(db.Model, helpers.Serializer):
     def id_fixed_width(self):
         return "{:08d}".format(self.id)
 
-    def get_source_log_urls(self, admin=False):
+    @property
+    def get_source_log_urls(self):
         """
         Return a list of URLs to important build _source_ logs.  The list is
         changing as the state of build is changing.
         """
-        logs = [self.source_live_log_url, self.source_backend_log_url]
-        if admin:
-            logs.append(self.import_log_url_distgit)
+        logs = [self.source_live_log_url, self.source_backend_log_url,
+                self.import_log_url_distgit]
         return list(filter(None, logs))
 
     @property
     def import_log_url_distgit(self):
+        if self.source_state not in ["importing", "succeeded", "failed"]:
+            return None
+
+        days = app.config["HIDE_IMPORT_LOG_AFTER_DAYS"]
+        if (time.time() - self.submitted_on) > days*24*3600:
+            return None
+
         if app.config["COPR_DIST_GIT_LOGS_URL"]:
             return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
                                       self.task_id.replace('/', '_'))
