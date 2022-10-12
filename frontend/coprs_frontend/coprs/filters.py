@@ -73,6 +73,16 @@ def date_from_secs(secs):
 
     return None
 
+@app.template_filter("fix_import_log_name")
+def fix_import_log_name(log_basename):
+    """
+    Transform the log basename to "import.log" for import log, or keep
+    unchanged.
+    """
+    parts = log_basename.split(".")
+    if all(c.isdigit() for c in parts[0]):
+        return "import.log"
+    return log_basename
 
 @app.template_filter("perm_type_from_num")
 def perm_type_from_num(num):
