@@ -62,7 +62,11 @@ class _UserPublic(db.Model, helpers.Serializer):
     # is this user admin of the system?
     admin = db.Column(db.Boolean, default=False)
 
-    # list of groups as retrieved from openid
+    # List of groups as retrieved from openid.
+    # The name `openid_groups` is misleading because we now support more
+    # group authorities (e.g. LDAP) than just OpenID. Whatever group authority
+    # is used, the `openid_groups` variable needs to be in the  following format
+    #     openid_groups = {"fas_groups": ["foo", "bar", "baz"]}
     openid_groups = db.Column(JSONEncodedDict)
 
 

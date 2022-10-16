@@ -2,8 +2,10 @@
 Authentication-related code for communication with FAS, Kerberos, LDAP, etc.
 """
 
+import time
 from urllib.parse import urlparse
 import flask
+import ldap
 from openid_teams.teams import TeamsRequest
 from coprs import oid
 from coprs import app
@@ -149,6 +151,15 @@ class Kerberos:
         return UsersLogic.create_user_wrapper(username, email)
 
     @staticmethod
+    def groups_from_username(username):
+        """
+        Return a list of group names that a user belongs to
+        """
+        if app.config['FAS_LOGIN'] is False:
+            return {"fas_groups": LDAPGroups.get(username)}
+        return {"fas_groups": []}
+
+    @staticmethod
     def _krb5_login_redirect(next_url=None):
         if app.config['KRB5_LOGIN']:
             # Pick the first one for now.
@@ -156,3 +167,99 @@ class Kerberos:
                                                 next=next_url))
         flask.flash("Unable to pick krb5 login page", "error")
         return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
+
+
+class LDAPGroups:
+    """
+    User groups from LDAP
+    """
+
+    @staticmethod
+    def get(username):
+        """
+        Return a list of groups for a given username
+        """
+        ldap_client = LDAP(app.config["LDAP_URL"],
+                           app.config["LDAP_SEARCH_STRING"])
+        groups = []
+        for group in ldap_client.get_user_groups(username):
+            group = group.decode("utf-8")
+            attrs = dict([tuple(x.split("=")) for x in group.split(",")])
+            groups.append(attrs["cn"])
+        return groups
+
+
+class LDAP:
+    """
+    High-level facade for interacting with LDAP server
+    """
+
+    def __init__(self, url, search_string):
+        self.url = url
+        self.search_string = search_string
+
+    def send_request(self, ou, attrs, ffilter):
+        """
+        Send a /safe/ request to a LDAP server
+        """
+        return self._send_request_repeatedly(ou, attrs, ffilter)
+
+    def _send_request_repeatedly(self, ou, attrs, ffilter):
+        i = 0
+        while True:
+            i += 1
+            try:
+                return self._send_request(ou, attrs, ffilter)
+            except ldap.SERVER_DOWN as ex:
+                print(str(ex))
+                time.sleep(0.5)
+
+    def _send_request(self, ou, attrs, ffilter):
+        """
+        Send a single request to a LDAP server
+        """
+        try:
+            connect = ldap.initialize(self.url)
+            return connect.search_s(ou, ldap.SCOPE_ONELEVEL,
+                                    ffilter, attrs)
+        except ldap.SERVER_DOWN as ex:
+            msg = ex.args[0]["desc"]
+            raise CoprHttpException(msg) from ex
+
+    def query_one(self, attrs, filters=None):
+        """
+        Query one object from LDAP
+        """
+        ffilter = self._build_filter(filters)
+        return self.send_request(self.search_string, attrs, ffilter)[0]
+
+    def get_user(self, username):
+        """
+        Return an LDAP user
+        """
+        attrs = [
+            "cn",
+            "uid",
+            "memberOf",
+            "mail",
+        ]
+        filters = {
+            "objectclass": "*",
+            "uid": username,
+        }
+        return self.query_one(attrs, filters)
+
+    def get_user_groups(self, username):
+        """
+        Return a list of groups that a user belongs to
+        """
+        user = self.get_user(username)
+        if not user:
+            return None
+        return user[1]["memberOf"]
+
+    def _build_filter(self, filters):
+        # pylint: disable=no-self-use
+        filters = filters or {"objectclass": "*"}
+        ffilter = ["({0}={1})".format(k, v) for k, v in filters.items()]
+        return "(&{0})".format("".join(ffilter))

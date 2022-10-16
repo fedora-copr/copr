@@ -100,6 +100,10 @@ def gssapi_login():
     )
 
     if krb_login:
+        krb_login.user.openid_groups = Kerberos.groups_from_username(username)
+        db.session.add(krb_login.user)
+        db.session.commit()
+
         flask.g.user = krb_login.user
         flask.session['krb5_login'] = krb_login.user.name
         app.logger.info(
@@ -117,6 +121,8 @@ def gssapi_login():
             "user doesn't exist in the Copr build system.  Please log-in "
             "using the web-UI (without GSSAPI) first.".format(username)
         )
+    if app.config["FAS_LOGIN"] is False:
+        user.openid_groups = Kerberos.groups_from_username(username)
 
     # We need to create row in 'krb5_login' table
     krb_login = models.Krb5Login(user=user, primary=username)

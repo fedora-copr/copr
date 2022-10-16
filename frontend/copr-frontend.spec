@@ -117,6 +117,7 @@ BuildRequires: python3-sphinx
 BuildRequires: python3-sphinxcontrib-httpdomain
 BuildRequires: python3-whoosh
 BuildRequires: python3-wtforms >= 2.2.1
+BuildRequires: python3-ldap
 BuildRequires: python3-yaml
 BuildRequires: redis
 BuildRequires: modulemd-tools >= 0.6
@@ -175,6 +176,7 @@ Requires: python3-requests
 Requires: python3-templated-dictionary
 Requires: python3-wtforms >= 2.2.1
 Requires: python3-zmq
+Requires: python3-ldap
 Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
 Requires: js-jquery-ui

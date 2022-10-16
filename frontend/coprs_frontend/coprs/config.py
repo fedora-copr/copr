@@ -149,6 +149,12 @@ class Config(object):
 
     HIDE_IMPORT_LOG_AFTER_DAYS = 14
 
+    # LDAP server URL, e.g. ldap://ldap.foo.company.com
+    LDAP_URL = None
+
+    # e.g. ou=users,dc=company,dc=com
+    LDAP_SEARCH_STRING = None
+
 
 class ProductionConfig(Config):
     DEBUG = False

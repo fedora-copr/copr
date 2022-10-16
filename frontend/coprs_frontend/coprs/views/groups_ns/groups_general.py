@@ -85,8 +85,8 @@ def list_projects_by_group(group_name, page=1):
 @groups_ns.route("/list/my")
 @login_required
 def list_user_groups():
-    if not app.config['FAS_LOGIN']:
-        raise ObjectNotFound("Logging via Fedora Accounts not enabled")
+    if not (app.config['FAS_LOGIN'] or app.config['LDAP_URL']):
+        raise ObjectNotFound("Fedora Accounts or LDAP groups not enabled")
 
     teams = flask.g.user.user_teams
     active_map = {
