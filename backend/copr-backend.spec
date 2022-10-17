@@ -6,7 +6,7 @@
 %global tests_version 2
 %global tests_tar test-data-copr-backend
 
-%global copr_common_version 0.15.1.dev
+%global copr_common_version 0.16.1.dev
 
 Name:       copr-backend
 Version:    1.161
