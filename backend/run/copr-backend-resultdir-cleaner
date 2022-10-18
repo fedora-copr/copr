@@ -1,0 +1,178 @@
+#! /usr/bin/python3
+
+"""
+Cleanup the old chroot_scan folders
+"""
+
+import logging
+import os
+import argparse
+import time
+import datetime
+import shutil
+
+from copr_common.log import setup_script_logger
+from copr_common.tree import walk_limited
+from copr_common.helpers import script_requires_user
+from copr_backend.helpers import BackendConfigReader
+
+
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
+setup_script_logger(LOG, "/var/log/copr-backend/resultdir-cleaner.log")
+
+OLDER_THAN = time.time() - 24*3600*14
+
+parser = argparse.ArgumentParser(
+    description=("TBD")
+)
+parser.add_argument(
+    "--real-run",
+    action='store_true',
+    help=("Also perform the changes, not just checks"))
+
+
+def remove_old_dir(directory, dry_run):
+    """
+    Perform the recursive directory removal, and dump the action into logs.
+    """
+    st = os.stat(directory)
+    if st.st_ctime > OLDER_THAN:
+        # Keep new dirs.
+        return
+    created = datetime.datetime.fromtimestamp(st.st_ctime)
+    LOG.info("removing %s (created=%s)", directory, created)
+    if dry_run:
+        return
+
+    shutil.rmtree(directory)
+
+
+def todo_directory(directory, special="NORMAL"):
+    """
+    Log a warning that the DIRECTORY should be removed.
+    """
+    LOG.warning("TODO DIR %s: %s", special, directory)
+
+
+def clean_in(resultdir, dry_run=True):
+    """
+    Perform a cleanup of the 'chroot_scan' directories.
+    """
+
+    for chroot_dir, chroot_subdirs, _ in walk_limited(resultdir, mindepth=3, maxdepth=3):
+        # walk through all chroots like:
+        # chroot_dir=praiskup/ping/fedora-rawhide-x86_64
+
+        if os.path.basename(chroot_dir) == "srpm-builds":
+            # 'srpm-builds' directories are automatically cleaned, according
+            # to the [backend] prune_days=N config.
+            continue
+
+        for subdir in chroot_subdirs:
+            chroot_subdir_path = os.path.join(chroot_dir, subdir)
+
+            if subdir in ["repodata", "devel"]:
+                # repodata - valid RPM metadata, we want to keep them
+                # devel - auto createrepo tag disabled, we might want to analyze
+                # this in the future
+                continue
+
+            if subdir.startswith("repodata.old") or subdir.startswith(".repodata."):
+                # Two craterepo_c failure formats found:
+                # repodata.old.7402.20190331213019.240459
+                # .repodata.1341065.20220613144941.965102
+                todo_directory(chroot_subdir_path, "CREATEREPOFAIL")
+                continue
+
+            if subdir in ["tmp", "cache", "appdata"]:
+                # tmp => 95k * 7 inodes
+                # cache => 95k * 2 inodes
+                todo_directory(chroot_subdir_path, "APPSTREAMFAIL")
+                continue
+
+            parts = subdir.split("-")
+            if len(parts) <= 1:
+                # This shouldn't happen.  We should have the 00000000-PKGNAME
+                # format of the directories.
+                todo_directory(chroot_subdir_path, "NODASH")
+                continue
+
+            number = parts[0]
+            if len(number) != 8 or any(not c.isdigit() for c in number):
+                # This deserves a future cleanup, but not sure how:
+                # results/idm/asterisk/epel-7-x86_64/dahdi-tools-2.10.0-6.fc24
+                todo_directory(chroot_subdir_path, "OLDBUILD")
+                continue
+
+            # Let's step into a valid build directory
+            build_dir = os.path.join(chroot_dir, subdir)
+            for builddir, build_subdirs, _ in walk_limited(build_dir, mindepth=0, maxdepth=0):
+                # builddir=results/throup/VisualVM/fedora-35-x86_64/04899225-VisualVM
+                for sub_builddir in build_subdirs:
+                    subdir_path = os.path.join(builddir, sub_builddir)
+
+                    if sub_builddir == "configs":
+                        # We started compressing the configs/ sub-directory in
+                        # the commit 68171c980e1ce8ff8.  We could archive and
+                        # compress these, but they are old and likely not
+                        # interesting anyways.
+                        remove_old_dir(subdir_path, dry_run)
+                        continue
+
+                    if sub_builddir == "chroot_scan":
+                        # Remove this rather large sub-tree:
+                        # chroot_scan/
+                        # chroot_scan/var
+                        # chroot_scan/var/lib
+                        # chroot_scan/var/lib/mock
+                        # chroot_scan/var/lib/mock/fedora.snip.881132
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root/var
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root/var/log
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root/var/log/dnf.rpm.log
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root/var/log/dnf.librepo.log
+                        # chroot_scan/var/lib/mock/fedora.snip.881132/root/var/log/dnf.log
+                        remove_old_dir(subdir_path, dry_run)
+                        continue
+
+                    if sub_builddir == "fedora-review":
+                        # fedora-review: expected directory (TODO: perhaps
+                        # remove them in the future?
+                        todo_directory(subdir_path, "FEDORA_REVIEW")
+                        continue
+
+                    if sub_builddir == "prev_build_backup":
+                        # result of build failure, and re-spin
+                        todo_directory(subdir_path, "PREV_BUILD")
+                        continue
+
+
+                    # detect a fedora-review failure dirs, like:
+                    # https://download.copr.fedorainfracloud.org/results/throup/VisualVM/fedora-35-x86_64/04899225-VisualVM/VisualVM/
+                    items = os.listdir(subdir_path)
+                    if "srpm-unpacked" in items and "upstream-unpacked" in items:
+                        # Fedora review failure
+                        todo_directory(subdir_path, "FEDORA_REVIEW_FAIL")
+                        continue
+
+                    # This shouldn't ever happen (would be a totally unexpected
+                    # directory).
+                    todo_directory(subdir_path, "UNKNOWN")
+
+
+def _main():
+    args = parser.parse_args()
+    dry_run = not args.real_run
+    if dry_run:
+        LOG.warning("Just doing dry run, run with --real-run")
+
+    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
+    opts = BackendConfigReader(config_file).read()
+
+    clean_in(opts.destdir, dry_run=dry_run)
+
+
+if __name__ == "__main__":
+    script_requires_user("copr")
+    _main()
