@@ -83,8 +83,17 @@ def main():
     if args.verbose:
         log.setLevel(logging.DEBUG)
 
+    # If the access.log gets too big, sending it all at once to frontend will
+    # timeout. Let's send it in chunks.
+    # The issue is, there is no transaction mechanism, so theoretically some
+    # chunks may succeed, some fail and never be counted. But we try to send
+    # each request repeatedly and losing some access hits from time to time
+    # isn't a mission critical issue and I would just roll with it.
     accesses = parse_access_file(args.logfile)
-    update_frontend(accesses, log=log, dry_run=args.dry_run)
+    size = 1000
+    chunks = [accesses[x:x+size] for x in range(0, len(accesses), size)]
+    for chunk in chunks:
+        update_frontend(chunk, log=log, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
