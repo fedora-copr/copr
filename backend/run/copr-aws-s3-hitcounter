@@ -84,13 +84,10 @@ class S3Bucket:
         """
         Delete a file from AWS s3 bucket
         """
-        # Refusing to delete anything from development instances. We don't have
-        # separate S3 buckets / directories for production and devel so removing
-        # a file on a devel instance would mean a data loss for production.
-        # We will remove files only from production and make devel instances
-        # count them incorrectly multiple times.
-        if gethostname() != PRODUCTION_HOSTNAME:
-            log.debug("Not deleting %s on a dev instance", s3file)
+        # Refusing to delete anything from elsewhere than production or devel
+        # instance (e.g. from docker container on our laptops)
+        if gethostname() not in [PRODUCTION_HOSTNAME, DEVEL_HOSTNAME]:
+            log.debug("Not deleting %s on this instance", s3file)
             return
         if self.dry_run:
             return
