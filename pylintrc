@@ -102,10 +102,6 @@ good-names=i,j,k,ex,Run,_
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata
 
-# List of builtins function names that should not be used, separated by a comma
-bad-functions=apply,input
-
-
 [DESIGN]
 
 # Maximum number of arguments for function / method
@@ -118,7 +114,7 @@ max-locals=20
 max-returns=6
 
 # Maximum number of branch for function / method body
-max-branchs=20
+max-branches=20
 
 # Maximum number of statements in function / method body
 max-statements=50
