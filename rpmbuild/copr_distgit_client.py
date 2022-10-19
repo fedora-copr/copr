@@ -211,7 +211,7 @@ def sources(args, config):
     lookaside cache.
     """
     parsed_url, distgit_config = get_distgit_config(config, args.forked_from)
-    namespace = parsed_url.path.lstrip('/').split('/')
+    namespace = parsed_url.path.strip('/').split('/')
     # drop the last {name}.git part
     repo_name = namespace.pop()
     if repo_name.endswith(".git"):

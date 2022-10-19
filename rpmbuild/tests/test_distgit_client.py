@@ -90,8 +90,9 @@ class TestDistGitDownload(object):
             "md5/2102fd0602de72e58765adcbf92349d8/retrace-server-git-955.3e4742a.tar.gz"
         )
 
+    @pytest.mark.parametrize('base', ["tar", "tar/"])
     @mock.patch('copr_distgit_client.download_file_and_check')
-    def test_fedora_old(self, download):
+    def test_fedora_old(self, download, base):
         """
         Old sources format + ssh clone
         """
@@ -99,7 +100,7 @@ class TestDistGitDownload(object):
             ("tar.spec", ""),
             ("sources", "0ced6f20b9fa1bea588005b5ad4b52c1  tar-1.26.tar.xz\n"),
         ])
-        git_origin_url("ssh://praiskup@pkgs.fedoraproject.org/rpms/tar")
+        git_origin_url("ssh://praiskup@pkgs.fedoraproject.org/rpms/" + base)
         sources(self.args, self.config)
         assert len(download.call_args_list) == 1
         assert download.call_args_list[0][0][0] == (
@@ -107,8 +108,9 @@ class TestDistGitDownload(object):
             "tar/tar-1.26.tar.xz/md5/0ced6f20b9fa1bea588005b5ad4b52c1/tar-1.26.tar.xz"
         )
 
+    @pytest.mark.parametrize('base', ["tar.git", "tar.git/"])
     @mock.patch('copr_distgit_client.download_file_and_check')
-    def test_fedora_new(self, download):
+    def test_fedora_new(self, download, base):
         """
         New sources format + anonymous clone
         """
@@ -120,7 +122,7 @@ class TestDistGitDownload(object):
             ("tar.spec", ""),
             ("sources", "SHA512 (tar-1.32.tar.xz) = {0}\n".format(sha512)),
         ])
-        git_origin_url("https://src.fedoraproject.org/rpms/tar.git")
+        git_origin_url("https://src.fedoraproject.org/rpms/" + base)
         sources(self.args, self.config)
         assert len(download.call_args_list) == 1
         url = (
