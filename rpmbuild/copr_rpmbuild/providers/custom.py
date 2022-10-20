@@ -2,8 +2,10 @@ import os
 import logging
 import shutil
 
+from jinja2 import Environment, FileSystemLoader
 from copr_rpmbuild import helpers
 from .base import Provider
+from ..helpers import CONF_DIRS
 
 
 log = logging.getLogger("__main__")
@@ -12,6 +14,7 @@ log = logging.getLogger("__main__")
 class CustomProvider(Provider):
     chroot = 'fedora-rawhide-x86_64'
     builddeps = None
+    repos = None
     file_script = None
     inner_resultdir = None
     inner_workdir = '/workdir'
@@ -24,6 +27,7 @@ class CustomProvider(Provider):
         self.chroot = source_json.get('chroot')
         self.inner_resultdir = source_json.get('resultdir')
         self.builddeps = source_json.get('builddeps')
+        self.repos = source_json.get('repos')
         self.timeout = source_json.get("timeout", 3600)
 
         if 'hook_data' in source_json:
@@ -37,18 +41,16 @@ class CustomProvider(Provider):
             script.write(source_json['script'])
 
     def render_mock_config_template(self, *_args):
-        template = "include('/etc/mock/{0}.cfg')\n".format(self.chroot)
-        template += "config_opts['rpmbuild_networking'] = True\n"
-        template += "config_opts['use_host_resolv'] = True\n"
-
-        # Important e.g. to keep '/script' file available across several
-        # /bin/mock calls (when tmpfs_enable is on).
-        template += "config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True\n"
-
-        for key, value in self.macros.items():
-            template += ("config_opts['macros']['{0}'] = '{1}'\n"
-                         .format(key, value))
-        return template
+        """
+        Return a mock config (as a string) for a specific task
+        """
+        jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
+        template = jinja_env.get_template("mock-custom-build.cfg.j2")
+        return template.render(
+            chroot=self.chroot,
+            repos=self.repos,
+            macros=self.macros,
+        )
 
     def produce_srpm(self):
         mock_config_file = self.generate_mock_config("mock-config.cfg")

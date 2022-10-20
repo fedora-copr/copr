@@ -1,0 +1,36 @@
+include('/etc/mock/{{ chroot }}.cfg')
+config_opts['rpmbuild_networking'] = True
+config_opts['use_host_resolv'] = True
+
+# Important e.g. to keep '/script' file available across several
+# /bin/mock calls (when tmpfs_enable is on).
+config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
+
+{%- for key, value in macros.items() %}
+config_opts['macros']['{{ key }}'] = '{{ value }}'
+{%- endfor %}
+
+{% if repos %}
+config_opts[f"{config_opts.package_manager}.conf"] += """
+{% for repo in repos %}
+[{{ repo["id"] }}]
+name='{{ repo["name"] }}'
+baseurl={{ repo["baseurl"] }}
+gpgcheck=0
+enabled=1
+skip_if_unavailable=0
+metadata_expire=0
+cost=1
+best=1
+
+{%- if "priority" in repo %}
+priority={{ repo["priority"] }}
+{%- endif %}
+
+{%- if "module_hotfixes" in repo %}
+module_hotfixes={{ repo["module_hotfixes"] }}
+{% endif -%}
+
+{% endfor %}
+"""
+{% endif %}
