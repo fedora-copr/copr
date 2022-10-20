@@ -264,8 +264,8 @@ class BuildProxy(BaseProxy):
         return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_custom(self, ownername, projectname, script, script_chroot=None,
-                           script_builddeps=None, script_resultdir=None, buildopts=None,
-                           project_dirname=None):
+                           script_builddeps=None, script_resultdir=None, script_repos=None,
+                           buildopts=None, project_dirname=None):
         """
         Create a build from custom script.
 
@@ -277,6 +277,9 @@ class BuildProxy(BaseProxy):
         :param script_builddeps: [optional] list of script's dependencies
         :param script_resultdir: [optional] where script generates results
             (relative to cwd)
+        :parm script_repos: [optional] external repositories containing script's
+            dependencies
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
         :return: Munch
         """
@@ -289,6 +292,7 @@ class BuildProxy(BaseProxy):
             "builddeps": script_builddeps,
             "resultdir": script_resultdir,
             "project_dirname": project_dirname,
+            "repos": script_repos,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
