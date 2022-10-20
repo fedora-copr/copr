@@ -296,6 +296,7 @@ def create_from_custom():
             form.chroot.data,
             form.builddeps.data,
             form.resultdir.data,
+            form.repos.data,
             **options,
         )
     return process_creating_new_build(copr, form, create_new_build)

@@ -12,6 +12,7 @@
         form.chroot,
         placeholder="fedora-latest-x86_64",
         info="what chroot to run the <strong>script</strong> in") }}
+  {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
   {{ render_field(form.builddeps, placeholder="Optional - space-separated list of packages",
         info="packages that the <strong>script</strong> requires for its execution" ) }}
   {{ render_field(form.resultdir, placeholder="Optional - directory where SCRIPT generates sources",

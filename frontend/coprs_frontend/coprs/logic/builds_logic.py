@@ -534,7 +534,8 @@ class BuildsLogic(object):
 
     @classmethod
     def create_new_from_custom(cls, user, copr, script, script_chroot=None, script_builddeps=None,
-                               script_resultdir=None, chroot_names=None, copr_dirname=None, **kwargs):
+                               script_resultdir=None, script_repos=None, chroot_names=None,
+                               copr_dirname=None, **kwargs):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -542,6 +543,7 @@ class BuildsLogic(object):
         :type script_chroot: str
         :type script_builddeps: str
         :type script_resultdir: str
+        :type script_repos: str
         :type chroot_names: List[str]
         :rtype: models.Build
         """
@@ -551,6 +553,7 @@ class BuildsLogic(object):
             'chroot': script_chroot,
             'builddeps': script_builddeps,
             'resultdir': script_resultdir,
+            'repos': script_repos,
         }
 
         return cls.create_new(user, copr, source_type, json.dumps(source_dict),

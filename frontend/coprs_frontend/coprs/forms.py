@@ -1041,6 +1041,11 @@ class PackageFormCustom(BasePackageForm):
         "Build dependencies",
         validators=[wtforms.validators.Optional()])
 
+    repos = wtforms.TextAreaField(
+        "External repositories for build dependencies",
+        validators=[UrlRepoListValidator()],
+        filters=[StringListFilter()])
+
     chroot = wtforms.SelectField(
         'Mock chroot',
         choices=[],
@@ -1077,6 +1082,7 @@ class PackageFormCustom(BasePackageForm):
             "chroot": self.chroot.data,
             "builddeps": self.builddeps.data,
             "resultdir": self.resultdir.data,
+            "repos": self.repos.data,
         })
 
 
