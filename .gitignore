@@ -17,6 +17,7 @@ _tmp/
 .cache/
 .pytest_cache/
 .localwrap/
+.mypy_cache/
 
 backend/docs/build
 
