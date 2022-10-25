@@ -68,7 +68,7 @@ class S3Bucket:
 
         result = []
         for page in page_iterator:
-            for obj in page["Contents"]:
+            for obj in page.get("Contents", []):
                 result.append(obj["Key"])
         return result
 
