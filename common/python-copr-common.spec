@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.16.1.dev
+Version:    0.16.2.dev
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,12 @@ version=%version %py2_install
 
 
 %changelog
+* Thu Oct 27 2022 Jakub Kadlcik <frostyx@email.cz> - 0.16.2.dev-1
+- Add background_worker.py from backend
+- Add get_redis_connection function
+- Add Dispatcher, WorkerManager, and QueueTask classes
+- Add WorkerLimit, PredicateWorkerLimit, and GroupWorkerLimit classes
+
 * Sun Oct 02 2022 Jakub Kadlcik <frostyx@email.cz> - 0.16-1
 - Add setup_script_logger function
 

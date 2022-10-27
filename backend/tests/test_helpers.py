@@ -7,8 +7,9 @@ import tempfile
 from munch import Munch
 
 from copr_common.tree import walk_limited
+from copr_common.redis_helpers import get_redis_connection
 from copr_backend.background_worker_build import BackendError
-from copr_backend.helpers import get_redis_logger, get_chroot_arch, format_filename, get_redis_connection
+from copr_backend.helpers import get_redis_logger, get_chroot_arch, format_filename
 from copr_backend.constants import LOG_REDIS_FIFO
 
 """

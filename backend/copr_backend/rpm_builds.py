@@ -2,16 +2,14 @@
 Abstraction for RPM and SRPM builds on backend.
 """
 
+from copr_common.worker_manager import WorkerManager, PredicateWorkerLimit
+from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.helpers import get_chroot_arch
-from copr_backend.worker_manager import (
-    PredicateWorkerLimit,
-    QueueTask,
-    WorkerManager,
-)
+
 
 PRIORITY_SECTION_SIZE = 1000000
 
-class BuildQueueTask(QueueTask):
+class BuildQueueTask(BackendQueueTask):
     """
     Build-task abstraction.  Needed for build our build scheduler (the
     WorkerManager class).

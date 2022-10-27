@@ -2,14 +2,14 @@
 BuildDispatcher related classes.
 """
 
-from copr_backend.dispatcher import Dispatcher
+from copr_common.worker_manager import GroupWorkerLimit
+from copr_backend.dispatcher import BackendDispatcher
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
     BuildTagLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
 )
-from copr_backend.worker_manager import GroupWorkerLimit
 from ..exceptions import FrontendClientException
 
 
@@ -72,7 +72,7 @@ class _PriorityCounter:
         return arch[task.sandbox]
 
 
-class BuildDispatcher(Dispatcher):
+class BuildDispatcher(BackendDispatcher):
     """
     Kick-off build dispatcher daemon.
     """

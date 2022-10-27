@@ -11,11 +11,14 @@ import pytest
 from munch import Munch
 from copr_common.enums import DefaultActionPriorityEnum
 
-from copr_backend.helpers import get_redis_connection
-from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action
-from copr_backend.worker_manager import (
-    JobQueue, PredicateWorkerLimit, QueueTask, WorkerManager
+from copr_common.redis_helpers import get_redis_connection
+from copr_common.worker_manager import (
+    JobQueue,
+    WorkerManager,
+    PredicateWorkerLimit,
 )
+from copr_backend.actions import ActionWorkerManager, ActionQueueTask, Action
+from copr_backend.worker_manager import BackendQueueTask
 
 WORKDIR = os.path.dirname(__file__)
 
@@ -87,7 +90,7 @@ class ToyActionWorkerManager(ToyWorkerManager, ActionWorkerManager):
     pass
 
 
-class ToyQueueTask(QueueTask):
+class ToyQueueTask(BackendQueueTask):
     def __init__(self, _id):
         self._id = _id
 
@@ -198,8 +201,8 @@ class TestLimitedWorkerManager(BaseTestWorkerManager):
             log=log,
             limits=self.limits)
 
-    @patch('copr_backend.worker_manager.time.sleep')
-    @patch('copr_backend.worker_manager.time.time')
+    @patch('copr_common.worker_manager.time.sleep')
+    @patch('copr_common.worker_manager.time.time')
     def test_that_limits_are_respected(self, mc_time, _mc_sleep, caplog):
         # each time.time() call incremented by 1
         self.worker_manager.task_sleep = 5
@@ -268,7 +271,7 @@ class TestWorkerManager(BaseTestWorkerManager):
         wid = "{}:123".format(self.worker_manager.worker_prefix)
         assert self.worker_manager.get_task_id_from_worker_id(wid) == "123"
 
-    @patch('copr_backend.worker_manager.time.sleep')
+    @patch('copr_common.worker_manager.time.sleep')
     def test_preexisting_broken_worker(self, _mc_sleep, caplog):
         """ from previous systemctl restart """
         fake_worker_name = self.worker_manager.worker_prefix + ":fake"
@@ -398,7 +401,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         raise Exception("Unsuccessful wait for {} in {}".format(worker, field))
 
     @pytest.mark.parametrize('fail', ['FAIL_STARTED_PID', 'FAIL_STARTED'])
-    @patch('copr_backend.worker_manager.time.time')
+    @patch('copr_common.worker_manager.time.time')
     def test_delete_not_finished_workers(self, mc_time, fail):
         self.worker_manager.environ = {fail: '1'}
         self.worker_manager.worker_timeout_deadcheck = 0.4
@@ -407,7 +410,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         mc_time.side_effect = range(1000)
 
         # first loop just starts the toy:0 worker
-        with patch('copr_backend.worker_manager.time.sleep'):
+        with patch('copr_common.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
 
         params = self.wait_field(self.w0, 'started')
@@ -420,12 +423,12 @@ class TestActionWorkerManager(BaseTestWorkerManager):
             wait_pid_exit(params['PID'])
 
         # toy 0 is marked for deleting
-        with patch('copr_backend.worker_manager.time.sleep'):
+        with patch('copr_common.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
         assert 'delete' in self.redis.hgetall(self.w0)
 
         # toy 0 should be deleted
-        with patch('copr_backend.worker_manager.time.sleep'):
+        with patch('copr_common.worker_manager.time.sleep'):
             self.worker_manager.run(timeout=1)
         keys = self.workers()
         assert self.w1 in keys
@@ -467,7 +470,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         # start the worker
         self.worker_manager.run(timeout=0.0001) # start them task
 
-        with patch('copr_backend.worker_manager.time.sleep') as sleep:
+        with patch('copr_common.worker_manager.time.sleep') as sleep:
             # we can spawn more workers, but queue is empty
             self.worker_manager.run(timeout=0.0001)
             assert sleep.called
@@ -477,7 +480,7 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         self.wait_field(self.w0, 'status')
 
         # check that we don't sleep here (no worker, no task)
-        with patch('copr_backend.worker_manager.time.sleep') as sleep:
+        with patch('copr_common.worker_manager.time.sleep') as sleep:
             self.worker_manager.run(timeout=0.0001)
             assert not sleep.called
 
@@ -598,7 +601,7 @@ class TestActionWorkerManagerPriorities(BaseTestWorkerManager):
 
         # QueueTask.backend_priority is a property which should be
         # overriden when in the class descendants.
-        delattr(QueueTask, "backend_priority")
+        delattr(BackendQueueTask, "backend_priority")
         actions[0].backend_priority = 0
         actions[1].backend_priority = -999
         actions[2].backend_priority = 999

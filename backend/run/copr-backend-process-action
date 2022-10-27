@@ -4,11 +4,11 @@
 Process one Action task provided by frontend (on backend).
 """
 
-from copr_backend.background_worker import BackgroundWorker
+from copr_backend.background_worker import BackendBackgroundWorker
 from copr_backend.actions import Action, ActionResult
 
 
-class ActionBackgroundWorker(BackgroundWorker):
+class ActionBackgroundWorker(BackendBackgroundWorker):
     redis_logger_id = 'actions'
 
     @classmethod

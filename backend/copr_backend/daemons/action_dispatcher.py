@@ -3,11 +3,11 @@ ActionDispatcher related classes.
 """
 
 from copr_backend.exceptions import FrontendClientException
-from copr_backend.dispatcher import Dispatcher
+from copr_backend.dispatcher import BackendDispatcher
 
 from ..actions import ActionWorkerManager, ActionQueueTask, Action
 
-class ActionDispatcher(Dispatcher):
+class ActionDispatcher(BackendDispatcher):
     """
     Kick-off action dispatcher daemon.
     """

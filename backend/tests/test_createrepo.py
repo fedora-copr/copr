@@ -7,12 +7,13 @@ import shutil
 import testlib
 from testlib import assert_logs_exist, AsyncCreaterepoRequestFactory
 
+from copr_common.redis_helpers import get_redis_connection
 from copr_backend.createrepo import (
     BatchedCreaterepo,
     MAX_IN_BATCH,
 )
 
-from copr_backend.helpers import BackendConfigReader, get_redis_connection
+from copr_backend.helpers import BackendConfigReader
 
 # pylint: disable=attribute-defined-outside-init
 

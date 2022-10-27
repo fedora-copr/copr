@@ -15,7 +15,8 @@ WORKDIR = os.path.dirname(__file__)
 
 sys.path.append(os.path.join(WORKDIR, '..'))
 
-from copr_backend.helpers import get_redis_connection
+# pylint: disable=wrong-import-position
+from copr_common.redis_helpers import get_redis_connection
 
 REDIS_OPTS = Munch(
     redis_db=9,

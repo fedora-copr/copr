@@ -4,12 +4,12 @@ Test classes which inherit from WorkerLimit
 
 # pylint: disable=protected-access
 
-from copr_backend.worker_manager import (
+from copr_common.worker_manager import (
     GroupWorkerLimit,
     PredicateWorkerLimit,
-    QueueTask,
     StringCounter,
 )
+from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
     BuildTagLimit,
@@ -38,7 +38,7 @@ TASKS = [{
     "tags": ["special_requirement"],
 }]
 
-class _QT(QueueTask):
+class _QT(BackendQueueTask):
     def __init__(self, _id):
         self._id = _id
 

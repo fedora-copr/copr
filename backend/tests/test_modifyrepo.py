@@ -27,10 +27,10 @@ from testlib import (
 
 from copr_prune_results import run_prunerepo
 
+from copr_common.redis_helpers import get_redis_connection
 from copr_backend.helpers import (
     BackendConfigReader,
     call_copr_repo,
-    get_redis_connection,
 )
 
 

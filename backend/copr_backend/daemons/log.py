@@ -7,6 +7,7 @@ import logging.handlers
 import os
 from setproctitle import setproctitle
 
+from copr_common.redis_helpers import get_redis_connection
 
 # TODO: remove when RedisLogHandler works fine
 from .. import constants
@@ -67,7 +68,7 @@ class RedisLogHandler(object):
         self.setup_logging()
         setproctitle("RedisLogHandler")
 
-        rc = helpers.get_redis_connection(self.opts)
+        rc = get_redis_connection(self.opts)
         while True:
             # indefinitely wait for the next entry, note that blpop returns
             # tuple (FIFO_NAME, ELEMENT)

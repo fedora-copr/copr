@@ -1,7 +1,7 @@
 import json
 import os
 
-from copr_backend.helpers import get_redis_connection
+from copr_common.redis_helpers import get_redis_connection
 
 # todo: add logging here
 # from copr_backend.helpers import BackendConfigReader, get_redis_logger

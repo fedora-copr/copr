@@ -15,7 +15,7 @@ from packaging import version
 
 from copr_common.enums import StatusEnum
 
-from copr_backend.background_worker import BackgroundWorker
+from copr_backend.background_worker import BackendBackgroundWorker
 from copr_backend.cancellable_thread import CancellableThreadTask
 from copr_backend.constants import build_log_format
 from copr_backend.exceptions import CoprSignError, CoprBackendError
@@ -107,7 +107,7 @@ class LoggingPrivateFilter(logging.Filter):
 
         return 1
 
-class BuildBackgroundWorker(BackgroundWorker):
+class BuildBackgroundWorker(BackendBackgroundWorker):
     """
     The (S)RPM build logic.
     """

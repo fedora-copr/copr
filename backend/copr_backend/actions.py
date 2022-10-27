@@ -17,8 +17,9 @@ import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
 from copr_common.enums import ActionResult
+from copr_common.worker_manager import WorkerManager
 
-from copr_backend.worker_manager import WorkerManager, QueueTask
+from copr_backend.worker_manager import BackendQueueTask
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
@@ -552,7 +553,7 @@ class ActionType(object):
     REMOVE_DIRS = 11
 
 
-class ActionQueueTask(QueueTask):
+class ActionQueueTask(BackendQueueTask):
     def __init__(self, task):
         self.task = task
 

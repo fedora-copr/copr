@@ -28,8 +28,7 @@ import pytz
 import munch
 from munch import Munch
 
-from redis import StrictRedis
-
+from copr_common.redis_helpers import get_redis_connection
 from copr.v3 import Client
 from copr_backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
@@ -464,23 +463,6 @@ def register_build_result(opts=None, failed=False):
         conn.set(key, 0)
     else:
         conn.incr(key)
-
-
-def get_redis_connection(opts):
-    """
-    Creates redis client object using backend config
-
-    :rtype: StrictRedis
-    """
-    kwargs = {}
-    if hasattr(opts, "redis_db"):
-        kwargs["db"] = opts.redis_db
-    if hasattr(opts, "redis_host"):
-        kwargs["host"] = opts.redis_host
-    if hasattr(opts, "redis_port"):
-        kwargs["port"] = opts.redis_port
-
-    return StrictRedis(encoding="utf-8", decode_responses=True, **kwargs)
 
 
 def format_tb(ex, ex_traceback):
