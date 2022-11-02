@@ -1,4 +1,4 @@
-%global copr_common_version 0.14.1.dev
+%global copr_common_version 0.16.2.dev
 
 Name:       copr-dist-git
 Version:    0.57
@@ -37,9 +37,12 @@ Requires: python3-rpkg >= 1.63-5
 Requires: python3-munch
 Requires: python3-oslo-concurrency
 Requires: python3-setproctitle
+Requires: python3-daemon
+Requires: python3-redis
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
 Requires: crontabs
+Requires: redis
 
 Recommends: python3-copr
 

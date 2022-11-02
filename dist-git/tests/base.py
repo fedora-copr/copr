@@ -50,6 +50,8 @@ class Base(object):
             "branches": [ self.BRANCH ],
             "srpm_url": "http://example.com/pkg.src.rpm",
             "pkg_name": "pkg",
+            "sandbox": "{0}/{1}--{0}".format(self.USER_NAME, self.PROJECT_NAME),
+            "background": False,
         }
         self.upload_task_data = {
             "build_id": 124,
@@ -59,6 +61,8 @@ class Base(object):
             "branches": [ self.BRANCH ],
             "srpm_url": "http://front/tmp/tmp_2/pkg_2.src.rpm",
             "pkg_name": "pkg_2",
+            "sandbox": "{0}/{1}--{0}".format(self.USER_NAME, self.PROJECT_NAME),
+            "background": False,
         }
 
         self.url_task = import_task.ImportTask.from_dict(self.url_task_data)

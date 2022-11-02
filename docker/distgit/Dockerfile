@@ -29,10 +29,9 @@ RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
 
-RUN echo "[dist-git]" > /etc/copr/copr-dist-git.conf && \
-    echo "frontend_base_url=http://frontend:5000" >> /etc/copr/copr-dist-git.conf && \
-    echo "frontend_auth=1234"  >> /etc/copr/copr-dist-git.conf && \
-    chmod 644 /etc/copr/copr-dist-git.conf
+# copy filesystem setup and setup ownership and permissions
+COPY files/ /
+RUN chmod 644 /etc/copr/copr-dist-git.conf
 
 RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
     echo " email = copr-devel@lists.fedorahosted.org" >> /home/copr-dist-git/.gitconfig && \
@@ -49,4 +48,4 @@ RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run
 USER copr-dist-git
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/importer_runner.py"]
+CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher imports"]

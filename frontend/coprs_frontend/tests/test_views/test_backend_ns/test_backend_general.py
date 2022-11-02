@@ -557,7 +557,13 @@ class TestImportingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data[0]["srpm_url"] == "http://bar"
+
+        # Make sure we set the `background` key, but ignore the task order.
+        # Tasks will be prioritized appropriately on DistGit
+        assert data[0]["srpm_url"] == "http://foo"
+        assert data[0]["background"] is True
+        assert data[1]["srpm_url"] == "http://bar"
+        assert data[1]["background"] is False
 
     def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)

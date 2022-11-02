@@ -7,6 +7,8 @@ import shutil
 
 from requests import get, post
 
+from copr_common.worker_manager import WorkerManager
+
 from .package_import import import_package
 from .process_pool import Worker, Pool, SingleThreadWorker
 from .exceptions import PackageImportException
@@ -138,3 +140,25 @@ class Importer(object):
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
                          .format(p.name, mb_task.build_id, p.timeout))
                 p.start()
+
+
+class ImportWorkerManager(WorkerManager):
+    """
+    Manager taking care of background import workers.
+    """
+
+    worker_prefix = 'import_worker'
+
+    def start_task(self, worker_id, task):
+        command = [
+            "copr-distgit-process-import",
+            "--daemon",
+            "--build-id", str(task.build_id),
+            "--worker-id", worker_id,
+        ]
+        self.log.info("running worker: %s", " ".join(command))
+        self.start_daemon_on_background(command)
+
+    def finish_task(self, worker_id, task_info):
+        self.get_task_id_from_worker_id(worker_id)
+        return True

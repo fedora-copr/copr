@@ -1,14 +1,19 @@
 # coding: utf-8
 
+from copr_common.worker_manager import QueueTask
 from .exceptions import PackageImportException
 
-class ImportTask(object):
+class ImportTask(QueueTask):
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
         self.build_id = None
         self.owner = None
         self.project = None
         self.branches = []
         self.srpm_url = None
+        self.sandbox = None
+        self.background = None
 
     @staticmethod
     def from_dict(task_dict):
@@ -21,10 +26,20 @@ class ImportTask(object):
             task.branches = task_dict["branches"]
             task.srpm_url = task_dict["srpm_url"]
             task.pkg_name = task_dict["pkg_name"]
+            task.sandbox = task_dict["sandbox"]
+            task.background = task_dict["background"]
         except (KeyError, ValueError) as e:
             raise PackageImportException(str(e))
 
         return task
+
+    @property
+    def id(self):
+        return self.build_id
+
+    @property
+    def priority(self):
+        return 100 if self.background else 0
 
     @property
     def repo_namespace(self):

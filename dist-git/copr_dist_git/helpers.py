@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import subprocess
 import munch
@@ -145,6 +146,14 @@ class ConfigReader(object):
         opts.git_user_email = _get_conf(
             cp, "dist-git", "git_user_email", "copr-devel@lists.fedorahosted.org"
         )
+
+        opts.max_workers = _get_conf(
+            cp, "dist-git", "max_workers", default=10, mode="int"
+        )
+
+        opts.redis_host = _get_conf(cp, "dist-git", "redis_host", "localhost")
+        opts.redis_port = _get_conf(cp, "dist-git", "redis_port", "6379")
+
         return opts
 
 
@@ -208,3 +217,16 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
         raise RunCommandException(result.stderr)
 
     return result
+
+
+def get_distgit_opts(path):
+    """
+    Return a parsed config file as a `dict`
+    """
+    config_reader = ConfigReader(path)
+
+    if not os.path.exists(path):
+        sys.stderr.write("No config file found at: {0}\n".format(path))
+        sys.exit(1)
+
+    return config_reader.read()

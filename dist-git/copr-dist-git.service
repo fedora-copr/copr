@@ -8,7 +8,7 @@ Wants=logrotate.timer
 User=copr-dist-git
 Group=packager
 AmbientCapabilities=CAP_SETGID
-ExecStart=/usr/bin/python3 /usr/bin/importer_runner.py
+ExecStart=/usr/bin/copr-run-dispatcher imports
 
 [Install]
 WantedBy=multi-user.target

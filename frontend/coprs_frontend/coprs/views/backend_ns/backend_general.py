@@ -14,7 +14,6 @@ from coprs.helpers import streamed_json
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
-from sqlalchemy.sql import false, true
 
 
 @backend_ns.after_request
@@ -33,27 +32,48 @@ def dist_git_importing_queue():
     """
     Return list of builds that are waiting for dist-git to import the sources.
     """
-    tasks = []
+    def _stream():
+        builds_for_import = BuildsLogic.get_build_importing_queue()
+        for build in builds_for_import:
+            task = get_import_record(build)
+            yield task
+    return streamed_json(_stream())
 
-    builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == false()).limit(100).all()
-    builds_for_import += BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30).all()
 
-    for build in builds_for_import:
-        branches = set()
-        for b_ch in build.build_chroots:
-            branches.add(b_ch.mock_chroot.distgit_branch_name)
+@backend_ns.route("/get-import-task/<build_id>")
+def get_import_task(build_id):
+    """
+    Return a single task that DistGit should import
+    """
+    build = BuildsLogic.get(build_id).one_or_none()
+    task = get_import_record(build)
+    return flask.jsonify(task)
 
-        tasks.append({
-            "build_id": build.id,
-            "owner": build.copr.owner_name,
-            "project": build.copr_dirname,
-            # TODO: we mix PR with normal builds here :-(
-            "branches": list(branches),
-            "pkg_name": build.package.name,
-            "srpm_url": build.srpm_url,
-        })
 
-    return flask.jsonify(tasks)
+def get_import_record(build):
+    """
+    Transform an ORM Build instance into a Python dictionary that is later
+    converted to a JSON string and sent (as task build instructions) to Copr
+    DistGit machine.
+    """
+    if not build:
+        return None
+
+    branches = set()
+    for b_ch in build.build_chroots:
+        branches.add(b_ch.mock_chroot.distgit_branch_name)
+
+    return {
+        "build_id": build.id,
+        "owner": build.copr.owner_name,
+        "project": build.copr_dirname,
+        # TODO: we mix PR with normal builds here :-(
+        "branches": list(branches),
+        "pkg_name": build.package.name,
+        "srpm_url": build.srpm_url,
+        "sandbox": build.sandbox,
+        "background": build.is_background,
+    }
 
 
 @backend_ns.route("/import-completed/", methods=["POST", "PUT"])

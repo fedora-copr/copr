@@ -1,0 +1,28 @@
+#! /usr/bin/python3
+
+"""
+Simple wrapper around our Dispatcher classed that is used to start the
+dispatchers from our systemd unit files.
+"""
+
+import sys
+from copr_dist_git.helpers import get_distgit_opts
+from copr_dist_git.import_dispatcher import ImportDispatcher
+
+
+def _main():
+    dispatcher = None
+    request = sys.argv[1]
+    if request == "imports":
+        dispatcher = ImportDispatcher
+    else:
+        raise NotImplementedError(
+            "Not implemented '{}' dispatcher".format(request))
+
+    config = "/etc/copr/copr-dist-git.conf"
+    opts = get_distgit_opts(config)
+    dispatcher(opts).run()
+
+
+if __name__ == "__main__":
+    _main()

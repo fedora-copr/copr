@@ -1,0 +1,63 @@
+#! /usr/bin/python3
+
+"""
+Process one import task provided by frontend (on distgit).
+"""
+
+import os
+import sys
+import requests
+from copr_common.background_worker import BackgroundWorker
+from copr_dist_git.helpers import get_distgit_opts
+from copr_dist_git.importer import Importer
+from copr_dist_git.import_task import ImportTask
+
+
+class ImportBackgroundWorker(BackgroundWorker):
+    """
+    copr-distgit-process-import abstraction
+    """
+
+    redis_logger_id = "import"
+
+    def __init__(self):
+        super().__init__()
+
+        config = self.args.backend_config or "/etc/copr/copr-dist-git.conf"
+        if not os.path.exists(config):
+            sys.stderr.write("No config file found at: {0}\n".format(config))
+        self.opts = get_distgit_opts(config)
+
+    @classmethod
+    def adjust_arg_parser(cls, parser):
+        parser.add_argument(
+            "--build-id",
+            type=int,
+            required=True,
+            help="build ID to process",
+        )
+
+    def handle_import(self, build_id):
+        """
+        Import a single task
+        """
+        importer = Importer(self.opts)
+        url = ("{0}/backend/get-import-task/{1}"
+               .format(self.opts.frontend_base_url, build_id))
+        response = requests.get(url)
+        task_dict = response.json()
+
+        if not task_dict:
+            self.log.error("No such build: %s", build_id)
+            return
+
+        task = ImportTask.from_dict(task_dict)
+        importer.do_import(task)
+
+    def handle_task(self):
+        self.handle_import(self.args.build_id)
+
+
+if __name__ == "__main__":
+    worker = ImportBackgroundWorker()
+    worker.process()

@@ -21,3 +21,7 @@ per_task_log_dir=/var/lib/copr-dist-git/per-task-logs/
 
 # Lock file used to atomically work with cgit_cache_file
 #cgit_cache_lock_file=/var/cache/cgit/copr-repo.lock
+
+# Redis connetion for tracking background workers
+#redis_host = "localhost"
+#redis_port = 6379
