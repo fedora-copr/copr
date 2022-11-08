@@ -102,6 +102,7 @@ Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
 Requires:   modulemd-tools >= 0.6
+Recommends: util-linux-core
 Requires:   zstd
 
 Requires(post): systemd
