@@ -7,7 +7,7 @@ from coprs import app, oid, db, models
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
-from coprs.auth import Kerberos
+from coprs.auth import UserAuth, GroupAuth
 
 
 def auth_check_response():
@@ -100,38 +100,35 @@ def gssapi_login():
     )
 
     if krb_login:
-        krb_login.user.openid_groups = Kerberos.groups_from_username(username)
-        db.session.add(krb_login.user)
+        user = krb_login.user
+
+    else:
+        # First GSSAPI login for this user
+        try:
+            user = UserAuth.user_object(username=username)
+        except AccessRestricted as ex:
+            return auth_403(str(ex))
+
+        # We need to create row in 'krb5_login' table
+        app.logger.info("First krb5 login for user '%s', "
+                        "creating a database record", username)
+        krb_login = models.Krb5Login(user=user, primary=username)
+        db.session.add(krb_login)
         db.session.commit()
 
-        flask.g.user = krb_login.user
-        flask.session['krb5_login'] = krb_login.user.name
-        app.logger.info(
-            "%s '%s' logged in",
-            "Admin" if krb_login.user.admin else "User",
-            krb_login.user.name
-        )
-        flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
-        return gssapi_login_action()
+    # Groups could have changed since the last log-in, update our DB
+    groups = GroupAuth.groups(username=username)
+    user.openid_groups = groups
 
-    user = Kerberos.user_from_username(username)
-    if not user:
-        return auth_403(
-            "Valid GSSAPI authentication supplied for user '{}', but this "
-            "user doesn't exist in the Copr build system.  Please log-in "
-            "using the web-UI (without GSSAPI) first.".format(username)
-        )
-    if app.config["FAS_LOGIN"] is False:
-        user.openid_groups = Kerberos.groups_from_username(username)
-
-    # We need to create row in 'krb5_login' table
-    krb_login = models.Krb5Login(user=user, primary=username)
-    db.session.add(krb_login)
+    db.session.add(user)
     db.session.commit()
 
-    app.logger.info("First krb5 login for user '%s', "
-                    "creating a database record", username)
-    flask.flash("Welcome, {0}".format(user.name), "success")
     flask.g.user = user
     flask.session['krb5_login'] = user.name
+    app.logger.info(
+        "%s '%s' logged in",
+        "Admin" if user.admin else "User",
+        user.name
+    )
+    flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
     return gssapi_login_action()

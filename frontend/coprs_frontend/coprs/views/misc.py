@@ -16,7 +16,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-from coprs.auth import FedoraAccounts, Kerberos
+from coprs.auth import FedoraAccounts, UserAuth, GroupAuth
 
 
 @app.before_request
@@ -33,7 +33,7 @@ def before_request():
     # pylint: disable=assigning-non-slot
     flask.g.user = username = None
 
-    username = FedoraAccounts.username() or Kerberos.username()
+    username = UserAuth.current_username()
     if username:
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
@@ -81,15 +81,8 @@ def workaround_ipsilon_email_login_bug_handler(f):
 @workaround_ipsilon_email_login_bug_handler
 @oid.loginhandler
 def login():
-    if app.config['FAS_LOGIN']:
-        return FedoraAccounts.login()
+    return FedoraAccounts.login()
 
-    if app.config['KRB5_LOGIN']:
-        return Kerberos.login()
-
-    # Error
-    flask.flash("No auth method available", "error")
-    return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
 @oid.after_login
 def create_or_login(resp):
@@ -100,8 +93,8 @@ def create_or_login(resp):
         flask.flash("User '{0}' is not allowed".format(fasusername))
         return flask.redirect(oid.get_next_url())
 
-    user = FedoraAccounts.user_from_response(resp)
-    user.openid_groups = FedoraAccounts.groups_from_response(resp)
+    user = UserAuth.user_object(resp=resp)
+    user.openid_groups = GroupAuth.groups(resp=resp)
 
     db.session.add(user)
     db.session.commit()
@@ -120,14 +113,7 @@ def create_or_login(resp):
 
 @misc.route("/logout/")
 def logout():
-    if flask.g.user:
-        app.logger.info("User '%s' logging out", flask.g.user.name)
-
-    FedoraAccounts.logout()
-    Kerberos.logout()
-
-    flask.flash(u"You were signed out")
-    return flask.redirect(oid.get_next_url())
+    return UserAuth.logout()
 
 
 def api_login_required(f):

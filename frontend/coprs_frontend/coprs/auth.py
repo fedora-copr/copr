@@ -9,8 +9,87 @@ import ldap
 from openid_teams.teams import TeamsRequest
 from coprs import oid
 from coprs import app
-from coprs.exceptions import CoprHttpException
+from coprs.exceptions import CoprHttpException, AccessRestricted
 from coprs.logic.users_logic import UsersLogic
+
+
+class UserAuth:
+    """
+    Facade for choosing the correct authentication mechanism (FAS, Kerberos),
+    and interacting with it. All decision making based on
+    `app.config["FAS_LOGIN"]` and `app.config["KRB5_LOGIN"]` should be
+    encapsulated within this class.
+    """
+
+    @staticmethod
+    def logout():
+        """
+        Log out the current user
+        """
+        if flask.g.user:
+            app.logger.info("User '%s' logging out", flask.g.user.name)
+
+        FedoraAccounts.logout()
+        Kerberos.logout()
+
+        flask.flash("You were signed out")
+        return flask.redirect(oid.get_next_url())
+
+    @staticmethod
+    def current_username():
+        """
+        Is a user logged-in? Return their username
+        """
+        return FedoraAccounts.username() or Kerberos.username()
+
+    @staticmethod
+    def user_object(resp=None, username=None):
+        """
+        Create a `models.User` object based on the input parameters
+        """
+        if app.config["FAS_LOGIN"] and resp:
+            return FedoraAccounts.user_from_response(resp)
+
+        if username and app.config["KRB5_LOGIN"]:
+            return Kerberos.user_from_username(username)
+
+        raise CoprHttpException("No auth method available")
+
+
+class GroupAuth:
+    """
+    Facade for choosing the correct user group authority (FAS, LDAP),
+    and interacting with it. All decision making based on
+    `app.config["FAS_LOGIN"]` and `app.config["KRB5_LOGIN"]` should be
+    encapsulated within this class.
+    """
+
+    @classmethod
+    def groups(cls, resp=None, username=None):
+        """
+        Return a `dict` that can be assigned to `models.User.openid_groups`
+        """
+        names = cls.group_names(resp=resp, username=username)
+        return {"fas_groups": names}
+
+    @staticmethod
+    def group_names(resp=None, username=None):
+        """
+        Return a list of group names that a user belongs to
+        """
+        # Fedora user via OpenID
+        if resp:
+            return OpenIDGroups.group_names(resp)
+
+        # Fedora user via Kerberos
+        if app.config["FAS_LOGIN"] and username:
+            return None
+
+        keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
+        if username and all(app.config[k] for k in keys):
+            return LDAPGroups.group_names(username)
+
+        raise CoprHttpException("Nowhere to get user groups from")
 
 
 class FedoraAccounts:
@@ -91,17 +170,6 @@ class FedoraAccounts:
         user.timezone = resp.timezone
         return user
 
-    @staticmethod
-    def groups_from_response(resp):
-        """
-        Return a list of group names (that a user belongs to) from FAS response
-        """
-        if "lp" in resp.extensions:
-            # name space for the teams extension
-            team_resp = resp.extensions['lp']
-            return {"fas_groups": team_resp.teams}
-        return None
-
 
 class Kerberos:
     """
@@ -143,7 +211,11 @@ class Kerberos:
         # We can not create a new user now because we don't have the necessary
         # e-mail and groups info.
         if app.config["FAS_LOGIN"] is True:
-            return None
+            raise AccessRestricted(
+                "Valid GSSAPI authentication supplied for user '{}', but this "
+                "user doesn't exist in the Copr build system.  Please log-in "
+                "using the web-UI (without GSSAPI) first.".format(username)
+            )
 
         # Create a new user object
         krb_config = app.config['KRB5_LOGIN']
@@ -151,22 +223,30 @@ class Kerberos:
         return UsersLogic.create_user_wrapper(username, email)
 
     @staticmethod
-    def groups_from_username(username):
-        """
-        Return a list of group names that a user belongs to
-        """
-        if app.config['FAS_LOGIN'] is False:
-            return {"fas_groups": LDAPGroups.get(username)}
-        return {"fas_groups": []}
-
-    @staticmethod
     def _krb5_login_redirect(next_url=None):
         if app.config['KRB5_LOGIN']:
             # Pick the first one for now.
-            return flask.redirect(flask.url_for("apiv3_ns.krb5_login",
+            return flask.redirect(flask.url_for("apiv3_ns.gssapi_login",
                                                 next=next_url))
         flask.flash("Unable to pick krb5 login page", "error")
         return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
+
+
+class OpenIDGroups:
+    """
+    User groups from FAS (and OpenID in general)
+    """
+
+    @staticmethod
+    def group_names(resp):
+        """
+        Return a list of group names (that a user belongs to) from FAS response
+        """
+        if "lp" in resp.extensions:
+            # name space for the teams extension
+            team_resp = resp.extensions['lp']
+            return {"fas_groups": team_resp.teams}
+        return None
 
 
 class LDAPGroups:
@@ -175,9 +255,9 @@ class LDAPGroups:
     """
 
     @staticmethod
-    def get(username):
+    def group_names(username):
         """
-        Return a list of groups for a given username
+        Return a list of group names that a user belongs to
         """
         ldap_client = LDAP(app.config["LDAP_URL"],
                            app.config["LDAP_SEARCH_STRING"])
