@@ -80,7 +80,12 @@ def workaround_ipsilon_email_login_bug_handler(f):
 @misc.route("/login/", methods=["GET"])
 @workaround_ipsilon_email_login_bug_handler
 @oid.loginhandler
-def login():
+def oid_login():
+    """
+    Entry-point for OpenID login
+    """
+    # After a successful FAS login, we are redirected to the `@oid.after_login`
+    # function
     return FedoraAccounts.login()
 
 
@@ -160,7 +165,7 @@ def login_required(role=RoleEnum("user")):
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             if flask.g.user is None:
-                return flask.redirect(flask.url_for("misc.login",
+                return flask.redirect(flask.url_for("misc.oid_login",
                                                     next=flask.request.url))
 
             if role == RoleEnum("admin") and not flask.g.user.admin:

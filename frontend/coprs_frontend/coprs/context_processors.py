@@ -53,7 +53,7 @@ def login_menu():
     else:
         if config['FAS_LOGIN']:
             menu.append({
-                'link': flask.url_for('misc.login'),
+                'link': flask.url_for('misc.oid_login'),
                 'desc': 'log in',
             })
 
