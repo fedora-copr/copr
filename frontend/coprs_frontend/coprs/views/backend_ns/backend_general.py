@@ -206,6 +206,10 @@ def get_srpm_build_record(task, for_backend=False):
             "project_name": task.copr_name,
             "project_dirname": task.copr_dirname,
             "appstream": bool(task.copr.appstream),
+            "repos": BuildConfigLogic.get_additional_repo_views(
+                task.source_json_dict.get('repos', "").split(),
+                chroot,
+            ),
         })
 
     except Exception as err:
