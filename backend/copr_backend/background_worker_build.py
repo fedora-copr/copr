@@ -552,10 +552,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 continue
 
             self.log.info("Compressing %s by gzip", src)
-            res = run_cmd(["gzip", src])
+            res = run_cmd(["gzip", src], logger=self.log)
             if res.returncode not in [0, 2]:
-                self.log.error("Unable to compress file %s: %s",
-                               src, res.stderr)
+                self.log.error("Unable to compress file %s", src)
 
     def _download_results(self):
         """
@@ -632,7 +631,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         srpm_file = glob.glob(pattern)[0]
         srpm_name = os.path.basename(srpm_file)
         srpm_url = os.path.join(job.results_dir_url, srpm_name)
-        build_details['pkg_name'], build_details['pkg_version'] = pkg_name_evr(srpm_file)
+        build_details['pkg_name'], build_details['pkg_version'] = \
+                pkg_name_evr(srpm_file, self.log)
         build_details['srpm_url'] = srpm_url
         self.log.info("SRPM URL: %s", srpm_url)
         return build_details
@@ -648,7 +648,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             "done".format(pipes.quote(job.results_dir))
         )
 
-        result = run_cmd(cmd, shell=True)
+        result = run_cmd(cmd, shell=True, logger=self.log)
         built_packages = result.stdout.strip()
         self.log.info("Built packages:\n%s", built_packages)
         return built_packages

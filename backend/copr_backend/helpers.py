@@ -99,6 +99,9 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False,
     munch.Munch(stdout, stderr, returncode)
         executed cmd, standard output, error output, and the return code
     """
+
+    start = time.time()
+
     def _info(logger, *args, **kwargs):
         if not logger:
             return
@@ -128,13 +131,22 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False,
         code = 124  # inspired by /bin/timeout
         timeouted = True
 
-    _info(logger, "Finished with code %s (%s)", code, str_cmd)
+    took_seconds = int(time.time() - start)
+
+    outputs_dumped = f"\nstdout:\n{stdout}\nstderr:\n{stderr}\n"
+
+    _info(
+        logger,
+        "Finished after %d seconds with exit code %s (%s)%s",
+        took_seconds, code, str_cmd, outputs_dumped if code else "",
+    )
 
     if check and code != 0:
-        raise CommandException(
-            "Command '{cmd}' failed with status '{status}'\n"
-            "stdout:\n{stdout}\nstderr:\n{stderr}\n".format(
-                cmd=str_cmd, stdout=stdout, stderr=stderr, status=code))
+        exc_msg = f"Command '{str_cmd}' failed, exit code '{code}"
+        if not logger:
+            # this has not yet been logged, make it a part of the exception
+            exc_msg += outputs_dumped
+        raise CommandException(exc_msg)
 
     return munch.Munch(
         cmd=cmd,
@@ -613,7 +625,7 @@ def local_file_logger(name, path, fmt):
         for h in build_logger.handlers[:]:
             build_logger.removeHandler(h)
 
-def pkg_name_evr(srpm_path):
+def pkg_name_evr(srpm_path, logger):
     """
     Queries a package for its name and evr (epoch:version-release)
     """
@@ -621,12 +633,12 @@ def pkg_name_evr(srpm_path):
            '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', srpm_path]
 
     try:
-        result = run_cmd(cmd)
+        result = run_cmd(cmd, logger=logger)
     except OSError as e:
         raise CoprBackendSrpmError(str(e))
 
     if result.returncode != 0:
-        raise CoprBackendSrpmError('Error querying srpm: %s' % result.stderr)
+        raise CoprBackendSrpmError('Error querying SRPM')
 
     try:
         name, epoch, version, release = result.stdout.split(" ")
@@ -680,7 +692,7 @@ def call_copr_repo(directory, rpms_to_remove=None, devel=False, add=None, delete
 
     result = run_cmd(cmd, timeout=timeout, logger=logger, catch_timeout=True)
     if result.returncode and logger:
-        logger.error("Createrepo failed, stderr:\n%s", result.stderr)
+        logger.error("Createrepo failed")
 
     return not result.returncode
 
