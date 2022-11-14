@@ -13,7 +13,6 @@ import pipes
 import configparser
 from configparser import ConfigParser
 
-from contextlib import contextmanager
 from operator import methodcaller
 
 import traceback
@@ -612,18 +611,6 @@ def ensure_dir_exists(path, log):
 def get_chroot_arch(chroot):
     return chroot.rsplit("-", 2)[2]
 
-
-@contextmanager
-def local_file_logger(name, path, fmt):
-    build_logger = create_file_logger(name, path, fmt)
-    try:
-        yield build_logger
-    finally:
-        # TODO: kind of ugly solution
-        # we should remove handler from build loger, otherwise we would write
-        # to the previous project
-        for h in build_logger.handlers[:]:
-            build_logger.removeHandler(h)
 
 def pkg_name_evr(srpm_path, logger):
     """
