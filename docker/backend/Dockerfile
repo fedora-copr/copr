@@ -36,6 +36,7 @@ RUN set -ex ; \
                    rng-tools \
 # for unbuffer package
                    expect \
+    && dnf -y install copr-backend \
     && dnf clean all
 
 # needed to be able to ping
@@ -49,7 +50,7 @@ RUN echo 'root:passwd' | chpasswd && \
     mkdir /root/.ssh && chmod 700 /root /root/.ssh
 
 # setup copr user
-RUN useradd copr && \
+RUN set -x ; \
     echo 'copr:passwd' | chpasswd && \
     echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     mkdir -p /home/copr/.ssh && chmod 700 /home/copr /home/copr/.ssh && \
@@ -58,10 +59,6 @@ RUN useradd copr && \
     cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
     cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown copr:copr -R /home/copr
-
-# Install copr-backend package
-RUN dnf -y install copr-backend && \
-    dnf clean all
 
 # system setup for copr-backend
 RUN usermod -a -G mock copr

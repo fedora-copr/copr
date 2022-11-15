@@ -31,6 +31,7 @@ RUN set -ex ; \
                    ca-certificates \
                    scl-utils-build \
                    ethtool \
+    && dnf -y install copr-builder \
     && dnf clean all
 
 COPY files/ /
@@ -43,9 +44,6 @@ RUN echo 'root:passwd' | chpasswd && \
     chmod 700 /root /root/.ssh && \
     touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && \
     cat /root/.ssh/id_backend.pub >> /root/.ssh/authorized_keys
-
-RUN dnf -y install copr-builder && \
-    dnf clean all
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
