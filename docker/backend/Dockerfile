@@ -1,6 +1,8 @@
 FROM registry.fedoraproject.org/fedora:35
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+
 ENV export LANG=en_US.UTF-8
 ENV PYTHONPATH="/usr/share/copr/"
 
@@ -9,7 +11,11 @@ ENV TERM=linux \
     LANG=en_US.UTF-8
 
 # base packages
-RUN dnf -y update && \
+RUN set -ex ; \
+    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
+        || dnf -y install dnf-plugins-core \
+        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
+    dnf -y update && \
     dnf -y install htop \
                    make \
                    wget \

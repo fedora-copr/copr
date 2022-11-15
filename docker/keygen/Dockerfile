@@ -2,13 +2,19 @@ FROM registry.fedoraproject.org/fedora:35
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+
 # Create copr-signer:copr-signer manually, so we can
 # be sure that the UID and GID is same on all keygen containers
 RUN groupadd -r copr-signer -g 992
 RUN useradd -r copr-signer -u 993 -g 992 -G 0 -d /var/lib/copr-keygen
 
 # base packages
-RUN dnf -y update && \
+RUN set -ex ; \
+    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
+        || dnf -y install dnf-plugins-core \
+        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
+    dnf -y update && \
     dnf -y install htop \
                    httpd \
                    make \

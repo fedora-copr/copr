@@ -1,11 +1,17 @@
 FROM registry.fedoraproject.org/fedora:35
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
 
 # base packages
-RUN dnf -y update && \
+RUN set -ex ; \
+    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
+        || dnf -y install dnf-plugins-core \
+        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
+    dnf -y update && \
     dnf -y install htop \
                    which \
                    wget \
