@@ -81,7 +81,7 @@ def coprs_show(page=1):
     if flask.g.user and not pinned:
         recent = CoprsLogic.get_multiple_owned_by_username(flask.g.user.username)
         recent = CoprsLogic.set_query_order(recent, desc=True)
-        recent = recent.limit(4)
+        recent = recent.limit(4).all()
 
     projects_count = CoprsLogic.get_multiple().count()
     # users_count = models.User.query.count()
