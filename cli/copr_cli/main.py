@@ -407,7 +407,7 @@ class Commands(object):
             'script': ''.join(args.script.readlines()),
         }
         for arg in ['script_chroot', 'script_builddeps',
-                    'script_resultdir']:
+                    'script_resultdir', 'script_repos']:
             data[arg] = getattr(args, arg)
         return self.process_build(args, self.client.build_proxy.create_from_custom, data)
 
@@ -1304,6 +1304,10 @@ def setup_parser():
             '--script-resultdir',
             help='where SCRIPT generates the result, relatively to script\'s '
                  '$PWD (defaults to \'.\')')
+    parser_custom_args_parent.add_argument(
+            '--script-repos',
+            help="space separated string of additional repo urls for script dependencies"
+    )
 
     #########################################################
     ###                    Build options                  ###
