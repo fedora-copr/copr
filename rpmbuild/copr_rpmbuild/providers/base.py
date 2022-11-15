@@ -18,10 +18,11 @@ class Provider(object):
     # pylint: disable=too-many-instance-attributes
     _safe_resultdir = None
 
-    def __init__(self, source_dict, config, macros=None):
+    def __init__(self, source_dict, config, macros=None, task=None):
         self.source_dict = source_dict
         self.config = config
         self.request = SafeRequest(log=log)
+        self.task = task
 
         # Additional macros that should be defined in the buildroot
         self.macros = macros or {}

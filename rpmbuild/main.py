@@ -160,7 +160,7 @@ def produce_srpm(task, config):
     try:
         macros = macros_for_task(task, config)
         clazz = providers.factory(task["source_type"])
-        provider = clazz(task["source_json"], config, macros=macros)
+        provider = clazz(task["source_json"], config, macros=macros, task=task)
         provider.produce_srpm()
         provider.copy_insecure_results()
     finally:

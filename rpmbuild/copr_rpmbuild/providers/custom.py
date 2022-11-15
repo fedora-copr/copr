@@ -27,7 +27,7 @@ class CustomProvider(Provider):
         self.chroot = source_json.get('chroot')
         self.inner_resultdir = source_json.get('resultdir')
         self.builddeps = source_json.get('builddeps')
-        self.repos = source_json.get('repos')
+        self.repos = self.task.get('repos')
         self.timeout = source_json.get("timeout", 3600)
 
         if 'hook_data' in source_json:
