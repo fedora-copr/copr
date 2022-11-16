@@ -23,6 +23,7 @@ def gssapi_login_action():
     expects.
     """
     if "web-ui" in flask.request.full_path:
+        flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
         return flask.redirect(oid.get_next_url())
     return flask.jsonify(auth_check_response())
 
@@ -130,5 +131,4 @@ def gssapi_login():
         "Admin" if user.admin else "User",
         user.name
     )
-    flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
     return gssapi_login_action()
