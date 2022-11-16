@@ -3,11 +3,11 @@ import re
 
 import flask
 
-from coprs import app, oid, db, models
+from coprs import app, oid, db
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
-from coprs.auth import UserAuth, GroupAuth
+from coprs.auth import UserAuth
 
 
 def auth_check_response():
@@ -94,33 +94,7 @@ def gssapi_login():
     if not username:
         return auth_403("invalid krb5 username: " + krb_username)
 
-    krb_login = (
-        models.Krb5Login.query
-        .filter(models.Krb5Login.primary == username)
-        .first()
-    )
-
-    if krb_login:
-        user = krb_login.user
-
-    else:
-        # First GSSAPI login for this user
-        try:
-            user = UserAuth.user_object(username=username)
-        except AccessRestricted as ex:
-            return auth_403(str(ex))
-
-        # We need to create row in 'krb5_login' table
-        app.logger.info("First krb5 login for user '%s', "
-                        "creating a database record", username)
-        krb_login = models.Krb5Login(user=user, primary=username)
-        db.session.add(krb_login)
-        db.session.commit()
-
-    # Groups could have changed since the last log-in, update our DB
-    groups = GroupAuth.groups(username=username)
-    user.openid_groups = groups
-
+    user = UserAuth.user_object(username=username)
     db.session.add(user)
     db.session.commit()
 

@@ -175,7 +175,7 @@ class TestLoggingAuth(CoprsTestCase):
         with app.test_request_context():
             create_or_login(resp)
 
-        log.info.assert_any_call("First login for user '%s', creating "
+        log.info.assert_any_call("Login for user '%s', creating "
                                  "a database record", "somebody")
         log.info.assert_called_with("%s '%s' logged in", "User", "somebody")
 

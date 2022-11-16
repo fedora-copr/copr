@@ -16,7 +16,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-from coprs.auth import FedoraAccounts, UserAuth, GroupAuth
+from coprs.auth import FedoraAccounts, UserAuth
 
 
 @app.before_request
@@ -98,9 +98,7 @@ def create_or_login(resp):
         flask.flash("User '{0}' is not allowed".format(fasusername))
         return flask.redirect(oid.get_next_url())
 
-    user = UserAuth.user_object(resp=resp)
-    user.openid_groups = GroupAuth.groups(resp=resp)
-
+    user = UserAuth.user_object(oid_resp=resp)
     db.session.add(user)
     db.session.commit()
     flask.flash(u"Welcome, {0}".format(user.name), "success")

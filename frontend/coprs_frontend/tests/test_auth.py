@@ -28,5 +28,8 @@ class TestGroupAuth(CoprsTestCase):
             b'cn=another-group,ou=baz,ou=qux,dc=company,dc=com',
             b'cn=another-group-2,ou=foo,ou=bar,dc=company,dc=com'
         ]
-        names = GroupAuth.group_names(username="user1")
-        assert names == ["group1", "group2", "another-group", "another-group-2"]
+        user = mock.MagicMock()
+        GroupAuth.update_user_groups(user)
+        assert user.openid_groups == {
+            "fas_groups": ["group1", "group2", "another-group",
+                           "another-group-2"]}

@@ -43,17 +43,44 @@ class UserAuth:
         return FedoraAccounts.username() or Kerberos.username()
 
     @staticmethod
-    def user_object(resp=None, username=None):
+    def user_object(oid_resp=None, username=None):
         """
-        Create a `models.User` object based on the input parameters
+        Get or Create a `models.User` object based on the input parameters
         """
-        if app.config["FAS_LOGIN"] and resp:
-            return FedoraAccounts.user_from_response(resp)
+        if oid_resp:
+            # All metadata for the user craation are in oid_resp.
+            return FedoraAccounts.user_from_response(oid_resp)
 
-        if username and app.config["KRB5_LOGIN"]:
-            return Kerberos.user_from_username(username)
+        if app.config["FAS_LOGIN"] and app.config["KRB5_LOGIN"]:
+            user = Kerberos.user_from_username(username)
+            if not user.mail:
+                # We can not continue (with perhaps freshly created user object)
+                # now because we don't have the necessary user metadata (e-mail
+                # and groups).  TODO: obtain the info somehow on demand here!
+                raise AccessRestricted(
+                    "Valid GSSAPI authentication supplied for user '{}', but this "
+                    "user doesn't exist in the Copr build system.  Please log-in "
+                    "using the web-UI (without GSSAPI) first.".format(username)
+                )
+            return user
+
+        if app.config["KRB5_LOGIN"]:
+            return Kerberos.user_from_username(username, True)
 
         raise CoprHttpException("No auth method available")
+
+    @staticmethod
+    def get_or_create_user(username):
+        """
+        Get the user from DB, or create a new one without any additional
+        metadata if it doesn't exist.
+        """
+        user = UsersLogic.get(username).first()
+        if user:
+            return user
+        app.logger.info("Login for user '%s', "
+                        "creating a database record", username)
+        return UsersLogic.create_user_wrapper(username)
 
 
 class GroupAuth:
@@ -65,31 +92,34 @@ class GroupAuth:
     """
 
     @classmethod
-    def groups(cls, resp=None, username=None):
+    def update_user_groups(cls, user, oid_resp=None):
         """
-        Return a `dict` that can be assigned to `models.User.openid_groups`
+        Upon a successful login, try to (a) load the list of groups from
+        authoritative source, and (b) (re)set the user.openid_groups.
         """
-        names = cls.group_names(resp=resp, username=username)
-        return {"fas_groups": names}
 
-    @staticmethod
-    def group_names(resp=None, username=None):
-        """
-        Return a list of group names that a user belongs to
-        """
-        # Fedora user via OpenID
-        if resp:
-            return OpenIDGroups.group_names(resp)
+        def _do_update(user, grouplist):
+            user.openid_groups = {
+                "fas_groups": grouplist,
+            }
 
-        # Fedora user via Kerberos
-        if app.config["FAS_LOGIN"] and username:
-            return None
+        if oid_resp:
+            _do_update(user, OpenIDGroups.group_names(oid_resp))
+            return
 
+        # If we have a LDAP pre-configured, now is the right time to load the
+        # data, or fail.
         keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
-        if username and all(app.config[k] for k in keys):
-            return LDAPGroups.group_names(username)
+        if all(app.config[k] for k in keys):
+            _do_update(user, LDAPGroups.group_names(user.username))
+            return
 
-        raise CoprHttpException("Nowhere to get user groups from")
+        # We only ever call update_user_groups() with oid_resp!= None with FAS
+        assert not app.config["FAS_LOGIN"]
+
+        app.logger.warning("Nowhere to get groups from")
+        # This copr doesn't support groups.
+        _do_update(user, [])
 
 
 class FedoraAccounts:
@@ -152,22 +182,16 @@ class FedoraAccounts:
         return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
 
     @classmethod
-    def user_from_response(cls, resp):
+    def user_from_response(cls, oid_resp):
         """
         Create a `models.User` object from FAS response
         """
-        username = cls.fed_raw_name(resp.identity_url)
-        user = UsersLogic.get(username).first()
-
-        # Create if not created already
-        if not user:
-            app.logger.info("First login for user '%s', "
-                            "creating a database record", username)
-            user = UsersLogic.create_user_wrapper(username, resp.email, resp.timezone)
-
+        username = cls.fed_raw_name(oid_resp.identity_url)
+        user = UserAuth.get_or_create_user(username)
         # Update user attributes from FAS
-        user.mail = resp.email
-        user.timezone = resp.timezone
+        user.mail = oid_resp.email
+        user.timezone = oid_resp.timezone
+        GroupAuth.update_user_groups(user, oid_resp)
         return user
 
 
@@ -200,27 +224,21 @@ class Kerberos:
         flask.session.pop("krb5_login", None)
 
     @staticmethod
-    def user_from_username(username):
+    def user_from_username(username, load_metadata=False):
         """
         Create a `models.User` object from Kerberos username
+        When 'load_metadata' is True, we have to obtain and set the necessary
+        user metadata (groups, email).
         """
-        user = UsersLogic.get(username).first()
-        if user:
+        user = UserAuth.get_or_create_user(username)
+        if not load_metadata:
             return user
-
-        # We can not create a new user now because we don't have the necessary
-        # e-mail and groups info.
-        if app.config["FAS_LOGIN"] is True:
-            raise AccessRestricted(
-                "Valid GSSAPI authentication supplied for user '{}', but this "
-                "user doesn't exist in the Copr build system.  Please log-in "
-                "using the web-UI (without GSSAPI) first.".format(username)
-            )
 
         # Create a new user object
         krb_config = app.config['KRB5_LOGIN']
-        email = username + "@" + krb_config['email_domain']
-        return UsersLogic.create_user_wrapper(username, email)
+        user.mail = username + "@" + krb_config['email_domain']
+        GroupAuth.update_user_groups(user)
+        return user
 
     @staticmethod
     def _krb5_login_redirect(next_url=None):
@@ -245,7 +263,7 @@ class OpenIDGroups:
         if "lp" in resp.extensions:
             # name space for the teams extension
             team_resp = resp.extensions['lp']
-            return {"fas_groups": team_resp.teams}
+            return team_resp.teams
         return None
 
 

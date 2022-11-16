@@ -144,7 +144,7 @@ class UsersLogic(object):
         app.logger.info("Deleting user '%s' data", user.name)
 
     @classmethod
-    def create_user_wrapper(cls, username, email, timezone=None):
+    def create_user_wrapper(cls, username, email=None, timezone=None):
         """
         Initial creation of Copr user (creates the API token, too).
         Create user + token configuration.
