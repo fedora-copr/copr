@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-keygen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: copr-keygen
+  template:
+    metadata:
+      labels:
+        component: copr-keygen
+    spec:
+      containers:
+        - image: copr_keygen-signd:latest
+          imagePullPolicy: Always
+          name: copr-keygen-signer
+          livenessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - containerPort: 5167
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/copr-keygen
+              name: copr-keygen-data
+            - mountPath: /etc/sign.conf
+              name: copr-keygen
+              subPath: sign.conf
+        - image: copr_keygen-httpd:latest
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir --mode=0777 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg
+              chown copr-signer:copr-signer /etc/httpd/logs;
+              mkdir --mode=0777 -p /var/run/httpd
+              exec /entrypoint;
+          name: copr-keygen-httpd
+          livenessProbe:
+            tcpSocket:
+              port: 5003
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 5003
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - containerPort: 5003
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/copr-keygen
+              name: copr-keygen-data
+            - mountPath: /etc/httpd/conf.d/copr-keygen.conf
+              name: copr-keygen
+              subPath: copr-keygen.conf
+      volumes:
+        - name: copr-keygen-data
+          persistentVolumeClaim:
+            claimName: copr-keygen-data
+        - name: copr-keygen
+          configMap:
+            name: copr-keygen
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-keygen
+spec:
+  ports:
+    - name: httpd
+      port: 5003
+      protocol: TCP
+      targetPort: 5003
+    - name: signer
+      port: 5167
+      protocol: TCP
+      targetPort: 5167
+  selector:
+    component: copr-keygen
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-keygen-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ssd

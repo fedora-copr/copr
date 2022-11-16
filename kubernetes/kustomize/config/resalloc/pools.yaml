@@ -1,0 +1,22 @@
+local_x86_64_normal_prod:
+    max: 1
+    max_starting: 1
+    max_prealloc: 1
+    tags:
+    - copr_builder
+    - arch_noarch
+    - arch_x86_64
+    - arch_x86_64_native
+    - arch_i386
+    - arch_i386_native
+    - arch_i586
+    - arch_i586_native
+    - arch_i686
+    - arch_i686_native
+    cmd_new: "/home/resalloc/provision/local-new"
+    cmd_delete: "/home/resalloc/provision/local-delete"
+    cmd_livecheck: "/usr/bin/resalloc-check-vm-ip"
+    livecheck_period: 180
+    reuse_opportunity_time: 180
+    reuse_max_count: 8
+    reuse_max_time: 1800

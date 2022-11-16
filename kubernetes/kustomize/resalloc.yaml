@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-resalloc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: copr-resalloc
+  template:
+    metadata:
+      labels:
+        component: copr-resalloc
+    spec:
+      containers:
+        - image: copr_resalloc:latest
+          imagePullPolicy: IfNotPresent
+          name: resalloc
+          livenessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 120
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 49100
+              protocol: TCP
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp /home/resalloc/provision/local-new-ro /home/resalloc/provision/local-new;
+              cp /root/.ssh/id_rsa-ro /root/.ssh/id_rsa;
+              chmod +x /home/resalloc/provision/local-new;
+              chmod 0400 /root/.ssh/id_rsa;
+              exec /usr/bin/resalloc-server;
+          volumeMounts:
+            - mountPath: /etc/resallocserver/pools.yaml
+              name: copr-resalloc
+              subPath: pools.yaml
+            - mountPath: /etc/resallocserver/server.yaml
+              name: copr-resalloc
+              subPath: server.yaml
+            - mountPath: /home/resalloc/provision/local-new-ro
+              name: copr-resalloc
+              subPath: local-new
+            - mountPath: /root/.ssh/builder_config
+              name: copr-resalloc
+              subPath: builder_config
+            - mountPath: /root/.ssh/id_rsa-ro
+              name: copr-resalloc
+              subPath: id_rsa
+      volumes:
+        - name: copr-resalloc
+          configMap:
+            name: copr-resalloc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-resalloc
+spec:
+  ports:
+    - name: resalloc
+      port: 49100
+      protocol: TCP
+      targetPort: 49100
+  selector:
+    component: copr-resalloc
+  type: ClusterIP

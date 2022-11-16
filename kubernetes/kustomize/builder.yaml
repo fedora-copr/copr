@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-builder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: copr-builder
+  template:
+    metadata:
+      labels:
+        component: copr-builder
+    spec:
+      containers:
+        - image: copr_builder:latest
+          imagePullPolicy: IfNotPresent
+          name: builder
+          securityContext:
+            privileged: true
+          livenessProbe:
+            tcpSocket:
+              port: 22
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 22
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - containerPort: 22
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/copr-distgit-client/docker.ini
+              name: copr-builder
+              subPath: client.ini
+            - mountPath: /etc/copr-rpmbuild/main.ini
+              name: copr-builder
+              subPath: rpmbuild.ini
+            - mountPath: /root/.ssh/id_backend_pub
+              name: copr-builder
+              subPath: id_backend_pub
+      volumes:
+        - name: copr-builder
+          configMap:
+            name: copr-builder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-builder
+spec:
+  ports:
+    - name: ssh
+      port: 22
+      protocol: TCP
+      targetPort: 22
+  selector:
+    component: copr-builder
+  type: ClusterIP

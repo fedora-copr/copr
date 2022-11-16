@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: copr-backend
+  template:
+    metadata:
+      labels:
+        component: copr-backend
+    spec:
+      initContainers:
+        - name: init-backend-resalloc
+          image: ebiqe/alpine-nc:latest
+          command: [ "sh", "-c", "until nc -z copr-resalloc.fedora-copr.svc.cluster.local 49100; do echo waiting for resalloc service ; sleep 2; done;" ]
+        - name: init-backend-redis
+          image: ebiqe/alpine-nc:latest
+          command: [ "sh", "-c", "until nc -z redis.fedora-copr.svc.cluster.local 6379; do echo waiting for redis service ; sleep 2; done;" ]
+      containers:
+        - image: copr_backend_httpd:latest
+          imagePullPolicy: IfNotPresent
+          name: httpd
+          livenessProbe:
+            tcpSocket:
+              port: 5002
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5002
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - containerPort: 5002
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /opt/app-root/etc/nginx.d/copr-be.conf
+              name: copr-backend
+              subPath: nginx.conf
+            - mountPath: /var/lib/copr/public_html/results
+              name: copr-backend-data
+        - image: copr_backend-log:latest
+          imagePullPolicy: Always
+          name: log
+          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr", "--", "/usr/bin/copr_run_logger.py"]
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/copr-be.conf
+              name: copr-backend
+              subPath: copr-be.conf
+            - mountPath: /var/lib/copr/public_html/results
+              name: copr-backend-data
+            - mountPath: /etc/copr/copr-be.conf
+              name: copr-backend
+              subPath: copr-be.conf
+            - mountPath: /etc/sign.conf
+              name: copr-backend
+              subPath: sign.conf
+        - image: copr_backend-action:latest
+          imagePullPolicy: Always
+          name: action
+          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr", "--", "/usr/bin/copr-run-dispatcher", "actions"]
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          volumeMounts:
+            - mountPath: /etc/copr/copr-be.conf
+              name: copr-backend
+              subPath: copr-be.conf
+            - mountPath: /etc/sign.conf
+              name: copr-backend
+              subPath: sign.conf
+            - mountPath: /var/lib/copr/public_html/results
+              name: copr-backend-data
+        - image: copr_backend-build:latest
+          imagePullPolicy: Always
+          name: build
+          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr","-G", "obsrun", "--", "/usr/bin/copr-run-dispatcher", "builds"]
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          volumeMounts:
+            - mountPath: /etc/sign.conf
+              name: copr-backend
+              subPath: sign.conf
+            - mountPath: /etc/nginx/conf.d/copr-be.conf
+              name: copr-backend
+              subPath: nginx.conf
+            - mountPath: /home/copr/.ssh/builder_config
+              name: copr-backend
+              subPath: builder_config
+            - mountPath: /home/copr/.ssh/id_rsa
+              name: copr-backend
+              subPath: id_rsa
+            - mountPath: /home/copr/.ssh/id_rsa.pub
+              name: copr-backend
+              subPath: id_rsa.pub
+            - mountPath: /var/lib/copr/public_html/results
+              name: copr-backend-data
+            - mountPath: /etc/copr/copr-be.conf
+              name: copr-backend
+              subPath: copr-be.conf
+      volumes:
+        - name: copr-backend
+          configMap:
+            name: copr-backend
+        - name: copr-backend-data
+          persistentVolumeClaim:
+            claimName: copr-backend-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-backend
+spec:
+  ports:
+    - name: httpd
+      port: 5002
+      protocol: TCP
+      targetPort: 5002
+  selector:
+    component: copr-backend
+  type: ClusterIP
+---
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-backend-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ssd

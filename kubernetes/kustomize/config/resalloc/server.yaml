@@ -1,0 +1,21 @@
+# SQLALCHEMY connection url.  Note that using sqlite has serious limits WRT to
+# alembic migrations support (so it is discouraged in production).  Make sure
+# you have installed appropriate libraries for desired SQL dialect, for
+# appropriate python version!
+#
+#For PostgreSQL connection without password using unix socket auth method.
+#db_url: 'postgresql://resalloc@/resalloc'
+#For PostgreSQL listening on host/port, using password.
+#db_url: 'postgresql://resalloc:pass@localhost:5432/resalloc'
+db_url: 'sqlite:////var/lib/resallocserver/db.sqlite'
+
+logdir: '/var/log/resallocserver'
+
+# Hostname to make the xmlrpc server listen on.
+hostname: '0.0.0.0'
+
+# Port to make the xmlrpc server listen on.
+#port: 49100
+
+# Set to 'debug' to get more verbose logging.
+loglevel: 'debug'

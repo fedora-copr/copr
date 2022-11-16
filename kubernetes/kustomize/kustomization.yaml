@@ -1,0 +1,111 @@
+resources:
+- namespace.yaml
+- database.yaml
+- redis.yaml
+- frontend.yaml
+- keygen.yaml
+- builder.yaml
+- distgit.yaml
+- resalloc.yaml
+- backend.yaml
+- ingress.yaml
+commonLabels:
+  app: copr
+configMapGenerator:
+- files:
+  - httpd.conf=config/frontend/httpd.conf
+  - copr.conf=config/frontend/copr.conf
+  name: copr-frontend
+- files:
+    - copr-dist-git.conf=config/distgit/copr-dist-git.conf
+  name: copr-distgit
+- files:
+  - sign.conf=config/keygen/sign.conf
+  - copr-keygen.conf=config/keygen/copr-keygen.conf
+  name: copr-keygen
+- files:
+  - client.ini=config/builder/client.ini
+  - rpmbuild.ini=config/builder/rpmbuild.ini
+  - id_backend.pub=config/builder/id_backend.pub
+  name: copr-builder
+- files:
+  - local-new=config/resalloc/local-new
+  - pools.yaml=config/resalloc/pools.yaml
+  - server.yaml=config/resalloc/server.yaml
+  - builder_config=config/backend/.ssh/builder_config
+  - id_rsa=config/backend/.ssh/id_rsa
+  name: copr-resalloc
+- files:
+  - nginx.conf=config/backend/nginx.conf
+  - copr-be.conf=config/backend/copr-be.conf
+  - builder_config=config/backend/.ssh/builder_config
+  - id_rsa=config/backend/.ssh/id_rsa
+  - id_rsa.pub=config/backend/.ssh/id_rsa.pub
+  - sign.conf=config/backend/sign.conf
+  name: copr-backend
+secretGenerator:
+- name: copr-frontend-tls
+  files:
+  - cert/tls.crt
+  - cert/tls.key
+  type: "kubernetes.io/tls"
+  namespace: fedora-copr
+- name: copr-database
+  envs:
+  - config/database/credential.env
+  type: Opaque
+  namespace: fedora-copr
+  options:
+    labels:
+      app: copr
+namespace: fedora-copr
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+# database image
+- name: copr_database:latest
+  newName: copr_database
+  newTag: latest
+# redis image
+- name: centos/redis-32-centos7
+  newName: centos/redis-32-centos7
+  newTag: latest
+# resalloc image
+- name: copr_resalloc:latest
+  newName: copr_resalloc
+  newTag: latest
+# distgit image
+- name: copr_distgit-httpd:latest
+  newName: copr_distgit-httpd
+  newTag: latest
+- name: copr_distgit:latest
+  newName: copr_distgit
+  newTag: latest
+# keygen image
+- name: copr_keygen-httpd:latest
+  newName: copr_keygen-httpd
+  newTag: latest
+- name: copr_keygen-signd:latest
+  newName: copr_keygen-signd
+  newTag: latest
+# frontend image
+- name: copr_frontend:latest
+  newName: copr_frontend
+  newTag: latest
+# builder image
+- name: copr_builder:latest
+  newName: copr_builder
+  newTag: latest
+# backend image
+- name: copr_backend_httpd:latest
+  newName: copr_backend_httpd
+  newTag: latest
+- name: copr_backend-log:latest
+  newName: copr_backend-log
+  newTag: latest
+- name: copr_backend-action:latest
+  newName: copr_backend-action
+  newTag: latest
+- name: copr_backend-build:latest
+  newName: copr_backend-build
+  newTag: latest

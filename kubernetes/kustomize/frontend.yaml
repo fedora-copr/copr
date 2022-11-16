@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: copr-frontend
+  template:
+    metadata:
+      labels:
+        component: copr-frontend
+    spec:
+      initContainers:
+        - name: init-frontend-database
+          image: ebiqe/alpine-nc:latest
+          command: [ "sh", "-c", "until nc -z database.fedora-copr.svc.cluster.local 5432; do echo waiting for database service ; sleep 2; done;" ]
+        - name: init-frontend-redis
+          image: ebiqe/alpine-nc:latest
+          command: [ "sh", "-c", "until nc -z redis.fedora-copr.svc.cluster.local 6379; do echo waiting for redis service ; sleep 2; done;" ]
+      containers:
+        - image: copr_frontend:latest
+          imagePullPolicy: IfNotPresent
+          name: copr-frontend-httpd
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/copr/copr.conf
+              name: copr-frontend
+              subPath: copr.conf
+            - mountPath: /etc/httpd/conf.d/copr.conf
+              name: copr-frontend
+              subPath: httpd.conf
+      volumes:
+        - name: copr-frontend
+          configMap:
+            name: copr-frontend
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: copr-frontend
+spec:
+  ports:
+    - name: httpd
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    component: copr-frontend
+  type: ClusterIP
