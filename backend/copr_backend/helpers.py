@@ -8,7 +8,7 @@ import errno
 import time
 import types
 import glob
-import pipes
+import shlex
 
 import configparser
 from configparser import ConfigParser
@@ -111,7 +111,7 @@ def run_cmd(cmd, shell=False, timeout=None, logger=None, catch_timeout=False,
     pid = process.pid
     str_cmd = cmd
     if isinstance(cmd, list):
-        str_cmd = " ".join([pipes.quote(a) for a in cmd])
+        str_cmd = " ".join([shlex.quote(a) for a in cmd])
 
     _info(logger, "Running command '%s' as PID %s", str_cmd, pid)
 

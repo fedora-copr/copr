@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 import io
 import json
-import pipes
+import shlex
 import subprocess
 import sys
 from urllib.parse import urlparse
@@ -24,7 +24,7 @@ def no_output():
 
 def quoted_cmd(cmd):
     """ shell quoted cmd array as string """
-    return " ".join(pipes.quote(arg) for arg in cmd)
+    return " ".join(shlex.quote(arg) for arg in cmd)
 
 
 def run(cmd):

@@ -86,7 +86,7 @@ class SSHConnection(object):
         output from particular command is ignored.
 
         :param user_command:
-            Command (string) to be executed (note: use pipes.quote).
+            Command (string) to be executed (note: use shlex.quote).
 
         :param max_retries:
             When there is ssh connection problem, re-try the action at most
@@ -122,7 +122,7 @@ class SSHConnection(object):
         waste a lot of memory, run() is better option.
 
         :param user_command:
-            Command (string) to be run as string (note: use pipes.quote).
+            Command (string) to be run as string (note: use shlex.quote).
 
         :param max_retries:
             When there is ssh connection problem, re-try the action at most

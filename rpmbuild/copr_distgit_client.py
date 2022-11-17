@@ -7,7 +7,7 @@ import configparser
 import errno
 import glob
 import logging
-import pipes
+import shlex
 import os
 import subprocess
 import sys
@@ -24,7 +24,7 @@ except ImportError:
 
 def log_cmd(command, comment="Running command"):
     """ Dump the command to stderr so it can be c&p to shell """
-    command = ' '.join([pipes.quote(x) for x in command])
+    command = ' '.join([shlex.quote(x) for x in command])
     logging.info("%s: %s", comment, command)
 
 

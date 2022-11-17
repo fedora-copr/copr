@@ -6,7 +6,7 @@ import sys
 import copy
 import logging
 from functools import wraps
-import pipes
+import shlex
 import importlib
 import click
 from copr_common.log import setup_script_logger
@@ -46,7 +46,7 @@ from coprs import app
 if os.getuid() == 0:
     sys.stderr.write("Please don't run this script as a 'root' user, use:\n")
     sys.stderr.write("$ sudo -u copr-fe {}\n".format(
-            ' '.join([pipes.quote(arg) for arg in sys.argv])))
+            ' '.join([shlex.quote(arg) for arg in sys.argv])))
     sys.exit(1)
 
 commands_list =	[

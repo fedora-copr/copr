@@ -5,7 +5,7 @@ BuildBackgroundWorker class + internals.
 import glob
 import logging
 import os
-import pipes
+import shlex
 import shutil
 import statistics
 import time
@@ -645,7 +645,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             "builtin cd {0} && "
             "for f in `ls *.rpm | grep -v \"src.rpm$\"`; do"
             "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
-            "done".format(pipes.quote(job.results_dir))
+            "done".format(shlex.quote(job.results_dir))
         )
 
         result = run_cmd(cmd, shell=True, logger=self.log)

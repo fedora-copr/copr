@@ -7,7 +7,7 @@ import sys
 import re
 import configparser
 import datetime
-import pipes
+import shlex
 from threading import Timer
 from collections import OrderedDict
 import rpm
@@ -33,7 +33,7 @@ def cmd_debug(result):
 
 
 def cmd_readable(cmd):
-    return ' '.join([pipes.quote(part) for part in cmd])
+    return ' '.join([shlex.quote(part) for part in cmd])
 
 
 def run_cmd(cmd, cwd=".", preexec_fn=None):
@@ -223,7 +223,7 @@ def parse_copr_name(name):
 
 def dump_live_log(logfile):
     filter_continuing_lines = "/usr/bin/copr-rpmbuild-loggify"
-    tee_output = "tee -a {0}".format(pipes.quote(logfile))
+    tee_output = "tee -a {0}".format(shlex.quote(logfile))
     cmd = filter_continuing_lines + "|" + tee_output
     tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
     os.dup2(tee.stdin.fileno(), sys.stdout.fileno())

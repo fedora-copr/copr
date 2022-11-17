@@ -9,7 +9,7 @@ import json
 import logging
 import shutil
 import pprint
-import pipes
+import shlex
 import pkg_resources
 
 try:
@@ -113,7 +113,7 @@ def main():
     with open(config.get("main", "logger_pidfile"), "w") as pidfile:
         pidfile.write(str(logging_pid))
 
-    log.info('Running: {0}'.format(" ".join(map(pipes.quote, sys.argv))))
+    log.info('Running: {0}'.format(" ".join(map(shlex.quote, sys.argv))))
     log.info('Version: {0}'.format(VERSION))
     log.info("PID: %s", main_pid)
     log.info("Logging PID: %s", logging_pid)
