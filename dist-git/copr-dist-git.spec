@@ -23,6 +23,7 @@ BuildRequires: python3-rpkg
 BuildRequires: python3-pytest
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-oslo-concurrency
+BuildRequires: python3-redis
 BuildRequires: python3-setproctitle
 
 Recommends: logrotate

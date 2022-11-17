@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from collections import defaultdict
 import json
 
 import os
@@ -12,6 +13,7 @@ from base import Base
 from unittest import mock
 from unittest.mock import MagicMock
 
+import copr_dist_git.import_task
 
 MODULE_REF = 'copr_dist_git.importer'
 
@@ -123,6 +125,29 @@ class TestImporter(Base):
             mock.call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
                        'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
         ]))
+
+
+    @mock.patch("copr_dist_git.import_dispatcher.Importer", return_value=MagicMock())
+    def test_priorities(self, importer):
+        importer.return_value = self.importer
+        def _shortener(the_dict):
+            return copr_dist_git.import_task.ImportTask.from_dict(
+                defaultdict(lambda: "notset", the_dict))
+        self.importer.try_to_obtain_new_tasks = MagicMock()
+        self.importer.try_to_obtain_new_tasks.return_value = [
+            _shortener({"build_id": 1, "sandbox": "a", "background": False}),
+            _shortener({"build_id": 2, "sandbox": "a", "background": False}),
+            _shortener({"build_id": 3, "sandbox": "b", "background": False}),
+            _shortener({"build_id": 3, "sandbox": "c", "background": False}),
+            _shortener({"build_id": 1, "sandbox": "a", "background": True}),
+        ]
+        tasks = self.dispatcher.get_frontend_tasks()
+        assert tasks[0].priority == 1
+        assert tasks[1].priority == 2
+        assert tasks[2].priority == 1
+        assert tasks[3].priority == 1
+        assert tasks[4].priority == 103
+
 
     def test_run(self, mc_time, mc_worker):
         self.importer.try_to_obtain_new_tasks = MagicMock()

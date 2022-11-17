@@ -1,16 +1,18 @@
 import os
 import shutil
 import tempfile
-import munch
 import time
-import json
+
+import munch
 
 from copr_dist_git import importer
 from copr_dist_git import import_task
+from copr_dist_git import import_dispatcher
 
 class Base(object):
 
     def setup_method(self, method):
+        # pylint: disable=attribute-defined-outside-init
         self.tmp_dir_name = self.make_temp_dir()
         self.lookaside_location = os.path.join(self.tmp_dir_name, "lookaside")
         self.per_task_location = os.path.join(self.tmp_dir_name, "per-task-logs")
@@ -30,6 +32,7 @@ class Base(object):
             "multiple_threads": True,
             "git_user_name": "Test user",
             "git_user_email": "test@test.org",
+            "max_workers": 10,
         })
 
         self.importer = importer.Importer(self.opts)
@@ -67,6 +70,8 @@ class Base(object):
 
         self.url_task = import_task.ImportTask.from_dict(self.url_task_data)
         self.upload_task = import_task.ImportTask.from_dict(self.upload_task_data)
+        self.dispatcher = import_dispatcher.ImportDispatcher(self.opts)
+        self.dispatcher.importer = self.importer
 
     def teardown_method(self, method):
         self.rm_tmp_dir()

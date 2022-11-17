@@ -17,6 +17,20 @@ LIMITS = {
 }
 
 
+class _PriorityCounter:
+    def __init__(self):
+        self._counter = {}
+
+    def get_priority(self, task):
+        """
+        Calculate the "dynamic" import task priority.
+        _counter["sandbox"] = value
+        """
+        self._counter.setdefault(task.sandbox, 0)
+        self._counter[task.sandbox] += 1
+        return self._counter[task.sandbox]
+
+
 class ImportDispatcher(Dispatcher):
     """
     Kick-off a dispatcher daemon for importing tasks into DistGit.
@@ -45,6 +59,9 @@ class ImportDispatcher(Dispatcher):
     def get_frontend_tasks(self):
         importer = Importer(self.opts)
         tasks = importer.try_to_obtain_new_tasks(limit=999999)
+        counter = _PriorityCounter()
+        for task in tasks:
+            task.dispatcher_priority += counter.get_priority(task)
         return tasks
 
     def _create_per_task_logs_directory(self, path):

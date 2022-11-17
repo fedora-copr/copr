@@ -14,6 +14,7 @@ class ImportTask(QueueTask):
         self.srpm_url = None
         self.sandbox = None
         self.background = None
+        self.dispatcher_priority = 0
 
     @staticmethod
     def from_dict(task_dict):
@@ -39,7 +40,8 @@ class ImportTask(QueueTask):
 
     @property
     def priority(self):
-        return 100 if self.background else 0
+        value = 100 if self.background else 0
+        return value + self.dispatcher_priority
 
     @property
     def repo_namespace(self):
