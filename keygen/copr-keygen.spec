@@ -1,5 +1,5 @@
 %global with_test 1
-%global copr_common_version 0.15.1.dev
+%global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
 Version:    1.85

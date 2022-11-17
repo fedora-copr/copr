@@ -2,7 +2,6 @@
 Common Copr code for logging
 """
 
-import sys
 import logging
 
 
@@ -21,10 +20,10 @@ def setup_script_logger(log, path):
     # Drop the default handler, we will create it ourselves
     log.handlers = []
 
-    # Print to stdout
-    stdout_log = logging.StreamHandler(sys.stdout)
-    stdout_log.setFormatter(logging.Formatter("%(message)s"))
-    log.addHandler(stdout_log)
+    # Print also to stderr
+    stream = logging.StreamHandler()
+    stream.setFormatter(logging.Formatter("%(message)s"))
+    log.addHandler(stream)
 
     # Add file logging
     file_log = logging.FileHandler(path)
