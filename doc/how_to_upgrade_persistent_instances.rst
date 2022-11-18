@@ -47,12 +47,30 @@ the section with cloud base images for Amazon public cloud. Use
 ``Click to launch`` button to launch an instance from the x86_64
 AMI. Select the US East (N. Virginia) region.
 
+You will get redirected to the Amazon AWS page.
 
-2. Choose Instance Type
-.......................
 
-You will get redirected to Amazon and asked to choose an instance
-type. Currently, we use the following:
+2. Name and tags
+................
+
+- Set ``Name`` and add ``-new`` suffix (e.g. ``copr-distgit-dev-new``
+  or ``copr-distgit-prod-new``)
+- Set ``CoprInstance`` to ``devel`` or ``production``
+- Set ``CoprPurpose`` to ``infrastructure``
+- Set ``FedoraGroup`` to ``copr``
+
+
+3. Application and OS Images (Amazon Machine Image)
+...................................................
+
+Skip this section, we already chose the correct AMI from the Fedora
+website.
+
+
+4. Instance type
+................
+
+Currently, we use the following instance types:
 
 +----------------+-------------+-------------+
 |                | Dev         | Production  |
@@ -70,38 +88,21 @@ When more power is needed, please use the `ec2instances.info`_ comparator to get
 the cheapest available instance type according to our needs.
 
 
-3. Configure Instance
-.....................
+5. Key pair (login)
+...................
 
-- Select ``Network`` without ``| foo`` suffix
+- Make sure to use existing key pair named ``Ansible Key``.  This allows us to
+  run the playbooks on ``batcave01`` box against the newly spawned VM.
+
+
+6. Network settings
+...................
+
+- Click the ``Edit`` button in the box heading to show more options
+- Select VPC ``vpc-0af***********972``
 - Select ``Subnet`` to be ``us-east-1c``
-- Opt-in the ``Protect against accidental termination`` checkbox
-- Request IPv6 assignment ``IPv6 IPs -> Add IP``
-
-
-4. Add Storage
-..............
-
-- Update the ``Size (GiB)`` value to resemble root partition size of
-  the currently running instance
-- Select ``Encryption`` key, don't leave the partition
-  unencrypted. Use whatever is ``(default)``
-
-
-5. Add Tags
-...........
-
-- Set ``CoprInstance`` to ``devel`` or ``production``
-- Set ``CoprPurpose`` to ``infrastructure``
-- Set ``FedoraGroup`` to ``copr``
-- Set ``Name`` and add ``-new`` suffix (e.g. ``copr-distgit-dev-new``
-  or ``copr-distgit-prod-new``)
-
-
-6. Configure Security Group
-...........................
-
-- Select an existing security group and pick one of
+- Switch ``Auto-assign IPv6 IP`` to ``Enable``
+- Switch to ``Select existing security group`` and pick one of
 
     - ``copr-frontend-sg``
     - ``copr-backend-sg``
@@ -109,17 +110,38 @@ the cheapest available instance type according to our needs.
     - ``copr-keygen-sg``
 
 
-7. Review
-.........
+7. Configure storage
+....................
 
-``Review and Launch`` the instance.
+- Click the ``Advanced`` button in the box heading to show more options
+- Update the ``Size (GiB)`` of the root partition
+
++----------------+-------------+-------------+
+|                | Dev         | Production  |
++================+=============+=============+
+| **frontend**   | 50G         | 50G         |
++----------------+-------------+-------------+
+| **backend**    | 20G         | 100G        |
++----------------+-------------+-------------+
+| **keygen**     | 10G         | 20G         |
++----------------+-------------+-------------+
+| **distgit**    | 20G         | 30G         |
++----------------+-------------+-------------+
+
+- Turn on the ``Encrypted`` option
+- Select ``KMS key`` to whatever is ``(default)``
 
 
-8. Public Key
-.............
+8. Advanced details
+...................
 
-- Make sure to use existing key pair named ``Ansible Key``.  This allows us to
-  run the playbooks on ``batcave01`` box against the newly spawned VM.
+- ``Termination protection`` - ``Enable``
+
+
+9. Launch instance
+..................
+
+Click ``Launch instance`` in the right panel.
 
 
 Pre-prepare the new VM
