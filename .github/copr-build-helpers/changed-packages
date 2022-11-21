@@ -1,0 +1,26 @@
+#! /bin/bash
+
+echo -n "{"
+echo -n '"package": ['
+separator=""
+
+dump_package_name() {
+    echo -n "$separator\"$1\""
+    separator=", "
+}
+
+git diff --name-status -C origin/main --numstat | cut -f2 | sed 's|/.*||' \
+| sort | uniq | while read -r line; do
+    case $line in
+        backend|frontend|cli|keygen|dist-git|messaging|rpmbulid|selinux)
+            dump_package_name "copr-$line"
+            ;;
+        python)
+            dump_package_name python-copr
+            ;;
+        common)
+            dump_package_name python-copr-common
+            ;;
+    esac
+done
+echo "]}"

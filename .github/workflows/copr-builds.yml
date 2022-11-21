@@ -1,0 +1,55 @@
+---
+name: Fedora Copr build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: Check modified subdirectories
+    outputs:
+      packages: ${{ steps.check_packages.outputs.packages }}
+
+    steps:
+      - name: Check out proper version of sources
+        uses: actions/checkout@v3
+
+      - name: Fetch the origin
+        run: |
+          git config --global --add safe.directory '*'
+          git config --global advice.detachedHead false
+          git fetch origin main:main
+
+      - id: check_packages
+        name: Detecting changed sub-packages
+        run: |
+          echo "packages<<EOF" >> $GITHUB_OUTPUT
+          ./.github/copr-build-helpers/changed-packages >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  build:
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJSON(needs.check.outputs.packages)}}
+
+    name: RPM package ${{ matrix.package }}
+
+    steps:
+      - name: Check out proper version of sources
+        uses: actions/checkout@v3
+
+      - name: Copr build ${{ matrix.package }}
+        env:
+          COPR_PR_WEBHOOK: https://copr.fedorainfracloud.org/webhooks/custom/74139/2a94f455-b4ac-467e-86e2-f4400ecd4450/${{ matrix.package }}/
+          COPR_PUSH_WEBHOOK: ${{ secrets.COPR_PUSH_WEBHOOK }}/${{ matrix.package }}/
+        run: |
+          curl https://raw.githubusercontent.com/praiskup/copr-ci-tooling/main/copr-gh-actions-submit > submit
+          bash submit ${{ github.event.pull_request.number }}

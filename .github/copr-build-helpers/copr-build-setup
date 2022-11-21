@@ -1,0 +1,52 @@
+#! /bin/bash
+
+# Helper script to update CI scripting on Copr side
+
+script=$(readlink -f "$(dirname "$0")")/copr-custom-script
+
+PROJECT_PR=@copr/copr-pull-requests
+PROJECT_PUSH=@copr/copr-dev
+
+build_deps=(
+    bsdtar
+    tito
+)
+
+copr_cmd=(
+    copr edit-package-custom \
+        --webhook-rebuild on \
+        --script "$script" \
+        --script-chroot "fedora-latest-x86_64" \
+        --script-builddeps "${build_deps[*]}"
+)
+
+declare -A subdirs
+
+packages="
+  copr-backend
+  copr-cli
+  copr-dist-git
+  copr-frontend
+  copr-keygen
+  copr-messaging
+  copr-rpmbuild
+  copr-selinux
+  python-copr
+  python-copr-common
+"
+
+subdirs[copr-backend]=backend
+subdirs[copr-cli]=cli
+subdirs[copr-dist-git]=dist-git
+subdirs[copr-frontend]=frontend
+subdirs[copr-keygen]=keygen
+subdirs[copr-messaging]=messaging
+subdirs[copr-rpmbuild]=rpmbuild
+subdirs[copr-selinux]=selinux
+subdirs[python-copr]=python
+subdirs[python-copr-common]=common
+
+for package in $packages; do
+    "${copr_cmd[@]}" "$PROJECT_PR"   --name "$package" --script-resultdir "results/${subdirs[$package]}" --max-builds 15
+    "${copr_cmd[@]}" "$PROJECT_PUSH" --name "$package" --script-resultdir "results/${subdirs[$package]}"
+done
