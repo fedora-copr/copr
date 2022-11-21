@@ -15,7 +15,7 @@ useful for developers only."""
 __description__ = "Common python code used by Copr."
 __author__ = "Dominik Turecek"
 __author_email__ = "dturecek@redhat.com"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 setup(

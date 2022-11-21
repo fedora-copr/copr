@@ -11,7 +11,7 @@ This package contains backend."""
 __description__ = "Python client for copr service."
 __author__ = "Copr Team"
 __author_email__ = "copr-team@redhat.com"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 setup(
