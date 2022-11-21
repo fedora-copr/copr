@@ -24,7 +24,7 @@ Name:    copr-rpmbuild
 Version: 0.61
 Summary: Run COPR build tasks
 Release: 1%{?dist}
-URL: https://pagure.io/copr/copr
+URL: https://github.com/fedora-copr/copr
 License: GPLv2+
 
 # Source is created by:

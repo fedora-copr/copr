@@ -21,7 +21,7 @@ Release:    1%{?dist}
 Summary:    Python code used by Copr
 
 License:    GPLv2+
-URL:        https://pagure.io/copr/copr
+URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:
 # git clone %%url && cd copr
