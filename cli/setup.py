@@ -26,7 +26,7 @@ __name__ = 'copr-cli'
 __description__ = "CLI tool to run copr"
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 setup(

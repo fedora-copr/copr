@@ -14,7 +14,7 @@ __name__ = 'copr-keygen'
 __description__ = description = "Copr's subsystem that generates keys for package signing."
 __author__ = "Red Hat"
 __author_email__ = "copr-team@redhat.com"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 setup(

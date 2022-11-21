@@ -28,7 +28,7 @@ __name__ = 'copr-messaging'
 __description__ = "A schema and tooling for Copr fedora-messaging"
 __author__ = "Copr team"
 __author_email__ = "copr-devel@lists.fedorahosted.org"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 with open(os.path.join(here, "requirements.txt")) as f:

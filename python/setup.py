@@ -27,7 +27,7 @@ requires = [
 __description__ = "Python client for copr service."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
-__url__ = "https://pagure.io/copr/copr"
+__url__ = "https://github.com/fedora-copr/copr"
 
 
 setup(
