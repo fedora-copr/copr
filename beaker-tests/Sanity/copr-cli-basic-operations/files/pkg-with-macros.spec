@@ -9,7 +9,7 @@ Version:    1.0
 Release:    1%{?dist}
 Summary:    Testing spec file
 License:    GPLv2
-URL:        https://pagure.io/copr/copr
+URL:        https://github.com/fedora-copr/copr
 %endif
 
 

@@ -3,7 +3,7 @@ Version:	1.0
 Release:	1%{?dist}
 Summary:	This is to test user-defined macros in buildroot
 License:	GPLv2
-URL:		https://pagure.io/copr/copr
+URL:		https://github.com/fedora-copr/copr
 
 %description
 Lets print some macros here

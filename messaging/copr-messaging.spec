@@ -12,7 +12,7 @@ Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
 License:    GPLv2+
-URL:        https://pagure.io/copr/copr
+URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:
 # git clone %%url && cd copr

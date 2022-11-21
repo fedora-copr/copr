@@ -6,7 +6,7 @@ Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
 License:    GPLv2+
-URL:        https://pagure.io/copr/copr
+URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:
 # git clone %%url && cd copr
