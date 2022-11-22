@@ -96,5 +96,7 @@ class TestCoprDir(CoprsTestCase):
         assert self.api3.rebuild_package("test:custom:", "copr-cli").status_code == 400
         assert self.api3.rebuild_package("test:custom:.", "copr-cli").status_code == 400
         assert self.api3.rebuild_package("test:custom:@", "copr-cli").status_code == 400
-        # This can only be created by pagure-events.py code for now.
-        assert self.api3.rebuild_package("test:pr:13", "copr-cli").status_code == 400
+        # This can be created by pagure-events.py and the custom webhook.
+        assert self.api3.rebuild_package("test:pr:13", "copr-cli").status_code == 200
+        assert self.api3.rebuild_package("test:pr:13a", "copr-cli").status_code == 400
+        assert self.api3.rebuild_package("test:pr:13:2", "copr-cli").status_code == 400

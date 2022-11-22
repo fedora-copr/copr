@@ -262,9 +262,12 @@ needs in the custom script.
 There's an advanced possibility to call the custom webhook like::
 
     $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:custom:<SUFFIX>/<UUID>/<PACKAGE_NAME>/
+    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:pr:<INT_UID>/<UUID>/<PACKAGE_NAME>/
 
-This way, the build is placed into a custom directory
-``<PROJECTNAME>:custom:<SUFFIX>``, e.g. ``myproject:custom:pull-request:1``.
+This way, the build is placed into a custom directory (e.g.
+``myproject:custom:pull-request:1`` or ``myproject:pr:123``).  The ``:pr:``
+sub-directories have a retention policy;  every such directory is automatically
+removed after 40 days of build inactivity.
 
 
 Pagure Integration

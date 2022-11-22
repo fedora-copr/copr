@@ -639,6 +639,23 @@ class CoprDirsLogic(object):
                     copr.full_name))
         return coprdir
 
+    @staticmethod
+    def _valid_custom_dir_suffix(copr, dirname):
+        """
+        Allow users to crate :custom: and :pr:<INT> directories
+        """
+        if dirname.startswith(copr.name+":custom:"):
+            return True
+        if not dirname.startswith(copr.name+":pr:"):
+            return False
+
+        # PRs must end with integers.  These directories have automatic
+        # retention policy.
+        parts = dirname.split(":")
+        if len(parts) != 3:
+            return False
+        return all([c.isnumeric() for c in parts[2]])
+
     @classmethod
     def get_or_create(cls, copr, dirname, trusted_caller=False):
         """
@@ -656,11 +673,11 @@ class CoprDirsLogic(object):
                 copr.name,
             ))
 
-        if not trusted_caller:
-            if not dirname.startswith(copr.name+":custom:"):
-                raise exceptions.BadRequest(
-                    f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE>"
-                )
+        if not trusted_caller and not cls._valid_custom_dir_suffix(copr, dirname):
+            raise exceptions.BadRequest(
+                f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE> "
+                f"or {copr.name}:pr:<ID> (for automatically removed directories)"
+            )
 
         if not all(x.isalnum() for x in dirname.split(":")[1:]):
             raise exceptions.BadRequest(
