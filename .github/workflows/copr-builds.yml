@@ -21,17 +21,11 @@ jobs:
       - name: Check out proper version of sources
         uses: actions/checkout@v3
 
-      - name: Fetch the origin
-        run: |
-          git config --global --add safe.directory '*'
-          git config --global advice.detachedHead false
-          git fetch origin main:main
-
       - id: check_packages
         name: Detecting changed sub-packages
         run: |
           echo "packages<<EOF" >> $GITHUB_OUTPUT
-          ./.github/copr-build-helpers/changed-packages >> $GITHUB_OUTPUT
+          ./.github/copr-build-helpers/changed-packages ${{ github.event.before }} >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
   build:

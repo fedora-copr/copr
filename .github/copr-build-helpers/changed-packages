@@ -1,4 +1,22 @@
-#! /bin/bash
+#! /bin/bash -x
+
+diff_against=origin/main
+
+case $GITHUB_EVENT_NAME in
+push)
+    diff_against=$1
+    ;;
+pull_request)
+    diff_against=$GITHUB_BASE_REF
+    # Pull request event from a remote fork
+    git config --global --add safe.directory '*'
+    git config --global advice.detachedHead false
+    git fetch origin main:main
+    ;;
+*)
+    echo >&2 "Unknown GITHUB_EVENT_NAME, diffing against $diff_against"
+    ;;
+esac
 
 echo -n "{"
 echo -n '"package": ['
@@ -9,7 +27,7 @@ dump_package_name() {
     separator=", "
 }
 
-git diff --name-status -C origin/main --numstat | cut -f2 | sed 's|/.*||' \
+git diff --name-status -C "$diff_against" --numstat | cut -f2 | sed 's|/.*||' \
 | sort | uniq | while read -r line; do
     case $line in
         backend|frontend|cli|keygen|dist-git|messaging|rpmbulid|selinux)
