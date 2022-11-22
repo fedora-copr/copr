@@ -250,6 +250,23 @@ Use the GitLab/GitHub/Bitbucket steps above (when needed), or simply::
 
 Note that the package of name 'PACKAGE_NAME' must exist within this project, and that the 'POST' http method must be specified.
 
+With custom webhook(s), you can upload data like::
+
+    $ curl -X POST --data "hook payload data" ....
+
+If the ``PACKAGE_NAME`` package configured in your project uses the script-like
+"Custom" build method, the POST data will be available as a ``$(CWD)/hook_data``
+file while generating RPM sources.  You can handle this fila according to your
+needs in the custom script.
+
+There's an advanced possibility to call the custom webhook like::
+
+    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:custom:<SUFFIX>/<UUID>/<PACKAGE_NAME>/
+
+This way, the build is placed into a custom directory
+``<PROJECTNAME>:custom:<SUFFIX>``, e.g. ``myproject:custom:pull-request:1``.
+
+
 Pagure Integration
 ------------------
 

@@ -451,10 +451,18 @@ def render_copr_integrations(copr, pagure_form):
                   copr.id,
                   copr.webhook_secret) + "<PACKAGE_NAME>/"
 
+    custom_dir_url = "https://{}/webhooks/custom-dir/{}/{}/{}/".format(
+          app.config["PUBLIC_COPR_HOSTNAME"],
+          copr.owner_name,
+          copr.name + ":custom:<SUFFIX>",
+          copr.webhook_secret,
+    ) + "<PACKAGE_NAME>/"
+
     return flask.render_template(
         "coprs/detail/settings/integrations.html",
         copr=copr, bitbucket_url=bitbucket_url, github_url=github_url,
-        gitlab_url=gitlab_url, custom_url=custom_url, pagure_form=pagure_form)
+        gitlab_url=gitlab_url, custom_url=custom_url,
+        custom_dir_url=custom_dir_url, pagure_form=pagure_form)
 
 
 @coprs_ns.route("/<username>/<coprname>/integrations/")

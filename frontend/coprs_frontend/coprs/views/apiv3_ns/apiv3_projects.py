@@ -93,16 +93,9 @@ def get_project(ownername, projectname):
 @pagination()
 @query_params()
 def get_project_list(ownername=None, **kwargs):
-    if not ownername:
-        query = CoprsLogic.get_multiple()
-    elif ownername.startswith("@"):
-        group_name = ownername[1:]
-        query = CoprsLogic.get_multiple()
-        query = CoprsLogic.filter_by_group_name(query, group_name)
-    else:
-        query = CoprsLogic.get_multiple_owned_by_username(ownername)
-        query = CoprsLogic.filter_without_group_projects(query)
-
+    query = CoprsLogic.get_multiple()
+    if ownername:
+        query = CoprsLogic.filter_by_ownername(query, ownername)
     paginator = Paginator(query, models.Copr, **kwargs)
     projects = paginator.map(to_dict)
     return flask.jsonify(items=projects, meta=paginator.meta)

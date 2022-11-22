@@ -161,6 +161,48 @@ class CoprsLogic(object):
         return query.filter(models.Copr.group_id.is_(None))
 
     @classmethod
+    def filter_by_ownername(cls, query, ownername):
+        """
+        Filter cls.get_multiple()-like QUERY by OWNERNAME (either '@groupname'
+        or 'username').
+        """
+        if ownername.startswith("@"):
+            group_name = ownername[1:]
+            return cls.filter_by_group_name(query, group_name)
+        query = query.filter(models.User.username==ownername)
+        return cls.filter_without_group_projects(query)
+
+    @classmethod
+    def get_by_ownername(cls, ownername):
+        """
+        Return a query for list of projects owned by OWNERNAME (either
+        '@groupname' or 'username').
+        """
+        query = cls.get_multiple()
+        return cls.filter_by_ownername(query, ownername)
+
+    @classmethod
+    def get_by_ownername_coprname(cls, ownername, coprname):
+        """
+        Return a Copr object owned by OWNERNAME (either '@groupname' or
+        'username') with a name COPRNAME.
+        """
+        try:
+            return cls.get_by_ownername(ownername).filter(models.Copr.name==coprname).one()
+        except NoResultFound as exc:
+            raise exceptions.ObjectNotFound(
+                f"{ownername}/{coprname} copr doesn't exist") from exc
+
+    @classmethod
+    def get_by_ownername_and_dirname(cls, ownername, dirname):
+        """
+        Return a Copr object given by OWNERNAME (either '@groupname' or
+        'username') and copr DIRNAME (e.g. 'copr-dev:pr:11').
+        """
+        coprname = CoprDirsLogic.copr_name_from_dirname(dirname)
+        return cls.get_by_ownername_coprname(ownername, coprname)
+
+    @classmethod
     def filter_without_ids(cls, query, ids):
         return query.filter(models.Copr.id.notin_(ids))
 
@@ -799,6 +841,17 @@ class CoprDirsLogic(object):
             created_on=int(time.time()))
 
         db.session.add(action)
+
+    @classmethod
+    def copr_name_from_dirname(cls, dirname):
+        """
+        Convert copr dirname (like "foo:pr:1234") to copr name, like "foo"
+        without any additional checking.
+        """
+        parts = dirname.split(":")
+        assert len(parts) >= 1
+        return parts[0]
+
 
 @listens_for(models.Copr.auto_createrepo, 'set')
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):

@@ -8,8 +8,14 @@ from coprs import db, app
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 
-from coprs.exceptions import ObjectNotFound, AccessRestricted
+from coprs.exceptions import (
+        AccessRestricted,
+        BadRequest,
+        ObjectNotFound,
+        MalformedArgumentException,
+)
 
 from coprs.views.webhooks_ns import webhooks_ns
 
@@ -245,7 +251,43 @@ class HookContentStorage(object):
 @copr_id_and_uuid_required
 @package_name_required
 @skip_invalid_calls
-def webhooks_package_custom(copr, package, flavor=None):
+def webhooks_package_custom(copr, package):
+    return custom_build_submit(copr, package)
+
+
+@webhooks_ns.route("/custom-dir/<ownername>/<dirname>/<uuid>/<package_name>/", methods=["POST"])
+def webhooks_coprdir_custom(ownername, dirname, uuid, package_name):
+    """
+    Similar to webhooks_package_custom() method, but this gives us a possibility
+    to create (or just use) a separated custom directory.
+    """
+    try:
+        copr = CoprsLogic.get_by_ownername_and_dirname(ownername, dirname)
+    except ObjectNotFound:
+        return "PROJECT_NOT_FOUND\n", 404
+
+    try:
+        package = ComplexLogic.get_package_safe(copr, package_name)
+    except ObjectNotFound:
+        return "PACKAGE_NOT_FOUND\n", 404
+
+    if copr.webhook_secret != uuid:
+        return "BAD_UUID\n", 403
+
+    try:
+        copr_dir = CoprDirsLogic.get_or_create(copr, dirname)
+    except BadRequest:
+        return "CANT_CREATE_DIRECTORY\n", 400
+    except MalformedArgumentException:
+        return "MALFORMED_COPR_DIRNAME\n", 400
+
+    return custom_build_submit(copr, package, copr_dir)
+
+
+def custom_build_submit(copr, package, copr_dir=None):
+    """
+    Submit the custom build, let the route argument parsing on callers.
+    """
     # Each source provider (github, gitlab, pagure, ...) provides different
     # "payload" format for different events.  Parsing it here is burden we can
     # do one day, but now just dump the hook contents somewhere so users can
@@ -256,7 +298,8 @@ def webhooks_package_custom(copr, package, flavor=None):
         return "NO_ACTIVE_CHROOTS_IN_PROJECT\n", 500
 
     try:
-        build = BuildsLogic.rebuild_package(package, storage.rebuild_dict())
+        build = BuildsLogic.rebuild_package(package, storage.rebuild_dict(),
+                                            copr_dir=copr_dir)
         db.session.commit()
     except Exception:
         log.exception('can not submit build from webhook')
