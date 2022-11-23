@@ -65,7 +65,7 @@ def get_pubkey(username, projectname, log, outfile=None):
     :raises CoprSignNoKeyError: if there are no such user in keyring
     """
     usermail = create_gpg_email(username, projectname)
-    cmd = [SIGN_BINARY, "-u", usermail, "-p"]
+    cmd = [SIGN_BINARY, "-u", usermail, "-p", "-4"]
 
     returncode, stdout, stderr = call_sign_bin(cmd, log)
     if returncode != 0:
