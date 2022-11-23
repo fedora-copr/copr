@@ -1,4 +1,4 @@
-FROM fedora:37
+FROM registry.fedoraproject.org/fedora:37
 ARG COPR_PACKAGES=devel
 MAINTAINER copr-devel@lists.fedorahosted.org
 ENV container docker
