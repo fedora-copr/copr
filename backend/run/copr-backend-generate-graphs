@@ -7,7 +7,7 @@ graphs.
 
 import argparse
 import json
-import pipes
+import shlex
 import subprocess
 import os
 import dateutil.parser as dp
@@ -53,7 +53,7 @@ def read_compressed_json(filename):
     """
     Read one json.zst file, and return its contents as dict
     """
-    decompress = "zstd -d < {}".format(pipes.quote(filename))
+    decompress = "zstd -d < {}".format(shlex.quote(filename))
     string = subprocess.check_output(decompress, shell=True)
     return json.loads(string)
 
