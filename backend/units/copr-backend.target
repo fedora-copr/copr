@@ -1,7 +1,7 @@
 [Unit]
 Description=Copr Backend service
 After=syslog.target network.target auditd.service
-Requires=copr-backend-log.service copr-backend-build.service copr-backend-action.service
+Requires=copr-backend-log.service copr-backend-build.service copr-backend-action.service redis.service
 Wants=logrotate.timer
 
 [Install]
