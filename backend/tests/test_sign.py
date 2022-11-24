@@ -126,7 +126,7 @@ class TestSign(object):
         result = _sign_one(fake_path, self.usermail, "sha1", MagicMock())
         assert STDOUT, STDERR == result
 
-        expected_cmd = ['/bin/sign', "-h", "sha1", "-u", self.usermail,
+        expected_cmd = ['/bin/sign', "-4", "-h", "sha1", "-u", self.usermail,
                         "-r", fake_path]
         assert mc_popen.call_args[0][0] == expected_cmd
 
