@@ -88,7 +88,7 @@ def get_pubkey(username, projectname, log, outfile=None):
 
 
 def _sign_one(path, email, hashtype, log):
-    cmd = [SIGN_BINARY, "-h", hashtype, "-u", email, "-r", path]
+    cmd = [SIGN_BINARY, "-4", "-h", hashtype, "-u", email, "-r", path]
     returncode, stdout, stderr = call_sign_bin(cmd, log)
     if returncode != 0:
         raise CoprSignError(
