@@ -30,9 +30,6 @@ class BackendBackgroundWorker(BackgroundWorker):
                                               try_indefinitely=True)
 
     def _switch_logger_to_redis(self):
-        if not self.has_wm:
-            return
-
         logger_name = '{}.{}.pid-{}'.format(
             sys.argv[0],
             'managed' if self.args.worker_id else 'manual',
@@ -46,11 +43,6 @@ class BackendBackgroundWorker(BackgroundWorker):
             # print something to stderr as well
             self.log.addHandler(logging.StreamHandler())
 
-    def _daemonized_part(self):
-        # notify WorkerManager first, to minimize race window
-        self._wm_started()
-
+    def preparations_for_manager(self):
         # setup logging early, to have as complete logs as possible
         self._switch_logger_to_redis()
-
-        super()._daemonized_part()
