@@ -137,7 +137,19 @@ class BackgroundWorker:
         # anything else than concurrent run of multiple workers in such case.
         return True
 
+    def preparations_for_manager(self):
+        """
+        Hook called right after creating the worker process (daemonized,
+        if requested) and after successful notification to Manager that
+        worker started.  For manual runs (no --worker-id specified) this
+        hook isn't called at all.
+        """
+
     def _daemonized_part(self):
+        # notify WorkerManager first, to minimize race window
+        self._wm_started()
+        if self.has_wm:
+            self.preparations_for_manager()
         try:
             self.handle_task()
         except Exception as exc:  # pylint: disable=W0703
