@@ -14,7 +14,7 @@ import contextlib
 import datetime
 import logging
 import os
-import pipes
+import shlex
 import shutil
 import subprocess
 import sys
@@ -31,7 +31,7 @@ from copr_backend.createrepo import BatchedCreaterepo
 
 
 def printable_cmd(cmd):
-    return ' '.join([pipes.quote(arg) for arg in cmd])
+    return ' '.join([shlex.quote(arg) for arg in cmd])
 
 
 def arg_parser_subdir_type(subdir):
@@ -175,8 +175,8 @@ def run_createrepo(opts):
         unlink_unsafe(filelist)
         with open(filelist, "wb") as filelist_fd:
             for subdir in opts.add:
-                q_dir = pipes.quote(opts.directory)
-                q_sub = pipes.quote(subdir)
+                q_dir = shlex.quote(opts.directory)
+                q_sub = shlex.quote(subdir)
                 find = 'cd {} && find {} -name "*.rpm"'.format(q_dir, q_sub)
                 opts.log.info("searching for rpms: %s", find)
                 files = subprocess.check_output(find, shell=True)

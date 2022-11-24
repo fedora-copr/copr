@@ -8,7 +8,7 @@ import argparse
 from datetime import datetime
 import json
 import os
-import pipes
+import shlex
 import subprocess
 import time
 
@@ -140,7 +140,7 @@ def _main(arguments):
     # pylint: disable=too-many-locals,too-many-statements,too-many-branches
     resultdir = os.path.normpath(config.destdir)
 
-    command = "du -x " + pipes.quote(resultdir)
+    command = "du -x " + shlex.quote(resultdir)
     if arguments.custom_du_command:
         command = arguments.custom_du_command
 

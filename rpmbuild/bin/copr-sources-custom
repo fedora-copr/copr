@@ -4,7 +4,7 @@ import os
 import subprocess
 import argparse
 import logging
-import pipes
+import shlex
 
 DEFAULT_WORKDIR = '/builddir/copr-sources-custom'
 
@@ -53,7 +53,7 @@ parser.add_argument(
 
 
 def run_cmd(command, **kwargs):
-    log.info("running command: " + ' '.join([pipes.quote(x) for x in command]))
+    log.info("running command: " + ' '.join([shlex.quote(x) for x in command]))
     return subprocess.check_call(command, **kwargs)
 
 
@@ -87,21 +87,21 @@ if __name__ == "__main__":
     prep_dir_template = ' rm -rf {d}; mkdir -p {d}; chown {user} {d};'
     setup_cmd += prep_dir_template.format(
         user=user,
-        d=pipes.quote(workdir),
+        d=shlex.quote(workdir),
     )
 
     run_cmd(mock + ['--chroot', setup_cmd])
 
     if args.hook_payload_file:
-        payload_file_inner = "{0}/hook_payload".format(pipes.quote(workdir))
+        payload_file_inner = "{0}/hook_payload".format(shlex.quote(workdir))
         run_cmd(mock + ['--copyin', args.hook_payload_file.name,
                         os.path.join(workdir, 'hook_payload')])
         run_cmd(mock + ['--shell', 'chmod a+r ' + payload_file_inner])
 
     cmd = 'set -xe ; cd {workdir} ; {env} /script'.format(
-        workdir=pipes.quote(workdir),
-        env='COPR_RESULTDIR=' + pipes.quote(resultdir),
+        workdir=shlex.quote(workdir),
+        env='COPR_RESULTDIR=' + shlex.quote(resultdir),
     )
-    cmd = pipes.quote(cmd)
+    cmd = shlex.quote(cmd)
 
     run_cmd(mock + ['--chroot', 'su - {0} -c {1}'.format(user, cmd)])
