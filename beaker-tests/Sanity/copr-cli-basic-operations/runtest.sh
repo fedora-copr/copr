@@ -485,7 +485,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
 
         # test building for armhfp
-        rlRun "copr-cli create --chroot fedora-$FEDORA_VERSION-armhfp ${NAME_PREFIX}ArmhfpBuild"
+        rlRun "copr-cli create --chroot fedora-36-armhfp ${NAME_PREFIX}ArmhfpBuild"
         rlRun "copr-cli build ${NAME_PREFIX}ArmhfpBuild $HELLO"
     rlPhaseEnd
 
