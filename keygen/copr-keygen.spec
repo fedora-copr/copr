@@ -2,7 +2,7 @@
 %global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
-Version:    1.85
+Version:    1.86
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -177,6 +177,11 @@ systemctl condrestart httpd &>/dev/null || :
 
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.86-1
+- move to GitHub home page
+- logging shouldn't affect stdout
+- add logging for the gpg-copr script
+
 * Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.85-1
 - temporarily disable documentation to avoid FTBFS for F37/Rawhide
 
