@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.103
+Version:    1.104
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.104-1
+- move to GitHub home page
+- add parameter for custom method repos
+
 * Tue Aug 16 2022 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.103-1
 - add packit_forge_projects_allowed for Copr projects
 
