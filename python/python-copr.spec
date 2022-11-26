@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.123
+Version:    1.124
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -244,6 +244,11 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.124-1
+- move to GitHub home page
+- add external repos for custom build
+- don't play with sessions if using ApiToken
+
 * Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.123-1
 - more generic docs for Client initialization
 - add runtime_dependencies param doc for project edit
