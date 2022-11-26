@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.191
+Version:    1.192
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,25 @@ usermod -L copr-fe
 
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.192-1
+- allow arbitrary creation of :pr:<ID> directories
+- custom repositories with custom webhook
+- move to GitHub home page
+- use shlex.quote instead of pipes.quote
+- add route for a new distgit dispatcher
+- expand repos for custom SRPM
+- process external repos for custom build
+- support LDAP groups for Kerberos users
+- add version to the bitbucket webhook tag name
+- loosen the rules of package matching in webhook tags
+- add optional argument pkg_name to webhooks API
+- no delay after large SRPM upload
+- name the import log "import.log" in web-UI
+- show import log to everyone, not just admin
+- log webhook calls
+- cache the queue sizes for one minute
+- log manage.py commands
+
 * Tue Sep 20 2022 Jakub Kadlcik <frostyx@email.cz> 1.191-1
 - show timeout in the build detail page
 - disable Edit button in the project settings when chroot unchecked
