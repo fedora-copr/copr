@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.161
+Version:    1.162
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,21 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.162-1
+- use OpenPGP v4 signatures
+- migrate from pipes to shlex
+- require redis.service to be started
+- move to GitHub home page
+- add resultdir cleaner
+- move dispatcher and background workers to copr-common
+- de-prio IO for the analyze-results script
+- don't traceback when there are no files in the S3 storage
+- allow devel instance to remove access files
+- send non-CDN hitcounter hits in chunks
+- copr-backend-unknown-resalloc-tickets script
+- work with multiple CDN hostnames per instance
+- move setup_script_logger to copr-common
+
 * Mon Sep 26 2022 Pavel Raiskup <praiskup@redhat.com> 1.161-1
 - sign everything EPEL-5+ with sha256 hashalgo
 
