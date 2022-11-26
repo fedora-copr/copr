@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.16.4.dev
+Version:    0.17
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,13 @@ version=%version %py2_install
 
 
 %changelog
+* Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.17-1
+- move to GitHub home page
+- logging shouldn't affect stdout
+- move dispatcher and background workers to copr-common
+- scripts should log also timestamps etc when logging into file
+- move setup_script_logger to copr-common
+
 * Thu Oct 27 2022 Jakub Kadlcik <frostyx@email.cz> - 0.16.2.dev-1
 - Add background_worker.py from backend
 - Add get_redis_connection function
