@@ -1,0 +1,31 @@
+---
+name: Lint Python issues
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-lint-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v3
+
+      - name: VCS Diff Lint
+        uses: fedora-copr/vcs-diff-lint-action@v1
+        with:
+          subdirectories: |
+            backend
+            behave
+            build_aux
+            cli
+            common
+            dist-git
+            frontend
+            keygen
+            messaging
+            python
+            releng
+            rpmbuild
+            selinux
