@@ -219,6 +219,7 @@ def get_srpm_build_record(task, for_backend=False):
         if for_backend:
             return build_record
 
+        repos = (task.source_json_dict.get("repos", "") or "").split()
         build_record.update({
             "source_type": task.source_type,
             "source_json": task.source_json,
@@ -226,10 +227,7 @@ def get_srpm_build_record(task, for_backend=False):
             "project_name": task.copr_name,
             "project_dirname": task.copr_dirname,
             "appstream": bool(task.copr.appstream),
-            "repos": BuildConfigLogic.get_additional_repo_views(
-                task.source_json_dict.get('repos', "").split(),
-                chroot,
-            ),
+            "repos": BuildConfigLogic.get_additional_repo_views(repos, chroot),
         })
 
     except Exception as err:
