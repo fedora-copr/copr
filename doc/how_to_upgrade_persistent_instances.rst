@@ -125,7 +125,7 @@ the cheapest available instance type according to our needs.
 +----------------+-------------+-------------+
 | **keygen**     | 10G         | 20G         |
 +----------------+-------------+-------------+
-| **distgit**    | 20G         | 30G         |
+| **distgit**    | 20G         | 80G         |
 +----------------+-------------+-------------+
 
 - Turn on the ``Encrypted`` option
@@ -142,6 +142,19 @@ the cheapest available instance type according to our needs.
 ..................
 
 Click ``Launch instance`` in the right panel.
+
+
+Backup the current letsencrypt certificates
+-------------------------------------------
+
+The certificates files used on the old set of VMs need to be copy-pasted onto
+the new set of VMs (at least initially, till they are automatically re-newed by
+the certbot daemon).  For this, we need to copy the certificate files to the
+batcave server first.
+
+Copy the certificate files by running the playbooks **against the current (old)
+copr stack** (all machines).  There's the ``-t certbot`` ansible tag that allows
+you to speedup the playbook runs.
 
 
 Pre-prepare the new VM
@@ -235,11 +248,6 @@ Umount data volumes from old instances
    care of that later
 
 .. note::
-   Distgit - Please be aware that production distgit has 3 volumes in
-   total (two of them mounted by label in ansible playbook). This is
-   different from all other instances (including ``copr-dist-git-dev``)
-
-.. note::
    Frontend - On the new instance, it will be probably necessary to manually
    upgrade the database to a new PostgreSQL version. This is our last chance to
    :ref:`Backup the database <database_backup>` before the upgrade. Do it.
@@ -283,9 +291,7 @@ Open Amazon AWS web UI, select ``Volumes`` in the left panel, filter them with
 +----------------+-------------------------+------------------------------+
 | **keygen**     | data-copr-keygen-dev    | data-copr-keygen-prod        |
 +----------------+-------------------------+------------------------------+
-| **distgit**    | data-copr-distgit-dev   | | data-copr-distgit-prod     |
-|                |                         | | data-copr-distgit-log-prod |
-|                |                         | | copr-dist-git-swap         |
+| **distgit**    | data-copr-distgit-dev   | data-copr-distgit-prod       |
 +----------------+-------------------------+------------------------------+
 
 Once it is done, right-click the volume again, and click to ``Attach Volume``
