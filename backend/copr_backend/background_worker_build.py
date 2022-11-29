@@ -18,7 +18,11 @@ from copr_common.enums import StatusEnum
 from copr_backend.background_worker import BackendBackgroundWorker
 from copr_backend.cancellable_thread import CancellableThreadTask
 from copr_backend.constants import build_log_format
-from copr_backend.exceptions import CoprSignError, CoprBackendError
+from copr_backend.exceptions import (
+    CoprSignError,
+    CoprBackendError,
+    FrontendClientException,
+)
 from copr_backend.helpers import (
     call_copr_repo, pkg_name_evr, run_cmd, register_build_result,
 )
@@ -335,11 +339,13 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         else:
             target = "get-build-task/{}-{}".format(self.args.build_id,
                                                    self.args.chroot)
-        resp = self.frontend_client.get(target)
-        if resp.status_code != 200:
-            self.log.error("Failed to download build info, apache code %s",
-                           resp.status_code)
-            raise BackendError("Failed to get the build task {}".format(target))
+
+        try:
+            resp = self.frontend_client.get(target)
+        except FrontendClientException as ex:
+            self.log.error("Failed to download build info: %s", str(ex))
+            msg = "Failed to get the build task {}".format(target)
+            raise BackendError(msg) from ex
 
         self.job = BuildJob(resp.json(), self.opts)
         self.job.started_on = time.time()

@@ -23,7 +23,7 @@ from copr_backend.background_worker_build import (
     BuildBackgroundWorker, MESSAGES, BackendError, _average_step,
 )
 from copr_backend.job import BuildJob
-from copr_backend.exceptions import CoprSignError
+from copr_backend.exceptions import CoprSignError, FrontendClientException
 from copr_backend.vm_alloc import ResallocHost, RemoteHostAllocationTerminated
 from copr_backend.background_worker_build import COMMANDS, MIN_BUILDER_VERSION
 from copr_backend.sshcmd import SSHConnectionError
@@ -636,10 +636,11 @@ def test_fe_failed_start(f_build_rpm_sign_on, caplog):
     worker = config.bw
     job = _get_rpm_job()
     job.status_code = 403
-    config.fe_client.return_value.get.return_value = job
+    config.fe_client.return_value.get.side_effect =\
+        FrontendClientException("Error message from SafeRequest")
     worker.process()
     assert_logs_exist([
-        "Failed to download build info, apache code 403",
+        "Failed to download build info: Error message from SafeRequest",
         "Backend process error: Failed to get the build task"
         " get-build-task/848963-fedora-30-x86_64",
         "No job object from Frontend",
