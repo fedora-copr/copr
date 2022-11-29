@@ -55,7 +55,10 @@ class ImportBackgroundWorker(BackgroundWorker):
         importer.do_import(task)
 
     def handle_task(self):
-        self.handle_import(self.args.build_id)
+        try:
+            self.handle_import(self.args.build_id)
+        finally:
+            self.redis_set_worker_flag("status", "done")
 
 
 if __name__ == "__main__":
