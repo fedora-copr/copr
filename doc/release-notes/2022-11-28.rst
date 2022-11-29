@@ -1,0 +1,102 @@
+.. _release_notes_2022_11_28:
+
+Highlights from 2022-11-28 release
+==================================
+
+Updated client packages are shipped in `Fedora 35`_,
+`Fedora 36`_,  `Fedora 37`_, `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Development moved to GitHub
+---------------------------
+
+The upstream development moved from Pagure back to GitHub:
+
+- Code: https://github.com/fedora-copr/copr
+- Issues: https://github.com/fedora-copr/copr/issues
+- Pull Requests: https://github.com/fedora-copr/copr/pulls
+
+The original Pagure issue tracker, and pull-requests for the
+repository are now read-only. We migrated the existing issues to
+GitHub and preserved matching IDs. However, all issues are opened by a
+bot account, and therefore you won't receive any notifications for
+issues that you submitted to our `Pagure issue tracker`_. Please find
+your issues and click the ``Subscribe`` button on GitHub.
+
+The main motivation was that Pagure workers were very slow for the
+Copr project (e.g. rebasing and merging PRs took ages, and often
+failed).  We also `accumulated many issues over the years`_.
+
+DistGit scheduler
+-----------------
+
+Generally, packages are imported into Copr DistGit almost
+instantly. That's why we made it this far a simple
+First-Come-First-Serve queue without any prioritization, and with very
+basic parallelization. This simple workflow worked from early days. But with increasing popularity of Copr service this started to not be enough.
+In some scenarios (multiple large uploads, mass-rebuilds
+without background priority, etc), Copr DistGit could get overloaded
+and block all users for many hours.
+
+We now deployed the same dispatcher and standalone workers mechanism
+that we've been using for builders on the Copr backend side.  This
+brings an import queue prioritization.  So while even users with huge
+task chunks will be processed, other users (e.g. comming later) will
+get their tasks imported quickly at the same time.
+
+
+Updated aarch64 builders to Graviton3 processors
+------------------------------------------------
+
+Fedora Copr builders are hosted in AWS.  Previously we were running
+them on a1.xlarge instances (4vcpu, 8GB RAM, Graviton processors) -
+`now we are on c7g.xlarge`_. These aarch64 builders should be much
+faster.
+
+
+Notable changes
+---------------
+
+- The Task Queue numbers on the homepage are now cached for one
+  minute, reducing the loading time by up to 0.5s
+- Each build now shows also a link to the ``import.log`` file. This
+  log is helpful for debugging issues when SRPM package is built
+  successfully but then it fails when importing to DistGit
+- Besides user groups from `Fedora Accounts`_, we implemented support
+  for groups from LDAP server. This option won't be enabled for Fedora
+  Copr instance.
+- Custom source builds now can install build-time dependencies from
+  additional external repositories
+- After a decade of service, the copr-backend storage contained many
+  backup, debug, and other miscellaneous untracked files. We added a
+  script that helps with cleaning them up.
+- Packages are now signed with OpenPGP v4 signatures. We tested the
+  signature compatibility on RHEL6+
+
+
+Bugfixes
+--------
+
+- `#2284`_ - Large SRPM uploads shouldn't timeout anymore
+- `#2303`_ - SRPM upload provided misleading information on expired
+  authentication
+- `#2232`_ - SRPM upload sometimes caused the WSGI daemon get stuck
+  with 100% CPU usage. We believe the issue is fixed now
+
+
+
+.. _`Fedora 35`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-1a40ad831a
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-a0d33ac8ff
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2022-9b61235792
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-d42377438b
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-d42ef84c95
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-472a1c1dba
+
+.. _`Pagure issue tracker`: https://pagure.io/copr/copr/issues?status=all
+.. _`Fedora Accounts`: https://accounts.fedoraproject.org/
+.. _`accumulated many issues over the years`: https://pagure.io/pagure/issues?status=all&author=praiskup&close_status=
+.. _`now we are on c7g.xlarge`: https://lists.fedoraproject.org/archives/list/buildsys@lists.fedoraproject.org/thread/VUAOXQ3BNXDZMVFR2PJCBQYWGWOIYMPD/
+
+.. _`#2284`: https://github.com/fedora-copr/copr/issues/2284
+.. _`#2303`: https://github.com/fedora-copr/copr/issues/2303
+.. _`#2232`: https://github.com/fedora-copr/copr/issues/2232
