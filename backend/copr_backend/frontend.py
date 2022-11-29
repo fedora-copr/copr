@@ -8,7 +8,8 @@ import logging
 from copr_common.request import SafeRequest, RequestError
 from copr_backend.exceptions import FrontendClientException
 
-MIN_FE_BE_API = 4
+# The frontend counterpart is in `backend_general:send_frontend_version`
+MIN_FE_BE_API = 5
 
 class FrontendClient:
     """
@@ -75,7 +76,7 @@ class FrontendClient:
             response = request.send(url, method=method, data=data)
             return response
         except RequestError as ex:
-            raise FrontendClientException from ex
+            raise FrontendClientException(str(ex)) from ex
 
     def update(self, data):
         """

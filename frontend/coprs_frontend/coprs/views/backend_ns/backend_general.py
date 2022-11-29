@@ -1,6 +1,4 @@
 import flask
-import sqlalchemy
-
 from copr_common.enums import StatusEnum
 from coprs import db, app
 from coprs import models
@@ -9,7 +7,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
-from coprs.exceptions import MalformedArgumentException, ObjectNotFound
+from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.helpers import streamed_json
 
 from coprs.views import misc
@@ -22,8 +20,9 @@ def send_frontend_version(response):
     This sets the FE <=> BE API version.  We should bump this version anytime we
     do something new with the protocol.  On the Backend/builder side we can
     setup the version according to our needs.
+    For the backend counterpart, see the `MIN_FE_BE_API` constant.
     """
-    response.headers['Copr-FE-BE-API-Version'] = '4'
+    response.headers['Copr-FE-BE-API-Version'] = '5'
     return response
 
 
@@ -268,9 +267,11 @@ def build_task_canceled(task_id):
     was_running = flask.request.json
     if not was_running:
         if '-' in task_id:
-            build_chroot = BuildsLogic.get_build_task(task_id)
-            if build_chroot:
+            try:
+                build_chroot = BuildsLogic.get_build_task(task_id)
                 build_chroot.status = StatusEnum("canceled")
+            except ObjectNotFound:
+                pass
         else:
             build = models.Build.query.filter_by(id=task_id).first()
             if build:
@@ -348,24 +349,19 @@ def pending_jobs():
 def get_build_task(task_id):
     try:
         task = BuildsLogic.get_build_task(task_id)
-    except MalformedArgumentException:
-        jsonout = flask.jsonify({'msg': 'Invalid task ID'})
-        jsonout.status_code = 500
+        build_record = get_build_record(task)
+        return flask.jsonify(build_record)
+    except CoprHttpException as ex:
+        jsonout = flask.jsonify({"msg": str(ex)})
+        jsonout.status_code = ex.code
         return jsonout
-    except sqlalchemy.orm.exc.NoResultFound:
-        jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
-        jsonout.status_code = 404
-        return jsonout
-    build_record = get_build_record(task)
-    return flask.jsonify(build_record)
 
 
 @backend_ns.route("/get-srpm-build-task/<build_id>/")
 @backend_ns.route("/get-srpm-build-task/<build_id>")
 def get_srpm_build_task(build_id):
-    try:
-        task = BuildsLogic.get_srpm_build_task(build_id)
-    except sqlalchemy.orm.exc.NoResultFound:
+    task = BuildsLogic.get_srpm_build_task(build_id)
+    if not task:
         jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
         jsonout.status_code = 404
         return jsonout
