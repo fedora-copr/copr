@@ -1,0 +1,44 @@
+.. _release_notes_2022_11_30:
+
+Highlights from 2022-11-30 release
+==================================
+
+The :ref:`2022-11-28 release <release_notes_2022_11_28>` was
+complicated and introduced more bugs than we expected. This
+mini-release was solely focused on fixing them.
+
+
+Bugfixes
+--------
+
+- `#2407`_ - Copr DistGit failed to import some packages. We believe
+  ``systemd-oomd`` killed the process and left the repository in an
+  inconsistent state
+
+- `#2402`_ - SELinux rejected all SRPM uploads of packages larger than
+  50MB (We have a special case in the code for uploading large SRPM
+  files)
+
+- `#2398`_ - A traceback caused some SRPM builds to hang in the queue
+  for hours and caused also `#2390`_.
+
+- `#2391`_ - DistGit workers didn't mark themselves as finished
+  after importing a package, resulting in a performance drop and
+  seemingly stuck importing queue
+
+- `#2388`_ - Signature check caused ``copr-backend`` to fail on
+  Fedora 36
+
+- `#2393`_ - A deployment-related issue with ``systemd-oomd``
+  unexpectedly killing Copr DistGit services
+
+
+
+.. _`#2407`: https://github.com/fedora-copr/copr/issues/2407
+.. _`#2402`: https://github.com/fedora-copr/copr/issues/2402
+.. _`#2398`: https://github.com/fedora-copr/copr/issues/2398
+.. _`#2392`: https://github.com/fedora-copr/copr/issues/2392
+.. _`#2391`: https://github.com/fedora-copr/copr/issues/2391
+.. _`#2390`: https://github.com/fedora-copr/copr/issues/2390
+.. _`#2388`: https://github.com/fedora-copr/copr/issues/2388
+.. _`#2393`: https://github.com/fedora-copr/copr/issues/2393
