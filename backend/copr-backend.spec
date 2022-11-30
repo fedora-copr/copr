@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.162
+Version:    1.163
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 1.163-1
+- start systemd services after the redis.service
+- build worker - list the built RPMs with rpm --nosignature
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.162-1
 - use OpenPGP v4 signatures
 - migrate from pipes to shlex
