@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.192
+Version:    1.193
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 1.193-1
+- fix get-tasks traceback when repos are not set
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.192-1
 - allow arbitrary creation of :pr:<ID> directories
 - custom repositories with custom webhook
