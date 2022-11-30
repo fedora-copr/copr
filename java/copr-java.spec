@@ -2,7 +2,7 @@ Name:		copr-java
 Version:	0.2
 Release:	1%{?dist}
 Summary:	COPR Java client
-License:	ASL 2.0
+License:	Apache-2.0
 URL:		https://github.com/fedora-copr/copr
 
 # Source is created by

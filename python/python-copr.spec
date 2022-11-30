@@ -13,7 +13,7 @@ Version:    1.124
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:

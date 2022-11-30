@@ -11,7 +11,7 @@ Version:    0.7
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:

@@ -52,7 +52,7 @@ Version:    1.193
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:
