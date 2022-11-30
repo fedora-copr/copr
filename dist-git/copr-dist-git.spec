@@ -1,7 +1,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-dist-git
-Version:    0.58
+Version:    0.59
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 0.59-1
+- start copr-dist-git.service after redis.service
+- background workers mark themselves as done (needed by the manager logic)
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.58-1
 - require redis.service to be started
 - move to GitHub home page
