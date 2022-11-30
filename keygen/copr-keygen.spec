@@ -6,7 +6,7 @@ Version:    1.86
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:

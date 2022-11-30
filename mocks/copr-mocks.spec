@@ -10,7 +10,7 @@ Release: 1%{?dist}
 # rpkg spec --sources
 Source0: {{{ git_dir_archive }}}
 
-License: GPLv2+
+License: GPL-2.0-or-later
 BuildArch: noarch
 BuildRequires: python3-devel
 BuildRequires: systemd-units

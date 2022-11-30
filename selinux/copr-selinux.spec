@@ -14,7 +14,7 @@ Version:    1.54
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/fedora-copr/copr
 
 # Source is created by:

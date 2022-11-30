@@ -25,7 +25,7 @@ Version: 0.62
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
-License: GPLv2+
+License: GPL-2.0-or-later
 
 # Source is created by:
 # git clone %%url && cd copr
