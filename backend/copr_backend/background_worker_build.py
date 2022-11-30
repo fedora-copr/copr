@@ -644,7 +644,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         cmd = (
             "builtin cd {0} && "
             "for f in `ls *.rpm | grep -v \"src.rpm$\"`; do"
-            "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
+            "   rpm --nosignature -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
             "done".format(shlex.quote(job.results_dir))
         )
 
