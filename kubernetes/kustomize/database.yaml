@@ -4,6 +4,8 @@ metadata:
   name: copr-database
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: copr-database
@@ -53,7 +55,7 @@ spec:
                   key: database-name
                   name: copr-database
           volumeMounts:
-            - mountPath: /var/lib/pqsql/data
+            - mountPath: /var/lib/pgsql/data
               name: postgresql-data
       volumes:
         - name: postgresql-data
