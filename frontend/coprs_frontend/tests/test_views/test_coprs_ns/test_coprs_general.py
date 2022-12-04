@@ -1161,7 +1161,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "ownername": "user1",
             "projectname": "test",
             "project_dirnames": ["test"],
-            "appstream": True,
+            "appstream": False,
             "devel": False,
         }
         def _expected(action, chroots):
