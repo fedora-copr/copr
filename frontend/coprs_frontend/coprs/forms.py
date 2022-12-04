@@ -649,7 +649,7 @@ class CoprForm(BaseForm):
             "Generate AppStream metadata",
             description="""Generate AppStream metadata for this project.
             Generating metadata slows down the builds in large Copr projects.""",
-            default=True, false_values=FALSE_VALUES)
+            default=False, false_values=FALSE_VALUES)
 
     packit_forge_projects_allowed = wtforms.TextAreaField(
         "Packit allowed forge projects",

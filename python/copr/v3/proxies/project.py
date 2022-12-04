@@ -71,7 +71,7 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None,
-            fedora_review=None, appstream=True, runtime_dependencies=None, packit_forge_projects_allowed=None):
+            fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None):
         """
         Create a project
 

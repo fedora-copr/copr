@@ -1122,7 +1122,7 @@ def setup_parser():
               "the build itself."))
 
     parser_create.add_argument(
-        "--appstream", choices=["on", "off"], default="on",
+        "--appstream", choices=["on", "off"], default="off",
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
 
@@ -1180,7 +1180,7 @@ def setup_parser():
               "the build itself."))
 
     parser_modify.add_argument(
-        "--appstream", choices=["on", "off"], default="on",
+        "--appstream", choices=["on", "off"], default="off",
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
 
