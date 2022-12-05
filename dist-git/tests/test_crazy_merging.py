@@ -116,7 +116,6 @@ def opts_basic(tmpdir, lookaside):
     opts = _()
     opts.lookaside_location = os.path.join(tmpdir, 'lookaside')
     opts.git_base_url = os.path.join(tmpdir, 'git_repos/%(module)s')
-    opts.cgit_pkg_list_location = os.path.join(tmpdir, 'git_repos/cgit_list')
     opts.git_user_name = os.path.join(tmpdir, 'git_user_name')
     opts.git_user_email = os.path.join(tmpdir, 'git_user_email')
     yield opts

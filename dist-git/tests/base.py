@@ -23,8 +23,6 @@ class Base(object):
 
             "git_base_url": "https://my_git_base_url.org",
             "lookaside_location": self.lookaside_location,
-
-            "cgit_pkg_list_location": self.tmp_dir_name,
             "sleep_time": 10,
             "pool_busy_sleep_time": 0.5,
             "log_dir": self.tmp_dir_name,
