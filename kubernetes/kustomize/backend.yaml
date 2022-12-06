@@ -44,9 +44,6 @@ spec:
             - containerPort: 5002
               protocol: TCP
           volumeMounts:
-            - mountPath: /opt/app-root/etc/nginx.d/copr-be.conf
-              name: copr-backend
-              subPath: nginx.conf
             - mountPath: /var/lib/copr/public_html/results
               name: copr-backend-data
         - image: copr_backend-log:latest
@@ -98,9 +95,6 @@ spec:
             - mountPath: /etc/sign.conf
               name: copr-backend
               subPath: sign.conf
-            - mountPath: /etc/nginx/conf.d/copr-be.conf
-              name: copr-backend
-              subPath: nginx.conf
             - mountPath: /home/copr/.ssh/builder_config
               name: copr-backend
               subPath: builder_config
