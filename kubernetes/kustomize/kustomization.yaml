@@ -36,7 +36,6 @@ configMapGenerator:
   - id_rsa=config/backend/.ssh/id_rsa
   name: copr-resalloc
 - files:
-  - nginx.conf=config/backend/nginx.conf
   - copr-be.conf=config/backend/copr-be.conf
   - builder_config=config/backend/.ssh/builder_config
   - id_rsa=config/backend/.ssh/id_rsa
