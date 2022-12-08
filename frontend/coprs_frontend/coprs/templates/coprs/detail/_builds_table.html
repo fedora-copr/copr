@@ -76,7 +76,12 @@
     {% endif %}
 
   {% else %}
-    {{ no_builds_window() }}
+    {% if copr %}
+      {{ no_builds_window() }}
+    {% else %}
+      {# When displaying batches, there is no `copr` variable #}
+      <p>No builds found</p>
+    {% endif %}
   {% endfor %}
 {% endmacro %}
 
