@@ -19,17 +19,17 @@ spec:
           image: busybox:1.28
           command: [ "sh", "-c", "until nslookup copr-frontend.fedora-copr.svc.cluster.local; do echo waiting for frontend service ; sleep 2; done;" ]
       containers:
-        - image: copr_distgit-httpd:latest
+        - image: copr_distgit:latest
           imagePullPolicy: Always
           name: copr-distgit-httpd
           livenessProbe:
             tcpSocket:
-              port: 80
+              port: 5001
             initialDelaySeconds: 30
             timeoutSeconds: 5
           readinessProbe:
             tcpSocket:
-              port: 80
+              port: 5001
             initialDelaySeconds: 5
             timeoutSeconds: 5
           resources:
@@ -37,11 +37,18 @@ spec:
               cpu: 200m
               memory: 200Mi
           ports:
-            - containerPort: 80
+            - containerPort: 5001
               protocol: TCP
           volumeMounts:
             - mountPath: /var/lib/dist-git
               name: copr-distgit-data
+            - mountPath: /var/lib/copr-dist-git
+              name: logs
+            - mountPath: /var/log/copr-dist-git
+              name: logs
+            - mountPath: /var/log/httpd
+              name: logs
+          command: ["/usr/sbin/httpd", "-DFOREGROUND"]
         - image: copr_distgit:latest
           imagePullPolicy: IfNotPresent
           name: copr-distgit
@@ -55,12 +62,14 @@ spec:
             - mountPath: /etc/copr/copr-dist-git.conf
               name: copr-distgit
               subPath: copr-dist-git.conf
-          command:
-            - /bin/sh
-            - -c
-            - |
-              mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git;
-              exec /usr/sbin/runuser -u root -g packager /usr/bin/importer_runner.py
+            - name: logs
+              mountPath: /var/lib/copr-dist-git
+            - name: logs
+              mountPath: /var/log/copr-dist-git
+            - name: logs
+              mountPath: /var/log/httpd
+            - name: locks
+              mountPath: /var/lock/copr-dist-git
       volumes:
         - name: copr-distgit-data
           persistentVolumeClaim:
@@ -68,6 +77,12 @@ spec:
         - name: copr-distgit
           configMap:
             name: copr-distgit
+        - name: logs
+          persistentVolumeClaim:
+            claimName: copr-distgit-logs
+        - name: locks
+          persistentVolumeClaim:
+            claimName: copr-distgit-locks
 
 ---
 apiVersion: v1
@@ -79,7 +94,7 @@ spec:
     - name: httpd
       port: 5001
       protocol: TCP
-      targetPort: 80
+      targetPort: 5001
   selector:
     component: copr-distgit
   type: ClusterIP
@@ -94,4 +109,28 @@ spec:
   resources:
     requests:
       storage: 10Gi
+  storageClassName: ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-distgit-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+  storageClassName: ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copr-distgit-locks
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10M"
   storageClassName: ssd
