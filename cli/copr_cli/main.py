@@ -633,6 +633,13 @@ class Commands(object):
             cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off', '--no-verbose']
             cmd.extend(['-P', os.path.join(args.dest, chroot.name)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
+
+            if args.rpms:
+                cmd.extend(["-A", "*.rpm"])
+
+            if args.spec:
+                cmd.extend(["-A", "*.spec"])
+
             cmd.append(chroot.result_url)
             subprocess.call(cmd)
 
@@ -1429,6 +1436,18 @@ def setup_parser():
                                        help="Select chroots to fetch")
     parser_download_build.add_argument("--dest", "-d", dest="dest",
                                        help="Base directory to store packages", default=".")
+    parser_download_build.add_argument(
+        "--rpms",
+        dest="rpms",
+        action="store_true",
+        help="Download only built RPM packages",
+    )
+    parser_download_build.add_argument(
+        "--spec",
+        dest="spec",
+        action="store_true",
+        help="Download only the .spec file",
+    )
     parser_download_build.set_defaults(func="action_download_build")
 
     # create the parser for the "cancel" command
