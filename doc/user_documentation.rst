@@ -246,7 +246,7 @@ Custom webhook
 How to use it:
 Use the GitLab/GitHub/Bitbucket steps above (when needed), or simply::
 
-    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom/<ID>/<UUID>/<PACKAGE_NAME>/
+    $ curl -H "Content-Type: application/json" --data '{}' -X POST https://copr.fedorainfracloud.org/webhooks/custom/<ID>/<UUID>/<PACKAGE_NAME>/
 
 Note that the package of name 'PACKAGE_NAME' must exist within this project, and that the 'POST' http method must be specified.
 
@@ -261,8 +261,8 @@ needs in the custom script.
 
 There's an advanced possibility to call the custom webhook like::
 
-    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:custom:<SUFFIX>/<UUID>/<PACKAGE_NAME>/
-    $ curl -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:pr:<INT_UID>/<UUID>/<PACKAGE_NAME>/
+    $ curl -H "Content-Type: application/json" --data '{}' -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:custom:<SUFFIX>/<UUID>/<PACKAGE_NAME>/
+    $ curl -H "Content-Type: application/json" --data '{}' -X POST https://copr.fedorainfracloud.org/webhooks/custom-dir/<OWNER>/<PROJECTNAME>:pr:<INT_UID>/<UUID>/<PACKAGE_NAME>/
 
 This way, the build is placed into a custom directory (e.g.
 ``myproject:custom:pull-request:1`` or ``myproject:pr:123``).  The ``:pr:``
