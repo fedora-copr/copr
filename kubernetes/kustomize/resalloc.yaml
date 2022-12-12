@@ -58,10 +58,18 @@ spec:
             - mountPath: /root/.ssh/id_rsa-ro
               name: copr-resalloc
               subPath: id_rsa
+            - name: resalloc-data
+              mountPath: /var/lib/resallocserver
+            - name: resalloc-data
+              mountPath: /var/log/resallocserver
       volumes:
         - name: copr-resalloc
           configMap:
             name: copr-resalloc
+        - name: resalloc-data
+          persistentVolumeClaim:
+            claimName: resalloc-data
+
 ---
 apiVersion: v1
 kind: Service
@@ -76,3 +84,15 @@ spec:
   selector:
     component: copr-resalloc
   type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resalloc-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ssd
