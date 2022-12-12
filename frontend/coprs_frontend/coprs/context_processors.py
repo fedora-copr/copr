@@ -2,10 +2,8 @@ import os
 import flask
 
 from coprs import app
+from coprs.constants import BANNER_LOCATION
 from coprs.helpers import current_url
-
-
-BANNER_LOCATION = "/var/lib/copr/banner-include.html"
 
 
 @app.context_processor

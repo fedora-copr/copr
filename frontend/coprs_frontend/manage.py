@@ -40,6 +40,7 @@ import commands.clean_old_builds
 import commands.delete_orphans
 import commands.fixup_unnoticed_chroots
 import commands.chroots_template
+import commands.warning_banner
 
 from coprs import app
 
@@ -90,6 +91,7 @@ commands_list =	[
     "clean_old_builds",
     "delete_orphans",
     "delete_dirs",
+    "warning_banner",
 ]
 
 
