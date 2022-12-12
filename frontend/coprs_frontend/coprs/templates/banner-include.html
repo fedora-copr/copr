@@ -1,0 +1,16 @@
+<div class="alert alert-danger" role="alert">
+    {% if outage_time %}
+        <b>Warning!</b> Scheduled outage of Copr servers - {{ outage_time }}.
+    {% endif %}
+    {% if ticket %}
+        For more information please refer to
+        <a href="https://pagure.io/fedora-infrastructure/issue/{{ ticket }}">this ticket</a>.
+    {% endif %}
+    <!--
+    Possible rest of short html code. Something like:
+    "Check <a href="#" class="alert-link">this document</a> for details."
+    -->
+    {% if rest %}
+        {{ rest }}
+    {%  endif %}
+</div>
