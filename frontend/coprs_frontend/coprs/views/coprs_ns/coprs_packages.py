@@ -74,7 +74,13 @@ def copr_package_icon(copr, package_name):
     except ObjectNotFound:
         return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
-    return send_build_icon(package.last_build(), no_cache=True)
+    # This is a bit hacky for a single-package usage but this is how we list the
+    # latest CoprDir-specific package builds in the package table and in APIv3,
+    # so at least we know it works.
+    package = PackagesLogic.get_packages_with_latest_builds_for_dir(
+        copr.main_dir, packages=[package])[0]
+
+    return send_build_icon(package.latest_build, no_cache=True)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
