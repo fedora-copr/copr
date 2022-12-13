@@ -4,6 +4,8 @@ metadata:
   name: copr-resalloc
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       component: copr-resalloc
