@@ -56,6 +56,7 @@ def cli_monitor_action(commands, args):
 
     data = commands.client.monitor_proxy.monitor(
         ownername=ownername, projectname=projectname,
+        project_dirname=args.dirname,
         additional_fields=requested_fields,
     )
 
