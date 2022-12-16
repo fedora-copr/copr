@@ -10,6 +10,15 @@ good to know what's ahead.
 Keep amending this page if you find something not matching reality or expectations.
 
 
+Create warning banner about release
+-----------------------------------
+
+
+Use script in frontend's ``manage.py`` to announce an outage::
+
+    ./manage.py warning-banner --outage_time "2022-12-31 13:00-16:00 UTC" --ticket 1234
+
+
 Pre-release
 -----------
 
@@ -421,6 +430,11 @@ It is often good idea to put new (filtered) ``%changelogs`` entries there.
 
 Final steps
 ...........
+
+Remove the warning banner from frontend page by::
+
+    ./manage.py warning-banner --remove
+
 
 Check if the `MODIFIED bugs <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&classification=Community&list_id=4678039&product=Copr&query_format=advanced>`_
 (that are not ON_QA) are fixed in released Copr or not, move them ON_QA.
