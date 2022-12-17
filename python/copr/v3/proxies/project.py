@@ -91,8 +91,8 @@ class ProjectProxy(BaseProxy):
             argument and/or the 'bootstrap_image'.
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
-        :param bool module_hotfixes: make packages from this project available
-                                     on along with packages from the active module streams.
+        :param bool module_hotfixes: allow packages from this project to
+                                     override packages from active module streams.
         :param str bootstrap: Mock bootstrap feature setup.
             Possible values are 'default', 'on', 'off', 'image'.
         :param str bootstrap_image: Name of the container image to initialize
@@ -174,8 +174,8 @@ class ProjectProxy(BaseProxy):
             argument and/or the 'bootstrap_image'.
         :param bool devel_mode: if createrepo should run automatically
         :param int delete_after_days: delete the project after the specfied period of time
-        :param bool module_hotfixes: make packages from this project available
-                                     on along with packages from the active module streams.
+        :param bool module_hotfixes: allow packages from this project to
+                                     override packages from active module streams.
         :param str bootstrap: Mock bootstrap feature setup.
             Possible values are 'default', 'on', 'off', 'image'.
         :param str isolation: Mock isolation feature setup.
