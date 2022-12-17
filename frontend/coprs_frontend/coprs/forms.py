@@ -632,9 +632,8 @@ class CoprForm(BaseForm):
 
     module_hotfixes = wtforms.BooleanField(
             "This repository contains module hotfixes",
-            description="""This will make packages from this project
-            available on along with packages from the active module
-            streams.""",
+            description="""This will allow packages from this project to
+            override packages from active module streams.""",
             default=False, false_values=FALSE_VALUES)
 
     fedora_review = wtforms.BooleanField(

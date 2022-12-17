@@ -1104,9 +1104,10 @@ def setup_parser():
 
     parser_create.add_argument("--delete-after-days", default=None, metavar='DAYS',
                                help="Delete the project after the specfied period of time")
-    parser_create.add_argument("--module-hotfixes", choices=["on", "off"], default="off",
-                               help=("make packages from this project available "
-                                     "on along with packages from the active module streams."))
+    parser_create.add_argument(
+        "--module-hotfixes", choices=["on", "off"], default="off",
+        help=("Allow packages from this project to override packages from "
+              "active module streams."))
     parser_create.add_argument(
         "--multilib", choices=["on", "off"], default="off",
         help=("When users enable this copr repository on 64bit variant of "
@@ -1162,9 +1163,10 @@ def setup_parser():
                                help=("Delete the project after the specfied "
                                      "period of time, empty or -1 disables, "
                                      "(default is \"don't change\")"))
-    parser_modify.add_argument("--module-hotfixes", choices=["on", "off"],
-                               help=("make packages from this project available "
-                                     "on along with packages from the active module streams."))
+    parser_modify.add_argument(
+        "--module-hotfixes", choices=["on", "off"],
+        help=("Allow packages from this project to override packages from "
+              "active module streams."))
     parser_modify.add_argument(
         "--multilib", choices=["on", "off"],
         help=("When users enable this copr repository on 64bit variant of "
