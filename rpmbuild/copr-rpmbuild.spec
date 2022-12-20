@@ -47,6 +47,7 @@ BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
 BuildRequires: %{python_pfx}-simplejson
+BuildRequires: %{python}-backoff
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires: argparse-manpage

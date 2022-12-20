@@ -1,5 +1,6 @@
 import os
 from copr_common.enums import BuildSourceEnum
+import backoff
 from copr_rpmbuild.providers.base import Provider
 from copr_rpmbuild.helpers import macros_for_task
 from . import TestCase
@@ -50,3 +51,25 @@ class TestProvider(TestCase):
         ws = self.config.get("main", "workspace")
         provider = Provider(self.source_json, self.config)
         assert os.path.join(ws, "workdir-") in provider.workdir
+
+    @staticmethod
+    def test_retry_package():
+        def no_wait_gen():
+            while True:
+                yield 0
+
+        count_to_pass = 3
+
+        @backoff.on_exception(
+            wait_gen=no_wait_gen, exception=RuntimeError, max_tries=3, jitter=None
+        )
+        def dummy_func(some_arg):
+            nonlocal count_to_pass
+
+            count_to_pass -= 1
+            if count_to_pass > 0:
+                raise RuntimeError("Throwing an exc")
+
+            return some_arg
+
+        assert dummy_func(2) == 2

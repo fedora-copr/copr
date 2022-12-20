@@ -10,6 +10,8 @@ import datetime
 import shlex
 from threading import Timer
 from collections import OrderedDict
+
+import backoff
 import rpm
 import munch
 
@@ -268,6 +270,10 @@ def git_clone_url_basepath(clone_url):
         return last_part[:-4]
     return last_part
 
+
+@backoff.on_exception(
+    wait_gen=backoff.expo, exception=RuntimeError, max_time=300, jitter=None
+)
 def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
     """
     Clone given URL (SCM_TYPE=svn/git) into REPO_PATH, and checkout the
