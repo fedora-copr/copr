@@ -116,7 +116,8 @@ class PyPIPackage(object):
     def __init__(self, source_json):
         self.name = source_json['pypi_package_name'].lower()
         self.python_versions = source_json['python_versions']
-        self.spec_template = source_json['spec_template']
+        self.spec_template = source_json.get('spec_template')
+        self.spec_generator = source_json.get("spec_generator")
 
     def build(self, copr, new_updated_version):
         return BuildsLogic.create_new_from_pypi(
@@ -124,7 +125,7 @@ class PyPIPackage(object):
             copr,
             self.name,
             new_updated_version,
-            "pyp2rpm",
+            self.spec_generator,
             self.spec_template,
             self.python_versions,
             chroot_names=None
