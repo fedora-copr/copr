@@ -13,6 +13,7 @@ gpg: /usr/bin/gpg-copr
 allowuser: $(id -u)
 # we can't open a privileged (for the remote keygen server)
 allow-unprivileged-ports: true
+gnupghome: /var/lib/copr-keygen/gnupg/
 EOF
 
 # In case the volume is empty.
