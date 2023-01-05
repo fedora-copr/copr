@@ -30,7 +30,7 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts, chroot_dir, devel
                                 "/tmp/copr_check_signed_rpms.log")
     try:
         sign_rpms_in_dir(user, project, pkg_dir, chroot_dir, opts, log=logger)
-        log.info("running createrepo for {}".format(pkg_dir))
+        log.info("running createrepo for %s", pkg_dir)
         call_copr_repo(directory=chroot_dir, devel=devel, logger=log)
     except Exception as err:
         success = False
@@ -53,7 +53,7 @@ def check_signed_rpms(project_dir, user, project, opts, devel):
         if not os.path.isdir(chroot_path):
             continue
 
-        log.debug("> Checking chroot `{}` in dir `{}`".format(chroot, project_dir))
+        log.debug("> Checking chroot `%s` in dir `%s`", chroot, project_dir)
 
         for mb_pkg in os.listdir(chroot_path):
             if mb_pkg in ["repodata", "devel"]:
@@ -62,7 +62,7 @@ def check_signed_rpms(project_dir, user, project, opts, devel):
             if not os.path.isdir(mb_pkg_path):
                 continue
 
-            log.debug(">> Stepping into package: {}".format(mb_pkg_path))
+            log.debug(">> Stepping into package: %s", mb_pkg_path)
 
             if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project,
                                                 opts, chroot_path,
@@ -77,10 +77,10 @@ def check_pubkey(pubkey_path, user, project, opts):
     Ensure that pubkey.gpg presented in project/dir
     """
     if os.path.exists(pubkey_path):
-        log.info("Pubkey for {}/{} exists: {}".format(user, project, pubkey_path))
+        log.info("Pubkey for %s/%s exists: %s", user, project, pubkey_path)
         return True
     else:
-        log.info("Missing pubkey for {}/{}".format(user, project))
+        log.info("Missing pubkey for %s/%s", user, project)
         try:
             get_pubkey(user, project, log, pubkey_path)
             return True
@@ -100,27 +100,27 @@ def main():
         log.debug("error during read old users done")
 
     opts = BackendConfigReader().read()
-    log.info("Starting pubkey fill, destdir: {}".format(opts.destdir))
+    log.info("Starting pubkey fill, destdir: %s", opts.destdir)
 
-    log.debug("list dir: {}".format(os.listdir(opts.destdir)))
+    log.debug("list dir: %s", os.listdir(opts.destdir))
     for user_name in os.listdir(opts.destdir):
         if user_name in users_done_old:
-            log.info("skipping user: {}".format(user_name))
+            log.info("skipping user: %s", user_name)
             continue
 
         failed = False
-        log.info("Started processing user dir: {}".format(user_name))
+        log.info("Started processing user dir: %s", user_name)
         user_dir = os.path.join(opts.destdir, user_name)
 
         for project_name in os.listdir(user_dir):
-            log.info("Checking project dir: {}".format(project_name))
+            log.info("Checking project dir: %s", project_name)
 
             try:
                 get_pubkey(user_name, project_name, log)
-                log.info("Key-pair exists for {}/{}".format(user_name, project_name))
+                log.info("Key-pair exists for %s/%s", user_name, project_name)
             except CoprSignNoKeyError:
                 create_user_keys(user_name, project_name, opts)
-                log.info("Created new key-pair for {}/{}".format(user_name, project_name))
+                log.info("Created new key-pair for %s/%s", user_name, project_name)
             except Exception as err:
                 log.error("Failed to get pubkey for {}/{}, mark as failed, skipping")
                 log.exception(err)

@@ -123,8 +123,8 @@ class Createrepo(Action):
         done_count = 0
         for project_dirname in project_dirnames:
             for chroot in chroots:
-                self.log.info("Creating repo for: {}/{}/{}"
-                              .format(ownername, project_dirname, chroot))
+                self.log.info("Creating repo for: %s/%s/%s",
+                              ownername, project_dirname, chroot)
                 repo = os.path.join(self.destdir, ownername,
                                     project_dirname, chroot)
                 try:
@@ -290,7 +290,7 @@ class DeleteProject(Delete):
                 continue
             path = os.path.join(self.destdir, ownername, dirname)
             if os.path.exists(path):
-                self.log.info("Removing copr dir {}".format(path))
+                self.log.info("Removing copr dir %s", path)
                 shutil.rmtree(path)
         return result
 

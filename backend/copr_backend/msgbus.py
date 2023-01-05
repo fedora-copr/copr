@@ -264,8 +264,8 @@ class MsgBusStomp(MsgBus):
         cacert = getattr(self.opts, 'cacert', None)
 
         if (ssl_key, ssl_crt, cacert) != (None, None, None):
-            self.log.debug("ssl: key = {0}, crt = {1}, cacert = {2}".format(
-                ssl_key, ssl_crt, cacert))
+            self.log.debug("ssl: key = %s, crt = %s, cacert = %s",
+                ssl_key, ssl_crt, cacert)
 
             self.conn.set_ssl(
                 for_hosts=hosts,

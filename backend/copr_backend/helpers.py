@@ -59,10 +59,10 @@ def pyconffile(filename):
 
 
 def cmd_debug(cmd, rc, out, err, log):
-    log.info("cmd: {}".format(cmd))
-    log.info("rc: {}".format(rc))
-    log.info("stdout: {}".format(out))
-    log.info("stderr: {}".format(err))
+    log.info("cmd: %s", cmd)
+    log.info("rc: %s", rc)
+    log.info("stdout: %s", out)
+    log.info("stderr: %s", err)
 
 
 class CommandException(Exception):
@@ -165,7 +165,7 @@ def wait_log(log, reason="I don't know why.", timeout=5):
     """
     if not log:
         return
-    log.warning("I'm waiting {0}s because: {1}".format(timeout, reason))
+    log.warning("I'm waiting %ss because: %s", timeout, reason)
     time.sleep(timeout)
 
 
