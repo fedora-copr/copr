@@ -739,7 +739,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self.job.update(build_details)
             self.job.validate()
             self._add_pubkey()
-        except:
+        except Exception as ex:
+            self.log.error("Build failed: %s", ex)
             failed = True
             raise
         finally:
