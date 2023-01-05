@@ -172,10 +172,10 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
         try:
             _sign_one(rpm, create_gpg_email(username, projectname),
                       hashtype, log)
-            log.info("signed rpm: {}".format(rpm))
+            log.info("signed rpm: %s", rpm)
 
         except CoprSignError as e:
-            log.exception("failed to sign rpm: {}".format(rpm))
+            log.exception("failed to sign rpm: %s", rpm)
             errors.append((rpm, e))
 
     if errors:
@@ -254,10 +254,10 @@ def unsign_rpms_in_dir(path, opts, log):
     for rpm in rpm_list:
         try:
             _unsign_one(rpm)
-            log.info("unsigned rpm: {}".format(rpm))
+            log.info("unsigned rpm: %s", rpm)
 
         except CoprSignError as e:
-            log.exception("failed to unsign rpm: {}".format(rpm))
+            log.exception("failed to unsign rpm: %s", rpm)
             errors.append((rpm, e))
 
     if errors:

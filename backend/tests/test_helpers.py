@@ -39,7 +39,7 @@ class TestHelpers(object):
         try:
             raise BackendError("foobar")
         except Exception as err:
-            log.exception("error occurred: {}".format(err))
+            log.exception("error occurred: %s", err)
 
         (_, raw_message) = self.rc.blpop([LOG_REDIS_FIFO])
         data = json.loads(raw_message)
