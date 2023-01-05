@@ -37,7 +37,9 @@ Attaching volume
 ----------------
 
 1. attach the volumes in AWS EC2
-2. start raid and volume group: ``mdadm --assemble --scan``
+2. start raid and volume group ``mdadm --assemble --scan``.  In case the
+   ``--assemble --scan`` doesn't reconstruct the array, it is OK to add the
+   volumes manually ``mdadm /dev/md127 --add /dev/nvme2n1p1``.
 3. mount the ``/dev/disk/by-label/copr-data`` volume
 
 There's a `ansible configuration`_ for this, and `list of volumes`_.
