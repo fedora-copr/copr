@@ -1,7 +1,7 @@
 import os
 import logging
 
-from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import urlparse, unquote
 
 from copr_rpmbuild.providers.base import Provider
 
@@ -21,7 +21,7 @@ class UrlProvider(Provider):
         return path
 
     def download_srpm(self):
-        basename = os.path.basename(self.parsed_url.path)
+        basename = unquote(os.path.basename(self.parsed_url.path))
         filename = os.path.join(self.resultdir, basename)
         response = self.request.get(self.url, stream=True)
         if response.status_code != 200:
