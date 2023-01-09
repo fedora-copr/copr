@@ -17,7 +17,7 @@ try:
 except ImportError:
     JSONDecodeError = Exception
 
-from copr_common.request import SafeRequest
+from copr_common.request import SafeRequest, RequestError
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.automation import run_automation_tools
@@ -132,6 +132,9 @@ def main():
             action = build_rpm
 
         action(args, config)
+    except RequestError as ex:
+        log.error("Network error: %s", ex)
+        sys.exit(1)
     except RuntimeError as e:
         log.error("Copr build error: %s", e)
         sys.exit(1)
