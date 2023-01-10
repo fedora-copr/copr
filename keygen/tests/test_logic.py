@@ -1,3 +1,5 @@
+# pylint: disable=no-self-use
+
 from unittest import TestCase
 import tempfile
 import shutil
@@ -181,3 +183,16 @@ class TestGenKey(TestCase):
                 logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
 
             assert not popen.called
+
+    def test_validate_name_email(self, _popen, _user_exists):
+        assert logic.validate_name_email("frostyx#foo@copr.fedorahosted.org")
+        assert logic.validate_name_email("@copr#foo@copr.fedorahosted.org")
+        assert logic.validate_name_email("@db-sig#foo@copr.fedorahosted.org")
+
+        assert not logic.validate_name_email("foo")
+        assert not logic.validate_name_email("user#invalid-email")
+        assert not logic.validate_name_email("@copr#copr.fedorahosted.org")
+        assert not logic.validate_name_email("@copr#copr.fedorahosted.org")
+        assert not logic.validate_name_email("user#foo@@copr.fedorahosted.org")
+        assert not logic.validate_name_email("@c&pr#foo@copr.fedorahosted.org")
+        assert not logic.validate_name_email("user#foo@copr.#!&:.org")

@@ -25,7 +25,7 @@ def test_ping():
 
 json_data = json.dumps({
     "name_real": "foo_bar",
-    "name_email": "foo_bar@example.com"
+    "name_email": "foo#bar@example.com"
 })
 json_data_missing_email = json.dumps({"name_real": "foo_bar"})
 json_data_missing_name = json.dumps({"name_email": "foo_bar@example.com"})
