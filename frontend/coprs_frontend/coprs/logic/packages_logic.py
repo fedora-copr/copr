@@ -1,5 +1,4 @@
 import json
-import re
 from typing import List, Optional
 
 from sqlalchemy import bindparam, Integer, func
@@ -136,7 +135,7 @@ class PackagesLogic(object):
     def get_for_webhook_rebuild(
         cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref, pkg_name: Optional[str]
     ) -> List[Package]:
-        clone_url_stripped = re.sub(r'(\.git)?/*$', '', clone_url)
+        clone_url_stripped = clone_url.rstrip(".git")
 
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
@@ -148,7 +147,7 @@ class PackagesLogic(object):
         result = []
         for package in packages:
             package_clone_url = package.source_json_dict.get('clone_url', '')
-            package_clone_url_stripped = re.sub(r'(\.git)?/*$', '', package_clone_url)
+            package_clone_url_stripped = package_clone_url.rstrip(".git")
 
             if package_clone_url_stripped != clone_url_stripped:
                 continue
