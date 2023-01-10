@@ -29,9 +29,6 @@ python-copr-common | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/co
 
 [//]: # (Please generate this table by ./build_aux/generate-build-status-table)
 
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/fedora-copr/copr.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fedora-copr/copr/context:python)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/fedora-copr/copr.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fedora-copr/copr/alerts/)
-
 ## Local Testing Environment
 You can use [Docker](https://docs.docker.com/) to run your local test environment. You need to install `docker-compose` tool for this to work.
 
