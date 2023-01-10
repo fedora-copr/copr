@@ -1,5 +1,6 @@
 import traceback
 import os
+import re
 import logging
 
 from subprocess import PIPE, Popen
@@ -35,6 +36,34 @@ def ensure_passphrase_exist(app, name_email):
                 create()
     except IOError:
         create()
+
+
+def validate_name_email(name_email):
+    """
+    We read get a value from clients, that looks like this
+        frostyx#foo@copr.fedorahosted.org
+        @copr#foo@copr.fedorahosted.org
+    This function returns `True` if the `name_value` is in an expected format.
+    """
+
+    if not "#" in name_email:
+        return False
+
+    name, email = name_email.lstrip("@").split("#", 1)
+    if not re.match(r"^[\w.-]+$", name):
+        return False
+
+    # This obviously doesn't validate the correct email format. The regex for
+    # validating email is too hardcore (see `wtforms.validators.Email`) and we
+    # don't care anyway. We only want to make sure that no ilegal characters
+    # were used.
+    if not re.match(r"^[\w.-@]+$", email):
+        return False
+
+    if not email.count("@") == 1:
+        return False
+
+    return True
 
 
 def user_exists(app, mail):

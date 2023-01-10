@@ -47,7 +47,14 @@ if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
 # end setup logger
 
 
-from .logic import create_new_key, user_exists, get_passphrase_location
+# We have some circular imports and I don't want to deal with them right now
+# pylint: disable=wrong-import-position
+from copr_keygen.logic import (
+    create_new_key,
+    user_exists,
+    get_passphrase_location,
+    validate_name_email,
+)
 
 
 @app.route('/ping')
@@ -108,6 +115,10 @@ def gen_key():
                                   "parameter `name_real`".format(query))
 
     name_email = query["name_email"]
+    if not validate_name_email(name_email):
+        error = "Invalid `name_email` value: {0}".format(query)
+        app.logger.error(error)
+        raise BadRequestException(error)
 
     with file_lock(get_passphrase_location(app, name_email) + ".lock"):
         if user_exists(app, name_email):
