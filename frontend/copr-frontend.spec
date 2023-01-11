@@ -92,7 +92,6 @@ BuildRequires: python3-flask-caching
 BuildRequires: python3-flask-cache
 %endif
 BuildRequires: python3-flask-openid
-BuildRequires: python3-flask-restful
 BuildRequires: python3-flask-sqlalchemy
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-flask-wtf
@@ -150,7 +149,6 @@ Requires: python3-flask-caching
 Requires: python3-flask-cache
 %endif
 Requires: python3-flask-openid
-Requires: python3-flask-restful
 Requires: python3-flask-sqlalchemy
 Requires: python3-flask-whooshee
 Requires: python3-flask-wtf
