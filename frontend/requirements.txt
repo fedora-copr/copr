@@ -13,13 +13,11 @@ pydns # pyLibravatar uses this
 python-dateutil
 netaddr
 alembic
-flask-restful
 marshmallow
 redis
 python-openid-teams
 requests
 psycopg2
-# flask-restful-swagger # -- nice to have, but probably later
 decorator
 flexmock
 mock
