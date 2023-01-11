@@ -1,6 +1,6 @@
 import flask
 from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.exceptions import ObjectNotFound, InvalidForm
 from coprs import db, forms
@@ -25,7 +25,7 @@ def to_dict(project_chroot):
         "comps_name": project_chroot.comps_name,
         "additional_repos": project_chroot.repos_list,
         "additional_packages": project_chroot.buildroot_pkgs_list,
-        "additional_modules": str_to_list(project_chroot.module_toggle),
+        "additional_modules": str_to_list(project_chroot.module_toggle, ", "),
         "with_opts": str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
         "delete_after_days": project_chroot.delete_after_days,
@@ -40,7 +40,7 @@ def to_build_config_dict(project_chroot):
         "repos": config["repos"],
         "additional_repos": BuildConfigLogic.generate_additional_repos(project_chroot),
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
-        "additional_modules": str_to_list(project_chroot.module_toggle),
+        "additional_modules": project_chroot.module_toggle,
         "enable_net": project_chroot.copr.enable_net,
         "with_opts":  str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
@@ -52,19 +52,12 @@ def to_build_config_dict(project_chroot):
     return config_dict
 
 
-def rename_fields(input):
-    replace = {
+def rename_fields(input_dict):
+    return rename_fields_helper(input_dict, {
         "additional_repos": "repos",
         "additional_packages": "buildroot_pkgs",
         "additional_modules": "module_toggle",
-    }
-    output = input.copy()
-    for from_name, to_name in replace.items():
-        if from_name not in output:
-            continue
-        output[to_name] = output.pop(from_name)
-    return output
-
+    })
 
 @apiv3_ns.route("/project-chroot", methods=GET)
 @query_params()
@@ -90,7 +83,7 @@ def get_build_config(ownername, projectname, chrootname):
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
-    data = rename_fields(get_form_compatible_data())
+    data = rename_fields(get_form_compatible_data(preserve=["additional_modules"]))
     form = forms.ModifyChrootForm(data, meta={'csrf': False})
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 

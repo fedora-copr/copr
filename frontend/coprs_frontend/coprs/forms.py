@@ -1416,6 +1416,54 @@ class PagureIntegrationForm(BaseForm):
             self.repo_url.data = repo_url
 
 
+class AbstractSeparatedListField(wtforms.Field):
+    """
+    For API queries (uploaded JSONs), we prefer sending data as list() over
+    comma/space separated string of string items.  In Web-UI though, we prefer
+    sending comma-separated strings (easier to specify in the available UI
+    widgets, ie text-area or normal input).
+
+    Though WTForms accepts just MultiDict for both string and list variants.
+    The string-variant is just specified as one key-value pair, while lists have
+    multiple key-value pairs with multiple different values, for example
+    [("foo", "val1"), ("foo", "val2")].
+
+    We typically want to work with string representation, because it is easier
+    to store in DB.  So the task of this custom Field class is to transform the
+    possible list representation into a XYZ-separated string.
+    """
+
+    # boilerplate stuff for the web-UI rendering
+    widget = wtforms.widgets.TextInput()
+    def _value(self):
+        return ', '.join(self.data or [])
+
+    def process_formdata(self, valuelist: list):
+        """
+        Fill the self.data string appropriately
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.data = self.transform(valuelist)
+
+    def transform(self, valuelist: list) -> str:
+        """
+        Transform the input array into a string of preferred format. Override.
+        """
+        raise NotImplementedError
+
+
+class CommaSeparatedListField(AbstractSeparatedListField):
+    """
+    Accept list of values, or (", ")-separated strings like "a, b, c".
+    """
+    def transform(self, valuelist: list) -> str:
+        """
+        Just do [a, b] => "a, b".  Note that we don't explicitly refuse inputs
+        like ["a, b", "c"], they should work "by accident".
+        """
+        return ", ".join(valuelist)
+
+
 class ChrootForm(BaseForm):
 
     """
@@ -1432,10 +1480,11 @@ class ChrootForm(BaseForm):
 
     comps = FileField("comps_xml")
 
-    module_toggle = wtforms.StringField("Modules",
-                                        validators=[ModuleEnableNameValidator()],
-                                        filters=[StringWhiteCharactersFilter()]
-                                        )
+    module_toggle = CommaSeparatedListField(
+        "Modules",
+        filters=[StringWhiteCharactersFilter()],
+        validators=[ModuleEnableNameValidator()],
+    )
 
     with_opts = wtforms.StringField("With options")
     without_opts = wtforms.StringField("Without options")

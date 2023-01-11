@@ -58,7 +58,9 @@ class ProjectChrootProxy(BaseProxy):
         :param str chrootname:
         :param list additional_packages: buildroot packages for the chroot
         :param list additional_repos: buildroot additional additional_repos
-        :param list additional_modules: additional modules for the chroot
+        :param list additional_modules: list of modules that will be enabled or
+            disabled in the given chroot,
+            e.g. ['module1:stream', '!module2:stream'].
         :param str comps: file path to the comps.xml file
         :param bool delete_comps: if True, current comps.xml will be removed
         :param list with_opts: Mock --with option
