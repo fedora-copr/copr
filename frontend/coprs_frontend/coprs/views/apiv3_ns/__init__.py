@@ -4,7 +4,7 @@ import wtforms
 import sqlalchemy
 import inspect
 from functools import wraps
-from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from coprs import app
@@ -281,13 +281,18 @@ def streamed_json_array_response(array_or_generator, message, field="data"):
     return streamed_json(array_or_generator, start_string, "]}")
 
 
-def str_to_list(value):
+def str_to_list(value, separator=None):
     """
     We have a lot of module attributes that are stored as space-separeted
     strings, their default value is `None` and we want to return them as lists.
     It's tiresome to always check if the value is not `None` before splitting.
     """
-    return (value or "").split()
+    if not value:
+        # Be careful:
+        # "".split() == []
+        # "".split(", ") == [""]
+        return []
+    return value.split(separator)
 
 
 def reset_to_defaults(obj, form, rename_fields=None, more_fields=None):
@@ -323,3 +328,24 @@ def reset_to_defaults(obj, form, rename_fields=None, more_fields=None):
             if more_fields:
                 msg += "\n{0}".format(more_fields)
             raise BadRequest(msg) from ex
+
+def rename_fields_helper(input_dict, replace):
+    """
+    Transform the input dict or werkzeug.MultiDict into a MultiDict with renamed
+    keys according to the renames map.
+    """
+
+    assert isinstance(input_dict, (dict, MultiDict))
+    output = MultiDict()
+    for key in input_dict.keys():
+        new_key = replace.get(key, key)
+
+        if isinstance(input_dict, MultiDict):
+            # Multiple values for one key.
+            values = input_dict.getlist(key)
+        else:
+            values = [input_dict[key]]
+
+        for value in values:
+            output.add(new_key, value)
+    return output

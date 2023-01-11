@@ -4,7 +4,7 @@ from coprs.views.apiv3_ns import (query_params, get_copr, pagination, Paginator,
 from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms, db_session_scope
 from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -41,17 +41,11 @@ def to_dict(copr):
     }
 
 
-def rename_fields(input):
-    replace = {
+def rename_fields(input_dict):
+    return rename_fields_helper(input_dict, {
         "devel_mode": "disable_createrepo",
         "additional_repos": "repos",
-    }
-    output = input.copy()
-    for from_name, to_name in replace.items():
-        if from_name not in output:
-            continue
-        output[to_name] = output.pop(from_name)
-    return output
+    })
 
 
 def validate_chroots(input, allowed_chroots):

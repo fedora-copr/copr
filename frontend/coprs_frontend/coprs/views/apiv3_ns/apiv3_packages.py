@@ -12,7 +12,7 @@ from coprs.exceptions import (
 )
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms, helpers
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
 from coprs.logic.packages_logic import PackagesLogic
 
 # @TODO if we need to do this on several places, we should figure a better way to do it
@@ -67,21 +67,15 @@ def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False)
     }
 
 
-def rename_fields(input):
-    replace = {
+def rename_fields(input_dict):
+    return rename_fields_helper(input_dict, {
         "is_background": "background",
         "memory_limit": "memory_reqs",
         "source_build_method": "srpm_build_method",
         "script_builddeps": "builddeps",
         "script_resultdir": "resultdir",
         "script_chroot": "chroot",
-    }
-    output = input.copy()
-    for from_name, to_name in replace.items():
-        if from_name not in output:
-            continue
-        output[to_name] = output.pop(from_name)
-    return output
+    })
 
 
 def get_arg_to_bool(argument):

@@ -9,7 +9,7 @@ from copr_common.enums import StatusEnum
 from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -66,16 +66,10 @@ def to_source_build_config(build):
     }
 
 
-def rename_fields(input):
-    replace = {
+def rename_fields(input_dict):
+    return rename_fields_helper(input_dict, {
         "source_build_method": "srpm_build_method",
-    }
-    output = input.copy()
-    for from_name, to_name in replace.items():
-        if from_name not in output:
-            continue
-        output[to_name] = output.pop(from_name)
-    return output
+    })
 
 
 def render_build(build):

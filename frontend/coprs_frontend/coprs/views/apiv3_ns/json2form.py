@@ -3,6 +3,15 @@ from werkzeug.datastructures import MultiDict
 
 
 def get_form_compatible_data(preserve=None):
+    """
+    Load flask request data from API/CLI calls (typically Python dict uploaded
+    as JSON data or set of uploaded files) and transform it to a dict in
+    WTForms-compatible format; so we eventually can leverage the WTForms
+    validation logic not only for web-UI but also for API.
+
+    Objects of type list() are joined using a separator into one string.
+    The separator string is set to one space.
+    """
     input = without_empty_fields(get_input_dict())
     output = dict(input).copy()
 
@@ -12,7 +21,7 @@ def get_form_compatible_data(preserve=None):
             continue
 
         # Transform lists to strings separated with spaces
-        if type(v) == list:
+        if isinstance(v, list):
             v = " ".join(map(str, v))
 
         output[k] = v
