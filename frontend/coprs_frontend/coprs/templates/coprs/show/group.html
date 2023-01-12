@@ -18,8 +18,13 @@
 <div id="profile">
   <h1>@{{group.name}} Group</h1>
   <p>
-    <a href="https://accounts.fedoraproject.org/group/{{ group.fas_name }}" title="{{ group.fas_name }}'s FAS details" target="_blank">FAS details</a> |
-    <a href="https://accounts.fedoraproject.org/group/{{ group.fas_name }}" title="{{ group.fas_name }}'s Members" target="_blank">View Members</a>
+    <a href="{{ config.GROUP_INFO.link.format(name=group.fas_name) }}"
+       title="{{ group.fas_name }}'s {{ config.GROUP_INFO.desc }}"
+       target="_blank">{{ config.GROUP_INFO.desc }}</a> |
+
+    <a href="{{ config.GROUP_INFO.link.format(name=group.fas_name) }}"
+       title="{{ group.fas_name }}'s Members"
+       target="_blank">View Members</a>
   </p>
 </div>
 {% endblock %}

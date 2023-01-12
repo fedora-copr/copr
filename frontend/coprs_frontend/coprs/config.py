@@ -74,6 +74,11 @@ class Config(object):
         'user_desc': 'fas'
     }
 
+    GROUP_INFO = {
+        'link': 'https://accounts.fedoraproject.org/group/{name}/',
+        'desc': 'FAS details',
+    }
+
     # Optional, news box shows only when both variables are configured
     NEWS_URL = "https://fedora-copr.github.io/"
     NEWS_FEED_URL = "https://fedora-copr.github.io/feed.xml"
