@@ -3,16 +3,35 @@ Methods for working with build Batches.
 """
 
 import anytree
+import backoff
 
-from coprs import db, cache
+from sqlalchemy.exc import SQLAlchemyError
+from coprs import app, db, cache
 from coprs.helpers import WorkList
 from coprs.models import Batch, Build
 from coprs.exceptions import BadRequest
 import coprs.logic.builds_logic as bl
 
 
+log = app.logger
+
+
 class BatchesLogic:
     """ Batch logic entrypoint """
+
+    @classmethod
+    @backoff.on_exception(backoff.expo, SQLAlchemyError, max_time=20)
+    def _lock_table(cls):
+        # It seems that every database has different locking commands and we
+        # don't care about anything else than PostgreSQL.
+        if db.engine.name != "postgresql":
+            return
+
+        # EXCLUSIVE mode locks the whole table for write operations
+        # (while reading is not blocked) until the end of the transaction
+        # (commit / rollback)
+        db.session.execute("LOCK TABLE batch IN EXCLUSIVE MODE;")
+
     @classmethod
     def get_batch_or_create(cls, build_id, requestor, modify=False):
         """
@@ -25,26 +44,31 @@ class BatchesLogic:
         # We don't want to create a new batch if one already exists, but there's
         # the concurrency problem so we need to lock the build instance for
         # writing.
-        build = db.session.query(Build).with_for_update().get(build_id)
+        build = db.session.query(Build).get(build_id)
         if not build:
             raise BadRequest("Build {} doesn't exist".format(build_id))
+
+        error = build.batching_user_error(requestor, modify)
+        if error:
+            raise BadRequest(error)
 
         # Somewhat pedantically, we _should_ lock the batch (if exists)
         # here because the query for 'build.finished' and
         # 'build.batch.finished' is a bit racy (backend workers may
         # asynchronously make the build/batch finished, and we may still
         # assign some new build to a just finished batch).
-        error = build.batching_user_error(requestor, modify)
-        if error:
-            raise BadRequest(error)
+        # Or #2107 can happen.
+        with db.session.begin_nested():
+            log.info("Requesting lock for batches table (build: %s)", build_id)
+            cls._lock_table()
+            log.info("Lock acquired (build %s)", build_id)
 
-        if build.batch:
-            return build.batch
+            if not build.batch:
+                build.batch = Batch()
+                db.session.add(build.batch)
 
-        batch = Batch()
-        db.session.add(batch)
-        build.batch = batch
-        return batch
+        log.info("Lock released (build %s)", build_id)
+        return build.batch
 
     @staticmethod
     def pending_batches():
