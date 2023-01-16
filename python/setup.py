@@ -15,7 +15,6 @@ This part is a python client to the copr service."""
 
 requires = [
     'filelock',
-    'marshmallow',
     'requests',
     'requests-toolbelt',
     'setuptools',

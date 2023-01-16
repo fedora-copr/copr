@@ -71,7 +71,7 @@ class BuildJob(object):
         self.results = None
         self.appstream = None
 
-        # TODO: validate update data, user marshmallow
+        # TODO: validate update data
         for key, val in task_data.items():
             key = str(key)
             setattr(self, key, val)

@@ -13,7 +13,6 @@ pydns # pyLibravatar uses this
 python-dateutil
 netaddr
 alembic
-marshmallow
 redis
 python-openid-teams
 requests
