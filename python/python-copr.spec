@@ -31,7 +31,6 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-requests-toolbelt
-BuildRequires: python-marshmallow
 BuildRequires: python-six >= 1.9.0
 BuildRequires: python-mock
 BuildRequires: python-munch
@@ -48,7 +47,6 @@ BuildRequires: python-docutils
 BuildRequires: python2-setuptools
 BuildRequires: python2-requests
 BuildRequires: python2-requests-toolbelt
-BuildRequires: python2-marshmallow
 BuildRequires: python2-six >= 1.9.0
 BuildRequires: python2-pytest
 BuildRequires: python2-devel
@@ -81,7 +79,6 @@ Summary: %summary
 
 %if 0%{?rhel} == 7
 Requires: python-configparser
-Requires: python-marshmallow
 Requires: python-munch
 Requires: python-filelock
 Requires: python-requests
@@ -92,7 +89,6 @@ Requires: python-six >= 1.9.0
 Requires: python-future
 %else
 Requires: python2-configparser
-Requires: python2-marshmallow
 Requires: python2-munch
 Requires: python2-filelock
 Requires: python2-requests
@@ -120,7 +116,6 @@ BuildRequires: python3-devel
 BuildRequires: python3-docutils
 BuildRequires: python3-munch
 BuildRequires: python3-filelock
-BuildRequires: python3-marshmallow
 BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
@@ -130,7 +125,6 @@ BuildRequires: python3-sphinx
 BuildRequires: python3-requests-gssapi
 BuildRequires: python3-future
 
-Requires: python3-marshmallow
 Requires: python3-munch
 Requires: python3-filelock
 Requires: python3-requests
