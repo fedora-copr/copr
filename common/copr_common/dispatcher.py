@@ -2,7 +2,9 @@
 Abstract class Dispatcher for Build/Action dispatchers.
 """
 
+import os
 import time
+import json
 import logging
 import multiprocessing
 from setproctitle import setproctitle
@@ -116,6 +118,8 @@ class Dispatcher(multiprocessing.Process):
                 was_running = worker_manager.cancel_task_id(task_id)
                 self.report_canceled_task_id(task_id, was_running)
 
+            self.dump_queue(worker_manager)
+
             # process the tasks
             self._update_process_title("processing tasks")
             worker_manager.run(timeout=timeout)
@@ -126,3 +130,29 @@ class Dispatcher(multiprocessing.Process):
 
         # reset the title
         self._update_process_title()
+
+    def dump_queue(self, worker_manager):
+        """
+        Dump the current priority queue state into a JSON file.
+        This is useful when we want to see the exact state of the queue from
+        backend's perspective (e.g. when some tasks are not being processed).
+        """
+        # This function is usefull for debugging, there is no need to run it
+        # all the time
+        if self.log.level > logging.DEBUG:
+            return
+
+        queue = []
+        for entry in worker_manager.tasks.prio_queue:
+            # This should never happen but let's make sure we don't traceback
+            if not isinstance(entry, list) or len(entry) != 3:
+                return
+
+            priority, count, task = entry
+            queue.append([priority, count, task.id])
+
+        name = "copr-{0}-queue.json".format(self.name)
+        path = os.path.join(self.opts.log_dir, name)
+        with open(path, "w", encoding="utf8") as fp:
+            json.dump(queue, fp, indent=4)
+        self.log.debug("Priority queue dumped to: %s", path)
