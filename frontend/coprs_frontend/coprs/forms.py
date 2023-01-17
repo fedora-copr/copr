@@ -735,8 +735,8 @@ class CoprFormFactory(object):
             def selected_chroots(self):
                 return self.chroots.data
 
-            def validate(self):
-                if not super(F, self).validate():
+            def validate(self, extra_validators=None):
+                if not super(F, self).validate(extra_validators=extra_validators):
                     return False
 
                 if not self.validate_mock_chroots_not_empty():
@@ -1178,7 +1178,7 @@ class PackageFormDistGitSimple(BasePackageForm):
                                           self.package_name.data,
                                           self.namespace.data)
 
-    def validate(self):
+    def validate(self, _extra_validators=None):
         """
         Try to check that we can generate clone_url from distgit, namespace and
         package.  This can not be done by single-field-context validator.
@@ -1630,7 +1630,7 @@ class PinnedCoprsForm(BaseForm):
         super().__init__(*args, **kwargs)
         self.owner = owner
 
-    def validate(self):
+    def validate(self, _extra_validators=None):
         super().validate()
 
         choices = [str(c.id) for c in ComplexLogic.get_coprs_pinnable_by_owner(self.owner)]
@@ -1709,7 +1709,7 @@ class CreateModuleForm(BaseForm):
         self.copr = copr
         super(CreateModuleForm, self).__init__(*args, **kwargs)
 
-    def validate(self):
+    def validate(self, _extra_validators=None):
         if not BaseForm.validate(self):
             return False
 
