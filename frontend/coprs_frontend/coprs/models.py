@@ -1108,7 +1108,7 @@ class Build(db.Model, helpers.Serializer):
         """
         logs = [self.source_live_log_url, self.source_backend_log_url,
                 self.import_log_url_distgit]
-        return list(filter(None, logs))
+        return sorted(list(filter(None, logs)))
 
     @property
     def import_log_url_distgit(self):
@@ -1997,7 +1997,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         log = self.rpm_fedora_review_url
         if log and self.finished:
             logs.append(log)
-        return logs
+        return sorted(logs)
 
     @property
     def results_dict(self):
