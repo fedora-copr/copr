@@ -167,8 +167,8 @@ class TestBuildModel(CoprsTestCase):
         # running state
         build.status = StatusEnum("running")
         assert build.rpm_live_logs == [
-            _pfxd("backend.log"),
             _pfxd("builder-live.log"),
+            _pfxd("backend.log"),
         ]
 
         for state in ["failed", "succeeded", "canceled"]:
