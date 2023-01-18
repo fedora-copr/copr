@@ -122,11 +122,11 @@ class TestBuildModel(CoprsTestCase):
         # importing state
         self.b1.submitted_on = int(time.time()) - 24*3600
         self.b1.source_status = StatusEnum("importing")
-        assert self.b1.get_source_log_urls == sorted([
+        assert self.b1.get_source_log_urls == [
             _pfxd("builder-live.log.gz"),
             _pfxd("backend.log.gz"),
             "http://example-dist-git/url/1.log",
-        ])
+        ]
 
         for state in ["failed", "succeeded", "canceled", "importing"]:
             self.b1.source_status = StatusEnum(state)
