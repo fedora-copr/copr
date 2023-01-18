@@ -2,10 +2,12 @@
 Methods for working with build Batches.
 """
 
+import contextlib
 import anytree
 import backoff
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy_utils.functions import quote as sa_quote
 from coprs import app, db, cache
 from coprs.helpers import WorkList
 from coprs.models import Batch, Build
@@ -16,21 +18,36 @@ import coprs.logic.builds_logic as bl
 log = app.logger
 
 
+@backoff.on_exception(backoff.expo, SQLAlchemyError, max_time=20)
+def _lock_table(table):
+    # It seems that every database has different locking commands and we
+    # don't care about anything else than PostgreSQL.
+    if db.engine.name != "postgresql":
+        return
+
+    # EXCLUSIVE mode locks the whole table for write operations
+    # (while reading is not blocked) until the end of the transaction
+    # (commit / rollback)
+    db.session.execute("LOCK TABLE {} IN EXCLUSIVE MODE;".format(
+        sa_quote(db.engine, table),
+    ))
+
+
+@contextlib.contextmanager
+def locked_table(table_name, reason="not specified"):
+    """
+    Create a sub-transaction with locked table (PG only).  Use with with.
+    """
+    with db.session.begin_nested():
+        log.debug("Locking table %s (%s)", table_name, reason)
+        _lock_table(table_name)
+        log.debug("Lock acquired (%s)", reason)
+        yield
+    log.debug("Lock released (%s)", reason)
+
+
 class BatchesLogic:
     """ Batch logic entrypoint """
-
-    @classmethod
-    @backoff.on_exception(backoff.expo, SQLAlchemyError, max_time=20)
-    def _lock_table(cls):
-        # It seems that every database has different locking commands and we
-        # don't care about anything else than PostgreSQL.
-        if db.engine.name != "postgresql":
-            return
-
-        # EXCLUSIVE mode locks the whole table for write operations
-        # (while reading is not blocked) until the end of the transaction
-        # (commit / rollback)
-        db.session.execute("LOCK TABLE batch IN EXCLUSIVE MODE;")
 
     @classmethod
     def get_batch_or_create(cls, build_id, requestor, modify=False):
@@ -58,16 +75,11 @@ class BatchesLogic:
         # asynchronously make the build/batch finished, and we may still
         # assign some new build to a just finished batch).
         # Or #2107 can happen.
-        with db.session.begin_nested():
-            log.info("Requesting lock for batches table (build: %s)", build_id)
-            cls._lock_table()
-            log.info("Lock acquired (build %s)", build_id)
-
+        with locked_table("batch", "for_build_id={}".format(build_id)):
             if not build.batch:
                 build.batch = Batch()
                 db.session.add(build.batch)
 
-        log.info("Lock released (build %s)", build_id)
         return build.batch
 
     @staticmethod

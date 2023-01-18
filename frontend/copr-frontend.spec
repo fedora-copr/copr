@@ -113,6 +113,7 @@ BuildRequires: python3-redis
 BuildRequires: python3-requests
 BuildRequires: python3-sphinx
 BuildRequires: python3-sphinxcontrib-httpdomain
+BuildRequires: python3-sqlalchemy-utils
 BuildRequires: python3-whoosh
 BuildRequires: python3-wtforms >= 2.2.1
 BuildRequires: python3-ldap
@@ -170,6 +171,7 @@ Requires: python3-pylibravatar
 Requires: python3-pytz
 Requires: python3-redis
 Requires: python3-requests
+Requires: python3-sqlalchemy-utils
 Requires: python3-templated-dictionary
 Requires: python3-wtforms >= 2.2.1
 Requires: python3-zmq
