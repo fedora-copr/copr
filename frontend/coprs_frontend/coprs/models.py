@@ -1986,11 +1986,11 @@ class BuildChroot(db.Model, helpers.Serializer):
     def rpm_live_logs(self):
         """ return list of live log URLs """
         logs = []
-        log = self.rpm_backend_log_url
+        log = self.rpm_live_log_url
         if log:
             logs.append(log)
 
-        log = self.rpm_live_log_url
+        log = self.rpm_backend_log_url
         if log:
             logs.append(log)
 
