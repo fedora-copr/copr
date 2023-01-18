@@ -285,3 +285,15 @@ class BuildChrootStartedV1StompDontUseTest(unittest.TestCase):
     def test_chroot(self):
         msg = self.msg_class(body=self.fedmsg_message)
         msg.validate()
+
+
+class CoprMessageBaseClassTest(unittest.TestCase):
+
+    def setUp(self):
+        # we can't test the base class directly, so we use
+        # something that is a subclass of it
+        #
+        self.message = schema.BuildChrootStartedV1({})
+
+    def test_app_name(self):
+        assert self.message.app_name == "Copr"

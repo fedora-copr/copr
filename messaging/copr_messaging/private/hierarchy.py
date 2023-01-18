@@ -39,6 +39,16 @@ class _CoprMessage(message.Message):
     def _str_prefix(self):
         return "Copr Message"
 
+    @property
+    def app_name(self):
+        """
+        Return the name of the application that generated the message.
+
+        Returns:
+            the name of the application (copr)
+        """
+        return "Copr"
+
 
 class _CoprProjectMessage(_CoprMessage):
     def _str_prefix(self):
