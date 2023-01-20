@@ -77,7 +77,7 @@ Currently, we use the following instance types:
 +================+=============+=============+
 | **frontend**   | t3a.medium  | t3a.xlarge  |
 +----------------+-------------+-------------+
-| **backend**    | t3a.medium  | m5a.4xlarge  |
+| **backend**    | t3a.medium  | m5a.4xlarge |
 +----------------+-------------+-------------+
 | **keygen**     | t3a.small   | t3a.xlarge  |
 +----------------+-------------+-------------+
