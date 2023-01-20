@@ -175,3 +175,12 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+# Eventually we want to build this documentation as a RPM package and specify
+# all the BuildRequires there. But until that happens, this `make` target is
+# better than trial and error
+# See https://github.com/fedora-copr/copr/issues/828
+deps:
+	sudo dnf builddep ../frontend/copr-frontend.spec
+	sudo dnf install python3-eralchemy
+	sudo dnf install python*-sphinx_rtd_theme
