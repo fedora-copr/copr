@@ -236,8 +236,13 @@ provisioned servers::
 
 .. warning::
    Backend - Do not forget to kill all ``/usr/bin/prunerepo`` and
-   ``/usr/bin/copr-backend-process-build`` processes. Ideally, you
-   should wait until ``/usr/bin/copr-backend-process-action`` gets finished.
+   ``/usr/bin/copr-backend-process-build`` processes::
+
+     kill `ps -o pid,cmd -ax | grep process-build | cut -d' ' -f1`
+
+   Ideally, you should wait until
+   ``/usr/bin/copr-backend-process-action`` processes gets finished.
+
 
 
 Umount data volumes from old instances
