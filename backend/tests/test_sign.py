@@ -347,7 +347,7 @@ def test_chroot_gpg_hashes():
         ("oraclelinux-9-s390x", "sha256"),
         ("centos-stream-8-s390x", "sha256"),
         ("centos-stream-9-s390x", "sha256"),
-        ("rhel-rawhide-s390x", "sha1"),
+        ("rhel-rawhide-s390x", "sha256"),
         ("srpm-builds", "sha1"),
     ]
     for chroot, exp_type in chroots:
