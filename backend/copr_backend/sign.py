@@ -103,6 +103,7 @@ def gpg_hashtype_for_chroot(chroot, opts):
     Given the chroot name (in "mock format", like "fedora-rawhide-x86_64")
     return the expected GPG hash type.
     """
+    # pylint: disable=too-many-return-statements
 
     el_chroots = ["rhel", "epel", "centos", "oraclelinux"]
 
@@ -116,6 +117,8 @@ def gpg_hashtype_for_chroot(chroot, opts):
         # epel-8+ and not _all_ the package data on backend.
         if parts[0] in el_chroots:
             el_version = version_part
+            if el_version in ["rawhide"]:
+                return "sha256"
             if version.parse(el_version) > version.parse("7"):
                 return "sha256"
         return "sha1"
