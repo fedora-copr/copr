@@ -216,17 +216,17 @@ will need it to backup the database), stop all of our services.
    Backend - You have to terminate existing resalloc resources.
    See :ref:`Terminate resalloc resources <terminate_resalloc_vms>`.
 
-+----------------+-----------------------------------------+
-|                | Command                                 |
-+================+=========================================+
-| **frontend**   | ``systemctl stop httpd``                |
-+----------------+-----------------------------------------+
-| **backend**    | ``systemctl stop copr-backend.target``  |
-+----------------+-----------------------------------------+
-| **keygen**     | ``systemctl stop httpd signd``          |
-+----------------+-----------------------------------------+
-| **distgit**    | ``systemctl stop copr-dist-git httpd``  |
-+----------------+-----------------------------------------+
++----------------+-------------------------------------------------------------+
+|                | Command                                                     |
++================+=============================================================+
+| **frontend**   | ``systemctl stop httpd fm-consumer@copr_messaging.service`` |
++----------------+-------------------------------------------------------------+
+| **backend**    | ``systemctl stop copr-backend.target``                      |
++----------------+-------------------------------------------------------------+
+| **keygen**     | ``systemctl stop httpd signd``                              |
++----------------+-------------------------------------------------------------+
+| **distgit**    | ``systemctl stop copr-dist-git httpd``                      |
++----------------+-------------------------------------------------------------+
 
 Stop all timers and cron jobs so they don't collide or talk with the newly
 provisioned servers::
