@@ -23,3 +23,6 @@ services:
 
   distgit:
     command: /bin/bash
+
+  keygen-httpd:
+    command: /bin/bash
