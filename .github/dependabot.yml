@@ -1,0 +1,60 @@
+version: 2
+updates:
+
+  # GitHub
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Servers
+
+  - package-ecosystem: "pip"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/dist-git"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/keygen"
+    schedule:
+      interval: "weekly"
+
+  # Clients
+
+  - package-ecosystem: "pip"
+    directory: "/cli"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/python"
+    schedule:
+      interval: "weekly"
+
+  # Other
+
+  - package-ecosystem: "pip"
+    directory: "/common"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/rpmbuild"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/messaging"
+    schedule:
+      interval: "weekly"
