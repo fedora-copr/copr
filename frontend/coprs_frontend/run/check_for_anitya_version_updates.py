@@ -128,7 +128,8 @@ class PyPIPackage(object):
             self.spec_generator,
             self.spec_template,
             self.python_versions,
-            chroot_names=None
+            chroot_names=None,
+            background=True,
         )
 
 
