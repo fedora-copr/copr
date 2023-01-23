@@ -122,6 +122,22 @@ def package_from_source(backend, source_json):
         raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
 
 
+def is_prerelease(version: str) -> bool:
+    """
+    Detect a pre-release version string.
+    """
+    known_prerelease_patterns = [
+        "dev",
+        "beta",
+        "rc",
+        "alpha",
+        "b",  # fiona (python-fiona) version 1.9b2 in @copr/PyPI
+    ]
+    for pattern in known_prerelease_patterns:
+        if pattern in version:
+            return True
+    return False
+
 def main():
     updated_packages = get_updated_packages(get_updates_messages())
     log.info("Updated packages per datagrepper %s", len(updated_packages))
@@ -154,6 +170,8 @@ def main():
             # already built
             continue
 
+        if is_prerelease(new_updated_version):
+            continue
 
         # rebuild if the last build's package version is "different" from new
         # remote package version
