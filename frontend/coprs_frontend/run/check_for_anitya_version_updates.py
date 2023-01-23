@@ -12,9 +12,11 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
 
+# pylint: disable=wrong-import-position
+
 from coprs import db, app, helpers
 from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.packages_logic import PackagesLogic
 
 logging.basicConfig(
     filename="{0}/check_for_anitya_version_updates.log".format(app.config.get("LOG_DIR")),
@@ -81,29 +83,6 @@ def get_updated_packages(updates_messages):
         updated_packages[project['name'].lower()] = project['version']
     return updated_packages
 
-def get_copr_package_info_rows(updated_packages):
-    pkg_name_pattern = '(' + '|'.join(updated_packages.keys()) + ')'
-    source_type = helpers.BuildSourceEnum(args.backend.lower())
-    if db.engine.url.drivername == "sqlite":
-        placeholder = '?'
-        true = '1'
-    else:
-        placeholder = '%s'
-        true = 'true'
-    rows = db.engine.execute(
-        """
-        SELECT package.id AS package_id, package.source_json AS source_json, build.pkg_version AS pkg_version, package.copr_id AS copr_id
-        FROM package
-        LEFT OUTER JOIN build ON build.package_id = package.id
-        WHERE package.source_type = {placeholder} AND
-              package.source_json ~* '{pkg_name_pattern}' AND
-              package.webhook_rebuild = {true} AND
-              (build.id is NULL OR build.id = (SELECT MAX(build.id) FROM build WHERE build.package_id = package.id));
-        """.format(placeholder=placeholder, pkg_name_pattern=pkg_name_pattern, true=true), source_type
-    )
-    return rows
-
-
 class RubyGemsPackage(object):
     def __init__(self, source_json):
         self.name = source_json['gem_name'].lower()
@@ -145,31 +124,47 @@ def package_from_source(backend, source_json):
 
 def main():
     updated_packages = get_updated_packages(get_updates_messages())
-    log.info('Updated packages according to datagrepper: {0}'.format(updated_packages))
+    log.info("Updated packages per datagrepper %s", len(updated_packages))
+    for package, last_build in PackagesLogic.webhook_package_candidates(
+            helpers.BuildSourceEnum(args.backend.lower())):
+        source_json = json.loads(package.source_json)
+        rebuilder = package_from_source(args.backend.lower(), source_json)
+        log.debug(
+            "candidate %s package %s in %s",
+            args.backend,
+            rebuilder.name,
+            package.copr.full_name,
+        )
 
-    for row in get_copr_package_info_rows(updated_packages):
-        source_json = json.loads(row.source_json)
-        package = package_from_source(args.backend.lower(), source_json)
+        if rebuilder.name not in updated_packages:
+            continue
 
-        latest_build_version = row.pkg_version
-        log.info('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(package.name, row.package_id, row.copr_id))
-        if package.name in updated_packages:
-            new_updated_version = updated_packages[package.name]
-            log.debug('name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(package.name, latest_build_version, new_updated_version))
+        last_version = last_build.pkg_version if last_build else None
 
-            # if the last build's package version is "different" from new remote package version, rebuild
-            if not latest_build_version or not re.match(new_updated_version, latest_build_version):
-                try:
-                    copr = CoprsLogic.get_by_id(row.copr_id)[0]
-                except Exception as e:
-                    log.exception(e)
-                    continue
+        new_updated_version = updated_packages[rebuilder.name]
+        log.debug(
+            "checking %s (pkg_name %s), last version: %s, new version %s",
+            rebuilder.name,
+            package.name,
+            last_version,
+            new_updated_version,
+        )
 
-                log.info('Launching {} build for package of source name: {}, package_id: {}, copr_id: {}, user_id: {}'
-                        .format(args.backend.lower(), package.name, row.package_id, copr.id, copr.user.id))
-                build = package.build(copr, new_updated_version)
-                db.session.commit()
-                log.info('Launched build id {0}'.format(build.id))
+        if last_version and re.match(new_updated_version, last_version):
+            # already built
+            continue
+
+
+        # rebuild if the last build's package version is "different" from new
+        # remote package version
+        rebuilder.build(package.copr, new_updated_version)
+        log.info(
+            "Launched build for %s (%s) version %s in %s",
+            rebuilder.name, package.name, new_updated_version,
+            package.copr.full_name,
+        )
+
+    db.session.commit()
 
 if __name__ == '__main__':
     try:

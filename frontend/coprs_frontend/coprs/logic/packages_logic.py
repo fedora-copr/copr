@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 
-from sqlalchemy import bindparam, Integer, func
+from sqlalchemy import bindparam, Integer, func, or_, not_
 from sqlalchemy.sql import true, text
 from sqlalchemy.orm import selectinload
 
@@ -39,6 +39,43 @@ class PackagesLogic(object):
         Get all packages in given project ID.
         """
         return cls.get_all(copr_id).order_by(models.Package.name)
+
+    @classmethod
+    def webhook_package_candidates(cls, source_type):
+        """
+        Returns a query for list of (package, last_build) pairs for given source
+        type.  Last_build can be None if no build has been done.  This query is
+        very expensive (several seconds definitely, so please avoid exposing
+        this to users or optimize first).
+        """
+        pkg_build_pairs = (
+            models.Package.query
+            .with_entities(
+                models.Package.id.label('pkg_id'),
+                func.max(models.Build.id).label('build_id'),
+            )
+            .outerjoin(models.Build)
+            .outerjoin(models.Copr)
+            .filter(models.Package.source_type==source_type)
+            .filter(models.Package.webhook_rebuild==true())
+            .filter(models.Copr.deleted.is_(not_(True)))
+            .group_by('pkg_id')
+            .subquery()
+        )
+
+        return (
+            db.session.query(
+                models.Package,
+                models.Build,
+            )
+            .select_from(models.Package).outerjoin(models.Build)
+            .filter(models.Package.id==pkg_build_pairs.c.pkg_id)
+            .filter(or_(
+                models.Build.id==pkg_build_pairs.c.build_id,
+                models.Build.id.is_(None),
+            ))
+            .yield_per(1000)
+        )
 
     @classmethod
     def get_packages_with_latest_builds_for_dir(
