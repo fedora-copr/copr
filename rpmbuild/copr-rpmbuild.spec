@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.62
+Version: 0.63
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -335,6 +335,12 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 0.63-1
+- Retry when copr-distgit is temporarily down
+- Don't print traceback for 404 errors on SRPM download
+- Decode URL encoded characters such as %%5E into caret
+- Use SPDX license
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.62-1
 - migrate from pipes to shlex
 - move to GitHub home page
