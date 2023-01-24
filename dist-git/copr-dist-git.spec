@@ -1,7 +1,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-dist-git
-Version:    0.59
+Version:    0.60
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 0.60-1
+- Drop an unused cgit_pkg_list_location option
+- Use SPDX license
+
 * Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 0.59-1
 - start copr-dist-git.service after redis.service
 - background workers mark themselves as done (needed by the manager logic)
