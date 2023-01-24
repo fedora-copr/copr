@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.124
+Version:    1.125
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -238,6 +238,13 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.125-1
+- Drop the unneeded marshmallow dependency
+- Fix APIv3 additional_modules CoprChroot option
+- More understandable module hotfixes description
+- Disable appstream by default
+- Use SPDX license
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.124-1
 - move to GitHub home page
 - add external repos for custom build
