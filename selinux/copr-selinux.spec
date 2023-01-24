@@ -10,7 +10,7 @@
 %global selinuxvariants targeted
 
 Name:       copr-selinux
-Version:    1.54
+Version:    1.55
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -110,6 +110,9 @@ done
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.55-1
+- Use spdx license
+
 * Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 1.54-1
 - new package built with tito
 - httpd_t on copr-frontend has the rights to link copr_data_t files (uploaded stuff)
