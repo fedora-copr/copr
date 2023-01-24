@@ -57,7 +57,7 @@ def validate_name_email(name_email):
     # validating email is too hardcore (see `wtforms.validators.Email`) and we
     # don't care anyway. We only want to make sure that no ilegal characters
     # were used.
-    if not re.match(r"^[\w.-@]+$", email):
+    if not re.match(r"^[-\w.@]+$", email):
         return False
 
     if not email.count("@") == 1:
