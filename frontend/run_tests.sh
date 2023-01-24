@@ -30,7 +30,10 @@ for arg; do
 done
 
 common_path=$(readlink -f ../common)
-export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
+run_path=$PWD/coprs_frontend/run
+export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path:$run_path"
+export PATH="$run_path${PATH+:$PATH}"
+
 export COPR_CONFIG="$(pwd)/coprs_frontend/config/copr_unit_test.conf"
 
 cd coprs_frontend

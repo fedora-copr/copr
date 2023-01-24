@@ -85,6 +85,16 @@ class CoprsTestCase(object):
         self.app.config = self.original_config.copy()
         cache.clear()
 
+    @staticmethod
+    def load_test_data_file(filename):
+        """
+        Load datafile from tests/data directory
+        """
+        workdir = os.path.dirname(__file__)
+        filename = os.path.join(workdir, "data", filename)
+        with open(filename, encoding="utf-8") as fd:
+            return fd.read()
+
     @property
     def auth_header(self):
         return {"Authorization": b"Basic " +
@@ -829,6 +839,17 @@ def foo():
         headers = self.api3_auth_headers(user)
         print(headers)
         return self.tc.get(url, headers=headers)
+
+    def rebuild_package_and_finish(self, project_dirname, pkgname,
+                                   build_options=None, project_ownername=None,
+                                   pkg_version="1.1"):
+        """
+        Rebuild package using API, and mark it as succeeded
+        """
+        out = self.api3.rebuild_package(project_dirname, pkgname, build_options,
+                                        project_ownername)
+        build_id = out.json["id"]
+        self.backend.finish_build(build_id, pkg_version=pkg_version)
 
 
 class TransactionDecorator(object):

@@ -349,6 +349,24 @@ class API3Requests(_RequestsInterface):
         resp = self.post(route, data)
         return resp
 
+    def create_pypi_package(self, project, pypiname, options=None,
+                            expected_status_code=None, pkgname=None):
+        pkgname = pkgname or "python-" + pypiname
+        route = "/api_3/package/add/{}/{}/{}/pypi".format(
+            self.transaction_username, project, pkgname)
+        data = {
+            "package_name": pkgname,
+            "pypi_package_name": pypiname,
+            "pypi_package_version": None,
+            "spec_generator": "pyp2spec",
+            "python_versions": ["3"],
+        }
+        if options is not None:
+            data.update(options)
+        resp = self.post(route, data)
+        assert resp.status_code == (expected_status_code or 200)
+        return resp
+
     def rebuild_package(self, project_dirname, pkgname, build_options=None,
                         project_ownername=None):
         """ Rebuild one package in a given project using API """
@@ -406,7 +424,7 @@ class BackendRequests:
         assert self.update(form_data).status_code == 200
 
 
-    def finish_build(self, build_id, package_name=None):
+    def finish_build(self, build_id, package_name=None, pkg_version="1"):
         """
         Given the build_id, finish the build with succeeded state
         """
@@ -422,7 +440,7 @@ class BackendRequests:
                 "srpm_url": "http://foo",
                 "status": 1,
                 "pkg_name": package_name,
-                "pkg_version": 1
+                "pkg_version": pkg_version,
             }],
         }).status_code == 200
 
@@ -454,7 +472,7 @@ class BackendRequests:
                     "status": 1,
                     "package_name": package_name,
                     "result_dir": "xyz",
-                    "package_version": 1
+                    "package_version": pkg_version
                 }],
             })
 

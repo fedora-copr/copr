@@ -27,5 +27,6 @@ def init():
     # Those still need a special handling (and in future file movements).
     if gitsubdir.startswith("frontend"):
         sys.path.insert(0, os.path.join(gitrootdir, "frontend", "coprs_frontend"))
+        sys.path.insert(0, os.path.join(gitrootdir, "frontend", "coprs_frontend", "run"))
     if gitsubdir.startswith("keygen"):
         sys.path.insert(0, os.path.join(gitrootdir, "keygen", "src"))
