@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from unittest import mock
+from unittest import mock, skip
 
 import distro
 import munch
@@ -542,6 +542,7 @@ class TestModifyRepo(object):
         assert os.path.exists(name[0])
 
 
+    @skip("Works locally and in Copr but fails in Koji")
     @mock.patch("copr_prune_results.LOG", logging.getLogger())
     def test_run_prunerepo(self, f_builds_to_prune):
         _unused = self
