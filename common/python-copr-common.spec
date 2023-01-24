@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.17
+Version:    0.18
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,10 @@ version=%version %py2_install
 
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 0.18-1
+- Periodically dump the priority queue to a JSON file
+- Use SPDX license
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 0.17-1
 - move to GitHub home page
 - logging shouldn't affect stdout
