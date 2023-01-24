@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.104
+Version:    1.105
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,13 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.105-1
+- More understandable module hotfixes description
+- Add options to download only built RPMs/spec files
+- Use the --dirname parameter for copr-cli monitor
+- Disable appstream by default
+- Use SPDX license
+
 * Sat Nov 26 2022 Jakub Kadlcik <frostyx@email.cz> 1.104-1
 - move to GitHub home page
 - add parameter for custom method repos
