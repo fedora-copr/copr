@@ -16,7 +16,7 @@ __url__ = "https://github.com/fedora-copr/copr"
 
 setup(
     name='copr-backend',
-    version="1.163",
+    version="1.164",
     description=__description__,
     long_description=long_description,
     author=__author__,
