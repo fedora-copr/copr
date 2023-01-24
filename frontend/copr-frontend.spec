@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.193
+Version:    1.194
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,32 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.194-1
+- Don't resubmit anitya builds for pre-release versions
+- Anytia query using sqlalchemy
+- Anitya builds handled on background
+- Pypi anitya buils respects spec generator option
+- Allow uploading artificial payload in custom webhook
+- Fix traceback for non-existing tasks
+- Fix typo in basearch example value
+- Fix batches race logic by adding locks
+- wTForms validate function now expect additional parameter
+- Change order of RPM build logs
+- Update alembic migration template
+- Drop the unneeded marshmallow dependency
+- Fix APIv3 additional_modules CoprChroot option
+- Customizable group link to FAS
+- Don't depend on flask-restful
+- Fix homepage user count
+- Add command for managing warning banner
+- More understandable module hotfixes description
+- Don't let PR builds affect status badges
+- Add hover for table rows
+- Frontend: fix a jinja2 traceback when displaying a nonexisting batch
+- Add openeuler logo
+- Disable appstream by default
+- Use SPDX license
+
 * Wed Nov 30 2022 Pavel Raiskup <praiskup@redhat.com> 1.193-1
 - fix get-tasks traceback when repos are not set
 
