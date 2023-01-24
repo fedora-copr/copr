@@ -25,16 +25,17 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
-parser = argparse.ArgumentParser(description='Fetch package version updates by using datagrepper log of anitya emitted messages and issue rebuilds of the respective COPR packages for each such update. Requires httpie package.')
 
-parser.add_argument('--backend', action='store', default='pypi', choices=['pypi', 'rubygems'],
-                   help='only check for updates from backend BACKEND, default pypi')
-parser.add_argument('--delta', action='store', type=int, metavar='SECONDS', default=86400,
-                   help='ignore updates older than SECONDS, default 86400')
-parser.add_argument('-v', '--version', action='version', version='1.0',
-                   help='print program version and exit')
+def _get_parser():
+    parser = argparse.ArgumentParser(description='Fetch package version updates by using datagrepper log of anitya emitted messages and issue rebuilds of the respective COPR packages for each such update. Requires httpie package.')
 
-args = parser.parse_args()
+    parser.add_argument('--backend', action='store', default='pypi', choices=['pypi', 'rubygems'],
+                       help='only check for updates from backend BACKEND, default pypi')
+    parser.add_argument('--delta', action='store', type=int, metavar='SECONDS', default=86400,
+                       help='ignore updates older than SECONDS, default 86400')
+    parser.add_argument('-v', '--version', action='version', version='1.0',
+                       help='print program version and exit')
+    return parser
 
 
 def run_cmd(cmd):
@@ -58,27 +59,27 @@ def to_json(data_bytes):
         log.exception(str(e))
     return data_json
 
-def get_updates_messages():
+def get_updates_messages(delta):
     cmd_binary = 'curl'
     url_template = 'https://apps.fedoraproject.org/datagrepper/raw?category=anitya&delta={delta}&topic=org.release-monitoring.prod.anitya.project.version.update&rows_per_page=64&order=asc&page={page}'
-    get_updates_cmd = [cmd_binary, url_template.format(delta=args.delta, page=1)]
+    get_updates_cmd = [cmd_binary, url_template.format(delta=delta, page=1)]
     result_json = to_json(run_cmd(get_updates_cmd))
     messages = result_json['raw_messages']
     pages = result_json['pages']
 
     for p in range(2, pages+1):
-        get_updates_cmd = [cmd_binary, url_template.format(delta=args.delta, page=p)]
+        get_updates_cmd = [cmd_binary, url_template.format(delta=delta, page=p)]
         result_json = to_json(run_cmd(get_updates_cmd))
         messages += result_json['raw_messages']
 
     return messages
 
-def get_updated_packages(updates_messages):
+def get_updated_packages(updates_messages, backend):
     updated_packages = {}
     for message in updates_messages:
         update = message['msg']
         project = update['project']
-        if args.backend.lower() != project['backend'].lower():
+        if backend != project['backend'].lower():
             continue
         updated_packages[project['name'].lower()] = project['version']
     return updated_packages
@@ -111,7 +112,6 @@ class PyPIPackage(object):
             background=True,
         )
 
-
 def package_from_source(backend, source_json):
     try:
         return {
@@ -119,7 +119,7 @@ def package_from_source(backend, source_json):
             'rubygems': RubyGemsPackage,
         }[backend](source_json)
     except KeyError:
-        raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
+        raise Exception('Unsupported backend {0} passed as command-line argument'.format(backend))
 
 
 def is_prerelease(version: str) -> bool:
@@ -139,12 +139,14 @@ def is_prerelease(version: str) -> bool:
     return False
 
 def main():
-    updated_packages = get_updated_packages(get_updates_messages())
+    args = _get_parser().parse_args()
+    backend = args.backend.lower()
+    updated_packages = get_updated_packages(get_updates_messages(args.delta), backend)
     log.info("Updated packages per datagrepper %s", len(updated_packages))
     for package, last_build in PackagesLogic.webhook_package_candidates(
             helpers.BuildSourceEnum(args.backend.lower())):
         source_json = json.loads(package.source_json)
-        rebuilder = package_from_source(args.backend.lower(), source_json)
+        rebuilder = package_from_source(backend, source_json)
         log.debug(
             "candidate %s package %s in %s",
             args.backend,
