@@ -188,6 +188,8 @@ class TestGenKey(TestCase):
         assert logic.validate_name_email("frostyx#foo@copr.fedorahosted.org")
         assert logic.validate_name_email("@copr#foo@copr.fedorahosted.org")
         assert logic.validate_name_email("@db-sig#foo@copr.fedorahosted.org")
+        assert logic.validate_name_email("@copr#foo-bar@copr.fedorahosted.org")
+        assert logic.validate_name_email("frostyx#foo.bar@copr.fedorahosted.org")
 
         assert not logic.validate_name_email("foo")
         assert not logic.validate_name_email("user#invalid-email")
