@@ -1437,7 +1437,7 @@ class AbstractSeparatedListField(wtforms.Field):
     # boilerplate stuff for the web-UI rendering
     widget = wtforms.widgets.TextInput()
     def _value(self):
-        return ', '.join(self.data or [])
+        return self.data or ""
 
     def process_formdata(self, valuelist: list):
         """
