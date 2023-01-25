@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.164
+Version:    1.165
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jan 25 2023 Jakub Kadlcik <frostyx@email.cz> 1.165-1
+- Skip the test_run_prunerepo test because of Koji
+
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.164-1
 - Fix chroot version parsing with new python-packaging
 - Fix traceback for non-existing tasks
