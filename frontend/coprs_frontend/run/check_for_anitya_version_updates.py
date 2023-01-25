@@ -132,6 +132,7 @@ def is_prerelease(version: str) -> bool:
         "beta",
         "rc",
         "alpha",
+        "a",  # openapi-core (python-openapi-core) version 0.17.0a1 in @copr/PyPI
         "b",  # fiona (python-fiona) version 1.9b2 in @copr/PyPI
     ]
     for pattern in known_prerelease_patterns:
