@@ -10,15 +10,6 @@ good to know what's ahead.
 Keep amending this page if you find something not matching reality or expectations.
 
 
-Create warning banner about release
------------------------------------
-
-
-Use script in frontend's ``manage.py`` to announce an outage::
-
-    ./manage.py warning-banner --outage_time "2022-12-31 13:00-16:00 UTC" --ticket 1234
-
-
 Pre-release
 -----------
 
@@ -241,6 +232,9 @@ In general, please follow these steps:
         Planned outage 2022-08-17 20:00 UTC - https://pagure.io/fedora-infrastructure/issue/10854
 
 4. Create a new "planned" `Fedora Status SOP`_ entry.
+5. Create warning banner on Copr homepage::
+
+     copr-frontend warning-banner --outage_time "2022-12-31 13:00-16:00 UTC" --ticket 1234
 
 
 Release window
@@ -359,8 +353,6 @@ Generate package specific documentation by going to:
 
 * https://readthedocs.org/projects/copr-messaging/
 
-* https://readthedocs.org/projects/copr-rest-api/
-
 * https://readthedocs.org/projects/python-copr/
 
 And hitting "Build" button for each of those projects.
@@ -386,6 +378,9 @@ Announce the end of the release
 5. Close the Fedora Infra ticket.
 
 6. Change the "ongoing" `Fedora Status SOP`_ entry into a "resolved" one.
+
+7. Remove the warning banner from frontend page using
+   ``copr-frontend warning-banner --remove``
 
 
 Release packages to PyPI
@@ -430,11 +425,6 @@ It is often good idea to put new (filtered) ``%changelogs`` entries there.
 
 Final steps
 ...........
-
-Remove the warning banner from frontend page by::
-
-    ./manage.py warning-banner --remove
-
 
 Check if the `MODIFIED bugs <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&classification=Community&list_id=4678039&product=Copr&query_format=advanced>`_
 (that are not ON_QA) are fixed in released Copr or not, move them ON_QA.
