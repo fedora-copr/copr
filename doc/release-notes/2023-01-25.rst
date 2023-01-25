@@ -1,0 +1,117 @@
+.. _release_notes_2023_01_25:
+
+Highlights from 2023-01-25 release
+==================================
+
+Updated client packages are shipped in `Fedora 36`_,  `Fedora 37`_, `EPEL 7`_,
+`EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Outage banner
+-------------
+
+Many times we received feedback that the upcoming outages are not being
+announced clearly enough or soon enough and that users are being surprised by
+them. Currently, we are announcing upcoming releases on
+`status.fedoraproject.org`_ and `Copr mailing list`_ but going forward, we are
+also going to show a banner at the top of the `copr.fedorainfracloud.org`_ page
+itself.
+
+
+Downloading the built RPM packages
+----------------------------------
+
+It was always possible to download Copr build results with the following
+command::
+
+  copr-cli download-build 123456
+
+This downloads all files (logs, config files, debug files, built packages) for
+all chroots for a given build. That is a considerable amount of files (e.g. I
+tried it for a build with 22 chroots, it downloaded 455 files and took 40s
+seconds). It is possible to limit the download to a specific chroot using the
+``--chroot`` parameter. And newly, thanks to `RHBZ 2151239`_, it is now possible
+to specify also ``--rpms`` and/or ``--spec`` parameters to download only the
+resulting RPM packages and/or spec files, e.g.::
+
+  copr-cli download-build 123456 --rpms --spec
+
+
+Notable changes
+---------------
+
+- License fields migrated to SPDX expressions.
+  See `Changes/SPDX Licenses Phase 1`_.
+- The AppStream metadata generation is now disabled by default. The
+  ``appstream-builder`` tool is very I/O demanding and predictably fails for
+  large projects. Feel free to opt-in for this feature if you want it.
+- `RHBZ 2152268`_ - Build and package tables now highlight the row under the
+  cursor to improve orientation.
+- When the copr-distgit instance is temporarily down, builders will try to
+  contact it again instead of failing immediately.
+
+
+Bugfixes
+--------
+
+- `#2417`_ - Don't traceback when displaying a nonexisting branch
+- `#2390`_ - Don't traceback when displaying a nonexisting task
+- `#2357`_ - Status badges are not affected by CI builds for pull requests
+- `#2341`_ - The ``copr-cli monitor`` doesn't ignore its ``--dirname`` parameter
+  anymore
+- `#2454`_ - Don't fail for packages with caret in their version
+- `#2456`_ - Print a user-friendly error when submitting a wrong SRPM URL
+- `#2448`_ - Correct Fedora users count on the homepage (the number of Copr
+  users didn't double overnight, we just calculated them incorrectly)
+- `#2463`_ - The APIv3 chroot field ``additional_modules`` now correctly accepts
+  a list of modules, instead of a space-separated string
+- `#2482`_ - Fixed compatibility with ``python3-flask-wtf-1.1.0-1.fc38`` that
+  landed in Fedora rawhide
+- `#2107`_ - Fixed a race condition when creating multiple build batches in
+  parallel
+- `#2416`_ - After we upgraded Copr servers to F37, custom webhooks started
+  failing because of empty payloads. It should work now.
+- `#2289`_ - Automatic PyPI builds through Anitya now respect the spec
+  generator option
+- `#2467`_ - Automatic Anitya builds are now submitted with the background
+  flag
+- `#2466`_ - Pre-release versions from Anitya are ignored
+- `RHBZ 2159978`_ - The ``flask-restful`` dependency wasn't needed anymore
+- `RHBZ 2162735`_ - Fixed ``$basearch`` example value
+- `RHBZ 2162436`_ - Fixed compatibility with ``python-packaging`` version 23.0,
+  which is soon going to land in Fedora rawhide
+- Fixed `order of log names`_ in the build results
+
+
+
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-095c72f5cb
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-5f5b81e81c
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-016a5af72a
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-a3f2753730
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-7f80aa87c9
+
+.. _`#2417`: https://github.com/fedora-copr/copr/issues/2417
+.. _`#2390`: https://github.com/fedora-copr/copr/issues/2390
+.. _`#2357`: https://github.com/fedora-copr/copr/issues/2357
+.. _`#2341`: https://github.com/fedora-copr/copr/issues/2341
+.. _`#2456`: https://github.com/fedora-copr/copr/issues/2456
+.. _`#2448`: https://github.com/fedora-copr/copr/issues/2448
+.. _`#2463`: https://github.com/fedora-copr/copr/issues/2463
+.. _`#2482`: https://github.com/fedora-copr/copr/issues/2482
+.. _`#2107`: https://github.com/fedora-copr/copr/issues/2107
+.. _`#2416`: https://github.com/fedora-copr/copr/issues/2416
+.. _`#2289`: https://github.com/fedora-copr/copr/issues/2289
+.. _`#2467`: https://github.com/fedora-copr/copr/issues/2467
+.. _`#2466`: https://github.com/fedora-copr/copr/issues/2466
+.. _`#2454`: https://github.com/fedora-copr/copr/pull/2454/commits/f4c857c8b4957c7998dd7ec1adbb7172858fd2a6
+.. _`RHBZ 2151239`: https://bugzilla.redhat.com/show_bug.cgi?id=2151239
+.. _`RHBZ 2159978`: https://bugzilla.redhat.com/show_bug.cgi?id=2159978
+.. _`RHBZ 2162735`: https://bugzilla.redhat.com/show_bug.cgi?id=2162735
+.. _`RHBZ 2162436`: https://bugzilla.redhat.com/show_bug.cgi?id=2162436
+.. _`RHBZ 2152268`: https://bugzilla.redhat.com/show_bug.cgi?id=2152268
+
+.. _`order of log names`: https://social.linux.pizza/@knurd42/109702895855625653
+.. _`Changes/SPDX Licenses Phase 1`: https://fedoraproject.org/wiki/Changes/SPDX_Licenses_Phase_1
+.. _`status.fedoraproject.org`: https://status.fedoraproject.org/
+.. _`Copr mailing list`: https://lists.fedorahosted.org/archives/list/copr-devel@lists.fedorahosted.org/
+.. _`copr.fedorainfracloud.org`: https://copr.fedorainfracloud.org/
