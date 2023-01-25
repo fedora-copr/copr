@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.194
+Version:    1.195
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,12 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Jan 25 2023 Pavel Raiskup <praiskup@redhat.com> 1.195-1
+- anitya: ignore pre-release tarballs sooner
+- anitya: ignore alpha versions
+- fix the "Modules:" web-UI form widget
+- ignore anitya BadRequest rebuild attempts
+
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.194-1
 - Don't resubmit anitya builds for pre-release versions
 - Anytia query using sqlalchemy
