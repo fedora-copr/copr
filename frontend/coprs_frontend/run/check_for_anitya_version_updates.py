@@ -17,6 +17,7 @@ sys.path.append(
 from coprs import db, app, helpers
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.exceptions import BadRequest
 
 logging.basicConfig(
     filename="{0}/check_for_anitya_version_updates.log".format(app.config.get("LOG_DIR")),
@@ -177,12 +178,15 @@ def main():
 
         # rebuild if the last build's package version is "different" from new
         # remote package version
-        rebuilder.build(package.copr, new_updated_version)
-        log.info(
-            "Launched build for %s (%s) version %s in %s",
-            rebuilder.name, package.name, new_updated_version,
-            package.copr.full_name,
-        )
+        try:
+            rebuilder.build(package.copr, new_updated_version)
+            log.info(
+                "Launched build for %s (%s) version %s in %s",
+                rebuilder.name, package.name, new_updated_version,
+                package.copr.full_name,
+            )
+        except BadRequest as exc:
+            log.error("Can't submit a build: %s", str(exc))
 
     db.session.commit()
 
