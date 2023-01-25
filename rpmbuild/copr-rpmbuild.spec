@@ -66,6 +66,7 @@ Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-simplejson
+Requires: %{python}-backoff
 
 Requires: mock >= 2.0
 Requires: git
