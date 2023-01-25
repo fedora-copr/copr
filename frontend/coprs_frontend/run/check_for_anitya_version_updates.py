@@ -161,6 +161,9 @@ def main():
         last_version = last_build.pkg_version if last_build else None
 
         new_updated_version = updated_packages[rebuilder.name]
+        if is_prerelease(new_updated_version):
+            continue
+
         log.debug(
             "checking %s (pkg_name %s), last version: %s, new version %s",
             rebuilder.name,
@@ -171,9 +174,6 @@ def main():
 
         if last_version and re.match(new_updated_version, last_version):
             # already built
-            continue
-
-        if is_prerelease(new_updated_version):
             continue
 
         # rebuild if the last build's package version is "different" from new
