@@ -7,12 +7,11 @@ from coprs import models, app, db
 from check_for_anitya_version_updates import main, is_stable_release
 from tests.coprs_test_case import (CoprsTestCase, TransactionDecorator)
 
-@mock.patch("check_for_anitya_version_updates.run_cmd", mock.MagicMock())
 def run_patched_main(args, messages):
     with mock.patch("check_for_anitya_version_updates.sys.argv", args):
         with mock.patch("check_for_anitya_version_updates.log", app.logger):
-            with mock.patch("check_for_anitya_version_updates.to_json") as to_json:
-                to_json.return_value = messages
+            with mock.patch("check_for_anitya_version_updates._get_json") as get_json:
+                get_json.return_value = messages
                 return main()
 
 

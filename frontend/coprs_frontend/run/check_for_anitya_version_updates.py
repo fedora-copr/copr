@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import subprocess
 import argparse
 import sys
 import os
@@ -13,6 +12,8 @@ sys.path.append(
 )
 
 # pylint: disable=wrong-import-position
+
+from copr_common.request import SafeRequest
 
 from coprs import db, app, helpers
 from coprs.logic.builds_logic import BuildsLogic
@@ -39,38 +40,21 @@ def _get_parser():
     return parser
 
 
-def run_cmd(cmd):
-    """
-    Run given command in a subprocess
-    """
-    log.info('Executing: '+' '.join(cmd))
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = process.communicate()
-    if process.returncode != 0:
-        log.error(stderr)
-        sys.exit(1)
-    return stdout
+def _get_json(url):
+    requestor = SafeRequest(log=log)
+    return requestor.get(url).json()
 
-def to_json(data_bytes):
-    try:
-        data = data_bytes.decode("utf-8")
-        data_json = json.loads(data)
-    except Exception as e:
-        log.info(data)
-        log.exception(str(e))
-    return data_json
 
 def get_updates_messages(delta):
-    cmd_binary = 'curl'
     url_template = 'https://apps.fedoraproject.org/datagrepper/raw?category=anitya&delta={delta}&topic=org.release-monitoring.prod.anitya.project.version.update&rows_per_page=64&order=asc&page={page}'
-    get_updates_cmd = [cmd_binary, url_template.format(delta=delta, page=1)]
-    result_json = to_json(run_cmd(get_updates_cmd))
+    url = url_template.format(delta=delta, page=1)
+    result_json = _get_json(url)
     messages = result_json['raw_messages']
     pages = result_json['pages']
 
     for p in range(2, pages+1):
-        get_updates_cmd = [cmd_binary, url_template.format(delta=delta, page=p)]
-        result_json = to_json(run_cmd(get_updates_cmd))
+        url = url_template.format(delta=delta, page=p)
+        result_json = _get_json(url)
         messages += result_json['raw_messages']
 
     return messages
