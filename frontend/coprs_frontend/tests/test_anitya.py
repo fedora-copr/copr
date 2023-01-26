@@ -23,7 +23,9 @@ class TestAnitya(CoprsTestCase):
         contents = self.load_test_data_file("anytia.json")
         messages = json.loads(contents)
         chroots = ["fedora-rawhide-i386"]
-        for project in ["foo", "deleted"]:
+
+        # Loop to generate projects with single (finished) build
+        for project in ["foo", "deleted", "inprogress"]:
             self.api3.new_project(project, chroots)
             self.api3.create_pypi_package(
                 project, "umap-pytorch",
@@ -44,6 +46,11 @@ class TestAnitya(CoprsTestCase):
             self.rebuild_package_and_finish(project, "python-umap-pytorch",
                                             pkg_version="0.0.4")
 
+        # Submit one build manually (not finished).  This must not be
+        # re-submitted via anitya automation.
+        self.api3.rebuild_package("inprogress", "python-umap-pytorch")
+
+        # Delete one project.  No more builds in that.
         delete_it = models.Copr.query.filter(models.Copr.name=="deleted").one()
         delete_it.deleted = True
         db.session.commit()
@@ -57,7 +64,7 @@ class TestAnitya(CoprsTestCase):
         run_patched_main(["anitya", "--backend", "pypi", "--delta", "100"], messages)
 
         builds = models.Build.query.all()
-        assert len(builds) == 4
+        assert len(builds) == 6
         for build in builds:
             if build.state == "succeeded":
                 continue  # the first two builds
@@ -65,6 +72,7 @@ class TestAnitya(CoprsTestCase):
             copr = build.copr.full_name
             source_json = json.loads(build.source_json)
             if copr == "user1/foo":
+                # Updated package, 0.0.4 => 0.0.5
                 assert source_json == {
                     'pypi_package_name': 'umap-pytorch',
                     'pypi_package_version': '0.0.5',
@@ -73,6 +81,7 @@ class TestAnitya(CoprsTestCase):
                     'spec_template': '',
                 }
             elif copr == "user1/bar":
+                # package never built before
                 assert json.loads(build.source_json) == {
                     'pypi_package_name': 'zod',
                     'pypi_package_version': '0.0.13',
@@ -80,5 +89,15 @@ class TestAnitya(CoprsTestCase):
                     'spec_generator': 'pyp2spec',
                     'spec_template': '',
                 }
+            elif copr == "user1/inprogress":
+                # manually submitted build, blocks further anitya rebuilds
+                assert json.loads(build.source_json) == {
+                    'pypi_package_name': 'umap-pytorch',
+                    'pypi_package_version': None,
+                    'python_versions': ['3'],
+                    'spec_generator': 'pyp2rpm',
+                    'spec_template': '',
+                }
             else:
+                # No more builds!
                 assert False
