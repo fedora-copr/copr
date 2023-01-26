@@ -85,22 +85,46 @@ def get_updated_packages(updates_messages, backend):
         updated_packages[project['name'].lower()] = project['version']
     return updated_packages
 
-class RubyGemsPackage(object):
+
+class RebuilderInterface:
+    """
+    Helper for re-building a package according to the build "backend" method.
+    """
+    def build(self, copr, package, new_updated_version):
+        """
+        Create a new package build in database.
+        """
+        raise NotImplementedError
+
+
+class GemsRebuilder(RebuilderInterface):
+    """
+    Rebuilder for RubyGems (source_type=6)
+    """
     def __init__(self, source_json):
         self.name = source_json['gem_name'].lower()
 
-    def build(self, copr, new_update_version):
-        return BuildsLogic.create_new_from_rubygems(copr.user, copr, self.name, chroot_names=None)
+    def build(self, copr, package, new_updated_version):
+        return BuildsLogic.create_new_from_rubygems(
+            copr.user,
+            copr,
+            self.name,
+            chroot_names=None,
+            package=package,
+        )
 
 
-class PyPIPackage(object):
+class PyPiRebuilder(RebuilderInterface):
+    """
+    Rebuilder for PyPI (source_type=5)
+    """
     def __init__(self, source_json):
         self.name = source_json['pypi_package_name'].lower()
         self.python_versions = source_json['python_versions']
         self.spec_template = source_json.get('spec_template')
         self.spec_generator = source_json.get("spec_generator")
 
-    def build(self, copr, new_updated_version):
+    def build(self, copr, package, new_updated_version):
         return BuildsLogic.create_new_from_pypi(
             copr.user,
             copr,
@@ -111,13 +135,14 @@ class PyPIPackage(object):
             self.python_versions,
             chroot_names=None,
             background=True,
+            package=package,
         )
 
 def package_from_source(backend, source_json):
     try:
         return {
-            'pypi': PyPIPackage,
-            'rubygems': RubyGemsPackage,
+            'pypi': PyPiRebuilder,
+            'rubygems': GemsRebuilder,
         }[backend](source_json)
     except KeyError:
         raise Exception('Unsupported backend {0} passed as command-line argument'.format(backend))
@@ -180,7 +205,7 @@ def main():
         # rebuild if the last build's package version is "different" from new
         # remote package version
         try:
-            rebuilder.build(package.copr, new_updated_version)
+            rebuilder.build(package.copr, package, new_updated_version)
             log.info(
                 "Launched build for %s (%s) version %s in %s",
                 rebuilder.name, package.name, new_updated_version,
