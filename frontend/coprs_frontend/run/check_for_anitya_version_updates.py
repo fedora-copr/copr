@@ -84,7 +84,7 @@ def get_updated_packages(updates_messages, backend):
         if backend != project['backend'].lower():
             continue
         version = project['version']
-        if is_prerelease(version):
+        if not is_stable_release(version):
             continue
         log.debug("Updated %s package %s = %s", backend, projectname, version)
         updated_packages[projectname] = version
@@ -153,22 +153,27 @@ def package_from_source(backend, source_json):
         raise Exception('Unsupported backend {0} passed as command-line argument'.format(backend))
 
 
-def is_prerelease(version: str) -> bool:
+def is_stable_release(version: str) -> bool:
     """
-    Detect a pre-release version string.
+    Return True if the given VERSION string appears to be a stable release,
+    and return False for pre- and post- releases.
     """
+    # Helper to diagnose leftovers:
+    # $ grep Updated /var/log/copr-frontend/check_for_anitya_version_updates.log \
+    #         | grep pypi | sed '/= \([0-9]\+\(\.\)\?\)\+$/d'
     known_prerelease_patterns = [
         "dev",
         "beta",
         "rc",
         "alpha",
+        "post",  # mct-nightly 1.7.1.31122022.post351
         "a",  # openapi-core (python-openapi-core) version 0.17.0a1 in @copr/PyPI
         "b",  # fiona (python-fiona) version 1.9b2 in @copr/PyPI
     ]
     for pattern in known_prerelease_patterns:
         if pattern in version:
-            return True
-    return False
+            return False
+    return True
 
 def main():
     args = _get_parser().parse_args()
