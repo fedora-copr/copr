@@ -80,12 +80,14 @@ def get_updated_packages(updates_messages, backend):
     for message in updates_messages:
         update = message['msg']
         project = update['project']
+        projectname = project['name'].lower()
         if backend != project['backend'].lower():
             continue
         version = project['version']
         if is_prerelease(version):
             continue
-        updated_packages[project['name'].lower()] = version
+        log.debug("Updated %s package %s = %s", backend, projectname, version)
+        updated_packages[projectname] = version
     return updated_packages
 
 
