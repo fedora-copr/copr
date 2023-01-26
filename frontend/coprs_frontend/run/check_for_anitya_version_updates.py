@@ -184,11 +184,18 @@ def main():
         if rebuilder.name not in updated_packages:
             continue
 
-        last_version = last_build.pkg_version if last_build else None
-
         new_updated_version = updated_packages[rebuilder.name]
         if is_prerelease(new_updated_version):
             continue
+
+        last_version = None
+        if last_build:
+            last_version = last_build.pkg_version
+            if not last_version and not last_build.finished:
+                log.debug("Skipping %s %s in %s, existing build %s",
+                          package.name, new_updated_version,
+                          package.copr.full_name, last_build.id)
+                continue
 
         log.debug(
             "checking %s (pkg_name %s), last version: %s, new version %s",
