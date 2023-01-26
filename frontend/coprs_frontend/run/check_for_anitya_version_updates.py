@@ -82,7 +82,10 @@ def get_updated_packages(updates_messages, backend):
         project = update['project']
         if backend != project['backend'].lower():
             continue
-        updated_packages[project['name'].lower()] = project['version']
+        version = project['version']
+        if is_prerelease(version):
+            continue
+        updated_packages[project['name'].lower()] = version
     return updated_packages
 
 
@@ -185,9 +188,6 @@ def main():
             continue
 
         new_updated_version = updated_packages[rebuilder.name]
-        if is_prerelease(new_updated_version):
-            continue
-
         last_version = None
         if last_build:
             last_version = last_build.pkg_version
