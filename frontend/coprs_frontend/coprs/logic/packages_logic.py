@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 
-from sqlalchemy import bindparam, Integer, func, or_, not_
+from sqlalchemy import bindparam, Integer, func, or_
 from sqlalchemy.sql import true, text
 from sqlalchemy.orm import selectinload
 
@@ -55,10 +55,10 @@ class PackagesLogic(object):
                 func.max(models.Build.id).label('build_id'),
             )
             .outerjoin(models.Build)
-            .outerjoin(models.Copr)
+            .join(models.Package.copr)
             .filter(models.Package.source_type==source_type)
-            .filter(models.Package.webhook_rebuild==true())
-            .filter(models.Copr.deleted.is_(not_(True)))
+            .filter(models.Package.webhook_rebuild.is_(True))
+            .filter(models.Copr.deleted.is_(False))
             .group_by('pkg_id')
             .subquery()
         )
