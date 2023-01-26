@@ -85,6 +85,14 @@ class RebuilderInterface:
         """
         raise NotImplementedError
 
+    def source_json_version(self, dict_data):
+        """
+        Reading the dict with parsed source_json() try to detect the version of
+        the package.  This is a best-effort attempt (can return None)
+        """
+        raise NotImplementedError
+
+
 
 class GemsRebuilder(RebuilderInterface):
     """
@@ -101,6 +109,12 @@ class GemsRebuilder(RebuilderInterface):
             chroot_names=None,
             package=package,
         )
+
+    def source_json_version(self, dict_data):
+        """
+        Source JSON for rubygems method doesn't support Gems versions.
+        """
+        return None
 
 
 class PyPiRebuilder(RebuilderInterface):
@@ -126,6 +140,9 @@ class PyPiRebuilder(RebuilderInterface):
             background=True,
             package=package,
         )
+
+    def source_json_version(self, dict_data):
+        return dict_data.get("pypi_package_version", None)
 
 def package_from_source(backend, source_json):
     try:
@@ -182,6 +199,10 @@ def main():
         last_version = None
         if last_build:
             last_version = last_build.pkg_version
+            if not last_version:
+                source_data = json.loads(last_build.source_json)
+                last_version = rebuilder.source_json_version(source_data)
+
             if not last_version and not last_build.finished:
                 log.debug("Skipping %s %s in %s, existing build %s",
                           package.name, new_updated_version,
