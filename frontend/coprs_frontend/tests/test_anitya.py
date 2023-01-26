@@ -24,7 +24,8 @@ class TestAnitya(CoprsTestCase):
         chroots = ["fedora-rawhide-i386"]
 
         # Loop to generate projects with single (finished) build
-        for project in ["foo", "deleted", "inprogress"]:
+        for project in ["foo", "deleted", "inprogress", "inprogress-match",
+                        "inprogress-older"]:
             self.api3.new_project(project, chroots)
             self.api3.create_pypi_package(
                 project, "umap-pytorch",
@@ -46,8 +47,24 @@ class TestAnitya(CoprsTestCase):
                                             pkg_version="0.0.4")
 
         # Submit one build manually (not finished).  This must not be
-        # re-submitted via anitya automation.
+        # re-submitted via anitya automation.  This package has no version info
+        # in json, yet.
         self.api3.rebuild_package("inprogress", "python-umap-pytorch")
+
+        # Submit another build (not finished).  This one though has the
+        # pypi_package_version field specified (could be submitted by anitya).
+        resp = self.api3.rebuild_package("inprogress-match", "python-umap-pytorch")
+        build = models.Build.query.get(int(resp.json["id"]))
+        build.source_json = json.dumps({"pypi_package_version": "0.0.5"})
+        db.session.commit()
+
+        # Submit yet another build (not finished).  This one though has the
+        # pypi_package_version field specified, and is older so we want to
+        # re-build).
+        resp = self.api3.rebuild_package("inprogress-older", "python-umap-pytorch")
+        build = models.Build.query.get(int(resp.json["id"]))
+        build.source_json = json.dumps({"pypi_package_version": "0.0.4"})
+        db.session.commit()
 
         # Delete one project.  No more builds in that.
         delete_it = models.Copr.query.filter(models.Copr.name=="deleted").one()
@@ -63,7 +80,7 @@ class TestAnitya(CoprsTestCase):
         run_patched_main(["anitya", "--backend", "pypi", "--delta", "100"], messages)
 
         builds = models.Build.query.all()
-        assert len(builds) == 6
+        assert len(builds) == 11
         for build in builds:
             if build.state == "succeeded":
                 continue  # the first two builds
@@ -97,6 +114,25 @@ class TestAnitya(CoprsTestCase):
                     'spec_generator': 'pyp2rpm',
                     'spec_template': '',
                 }
+            elif copr == "user1/inprogress-match":
+                # build submitted by anytia, with the same version
+                assert json.loads(build.source_json) == {
+                    'pypi_package_version': "0.0.5",
+                }
+            elif copr == "user1/inprogress-older":
+                # build submitted by anytia, with the same version
+                if build.id == 8:
+                    assert json.loads(build.source_json) == {
+                        'pypi_package_version': "0.0.4",
+                    }
+                else:
+                    assert json.loads(build.source_json) == {
+                        'pypi_package_name': 'umap-pytorch',
+                        'pypi_package_version': '0.0.5',
+                        'python_versions': ['3'],
+                        'spec_generator': 'pyp2rpm',
+                        'spec_template': '',
+                    }
             else:
                 # No more builds!
                 assert False
