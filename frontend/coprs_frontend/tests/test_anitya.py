@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from coprs import models, app, db
-from check_for_anitya_version_updates import main
+from check_for_anitya_version_updates import main, is_stable_release
 from tests.coprs_test_case import (CoprsTestCase, TransactionDecorator)
 
 @mock.patch("check_for_anitya_version_updates.run_cmd", mock.MagicMock())
@@ -101,3 +101,14 @@ class TestAnitya(CoprsTestCase):
             else:
                 # No more builds!
                 assert False
+
+
+def test_pre_release_matcher():
+    assert not is_stable_release("1.7.1.31122022.post35")
+    assert not is_stable_release("1.7.1.31122022.post35")
+    assert not is_stable_release("0.17.0a1")
+    assert not is_stable_release("1.9b2")
+    assert is_stable_release("1")
+    assert is_stable_release("1.1")
+    assert is_stable_release("1.2.3")
+    assert is_stable_release("112312")
