@@ -82,7 +82,7 @@ def check_pubkey(pubkey_path, user, project, opts):
     else:
         log.info("Missing pubkey for %s/%s", user, project)
         try:
-            get_pubkey(user, project, log, pubkey_path)
+            get_pubkey(user, project, log, opts.sign_domain, pubkey_path)
             return True
         except Exception as err:
             log.exception(err)
@@ -116,7 +116,7 @@ def main():
             log.info("Checking project dir: %s", project_name)
 
             try:
-                get_pubkey(user_name, project_name, log)
+                get_pubkey(user_name, project_name, log, opts.sign_domain)
                 log.info("Key-pair exists for %s/%s", user_name, project_name)
             except CoprSignNoKeyError:
                 create_user_keys(user_name, project_name, opts)

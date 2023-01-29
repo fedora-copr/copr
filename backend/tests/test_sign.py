@@ -32,6 +32,7 @@ class TestSign(object):
 
         self.opts = Munch(keygen_host="example.com")
         self.opts.gently_gpg_sha256 = False
+        self.opts.sign_domain = "fedorahosted.org"
 
     def teardown_method(self, method):
         if self.tmp_dir_path:
@@ -59,7 +60,7 @@ class TestSign(object):
         mc_handle.returncode = 0
         mc_popen.return_value = mc_handle
 
-        result = get_pubkey(self.username, self.projectname, MagicMock())
+        result = get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
         assert result == STDOUT
         assert mc_popen.call_args[0][0] == ['/bin/sign', '-u', self.usermail, '-p']
 
@@ -69,7 +70,7 @@ class TestSign(object):
         mc_popen.side_effect = IOError(STDERR)
 
         with pytest.raises(CoprSignError):
-            get_pubkey(self.username, self.projectname, MagicMock())
+            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
 
 
     @mock.patch("copr_backend.sign.time.sleep")
@@ -81,7 +82,7 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignNoKeyError) as err:
-            get_pubkey(self.username, self.projectname, MagicMock())
+            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
 
         assert "There are no gpg keys for user foo in keyring" in str(err)
 
@@ -94,7 +95,7 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignError) as err:
-            get_pubkey(self.username, self.projectname, MagicMock())
+            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
 
         assert "Failed to get user pubkey" in str(err)
 
@@ -108,7 +109,7 @@ class TestSign(object):
         outfile_path = os.path.join(self.tmp_dir_path, "out.pub")
         assert not os.path.exists(outfile_path)
         result = get_pubkey(self.username, self.projectname, MagicMock(),
-                            outfile_path)
+                            self.opts.sign_domain, outfile_path)
         assert result == STDOUT
         assert os.path.exists(outfile_path)
         with open(outfile_path) as handle:

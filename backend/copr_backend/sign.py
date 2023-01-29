@@ -17,15 +17,13 @@ from .exceptions import CoprSignError, CoprSignNoKeyError, \
 
 
 SIGN_BINARY = "/bin/sign"
-DOMAIN = "fedorahosted.org"
 
-
-def create_gpg_email(username, projectname):
+def create_gpg_email(username, projectname, domain):
     """
     Creates canonical name_email to identify gpg key
     """
 
-    return "{}#{}@copr.{}".format(username, projectname, DOMAIN)
+    return "{}#{}@copr.{}".format(username, projectname, domain)
 
 
 def call_sign_bin(cmd, log):
@@ -54,17 +52,18 @@ def call_sign_bin(cmd, log):
     return handle.returncode, stdout, stderr
 
 
-def get_pubkey(username, projectname, log, outfile=None):
+def get_pubkey(username, projectname, log, sign_domain, outfile=None):
     """
     Retrieves public key for user/project from signer host.
 
+    :param sign_domain: the domain name of the sign key
     :param outfile: [optional] file to write obtained key
     :return: public keys
 
     :raises CoprSignError: failed to retrieve key, see error message
     :raises CoprSignNoKeyError: if there are no such user in keyring
     """
-    usermail = create_gpg_email(username, projectname)
+    usermail = create_gpg_email(username, projectname, sign_domain)
     cmd = [SIGN_BINARY, "-u", usermail, "-p"]
 
     returncode, stdout, stderr = call_sign_bin(cmd, log)
@@ -166,14 +165,14 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
     hashtype = gpg_hashtype_for_chroot(chroot, opts)
 
     try:
-        get_pubkey(username, projectname, log)
+        get_pubkey(username, projectname, log, opts.sign_domain)
     except CoprSignNoKeyError:
         create_user_keys(username, projectname, opts)
 
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _sign_one(rpm, create_gpg_email(username, projectname),
+            _sign_one(rpm, create_gpg_email(username, projectname, opts.sign_domain),
                       hashtype, log)
             log.info("signed rpm: %s", rpm)
 
@@ -198,7 +197,7 @@ def create_user_keys(username, projectname, opts):
     """
     data = {
         "name_real": "{}_{}".format(username, projectname),
-        "name_email": create_gpg_email(username, projectname)
+        "name_email": create_gpg_email(username, projectname, opts.sign_domain)
     }
 
     log = get_redis_logger(opts, "sign", "actions")

@@ -35,6 +35,7 @@ from copr_backend.exceptions import CoprBackendError, CoprBackendSrpmError
 
 from . import constants
 
+DOMAIN = "fedorahosted.org"
 
 LOG_COMPONENTS = [
     "spawner", "terminator", "vmm", "build_dispatcher", "action_dispatcher",
@@ -300,6 +301,9 @@ class BackendConfigReader(object):
 
         opts.build_groups_count = _get_conf(
             cp, "backend", "build_groups", 1, mode="int")
+
+        opts.sign_domain = _get_conf(
+            cp, "backend", "sign_domain", DOMAIN)
 
         opts.build_groups = []
         for group_id in range(opts.build_groups_count):

@@ -699,7 +699,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         # TODO: uncomment this when key revoke/change will be implemented
         # if os.path.exists(pubkey_path):
         #    return
-        get_pubkey(user, project, self.log, pubkey_path)
+        get_pubkey(user, project, self.log, self.opts.sign_domain, pubkey_path)
         self.log.info("Added pubkey for user %s project %s into: %s",
                       user, project, pubkey_path)
 
