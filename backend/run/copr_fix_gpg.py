@@ -70,11 +70,11 @@ def fix_copr(args, opts, copr_full_name):
         return
 
     log.info("Generate key-pair on copr-keygen (if not generated) for email %s",
-             create_gpg_email(owner, coprname))
+             create_gpg_email(owner, coprname, opts.sign_domain))
     create_user_keys(owner, coprname, opts)
 
     log.info("Regenerate pubkey.gpg in copr %s", copr_path)
-    get_pubkey(owner, coprname, log, os.path.join(copr_path, 'pubkey.gpg'))
+    get_pubkey(owner, coprname, log, opts.sign_domain, os.path.join(copr_path, 'pubkey.gpg'))
 
     # Match the "00001231-anycharacer" directory names.  Compile once, use many.
     builddir_matcher = re.compile(r"\d{8,}-")

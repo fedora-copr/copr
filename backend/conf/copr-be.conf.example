@@ -88,6 +88,10 @@ prune_days=14
 # some CDN caches (e.g. when RPMs in repository are re-signed).
 #aws_cloudfront_distribution=EX55ITR8LVMOH
 
+# the domain name of the auto-generated sign key
+# e.g. format: user#projectname@copr.{sign_domain}
+#sign_domain=fedorahosted.org
+
 [builder]
 # default is 1800
 timeout=3600
