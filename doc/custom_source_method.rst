@@ -85,6 +85,19 @@ directory. We cannot process SRC.RPM. Because some chroots can use technology
 which our server cannot recognize. E.g., in the past `rpm` changed compression and
 checksum algorithm and rpm from RHEL was unable to process packages from Fedora.
 
+Environment variables
+---------------------
+
+On top of the standard environment variables, Copr defines also:
+
+- ``COPR_OWNER`` - Owner of the project. It may be a user or group name
+- ``COPR_PROJECT`` - Name of the project
+- ``COPR_PACKAGE`` - Name of the package that is currently being
+  built. It may not be known, in such case, this variable contains an
+  empty string.
+- ``COPR_RESULTDIR`` - See the optional parameter **resultdir**
+
+
 Examples
 --------
 
