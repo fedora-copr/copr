@@ -1,6 +1,7 @@
 import os
 import logging
 import shutil
+import shlex
 
 from jinja2 import Environment, FileSystemLoader
 from copr_rpmbuild import helpers
@@ -82,6 +83,14 @@ class CustomProvider(Provider):
             cmd += ['--resultdir', self.inner_resultdir]
             inner_resultdir = os.path.normpath(os.path.join(
                 self.inner_workdir, self.inner_resultdir))
+
+        env = {
+            "COPR_OWNER": self.task["project_owner"],
+            "COPR_PROJECT": self.task["project_name"],
+            "COPR_PACKAGE": self.task["package_name"],
+        }
+        for k, v in env.items():
+            cmd += ['--env', '{0}={1}'.format(k, shlex.quote(v))]
 
         # prepare the sources
         process = helpers.GentlyTimeoutedPopen(cmd, timeout=self.timeout)
