@@ -11,6 +11,14 @@ from coprs import db_session_scope, models
 from . import GET, PUT, editable_copr, get_copr
 
 
+@apiv3_ns.route("/project/permissions/can_build_in/<ownername>/<projectname>")
+@api_login_required
+def can_build_in(ownername, projectname):
+    copr = get_copr(ownername, projectname)
+    result = {"can_build_in": flask.g.user.can_build_in(copr)}
+    return flask.jsonify(result)
+
+
 @apiv3_ns.route("/project/permissions/get/<ownername>/<projectname>", methods=GET)
 @api_login_required
 @editable_copr
