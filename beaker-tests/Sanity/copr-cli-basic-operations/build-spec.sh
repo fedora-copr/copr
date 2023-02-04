@@ -42,6 +42,13 @@ rlJournalStart
     rlPhaseStartTest
         rlRun "copr-cli create ${NAME_PREFIX}BuildSpec --enable-net on --chroot $CHROOT" 0
         rlRun "copr-cli build ${NAME_PREFIX}BuildSpec $HERE/files/vera.spec" 0
+
+        # Make sure we don't upload SRPM/Spec if user tries to build into
+        # a non-existing project (or project he doesn't have permissions to)
+        OUTPUT=`mktemp`
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}NonExisting $HERE/files/vera.spec &> $OUTPUT" 1
+        rlAssertEquals "" `grep -r 'does not exist' $OUTPUT |wc -l` 1
+        rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
     rlPhaseEnd
 
     rlPhaseStartCleanup

@@ -314,6 +314,13 @@ class Commands(object):
 
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
 
+        # Before we start uploading potentially large source RPM file, make sure
+        # that the user can actually build in the project
+        if not self.client.project_proxy.can_build_in(username, projectname):
+            msg = ("User '{0}' is not allowed to build in '{1}/{2}'"
+                   .format(self.username, username, projectname))
+            raise CoprRequestException(msg)
+
         builds = []
         for pkg in args.pkgs:
             if os.path.exists(pkg):
