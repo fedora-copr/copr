@@ -64,7 +64,8 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
     for copr in coprs_query:
         print("Handling builds in copr '{}', chroot '{}'".format(
             copr.full_name, mock_rawhide_chroot.name))
-        turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
+
+        copr_chroot = turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
         data = {"projectname": copr.name,
                 "ownername": copr.owner_name,
@@ -116,8 +117,9 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
                 # 'rawhide-to-release-run'
                 new_build_chroots += 1
                 dest_build_chroot = builds_logic.BuildChrootsLogic.new(
-                    build=rbc.build,
+                    build=build,
                     mock_chroot=mock_chroot,
+                    copr_chroot=copr_chroot,
                     **rbc.to_dict({
                         "__columns_except__": ["id"],
                     }),
@@ -140,12 +142,16 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         db.session.commit()
 
 def turn_on_the_chroot_for_copr(copr, rawhide_name, mock_chroot):
+    """
+    Enable CoprChroot in the given Copr project (if not already enabled) and
+    return it.
+    """
     rawhide_chroot = None
     for chroot in copr.copr_chroots:
         if chroot.name == rawhide_name:
             rawhide_chroot = chroot
         if chroot.name == mock_chroot.name:
             # already created
-            return
-    coprs_logic.CoprChrootsLogic.create_chroot_from(rawhide_chroot,
-                                                    mock_chroot=mock_chroot)
+            return chroot
+    return coprs_logic.CoprChrootsLogic.create_chroot_from(rawhide_chroot,
+                                                           mock_chroot=mock_chroot)
