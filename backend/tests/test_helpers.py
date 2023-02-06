@@ -4,12 +4,18 @@ import os
 import json
 import logging
 import tempfile
+import shutil
 from munch import Munch
 
 from copr_common.tree import walk_limited
 from copr_common.redis_helpers import get_redis_connection
 from copr_backend.background_worker_build import BackendError
-from copr_backend.helpers import get_redis_logger, get_chroot_arch, format_filename
+from copr_backend.helpers import (
+    copy2_but_hardlink_rpms,
+    get_chroot_arch,
+    get_redis_logger,
+    format_filename,
+)
 from copr_backend.constants import LOG_REDIS_FIFO
 
 """
@@ -101,3 +107,46 @@ class TestHelpers(object):
             assert root == os.path.join(results, "user1/foo/srpm-builds")
             assert set(subdirs) == {"222", "111"}
             assert files == []
+
+
+    @staticmethod
+    def test_recursive_copy_and_link_rpms():
+
+        def _write(filename, contents):
+            with open(filename, "w", encoding="utf-8") as fd:
+                fd.write(contents)
+
+        def _read(filename):
+            with open(filename, "r", encoding="utf-8") as fd:
+                return fd.read()
+
+        with tempfile.TemporaryDirectory(prefix="copr-test-walk") as workdir:
+            src = os.path.join(workdir, "src")
+            dst = os.path.join(workdir, "dst")
+            os.mkdir(src)
+
+            subdir = os.path.join(src, "subdir")
+            subdir_dst = os.path.join(dst, "subdir")
+            os.mkdir(subdir)
+
+            textfile = os.path.join(subdir, "test.txt")
+            textfile_dst = os.path.join(subdir_dst, "test.txt")
+            _write(textfile, "text")
+
+            rpmfile = os.path.join(subdir, "test.rpm")
+            rpmfile_dst = os.path.join(subdir_dst, "test.rpm")
+            _write(rpmfile, "rpmfile")
+
+            shutil.copytree(src, dst, copy_function=copy2_but_hardlink_rpms)
+
+            _write(textfile, "text changed")
+            _write(rpmfile, "rpmfile re-signed")
+
+            # touch the source files
+            os.path.join(dst, "text")
+            os.path.join(dst, "rpmfile")
+
+            # linked file is affected
+            assert _read(rpmfile_dst) == "rpmfile re-signed"
+            # copied file is not affected
+            assert _read(textfile_dst) == "text"

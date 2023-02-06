@@ -9,6 +9,7 @@ import time
 import types
 import glob
 import shlex
+import shutil
 
 import configparser
 from configparser import ConfigParser
@@ -695,3 +696,16 @@ def build_target_dir(build_id, package_name=None):
 
 def build_chroot_log_name(build_id, package_name=None):
     return 'build-{}.log'.format(build_target_dir(build_id, package_name))
+
+
+def copy2_but_hardlink_rpms(src, dest, **kwargs):
+    """
+    Link RPMs while otherwise copying using the shutil.copytree() method.
+    Use it like:
+        shutil.copytree(src, dst,
+                        copy_function=copy2_but_hardlink_rpms())
+    """
+    if src.endswith(".rpm"):
+        return os.link(src, dest)
+    # This is per help(shutil.copytree), copy2 is used by default.
+    return shutil.copy2(src, dest, **kwargs)
