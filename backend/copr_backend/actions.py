@@ -25,7 +25,8 @@ from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, format_filename,
-                      uses_devel_repo, call_copr_repo, build_chroot_log_name)
+                      uses_devel_repo, call_copr_repo, build_chroot_log_name,
+                      copy2_but_hardlink_rpms)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
@@ -434,9 +435,14 @@ class RawhideToRelease(Action):
                                       data["projectname"], data["rawhide_chroot"], build)
                 if os.path.exists(srcdir):
                     destdir = os.path.join(chrootdir, build)
-                    self.log.info("Copy directory: %s as %s", srcdir, destdir)
-                    shutil.copytree(srcdir, destdir)
 
+                    # We can afford doing hardlinks in this case because the
+                    # RPMs are not modified at all (contrary to "project
+                    # forking", where we have to re-sign the files).
+                    self.log.info("Copying directory (link RPMs): %s -> %s",
+                                  srcdir, destdir)
+                    shutil.copytree(srcdir, destdir,
+                                    copy_function=copy2_but_hardlink_rpms)
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
