@@ -1350,9 +1350,12 @@ class BuildChrootsLogic(object):
         Each freshly created instance of BuildChroot has to be assigned to
         pre-existing Build and MockChroot, hence the mandatory arguments.
         """
-        copr_chroot = coprs_logic.CoprChrootsLogic.get_by_mock_chroot_id(
-            build.copr, mock_chroot.id
-        ).one()
+        copr_chroot = kwargs.pop("copr_chroot", None)
+        if copr_chroot is None:
+            # This is a relatively expensive query for bulk new() calls
+            copr_chroot = coprs_logic.CoprChrootsLogic.get_by_mock_chroot_id(
+                build.copr, mock_chroot.id
+            ).one()
         return models.BuildChroot(
             mock_chroot=mock_chroot,
             copr_chroot=copr_chroot,
