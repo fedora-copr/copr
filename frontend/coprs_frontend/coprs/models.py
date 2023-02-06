@@ -1851,6 +1851,8 @@ class BuildChroot(db.Model, helpers.Serializer):
         db.Index("build_chroot_status_started_on_idx", "status", "started_on"),
         db.UniqueConstraint("mock_chroot_id", "build_id",
                             name="build_chroot_mock_chroot_id_build_id_uniq"),
+        db.Index("build_chroot_rawhide_to_release",
+                 "mock_chroot_id", "status", "build_id"),
     )
 
     id = db.Column('id', db.Integer, primary_key=True)
