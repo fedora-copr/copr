@@ -87,7 +87,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         fork_builds = (
             db.session.query(models.Build)
             .options(joinedload('build_chroots').joinedload('mock_chroot'))
-            .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide.subquery()))
+            .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide))
         ).all()
 
 
