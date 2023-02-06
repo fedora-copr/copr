@@ -14,6 +14,7 @@ jobs:
 
       - name: VCS Diff Lint
         uses: fedora-copr/vcs-diff-lint-action@v1
+        id: VCS_Diff_Lint
         with:
           subdirectories: |
             backend
@@ -29,3 +30,16 @@ jobs:
             releng
             rpmbuild
             selinux
+
+      - if: ${{ always() }}
+        name: Upload artifact with detected defects in SARIF format
+        uses: actions/upload-artifact@v3
+        with:
+          name: VCS Diff Lint SARIF
+          path: ${{ steps.VCS_Diff_Lint.outputs.sarif }}
+
+      - if: ${{ always() }}
+        name: Upload SARIF to GitHub using github/codeql-action/upload-sarif
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.VCS_Diff_Lint.outputs.sarif }}
