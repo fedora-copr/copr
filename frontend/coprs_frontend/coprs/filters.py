@@ -137,18 +137,18 @@ def localized_time(time_in, timezone):
 
 @app.template_filter('timestamp_diff')
 def timestamp_diff(time_in, until=None):
-    """ returns string with difference between two timestamps
+    """ returns difference between two timestamps
 
     Input is in EPOCH (seconds since epoch).
     """
     if time_in is None:
-        return " - "
+        return 0
     if until is not None:
         now = datetime.datetime.fromtimestamp(until)
     else:
         now = datetime.datetime.now()
     diff = now - datetime.datetime.fromtimestamp(time_in)
-    return str(int(diff.total_seconds()))
+    return int(diff.total_seconds())
 
 
 @app.template_filter('time_ago')
