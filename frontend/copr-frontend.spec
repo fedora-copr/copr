@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.195
+Version:    1.196
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,20 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Feb 07 2023 Jakub Kadlcik <frostyx@email.cz> 1.196-1
+- rawhide_to_release usable index
+- rawhide_to_release: don't repeatedly query for CoprChroot
+- rawhide_to_release: avoid sqlalchemy warning
+- faster rawhide_to_release query
+- anitya: re-submit already built packages if version is higher
+- anitya: re-try downloads from datagrepper
+- anitya: fix joins on the expensive query
+- anitya: skip also "post" releases
+- anitya: dump updated packages to log
+- anitya: skip-pre-release versions earlier
+- anitya: skip re-building if already being built
+- assign anityia builds with packages ASAP
+
 * Wed Jan 25 2023 Pavel Raiskup <praiskup@redhat.com> 1.195-1
 - anitya: ignore pre-release tarballs sooner
 - anitya: ignore alpha versions
