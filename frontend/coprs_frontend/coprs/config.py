@@ -160,6 +160,10 @@ class Config(object):
     # e.g. ou=users,dc=company,dc=com
     LDAP_SEARCH_STRING = None
 
+    # If a project has more package than this, normal users can't fork it.
+    # Only admins can.
+    FORK_PACKAGES_LIMIT = 1000
+
 
 class ProductionConfig(Config):
     DEBUG = False
