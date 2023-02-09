@@ -38,6 +38,7 @@ class ComplexLogic(object):
     """
     Used for manipulation which affects multiply models
     """
+    # pylint: disable=too-many-public-methods
 
     @classmethod
     def delete_copr(cls, copr, admin_action=False):
@@ -87,6 +88,7 @@ class ComplexLogic(object):
 
     @classmethod
     def fork_copr(cls, copr, user, dstname, dstgroup=None):
+        cls.raise_if_cant_fork(user, copr)
         forking = ProjectForking(user, dstgroup)
         created = (not bool(forking.get(copr, dstname)))
         fcopr = forking.fork_copr(copr, dstname)
@@ -309,6 +311,22 @@ class ComplexLogic(object):
         else:
             coprs = ComplexLogic.get_coprs_permissible_by_user(owner)
         return sorted(coprs, key=lambda copr: copr.full_name)
+
+    @classmethod
+    def raise_if_cant_fork(cls, user, copr):
+        """
+        Raise CoprHttpException if a given user cant fork a given copr.
+        Return None otherwise.
+        """
+        limit = app.config["FORK_PACKAGES_LIMIT"]
+        packages_count = PackagesLogic.get_all(copr.id).count()
+        if packages_count > limit and not user.admin:
+            msg = ("This project is too large to be forked, it has {0} "
+                   "packages. Forking this such projects is restricted because "
+                   "it could cause unexpected performance or storage issues. "
+                   "If you would like to proceed with this action, "
+                   "please contact Copr maintainers.".format(packages_count))
+            raise exceptions.CoprHttpException(msg)
 
 
 class ProjectForking(object):
