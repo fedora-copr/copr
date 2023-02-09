@@ -99,7 +99,6 @@ BuildRequires: python3-gobject
 BuildRequires: python3-html2text
 BuildRequires: python3-html5-parser
 BuildRequires: python3-humanize
-BuildRequires: python3-libmodulemd1 >= 1.7.0
 BuildRequires: python3-lxml
 BuildRequires: python3-markdown
 BuildRequires: python3-munch
@@ -158,7 +157,6 @@ Requires: python3-gobject
 Requires: python3-html2text
 Requires: python3-html5-parser
 Requires: python3-humanize
-Requires: python3-libmodulemd1 >= 1.7.0
 Requires: python3-lxml
 Requires: python3-markdown
 Requires: python3-mod_wsgi
