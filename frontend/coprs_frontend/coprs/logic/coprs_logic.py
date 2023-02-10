@@ -1325,14 +1325,17 @@ class MockChrootsLogic(object):
     @classmethod
     def get(cls, os_release, os_version, arch, active_only=False, noarch=False):
         if noarch and not arch:
-            return (models.MockChroot.query
-                    .filter(models.MockChroot.os_release == os_release,
-                            models.MockChroot.os_version == os_version))
-
-        return (models.MockChroot.query
-                .filter(models.MockChroot.os_release == os_release,
-                        models.MockChroot.os_version == os_version,
-                        models.MockChroot.arch == arch))
+            query = (models.MockChroot.query
+                     .filter(models.MockChroot.os_release == os_release,
+                             models.MockChroot.os_version == os_version))
+        else:
+            query = (models.MockChroot.query
+                     .filter(models.MockChroot.os_release == os_release,
+                             models.MockChroot.os_version == os_version,
+                             models.MockChroot.arch == arch))
+        if active_only:
+            query = query.filter(models.MockChroot.is_active)
+        return query
 
     @classmethod
     def get_from_name(cls, chroot_name, active_only=False, noarch=False):
