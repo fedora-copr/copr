@@ -50,6 +50,7 @@ This section contains information about maintenance topics. You may also be inte
    fedora_magazine
    email_templates
    Sending notifications and removing data from outdated chroots <how_to_delete_outdated_chroots>
+   Monitoring the service <maintenance/monitoring>
 
 
 .. toctree::

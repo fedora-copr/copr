@@ -35,9 +35,11 @@ History
 Misc
 ----
 
-* :ref:`brainstorming`
+.. toctree::
+   :maxdepth: 1
 
-* :ref:`seeddb`
+   Brainstorming <brainstorming>
+   Populate DB <seeddb>
 
 SRPM URL/Upload build schema
 ----------------------------
