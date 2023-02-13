@@ -17,6 +17,7 @@ ERDFILE         = _static/db-erd.png
 
 PLANTUML_DIAGRAMS = \
 	dispatchers \
+	monitoring-schema \
 	process-build-actions \
 	worker-manager-run
 

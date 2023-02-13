@@ -1,0 +1,55 @@
+@startuml
+
+!unquoted procedure $Script($text, $name)
+    rectangle "$text" as $name #Yellow
+!endprocedure
+
+
+node "Monitored Servers" as ms {
+
+    rectangle "Prometheus Subsystem" as pss {
+        rectangle "Prometheus client" as prometheus_cli
+        () "statsdir" as srv_statdir
+
+        $Script("copr-frontend-prometheus-monitoring.py\n(copr-frontend only)", "monitoring_py")
+    }
+
+    rectangle "Nagios Subsystem" as nss {
+        rectangle "NRPE daemon" as srv_nrpe
+        $Script("bin/copr-ping-check.py\n(copr-backend only)", "copr_ping_check")
+        $Script("bin/copr-cdn-check.py\n(copr-frontend only)", "cdn_check")
+        $Script("copr_ping_script.py\n(copr-backend only)", "copr_ping_script")
+        () "/var/log/copr-ping.log" as the_ping_log
+    }
+
+    () "system info" as sysinfo
+    rectangle Cron as srv_cron
+}
+
+
+rectangle "Uptime Robot" as uptime_robot #LightGreen
+rectangle "Nagios Server" as nagios_server #LightGreen
+rectangle "Prometheus server" as prometheus_server #LightGreen
+
+ms -[hidden]l-> prometheus_server
+srv_cron -[hidden]u-> sysinfo
+nss -[hidden]l-> sysinfo
+
+srv_cron -d-> monitoring_py : calls
+srv_cron -d-> copr_ping_script : calls
+
+sysinfo <-l- srv_nrpe : reads
+sysinfo <-r- prometheus_cli: reads
+
+nagios_server -d-> srv_nrpe : contacts\nperiodically
+cdn_check -[hidden]l-> copr_ping_check
+srv_nrpe -d-> copr_ping_check: calls on demand
+srv_nrpe -d-> cdn_check : calls on demand
+copr_ping_check -d-> the_ping_log: analyses
+copr_ping_script -right-> the_ping_log: produces
+monitoring_py -> srv_statdir : produces
+monitoring_py -d-> nagios_server : downloads from
+prometheus_cli -d-> srv_statdir : reads
+prometheus_server -r-> prometheus_cli : contacts\nperiodically
+cdn_check -d-> uptime_robot : downloads
+@enduml
