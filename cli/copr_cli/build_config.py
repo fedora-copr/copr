@@ -41,7 +41,7 @@ config_opts['chroot_additional_packages'] = '
 {%- endif %}
 {%- if repos %}
 
-config_opts[config_opts['package_manager'] + '.conf'] += \"\"\"
+config_opts['dnf.conf'] += \"\"\"
 {%- for repo in repos %}
 
 [{{ repo.id }}]
