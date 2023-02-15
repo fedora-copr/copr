@@ -158,16 +158,15 @@ systemctl condrestart httpd &>/dev/null || :
 %{_bindir}/gpg_copr.sh
 %{_bindir}/gpg-copr
 %{_bindir}/gpg-copr-prolong
-%config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
+%config %{_sysconfdir}/cron.daily/*
+%config %{_sysconfdir}/logrotate.d/copr-keygen
+%config %{_sysconfdir}/sudoers.d/copr_signer
+
+# Only copr-signer owned files go below!
 %defattr(600, copr-signer, copr-signer, 700)
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
-
-%{_sysconfdir}/logrotate.d/copr-keygen
-
-%config %attr(0755, root, root) %{_sysconfdir}/cron.daily/*
-
 %dir %{_localstatedir}/log/copr-keygen
 %ghost %{_localstatedir}/log/copr-keygen/main.log
 
