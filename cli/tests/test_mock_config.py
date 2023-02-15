@@ -44,7 +44,7 @@ class TestMockConfig():
             additional=""
 
         return """
-config_opts[config_opts['package_manager'] + '.conf'] += \"\"\"
+config_opts['dnf.conf'] += \"\"\"
 
 [copr_base]
 name="Copr repository"
