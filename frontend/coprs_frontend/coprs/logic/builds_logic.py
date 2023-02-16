@@ -1144,26 +1144,36 @@ class BuildsLogic(object):
     @classmethod
     def check_build_to_delete(cls, user, build):
         """
-        :type user: models.User
+        :type user: models.User or models.AutomationUser
         :type build: models.Build
         """
-        if not user.can_edit(build.copr) or build.persistent:
+        if build.persistent:
             raise InsufficientRightsException(
-                "You are not allowed to delete build `{}`.".format(build.id))
+                f"User '{user.username}' can not delete a persistent "
+                f"build {build.id}")
+
+        if not user.can_edit(build.copr):
+            raise InsufficientRightsException(
+                f"User '{user.username}' doesn't have permissions to delete "
+                f"build {build.id}")
 
         if not build.finished:
             raise ActionInProgressException(
-                "You can not delete build `{}` which is not finished.".format(build.id),
-                "Unfinished build")
+                f"User '{user.username}' can not delete build {build.id}",
+                "Unfinished build",
+            )
 
     @classmethod
     def delete_build(cls, user, build, send_delete_action=True):
         """
-        :type user: models.User
+        :type user: models.User or models.AutomationUser
         :type build: models.Build
+        :send_delete_action: boolean, set to True to let backend remove the
+            build data
         """
         cls.check_build_to_delete(user, build)
-
+        log.info("User '%s' removing the build %s",
+                 user.username, build.id)
         if send_delete_action:
             ActionsLogic.send_delete_build(build)
 
@@ -1297,7 +1307,9 @@ class BuildsLogic(object):
 
             for build in delete_builds:
                 try:
-                    cls.delete_build(build.copr.user, build)
+                    cls.delete_build(
+                        models.AutomationUser("Old-build-cleaner"),
+                        build)
                 except ActionInProgressException:
                     # postpone this one to next day run
                     log.error("Build(id={}) delete failed, unfinished action.".format(build.id))

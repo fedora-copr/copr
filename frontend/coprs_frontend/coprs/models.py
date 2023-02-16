@@ -91,7 +91,37 @@ class _UserPrivate(db.Model, helpers.Serializer):
         db.Date, nullable=False, default=datetime.date(2000, 1, 1))
 
 
-class User(db.Model, helpers.Serializer):
+class AbstractUser:
+    """
+    AutomationUser and User classes inherit from this.
+    """
+    username = None
+
+    def can_edit(self, copr, ignore_admin=False):
+        """
+        Return True if this user can modify given copr.
+        """
+        raise NotImplementedError
+
+
+class AutomationUser(AbstractUser):
+    """
+    This user (instance of this class) can modify all projects; used for
+    internal system operations like automatic build removals, etc.
+    """
+    def can_edit(self, _copr, _ignore_admin=False):
+        return True
+
+    def __init__(self, name):
+        """
+        Initialize the name of this fake user, e.c. "cron user".
+        There's no special semantics of name, it is mostly used to make the
+        log entries more readable.
+        """
+        self.username = name
+
+
+class User(db.Model, helpers.Serializer, AbstractUser):
     __table__ = outerjoin(_UserPublic.__table__, _UserPrivate.__table__)
     id = column_property(_UserPublic.__table__.c.id, _UserPrivate.__table__.c.user_id)
 
