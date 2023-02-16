@@ -40,7 +40,7 @@ Source
 
 Copr comes in several pieces.  You can browse the source here:
 
-* The source for Copr itself: https://pagure.io/copr/copr
+* The source for Copr itself: https://github.com/fedora-copr/copr
 
 Instances
 ---------
@@ -51,7 +51,7 @@ Instances
 Need To Edit This Wiki?
 -----------------------
 
-All the sources for this wiki are placed in our repository at https://pagure.io/copr/copr/ in "doc" directory. If you have commit rights,
+All the sources for this wiki are placed in our repository at https://github.com/fedora-copr/copr in "doc" directory. If you have commit rights,
 then you can to directly edit the files and then follow procedure described here: https://docs.pagure.org/pagure/usage/using_doc.html to
 push the modified html files into the docs repo. Even without commit rights, you can contribute. Just send us the patch of the modified
 doc files and we will apply it for you (see :ref:`patch_process`).

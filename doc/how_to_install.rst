@@ -11,4 +11,4 @@ Currently Copr code base is tested and works only on Fedora 19+.
 Installation
 ------------
 
-Follow up https://pagure.io/copr/copr/blob/master/f/copr-setup.txt
+Follow up https://github.com/fedora-copr/copr/blob/main/copr-setup.txt

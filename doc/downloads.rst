@@ -18,16 +18,16 @@ Copr uses `git <http://git.or.cz>`_ for source control.
 
 To checkout the latest version from git::
 
-    git clone https://pagure.io/copr/copr.git
+    git clone https://github.com/fedora-copr/copr.git
 
-You can view the source on `Pagure <https://pagure.io/copr/copr>`_
+You can view the source on `GitHub <https://github.com/fedora-copr/copr>`_
 
 Commiter Git Information
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 In general, we want folks to send patches to the list (see :ref:`patch_process`). If you have commit access to Copr, however, you can use the following URL::
 
-    git clone ssh://git@pagure.io/copr/copr.git
+    git clone git@github.com:fedora-copr/copr.git
 
 Source RPMs
 ^^^^^^^^^^^

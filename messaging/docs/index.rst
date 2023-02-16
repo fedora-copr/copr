@@ -26,4 +26,4 @@ Indices and tables
 * :ref:`search`
 
 
-.. _`Copr build system`: https://pagure.io/copr/copr
+.. _`Copr build system`: https://github.com/fedora-copr/copr

@@ -11,9 +11,9 @@ to provide access to all copr api methods.
 
 About this project:
 -------------------
-- Website: https://pagure.io/copr/copr
+- Website: https://github.com/fedora-copr/copr
 - Python-copr documentation: http://python-copr.readthedocs.org
-- Git: https://pagure.io/copr/copr.git
+- Git: https://github.com/fedora-copr/copr.git
 - Test instance: http://copr.stg.fedoraproject.org/
 
 Usage:

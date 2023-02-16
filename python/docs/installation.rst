@@ -21,7 +21,7 @@ source
 
 .. code-block:: bash
 
-    git clone https://pagure.io/copr/copr.git
+    git clone https://github.com/fedora-copr/copr.git
     cd copr/python
     # enable virtualenv if needed
     pip install -r requirements.txt

@@ -9,7 +9,7 @@ import subprocess
 
 PROJECT = "@copr/copr-dev"
 
-CLONE_URL = "https://pagure.io/copr/copr.git"
+CLONE_URL = "https://github.com/fedora-copr/copr.git"
 
 BATCHES = {
     "common": {

@@ -7,7 +7,7 @@ dnf -y install git dnf-plugins-core
 
 if [[ `pwd` =~ ^/mnt/tests.*$ ]]; then
     echo "Setting up native beaker environment."
-    git clone https://pagure.io/copr/copr.git
+    git clone https://github.com/fedora-copr/copr.git
     export COPRROOTDIR=$SCRIPTPATH/copr
 else
     echo "Setting up from source tree."

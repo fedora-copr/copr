@@ -6,7 +6,7 @@ License:	Apache-2.0
 URL:		https://github.com/fedora-copr/copr
 
 # Source is created by
-# git clone https://pagure.io/copr/copr.git
+# git clone https://github.com/fedora-copr/copr.git
 # cd copr/java
 # tito build --tgz
 Source0:        %{name}-%{version}.tar.gz

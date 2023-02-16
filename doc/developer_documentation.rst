@@ -11,7 +11,7 @@ Source
 
 Copr comes in several pieces. You can browse the source here:
 
-* The source for Copr itself: https://pagure.io/copr/copr
+* The source for Copr itself: https://github.com/fedora-copr/copr
 
 Working with the code
 ---------------------

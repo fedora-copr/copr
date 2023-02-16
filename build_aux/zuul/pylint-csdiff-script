@@ -7,7 +7,7 @@
 set +x
 set -e
 
-REPO=https://pagure.io/copr/copr.git
+REPO=https://github.com/fedora-copr/copr.git
 : "${DIFF_AGAINST=upstream/main}"
 
 rebase()

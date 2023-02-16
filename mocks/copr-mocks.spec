@@ -4,7 +4,7 @@ Summary: COPR system components mocks
 Release: 1%{?dist}
 
 # Source is created by:
-# git clone https://pagure.io/copr/copr.git
+# git clone https://github.com/fedora-copr/copr.git
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/mocks
 # rpkg spec --sources
