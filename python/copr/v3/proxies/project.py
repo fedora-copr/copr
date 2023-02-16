@@ -70,7 +70,7 @@ class ProjectProxy(BaseProxy):
             contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=False, persistent=False,
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
-            bootstrap=None, bootstrap_image=None, isolation=None,
+            bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=True,
             fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None):
         """
         Create a project
@@ -100,6 +100,7 @@ class ProjectProxy(BaseProxy):
             This is a noop parameter and its value is ignored.
         :param str isolation: Mock isolation feature setup.
             Possible values are 'default', 'simple', 'nspawn'.
+        :param bool follow_fedora_branching: If newly branched chroots should be automatically enabled and populated
         :param bool fedora_review: Run fedora-review tool for packages
                                    in this project
         :param bool appstream: Disable or enable generating the appstream metadata
@@ -129,6 +130,7 @@ class ProjectProxy(BaseProxy):
             "bootstrap": bootstrap,
             "bootstrap_image": bootstrap_image,
             "isolation": isolation,
+            "follow_fedora_branching": follow_fedora_branching,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
             "multilib": multilib,
@@ -154,7 +156,7 @@ class ProjectProxy(BaseProxy):
              contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
-             bootstrap=None, bootstrap_image=None, isolation=None,
+             bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=None,
              fedora_review=None, appstream=None, runtime_dependencies=None, packit_forge_projects_allowed=None):
         """
         Edit a project
@@ -180,6 +182,7 @@ class ProjectProxy(BaseProxy):
             Possible values are 'default', 'on', 'off', 'image'.
         :param str isolation: Mock isolation feature setup.
             Possible values are 'default', 'simple', 'nspawn'.
+        :param bool follow_fedora_branching: If newly branched chroots should be automatically enabled and populated.
         :param str bootstrap_image: Name of the container image to initialize
             the bootstrap chroot from.  This also implies 'bootstrap=image'.
             This is a noop parameter and its value is ignored.
@@ -210,6 +213,7 @@ class ProjectProxy(BaseProxy):
             "auto_prune": auto_prune,
             "bootstrap": bootstrap,
             "isolation": isolation,
+            "follow_fedora_branching": follow_fedora_branching,
             "bootstrap_image": bootstrap_image,
             "devel_mode": devel_mode,
             "delete_after_days": delete_after_days,
