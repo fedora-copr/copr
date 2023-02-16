@@ -6,7 +6,7 @@
 Copr git web interface
 ----------------------
 
-If you just want to browse our git repository use https://pagure.io/copr/copr.
+If you just want to browse our git repository use https://github.com/fedora-copr/copr.
 
 Getting Started
 ---------------
@@ -31,11 +31,11 @@ Clone the Copr git repository
 
 For anonymous access to the Copr source code, feel free to clone the repository::
 
-    git clone https://pagure.io/copr/copr
+    git clone https://github.com/fedora-copr/copr
 
 Copr committers can clone the repository using the ssh url, which is required if you want to push changes into the repo (and of course you need permission to do so)::
 
-    git clone ssh://git@pagure.io/copr/copr.git
+    git clone git@github.com:fedora-copr/copr.git
 
 For more details check out the DownloadIt page. 
 
@@ -50,7 +50,7 @@ https://accounts.fedoraproject.org/user/USERNAME/settings/keys
 
 - After that you should be able to git clone with::
 
-    git clone ssh://git@pagure.io/copr/copr.git
+    git clone git@github.com:fedora-copr/copr.git
 
 Identify Yourself
 -----------------

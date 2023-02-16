@@ -12,7 +12,7 @@ or checkout git repo and build with rpkg::
 
     dnf install rpkg
 
-    git clone https://pagure.io/copr/copr.git
+    git clone https://github.com/fedora-copr/copr.git
     cd copr
 
     rpkg --path backend spec --outdir /tmp/rpkg

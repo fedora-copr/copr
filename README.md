@@ -1,6 +1,6 @@
 # Copr
 
-[**Project Page**](https://pagure.io/copr/copr) |
+[**Project Page**](https://github.com/fedora-copr/copr) |
 [**Documentation**](https://docs.pagure.org/copr.copr/) |
 [**Report a Bug**](https://bugzilla.redhat.com/enter_bug.cgi?product=Copr) |
 [**Already reported bugs**](https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678560&product=Copr&query_format=advanced) |
@@ -33,7 +33,7 @@ python-copr-common | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/co
 You can use [Docker](https://docs.docker.com/) to run your local test environment. You need to install `docker-compose` tool for this to work.
 
 ```
-$ git clone https://pagure.io/copr/copr.git
+$ git clone https://github.com/fedora-copr/copr.git
 $ cd copr
 $ docker-compose up -d
 ```

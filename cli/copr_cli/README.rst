@@ -11,7 +11,7 @@ This part is a command line interface to use copr.
 
 About this project:
 -------------------
-- Website: https://pagure.io/copr/copr
+- Website: https://github.com/fedora-copr/copr
 - Git: http://git.fedorahosted.org/cgit/copr.git
 - Production Fedora instance: https://copr.fedorainfracloud.org/
 - Development Fedora instance: http://copr.stg.fedoraproject.org/

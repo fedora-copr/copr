@@ -26,7 +26,7 @@ To start your developer environment, simply run ``docker-compose up`` command in
 
 ::
 
-    $ git clone https://pagure.io/copr/copr.git
+    $ git clone https://github.com/fedora-copr/copr.git
 
     $ cd copr
 
@@ -81,7 +81,7 @@ You can get shell to the e.g. backend container and see the logs
 Unit tests
 ^^^^^^^^^^
 
-Those tests are accessible directly from COPR pagure repository (https://pagure.io/copr/copr). If you change something in the frontend package, you should run the frontend test suite before committing::
+Those tests are accessible directly from COPR pagure repository (https://github.com/fedora-copr/copr). If you change something in the frontend package, you should run the frontend test suite before committing::
 
     $ cd copr/frontend
 
