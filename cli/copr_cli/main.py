@@ -461,6 +461,7 @@ class Commands(object):
             auto_prune=ON_OFF_MAP[args.auto_prune],
             bootstrap=BOOTSTRAP_MAP[args.bootstrap],
             isolation=args.isolation,
+            follow_fedora_branching=ON_OFF_MAP[args.follow_fedora_branching],
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
             module_hotfixes=ON_OFF_MAP[args.module_hotfixes],
@@ -492,6 +493,7 @@ class Commands(object):
             auto_prune=ON_OFF_MAP[args.auto_prune],
             bootstrap=BOOTSTRAP_MAP[args.bootstrap],
             isolation=args.isolation,
+            follow_fedora_branching=ON_OFF_MAP[args.follow_fedora_branching],
             chroots=args.chroots,
             delete_after_days=args.delete_after_days,
             multilib=ON_OFF_MAP[args.multilib],
@@ -706,7 +708,8 @@ class Commands(object):
         )
         fields = ["additional_packages", "additional_repos", "additional_modules",
                   "comps_name", "delete_after_days", "isolation", "mock_chroot",
-                  "ownername", "projectname", "with_opts", "without_opts"]
+                  "ownername", "projectname", "with_opts", "without_opts",
+                  "follow_fedora_branching"]
         printer = get_printer(args.output_format, fields)
         printer.add_data(project_chroot)
         printer.finish()
@@ -1134,6 +1137,13 @@ def setup_parser():
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
 
+    parser_create.add_argument(
+        "--follow-fedora-branching", choices=["on", "off"], default="on",
+        help=("When Fedora is branched from rawhide, the "
+              "respective chroots for the new branch are automatically "
+              "created for you (as soon as they are available) as rawhide "
+              "chroot forks."))
+
     create_and_modify_common_opts(parser_create)
 
     parser_create.set_defaults(func="action_create")
@@ -1192,6 +1202,13 @@ def setup_parser():
         "--appstream", choices=["on", "off"], default="off",
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
+
+    parser_modify.add_argument(
+        "--follow-fedora-branching", choices=["on", "off"],
+        help=("When Fedora is branched from rawhide, the "
+              "respective chroots for the new branch are automatically "
+              "created for you (as soon as they are available) as rawhide "
+              "chroot forks."))
 
     create_and_modify_common_opts(parser_modify)
 
