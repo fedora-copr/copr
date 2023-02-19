@@ -478,6 +478,23 @@ Quick HOWTO for the `Package Review`_ time::
 .. _`Fedora Review`: https://pagure.io/FedoraReview
 .. _`Package Review`: https://fedoraproject.org/wiki/Package_Review_Process
 
+Modularity
+----------
+
+Copr supports multiple `Fedora Modularity <https://docs.fedoraproject.org/en-US/modularity/>`_ features:
+
+
+- `Building modules <http://frostyx.cz/posts/how-to-build-modules-in-copr>`_
+- `Module hotfixes repositories <http://frostyx.cz/posts/module-hotfixes-in-copr>`_ -
+  allowing non-module packages to override module packages
+- Enabling/disabling modules in the packages buildroot. Let's suppose
+  that you need to install a module dependency, e.g.
+  ``dnf module install nodejs:16`` to build your package. This can be
+  done in Copr by going to a project settings, picking a chroot,
+  clicking its "Edit" button, and specifying the "Modules"
+  field. Please note, that it can also disable modules.
+
+
 FAQ
 ---
 
