@@ -1,0 +1,12 @@
+FROM fedora:37
+
+RUN dnf update -y && dnf install dnf-plugins-core -y && dnf install python-pytest-cov rpmdevtools python3-copr copr-cli -y
+
+RUN useradd copr_user
+USER copr_user
+WORKDIR /home/copr_user/copr
+COPY --chown=copr_user . /home/copr_user/copr
+
+USER root
+RUN dnf builddep *.spec -y
+USER copr_user
