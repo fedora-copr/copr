@@ -44,6 +44,7 @@ class ImportBackgroundWorker(BackgroundWorker):
         importer = Importer(self.opts)
         url = ("{0}/backend/get-import-task/{1}"
                .format(self.opts.frontend_base_url, build_id))
+        self.log.debug("Fetching task: %s", url)
         response = requests.get(url)
         task_dict = response.json()
 
