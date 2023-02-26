@@ -12,6 +12,7 @@ from coprs.views.coprs_ns.coprs_builds import (
     render_add_build_pypi,
     render_add_build_custom,
     render_add_build_distgit,
+    render_add_build_rubygems,
 )
 from coprs.views.misc import (
     login_required,
@@ -136,6 +137,10 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormPyPIFactory
         f = render_add_build_pypi
         view_suffix = "_pypi"
+    elif package.source_type_text == "rubygems":
+        form = forms.BuildFormRubyGemsFactory
+        f = render_add_build_rubygems
+        view_suffix = "_rubygems"
     elif package.source_type_text == "custom":
         form = forms.BuildFormCustomFactory
         f = render_add_build_custom
