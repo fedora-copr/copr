@@ -83,6 +83,8 @@ Currently, we use the following instance types:
 +----------------+-------------+-------------+
 | **distgit**    | t3a.medium  | t3a.medium  |
 +----------------+-------------+-------------+
+| **pulp**       | t3a.medium  | TODO        |
++----------------+-------------+-------------+
 
 When more power is needed, please use the `ec2instances.info`_ comparator to get
 the cheapest available instance type according to our needs.
@@ -108,6 +110,7 @@ the cheapest available instance type according to our needs.
     - ``copr-backend-sg``
     - ``copr-distgit-sg``
     - ``copr-keygen-sg``
+    - ``copr-pulp-sg``
 
 
 7. Configure storage
@@ -126,6 +129,8 @@ the cheapest available instance type according to our needs.
 | **keygen**     | 10G         | 20G         |
 +----------------+-------------+-------------+
 | **distgit**    | 20G         | 80G         |
++----------------+-------------+-------------+
+| **pulp**       | 20G         | TODO        |
 +----------------+-------------+-------------+
 
 - Turn on the ``Encrypted`` option
@@ -227,6 +232,8 @@ will need it to backup the database), stop all of our services.
 +----------------+-------------------------------------------------------------+
 | **distgit**    | ``systemctl stop copr-dist-git httpd``                      |
 +----------------+-------------------------------------------------------------+
+| **pulp**       | ``TODO``                                                    |
++----------------+-------------------------------------------------------------+
 
 Stop all timers and cron jobs so they don't collide or talk with the newly
 provisioned servers::
@@ -297,6 +304,8 @@ Open Amazon AWS web UI, select ``Volumes`` in the left panel, filter them with
 | **keygen**     | data-copr-keygen-dev    | data-copr-keygen-prod        |
 +----------------+-------------------------+------------------------------+
 | **distgit**    | data-copr-distgit-dev   | data-copr-distgit-prod       |
++----------------+-------------------------+------------------------------+
+| **pulp**       | data-copr-pulp-dev      | TODO                         |
 +----------------+-------------------------+------------------------------+
 
 Once it is done, right-click the volume again, and click to ``Attach Volume``
