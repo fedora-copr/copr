@@ -1192,14 +1192,14 @@ def setup_parser():
               "x86_64 arch), default is \"don't change\""))
 
     parser_modify.add_argument(
-        "--fedora-review", choices=["on", "off"], default="off",
+        "--fedora-review", choices=["on", "off"],
         help=("When submitting new package to Fedora, it needs to comply with "
               "Fedora Packaging Guidelines. Use fedora-review tool to help you "
               "discover packaging errors. Failing fedora-review will not fail "
               "the build itself."))
 
     parser_modify.add_argument(
-        "--appstream", choices=["on", "off"], default="off",
+        "--appstream", choices=["on", "off"],
         help=("Generate AppStream metadata for this project. Generating "
               "metadata slows down the builds in large Copr projects."))
 
