@@ -195,6 +195,8 @@
     EPEL {{ os_version }}
   {% elif os_release == 'opensuse-leap' %}
     openSUSE Leap {{ os_version }}
+  {% elif os_release == 'openeuler' %}
+    openEuler {{ os_version }}
   {% elif os_release == 'opensuse' and os_version == 'tumbleweed' %}
     openSUSE Tumbleweed
   {% else %}
