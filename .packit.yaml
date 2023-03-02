@@ -1,0 +1,60 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+packit_instances: ["stg"]
+upstream_project_url: https://github.com/fedora-copr/copr.git
+
+packages:
+
+  python-copr:
+    downstream_package_name: python-copr
+    upstream_package_name: copr
+    paths: 
+      - ./python
+    specfile_path: python-copr.spec
+    files_to_sync: 
+      - python-copr.spec
+
+  cli:
+    downstream_package_name: copr-cli
+    upstream_package_name: copr-cli
+    paths: 
+      - ./cli
+    specfile_path: copr-cli.spec
+    files_to_sync: 
+      - copr-cli.spec
+
+  frontend:
+    downstream_package_name: copr-frontend
+    upstream_package_name: copr-frontend
+    paths: 
+      - ./frontend
+    specfile_path: copr-frontend.spec
+    files_to_sync: 
+      - copr-frontend.spec
+  
+jobs:
+  - job: copr_build
+    branch: rawhide-downstream-sync
+    packages:
+      - cli
+      - python-copr
+    trigger: commit
+    targets: fedora-37
+    owner: mmassari
+    project: copr
+  - job: vm_image_build
+    packages:
+      - cli
+    trigger: pull_request
+    copr_chroot: fedora-37-x86_64
+    owner: mmassari
+    project: copr
+    image_customizations:
+      packages: [python-copr, copr-cli]
+    image_distribution: fedora-37
+    image_request:
+      architecture: x86_64
+      image_type: aws
+      upload_request:
+        type: aws
+        options: {}
