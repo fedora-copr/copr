@@ -316,7 +316,9 @@ class Commands(object):
 
         # Before we start uploading potentially large source RPM file, make sure
         # that the user can actually build in the project
-        if not self.client.project_proxy.can_build_in(username, projectname):
+        can_build = self.client.project_proxy.can_build_in(
+            self.username, username, projectname)
+        if not can_build:
             msg = ("User '{0}' is not allowed to build in '{1}/{2}'"
                    .format(self.username, username, projectname))
             raise CoprRequestException(msg)
