@@ -288,16 +288,19 @@ class ProjectProxy(BaseProxy):
         )
         return munchify(response)
 
-    def can_build_in(self, ownername, projectname):
+    def can_build_in(self, who, ownername, projectname):
         """
         Return `True` a user can submit builds for a ownername/projectname
 
+        :param str who: name of the user checking their permissions
         :param str ownername: owner of the project
         :param str projectname: name of the project
         :return Bool: `True` or raise
         """
-        endpoint = "/project/permissions/can_build_in/{ownername}/{projectname}/"
+        endpoint = ("/project/permissions/can_build_in/"
+                    "{who}/{ownername}/{projectname}/")
         params = {
+            "who": who,
             "ownername": ownername,
             "projectname": projectname,
         }

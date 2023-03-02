@@ -5,17 +5,26 @@ from coprs.views.misc import api_login_required
 from coprs.exceptions import ObjectNotFound, BadRequest
 from coprs.helpers import PermissionEnum
 from coprs.logic.coprs_logic import CoprPermissionsLogic
+from coprs.logic.users_logic import UsersLogic
 from coprs.mail import send_mail, PermissionRequestMessage, PermissionChangeMessage
 from coprs import db_session_scope, models
 
 from . import GET, PUT, editable_copr, get_copr
 
 
-@apiv3_ns.route("/project/permissions/can_build_in/<ownername>/<projectname>")
-@api_login_required
-def can_build_in(ownername, projectname):
+@apiv3_ns.route("/project/permissions/can_build_in/<who>/<ownername>/<projectname>")
+def can_build_in(who, ownername, projectname):
+    """
+    Can a user `who` submit builds in the `ownername/projectname` project?
+    """
+    user = UsersLogic.get(who).one()
     copr = get_copr(ownername, projectname)
-    result = {"can_build_in": flask.g.user.can_build_in(copr)}
+    result = {
+        "who": user.name,
+        "ownername": copr.owner.name,
+        "projectname": copr.name,
+        "can_build_in": user.can_build_in(copr),
+    }
     return flask.jsonify(result)
 
 
