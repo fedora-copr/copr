@@ -386,9 +386,17 @@ class TestModifyRepo(object):
         call = popen.call_args_list[0]
         assert call[0][0] == ["copr-repo", "--batched", "/some/dir", "--do-stat"]
 
-    @pytest.mark.parametrize('do_stat', [True, False])
+    @pytest.mark.parametrize(
+        "do_stat, chroot, database_option",
+        [
+            pytest.param(True, "fedora-37", "--no-database"),
+            pytest.param(False, "centos-stream-8", "--no-database"),
+            pytest.param(True, "rhel-8", "--no-database"),
+            pytest.param(False, "epel-8", "--no-database"),
+        ]
+    )
     @mock.patch("copr_backend.helpers.subprocess.Popen")
-    def test_copr_repo_run_createrepo(self, popen, do_stat):
+    def test_copr_repo_run_createrepo(self, popen, do_stat, chroot, database_option):
         """ Check that we run createrepo_c with appropriate arguments """
 
         # Mock the run_prunerepo properly
@@ -410,6 +418,7 @@ class TestModifyRepo(object):
         opts.do_stat = do_stat
         opts.log = logging.getLogger()
         opts.rpms_to_remove = []
+        opts.chroot = chroot
 
         # run the method
         filedict["run_createrepo"](opts)
@@ -417,7 +426,7 @@ class TestModifyRepo(object):
         additional_args = [] if do_stat else ["--skip-stat"]
 
         assert popen.call_args_list[0][0][0] == \
-            ["/usr/bin/createrepo_c", repodir, "--database",
+            ["/usr/bin/createrepo_c", repodir, database_option,
              "--ignore-lock", "--local-sqlite", "--cachedir", "/tmp/",
              "--workers", "8", "--update"] + additional_args
 
