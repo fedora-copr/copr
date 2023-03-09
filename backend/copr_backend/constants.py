@@ -1,5 +1,6 @@
 import os
 from logging import Formatter
+from typing import Dict, List
 
 mockchain = "/usr/bin/mockchain"
 # rsync path
@@ -43,3 +44,8 @@ build_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][PID:%(process)d] %(message)s')
 script_log_format = Formatter(
     "[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s")
+
+# dict of OS versions that are too old or the use sqlite repodata so they need --database
+# option with createrepo. This dict is in format "os_family": <list of versions>
+# e.g. "rhel": ["7", "6", "5"]
+CHROOTS_USING_SQLITE_REPODATA: Dict[str, List[str]] = {}

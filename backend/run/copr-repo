@@ -21,13 +21,14 @@ import sys
 
 import filelock
 
+from copr_backend.constants import CHROOTS_USING_SQLITE_REPODATA
+from copr_backend.createrepo import BatchedCreaterepo
 from copr_backend.helpers import (
     BackendConfigReader,
     CommandException,
     run_cmd,
     get_redis_logger,
 )
-from copr_backend.createrepo import BatchedCreaterepo
 
 
 def printable_cmd(cmd):
@@ -127,8 +128,16 @@ def filter_existing(opts, subdirs):
     return new_subdirs
 
 
+def _database_option(chroot: str) -> str:
+    for os_family, old_versions in CHROOTS_USING_SQLITE_REPODATA.items():
+        if any(f"{os_family}-{old_version}" == chroot for old_version in old_versions):
+            return "--database"
+
+    return "--no-database"
+
+
 def run_createrepo(opts):
-    createrepo_cmd = ['/usr/bin/createrepo_c', opts.directory, '--database', '--ignore-lock',
+    createrepo_cmd = ['/usr/bin/createrepo_c', opts.directory, _database_option(opts.chroot), '--ignore-lock',
                       '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8']
 
     if "epel-5" in opts.directory or "rhel-5" in opts.directory:
