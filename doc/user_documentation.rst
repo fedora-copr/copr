@@ -434,6 +434,13 @@ Please follow these recommendations to have the smoothest experience:
   <https://python-copr.readthedocs.io/en/latest/client_v3/pagination.html>`_
   when accessing the project packages and builds through API
 
+You may consider using an already existing mass-rebuild tool, such as
+`mass-prebuild <https://gitlab.com/fedora/packager-tools/mass-prebuild>`_,
+`mini-mass-rebuild <https://github.com/hroncok/mini-mass-rebuild>`_,
+`copr-autorebuilder <https://pagure.io/copr-autorebuilder>`_, or
+`copr-rebuild-tools <https://github.com/fedora-copr/copr-rebuild-tools>`_.
+
+
 .. _build_batches:
 
 Build batches
