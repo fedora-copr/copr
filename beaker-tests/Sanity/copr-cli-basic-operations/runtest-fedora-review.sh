@@ -51,6 +51,13 @@ rlJournalStart
         rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/review.txt"
         rlRun "[ -s $resultdir/review.txt ]"
 
+        # Test the copr-cli download-build command
+        resultdir=`mktemp -d`
+        rlRun "copr-cli download-build ${BUILD_ID} --spec --review --dest $resultdir"
+        rlRun "[ -s $resultdir/$CHROOT/review.txt ]"
+        rlRun "[ -s $resultdir/$CHROOT/licensecheck.txt ]"
+        rlRun "[ -s $resultdir/$CHROOT/hello.spec ]"
+
         # Modify the project and disable fedora review option and see that
         # the tool didn't run
         rlRun "copr-cli modify ${NAME_PREFIX}FedoraReview --fedora-review off"
