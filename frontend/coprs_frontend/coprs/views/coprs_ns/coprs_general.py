@@ -141,6 +141,8 @@ def coprs_by_user(username=None, page=1):
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
 @coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):
+    raise BadRequest("Searching in Fedora Copr is too demanding and is temporarily disabled: "
+                     "https://github.com/fedora-copr/copr/issues/2534")
     params = flask.request.args
     allowed_keys = ["fulltext", "projectname", "ownername", "packagename"]
     for key in params.keys():
