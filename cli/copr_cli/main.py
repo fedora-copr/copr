@@ -642,6 +642,16 @@ class Commands(object):
             if args.spec:
                 cmd.extend(["-A", "*.spec"])
 
+            if args.review:
+                cmd.extend([
+                    "-A", "files.dir",
+                    "-A", "licensecheck.txt",
+                    "-A", "review.txt",
+                    "-A", "review.json",
+                    "-A", "rpmlint.txt",
+                ])
+                cmd.append(chroot.result_url + "fedora-review")
+
             cmd.append(chroot.result_url)
             subprocess.call(cmd)
 
@@ -1466,6 +1476,12 @@ def setup_parser():
         dest="spec",
         action="store_true",
         help="Download only the .spec file",
+    )
+    parser_download_build.add_argument(
+        "--review",
+        dest="review",
+        action="store_true",
+        help="Download only the fedora-review files",
     )
     parser_download_build.set_defaults(func="action_download_build")
 
