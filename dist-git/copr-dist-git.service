@@ -9,6 +9,8 @@ User=copr-dist-git
 Group=packager
 AmbientCapabilities=CAP_SETGID
 ExecStart=/usr/bin/copr-run-dispatcher imports
+KillMode=process
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
