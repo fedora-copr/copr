@@ -332,6 +332,28 @@ def srpm(args, config):
         check_call(command)
 
 
+def clone(args, config):
+    """
+    Automatically clone a package from a given DistGit instance
+    """
+    distgit = config["instances"][args.dist_git]
+    parts = distgit.get("cloning_pattern_package_parts")
+    if parts:
+        expected = parts.split()
+        have = args.package.split("/")
+        if len(expected) != len(have):
+            raise RuntimeError(
+                "Package '{0}' has a wrong format, {1} "
+                "slash-separated parts are expected: {2}".format(
+                    args.package, len(expected),
+                    "/".join(expected),
+            ))
+
+    clone_url = distgit["cloning_pattern"].format(package=args.package)
+    check_call([
+        "git", "clone", clone_url,
+    ])
+
 def _get_argparser():
     parser = argparse.ArgumentParser(prog="copr-distgit-client",
                                      description="""\
@@ -395,6 +417,27 @@ configured in /etc/copr-distgit-client directory.
         help=("Don't produce the SRPM, just print the command which would be "
               "otherwise called"),
     )
+
+    clone_parser = subparsers.add_parser(
+        "clone",
+        help="Clone package from a DistGit source",
+    )
+
+    clone_parser.add_argument(
+        "--dist-git",
+        default="fedora",
+        help=("The DistGit ID as configured in /etc/copr-distgit-client/"),
+    )
+
+    clone_parser.add_argument(
+        "package",
+        default="fedora",
+        help=("Package name specification.  For some DistGit "
+              "instances this consists of multiple parts separated "
+              "by slash, e.g. for '--dist-git=fedora-copr' use "
+              "'@copr/copr-dev/copr-cli'."),
+    )
+
     return parser
 
 
@@ -410,6 +453,8 @@ def main():
     try:
         if args.action == "srpm":
             srpm(args, config)
+        elif args.action == "clone":
+            clone(args, config)
         else:
             sources(args, config)
     except RuntimeError as err:
