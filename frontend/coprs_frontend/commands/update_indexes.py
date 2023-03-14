@@ -1,4 +1,5 @@
 import click
+import whoosh
 from flask_whooshee import Whooshee
 from coprs import app
 from coprs.whoosheers import CoprWhoosheer, WhoosheeStamp
@@ -10,19 +11,22 @@ def update_indexes():
     recreates whoosh indexes for all projects
     """
     index = Whooshee.get_or_create_index(app, CoprWhoosheer)
-
-    writer = index.writer()
-    for copr in coprs_logic.CoprsLogic.get_all():
-        CoprWhoosheer.delete_copr(writer, copr)
-    writer.commit(optimize=True)
-
     writer = index.writer()
     writer.schema = CoprWhoosheer.schema
-    writer.commit(optimize=True)
 
-    writer = index.writer()
-    for copr in coprs_logic.CoprsLogic.get_all():
+    app.logger.info("Building cache")
+    coprs = coprs_logic.CoprsLogic.get_all().all()
+    for i, copr in enumerate(coprs):
+        if i%1000 == 0:
+            app.logger.info("Building cache [%s/%s] - %s",
+                            i, len(coprs), copr.full_name)
         CoprWhoosheer.insert_copr(writer, copr)
-    writer.commit(optimize=True)
 
+    # Commit changes but don't merge them with the existing index.
+    # Instead, build a new index from scratch.
+    # https://whoosh.readthedocs.io/en/latest/indexing.html#id1
+    app.logger.info("Running commit")
+    writer.commit(mergetype=whoosh.writing.CLEAR)
+
+    app.logger.info("Creating timestamp")
     WhoosheeStamp.store()
