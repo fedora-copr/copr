@@ -8,3 +8,9 @@ runuser -c '/usr/share/copr/coprs_frontend/manage.py vacuum-graphs' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-expired-projects' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py clean-old-builds' - copr-fe
 runuser -c '/usr/share/copr/coprs_frontend/manage.py delete-dirs' - copr-fe
+
+# The `update-indexes-quick` that we run every hour adds new and new documents
+# without removing old ones. Therefore we need to rebuild the index from scratch
+# from time to time (otherwise it can grow to gigabytes). Doing this would be
+# fine even on monthly basis but the command is fast enough to be run daily.
+runuser -c 'copr-frontend update-indexes &> /dev/null' - copr-fe
