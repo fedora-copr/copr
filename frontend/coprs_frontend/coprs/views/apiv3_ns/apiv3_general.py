@@ -1,5 +1,6 @@
 import os
 import re
+from fnmatch import fnmatch
 
 import flask
 
@@ -43,7 +44,13 @@ def krb_straighten_username(krb_remote_user):
     # Based on restrictions for project name: "letters, digits, underscores,
     # dashes and dots", it is worth limitting the username here, too.
     # TODO: Store this pattern on one place.
-    return username if re.match(r"^[\w.-]+$", username) else None
+    if not re.match(r"^[\w.-]+$", username):
+        return None
+
+    for pattern in app.config.get("KRB5_USER_DENYLIST_PATTERNS", []):
+        if fnmatch(username, pattern):
+            return None
+    return username
 
 
 @apiv3_ns.route("/")
@@ -92,7 +99,7 @@ def gssapi_login():
     app.logger.debug("krb5 login attempt: " + krb_username)
     username = krb_straighten_username(krb_username)
     if not username:
-        return auth_403("invalid krb5 username: " + krb_username)
+        return auth_403("invalid krb5 username, contact administrators: " + krb_username)
 
     user = UserAuth.user_object(username=username)
     db.session.add(user)

@@ -14,6 +14,7 @@ class Config(object):
     BACKEND_STATS_URI = None
 
     KRB5_LOGIN = {}
+    KRB5_USER_DENYLIST_PATTERNS = None
 
     OPENID_PROVIDER_URL = "https://id.fedoraproject.org"
 
