@@ -23,4 +23,4 @@ def update_indexes_quick(minutes_passed):
     )
     for copr in query.all():
         CoprWhoosheer.update_copr(writer, copr)
-    writer.commit()
+    writer.commit(optimize=True)
