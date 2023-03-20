@@ -41,22 +41,14 @@ Misc
    Brainstorming <brainstorming>
    Populate DB <seeddb>
 
-SRPM URL/Upload build schema
-----------------------------
 
-Here is an example of how building process goes (for the simplest case of SRPM build) in COPR:
-
-.. image:: _static/srpm-build.jpeg
-
-Note that we need to figure out whether CoprDistGit is actually still needed in the COPR architecture. That's why the lines are dotted there. It is still present in the current architecture though.
-
-
-The backend design and diagrams
--------------------------------
+The design and diagrams
+-----------------------
 
 .. toctree::
    :maxdepth: 1
 
+   Copr Architecture <developer_documentation/architecture>
    Build/action dispatcher <developer_documentation/dispatchers>
    WorkerManager principle <developer_documentation/worker_manager>
    Build process actions on backend <developer_documentation/builder_actions>

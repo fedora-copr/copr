@@ -1,0 +1,40 @@
+@startuml
+
+rectangle "Copr build system" {
+  rectangle Backend
+  rectangle DistGit
+  rectangle Frontend
+  rectangle Keygen
+  rectangle "Builder management" {
+    rectangle Resalloc
+    collections Builders
+  }
+}
+
+cloud Outside_World
+actor User
+
+User -> Frontend : 1. Initiates the build
+
+Backend -l-> Frontend : 2. take source\nbuild task
+
+Backend -d-> Resalloc : 3. and 9.\nRequest a Builder
+
+Backend -u-> Builders : 4. delegate\nsource build
+
+Builders -d-> Outside_World: 5. build sources\n(Source RPM)
+
+Backend -r-> Keygen : 6. sign SRPM
+
+DistGit -u-> Frontend: 7. take\nSRPM import
+
+Backend -l-> Frontend: 8. take\nRPM build task
+
+Backend --> Builders : 10. delegate\nRPM build
+Builders -l-> DistGit : 11. build RPM from DistGit
+Backend -r-> Keygen : 12. sign RPMs
+
+Builders <.r. Resalloc: allocates
+
+
+@enduml
