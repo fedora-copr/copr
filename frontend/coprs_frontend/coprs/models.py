@@ -1127,10 +1127,6 @@ class Build(db.Model, helpers.Serializer):
         return str(self.id)
 
     @property
-    def id_fixed_width(self):
-        return "{:08d}".format(self.id)
-
-    @property
     def get_source_log_urls(self):
         """
         Return a list of URLs to important build _source_ logs.  The list is
@@ -1161,12 +1157,11 @@ class Build(db.Model, helpers.Serializer):
         """
         if not self.result_dir:
             return None
-        parts = [
+        path_parts = [
             "results", self.copr.owner_name, self.copr_dirname,
-            # TODO: we should use self.result_dir instead of id_fixed_width
-            "srpm-builds", self.id_fixed_width,
+            "srpm-builds", self.result_dir,
         ]
-        path = os.path.normpath(os.path.join(*parts))
+        path = os.path.normpath(os.path.join(*path_parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
 
     def _compressed_log_variant(self, basename, states_raw_log):

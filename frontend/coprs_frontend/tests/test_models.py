@@ -109,7 +109,7 @@ class TestBuildModel(CoprsTestCase):
         assert self.b1.source_backend_log_url is None
 
         # starting state
-        self.b1.result_dir = "001"
+        self.b1.result_dir = "00000001"
         self.b1.source_status = StatusEnum("starting")
         assert self.b1.source_live_log_url is None
         assert self.b1.source_backend_log_url == _pfxd("backend.log")
