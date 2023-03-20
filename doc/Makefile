@@ -16,6 +16,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 ERDFILE         = _static/db-erd.png
 
 PLANTUML_DIAGRAMS = \
+	architecture \
 	dispatchers \
 	monitoring-schema \
 	process-build-actions \
