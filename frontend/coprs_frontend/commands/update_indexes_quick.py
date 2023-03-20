@@ -21,6 +21,10 @@ def update_indexes_quick(minutes_passed):
     query = db.session.query(models.Copr).filter(
         models.Copr.latest_indexed_data_update >= time.time()-int(minutes_passed)*60
     )
-    for copr in query.all():
-        CoprWhoosheer.update_copr(writer, copr)
+
+    coprs = query.all()
+    app.logger.info("Updating %s projects", len(coprs))
+    for copr in coprs:
+        CoprWhoosheer.delete_copr(writer, copr)
+        CoprWhoosheer.insert_copr(writer, copr)
     writer.commit(optimize=True)
