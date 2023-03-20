@@ -19,3 +19,17 @@ def cli_use_output_format(parser, default='json'):
         help=output_format_help,
         default=default,
     )
+
+
+def print_project_info(project):
+    """Prints info about project"""
+    print("Name: {0}".format(project.name))
+    print("  Description: {0}".format(project.description))
+    if project.chroot_repos:
+        print("  Repo(s):")
+        for name, url in project.chroot_repos.items():
+            print("    {0}: {1}".format(name, url))
+    if project.additional_repos:
+        additional_repos_str = " ".join(project.additional_repos)
+        print("  Additional repo: {0}".format(additional_repos_str))
+    print("")

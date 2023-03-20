@@ -1,0 +1,13 @@
+{
+  "chroot_repos": {
+    "epel-6-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/ruby193/epel-6-x86_64/"
+  },
+  "additional_repos": [
+    "http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/",
+    "http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/",
+    "http://copr-be.cloud.fedoraproject.org/results/rhscl/v8314/epel-6-$basearch/"
+  ],
+  "description": "A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.",
+  "name": "ruby193",
+  "instructions": ""
+}
