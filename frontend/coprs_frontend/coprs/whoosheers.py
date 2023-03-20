@@ -26,9 +26,7 @@ class CoprWhoosheer(AbstractWhoosheer):
             analyzer=whoosh.analysis.StandardAnalyzer(
                 expression=r"\w+(-\.?\w+)*"), field_boost=3),
         chroots=whoosh.fields.TEXT(field_boost=2),
-        packages=whoosh.fields.TEXT(
-            analyzer=whoosh.analysis.StandardAnalyzer(
-                expression=r"\s+", gaps=True), field_boost=2),
+        packages=whoosh.fields.IDLIST(field_boost=2),
         description=whoosh.fields.TEXT(),
         instructions=whoosh.fields.TEXT())
 
@@ -60,7 +58,7 @@ class CoprWhoosheer(AbstractWhoosheer):
                             ownername=copr.owner_name,
                             coprname=copr.name,
                             chroots=cls.get_chroot_info(copr),
-                            packages=cls.get_package_names(copr),
+                            packages=" ".join(cls.get_package_names(copr)),
                             description=copr.description,
                             instructions=copr.instructions)
 
