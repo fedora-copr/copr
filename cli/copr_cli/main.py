@@ -33,7 +33,7 @@ from copr.v3 import (
     CoprConfigException, CoprNoResultException, CoprAuthException,
 )
 from copr.v3.pagination import next_page
-from copr_cli.helpers import cli_use_output_format
+from copr_cli.helpers import cli_use_output_format, print_project_info
 from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
 from copr_cli.util import get_progress_callback, serializable
@@ -590,7 +590,6 @@ class Commands(object):
         build_config.rootdir = "{0}-{1}_{2}".format(ownername.replace("@", "group_"), projectname, args.chroot)
         print(MockProfile(build_config))
 
-
     def action_list(self, args):
         """ Method called when the 'list' action has been selected by the
         user.
@@ -605,15 +604,7 @@ class Commands(object):
             return
 
         for project in projects:
-            print("Name: {0}".format(project.name))
-            print("  Description: {0}".format(project.description))
-            if project.chroot_repos:
-                print("  Repo(s):")
-                for name, url in project.chroot_repos.items():
-                    print("    {0}: {1}".format(name, url))
-            if project.additional_repos:
-                print("  Additional repo: {0}".format(" ".join(project.additional_repos)))
-            print("")
+            print_project_info(project)
 
     def action_status(self, args):
         build = self.client.build_proxy.get(args.build_id)
@@ -670,6 +661,15 @@ class Commands(object):
     def action_delete_build(self, args):
         result = self.client.build_proxy.delete_list(args.build_id)
         print("Build(s) {0} were deleted.".format(", ".join(map(str, result["builds"]))))
+
+    def action_get(self, args):
+        """ Method called when the 'get' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        owner, project = self.parse_name(args.project)
+        print_project_info(self.client.project_proxy.get(owner, project))
 
     #########################################################
     ###                   Chroot actions                  ###
@@ -1252,6 +1252,11 @@ def setup_parser():
                                username/project or @groupname/project.")
     cli_use_output_format(parser_builds, default=None)
     parser_builds.set_defaults(func="action_list_builds")
+
+    parser_get = subparsers.add_parser("get", help="Get information about project")
+    parser_get.add_argument("project", help="Which project you want to get. Can be in format "
+                            "`username/project` or in case of group `@groupname/project`")
+    parser_get.set_defaults(func="action_get")
 
     #########################################################
     ###             Source-type related options           ###

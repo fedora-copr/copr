@@ -870,3 +870,16 @@ def test_module_build(config, patch_name, args):
             assert kwargs['distgit'] == args[1]
         else:
             assert kwargs['distgit'] is None
+
+
+@responses.activate
+@mock.patch("copr_cli.main.config_from_file", return_value=mock_config)
+@mock.patch("copr.v3.proxies.project.ProjectProxy.get")
+def test_get_project(mock_get, config_from_file, capsys):  # pylint: disable=unused-argument
+    response_data = json.loads(read_res("get_project_response.json"))
+    expected_output = read_res("get_project_expected.txt")
+
+    mock_get.return_value = Munch(response_data)
+    main.main(argv=["get", "rhscl/ruby193"])
+    out, _ = capsys.readouterr()
+    assert expected_output in out
