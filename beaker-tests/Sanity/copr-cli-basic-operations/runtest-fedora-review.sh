@@ -46,23 +46,23 @@ rlJournalStart
         resultdir=`mktemp -d`
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}FedoraReview --fedora-review"
         rlRun -s "copr-cli build ${NAME_PREFIX}FedoraReview ${HELLO} --nowait"
-	rlRun "parse_build_id"
-	rlRun "copr watch-build $BUILD_ID"
-	rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/review.txt"
-	rlRun "[ -s $resultdir/review.txt ]"
+        rlRun "parse_build_id"
+        rlRun "copr watch-build $BUILD_ID"
+        rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/review.txt"
+        rlRun "[ -s $resultdir/review.txt ]"
 
-	# Modify the project and disable fedora review option and see that
-	# the tool didn't run
+        # Modify the project and disable fedora review option and see that
+        # the tool didn't run
         rlRun "copr-cli modify ${NAME_PREFIX}FedoraReview --fedora-review off"
         rlRun -s "copr-cli build ${NAME_PREFIX}FedoraReview ${HELLO} --nowait"
-	rlRun "parse_build_id"
-	rlRun "copr watch-build $BUILD_ID"
-	rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/" 8
+        rlRun "parse_build_id"
+        rlRun "copr watch-build $BUILD_ID"
+        rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/" 8
     rlPhaseEnd
 
     rlPhaseStartCleanup
         rlRun "copr-cli delete ${NAME_PREFIX}FedoraReview"
-	rlRun "rm -rf $resultdir/*"
+        rlRun "rm -rf $resultdir/*"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
