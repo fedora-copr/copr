@@ -245,6 +245,10 @@ def sources(args, config):
             }
 
             source_spec = line.split()
+            if not source_spec:
+                # line full of white-spaces, skip
+                continue
+
             if len(source_spec) == 2:
                 # old md5/sha1 format: 0ced6f20b9fa1bea588005b5ad4b52c1  tar-1.26.tar.xz
                 kwargs["hashtype"] = distgit_config["default_sum"].lower()
