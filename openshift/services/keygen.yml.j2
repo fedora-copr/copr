@@ -68,7 +68,8 @@ spec:
         - name: signer
           image: "{{ copr_keygen_image }}"
           imagePullPolicy: IfNotPresent
-          command: ["/signd-entrypoint", "0.0.0.0/0"]
+          command: ["/usr/bin/tini", "--"]
+          args: ["/signd-entrypoint", "0.0.0.0/0"]
           volumeMounts:
             - name: storage
               mountPath: /var/lib/copr-keygen
