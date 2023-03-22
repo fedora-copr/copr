@@ -122,6 +122,9 @@ class BuildJob(object):
 
     @property
     def target_dir_name(self):
+        if self.chroot == "srpm-builds":
+            return build_target_dir(self.build_id, None)
+
         return build_target_dir(self.build_id, self.package_name)
 
     @property
