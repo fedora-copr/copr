@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.196
+Version:    1.197
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -387,6 +387,15 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.197-1
+- Allow automation (cron) to remove builds
+- Allow specifying a KRB5 user denylist
+- Fix broken rubygem rebuild page.
+- Restrict forking of large projects
+- Define some copr-specific environment variables
+- Remove libmodulemd1 dependency
+- Fix sorting by build time
+
 * Tue Feb 07 2023 Jakub Kadlcik <frostyx@email.cz> 1.196-1
 - rawhide_to_release usable index
 - rawhide_to_release: don't repeatedly query for CoprChroot
