@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.125
+Version:    1.126
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -238,6 +238,8 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.126-1
+- Add option for follow_fedora_branching
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.125-1
 - Drop the unneeded marshmallow dependency
 - Fix APIv3 additional_modules CoprChroot option
