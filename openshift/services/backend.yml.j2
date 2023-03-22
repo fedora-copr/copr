@@ -119,7 +119,8 @@ spec:
         - name: log
           image: "{{ copr_backend_image }}"
           imagePullPolicy: IfNotPresent
-          command: ["/usr/bin/copr_run_logger.py"]
+          command: ["/usr/bin/tini", "--"]
+          args: ["/usr/bin/copr_run_logger.py"]
           volumeMounts:
             - name: config
               mountPath: /etc/copr
@@ -136,7 +137,8 @@ spec:
               mountPath: /var/lib/copr/public_html
             - name: locks
               mountPath: /var/lock/copr-backend
-          command: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "actions"]
+          command: ["/usr/bin/tini", "--"]
+          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "actions"]
 
         - name: builds
           image: "{{ copr_backend_image }}"
@@ -153,7 +155,8 @@ spec:
           env:
             - name: HOME
               value: /backend-home
-          command: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "builds"]
+          command: ["/usr/bin/tini", "--"]
+          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "builds"]
 
       # start these containers on the same node with copr-backend-httpd!
       affinity:
