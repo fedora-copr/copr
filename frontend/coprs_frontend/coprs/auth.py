@@ -329,7 +329,12 @@ class LDAP:
         Query one object from LDAP
         """
         ffilter = self._build_filter(filters)
-        return self.send_request(self.search_string, attrs, ffilter)[0]
+        objects = self.send_request(self.search_string, attrs, ffilter)
+        if len(objects) != 1:
+            app.logger.error("Bad number of LDAP objects %s for filters %s",
+                             len(objects), filters)
+            return None
+        return objects[0]
 
     def get_user(self, username):
         """
@@ -353,7 +358,7 @@ class LDAP:
         """
         user = self.get_user(username)
         if not user:
-            return None
+            return []
         return user[1]["memberOf"]
 
     def _build_filter(self, filters):
