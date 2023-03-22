@@ -2,7 +2,7 @@
 %global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
-Version:    1.88
+Version:    1.89
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -176,6 +176,9 @@ systemctl condrestart httpd &>/dev/null || :
 
 
 %changelog
+* Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.89-1
+- Fix config files installation pattern
+
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.88-1
 - Fix validation for projects with dash and/or dot in their name
 
