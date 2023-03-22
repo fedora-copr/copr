@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.8
+Version:    0.9
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -86,6 +86,8 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.9-1
+- Add app_name property to _CoprMessage base class
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 0.8-1
 - Use SPDX license
 
