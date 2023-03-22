@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.105
+Version:    1.106
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.106-1
+- Add --review parameter for download-build
+- Disable default option for modifying project
+- Add option for follow_fedora_branching
+- Simplify `mock-config` output
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 1.105-1
 - More understandable module hotfixes description
 - Add options to download only built RPMs/spec files
