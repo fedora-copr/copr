@@ -359,7 +359,7 @@ class LDAP:
         user = self.get_user(username)
         if not user:
             return []
-        return user[1]["memberOf"]
+        return user[1].get("memberOf", [])
 
     def _build_filter(self, filters):
         # pylint: disable=no-self-use
