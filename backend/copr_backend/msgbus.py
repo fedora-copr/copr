@@ -7,7 +7,11 @@ import logging
 import copy
 import json
 
-from copr_messaging import schema
+try:
+    from copr_messaging import schema
+except ImportError:
+    # copr_messaging is optional
+    schema = None
 
 from .constants import BuildStatus
 
