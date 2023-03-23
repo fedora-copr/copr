@@ -77,10 +77,10 @@ Requires:   openssh-clients
 Requires:   prunerepo >= %prunerepo_version
 Requires:   python3-copr
 Requires:   python3-copr-common >= %copr_common_version
-Requires:   python3-copr-messaging
+Recommends: python3-copr-messaging
 Requires:   python3-daemon
 Requires:   python3-dateutil
-Requires:   python3-fedmsg
+Recommends: python3-fedmsg
 Requires:   python3-filelock
 Requires:   python3-gobject
 Requires:   python3-humanize
