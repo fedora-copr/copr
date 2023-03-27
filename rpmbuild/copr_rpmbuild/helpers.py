@@ -272,7 +272,7 @@ def git_clone_url_basepath(clone_url):
 
 
 @backoff.on_exception(
-    wait_gen=backoff.expo, exception=RuntimeError, max_time=300, jitter=None
+    wait_gen=backoff.expo, exception=RuntimeError, max_time=300, jitter=None, logger=log
 )
 def git_clone(url, repo_path, scm_type="git"):
     """

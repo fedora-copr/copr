@@ -47,7 +47,7 @@ BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
 BuildRequires: %{python_pfx}-simplejson
-BuildRequires: %{python}-backoff
+BuildRequires: python-backoff >= 1.9.0
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires: argparse-manpage
@@ -66,7 +66,7 @@ Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-simplejson
-Requires: %{python}-backoff
+Requires: python-backoff >= 1.9.0
 
 Requires: mock >= 2.0
 Requires: git

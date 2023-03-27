@@ -18,7 +18,7 @@ import coprs.logic.builds_logic as bl
 log = app.logger
 
 
-@backoff.on_exception(backoff.expo, SQLAlchemyError, max_time=20)
+@backoff.on_exception(backoff.expo, SQLAlchemyError, max_time=20, logger=log)
 def _lock_table(table):
     # It seems that every database has different locking commands and we
     # don't care about anything else than PostgreSQL.
