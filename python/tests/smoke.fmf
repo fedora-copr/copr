@@ -1,0 +1,8 @@
+summary:
+  Basic smoke test
+require:
+  - python3-copr
+tag:
+  - smoke
+tier: 0
+test: python3 -c "import copr"

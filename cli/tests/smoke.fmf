@@ -1,0 +1,8 @@
+summary:
+  Basic smoke test
+require:
+  - copr-cli
+tag:
+  - smoke
+tier: 0
+test: bash -c "copr-cli -h "

@@ -1,0 +1,13 @@
+summary:
+    Short description summarizing the story
+story:
+    As a user I want to do this and that
+    so that I can achieve this.
+description:
+    Text describing all important aspects of the object.
+    Usually spans across several paragraphs. It should not
+    contain detailed examples. Those should be stored
+    under the 'examples' attribute.
+example:
+    - One example is worth thousand words.
+    - Of course, there can be more than one.
