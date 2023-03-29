@@ -73,7 +73,6 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
-BuildRequires: fedora-messaging
 BuildRequires: python3-alembic
 BuildRequires: python3-anytree
 BuildRequires: python3-click
@@ -132,7 +131,7 @@ Requires: redis
 Requires: %flavor_guard
 
 Requires: (copr-selinux if selinux-policy-targeted)
-Requires: fedora-messaging
+Recommends: fedora-messaging
 Requires: js-jquery
 Requires: python3-anytree
 Requires: python3-click
