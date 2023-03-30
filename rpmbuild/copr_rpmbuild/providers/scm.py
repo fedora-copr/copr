@@ -17,7 +17,7 @@ log = logging.getLogger("__main__")
 MAKE_SRPM_TEPMLATE = (
     "set -x && "
     'cd {0} && '
-    'echo -e "[safe]\ndirectory = {0}" > ~/.gitconfig && '
+    'echo -e "[safe]\ndirectory = {4}" > ~/.gitconfig && '
     'make -f {1} srpm outdir="{2}" spec="{3}"'
 )
 
@@ -118,7 +118,7 @@ class ScmProvider(Provider):
 
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
         make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(mock_cwd, makefile_path,
-                mock_resultdir, mock_spec_path)
+                mock_resultdir, mock_spec_path, mock_repodir)
 
         mock_config_file = self.generate_mock_config()
         return ['mock', '--uniqueext', get_mock_uniqueext(),

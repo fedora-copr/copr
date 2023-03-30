@@ -147,6 +147,7 @@ class TestScmProvider(TestCase):
             "/mnt/{0}/somerepo/.copr/Makefile".format(workdir_base),
             "/mnt/{0}".format(basename),
             "/mnt/{0}/somerepo/subpkg/pkg.spec".format(workdir_base),
+            "/mnt/{0}/somerepo".format(workdir_base),
         )
         assert_cmd = [
             'mock', '--uniqueext', '2',
