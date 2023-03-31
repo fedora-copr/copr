@@ -13,6 +13,7 @@ packages:
     specfile_path: python-copr.spec
     files_to_sync: 
       - python-copr.spec
+    upstream_tag_template: python-copr-{version}
 
   copr-cli:
     downstream_package_name: copr-cli
@@ -22,6 +23,7 @@ packages:
     specfile_path: copr-cli.spec
     files_to_sync: 
       - copr-cli.spec
+    upstream_tag_template: copr-cli-{version}
 
   copr-frontend:
     downstream_package_name: copr-frontend
@@ -31,6 +33,7 @@ packages:
     specfile_path: copr-frontend.spec
     files_to_sync: 
       - copr-frontend.spec
+    upstream_tag_template: copr-frontend-{version}
   
 jobs:
   - job: copr_build
