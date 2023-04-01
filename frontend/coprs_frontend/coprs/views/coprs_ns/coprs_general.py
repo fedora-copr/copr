@@ -47,8 +47,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import generate_repo_url, \
-    url_for_copr_view, CounterStatType, generate_repo_name, \
-    WorkList
+    url_for_copr_view, CounterStatType
 
 
 def url_for_copr_details(copr):
@@ -572,7 +571,8 @@ def process_copr_update(copr, form):
         flask.flash("Project has been updated successfully.", "success")
         db.session.commit()
 
-        copr_deps, _, non_existing = get_transitive_runtime_dependencies(copr)
+        copr_deps, _, non_existing = \
+                ComplexLogic.get_transitive_runtime_dependencies(copr)
         deps_without_chroots = {}
         for copr_dep in copr_deps:
             for chroot in copr.active_chroots:
@@ -827,46 +827,6 @@ def process_legal_flag(copr):
     return flask.redirect(url_for_copr_details(copr))
 
 
-def get_transitive_runtime_dependencies(copr):
-    """Get a list of runtime dependencies (build transitively from
-    dependencies' dependencies). Returns three lists, one with Copr
-    dependencies, one with list of non-existing Copr dependencies
-    and one with URLs to external dependencies.
-
-    :type copr: models.Copr
-    :rtype: List[models.Copr], List[str], List[str]
-    """
-
-    if not copr:
-        return [], [], []
-
-    wlist = WorkList([copr])
-    internal_deps = set()
-    non_existing = set()
-    external_deps = set()
-
-    while not wlist.empty:
-        analyzed_copr = wlist.pop()
-
-        for dep in analyzed_copr.runtime_deps:
-            try:
-                copr_dep = ComplexLogic.get_copr_by_repo_safe(dep)
-            except ObjectNotFound:
-                non_existing.add(dep)
-                continue
-
-            if not copr_dep:
-                external_deps.add(dep)
-                continue
-            if copr == copr_dep:
-                continue
-            # check transitive dependencies
-            internal_deps.add(copr_dep)
-            wlist.schedule(copr_dep)
-
-    return list(internal_deps), list(external_deps), list(non_existing)
-
-
 @coprs_ns.route("/<username>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/<username>/<copr_dirname>/repo/<name_release>/<repofile>")
 @coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
@@ -881,22 +841,10 @@ def generate_repo_file(copr_dir, name_release, repofile):
 
 
 def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_dep=None, dependent=None):
-    repo_id = "{0}:{1}:{2}:{3}{4}".format(
-        "coprdep" if runtime_dep else "copr",
-        app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
-        copr_dir.copr.owner_name.replace("@", "group_"),
-        copr_dir.name,
-        ":ml" if arch else ""
-    )
 
-    if runtime_dep and dependent:
-        name = "Copr {0}/{1}/{2} runtime dependency #{3} - {4}/{5}".format(
-            app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
-            dependent.copr.owner_name, dependent.name, runtime_dep,
-            copr_dir.copr.owner_name, copr_dir.name
-        )
-    else:
-        name = "Copr repo for {0} owned by {1}".format(copr_dir.name, copr_dir.copr.owner_name)
+    repo_id, name = helpers.generate_repo_id_and_name(
+        copr_dir.copr, copr_dir.name, multilib=arch,
+        dep_idx=runtime_dep, dependent=dependent)
 
     url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url, arch)
@@ -909,17 +857,12 @@ def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_de
 
 
 def _render_external_repo_template(dep, copr_dir, mock_chroot, dep_idx):
-    repo_name = "coprdep:{0}".format(generate_repo_name(dep))
     baseurl = helpers.pre_process_repo_url(mock_chroot.name, dep)
-
-    name = "Copr {0}/{1}/{2} external runtime dependency #{3} - {4}".format(
-        app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
-        copr_dir.copr.owner_name, copr_dir.name, dep_idx,
-        generate_repo_name(dep)
-    )
-
-    return flask.render_template("coprs/external_dependency.repo", repo_id=repo_name,
-                                 name=name, url=baseurl) + "\n"
+    repo_id, repo_name = helpers.generate_repo_id_and_name_ext(
+        copr_dir.copr, dep, dep_idx)
+    return flask.render_template("coprs/external_dependency.repo",
+                                 repo_id=repo_id, name=repo_name,
+                                 url=baseurl) + "\n"
 
 
 @cache.memoize(timeout=5*60)
@@ -977,7 +920,8 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
             models.MockChroot.multilib_pairs[mock_chroot.arch],
             cost=1100)
 
-    internal_deps, external_deps, non_existing = get_transitive_runtime_dependencies(copr)
+    internal_deps, external_deps, non_existing = \
+            ComplexLogic.get_transitive_runtime_dependencies(copr)
     dep_idx = 1
 
     for runtime_dep in internal_deps:
@@ -987,7 +931,7 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
         copr_dep_dir = ComplexLogic.get_copr_dir_safe(owner_name, runtime_dep.name)
         response_content += "\n" + render_repo_template(copr_dep_dir, mock_chroot,
                                                         runtime_dep=dep_idx,
-                                                        dependent=copr_dir)
+                                                        dependent=copr_dir.copr)
         dep_idx += 1
 
     dep_idx = 1

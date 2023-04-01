@@ -157,6 +157,7 @@ def get_stat_name(stat_type, copr_dir=None, copr_chroot=None,
         kwargs["copr_name_release"] = name_release
 
     if copr_dir:
+        # Should we calculate non-default dirs?
         kwargs.update({
             "copr_user": copr_dir.copr.owner_name,
             "copr_project_name": copr_dir.copr.name,
@@ -910,3 +911,43 @@ def being_server_admin(user, copr):
         return False
 
     return True
+
+
+def generate_repo_id_and_name(copr, copr_dir_name, multilib=False, dep_idx=None,
+                              dependent=None):
+    """
+    Return (repo_id, repo_name) for a given copr.  If multilib is True, the
+    rpeo_id has a specific suffix, if the repo is dependency of the dependend,
+    the repo_id has a specific prefix.
+    """
+    repo_id = "{0}:{1}:{2}:{3}{4}".format(
+        "coprdep" if dep_idx else "copr",
+        app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
+        copr.owner_name.replace("@", "group_"),
+        copr_dir_name,
+        ":ml" if multilib else ""
+    )
+
+    if dep_idx and dependent:
+        name = "Copr {0}/{1}/{2} runtime dependency #{3} - {4}/{5}".format(
+            app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
+            dependent.owner_name, dependent.name, dep_idx,
+            copr.owner_name, copr_dir_name
+        )
+    else:
+        name = "Copr repo for {0} owned by {1}".format(copr_dir_name,
+                                                       copr.owner_name)
+    return repo_id, name
+
+def generate_repo_id_and_name_ext(dependent, url, dep_idx):
+    """
+    Return (repo_id, repo_name) pair according to the repo URL and what
+    DEPENDENT repository we depend on.
+    """
+    repo_id = "coprdep:{0}".format(generate_repo_name(url))
+    name = "Copr {0}/{1}/{2} external runtime dependency #{3} - {4}".format(
+        app.config["PUBLIC_COPR_HOSTNAME"].split(":")[0],
+        dependent.owner_name, dependent.name, dep_idx,
+        generate_repo_name(url),
+    )
+    return repo_id, name

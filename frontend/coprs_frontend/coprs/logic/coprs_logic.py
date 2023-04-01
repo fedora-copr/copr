@@ -199,6 +199,9 @@ class CoprsLogic(object):
         Return a Copr object given by OWNERNAME (either '@groupname' or
         'username') and copr DIRNAME (e.g. 'copr-dev:pr:11').
         """
+
+        # Some of the calling methods (routes) strictly require us not to check
+        # if the dirname exists.
         coprname = CoprDirsLogic.copr_name_from_dirname(dirname)
         return cls.get_by_ownername_coprname(ownername, coprname)
 

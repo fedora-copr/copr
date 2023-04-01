@@ -108,6 +108,7 @@ from coprs.views.apiv3_ns import (
     apiv3_general, apiv3_builds, apiv3_packages, apiv3_projects,
     apiv3_project_chroots, apiv3_modules, apiv3_build_chroots,
     apiv3_mock_chroots, apiv3_permissions, apiv3_webhooks, apiv3_monitor,
+    apiv3_rpmrepo,
 )
 
 from coprs.views import batches_ns
