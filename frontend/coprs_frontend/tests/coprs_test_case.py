@@ -810,6 +810,34 @@ def foo():
         with self.setup_user_session(self.u1):
             yield
 
+    @pytest.fixture
+    def f_custom_builds(self):
+        """ Custom builds are used in order not to break the default ones """
+        self.b5 = self.models.Build(
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=9,
+            result_dir="bar")
+        self.b6 = self.models.Build(
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=11)
+        self.b7 = self.models.Build(
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=10,
+            result_dir="bar")
+
+        # assign with chroots
+        for build in [self.b5, self.b6, self.b7]:
+            self.db.session.add(
+                self.models.BuildChroot(
+                    build=build,
+                    mock_chroot=self.mc1
+                )
+            )
+
+        self.db.session.add_all(
+            [self.b5, self.b6, self.b7])
+
+
     def _get_auth_string(self, login, token):
         userstring = "{}:{}".format(login, token).encode("utf-8")
         base64string_user = base64.b64encode(userstring)

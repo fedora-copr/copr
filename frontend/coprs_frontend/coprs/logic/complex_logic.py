@@ -41,6 +41,46 @@ class ComplexLogic(object):
     # pylint: disable=too-many-public-methods
 
     @classmethod
+    def get_transitive_runtime_dependencies(cls, copr):
+        """Get a list of runtime dependencies (build transitively from
+        dependencies' dependencies). Returns three lists, one with Copr
+        dependencies, one with list of non-existing Copr dependencies
+        and one with URLs to external dependencies.
+
+        :type copr: models.Copr
+        :rtype: List[models.Copr], List[str], List[str]
+        """
+
+        if not copr:
+            return [], [], []
+
+        wlist = helpers.WorkList([copr])
+        internal_deps = set()
+        non_existing = set()
+        external_deps = set()
+
+        while not wlist.empty:
+            analyzed_copr = wlist.pop()
+
+            for dep in analyzed_copr.runtime_deps:
+                try:
+                    copr_dep = cls.get_copr_by_repo_safe(dep)
+                except exceptions.ObjectNotFound:
+                    non_existing.add(dep)
+                    continue
+
+                if not copr_dep:
+                    external_deps.add(dep)
+                    continue
+                if copr == copr_dep:
+                    continue
+                # check transitive dependencies
+                internal_deps.add(copr_dep)
+                wlist.schedule(copr_dep)
+
+        return list(internal_deps), list(external_deps), list(non_existing)
+
+    @classmethod
     def delete_copr(cls, copr, admin_action=False):
         """
         Delete copr and all its builds.
@@ -566,6 +606,8 @@ class ReposLogic:
             arch = chroot.mock_chroot.arch
             repo["arch_list"].append(arch)
             repo["rpm_dl_stat"][arch] = cls._rpms_dl_stat(chroot)
+            if chroot.delete_after_days is not None:
+                repo["expirations"][arch] = chroot.delete_after_days
 
         repo["delete_reason"] = cls._delete_reason(copr_chroots)
         return repo
@@ -589,6 +631,7 @@ class ReposLogic:
             "dl_stat": copr_repo_dl_stat[mc.name_release],
             "rpm_dl_stat": {},
             "delete_reason": None,
+            "expirations": {},
         }
 
     @classmethod
