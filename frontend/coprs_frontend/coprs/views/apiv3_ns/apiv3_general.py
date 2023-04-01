@@ -47,7 +47,7 @@ def krb_straighten_username(krb_remote_user):
     if not re.match(r"^[\w.-]+$", username):
         return None
 
-    for pattern in app.config.get("KRB5_USER_DENYLIST_PATTERNS", []):
+    for pattern in app.config.get("KRB5_USER_DENYLIST_PATTERNS") or []:
         if fnmatch(username, pattern):
             return None
     return username
