@@ -138,9 +138,8 @@ class TestBatchesLogic(CoprsTestCase):
 
     def test_batched_build_queue_sql_performance(self):
         more_bchs = 5
-        with app.app_context():
-            self._prepare_project_with_batches(more=more_bchs)
-            self._succeed_first_batch()
+        self._prepare_project_with_batches(more=more_bchs)
+        self._succeed_first_batch()
 
         with app.app_context():
             r = self.tc.get("/backend/pending-jobs/")
@@ -265,17 +264,16 @@ class TestBatchesLogic(CoprsTestCase):
         projects = ["aaa", "bbb", "ccc", "ddd", "eee", "fff"]
 
         t1 = time.time()
-        with app.app_context():
-            batches = 4
-            for projectname in projects:
-                self.web_ui.new_project(projectname,
-                                        ["fedora-rawhide-i386", "fedora-18-x86_64"])
-                self.web_ui.create_distgit_package(projectname, "testpkg")
+        batches = 4
+        for projectname in projects:
+            self.web_ui.new_project(projectname,
+                                    ["fedora-rawhide-i386", "fedora-18-x86_64"])
+            self.web_ui.create_distgit_package(projectname, "testpkg")
 
-                after_build = None
-                for _b in range(batches):
-                    after_build = self._add_one_large_batch(
-                        projectname, after_build=after_build)
+            after_build = None
+            for _b in range(batches):
+                after_build = self._add_one_large_batch(
+                    projectname, after_build=after_build)
 
         t2 = time.time()
         with app.app_context():

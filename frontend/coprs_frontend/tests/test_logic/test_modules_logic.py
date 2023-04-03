@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 import modulemd_tools.yaml
 
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.modules_logic import ModulesLogic, ModuleBuildFacade, ModulemdGenerator
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, ModuleStatusEnum, StatusEnum
@@ -166,7 +166,6 @@ class TestModuleBuildFacade(CoprsTestCase):
         assert builds[0].batch != builds[1].batch == builds[2].batch
         assert builds[1].batch.blocked_by == builds[0].batch
 
-    @new_app_context
     def test_platform_chroots(self, f_users, f_coprs, f_mock_chroots_many, f_builds, f_modules, f_db):
         flask.g.user = self.u1
         fedora_chroots = [chroot.name for chroot in self.c1.mock_chroots if chroot.name.startswith("fedora")]

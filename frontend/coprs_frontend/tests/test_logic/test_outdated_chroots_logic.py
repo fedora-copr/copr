@@ -3,7 +3,7 @@ from unittest.mock import patch
 import flask
 import pytest
 from copr_common.enums import ActionTypeEnum
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.actions_logic import ActionsLogic
@@ -17,7 +17,6 @@ from commands.notify_outdated_chroots import notify_outdated_chroots_function
 
 class TestOutdatedChrootsLogic(CoprsTestCase):
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_delete_status_outdated(self):
         """
@@ -65,7 +64,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert chroot.delete_status == ChrootDeletionStatus("preserved")
         assert chroot.delete_status_str == "preserved"
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_delete_status_unclicked(self):
         """
@@ -91,7 +89,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         chroot.delete_after = None
         assert chroot.delete_status == ChrootDeletionStatus("deleted")
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_simple(self):
         # Make sure, that there are no unreviewed outdated chroots yet
@@ -107,7 +104,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         OutdatedChrootsLogic.make_review(self.u2)
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_groups", "f_group_copr", "f_db")
     def test_outdated_chroots_group(self):
         # Make sure that a user is a part of a group
@@ -137,7 +133,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         self.u2.openid_groups = {"fas_groups": [self.g1.fas_name]}
         assert OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_flash_not_immediately(self):
         # Make sure, that there are no unreviewed outdated chroots yet
@@ -153,7 +148,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.now() + timedelta(days=80)
         assert OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_flash_not_expired(self):
         # A preservation period is gone and the chroot is scheduled to be
@@ -162,7 +156,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.now() - timedelta(days=1)
         assert not OutdatedChrootsLogic.has_not_reviewed(self.u2)
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_review_only_after_some_time(self):
         # Make sure that `self.u2` hasn't reviewed anything yet
@@ -190,7 +183,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
             self.c3.copr_chroots[1],
         }
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_extend_or_expire(self):
         # Make sure that `self.u2` hasn't reviewed anything yet
@@ -218,7 +210,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert (self.c2.copr_chroots[0].delete_after.date()
                 == expected.date())
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_humanized(self):
         chroot = self.c2.copr_chroots[0]
@@ -235,7 +226,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         chroot.delete_after = datetime.now() + timedelta(minutes=30)
         assert chroot.delete_after_humanized == "less then an hour"
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_expired(self):
         chroot = self.c2.copr_chroots[0]
@@ -248,7 +238,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         chroot.delete_after = datetime.now() + timedelta(days=-35)
         assert chroot.delete_after_expired
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
                              "f_db")
     def test_expired_chroot_detection(self):
@@ -365,7 +354,6 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert len(ActionsLogic.get_many(ActionTypeEnum("delete")).all()) == 1
 
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_unclicked_repeat(self):
         """

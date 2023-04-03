@@ -6,7 +6,7 @@ import pytest
 from flask_sqlalchemy import get_debug_queries
 
 from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.builds_logic import BuildsLogic
 from coprs import app
 
@@ -400,7 +400,6 @@ class TestWaitingActions(CoprsTestCase):
         r = self.tc.get("/backend/pending-action/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) != None
 
-    @new_app_context
     def test_pending_actions_list(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
@@ -417,7 +416,6 @@ class TestWaitingActions(CoprsTestCase):
         actions = json.loads(r.data.decode("utf-8"))
         assert len(actions) == 1
 
-    @new_app_context
     def test_get_action_succeeded(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/action/1/",
                         headers=self.auth_header)

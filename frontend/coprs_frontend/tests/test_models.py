@@ -4,7 +4,7 @@ import pytest
 import coprs
 from copr_common.enums import StatusEnum
 from coprs.helpers import ChrootDeletionStatus
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 
 
 class TestBuildModel(CoprsTestCase):
@@ -192,7 +192,6 @@ class TestBuildModel(CoprsTestCase):
 
 class TestCoprModel(CoprsTestCase):
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_permissible_chroots(self):
         """

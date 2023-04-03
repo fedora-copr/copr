@@ -5,7 +5,7 @@ from unittest import mock
 import flask
 import pytest
 
-from coprs import models, helpers, app
+from coprs import models, helpers
 from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import (
@@ -17,7 +17,6 @@ from coprs.logic.complex_logic import (
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from tests.coprs_test_case import (
     CoprsTestCase,
-    new_app_context,
     TransactionDecorator,
 )
 
@@ -25,20 +24,18 @@ from tests.coprs_test_case import (
 class TestComplexLogic(CoprsTestCase):
 
     def test_fork_copr_sends_actions(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        with app.app_context():
-            with mock.patch('flask.g') as mc_flask_g:
-                mc_flask_g.user.name = self.u2.name
-                fc1, created = ComplexLogic.fork_copr(self.c1, self.u2, u"dstname")
-                self.db.session.commit()
+        with mock.patch('flask.g') as mc_flask_g:
+            mc_flask_g.user.name = self.u2.name
+            fc1, created = ComplexLogic.fork_copr(self.c1, self.u2, u"dstname")
+            self.db.session.commit()
 
-                actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
-                assert len(actions) == 1
-                data = json.loads(actions[0].data)
-                assert data["user"] == self.u2.name
-                assert data["copr"] == "dstname"
-                assert data["builds_map"] == {'srpm-builds': {'bar': '00000005'},'fedora-18-x86_64': {'bar': '00000005-hello-world'}}
+            actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
+            assert len(actions) == 1
+            data = json.loads(actions[0].data)
+            assert data["user"] == self.u2.name
+            assert data["copr"] == "dstname"
+            assert data["builds_map"] == {'srpm-builds': {'bar': '00000005'},'fedora-18-x86_64': {'bar': '00000005-hello-world'}}
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
     def test_fork_copr_projects_with_more_builds(self):
         flask.g.user = self.u2
@@ -59,7 +56,6 @@ class TestComplexLogic(CoprsTestCase):
                                '6-hello-world': '00000013-hello-world',
                                '11-new-package': '00000015-new-package'}}
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
     def test_fork_copr_with_eoled_chroots(self):
         flask.g.user = self.u2
@@ -193,16 +189,15 @@ class TestProjectForking(CoprsTestCase):
         assert fp1.name == self.p1.name
 
     def test_fork_copr(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        with app.app_context():
-            with mock.patch('flask.g') as mc_flask_g:
-                mc_flask_g.user.name = self.u2.name
-                forking = ProjectForking(self.u1)
-                fc1 = forking.fork_copr(self.c1, "new-name")
+        with mock.patch('flask.g') as mc_flask_g:
+            mc_flask_g.user.name = self.u2.name
+            forking = ProjectForking(self.u1)
+            fc1 = forking.fork_copr(self.c1, "new-name")
 
-                assert fc1.id != self.c1.id
-                assert fc1.name == "new-name"
-                assert fc1.forked_from_id == self.c1.id
-                assert fc1.mock_chroots == self.c1.mock_chroots
+            assert fc1.id != self.c1.id
+            assert fc1.name == "new-name"
+            assert fc1.forked_from_id == self.c1.id
+            assert fc1.mock_chroots == self.c1.mock_chroots
 
     @TransactionDecorator("u2")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
@@ -248,7 +243,6 @@ class TestProjectForking(CoprsTestCase):
         assert ComplexLogic.get_copr_by_repo_safe("copr:///user1/foocopr") == None
         assert ComplexLogic.get_copr_by_repo_safe("copr://user1//foocopr") == None
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
                              "f_db")
     def test_generate_build_config_with_dep_mistake(self):
@@ -288,7 +282,6 @@ class FooModel(object):
 
 
 class TestReposLogic(CoprsTestCase):
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
                              "f_db")
     def test_delete_reasons(self):
