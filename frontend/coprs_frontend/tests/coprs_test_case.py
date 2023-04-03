@@ -55,7 +55,6 @@ class CoprsTestCase(object):
         self.app = coprs.app
         self.app.testing = True
         self.db = coprs.db
-        self.db.session = self.db.create_scoped_session()
         self.models = models
         self.helpers = helpers
         self.backend_passwd = coprs.app.config["BACKEND_PASSWORD"]
@@ -64,6 +63,8 @@ class CoprsTestCase(object):
         #    [self.app.config["DATABASE"], self.app.config["OPENID_STORE"]])
         # if not os.path.exists(datadir):
         #    os.makedirs(datadir)
+        self.context = self.app.app_context()
+        self.context.push()
         coprs.db.create_all()
         self.db.session.commit()
 
@@ -71,6 +72,7 @@ class CoprsTestCase(object):
         self.api3 = API3Requests(self)
         self.backend = BackendRequests(self)
         self.pr_trigger = PullRequestTrigger(self)
+
 
     def teardown_method(self, method):
         # delete just data, not the tables
@@ -84,6 +86,7 @@ class CoprsTestCase(object):
 
         self.app.config = self.original_config.copy()
         cache.clear()
+        self.context.pop()
 
     @staticmethod
     def load_test_data_file(filename):
@@ -890,22 +893,3 @@ class TransactionDecorator(object):
             with fn_self.setup_user_session(user):
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)
-
-
-def new_app_context(fn):
-    """
-    This is decorator function.  Use this anytime you need to run more than one
-    'self.tc.{get,post,..}()' requests in one test, or when you see something
-    like this in your test error output:
-        E   sqlalchemy.orm.exc.DetachedInstanceError: Instance <..>
-            is not bound to a Session; attribute refresh operation cannot
-            proceed (Background on this error at: http://sqlalche.me/e/bhk3)
-    For more info see
-    https://stackoverflow.com/questions/19395697/sqlalchemy-session-not-getting-removed-properly-in-flask-testing
-    """
-    @wraps(fn)
-    def wrapper(fn, fn_self, *args, **kwargs):
-        with coprs.app.app_context():
-            return fn(fn_self, *args, **kwargs)
-
-    return decorator.decorator(wrapper, fn)

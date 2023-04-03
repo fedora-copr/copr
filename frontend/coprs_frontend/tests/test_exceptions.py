@@ -1,7 +1,7 @@
 import json
 import pytest
 from werkzeug.exceptions import GatewayTimeout
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 from coprs import app
 from coprs.exceptions import (CoprHttpException,
                               InsufficientStorage,
@@ -54,7 +54,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "Only owners and admins may update their projects" in data["error"]
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_builds", "f_db")
     def test_api_409(self):
@@ -63,7 +62,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "Cannot cancel build 1" in data["error"]
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_builds", "f_db")
     def test_api_400(self):
@@ -74,7 +72,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "is owner of the 'user1/foocopr' project" in data["error"]
 
-    @new_app_context
     def test_api_504(self):
         def raise_exception():
             raise GatewayTimeout()
@@ -84,7 +81,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "The API request timeouted" in data["error"]
 
-    @new_app_context
     def test_api_500(self):
         def raise_exception():
             raise CoprHttpException("Whatever unspecified error")
@@ -94,7 +90,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "Whatever unspecified error" in data["error"]
 
-    @new_app_context
     def test_api_500_default_message(self):
         def raise_exception():
             raise CoprHttpException
@@ -104,7 +99,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "Generic copr exception" in data["error"]
 
-    @new_app_context
     def test_api_500_runtime_error(self):
         def raise_exception():
             raise RuntimeError("Whatever unspecified error")
@@ -115,7 +109,6 @@ class TestExceptionHandling(CoprsTestCase):
         assert ("Request wasn't successful, there is probably "
                 "a bug in the Copr code.") in data["error"]
 
-    @new_app_context
     def test_api_500_storage(self):
         def raise_exception():
             raise InsufficientStorage
@@ -125,7 +118,6 @@ class TestExceptionHandling(CoprsTestCase):
         data = json.loads(r1.data)
         assert "Not enough space left" in data["error"]
 
-    @new_app_context
     def test_api_500_in_progress(self):
         def raise_exception():
             raise ActionInProgressException("Hey! Action in progress", None)

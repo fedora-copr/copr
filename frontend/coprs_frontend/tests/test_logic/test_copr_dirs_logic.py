@@ -9,14 +9,12 @@ from coprs import db, models
 from tests.coprs_test_case import (
     CoprsTestCase,
     TransactionDecorator,
-    new_app_context
 )
 from commands.delete_dirs import _delete_dirs_function
 
 
 class TestCoprDirsLogic(CoprsTestCase):
     @TransactionDecorator("u1")
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
     def test_coprdir_cleanup_no_removal(self):
         self.api3.new_project("test-pr-dirs", ["fedora-17-i386"])
@@ -31,7 +29,6 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert models.CoprDir.query.count() == 4  # main + 3 PRs
 
     @TransactionDecorator("u1")
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
     def test_coprdir_cleanup_no_build(self):
         self.api3.new_project("test-pr-dirs", ["fedora-17-i386"])
@@ -51,7 +48,6 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert json.loads(action.data) == ["user1/test-pr-dirs:pr:1"]
 
     @TransactionDecorator("u1")
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
     def test_coprdir_cleanup_old_pr(self):
         self.api3.new_project("test-pr-dirs", ["fedora-17-i386"])
@@ -71,7 +67,6 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert json.loads(action.data) == ["user1/test-pr-dirs:pr:1"]
 
     @TransactionDecorator("u1")
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
     def test_coprdir_cleanup_one_prs(self):
         self.api3.new_project("test-pr-dirs", ["fedora-17-i386"])
@@ -98,7 +93,6 @@ class TestCoprDirsLogic(CoprsTestCase):
                                                     "user1/test-pr-dirs:pr:3"])
 
     @TransactionDecorator("u1")
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
     def test_coprdir_build_normal_then_pr(self):
         chroot = "fedora-17-i386"

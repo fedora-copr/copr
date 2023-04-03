@@ -19,14 +19,12 @@ from coprs.logic.actions_logic import ActionsLogic
 
 from commands.create_chroot import create_chroot_function
 
-from tests.coprs_test_case import (CoprsTestCase, TransactionDecorator,
-    new_app_context)
+from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 from tests.request_test_api import parse_web_form_error
 
 
 class TestMonitor(CoprsTestCase):
 
-    @new_app_context
     @pytest.mark.usefixtures("f_db", "f_users", "f_mock_chroots", "f_db")
     def test_regression_monitor_no_copr_returned(self):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1165284
@@ -802,7 +800,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert b"baseurl=https://" in r.data
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
 
-    @new_app_context
     def test_repofile_multilib(self, f_users, f_coprs, f_mock_chroots,
                                f_mock_chroots_many, f_custom_builds, f_db):
 
@@ -890,7 +887,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert normal_baseurl == baseurls[0]
         assert normal_baseurl.rsplit('-', 1)[0] == baseurls[1].rsplit('-', 1)[0]
 
-    @new_app_context
     def test_repofile_copr_runtime_deps(self, f_users, f_coprs, f_mock_chroots):
         """
         Test that a repofile for a project that has runtime dependencies was
@@ -918,7 +914,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert repo_id == config.sections()[2]
         assert config.get(repo_id, "baseurl") == url
 
-    @new_app_context
     def test_repofile_group_copr_runtime_deps(self, f_users, f_coprs,
                                               f_mock_chroots, f_group_copr,
                                               f_group_copr_dependent):
@@ -961,7 +956,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert name in config.get(config.sections()[1], "name")
 
 
-    @new_app_context
     def test_repofile_transitive_runtime_deps(self, f_users,
                                               f_copr_transitive_dependency):
         """
@@ -1089,31 +1083,31 @@ class TestRepo(CoprsTestCase):
         self.db.session.commit()
 
         app.config["BACKEND_BASE_URL"] = "https://foo"
-        with app.app_context():
-            kwargs = dict(user = self.u1.username, copr = self.c1.name)
-            url = "/coprs/{user}/{copr}/repo/{chroot}/"
 
-            # Both chroots enabled, without alias
-            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
-            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
-            assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
-            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+        kwargs = dict(user = self.u1.username, copr = self.c1.name)
+        url = "/coprs/{user}/{copr}/repo/{chroot}/"
 
-            # Both chroots enabled, alias defined
-            app.config["CHROOT_NAME_RELEASE_ALIAS"] = {"epel-8": "rhelbeta-8"}
-            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
-            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
-            assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
-            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+        # Both chroots enabled, without alias
+        r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+        r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+        assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
+        assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
 
-            # Only one chroot enabled, alias defined
-            self.c1.copr_chroots = [cc_rhelbeta]
-            self.db.session.commit()
-            cache.clear()
-            r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
-            r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
-            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r1.data.decode("utf-8")
-            assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+        # Both chroots enabled, alias defined
+        app.config["CHROOT_NAME_RELEASE_ALIAS"] = {"epel-8": "rhelbeta-8"}
+        r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+        r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+        assert "baseurl=https://foo/results/user1/foocopr/epel-8-$basearch/" in r1.data.decode("utf-8")
+        assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
+
+        # Only one chroot enabled, alias defined
+        self.c1.copr_chroots = [cc_rhelbeta]
+        self.db.session.commit()
+        cache.clear()
+        r1 = self.tc.get(url.format(chroot="epel-8", **kwargs))
+        r2 = self.tc.get(url.format(chroot="rhelbeta-8", **kwargs))
+        assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r1.data.decode("utf-8")
+        assert "baseurl=https://foo/results/user1/foocopr/rhelbeta-8-$basearch/" in r2.data.decode("utf-8")
 
 
 class TestCoprActionsGeneration(CoprsTestCase):

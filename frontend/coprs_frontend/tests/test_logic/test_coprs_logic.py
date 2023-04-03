@@ -18,7 +18,7 @@ from coprs.logic.complex_logic import ComplexLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
-from tests.coprs_test_case import CoprsTestCase, new_app_context
+from tests.coprs_test_case import CoprsTestCase
 from coprs.exceptions import (
     AccessRestricted,
     ConflictingRequest,
@@ -122,7 +122,6 @@ class TestCoprsLogic(CoprsTestCase):
         with pytest.raises(InsufficientRightsException):
             CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c3, "github.com/packit/packit")
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
     def test_copr_logic_add_sends_create_gpg_key_action(self):
         name = u"project_1"
@@ -141,7 +140,6 @@ class TestCoprsLogic(CoprsTestCase):
 
 class TestCoprChrootsLogic(CoprsTestCase):
 
-    @new_app_context
     def test_update_from_names(self, f_users, f_coprs, f_mock_chroots, f_db):
         flask.g.user = self.u2
         chroot_names = ["fedora-17-x86_64", "fedora-17-i386"]
@@ -153,7 +151,6 @@ class TestCoprChrootsLogic(CoprsTestCase):
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, chroot_names)
         assert [ch.name for ch in self.c2.active_copr_chroots] == chroot_names
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_update_from_names_delete_after(self):
         """
@@ -234,7 +231,6 @@ class TestCoprChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
         assert outdated.all() == [self.c2.copr_chroots[0]]
 
-    @new_app_context
     @pytest.mark.usefixtures("f_copr_chroots_assigned")
     def test_disabling_disallowed_when_build_runs(self):
         """
@@ -254,7 +250,6 @@ class TestCoprChrootsLogic(CoprsTestCase):
             bch.status = StatusEnum("succeeded")
         CoprChrootsLogic.update_from_names(self.c2.user, self.c2, ["fedora-17-x86_64"])
 
-    @new_app_context
     @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
     def test_chroot_reenable(self):
         """
@@ -278,7 +273,6 @@ class TestCoprChrootsLogic(CoprsTestCase):
         assert old_copr_chroot == new_copr_chroot
         assert old_bch_ids == [bch.id for bch in new_copr_chroot.build_chroots]
 
-    @new_app_context
     @pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
     def test_unclick_chroot_repeatedly(self):
         """
@@ -326,43 +320,40 @@ class TestPinnedCoprsLogic(CoprsTestCase):
 class TestCoprsLogicAdminFeatures(CoprsTestCase):
     @pytest.mark.usefixtures("f_users", "f_db")
     def test_add(self):
-        with app.app_context():
-            flask.g.user = self.u2
-            CoprsLogic.add(name="foo", user=self.u2, selected_chroots=["fedora-rawhide-x86_64"])
+        flask.g.user = self.u2
+        CoprsLogic.add(name="foo", user=self.u2, selected_chroots=["fedora-rawhide-x86_64"])
 
     @pytest.mark.usefixtures("f_users", "f_db")
     def test_add_someone_else_project(self):
-        with app.app_context():
-            # Non-admin user must be forbidden to do so
-            with pytest.raises(InsufficientRightsException) as ex:
-                flask.g.user = self.u2
-                CoprsLogic.add(name="foo", user=self.u3, selected_chroots=["fedora-rawhide-x86_64"])
-            assert "You were authorized as 'user2'" in ex.value.message
-            assert "without permissions to access projects of user 'user3'" in ex.value.message
+        # Non-admin user must be forbidden to do so
+        with pytest.raises(InsufficientRightsException) as ex:
+            flask.g.user = self.u2
+            CoprsLogic.add(name="foo", user=self.u3, selected_chroots=["fedora-rawhide-x86_64"])
+        assert "You were authorized as 'user2'" in ex.value.message
+        assert "without permissions to access projects of user 'user3'" in ex.value.message
 
-            # Admin should be allowed to create such project
-            flask.g.user = self.u1
-            copr = CoprsLogic.add(name="foo", user=self.u3, selected_chroots=["fedora-rawhide-x86_64"])
-            assert isinstance(copr, models.Copr)
+        # Admin should be allowed to create such project
+        flask.g.user = self.u1
+        copr = CoprsLogic.add(name="foo", user=self.u3, selected_chroots=["fedora-rawhide-x86_64"])
+        assert isinstance(copr, models.Copr)
 
     @pytest.mark.usefixtures("f_users", "f_groups", "f_fas_groups", "f_db")
     def test_add_group_project(self):
-        with app.app_context():
-            flask.g.user = self.u1
+        flask.g.user = self.u1
 
-            # User can create project in a group that he belongs to
-            self.u1.admin = False
-            CoprsLogic.add(name="p1", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
+        # User can create project in a group that he belongs to
+        self.u1.admin = False
+        CoprsLogic.add(name="p1", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
 
-            # User cannot create a project in a group that he doesn't belong to
-            self.u1.openid_groups = None
-            with pytest.raises(AccessRestricted) as ex:
-                CoprsLogic.add(name="p2", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
-            assert "User 'user1' doesn't have access to the copr group 'group1' (fas_name='fas_1')" in ex.value.message
+        # User cannot create a project in a group that he doesn't belong to
+        self.u1.openid_groups = None
+        with pytest.raises(AccessRestricted) as ex:
+            CoprsLogic.add(name="p2", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
+        assert "User 'user1' doesn't have access to the copr group 'group1' (fas_name='fas_1')" in ex.value.message
 
-            # Admin can create a whatever group project
-            self.u1.admin = True
-            CoprsLogic.add(name="p3", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
+        # Admin can create a whatever group project
+        self.u1.admin = True
+        CoprsLogic.add(name="p3", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
 
 
 class TestChrootFormLogic(CoprsTestCase):
@@ -391,7 +382,6 @@ class TestChrootFormLogic(CoprsTestCase):
 
 class TestCoprScoreLogic(CoprsTestCase):
 
-    @new_app_context
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
     def test_score_math(self):
         assert self.c1.score == 0

@@ -58,38 +58,37 @@ class TestNotifyOutdatedChroots(CoprsTestCase):
     @patch("commands.notify_outdated_chroots.send_mail")
     def test_notify_outdated_chroots(self, send_mail, dev_instance_warning, f_users, f_coprs, f_mock_chroots, f_db):
         app.config["SERVER_NAME"] = "localhost"
-        with app.app_context():
 
-            # Any copr chroots are marked to be deleted, hence there is nothing to be notified about
-            notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
-            assert send_mail.call_count == 0
+        # Any copr chroots are marked to be deleted, hence there is nothing to be notified about
+        notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
+        assert send_mail.call_count == 0
 
-            # Mark a copr chroot to be deleted, we should send a notification
-            self.c2.copr_chroots[0].mock_chroot.is_active = False
-            self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
-            assert self.c2.copr_chroots[0].delete_notify is None
-            notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
-            assert self.c2.copr_chroots[0].delete_notify is not None
+        # Mark a copr chroot to be deleted, we should send a notification
+        self.c2.copr_chroots[0].mock_chroot.is_active = False
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
+        assert self.c2.copr_chroots[0].delete_notify is None
+        notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
+        assert self.c2.copr_chroots[0].delete_notify is not None
 
-            assert send_mail.call_count == 1
-            recipients, message = send_mail.call_args[0]
-            assert isinstance(message, OutdatedChrootMessage)
-            assert recipients == ["user2@spam.foo"]
-            assert "Project: user2/foocopr"
-            assert "Chroot: fedora-17-x86_64"
-            assert "Remaining: 149 days"
+        assert send_mail.call_count == 1
+        recipients, message = send_mail.call_args[0]
+        assert isinstance(message, OutdatedChrootMessage)
+        assert recipients == ["user2@spam.foo"]
+        assert "Project: user2/foocopr"
+        assert "Chroot: fedora-17-x86_64"
+        assert "Remaining: 149 days"
 
-            # Run notifications immediately once more
-            # Nothing should change, we have a mechanism to not spam users
-            previous_delete_notify = self.c2.copr_chroots[0].delete_notify
-            notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
-            assert send_mail.call_count == 1  # No new calls
-            assert self.c2.copr_chroots[0].delete_notify == previous_delete_notify
+        # Run notifications immediately once more
+        # Nothing should change, we have a mechanism to not spam users
+        previous_delete_notify = self.c2.copr_chroots[0].delete_notify
+        notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
+        assert send_mail.call_count == 1  # No new calls
+        assert self.c2.copr_chroots[0].delete_notify == previous_delete_notify
 
-            # Now, don't care when we sent last notifications. Notify everyone again
-            notify_outdated_chroots_function(dry_run=False, email_filter=None, all=True)
-            assert send_mail.call_count == 2
-            assert self.c2.copr_chroots[0].delete_notify != previous_delete_notify
+        # Now, don't care when we sent last notifications. Notify everyone again
+        notify_outdated_chroots_function(dry_run=False, email_filter=None, all=True)
+        assert send_mail.call_count == 2
+        assert self.c2.copr_chroots[0].delete_notify != previous_delete_notify
 
     @patch("commands.notify_outdated_chroots.dev_instance_warning")
     @patch("commands.notify_outdated_chroots.send_mail")

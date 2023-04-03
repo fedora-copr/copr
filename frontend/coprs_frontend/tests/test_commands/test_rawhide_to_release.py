@@ -13,7 +13,7 @@ from commands.branch_fedora import branch_fedora_function
 from commands.rawhide_to_release import rawhide_to_release_function
 from commands.create_chroot import create_chroot_function
 
-from coprs_frontend.tests.coprs_test_case import CoprsTestCase, new_app_context
+from coprs_frontend.tests.coprs_test_case import CoprsTestCase
 
 
 class TestRawhideToRelease(CoprsTestCase):
@@ -60,7 +60,6 @@ class TestBranchFedora(CoprsTestCase):
         actions = self.models.Action.query.all()
         return [ActionTypeEnum(a.action_type) for a in actions]
 
-    @new_app_context
     def test_branch_fedora(self, capsys):
         """ Test rawhide-to-release through branch-fedora command """
 
