@@ -1,7 +1,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-dist-git
-Version:    0.61
+Version:    0.62
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.62-1
+- Skip test_no_op_1
+
 * Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.61-1
 - Don't kill background workers for service restarts
 - Log from what URL a task is being fetched
