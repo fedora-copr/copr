@@ -27,8 +27,8 @@
     <p>The API token is valid for {{ config['API_TOKEN_EXPIRATION'] }} days after it has been generated.
     </p>
 
-    {% if g.user %}
     {% include 'additional_token_info.html' %}
+    {% if g.user %}
     <pre style="font-size:120%">
 [copr-cli]
 login = {{ g.user.api_login }}
@@ -45,6 +45,17 @@ encrypted = False
         <input type="button" value="Generate a new token" />
     </a>
     {% else %}
+    <pre style="font-size:120%">
+[copr-cli]
+login = LOGIN_TO_REVEAL
+username = LOGIN_TO_REVEAL
+token = LOGIN_TO_REVEAL
+copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_frontend}}
+{% if config['ENFORCE_PROTOCOL_FOR_FRONTEND_URL'] == 'http' %}
+encrypted = False
+{% endif %}
+# expiration date: LOGIN_TO_REVEAL
+</pre>
     <p style="font-style:italic">You need to be logged in to see your API token.</p>
     {% endif %}
 
