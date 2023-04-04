@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.166
+Version:    1.167
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.167-1
+- Run createrepo without --database
+- Make copr_messaging optional
+
 * Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.166-1
 - Don't include package name into srpm result dir name
 - Remove libmodulemd1 dependency
