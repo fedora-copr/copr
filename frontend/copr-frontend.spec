@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.197
+Version:    1.198
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -386,6 +386,13 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.198-1
+- Don't 500 for KRB5_USER_DENYLIST_PATTERNS=None
+- Explicitly ask which user checks the permissions
+- Make sure user can build in the project before uploading
+- Change the whooshee packages field to IDLIST
+- Run copr-frontend update-indexes daily
+
 * Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.197-1
 - Allow automation (cron) to remove builds
 - Allow specifying a KRB5 user denylist
