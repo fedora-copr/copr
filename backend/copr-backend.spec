@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.167
+Version:    1.168
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.168-1
+- Bump version for release mess
+
 * Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.167-1
 - Run createrepo without --database
 - Make copr_messaging optional
