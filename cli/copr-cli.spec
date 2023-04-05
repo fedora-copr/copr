@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.120.3.dev
 
 Name:       copr-cli
-Version:    1.107
+Version:    1.108
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.108-1
+- Bump release version for release mess 
+
 * Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.107-1
 - Explicitly ask which user checks the permissions
 - Add `get` cli command for proxy.project.get()
