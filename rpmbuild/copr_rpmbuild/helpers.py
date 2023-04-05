@@ -308,7 +308,7 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
             fetch_cmd = ['git', 'fetch', 'origin', '{0}:{0}'.format(committish)]
             run_cmd(fetch_cmd, cwd=repo_path)
 
-        checkout_cmd = ['git', 'switch', '--detach', committish]
+        checkout_cmd = ['git', 'checkout', committish]
         run_cmd(checkout_cmd, cwd=repo_path)
 
 
