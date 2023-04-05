@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.198
+Version:    1.199
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -386,6 +386,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.199-1
+- Bump version for release mess
+
 * Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.198-1
 - Don't 500 for KRB5_USER_DENYLIST_PATTERNS=None
 - Explicitly ask which user checks the permissions
