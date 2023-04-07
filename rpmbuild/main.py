@@ -113,7 +113,10 @@ def main():
     with open(config.get("main", "logger_pidfile"), "w") as pidfile:
         pidfile.write(str(logging_pid))
 
-    log.info('Running: {0}'.format(" ".join(map(shlex.quote, sys.argv))))
+    cmd = " ".join(map(shlex.quote, sys.argv))
+    log.info('\nYou can reproduce this build on your computer by running:\n')
+    log.info('  sudo dnf install copr-rpmbuild')
+    log.info('  {0}\n\n'.format(cmd.replace(" --detached", "")))
     log.info('Version: {0}'.format(VERSION))
     log.info("PID: %s", main_pid)
     log.info("Logging PID: %s", logging_pid)
