@@ -447,10 +447,10 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """ start the RPM build on builder on background """
         command = "copr-rpmbuild --verbose --drop-resultdir"
         if self.job.chroot == "srpm-builds":
-            command += " --srpm --build-id {build_id} --detached"
+            command += " --srpm --task-url {task_url} --detached"
         else:
-            command += " --build-id {build_id} --chroot {chroot} --detached"
-        command = command.format(build_id=self.job.build_id,
+            command += " --task-url {task_url} --chroot {chroot} --detached"
+        command = command.format(task_url=self.job.task_url,
                                  chroot=self.job.chroot)
 
         self.log.info("Starting remote build: %s", command)

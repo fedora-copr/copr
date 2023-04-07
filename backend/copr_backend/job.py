@@ -1,6 +1,7 @@
 import copy
 import os
 
+from urllib.parse import urljoin
 from copr_backend.exceptions import CoprBackendSrpmError
 from copr_backend.helpers import build_target_dir
 
@@ -28,6 +29,7 @@ class BuildJob(object):
         """
 
         self.timeout = worker_opts.timeout
+        self.frontend_base_url = worker_opts.frontend_base_url
         self.memory_reqs = None
         self.enable_net = True
 
@@ -214,3 +216,14 @@ class BuildJob(object):
         if self.ended_on is None or self.started_on is None:
             return None
         return self.ended_on - self.started_on
+
+    @property
+    def task_url(self):
+        """
+        URL where a builder can downloading the JSON definition for this task
+        """
+        base = "/backend/get-build-task/"
+        if self.chroot == "srpm-builds":
+            base = "/backend/get-srpm-build-task/"
+        path = urljoin(base, self.task_id)
+        return urljoin(self.frontend_base_url, path)
