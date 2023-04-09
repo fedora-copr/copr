@@ -7,6 +7,7 @@ from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from flask_restx import Api, Namespace, Resource
 from coprs import app
 from coprs.exceptions import (
     AccessRestricted,
@@ -21,6 +22,30 @@ from coprs.helpers import streamed_json
 
 
 apiv3_ns = flask.Blueprint("apiv3_ns", __name__, url_prefix="/api_3")
+
+
+# Somewhere between flask-restx 1.0.3 and 1.1.0 this change was introduced:
+# > Initializing the Api object always registers the root endpoint / even if
+# > the Swagger UI path is changed. If you wish to use the root endpoint /
+# > for other purposes, you must register it before initializing the Api object.
+# TODO That needs to get fixed and then we can move this route to apiv3_general
+# See https://github.com/python-restx/flask-restx/issues/452
+@apiv3_ns.route("/")
+def home():
+    """
+    APIv3 homepage
+    Return generic information about Copr API
+    """
+    return flask.jsonify({"version": 3})
+
+
+api = Api(
+    app=apiv3_ns,
+    version="v3",
+    title="Copr API",
+    description="See python client - <https://python-copr.readthedocs.io>",
+    doc="/docs",
+)
 
 
 # HTTP methods

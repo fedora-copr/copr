@@ -1,4 +1,9 @@
+# All documentation is to be written on method-level because then it is
+# recognized by flask-restx and rendered in Swagger
+# pylint: disable=missing-class-docstring
+
 import flask
+from flask_restx import Namespace, Resource
 
 from coprs.exceptions import (
         BadRequest,
@@ -12,7 +17,15 @@ from coprs.exceptions import (
 )
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms, helpers
-from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
+from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
+from coprs.views.apiv3_ns.schema import (
+    package_model,
+    add_package_params,
+    edit_package_params,
+    get_package_parser,
+    add_package_parser,
+    edit_package_parser,
+)
 from coprs.logic.packages_logic import PackagesLogic
 
 # @TODO if we need to do this on several places, we should figure a better way to do it
@@ -23,6 +36,10 @@ from .json2form import get_form_compatible_data
 
 
 MAX_PACKAGES_WITHOUT_PAGINATION = 10000
+
+
+apiv3_packages_ns = Namespace("package", description="Packages")
+api.add_namespace(apiv3_packages_ns)
 
 
 def to_dict(package, with_latest_build=False, with_latest_succeeded_build=False):
@@ -91,19 +108,29 @@ def get_arg_to_bool(argument):
     return False
 
 
-@apiv3_ns.route("/package", methods=GET)
-@query_params()
-def get_package(ownername, projectname, packagename,
-                with_latest_build=False, with_latest_succeeded_build=False):
-    with_latest_build = get_arg_to_bool(with_latest_build)
-    with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
+@apiv3_packages_ns.route("/")
+class GetPackage(Resource):
+    parser = get_package_parser()
 
-    copr = get_copr(ownername, projectname)
-    try:
-        package = PackagesLogic.get(copr.id, packagename)[0]
-    except IndexError:
-        raise ObjectNotFound("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
-    return flask.jsonify(to_dict(package, with_latest_build, with_latest_succeeded_build))
+    @apiv3_packages_ns.expect(parser)
+    @apiv3_packages_ns.marshal_with(package_model)
+    def get(self):
+        """
+        Get a package
+        Get a single package from a Copr project.
+        """
+        args = self.parser.parse_args()
+        with_latest_build = args.with_latest_build
+        with_latest_succeeded_build = args.with_latest_succeeded_build
+
+        copr = get_copr(args.ownername, args.projectname)
+        try:
+            package = PackagesLogic.get(copr.id, args.packagename)[0]
+        except IndexError as ex:
+            msg = ("No package with name {name} in copr {copr}"
+                   .format(name=args.packagename, copr=copr.name))
+            raise ObjectNotFound(msg) from ex
+        return to_dict(package, with_latest_build, with_latest_succeeded_build)
 
 
 @apiv3_ns.route("/package/list", methods=GET)
@@ -111,6 +138,10 @@ def get_package(ownername, projectname, packagename,
 @query_params()
 def get_package_list(ownername, projectname, with_latest_build=False,
                      with_latest_succeeded_build=False, **kwargs):
+    """
+    Get a list of packages
+    Get a list of packages from a Copr project
+    """
 
     with_latest_build = get_arg_to_bool(with_latest_build)
     with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
@@ -138,30 +169,58 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     return flask.jsonify(items=items, meta=paginator.meta)
 
 
-@apiv3_ns.route("/package/add/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=POST)
-@api_login_required
-def package_add(ownername, projectname, package_name, source_type_text):
-    copr = get_copr(ownername, projectname)
-    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
-    process_package_add_or_edit(copr, source_type_text, data=data)
-    package = PackagesLogic.get(copr.id, package_name).first()
-    return flask.jsonify(to_dict(package))
+@apiv3_packages_ns.route("/add/<ownername>/<projectname>/<package_name>/<source_type_text>")
+class PackageAdd(Resource):
+    parser = add_package_parser()
+
+    @api_login_required
+    @apiv3_packages_ns.doc(params=add_package_params)
+    @apiv3_packages_ns.expect(parser)
+    @apiv3_packages_ns.marshal_with(package_model)
+    def post(self, ownername, projectname, package_name, source_type_text):
+        """
+        Create a package
+        Create a new package inside a specified Copr project.
+
+        See what fields are required for which source types:
+        https://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
+        """
+        copr = get_copr(ownername, projectname)
+        data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
+        process_package_add_or_edit(copr, source_type_text, data=data)
+        package = PackagesLogic.get(copr.id, package_name).first()
+        return to_dict(package)
 
 
-@apiv3_ns.route("/package/edit/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=PUT)
-@api_login_required
-def package_edit(ownername, projectname, package_name, source_type_text=None):
-    copr = get_copr(ownername, projectname)
-    data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
-    try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
-        source_type_text = source_type_text or package.source_type_text
-    except IndexError:
-        raise ObjectNotFound("Package {name} does not exists in copr {copr}."
-                             .format(name=package_name, copr=copr.full_name))
+@apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/")
+@apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/<source_type_text>")
+class PackageEdit(Resource):
+    parser = edit_package_parser()
 
-    process_package_add_or_edit(copr, source_type_text, package=package, data=data)
-    return flask.jsonify(to_dict(package))
+    @api_login_required
+    @apiv3_packages_ns.doc(params=edit_package_params)
+    @apiv3_packages_ns.expect(parser)
+    @apiv3_packages_ns.marshal_with(package_model)
+    def post(self, ownername, projectname, package_name, source_type_text=None):
+        """
+        Edit a package
+        Edit an existing package within a Copr project.
+
+        See what fields are required for which source types:
+        https://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
+        """
+        copr = get_copr(ownername, projectname)
+        data = rename_fields(get_form_compatible_data(preserve=["python_versions"]))
+        try:
+            package = PackagesLogic.get(copr.id, package_name)[0]
+            source_type_text = source_type_text or package.source_type_text
+        except IndexError as ex:
+            msg = ("Package {name} does not exists in copr {copr}."
+                   .format(name=package_name, copr=copr.full_name))
+            raise ObjectNotFound(msg) from ex
+
+        process_package_add_or_edit(copr, source_type_text, package=package, data=data)
+        return to_dict(package)
 
 
 @apiv3_ns.route("/package/reset", methods=PUT)
