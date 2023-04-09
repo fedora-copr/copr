@@ -1,20 +1,33 @@
+# All documentation is to be written on method-level because then it is
+# recognized by flask-restx and rendered in Swagger
+# pylint: disable=missing-class-docstring
+
 import flask
+from flask_restx import Namespace, Resource
 from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
+from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
+from coprs.views.apiv3_ns.schema import (
+    project_chroot_model,
+    project_chroot_build_config_model,
+    project_chroot_parser,
+)
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.exceptions import ObjectNotFound, InvalidForm
 from coprs import db, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from . import (
-    query_params,
     get_copr,
     file_upload,
-    GET,
     PUT,
     str_to_list,
     reset_to_defaults,
 )
 from .json2form import get_form_compatible_data
+
+
+apiv3_project_chroots_ns = \
+    Namespace("project-chroot", description="Project chroots")
+api.add_namespace(apiv3_project_chroots_ns)
 
 
 def to_dict(project_chroot):
@@ -40,7 +53,7 @@ def to_build_config_dict(project_chroot):
         "repos": config["repos"],
         "additional_repos": BuildConfigLogic.generate_additional_repos(project_chroot),
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
-        "additional_modules": project_chroot.module_toggle,
+        "additional_modules": str_to_list(project_chroot.module_toggle),
         "enable_net": project_chroot.copr.enable_net,
         "with_opts":  str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
@@ -59,23 +72,41 @@ def rename_fields(input_dict):
         "additional_modules": "module_toggle",
     })
 
-@apiv3_ns.route("/project-chroot", methods=GET)
-@query_params()
-def get_project_chroot(ownername, projectname, chrootname):
-    copr = get_copr(ownername, projectname)
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
-    return flask.jsonify(to_dict(chroot))
+
+@apiv3_project_chroots_ns.route("/")
+class ProjectChroot(Resource):
+    parser = project_chroot_parser()
+
+    @apiv3_project_chroots_ns.expect(parser)
+    @apiv3_project_chroots_ns.marshal_with(project_chroot_model)
+    def get(self):
+        """
+        Get a project chroot
+        Get settings for a single project chroot.
+        """
+        args = self.parser.parse_args()
+        copr = get_copr(args.ownername, args.projectname)
+        chroot = ComplexLogic.get_copr_chroot_safe(copr, args.chrootname)
+        return to_dict(chroot)
 
 
-@apiv3_ns.route("/project-chroot/build-config", methods=GET)
-@query_params()
-def get_build_config(ownername, projectname, chrootname):
-    copr = get_copr(ownername, projectname)
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
-    if not chroot:
-        raise ObjectNotFound('Chroot not found.')
-    config = to_build_config_dict(chroot)
-    return flask.jsonify(config)
+@apiv3_project_chroots_ns.route("/build-config")
+class BuildConfig(Resource):
+    parser = project_chroot_parser()
+
+    @apiv3_project_chroots_ns.expect(parser)
+    @apiv3_project_chroots_ns.marshal_with(project_chroot_build_config_model)
+    def get(self):
+        """
+        Get a build config
+        Generate a build config based on a project chroot settings.
+        """
+        args = self.parser.parse_args()
+        copr = get_copr(args.ownername, args.projectname)
+        chroot = ComplexLogic.get_copr_chroot_safe(copr, args.chrootname)
+        if not chroot:
+            raise ObjectNotFound('Chroot not found.')
+        return to_build_config_dict(chroot)
 
 
 @apiv3_ns.route("/project-chroot/edit/<ownername>/<projectname>/<chrootname>", methods=PUT)

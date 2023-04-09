@@ -126,7 +126,7 @@ class UIErrorHandler(BaseErrorHandler):
 
 class APIErrorHandler(BaseErrorHandler):
     """
-    Handle exceptions raised from API (v3)
+    Handle exceptions raised from API (v3) - routes without flask-restx
     """
     def override_message(self, message, error):
         return {
@@ -137,3 +137,16 @@ class APIErrorHandler(BaseErrorHandler):
     @staticmethod
     def render(message, code):
         return flask.jsonify(error=message)
+
+
+class RestXErrorHandler(APIErrorHandler):
+    """
+    Handle exceptions raised from API (v3) - routes that use flask-restx
+    """
+    @staticmethod
+    def render(message, code):
+        return {"error": message}
+
+    def handle_error(self, error):
+        body, code, headers = super().handle_error(error)
+        return body, code, headers or {}

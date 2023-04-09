@@ -1,15 +1,24 @@
+# All documentation is to be written on method-level because then it is
+# recognized by flask-restx and rendered in Swagger
+# pylint: disable=missing-class-docstring
+
 import os
 import flask
 from sqlalchemy.orm import joinedload
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import secure_filename
+from flask_restx import Namespace, Resource
 
 from copr_common.enums import StatusEnum
 from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
+from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
+from coprs.views.apiv3_ns.schema import (
+    build_model,
+    get_build_params,
+)
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
 
@@ -26,6 +35,12 @@ from . import (
     DELETE,
 )
 from .json2form import get_form_compatible_data
+
+
+
+
+apiv3_builds_ns = Namespace("build", description="Builds")
+api.add_namespace(apiv3_builds_ns)
 
 
 def to_dict(build):
@@ -76,11 +91,24 @@ def render_build(build):
     return flask.jsonify(to_dict(build))
 
 
-@apiv3_ns.route("/build/<int:build_id>/", methods=GET)
-@apiv3_ns.route("/build/<int:build_id>", methods=GET)
-def get_build(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
-    return render_build(build)
+@apiv3_builds_ns.route("/<int:build_id>")
+class GetBuild(Resource):
+
+    @apiv3_builds_ns.doc(params=get_build_params)
+    @apiv3_builds_ns.marshal_with(build_model)
+    def get(self, build_id):
+        """
+        Get a build
+        Get details for a single Copr build.
+        """
+        build = ComplexLogic.get_build_safe(build_id)
+        result = to_dict(build)
+
+        # Workaround - `marshal_with` needs the input `build_id` to be present
+        # in the returned dict. Don't worry, it won't get to the end user, it
+        # will be stripped away.
+        result["build_id"] = result["id"]
+        return result
 
 
 @apiv3_ns.route("/build/list/", methods=GET)

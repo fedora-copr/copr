@@ -94,6 +94,7 @@ BuildRequires: python3-flask-openid
 BuildRequires: python3-flask-sqlalchemy
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-flask-wtf
+BuildRequires: python3-flask-restx
 BuildRequires: python3-gobject
 BuildRequires: python3-html2text
 BuildRequires: python3-html5-parser
@@ -152,6 +153,7 @@ Requires: python3-flask-sqlalchemy
 Requires: python3-flask-whooshee
 Requires: python3-flask-wtf
 Requires: python3-flask-wtf
+Requires: python3-flask-restx
 Requires: python3-gobject
 Requires: python3-html2text
 Requires: python3-html5-parser

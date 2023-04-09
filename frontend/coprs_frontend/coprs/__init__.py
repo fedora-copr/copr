@@ -103,6 +103,22 @@ app.url_map.strict_slashes = False
 
 app.request_class = get_request_class(app)
 
+# Tell flask-restx to not append generated suggestions at
+# the end of 404 error messages
+app.config["ERROR_404_HELP"] = False
+
+# Don't display X-Fields inputs in Swagger
+app.config["RESTX_MASK_SWAGGER"] = False
+
+# There are some models, that are not used yet. They might still be helpful
+# for the users.
+app.config["RESTX_INCLUDE_ALL_MODELS"] = True
+
+# By default flask-restx expects "message" field in non-successful requests
+# but we named the field "error" instead
+app.config["ERROR_INCLUDE_MESSAGE"] = False
+
+
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general
 from coprs.views import api_ns
@@ -152,7 +168,7 @@ from coprs.exceptions import (
     NonAdminCannotDisableAutoPrunning,
 )
 from coprs.views.explore_ns import explore_ns
-from coprs.error_handlers import get_error_handler
+from coprs.error_handlers import get_error_handler, RestXErrorHandler
 import coprs.context_processors
 
 with app.app_context():
@@ -191,6 +207,16 @@ def handle_request_redirect(error):
 def handle_exceptions(error):
     error_handler = get_error_handler()
     return error_handler.handle_error(error)
+
+
+@apiv3_ns.api.errorhandler(Exception)
+def handle_exceptions_api(error):
+    """
+    Whenever an exception is raised within an API endpoint which is managed by
+    flask-restx, we end up here.
+    """
+    handler = RestXErrorHandler()
+    return handler.handle_error(error)
 
 
 app.jinja_env.trim_blocks = True

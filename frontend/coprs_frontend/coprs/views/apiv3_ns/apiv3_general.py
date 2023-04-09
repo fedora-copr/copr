@@ -1,11 +1,16 @@
+# All documentation is to be written on method-level because then it is
+# recognized by flask-restx and rendered in Swagger
+# pylint: disable=missing-class-docstring
+
 import os
 import re
 from fnmatch import fnmatch
 
 import flask
+from flask_restx import Namespace
 
 from coprs import app, oid, db
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_ns, api
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
 from coprs.auth import UserAuth
@@ -53,9 +58,9 @@ def krb_straighten_username(krb_remote_user):
     return username
 
 
-@apiv3_ns.route("/")
-def home():
-    return flask.jsonify({"version": 3})
+apiv3_general_ns = Namespace("home", path="/",
+                             description="APIv3 general endpoints")
+api.add_namespace(apiv3_general_ns)
 
 
 @apiv3_ns.route("/auth-check")
