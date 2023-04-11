@@ -6,31 +6,21 @@ from tests.coprs_test_case import (
 )
 
 
+_ARCH = {'i386': {'opts': {'module_hotfixes': '1'}},
+         'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100', 'module_hotfixes': '1'}}},
+                    'opts': {'module_hotfixes': '1'}}}
+
 U1_DATA = {'dependencies': [],
  'directories': {'foocopr': {}},
- 'repos': {'epel-5': {'arch': {'i386': {'opts': {}},
-                               'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                          'opts': {}}}},
-           'epel-6': {'arch': {'i386': {'opts': {}},
-                               'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                          'opts': {}}}},
-           'epel-7': {'arch': {'x86_64': {'opts': {}}}},
-           'fedora-18': {'arch': {'x86_64': {'opts': {}}}},
-           'fedora-19': {'arch': {'i386': {'opts': {}},
-                                  'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                             'opts': {}}}},
-           'fedora-20': {'arch': {'i386': {'opts': {}},
-                                  'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                             'opts': {}}}},
-           'fedora-21': {'arch': {'i386': {'opts': {}},
-                                  'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                             'opts': {}}}},
-           'fedora-22': {'arch': {'i386': {'opts': {}},
-                                  'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                             'opts': {}}}},
-           'fedora-23': {'arch': {'i386': {'opts': {}},
-                                  'x86_64': {'multilib': {'i386': {'opts': {'cost': '1100'}}},
-                                             'opts': {}}}}},
+ 'repos': {'epel-5': {'arch': _ARCH },
+           'epel-6': {'arch': _ARCH },
+           'epel-7': {'arch': {'x86_64': {'opts': {'module_hotfixes': '1'}}}},
+           'fedora-18': {'arch': {'x86_64': {'opts': {'module_hotfixes': '1'}}}},
+           'fedora-19': {'arch': _ARCH },
+           'fedora-20': {'arch': _ARCH },
+           'fedora-21': {'arch': _ARCH },
+           'fedora-22': {'arch': _ARCH },
+           'fedora-23': {'arch': _ARCH }},
  'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
 
 
@@ -81,6 +71,7 @@ class TestApiRPMRepo(CoprsTestCase):
                              "f_mock_chroots_many", "f_custom_builds", "f_db")
     def test_apiv3_rpmrepo_multilib(self):
         self.c1.multilib = True
+        self.c1.module_hotfixes = True
         self.db.session.commit()
         repodata = self.tc.get(
             "/api_3/rpmrepo/{0}/{1}/fedora-24/".format(

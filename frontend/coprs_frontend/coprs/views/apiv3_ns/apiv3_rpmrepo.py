@@ -50,12 +50,16 @@ def get_project_rpmrepo_metadata(copr):
     chroots = {}  # TODO: data["chroots"] = {}
     directories = data["directories"] = {}
 
+    gen_opts = {}
+    if copr.module_hotfixes:
+        gen_opts["module_hotfixes"] = "1"
+
     for name_release, info in repos_info.items():
         repo = repos[name_release] = {
             "arch": {},
         }
         for arch in info["arch_list"]:
-            archspec = repo["arch"][arch] = {"opts": {}}
+            archspec = repo["arch"][arch] = {"opts": {**gen_opts}}
             if arch in info["expirations"]:
                 archspec["delete_after_days"] = info["expirations"][arch]
 
@@ -64,6 +68,7 @@ def get_project_rpmrepo_metadata(copr):
                 multilib: {
                     "opts": {
                         "cost": "1100",
+                        **gen_opts,
                     },
                 },
             }
