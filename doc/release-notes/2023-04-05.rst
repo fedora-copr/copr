@@ -1,0 +1,100 @@
+.. _release_notes_2023_04_05:
+
+Highlights from 2023-04-05 release
+==================================
+
+Updated client packages are shipped in `Fedora 36`_,  `Fedora 37`_,  `Fedora 38`_
+`EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Disable AppStream for existing Copr projects
+--------------------------------------------
+
+We decided to disable AppStream metadata generation for all project
+excluding those mentioned in `Fedora discussion`_ due to very high I/O
+demand of ``appstream-builder`` tool which causes failures in builds
+even for medium-sized projects. If you want to enable generating AppStream
+data for your project (with a relatively high chance of a random build
+failure due to a timeout), please go to project settings and enable it back.
+(`#2577`_)
+
+
+Fixing slow searching in Fedora Copr projects
+---------------------------------------------
+
+Searching in Copr was slow and often timeout. We discussed options
+to switch to another search engine since our current search engine
+``whoosh`` seemed to be slow. We managed to speed up the search
+speed. (`#2534`_)
+
+
+``createrepo`` can be run without ``--database``
+------------------------------------------------
+
+Previously, we wan ``createrepo`` with ``--database`` option, which
+we do not need (see discussion in `#1171`_). Now we decided to don't
+create SQLite databases and run ``createrepo`` with ``--no-database``
+option to save some space. (`#2570`_)
+
+
+
+Notable changes
+---------------
+
+- Previously, when you uploaded src.rpm to be built in non-enabled chroot,
+  Copr emitted an error after the upload of src.rpm. Now we check the
+  chroot before you upload the src.rpm. (`#2524`_)
+- We introduced a new cli command ``copr get`` which returns detailed
+  information about desired project. (`#2582`_)
+- ``copr download-build`` command is getting new ``--review`` option which
+  downloads only fedora-review files (`#2584`_)
+- ``copr create`` has new option ``--follow-fedora-branching`` with which you
+  can turn ``follow-fedora-branching`` on or off in your project. (`#2545`_)
+
+
+
+Bugfixes
+--------
+
+`#2519`_ - Fix sorting builds by build time in Web UI
+`#984`_ - Disallow forking too large Copr projects
+`#2538`_ - Don't branch armhfp chroots
+`#2523`_ - Allow cron automation to remove builds
+`#2532`_ - Rubygem rebuild button redirects into an edit page
+`#2567`_ - SRPM result directory has invalid path
+`#2585`_ - ``copr-distgit-client sources` fails when the ``sources`` file contains an empty line
+`#2652`_ - Dealing with python-rpkg incompatibilities #1
+`#2600`_ - Dealing with python-rpkg incompatibilities #2
+`#2516`_ - Anitya: dont rebuild already running jobs
+`#2542`_ - Fix config files installation pattern
+
+
+
+.. _`Fedora 36`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-0fd6eeaed0
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-e54d383c89
+.. _`Fedora 38`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-ff8c400240
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-dc8fa7eec4
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-29edad2877
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-99fb689da6
+
+.. _`#2519`: https://github.com/fedora-copr/copr/issues/2519
+.. _`#984`: https://github.com/fedora-copr/copr/issues/984
+.. _`#2538`: https://github.com/fedora-copr/copr/pull/2538
+.. _`#2523`: https://github.com/fedora-copr/copr/issues/2523
+.. _`#2532`: https://github.com/fedora-copr/copr/issues/2532
+.. _`#1171`: https://github.com/fedora-copr/copr/issues/1171
+.. _`#2567`: https://github.com/fedora-copr/copr/issues/2567
+.. _`#2585`: https://github.com/fedora-copr/copr/issues/2585
+.. _`#2652`: https://github.com/fedora-copr/copr/pull/2652
+.. _`#2600`: https://github.com/fedora-copr/copr/pull/2600
+.. _`#2516`: https://github.com/fedora-copr/copr/pull/2516
+.. _`#2542`: https://github.com/fedora-copr/copr/pull/2542
+
+.. _`Fedora discussion`: https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/X63HU2ETJJ5NLSU64HMGVU74A2J2WNLT/
+.. _`#2524`: https://github.com/fedora-copr/copr/pull/2524
+.. _`#2582`: https://github.com/fedora-copr/copr/pull/2582
+.. _`#2584`: https://github.com/fedora-copr/copr/pull/2584
+.. _`#2577`: https://github.com/fedora-copr/copr/issues/2577
+.. _`#2534`: https://github.com/fedora-copr/copr/issues/2534
+.. _`#2545`: https://github.com/fedora-copr/copr/pull/2545
+.. _`#2570`: https://github.com/fedora-copr/copr/pull/2570
