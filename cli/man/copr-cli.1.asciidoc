@@ -226,7 +226,8 @@ several times for each chroot you don't need.
 Override memory for this build. This is actually not used and it have no effect.
 
 --timeout::
-Override timeout for this build.
+Specify build timeout (seconds), if the build takes longer than that, it is
+terminated and fails. The default is usually set to 5 hours on Copr Frontend.
 
 --nowait::
 Don't wait for build completion.
