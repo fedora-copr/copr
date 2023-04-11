@@ -273,21 +273,30 @@ removed after 40 days of build inactivity.
 Pagure Integration
 ------------------
 
-For any pagure instance (including `src.fedoraproject.org <http://src.fedoraproject.org/>`_), you can setup Copr auto-rebuilding and pr/commit flagging on new changes landing into a pagure repository and its open pull requests.
+You can configure Copr to do automatic builds for Pagure projects. Builds can be triggered by commits pushes
+and/or newly opened pull requests.
 
 Auto-rebuilding
 ^^^^^^^^^^^^^^^
 
-On the Pagure side, you need to set Fedmsg to 'active' in your project settings (in 'Hooks' section almost at the bottom). For some instances
-(e.g. `src.fedoraproject.org <http://src.fedoraproject.org/>`_), this might already be active by default so you don't even need to perform this step.
+To enable auto-rebuilding on push events, you need to set Fedmsg to 'active' in your project settings on Pagure
+(in the 'Hooks' section). For some instances (e.g. `src.fedoraproject.org <http://src.fedoraproject.org/>`_), this
+might already be active for all projects.
 
-In Copr, you need an SCM package definition, which may be as simple as specifying a public clone URL of the remote Pagure repository, see :ref:`scm_ref`
-if you need more detailed settings. Also make sure, "Auto-rebuild" checkbox is checked.
+To enable triggering builds on PRs, on Pagure go to ``Settings`` -> ``Project Options`` and select the
+``Fedmsg notifications`` option.
 
-Now your SCM package will get rebuilt on new commits into the main repo as well as into open PRs.
+In Copr, you need an SCM or DistGit package definition. For SMC it may be as simple as specifying a public clone
+URL of the remote Pagure repository, see :ref:`scm_ref` if you need more detailed settings. For :ref:`dist-git method`
+choose desired DistGit instance and DistGit namespace. Also make sure, "Auto-rebuild" checkbox is checked.
 
-Note that built changes coming from pull requests are not actually placed into the main copr repository. Instead, they are being placed into side repositories
-of the names ``<coprname>:pr:<pr_id>``. ``<pr_id>`` is ID of the pull request opened in Pagure. On Fedora, you can enable the side repository to test the changes with:
+From now on, you get automatic rebuilds for new pull-requests (including
+force pushes), you can drop a comment with ``[copr-build]`` keyword to re-trigger the builds, and Copr also
+automatically builds on pushes (commit) to the Pagure repo.
+
+Note that pull request build results are placed into side directories, like ``<coprname>:pr:<pr_id>``. ``<pr_id>``
+is ID of the pull request opened in Pagure. On Fedora, you can enable the side repository to test the
+changes with:
 
 ::
 
