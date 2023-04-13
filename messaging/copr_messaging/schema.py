@@ -21,9 +21,8 @@ This file contains schemas for messages sent by Copr project.
 import copy
 
 from copr_common.enums import StatusEnum
-from fedora_messaging import message
 
-from .private.hierarchy import _BuildChrootMessage
+from .private.hierarchy import _BuildChrootMessage, _CoprMessage
 from .private.schema_old import _PreFMBuildMessage
 from .private import schema_stomp_old
 
@@ -95,7 +94,7 @@ class BuildChrootStartedV1Stomp(schema_stomp_old._OldStompChrootMessage,
     })
 
 
-class BuildChrootStartedV1StompDontUse(message.Message):
+class BuildChrootStartedV1StompDontUse(_CoprMessage):
     topic = 'chroot.start'
 
     body_schema = {

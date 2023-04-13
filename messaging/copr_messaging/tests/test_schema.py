@@ -21,6 +21,7 @@
 import copy
 import unittest
 
+import fedora_messaging.message
 from jsonschema import ValidationError
 from .. import schema
 
@@ -297,3 +298,19 @@ class CoprMessageBaseClassTest(unittest.TestCase):
 
     def test_app_name(self):
         assert self.message.app_name == "Copr"
+
+    def test_all_classes_derived_from_base(self):
+        underived_classes = []
+        for name, obj in vars(schema).items():
+            if isinstance(obj, type) and issubclass(
+                obj, fedora_messaging.message.Message
+            ):
+                if not issubclass(obj, schema._CoprMessage):
+                    underived_classes.append(name)
+
+        self.assertListEqual(
+            underived_classes, [], msg=(
+                "Message classes must be derived from _CoprMessage:"
+                ", ".join(underived_classes)
+            )
+        )
