@@ -6,7 +6,7 @@ redis
 mock
 requests
 python-daemon
-bunch
+munch
 lockfile
 
 

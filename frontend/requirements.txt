@@ -9,7 +9,7 @@ blinker
 pytz
 markdown
 pyLibravatar
-pydns # pyLibravatar uses this
+py3dns # pyLibravatar uses this
 python-dateutil
 netaddr
 alembic
