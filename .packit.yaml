@@ -41,7 +41,7 @@ jobs:
     packages:
       - copr-cli
       - python-copr
-    trigger: commit
+    trigger: pull_request
     targets: fedora-37
     owner: mmassari
     project: copr
@@ -51,8 +51,9 @@ jobs:
     packages:
       - copr-cli
       - python-copr
-    trigger: commit
+    trigger: pull_request
     targets: fedora-37
+
   - job: tests
     branch: rawhide-downstream-sync
     packages:
@@ -60,6 +61,7 @@ jobs:
       - python-copr
     trigger: commit
     targets: fedora-37
+
   - job: vm_image_build
     packages:
       - copr-cli
