@@ -274,10 +274,9 @@ def git_clone_url_basepath(clone_url):
 @backoff.on_exception(
     wait_gen=backoff.expo, exception=RuntimeError, max_time=300, jitter=None
 )
-def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
+def git_clone(url, repo_path, scm_type="git"):
     """
-    Clone given URL (SCM_TYPE=svn/git) into REPO_PATH, and checkout the
-    COMMITTISH reference.
+    Clone given URL (SCM_TYPE=svn/git) into REPO_PATH
     """
     if scm_type == 'git':
         clone_cmd = ['git', 'clone', url,
@@ -297,6 +296,14 @@ def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
             run_cmd(['git', 'clone', url, repo_path])
         else:
             raise e
+
+
+def git_clone_and_checkout(url, committish, repo_path, scm_type="git"):
+    """
+    Clone given URL (SCM_TYPE=svn/git) into REPO_PATH, and checkout the
+    COMMITTISH reference.
+    """
+    git_clone(url, repo_path, scm_type)
 
     if committish:
         # Do the checkout only if explicitly requested, otherwise build against
