@@ -20,7 +20,7 @@ def get_error_handler():
     See http://flask.pocoo.org/docs/1.0/blueprints/#error-handlers
     """
     path = flask.request.path
-    if path.startswith('/api_3/') and "gssapi_login/web-ui" not in path:
+    if path.startswith('/api_3') and "gssapi_login/web-ui" not in path:
         return APIErrorHandler()
     return UIErrorHandler()
 
