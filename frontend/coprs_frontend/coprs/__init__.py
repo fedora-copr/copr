@@ -97,6 +97,10 @@ cache = Cache(app, config={
 })
 app.cache = cache
 
+# We don't want to manually define all the routes twice, once with a trailing
+# slash and one without it.
+app.url_map.strict_slashes = False
+
 app.request_class = get_request_class(app)
 
 from coprs.views import admin_ns
