@@ -3,20 +3,20 @@
 Highlights from 2023-04-05 release
 ==================================
 
-Updated client packages are shipped in `Fedora 36`_,  `Fedora 37`_,  `Fedora 38`_
+Updated client packages are shipped in `Fedora 36`_, `Fedora 37`_, `Fedora 38`_,
 `EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
 
 
 Disable AppStream for existing Copr projects
 --------------------------------------------
 
-We decided to disable AppStream metadata generation for all project
-excluding those mentioned in `Fedora discussion`_ due to very high I/O
-demand of ``appstream-builder`` tool which causes failures in builds
-even for medium-sized projects. If you want to enable generating AppStream
-data for your project (with a relatively high chance of a random build
-failure due to a timeout), please go to project settings and enable it back.
-(`#2577`_)
+We decided to disable AppStream metadata generation for all projects
+excluding those mentioned in this `Fedora discussion`_ due to a very
+high I/O demand of the ``appstream-builder`` tool which causes
+failures in builds even for medium-sized projects. If you want to
+enable generating AppStream data for your project (with a relatively
+high chance of a random build failure due to a timeout), please go to
+project settings and enable it back. (`#2577`_)
 
 
 Fixing slow searching in Fedora Copr projects
@@ -28,13 +28,13 @@ to switch to another search engine since our current search engine
 speed. (`#2534`_)
 
 
-``createrepo`` can be run without ``--database``
-------------------------------------------------
+Running ``createrepo_c`` without ``--database``
+-----------------------------------------------
 
-Previously, we wan ``createrepo`` with ``--database`` option, which
-we do not need (see discussion in `#1171`_). Now we decided to don't
-create SQLite databases and run ``createrepo`` with ``--no-database``
-option to save some space. (`#2570`_)
+Previously, we used to run ``createrepo_c`` with ``--database`` option,
+which we do not need (see discussion in `#1171`_). Now we decided to
+not create SQLite databases and run ``createrepo_c`` with
+``--no-database`` option to save some space. (`#2570`_)
 
 
 
@@ -56,17 +56,17 @@ Notable changes
 Bugfixes
 --------
 
-`#2519`_ - Fix sorting builds by build time in Web UI
-`#984`_ - Disallow forking too large Copr projects
-`#2538`_ - Don't branch armhfp chroots
-`#2523`_ - Allow cron automation to remove builds
-`#2532`_ - Rubygem rebuild button redirects into an edit page
-`#2567`_ - SRPM result directory has invalid path
-`#2585`_ - ``copr-distgit-client sources` fails when the ``sources`` file contains an empty line
-`#2652`_ - Dealing with python-rpkg incompatibilities #1
-`#2600`_ - Dealing with python-rpkg incompatibilities #2
-`#2516`_ - Anitya: dont rebuild already running jobs
-`#2542`_ - Fix config files installation pattern
+- `#2519`_ - Fix sorting builds by build time in Web UI
+- `#984`_ - Disallow forking too large Copr projects
+- `#2538`_ - Don't branch armhfp chroots
+- `#2523`_ - Allow cron automation to remove builds
+- `#2532`_ - Rubygem rebuild button redirects into an edit page
+- `#2567`_ - SRPM result directory has invalid path
+- `#2585`_ - ``copr-distgit-client sources` fails when the ``sources`` file contains an empty line
+- `#2652`_ - Dealing with python-rpkg incompatibilities #1
+- `#2600`_ - Dealing with python-rpkg incompatibilities #2
+- `#2516`_ - Anitya: dont rebuild already running jobs
+- `#2542`_ - Fix config files installation pattern
 
 
 
