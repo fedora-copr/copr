@@ -305,12 +305,23 @@ changes with:
 PR/commit flagging
 ^^^^^^^^^^^^^^^^^^
 
-If you would like to get your commits and pull requests in Pagure flagged with build results for each change, go to project settings in your Pagure project. Then:
+Above you configured a Pagure instance that auto-triggers Copr builds.
+How to analyze the corresponding build results from the Pagure web UI?  You can
+configure Copr to notify Pagure instance about the build results
+using the "commit flagging" feature:
 
-- In the section "API keys", create a new API key (check for **'Flag a ...'** options) if you don't have one created already and copy it
-- In Copr, go to **Settings->Integrations** and insert the copied API key into the second field in 'Pagure' section
+- Go to Pagure project settings, section "API keys", create a new API key, check for **'Flag a ...'** options, and copy it
+- In Copr, go to **Settings->Integrations** and insert the copied API key into the second field in the "Pagure" section
 - Into the first field, insert Pagure project URL that you can just copy from browser address bar if you are on the project homepage
 - Click 'Submit' and you are done.
+
+And that's it — whenever a new Copr build is triggered (by a Pagure event), Copr
+lets the corresponding Pagure project know about the build status.  Example:
+
+.. image:: _static/pagure-pr-badges.png
+
+.. image:: _static/pagure-push-badges.png
+
 
 Custom-location Webhooks
 ------------------------
