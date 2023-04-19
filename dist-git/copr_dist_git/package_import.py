@@ -228,15 +228,15 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
                     log.error(str(e))
             else:
                 sync_branch(branch, branch_commits, message)
-        except:
-            log.exception("Error during source uploading, merge, or commit.")
+        except Exception as exc:
+            log.exception("Error during source uploading, merge, or commit: %s", str(exc))
             continue
 
         try:
             log.debug("push")
             commands.push()
         except rpkgError as e:
-            log.exception("Exception raised during push.")
+            log.exception("Exception raised during push: %s", str(e))
             continue
 
         commands.load_commit()
