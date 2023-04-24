@@ -165,6 +165,10 @@ class Config(object):
     # Only admins can.
     FORK_PACKAGES_LIMIT = 1000
 
+    # Teams for usage treemap
+    # e.g. {"CPT": ["@copr", "praiskup", "frostyx"], "Packit": ["ttomecek"]}
+    USAGE_TREEMAP_TEAMS : dict[str, list] = {}
+
 
 class ProductionConfig(Config):
     DEBUG = False

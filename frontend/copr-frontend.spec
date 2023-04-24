@@ -117,6 +117,7 @@ BuildRequires: python3-wtforms >= 2.2.1
 BuildRequires: python3-ldap
 BuildRequires: python3-yaml
 BuildRequires: python3-backoff >= 1.9.0
+BuildRequires: python3-pygal
 BuildRequires: redis
 BuildRequires: modulemd-tools >= 0.6
 %endif
@@ -174,6 +175,7 @@ Requires: python3-wtforms >= 2.2.1
 Requires: python3-zmq
 Requires: python3-ldap
 Requires: python3-backoff >= 1.9.0
+Requires: python3-pygal
 Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
 Requires: js-jquery-ui
