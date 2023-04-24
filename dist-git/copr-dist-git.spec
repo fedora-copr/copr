@@ -19,7 +19,7 @@ BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-munch
 BuildRequires: python3-requests
-BuildRequires: python3-rpkg
+BuildRequires: python3-rpkg >= 1.66-6
 BuildRequires: python3-pytest
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-oslo-concurrency
@@ -34,7 +34,7 @@ Requires: /usr/bin/crudini
 Requires: dist-git
 Requires: python3-copr-common >= %copr_common_version
 Requires: python3-requests
-Requires: python3-rpkg >= 1.63-5
+Requires: python3-rpkg >= 1.66-6
 Requires: python3-munch
 Requires: python3-oslo-concurrency
 Requires: python3-setproctitle

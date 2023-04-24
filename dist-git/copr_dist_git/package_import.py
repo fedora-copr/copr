@@ -158,7 +158,8 @@ def _load_commands(opts, repo_name, repo_dir):
                         anongiturl="",
                         branchre="",
                         kojiprofile="",
-                        build_client="")
+                        build_client="",
+                        allow_pre_generated_srpm=True)
 
     # rpkg gets module_name as a basename of git url
     # we use module_name as "username/projectname/package_name"
