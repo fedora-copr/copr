@@ -535,8 +535,8 @@ a. you do not have the right to upload or use, such as Material that
 
 b. is governed in whole or in part by a license not contained in the
    list of acceptable licenses for Fedora, currently located at
-   https://fedoraproject.org/wiki/Licensing, as that list may be
-   revised from time to time by the Fedora Council;
+   https://docs.fedoraproject.org/en-US/legal/allowed-licenses,
+   as that list may be revised from time to time by the Fedora Council;
 
 c. is categorized as a "Forbidden Item" at
    https://fedoraproject.org/wiki/Forbidden_items,
