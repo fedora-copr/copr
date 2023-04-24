@@ -148,6 +148,30 @@ def cleanup_repo(repo_path):
             ['git', 'rm', '-r'] + to_remove)
 
 
+def _load_commands(opts, repo_name, repo_dir):
+    # use rpkg lib to import the source rpm
+    commands = Commands(path=repo_dir,
+                        lookaside="",
+                        lookasidehash="md5",
+                        lookaside_cgi="",
+                        gitbaseurl=opts.git_base_url,
+                        anongiturl="",
+                        branchre="",
+                        kojiprofile="",
+                        build_client="")
+
+    # rpkg gets module_name as a basename of git url
+    # we use module_name as "username/projectname/package_name"
+    # basename is not working here - so I'm setting it manually
+    commands.repo_name = repo_name
+
+    # rpkg calls upload.cgi script on the dist git server
+    # here, I just copy the source files manually with custom function
+    # I also add one parameter "repo_dir" to that function with this hack
+    commands.lookasidecache.upload = types.MethodType(my_upload_fabric(opts), repo_dir)
+    return commands
+
+
 def import_package(opts, namespace, branches, srpm_path, pkg_name):
     """
     Import package into a DistGit repo for the given branches.
@@ -167,26 +191,7 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
     repo_dir = tempfile.mkdtemp()
     log.debug("repo_dir: {}".format(repo_dir))
 
-    # use rpkg lib to import the source rpm
-    commands = Commands(path=repo_dir,
-                        lookaside="",
-                        lookasidehash="md5",
-                        lookaside_cgi="",
-                        gitbaseurl=opts.git_base_url,
-                        anongiturl="",
-                        branchre="",
-                        kojiprofile="",
-                        build_client="")
-
-    # rpkg gets module_name as a basename of git url
-    # we use module_name as "username/projectname/package_name"
-    # basename is not working here - so I'm setting it manually
-    commands.repo_name = reponame
-
-    # rpkg calls upload.cgi script on the dist git server
-    # here, I just copy the source files manually with custom function
-    # I also add one parameter "repo_dir" to that function with this hack
-    commands.lookasidecache.upload = types.MethodType(my_upload_fabric(opts), repo_dir)
+    commands = _load_commands(opts, reponame, repo_dir)
 
     try:
         log.debug("clone the pkg repository into repo_dir directory")
@@ -218,6 +223,15 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
         try:
             if not branch_commits:
                 upload_files = commands.import_srpm(srpm_path)
+                # in case of importing, the content of directory in `reponame`
+                # changes. To update the state of `Commands` class isn't an easy
+                # process - look how much logic pyrpkg.cli.cliClient.load_cmd has
+                # and the logic is written for context in cliClient, not for Commands
+                # which we are using. Considering this wouldn't be an easy task for
+                # pyrpkg to implement, we can refresh the Commands class after every
+                # import - even if it is not elegant
+                # note: if https://pagure.io/rpkg/issue/690 is resolved, you may delete this
+                commands = _load_commands(opts, reponame, repo_dir)
                 if upload_files:
                     commands.upload(upload_files, replace=True)
                 try:
