@@ -49,6 +49,23 @@ rlJournalStart
         rlRun "copr-cli build --nowait ${NAME_PREFIX}NonExisting $HERE/files/vera.spec &> $OUTPUT" 1
         rlAssertEquals "" `grep -r 'does not exist' $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
+
+        # Or a non-existing CoprDir
+        OUTPUT=`mktemp`
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec:foo $HERE/files/vera.spec &> $OUTPUT" 1
+        rlAssertEquals "" `grep -r "doesn't exist" $OUTPUT |wc -l` 1
+        rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
+
+        # Or a non-existing chroot
+        OUTPUT=`mktemp`
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec --chroot foo $HERE/files/vera.spec &> $OUTPUT" 1
+        rlAssertEquals "" `grep -r 'not a valid choice' $OUTPUT |wc -l` 1
+        rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
+
+        # TODO Check that we don't upload if we don't have permissions for the
+        # project. It's hard to do so because we run beaker tests under admin
+        # users (some other tests require it).
+
     rlPhaseEnd
 
     rlPhaseStartCleanup

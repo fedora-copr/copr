@@ -308,26 +308,19 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
 
-        # Before we start uploading potentially large source RPM file, make sure
-        # that the user actually has a valid credentials.
-        self.client.base_proxy.auth_check()
-
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
+        buildopts = buildopts_from_args(args)
 
         # Before we start uploading potentially large source RPM file, make sure
-        # that the user can actually build in the project
-        can_build = self.client.project_proxy.can_build_in(
-            self.username, username, projectname)
-        if not can_build:
-            msg = ("User '{0}' is not allowed to build in '{1}/{2}'"
-                   .format(self.username, username, projectname))
-            raise CoprRequestException(msg)
+        # that the user has valid credentials and can build in the project.
+        self.client.build_proxy.check_before_build(
+            username, projectname, project_dirname, buildopts)
 
         builds = []
         for pkg in args.pkgs:
             if os.path.exists(pkg):
                 progress_callback = get_progress_callback(os.path.getsize(pkg))
-                buildopts = buildopts_from_args(args, progress_callback)
+                buildopts["progress_callback"] = progress_callback
                 data = {"path": pkg}
                 print('Uploading package {0}'.format(pkg))
                 try:
@@ -341,7 +334,6 @@ class Commands(object):
             elif not urlparse(pkg).scheme:
                 raise CoprException("File {0} not found".format(pkg))
             else:
-                buildopts = buildopts_from_args(args)
                 data = {"url": pkg}
                 builds.append(self.client.build_proxy.create_from_url(
                     ownername=username, projectname=projectname,
