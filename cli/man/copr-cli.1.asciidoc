@@ -515,6 +515,61 @@ usage: copr edit-package-rubygems [-h] [--gem GEM] --name PKGNAME
 Edit source definition and type of an existing package. Options are shared with add-package-rubygems.
 
 
+`copr-cli add-package-custom [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr add-package-custom [-h] --script SCRIPT
+                               [--script-chroot SCRIPT_CHROOT]
+                               [--script-builddeps SCRIPT_BUILDDEPS]
+                               [--script-resultdir SCRIPT_RESULTDIR]
+                               [--script-repos SCRIPT_REPOS]
+                               --name PKGNAME
+                               [--webhook-rebuild {on,off}]
+                               [--max-builds MAX_BUILDS]
+                               project
+
+Add package of 'Custom' source type.
+
+--script SCRIPT::
+Text file (script) to be used to prepare the sources
+
+--script-chroot SCRIPT_CHROOT::
+Mock chroot to build sources for the SRPM in
+
+--script-builddeps SCRIPT_BUILDDEPS::
+Space separated list of packages needed to build the sources
+
+--script-resultdir SCRIPT_RESULTDIR::
+Where SCRIPT generates the result, relatively to script's $PWD (defaults to '.')
+
+--script-repos SCRIPT_REPOS::
+Space separated string of additional repo urls for script dependencies
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding.
+
+--max-builds MAX_BUILDS::
+Keep only the specified number of the newest-by-id builds
+(garbage collector is run daily), zero disables (default)
+
+
+`copr-cli edit-package-custom [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr edit-package-custom [-h]
+                                --script SCRIPT [--script-chroot SCRIPT_CHROOT]
+                                [--script-builddeps SCRIPT_BUILDDEPS]
+                                [--script-resultdir SCRIPT_RESULTDIR]
+                                [--script-repos SCRIPT_REPOS]
+                                --name PKGNAME [--webhook-rebuild {on,off}]
+                                [--max-builds MAX_BUILDS]
+                                project
+
+Edit source definition and type of an existing package.
+Options are shared with add-package-custom.
+
+
 `copr-cli list-packages [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr list-packages [-h] [--with-latest-build]
