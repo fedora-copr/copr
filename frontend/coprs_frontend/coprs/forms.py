@@ -1329,6 +1329,14 @@ def _get_build_form(active_chroots, form, package=None):
     return F
 
 
+class BuildFormCheckFactory:
+    """
+    For checking before SRPM upload
+    """
+    def __new__(cls, active_chroots, package=None):
+        return _get_build_form(active_chroots, BaseForm, package)
+
+
 class BuildFormScmFactory(object):
     def __new__(cls, active_chroots, package=None):
         return _get_build_form(active_chroots, PackageFormScm, package)

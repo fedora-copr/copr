@@ -149,6 +149,37 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
+    def check_before_build(self, ownername, projectname,
+                           project_dirname=None, buildopts=None):
+        """
+        Check if a build can be submitted (if the project exists, you have
+        permissions, the chroot exists, etc). This is useful before trying to
+        upload a large SRPM and failing to do so.
+
+        :param str ownername:
+        :param str projectname:
+        :param str project_dirname:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :return: Munch
+        """
+        endpoint = "/build/check-before-build"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "project_dirname": project_dirname,
+        }
+
+        del buildopts["progress_callback"]
+        data.update(buildopts or {})
+
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            data=data,
+            auth=self.auth,
+        )
+        return munchify(response)
+
     def create_from_scm(self, ownername, projectname, clone_url, committish="", subdirectory="", spec="",
                         scm_type="git", source_build_method="rpkg", buildopts=None, project_dirname=None):
         """

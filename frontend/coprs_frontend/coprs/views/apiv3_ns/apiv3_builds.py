@@ -12,6 +12,7 @@ from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.coprs_logic import CoprDirsLogic
 
 from . import (
     get_copr,
@@ -187,6 +188,39 @@ def create_from_upload():
             **options,
         )
     return process_creating_new_build(copr, form, create_new_build)
+
+
+@apiv3_ns.route("/build/check-before-build", methods=POST)
+@api_login_required
+def check_before_build():
+    """
+    Check if a build can be submitted (if the project exists, you have
+    permissions, the chroot exists, etc). This is useful before trying to
+    upload a large SRPM and failing to do so.
+    """
+    data = get_form_compatible_data(preserve=["chroots", "exclude_chroots"])
+
+    # Raises an exception if project doesn't exist
+    copr = get_copr()
+
+    # Raises an exception if CoprDir doesn't exist
+    if data["project_dirname"]:
+        CoprDirsLogic.get_by_copr(copr, data["project_dirname"])
+
+    # Permissions check
+    if not flask.g.user.can_build_in(copr):
+        msg = ("User '{0}' is not allowed to build in '{1}'"
+               .format(flask.g.user.name, copr.full_name))
+        raise AccessRestricted(msg)
+
+    # Validation, i.e. check if chroot names are valid
+    # pylint: disable=not-callable
+    factory = forms.BuildFormCheckFactory(copr.active_chroots)
+    form = factory(data, meta={'csrf': False})
+    if not form.validate_on_submit():
+        raise BadRequest("Bad request parameters: {0}".format(form.errors))
+
+    return {"message": "It should be safe to submit a build like this"}
 
 
 @apiv3_ns.route("/build/create/scm", methods=POST)

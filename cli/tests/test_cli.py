@@ -579,14 +579,12 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
 def test_create_build_no_wait_ok(watch_builds, config_from_file,
-                                 create_from_url, auth_check, _can_build_in, capsys):
+                                 create_from_url, _check_before_build, capsys):
     create_from_url.return_value = Munch(projectname="foo", id=123)
 
     main.main(argv=[
@@ -600,14 +598,12 @@ def test_create_build_no_wait_ok(watch_builds, config_from_file,
     assert not watch_builds.called
 
 
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
 def test_create_build_no_wait_error(watch_builds, config_from_file,
-                                    create_from_url, autch_check, _can_build_in,
+                                    create_from_url, _check_before_build,
                                     capsys):
     response_message = "foobar"
     create_from_url.side_effect = copr.v3.CoprRequestException(response_message)
@@ -624,15 +620,13 @@ def test_create_build_no_wait_error(watch_builds, config_from_file,
 
 
 @mock.patch('copr_cli.main.time')
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_build_wait_succeeded_no_sleep(config_from_file, build_proxy_get,
-                                              create_from_url, auth_check,
-                                              _can_build_in, mock_time, capsys):
+                                              create_from_url, _check_before_build,
+                                              mock_time, capsys):
     create_from_url.return_value = Munch(projectname="foo", id=123)
     build_proxy_get.return_value = Munch(state="succeeded")
     main.main(argv=[
@@ -646,15 +640,13 @@ def test_create_build_wait_succeeded_no_sleep(config_from_file, build_proxy_get,
     assert not mock_time.sleep.called
 
 
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_build_wait_error_status(config_from_file, build_proxy_get,
-                                        create_from_url, auth_check,
-                                        _can_build_in, capsys):
+                                        create_from_url, _check_before_build,
+                                        capsys):
     create_from_url.return_value = Munch(projectname="foo", id=123)
     build_proxy_get.side_effect = copr.v3.CoprRequestException()
     with pytest.raises(SystemExit) as err:
@@ -669,15 +661,13 @@ def test_create_build_wait_error_status(config_from_file, build_proxy_get,
     assert "Watching build" in stdout
 
 
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_build_wait_unknown_build_status(config_from_file, build_proxy_get,
-                                                create_from_url, auth_check,
-                                                _can_build_in, capsys):
+                                                create_from_url, _check_before_build,
+                                                capsys):
     create_from_url.return_value = Munch(projectname="foo", id=123)
     build_proxy_get.return_value = Munch(state="unknown")
     with pytest.raises(SystemExit) as err:
@@ -692,15 +682,13 @@ def test_create_build_wait_unknown_build_status(config_from_file, build_proxy_ge
     assert "Watching build" in stdout
 
 
-@mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-            return_value=True)
-@mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 def test_create_build_wait_keyboard_interrupt(config_from_file, build_proxy_get,
-                                              create_from_url, autch_check,
-                                              _can_build_in, capsys):
+                                              create_from_url, _check_before_build,
+                                              capsys):
     create_from_url.return_value = Munch(projectname="foo", id=123)
     build_proxy_get.side_effect = KeyboardInterrupt
 
@@ -718,14 +706,13 @@ def test_create_build_wait_keyboard_interrupt(config_from_file, build_proxy_get,
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 class TestCreateBuild(object):
 
-    @mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-                return_value=True)
-    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+    @mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
     @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
     @mock.patch('copr.v3.proxies.build.BuildProxy.get')
     def test_create_build_wait_succeeded_complex(self, build_proxy_get,
-                                                 create_from_url, auth_check,
-                                                 _can_build_in, config_from_file,
+                                                 create_from_url,
+                                                 _check_before_build,
+                                                 config_from_file,
                                                  mock_time, capsys):
         create_from_url.return_value = Munch(projectname="foo", id=1)
         self.stage = 0
@@ -759,14 +746,12 @@ class TestCreateBuild(object):
         assert "Watching build" in stdout
         assert len(mock_time.sleep.call_args_list) == 3
 
-    @mock.patch('copr.v3.proxies.project.ProjectProxy.can_build_in',
-                return_value=True)
-    @mock.patch('copr.v3.proxies.BaseProxy.auth_check', return_value=Munch(name="test"))
+    @mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
     @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_url')
     @mock.patch('copr.v3.proxies.build.BuildProxy.get')
     def test_create_build_wait_failed_complex(self, build_proxy_get,
-                                              create_from_url, auth_check,
-                                              _can_build_in, config_from_file,
+                                              create_from_url, _check_before_build,
+                                              config_from_file,
                                               mock_time, capsys):
         create_from_url.return_value = Munch(projectname="foo", id=1)
         self.stage = 0
