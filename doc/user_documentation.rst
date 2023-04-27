@@ -144,6 +144,28 @@ It's even easier for a Fedora Rawhide package::
 because 'fedora' distgit is the default, and we automatically pick the default
 branch.
 
+.. note::
+    Please note that an SRPM is downloaded from the specified DistGit instance
+    only once per Copr build, regardless of the number of chroots you
+    build for.
+
+    It **is not** the case that within one Copr build, e.g.
+    ``fedora-37-x86_64`` chroot would be built from the ``f37``
+    branch, ``fedora-38-x86_64`` from the ``f38`` branch, and
+    ``fedora-39-x86_64`` from the ``rawhide`` branch. You can,
+    however, use the **Committish** field to specify what DistGit
+    branch should be used (by default, it is ``rawhide`` for
+    `Fedora DistGit <https://src.fedoraproject.org/>`_).
+
+    The sources from your DistGit branch (e.g. ``rawhide``) can be
+    incompatible with some of the target chroots (e.g. ``epel-8-x86_64``)
+    because of different dependencies, build tooling, etc. A typical
+    workaround is to submit multiple builds, e.g.::
+
+      copr build-distgit ping --name <package> --chroot fedora-rawhide-x86_64 --commit rawhide
+      copr build-distgit ping --name <package> --chroot epel-8-x86_64 --commit epel8
+
+
 PyPI
 ^^^^
 
