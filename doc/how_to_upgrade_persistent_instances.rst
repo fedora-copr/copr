@@ -149,6 +149,15 @@ the cheapest available instance type according to our needs.
 Click ``Launch instance`` in the right panel.
 
 
+Add names for the root volumes
+------------------------------
+
+Once the instance is created, go to its details, switch to the
+``Storage`` tab, and go through all attached volumes. Set the ``Name``
+tag for each of them. Use the name of the instance as a prefix, e.g.
+``copr-keygen-dev-root``, ``copr-frontend-prod-root``, etc.
+
+
 Backup the current letsencrypt certificates
 -------------------------------------------
 
