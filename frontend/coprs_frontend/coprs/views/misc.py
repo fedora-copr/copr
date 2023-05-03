@@ -77,7 +77,7 @@ def workaround_ipsilon_email_login_bug_handler(f):
     return _the_handler
 
 
-@misc.route("/login/", methods=["GET"])
+@misc.route("/login/", methods=["GET", "POST"])
 @workaround_ipsilon_email_login_bug_handler
 @oid.loginhandler
 def oid_login():
