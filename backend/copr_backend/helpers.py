@@ -606,11 +606,21 @@ def get_backend_opts():
 
 
 def ensure_dir_exists(path, log):
-    if not os.path.isdir(path):
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            log.exception(str(e))
+    """
+    Create the directory if it doesn't exist yet.  But still "raise" if it can
+    not be created.
+    """
+    try:
+        os.makedirs(path)
+        log.info("Directory %s created", path)
+    except FileExistsError:
+        if os.path.isdir(path):
+            return
+        log.exception("File %s exists but not a directory", path)
+        raise
+    except:
+        log.exception("Can't create %s directory", path)
+        raise
 
 
 def get_chroot_arch(chroot):

@@ -169,9 +169,8 @@ class Fork(Action, GPGMixin):
             return result
 
         try:
+            ensure_dir_exists(new_path, self.log)
             pubkey_path = os.path.join(new_path, "pubkey.gpg")
-            if not os.path.exists(new_path):
-                os.makedirs(new_path)
 
             if sign:
                 # Generate brand new gpg key.
@@ -198,8 +197,7 @@ class Fork(Action, GPGMixin):
                     src_path = os.path.join(old_chroot_path, src_dir)
                     dst_path = os.path.join(new_chroot_path, dst_dir)
 
-                    if not os.path.exists(dst_path):
-                        os.makedirs(dst_path)
+                    ensure_dir_exists(dst_path, self.log)
 
                     try:
                         copy_tree(src_path, dst_path)
