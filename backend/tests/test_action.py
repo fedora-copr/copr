@@ -133,12 +133,14 @@ class TestAction(object):
 
         self.dummy = str(test_action)
 
+    @mock.patch("copr_backend.actions.os.makedirs")
     @mock.patch("copr_backend.actions.copy_tree")
     @mock.patch("copr_backend.actions.os.path.exists")
     @mock.patch("copr_backend.actions.unsign_rpms_in_dir")
     @mock.patch("copr_backend.helpers.subprocess.Popen")
     def test_action_handle_forks(self, mc_popen, mc_unsign_rpms_in_dir,
-                                 mc_exists, mc_copy_tree, mc_time):
+                                 mc_exists, mc_copy_tree, _mc_os_makedirs,
+                                 mc_time):
         mc_popen.return_value.communicate.return_value = ("", "")
         mc_time.time.return_value = self.test_time
         mc_exists = True
