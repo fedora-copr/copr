@@ -176,7 +176,8 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
                         anongiturl="",
                         branchre="",
                         kojiprofile="",
-                        build_client="")
+                        build_client="",
+                        allow_pre_generated_srpm=True)
 
     # rpkg gets module_name as a basename of git url
     # we use module_name as "username/projectname/package_name"

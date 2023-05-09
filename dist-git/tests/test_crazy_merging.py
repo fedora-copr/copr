@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import tempfile
-from unittest import mock, skip
+from unittest import mock
 import pytest
 import shutil
 import time
@@ -229,7 +229,6 @@ class TestMerging(object):
         assert v3_hash_a != v1_hash
         assert v3_hash_b != v1_hash
 
-    @skip("Remove the skip once python-rpkg resolves issue #677")
     def test_no_op_1(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
