@@ -6,7 +6,6 @@ import pytest
 import shutil
 import time
 import os
-import logging
 
 from munch import Munch
 from subprocess import check_output
@@ -189,7 +188,6 @@ class TestMerging(object):
     def setup_method(self, method):
         srpm_cache = {}
 
-    @skip("Remove the skip once python-rpkg is repared (correct version is 1.65)")
     def test_merged_everything(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
@@ -209,7 +207,6 @@ class TestMerging(object):
         assert v3_hash != v1_hash
         assert v3_hash != v2_hash
 
-    @skip("Remove the skip once python-rpkg is repared (correct version is 1.65)")
     def test_diverge_middle_branches(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
