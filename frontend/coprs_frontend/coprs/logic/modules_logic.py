@@ -157,17 +157,27 @@ class ModuleBuildFacade(object):
         """
 
         # Just to be sure, that all chroot abbreviations from platform are in expected format, e.g. f28 or -f30
-        for abbrev in self.platform:
-            if not (abbrev.startswith(("f", "-f")) and abbrev.lstrip("-f").isnumeric()):
-                raise ValidationError("Unexpected platform '{}', it should be e.g. f28 or -f30".format(abbrev))
+        self._validate_platform()
 
         chroot_archs = {}
         for chroot in self.copr.active_chroots:
             chroot_archs.setdefault(chroot.name_release, []).append(chroot.arch)
 
         def abbrev2chroots(abbrev):
-            name_release = abbrev.replace("-", "").replace("f", "fedora-")
-            return ["{}-{}".format(name_release, arch) for arch in chroot_archs.get(name_release, [])]
+            abbrev = abbrev.replace("-", "")
+            if abbrev.startswith("f"):
+                name_releases = [abbrev.replace("f", "fedora-")]
+            elif abbrev.startswith("el"):
+                name_releases = [
+                    abbrev.replace("el", "epel-"),
+                    abbrev.replace("el", "rhel-"),
+                ]
+
+            result = []
+            for name_release in name_releases:
+                for arch in chroot_archs.get(name_release, []):
+                    result.append("{}-{}".format(name_release, arch))
+            return result
 
         exclude_chroots = set()
         select_chroots = set()
@@ -184,6 +194,20 @@ class ModuleBuildFacade(object):
             chroots &= select_chroots
         return chroots
 
+    def _validate_platform(self):
+        for abbrev in self.platform:
+            valid = False
+            for prefix in ["f", "el"]:
+                if not abbrev.startswith((prefix, "-{0}".format(prefix))):
+                    continue
+                if not abbrev.lstrip("-{0}".format(prefix)).isnumeric():
+                    continue
+                valid = True
+
+            if not valid:
+                msg = ("Unexpected platform '{}', it should be e.g. f28 or -f30"
+                       .format(abbrev))
+                raise ValidationError(msg)
 
     def add_builds(self, rpms, module):
         blocked_by_id = None
