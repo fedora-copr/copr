@@ -169,6 +169,8 @@ class Config(object):
     # e.g. {"CPT": ["@copr", "praiskup", "frostyx"], "Packit": ["ttomecek"]}
     USAGE_TREEMAP_TEAMS : dict[str, list] = {}
 
+    # OIDC is opt-in
+    OIDC_LOGIN = False
 
 class ProductionConfig(Config):
     DEBUG = False
