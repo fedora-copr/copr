@@ -16,8 +16,9 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-from coprs.auth import FedoraAccounts, UserAuth
-
+from coprs.auth import FedoraAccounts, UserAuth, OpenIDConnect
+from coprs.oidc import oidc_enabled
+from coprs import oidc
 
 @app.before_request
 def before_request():
@@ -89,6 +90,35 @@ def oid_login():
     return FedoraAccounts.login()
 
 
+@misc.route("/oidc_login/")
+def oidc_login():
+    """
+    Entry-point for OpenID connect login
+    """
+    if not oidc_enabled(app.config):
+        flask.flash("OpenID Connect is disabled")
+        return flask.redirect("/")
+    redirect_uri = flask.url_for('misc.oidc_auth', _external=True)
+    return oidc.copr.authorize_redirect(redirect_uri)
+
+
+@misc.route("/oidc_auth/")
+def oidc_auth():
+    """
+    Redirect uri for oidc login
+    This uri should be configured in OpenID Connect provider's whitelist
+    """
+    # fetch id_token and userinfo
+    if not oidc_enabled(app.config):
+        flask.flash("OpenID Connect is disabled")
+        return flask.redirect("/")
+    oidc.copr.authorize_access_token()
+    userinfo = oidc.copr.userinfo()
+    user = OpenIDConnect.user_from_userinfo(userinfo)
+    flask.session["oidc"] = userinfo['username']
+    return do_create_or_login(user)
+
+
 @oid.after_login
 def create_or_login(resp):
     flask.session["openid"] = resp.identity_url
@@ -99,6 +129,13 @@ def create_or_login(resp):
         return flask.redirect(oid.get_next_url())
 
     user = UserAuth.user_object(oid_resp=resp)
+    return do_create_or_login(user)
+
+
+def do_create_or_login(user):
+    """
+    A helper to make a user create and login via third party login method
+    """
     db.session.add(user)
     db.session.commit()
     flask.flash(u"Welcome, {0}".format(user.name), "success")

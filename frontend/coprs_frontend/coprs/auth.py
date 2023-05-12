@@ -31,6 +31,7 @@ class UserAuth:
 
         FedoraAccounts.logout()
         Kerberos.logout()
+        OpenIDConnect.logout()
 
         flask.flash("You were signed out")
         return flask.redirect(oid.get_next_url())
@@ -40,7 +41,8 @@ class UserAuth:
         """
         Is a user logged-in? Return their username
         """
-        return FedoraAccounts.username() or Kerberos.username()
+        return FedoraAccounts.username() or Kerberos.username() \
+                or OpenIDConnect.username()
 
     @staticmethod
     def user_object(oid_resp=None, username=None):
@@ -70,7 +72,7 @@ class UserAuth:
         raise CoprHttpException("No auth method available")
 
     @staticmethod
-    def get_or_create_user(username):
+    def get_or_create_user(username, email=None, timezone=None):
         """
         Get the user from DB, or create a new one without any additional
         metadata if it doesn't exist.
@@ -80,7 +82,7 @@ class UserAuth:
             return user
         app.logger.info("Login for user '%s', "
                         "creating a database record", username)
-        return UsersLogic.create_user_wrapper(username)
+        return UsersLogic.create_user_wrapper(username, email, timezone)
 
 
 class GroupAuth:
@@ -366,3 +368,38 @@ class LDAP:
         filters = filters or {"objectclass": "*"}
         ffilter = ["({0}={1})".format(k, v) for k, v in filters.items()]
         return "(&{0})".format("".join(ffilter))
+
+
+class OpenIDConnect:
+    """
+    Authentication via OpenID Connect
+    """
+    @staticmethod
+    def username():
+        """
+        Is a user logged-in? Return their username
+        """
+        if "oidc" in flask.session:
+            return flask.session["oidc"]
+        return None
+
+    @staticmethod
+    def logout():
+        """
+        Log out the current user
+        """
+        flask.session.pop("oidc", None)
+
+    @staticmethod
+    def user_from_userinfo(userinfo):
+        """
+        Create a `models.User` object from oidc user info
+        """
+        if not userinfo:
+            return None
+
+        zoneinfo = userinfo['zoneinfo'] if 'zoneinfo' in userinfo \
+            and userinfo['zoneinfo'] else None
+
+        user = UserAuth.get_or_create_user(userinfo['username'], userinfo['email'], zoneinfo)
+        return user

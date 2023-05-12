@@ -30,6 +30,7 @@ RUN set -ex ; \
                    findutils \
                    copr-frontend \
                    modulemd-tools \
+                   python3-authlib \
     && dnf clean all
 
 COPY files/ /

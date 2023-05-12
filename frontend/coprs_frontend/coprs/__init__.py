@@ -119,6 +119,10 @@ app.config["RESTX_INCLUDE_ALL_MODELS"] = True
 app.config["ERROR_INCLUDE_MESSAGE"] = False
 
 
+from coprs.oidc import init_oidc_app
+
+oidc = init_oidc_app(app)
+
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general
 from coprs.views import api_ns
