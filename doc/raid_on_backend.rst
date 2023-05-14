@@ -40,7 +40,7 @@ Attaching volume
 2. start raid and volume group ``mdadm --assemble --scan``.  In case the
    ``--assemble --scan`` doesn't reconstruct the array, it is OK to add the
    volumes manually ``mdadm /dev/md127 --add /dev/nvme2n1p1``.
-3. mount the ``/dev/disk/by-label/copr-data`` volume
+3. mount the ``/dev/disk/by-label/copr-repo`` volume
 
 There's a `ansible configuration`_ for this, and `list of volumes`_.
 
