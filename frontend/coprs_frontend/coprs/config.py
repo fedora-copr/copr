@@ -13,6 +13,9 @@ class Config(object):
     BACKEND_BASE_URL = "http://copr-be-dev.cloud.fedoraproject.org"
     BACKEND_STATS_URI = None
 
+    # Full URL to Resalloc WebUI
+    RESALLOC_URL = BACKEND_BASE_URL + "/resalloc"
+
     KRB5_LOGIN = {}
     KRB5_USER_DENYLIST_PATTERNS = None
 

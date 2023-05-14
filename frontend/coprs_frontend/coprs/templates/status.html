@@ -35,6 +35,13 @@
   <li class="{% block stats_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.stats') }}">Statistics</a>
   </li>
+
+  {% if config.RESALLOC_URL %}
+  <li>
+      <a href="{{ config.RESALLOC_URL }}">Resources</a>
+  </li>
+  {% endif %}
+
 </ul>
 
 {% block status_body %}
