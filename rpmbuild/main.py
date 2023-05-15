@@ -3,6 +3,7 @@
 import re
 import os
 import fcntl
+import subprocess
 import sys
 import argparse
 import json
@@ -22,7 +23,7 @@ from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.automation import run_automation_tools
 from copr_rpmbuild.helpers import read_config, \
-     parse_copr_name, dump_live_log, copr_chroot_to_task_id, macros_for_task
+    parse_copr_name, dump_live_log, copr_chroot_to_task_id, macros_for_task, locate_srpm
 from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
@@ -224,6 +225,9 @@ def build_srpm(args, config):
     resultdir = config.get("main", "resultdir")
     log.info("Output: {0}".format(
         os.listdir(resultdir)))
+
+    # extract spec file from SRPM
+    subprocess.run(f"rpm2archive -n < {locate_srpm(resultdir)} | tar xf - '*.spec'", shell=True, check=False)
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")

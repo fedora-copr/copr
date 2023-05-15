@@ -18,7 +18,6 @@ import munch
 from six.moves.urllib.parse import urlparse
 from copr_common.enums import BuildSourceEnum
 
-
 log = logging.getLogger("__main__")
 
 CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
