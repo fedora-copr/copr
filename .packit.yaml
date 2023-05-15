@@ -1,0 +1,214 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+upstream_project_url: https://github.com/fedora-copr/copr.git
+
+packages:
+
+  python-copr:
+    downstream_package_name: python-copr
+    upstream_package_name: copr
+    paths:
+      - ./python
+    specfile_path: python-copr.spec
+    files_to_sync:
+      - python-copr.spec
+    upstream_tag_template: python-copr-{version}
+
+  python-copr-common:
+    downstream_package_name: python-copr-common
+    upstream_package_name: copr-common
+    paths:
+      - ./common
+    specfile_path: python-copr-common.spec
+    files_to_sync:
+      - python-copr-common.spec
+    upstream_tag_template: python-copr-common-{version}
+
+  copr-backend:
+    downstream_package_name: copr-backend
+    upstream_package_name: copr-backend
+    paths:
+      - ./backend
+    specfile_path: copr-backend.spec
+    files_to_sync:
+      - copr-backend.spec
+    upstream_tag_template: copr-backend-{version}
+
+  copr-dist-git:
+    downstream_package_name: copr-dist-git
+    upstream_package_name: copr-dist-git
+    paths:
+      - ./dist-git
+    specfile_path: copr-dist-git.spec
+    files_to_sync:
+      - copr-dist-git.spec
+    upstream_tag_template: copr-dist-git-{version}
+
+  copr-keygen:
+    downstream_package_name: copr-keygen
+    upstream_package_name: copr-keygen
+    paths:
+      - ./keygen
+    specfile_path: copr-keygen.spec
+    files_to_sync:
+      - copr-keygen.spec
+    upstream_tag_template: copr-keygen-{version}
+
+  copr-messaging:
+    downstream_package_name: copr-messaging
+    upstream_package_name: copr-messaging
+    paths:
+      - ./messaging
+    specfile_path: copr-messaging.spec
+    files_to_sync:
+      - copr-messaging.spec
+    upstream_tag_template: copr-messaging-{version}
+
+  copr-rpmbuild:
+    downstream_package_name: copr-rpmbuild
+    upstream_package_name: copr-rpmbuild
+    paths:
+      - ./rpmbuild
+    specfile_path: copr-rpmbuild.spec
+    files_to_sync:
+      - copr-rpmbuild.spec
+    upstream_tag_template: copr-rpmbuild-{version}
+    actions:
+      post-upstream-clone:
+        - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
+
+  copr-selinux:
+    downstream_package_name: copr-selinux
+    upstream_package_name: copr-selinux
+    paths:
+      - ./selinux
+    specfile_path: copr-selinux.spec
+    files_to_sync:
+      - copr-selinux.spec
+    upstream_tag_template: copr-selinux-{version}
+
+  copr-cli:
+    downstream_package_name: copr-cli
+    upstream_package_name: copr-cli
+    paths:
+      - ./cli
+    specfile_path: copr-cli.spec
+    files_to_sync:
+      - copr-cli.spec
+    upstream_tag_template: copr-cli-{version}
+    actions:
+      post-upstream-clone:
+        - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
+
+  copr-frontend:
+    downstream_package_name: copr-frontend
+    upstream_package_name: copr-frontend
+    paths:
+      - ./frontend
+    specfile_path: copr-frontend.spec
+    files_to_sync:
+      - copr-frontend.spec
+    upstream_tag_template: copr-frontend-{version}
+    actions:
+      post-upstream-clone:
+        - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
+
+
+srpm_build_deps:
+  # The wait-for-copr tool is used to resolve waiting for dependent builds.
+  # (Comes from the packit/packit-stable Copr project that is already enabled in the environment.)
+  - wait-for-copr
+
+merge_pr_in_ci: False
+
+
+jobs:
+
+  # Pull request builds
+
+  - job: copr_build
+    packages:
+      - copr-backend
+      - copr-keygen
+      - copr-messaging
+      - copr-dist-git
+      - copr-frontend
+    trigger: pull_request
+    targets:
+      - fedora-all-x86_64
+    manual_trigger: True # needs to be triggered by the `/packit build` comment
+
+  - job: copr_build
+    packages:
+      - copr-selinux
+      - python-copr
+      - python-copr-common
+      - copr-cli
+    trigger: pull_request
+    targets:
+      - fedora-all-x86_64
+      - fedora-all-aarch64
+      - fedora-all-ppc64le
+      - epel-all-x86_64
+    manual_trigger: True # needs to be triggered by the `/packit build` comment
+
+  - job: copr_build
+    packages:
+      - copr-rpmbuild
+    trigger: pull_request
+    targets:
+      - fedora-all-x86_64
+      - fedora-all-aarch64
+      - fedora-all-ppc64le
+      - epel-9-x86_64
+      - epel-8-x86_64
+    manual_trigger: True # needs to be triggered by the `/packit build` comment
+
+  # Main commit builds:
+
+  - job: copr_build
+    packages:
+      - copr-backend
+      - copr-keygen
+      - copr-messaging
+      - copr-dist-git
+      - copr-frontend
+    trigger: commit
+    branch: main
+    targets:
+      - fedora-all-x86_64
+    owner: packit
+    project: copr
+    preserve_project: True
+
+  - job: copr_build
+    packages:
+      - copr-selinux
+      - python-copr
+      - python-copr-common
+      - copr-cli
+    trigger: commit
+    branch: main
+    targets:
+      - fedora-all-x86_64
+      - fedora-all-aarch64
+      - fedora-all-ppc64le
+      - epel-all-x86_64
+    owner: packit
+    project: copr
+    preserve_project: True
+
+  - job: copr_build
+    packages:
+      - copr-rpmbuild
+    trigger: commit
+    branch: main
+    targets:
+      - fedora-all-x86_64
+      - fedora-all-aarch64
+      - fedora-all-ppc64le
+      - epel-9-x86_64
+      - epel-8-x86_64
+    owner: packit
+    project: copr
+    preserve_project: True
