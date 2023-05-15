@@ -147,43 +147,39 @@ class Commands(object):
     @property
     def username(self):
         """
-        Get the username from config, or obtain it via auth_check (transitively
-        via GSSAPI).
+        Get the username from user's config, or obtain it via auth_check
+        (transitively via GSSAPI).
         """
         if self.config.get("username"):
             return self.config["username"]
 
         if self.config.get("gssapi"):
-            try:
-                return self.client.base_proxy.auth_username()
-            except CoprAuthException:
-                log.error("Failed to determine Copr username from authentication.")
-                raise
+            return self.client.base_proxy.auth_username()
         raise CoprConfigException(
             "This operation tries to detect your username, but it is not "
             "possible to find it in configuration, and GSSAPI is disabled "
         )
 
-    @property
-    def ownername(self):
-        """
-        Determine the project ownername (== username) when not specified on
-        commandline.
-        """
-        try:
-            return self.username
-        except:
-            log.error("This operation needs a project ownername specified, "
-                      "fallback to your username failed.")
-            raise
-
     def parse_name(self, name):
+        """
+        Several sub-commands accept the project NAME argument in the '<project>'
+        (that defaults to '<authenticated_user>/<project>'), or in the full
+        '<owner>/<project>' format.  Translate this NAME string to the
+        (owner, project) pair.
+        """
         m = re.match(r"([^/]+)/(.*)", name)
         if m:
             owner = m.group(1)
             name = m.group(2)
         else:
-            owner = self.ownername
+            try:
+                owner = self.username
+            except:
+                log.error("Wrong project argument format '%s'.  Please use "
+                          "the full '<owner>/<project>' argument format, or "
+                          "authenticate to use the short '<project>' format "
+                          "(which means '<your_username>/<project>').", name)
+                raise
         return owner, name
 
     def parse_dirname(self, name):
@@ -211,7 +207,18 @@ class Commands(object):
         """
         m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
         if m:
-            owner = m.group(2) or self.username
+            owner = m.group(2)
+            if not owner:
+                try:
+                    self.username
+                except:
+                    log.error("Wrong chroot path format '%s'. Use the full "
+                              "'<owner>/<project>/<chroot>' format or "
+                              "authenticate to use the short "
+                              "'<project>/<chroot>' format (which means "
+                              "'<your_username>/<project>/<chroot>').", path)
+                    raise
+
             return owner, m.group(3), m.group(4)
         raise CoprException("Unexpected chroot path format")
 
@@ -279,7 +286,11 @@ class Commands(object):
         """
         Simply print out the current user as defined in copr config.
         """
-        print(self.username)
+        try:
+            print(self.username)
+        except:
+            log.error("Can't detect who are you.")
+            raise
 
     def action_new_webhook_secret(self, args):
         """
@@ -598,7 +609,14 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        username = args.username or self.ownername
+        username = args.username
+        if not username:
+            try:
+                self.username
+            except:
+                log.error("The 'username|@groupname' not specified.  Either "
+                          "specify it, or authenticate to list your projects.")
+                raise
         projects = self.client.project_proxy.get_list(username)
         if not projects:
             sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
