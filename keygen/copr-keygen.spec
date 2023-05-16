@@ -90,7 +90,7 @@ This package contains document for copr-keygen service.
 # https://bugzilla.redhat.com/show_bug.cgi?id=2113156
 # https://bugzilla.redhat.com/show_bug.cgi?id=2105348
 # https://bugzilla.redhat.com/show_bug.cgi?id=2007282
-%if 0%{?fedora} <= 36
+%if 0%{?fedora} <= 36 && 0%{?fedora}
 make -C docs %{?_smp_mflags} html
 %endif
 
@@ -116,18 +116,18 @@ install -d %{buildroot}%{_sysconfdir}/cron.daily
 %{__install} -p -m 0755 run/gpg-copr-prolong %{buildroot}/%{_bindir}/
 
 %{__install} -p -m 0755 run/application.py %{buildroot}%{_datadir}/copr-keygen/
-%{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
 %{__install} -p -m 0644 configs/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-keygen
 
-%{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
 
 %{__install} -p -m 0755 configs/cron.daily %{buildroot}%{_sysconfdir}/cron.daily/copr-keygen
 
 cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
 
 # FTBFS - See above
-%if 0%{?fedora} <= 36
+%if 0%{?fedora} <= 36 && 0%{?fedora}
 cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
+%{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
+%{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
 %endif
 
 %check
@@ -170,10 +170,10 @@ systemctl condrestart httpd &>/dev/null || :
 %dir %{_localstatedir}/log/copr-keygen
 %ghost %{_localstatedir}/log/copr-keygen/main.log
 
-
+%if 0%{?fedora}
 %files -n copr-keygen-doc
 %doc %{_pkgdocdir}
-
+%endif
 
 %changelog
 * Wed Mar 22 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.89-1
