@@ -481,6 +481,46 @@ Quick HOWTO for the `Package Review`_ time::
 .. _`Fedora Review`: https://pagure.io/FedoraReview
 .. _`Package Review`: https://fedoraproject.org/wiki/Package_Review_Process
 
+
+RPM Macros
+----------
+
+Copr defines custom RPM macros that are available for every build and
+can be used inside of a specfile. Please note that these macros are not
+available in other build systems, so you should use them as
+e.g. ``%?copr_username`` instead of ``%copr_username``.
+
+- ``%copr_username`` - Owner of the project, can be either a user or
+  group name, e.g. ``@copr``
+- ``%copr_projectname`` - Name of the project, e.g. ``copr-dev``
+- ``%vendor`` - This macro identifies the software maintainer of the distributed
+  packages, for example:
+
+    - ``Fedora Copr - user frostyx``
+    - ``Fedora Copr - group @copr``
+    - Users can run ``rpm -qi <package-name> | grep -i vendor`` to identify
+      vendor of their installed packages
+
+- ``%buildtag`` - This macro contains an ID of a Copr build,
+  e.g. ``.copr5925897``
+
+Macros for SRPM builds:
+
+- ``%dist`` - Copr `undefines %dist for SRPM builds <https://github.com/fedora-copr/copr/commit/2344ea3136f65b9ed04e0bff4b7b26ba06c6fcb1>`_
+  to be distro-agnostic
+- ``%_disable_source_fetch`` - We set this macro to ``0``. As a
+  consequence, it is possible to submit a build from a specfile with a
+  fully qualified ``SourceX`` URL and allow the sources to be
+  automatically downloaded.
+
+Users are often interested in having parts of their spec file that are evaluated
+only in Copr and ignored by Koji. It is easy to do::
+
+  %if 0%{?copr_projectname:1}
+  # This happens only in Copr
+  %endif
+
+
 Modularity
 ----------
 

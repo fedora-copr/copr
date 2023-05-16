@@ -29,6 +29,9 @@ Test spec file with macros
 exit 1
 %endif
 
+echo "COPR VENDOR: %{vendor}"
+echo "COPR BUILDTAG: %{buildtag}"
+
 
 %changelog
 * Thu May 12 2022 Jakub Kadlcik <jkadlcik@redhat.com> - 1.0-1
