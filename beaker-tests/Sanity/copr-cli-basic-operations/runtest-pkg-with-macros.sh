@@ -34,6 +34,11 @@ rlJournalStart
     rlPhaseStartTest
         rlRun "copr-cli create --chroot $CHROOT $PROJECT"
         rlRun -s "copr-cli build $PROJECT files/pkg-with-macros.spec "
+        rlRun "parse_build_id"
+        output=`mktemp`
+        get_rpm_builder_log 'pkg-with-macros' > $output
+        rlRun "cat $output |grep 'COPR VENDOR: Fedora Copr (devel) - group @copr'"
+        rlRun "cat $output |grep 'COPR BUILDTAG: .copr${BUILD_ID}'"
     rlPhaseEnd
 
     rlPhaseStartCleanup

@@ -86,6 +86,14 @@ get_srpm_builder_log()
     curl "$_log_file" | gunzip
 }
 
+get_rpm_builder_log()
+{
+    _pkgname=$1
+    _log_file="$BACKEND_URL/results/$PROJECT/$CHROOT/$(build_id_with_leading_zeroes)-${_pkgname}/builder-live.log.gz"
+    rlLog "downloading $_log_file"
+    curl "$_log_file" | gunzip
+}
+
 setup_checks()
 {
     rlAssertRpm "copr-cli"
