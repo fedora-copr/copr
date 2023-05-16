@@ -5,12 +5,12 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
-%if 0%{?fedora} || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7 || 0%{?openEuler}
 %global with_python3 1
 %global __python %_bindir/python3
 %endif
 
-%if 0%{?fedora} < 28 || 0%{?rhel} && 0%{?rhel} <= 7
+%if 0%{?fedora} && 0%{?fedora} < 28 || 0%{?rhel} && 0%{?rhel} <= 7
 %global with_python2 1
 %global __python %_bindir/python2
 %endif
