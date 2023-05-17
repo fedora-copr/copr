@@ -1,7 +1,5 @@
 %bcond_without check
-%if 0%{?fedora} < 32
-%bcond_without doc
-%endif
+%bcond_with doc
 
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
@@ -73,55 +71,51 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
-BuildRequires: python3-alembic
-BuildRequires: python3-anytree
-BuildRequires: python3-click
-BuildRequires: python3-CommonMark
-BuildRequires: python3-blinker
-BuildRequires: python3-beautifulsoup4
-BuildRequires: python3-copr-common >= %copr_common_version
-BuildRequires: python3-email-validator
-BuildRequires: python3-dateutil
-BuildRequires: python3-decorator
-BuildRequires: python3-flask
-BuildRequires: python3-templated-dictionary
-%if 0%{?fedora} >= 31
-BuildRequires: python3-flask-caching
-%else
-BuildRequires: python3-flask-cache
-%endif
-BuildRequires: python3-flask-openid
-BuildRequires: python3-flask-sqlalchemy
-BuildRequires: python3-flask-whooshee
-BuildRequires: python3-flask-wtf
-BuildRequires: python3-flask-restx
+BuildRequires: python3dist(alembic)
+BuildRequires: python3dist(anytree)
+BuildRequires: python3dist(click)
+BuildRequires: python3dist(commonmark)
+BuildRequires: python3dist(blinker)
+BuildRequires: python3dist(beautifulsoup4)
+BuildRequires: python3dist(copr-common) >= %copr_common_version
+BuildRequires: python3dist(email-validator)
+BuildRequires: python3dist(python-dateutil)
+BuildRequires: python3dist(decorator)
+BuildRequires: python3dist(flask)
+BuildRequires: python3dist(templated-dictionary)
+BuildRequires: python3dist(flask-caching)
+BuildRequires: python3dist(flask-openid)
+BuildRequires: python3dist(flask-sqlalchemy)
+BuildRequires: python3dist(flask-whooshee)
+BuildRequires: python3dist(flask-wtf)
+BuildRequires: python3dist(flask-restx)
 BuildRequires: python3-gobject
-BuildRequires: python3-html2text
-BuildRequires: python3-html5-parser
-BuildRequires: python3-humanize
-BuildRequires: python3-lxml
-BuildRequires: python3-markdown
-BuildRequires: python3-munch
-BuildRequires: python3-netaddr
-BuildRequires: python3-openid-teams
-BuildRequires: python3-pygments
-BuildRequires: python3-pylibravatar
-BuildRequires: python3-pytest
-BuildRequires: python3-pytz
-BuildRequires: python3-redis
-BuildRequires: python3-requests
-BuildRequires: python3-sphinx
-BuildRequires: python3-sphinxcontrib-httpdomain
-BuildRequires: python3-sqlalchemy-utils
-BuildRequires: python3-whoosh
-BuildRequires: python3-wtforms >= 2.2.1
-BuildRequires: python3-ldap
-BuildRequires: python3-yaml
-BuildRequires: python3-backoff >= 1.9.0
-BuildRequires: python3-pygal
+BuildRequires: python3dist(html2text)
+BuildRequires: python3dist(html5-parser)
+BuildRequires: python3dist(humanize)
+BuildRequires: python3dist(lxml)
+BuildRequires: python3dist(markdown)
+BuildRequires: python3dist(munch)
+BuildRequires: python3dist(netaddr)
+BuildRequires: python3dist(python-openid-teams)
+BuildRequires: python3dist(pygments)
+BuildRequires: python3dist(pylibravatar)
+BuildRequires: python3dist(pytest)
+BuildRequires: python3dist(pytz)
+BuildRequires: python3dist(redis)
+BuildRequires: python3dist(requests)
+BuildRequires: python3dist(sphinx)
+BuildRequires: python3dist(sphinxcontrib-httpdomain)
+BuildRequires: python3dist(sqlalchemy-utils)
+BuildRequires: python3dist(whoosh)
+BuildRequires: python3dist(wtforms) >= 2.2.1
+BuildRequires: python3dist(python-ldap)
+BuildRequires: python3dist(pyyaml)
+BuildRequires: python3dist(backoff) >= 1.9.0
+BuildRequires: python3dist(pygal)
 BuildRequires: redis
 BuildRequires: modulemd-tools >= 0.6
-BuildRequires: python3-authlib
+BuildRequires: python3dist(authlib)
 %endif
 
 Requires: crontabs
@@ -136,55 +130,50 @@ Requires: %flavor_guard
 Requires: (copr-selinux if selinux-policy-targeted)
 Recommends: fedora-messaging
 Requires: js-jquery
-Requires: python3-anytree
-Requires: python3-click
-Requires: python3-CommonMark
-Requires: python3-alembic
-Requires: python3-blinker
-Requires: python3-copr-common >= %copr_common_version
-Requires: python3-dateutil
-Requires: python3-email-validator
-Requires: python3-flask
-%if 0%{?fedora} >= 31
-Requires: python3-flask-caching
-%else
-Requires: python3-flask-cache
-%endif
-Requires: python3-flask-openid
-Requires: python3-flask-sqlalchemy
-Requires: python3-flask-whooshee
-Requires: python3-flask-wtf
-Requires: python3-flask-wtf
-Requires: python3-flask-restx
+Requires: python3dist(anytree)
+Requires: python3dist(click)
+Requires: python3dist(commonmark)
+Requires: python3dist(alembic)
+Requires: python3dist(blinker)
+Requires: python3dist(copr-common) >= %copr_common_version
+Requires: python3dist(python-dateutil)
+Requires: python3dist(email-validator)
+Requires: python3dist(flask)
+Requires: python3dist(flask-caching)
+Requires: python3dist(flask-openid)
+Requires: python3dist(flask-sqlalchemy)
+Requires: python3dist(flask-whooshee)
+Requires: python3dist(flask-wtf)
+Requires: python3dist(flask-restx)
 Requires: python3-gobject
-Requires: python3-html2text
-Requires: python3-html5-parser
-Requires: python3-humanize
-Requires: python3-lxml
-Requires: python3-markdown
-Requires: python3-mod_wsgi
-Requires: python3-munch
-Requires: python3-netaddr
-Requires: python3-openid-teams
-Requires: python3-psycopg2
-Requires: python3-pygments
-Requires: python3-pylibravatar
-Requires: python3-pytz
-Requires: python3-redis
-Requires: python3-requests
-Requires: python3-sqlalchemy-utils
-Requires: python3-templated-dictionary
-Requires: python3-wtforms >= 2.2.1
-Requires: python3-zmq
-Requires: python3-ldap
-Requires: python3-backoff >= 1.9.0
-Requires: python3-pygal
-Requires: xstatic-bootstrap-scss-common
-Requires: xstatic-datatables-common
+Requires: python3dist(html2text)
+Requires: python3dist(html5-parser)
+Requires: python3dist(humanize)
+Requires: python3dist(lxml)
+Requires: python3dist(markdown)
+Requires: python3dist(mod-wsgi)
+Requires: python3dist(munch)
+Requires: python3dist(netaddr)
+Requires: python3dist(python-openid-teams)
+Requires: python3dist(psycopg2)
+Requires: python3dist(pygments)
+Requires: python3dist(pylibravatar)
+Requires: python3dist(pytz)
+Requires: python3dist(redis)
+Requires: python3dist(requests)
+Requires: python3dist(sqlalchemy-utils)
+Requires: python3dist(templated-dictionary)
+Requires: python3dist(wtforms) >= 2.2.1
+Requires: python3dist(pyzmq)
+Requires: python3dist(python-ldap)
+Requires: python3dist(backoff) >= 1.9.0
+Requires: python3dist(pygal)
+Requires: python3dist(xstatic-bootstrap-scss)
+Requires: python3dist(xstatic-datatables)
 Requires: js-jquery-ui
-Requires: xstatic-patternfly-common
+Requires: python3dist(xstatic-patternfly)
 Requires: modulemd-tools >= 0.6
-Requires: python3-authlib
+Requires: python3dist(authlib)
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
