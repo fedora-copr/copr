@@ -38,6 +38,7 @@ def to_dict(copr):
         "module_hotfixes": copr.module_hotfixes,
         "appstream": copr.appstream,
         "packit_forge_projects_allowed": copr.packit_forge_projects_allowed_list,
+        "follow_fedora_branching": copr.follow_fedora_branching,
     }
 
 
