@@ -1,11 +1,9 @@
 %global srcname copr
 
-%if 0%{?fedora} || 0%{?rhel} > 7
-%global with_python3 1
-%endif
-
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global with_python2 1
+%else
+%global with_python3 1
 %endif
 
 Name:       python-copr
@@ -133,11 +131,10 @@ Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-requests-gssapi
 Requires: python3-future
-%endif
 
 %{?python_provide:%python_provide python3-copr}
 
-%if 0%{?fedora} > 30 || 0%{?rhel} > 8
+%else
 # These are not in requirements.txt
 Requires: python3-requests-gssapi
 
@@ -147,6 +144,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-requests-gssapi
 BuildRequires: python3-future
 BuildRequires: python3-filelock
+BuildRequires: pyproject-rpm-macros
 
 %generate_buildrequires
 %pyproject_buildrequires -r
