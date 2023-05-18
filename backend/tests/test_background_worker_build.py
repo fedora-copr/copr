@@ -310,6 +310,7 @@ def test_prev_build_backup(f_build_rpm_case):
     rsync_patt = "*{}.rsync.log".format(worker.job.build_id)
     assert len(glob.glob(os.path.join(prev_results, rsync_patt))) == 1
 
+
 def test_full_srpm_build(f_build_srpm):
     worker = f_build_srpm.bw
     worker.process()
@@ -317,11 +318,27 @@ def test_full_srpm_build(f_build_srpm):
 
     # TODO: fix this is ugly pkg_version testament
     assert worker.job.pkg_version is None
-    assert worker.job.__dict__["pkg_version"] == "1.0.14-1.fc30"
+    assert worker.job.__dict__["pkg_version"] == "1.0.14-1"
 
     assert worker.job.srpm_url == (
         "https://example.com/results/@copr/PROJECT_2/srpm-builds/"
         "00855954/example-1.0.14-1.fc30.src.rpm")
+
+
+@mock.patch("copr_backend.background_worker_build.find_spec_file")
+def test_full_srpm_build_without_specfile(mock_find_spec_file, f_build_srpm):
+    mock_find_spec_file.return_value = None
+
+    worker = f_build_srpm.bw
+    worker.process()
+
+    assert worker.job.pkg_name == "example"
+    assert worker.job.pkg_version is None
+    assert worker.job.__dict__["pkg_version"] == "1.0.14-1.fc30"
+    assert worker.job.srpm_url == (
+            "https://example.com/results/@copr/PROJECT_2/srpm-builds/"
+            "00855954/example-1.0.14-1.fc30.src.rpm")
+
 
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
 @mock.patch("copr_backend.sign._sign_one")
