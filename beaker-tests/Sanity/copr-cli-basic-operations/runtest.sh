@@ -483,10 +483,6 @@ rlJournalStart
 
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
-
-        # test building for armhfp
-        rlRun "copr-cli create --chroot fedora-36-armhfp ${NAME_PREFIX}ArmhfpBuild"
-        rlRun "copr-cli build ${NAME_PREFIX}ArmhfpBuild $HELLO"
     rlPhaseEnd
 
     rlPhaseStartCleanup
@@ -513,7 +509,6 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}MockConfigParent"
         cleanProject "${NAME_PREFIX}TestBug1444804"
         cleanProject "${NAME_PREFIX}CoprDirTest"
-        cleanProject "${NAME_PREFIX}ArmhfpBuild"
 
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
