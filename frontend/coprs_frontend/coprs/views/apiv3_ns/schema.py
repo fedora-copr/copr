@@ -257,6 +257,10 @@ custom_chroot_field = String(
     example="fedora-latest-x86_64",
 )
 
+module_hotfixes_field = Boolean(
+    description="Allow non-module packages to override module packages",
+)
+
 limit_field = Integer(
     description="Limit",
     example=20,
@@ -306,6 +310,7 @@ repo_schema = {
     "baseurl": String,
     "id": String(example="copr_base"),
     "name": String(example="Copr repository"),
+    "module_hotfixes": module_hotfixes_field,
 }
 
 repo_model = api.model("Repo", repo_schema)
