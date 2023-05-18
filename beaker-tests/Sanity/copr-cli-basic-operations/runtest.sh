@@ -353,19 +353,23 @@ rlJournalStart
         rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
         rlRun "curl $FRONTEND_URL --silent | grep Project7" 0 # project should be visible on hp now
 
-        # test search index update by copr insertion
-        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project8"
-        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
-        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
-        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
+        # FIXME It is now not possible to update whoosh index on demand
+        # Instead, it is periodically recreated via cron
+        # See https://github.com/fedora-copr/copr/pull/2578
 
-        # test search index update by package addition
-        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project9" && sleep 65
-        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
-        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
-        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url $COPR_HELLO_GIT --commit rpkg-util" # insert package to the copr
-        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
-        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
+        # # test search index update by copr insertion
+        # rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project8"
+        # rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
+        # rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
+        # rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
+
+        # # test search index update by package addition
+        # rlRun "copr-cli create --chroot $CHROOT --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}Project9" && sleep 65
+        # rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
+        # rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
+        # rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url $COPR_HELLO_GIT --commit rpkg-util" # insert package to the copr
+        # rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
+        # rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
         # TODO: Modularity integration tests
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project11"
