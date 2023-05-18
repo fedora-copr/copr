@@ -24,7 +24,7 @@ from copr_backend.exceptions import (
     FrontendClientException,
 )
 from copr_backend.helpers import (
-    call_copr_repo, pkg_name_evr, run_cmd, register_build_result,
+    call_copr_repo, pkg_name_evr, run_cmd, register_build_result, find_spec_file,
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender
@@ -637,8 +637,10 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         srpm_file = glob.glob(pattern)[0]
         srpm_name = os.path.basename(srpm_file)
         srpm_url = os.path.join(job.results_dir_url, srpm_name)
+        spec_file_path = find_spec_file(job.results_dir, self.log)
+
         build_details['pkg_name'], build_details['pkg_version'] = \
-                pkg_name_evr(srpm_file, self.log)
+                pkg_name_evr(spec_file_path, srpm_file, self.log)
         build_details['srpm_url'] = srpm_url
         self.log.info("SRPM URL: %s", srpm_url)
         return build_details

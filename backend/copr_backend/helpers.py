@@ -27,6 +27,7 @@ import pytz
 
 import munch
 from munch import Munch
+from specfile import Specfile
 
 from copr_common.redis_helpers import get_redis_connection
 from copr.v3 import Client
@@ -632,7 +633,47 @@ def get_chroot_arch(chroot):
     return chroot.rsplit("-", 2)[2]
 
 
-def pkg_name_evr(srpm_path, logger):
+def find_spec_file(folder, logger):
+    """
+    Returns spec file path or None
+    """
+    spec_pattern = os.path.join(folder, "*.spec")
+    result = glob.glob(spec_pattern)
+    if not result:
+        return None
+
+    if len(result) > 1:
+        logger.error("More than one spec file found! Using the first %s from %s",
+                     str(result[0]), str(result))
+
+    return result[0]
+
+
+def format_evr(epoch, version, release):
+    """
+    Return evr in format (epoch:)version-release
+    """
+    if epoch is not None and epoch.isdigit():
+        return f"{epoch}:{version}-{release}"
+
+    return f"{version}-{release}"
+
+
+def pkg_name_evr(spec_file_path, srpm_path, logger):
+    """
+    Queries a SRPM or spec file for its name and evr (epoch:version-release)
+    """
+    try:
+        spec = Specfile(spec_file_path)
+    except Exception:  # pylint: disable=broad-exception-caught
+        # Specfile library raises too many exception to name the in except block
+        logger.exception("Exception appeared during handling spec file: %s", spec_file_path)
+        return pkg_name_evr_from_srpm(srpm_path, logger)
+
+    return spec.expanded_name, format_evr(spec.expanded_epoch, spec.expanded_version, spec.expanded_release)
+
+
+def pkg_name_evr_from_srpm(srpm_path, logger):
     """
     Queries a package for its name and evr (epoch:version-release)
     """
@@ -642,7 +683,7 @@ def pkg_name_evr(srpm_path, logger):
     try:
         result = run_cmd(cmd, logger=logger)
     except OSError as e:
-        raise CoprBackendSrpmError(str(e))
+        raise CoprBackendSrpmError(str(e)) from e
 
     if result.returncode != 0:
         raise CoprBackendSrpmError('Error querying SRPM')
@@ -650,15 +691,9 @@ def pkg_name_evr(srpm_path, logger):
     try:
         name, epoch, version, release = result.stdout.split(" ")
     except ValueError as e:
-        raise CoprBackendSrpmError(str(e))
+        raise CoprBackendSrpmError(str(e)) from e
 
-    # Epoch is an integer or '(none)' if not set
-    if epoch.isdigit():
-        evr = "{}:{}-{}".format(epoch, version, release)
-    else:
-        evr = "{}-{}".format(version, release)
-
-    return name, evr
+    return name, format_evr(epoch, version, release)
 
 
 def format_filename(name, version, release, epoch, arch, zero_epoch=False):
