@@ -165,6 +165,7 @@ def get_build_record(task, for_backend=False):
             "isolation": task.build.isolation,
             "fedora_review": task.build.copr.fedora_review,
             "appstream": bool(task.build.appstream),
+            "repo_priority": task.build.copr.repo_priority
         })
 
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)

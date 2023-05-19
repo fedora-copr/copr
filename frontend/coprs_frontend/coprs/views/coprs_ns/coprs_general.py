@@ -282,6 +282,7 @@ def copr_new(username=None, group_name=None):
                 isolation=form.isolation.data,
                 appstream=form.appstream.data,
                 packit_forge_projects_allowed=form.packit_forge_projects_allowed.data,
+                repo_priority=form.repo_priority.data
             )
 
             db.session.commit()
@@ -554,6 +555,8 @@ def process_copr_update(copr, form):
     copr.isolation = form.isolation.data
     copr.appstream = form.appstream.data
     copr.packit_forge_projects_allowed = form.packit_forge_projects_allowed.data
+    copr.repo_priority = form.repo_priority.data
+
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:
@@ -856,7 +859,7 @@ def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_de
     return flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir,
                                  url=repo_url, pubkey_url=pubkey_url,
                                  repo_id=repo_id, arch=arch, cost=cost,
-                                 name=name)
+                                 name=name, repo_priority=copr_dir.copr.repo_priority)
 
 
 def _render_external_repo_template(dep, copr_dir, mock_chroot, dep_idx):

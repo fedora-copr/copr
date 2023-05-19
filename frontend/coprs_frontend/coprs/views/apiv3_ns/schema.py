@@ -100,6 +100,11 @@ isolation_field = String(
     example="nspawn",
 )
 
+repo_priority_field = Integer(
+    description="The priority value of this repository. Defaults to 99",
+    example=42,
+)
+
 enable_net_field = Boolean(
     description="Enable internet access during builds",
 )
@@ -311,6 +316,7 @@ repo_schema = {
     "id": String(example="copr_base"),
     "name": String(example="Copr repository"),
     "module_hotfixes": module_hotfixes_field,
+    "priority": repo_priority_field,
 }
 
 repo_model = api.model("Repo", repo_schema)

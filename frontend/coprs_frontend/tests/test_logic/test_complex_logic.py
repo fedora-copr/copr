@@ -252,6 +252,7 @@ class TestProjectForking(CoprsTestCase):
             "name": "Copr repository",
             "baseurl": "http://copr-be-dev.cloud.fedoraproject.org"
                        "/results/user1/foocopr/fedora-18-x86_64/",
+            "priority": None,
         }
         build_config = bcl.generate_build_config(self.c1, "fedora-18-x86_64")
         assert build_config["repos"] == [main_repo]

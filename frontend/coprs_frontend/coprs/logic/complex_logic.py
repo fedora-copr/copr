@@ -14,6 +14,7 @@ from coprs import helpers
 from coprs import models
 from coprs import exceptions
 from coprs import cache
+from coprs.constants import DEFAULT_COPR_REPO_PRIORITY
 from coprs.exceptions import ObjectNotFound, ActionInProgressException
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.batches_logic import BatchesLogic
@@ -456,7 +457,6 @@ class ProjectForking(object):
 
 
 class BuildConfigLogic(object):
-
     @classmethod
     def generate_build_config(cls, copr, chroot_id):
         """ Return dict with proper build config contents """
@@ -485,6 +485,15 @@ class BuildConfigLogic(object):
                 "baseurl": copr.repo_url + "/{}/devel/".format(chroot_id),
                 "name": "Copr buildroot",
             })
+
+        # None value of the priority won't show in API
+        if copr.repo_priority in [None, DEFAULT_COPR_REPO_PRIORITY]:
+            repo_priority = None
+        else:
+            repo_priority = copr.repo_priority
+
+        for repo in repos:
+            repo["priority"] = repo_priority
 
         repos.extend(cls.get_additional_repo_views(copr.repos_list, chroot_id))
         repos.extend(cls.get_additional_repo_views(chroot.repos_list, chroot_id))
