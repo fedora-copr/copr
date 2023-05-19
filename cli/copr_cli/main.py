@@ -481,6 +481,7 @@ class Commands(object):
             appstream=ON_OFF_MAP[args.appstream],
             runtime_dependencies=args.runtime_dependencies,
             packit_forge_projects_allowed=args.packit_forge_projects_allowed,
+            repo_priority=args.repo_priority,
         )
 
         owner_part = username.replace('@', "g/")
@@ -514,6 +515,7 @@ class Commands(object):
             appstream=ON_OFF_MAP[args.appstream],
             runtime_dependencies=args.runtime_dependencies,
             packit_forge_projects_allowed=args.packit_forge_projects_allowed,
+            repo_priority=args.repo_priority,
         )
 
     @requires_api_auth
@@ -1177,6 +1179,9 @@ def setup_parser():
               "created for you (as soon as they are available) as rawhide "
               "chroot forks."))
 
+    parser_create.add_argument("--repo-priority", default=None,
+                               help="Set the priority value of this repository")
+
     create_and_modify_common_opts(parser_create)
 
     parser_create.set_defaults(func="action_create")
@@ -1243,6 +1248,9 @@ def setup_parser():
               "respective chroots for the new branch are automatically "
               "created for you (as soon as they are available) as rawhide "
               "chroot forks."))
+
+    parser_modify.add_argument("--repo-priority", default=None,
+                               help="Set the priority value of this repository")
 
     create_and_modify_common_opts(parser_modify)
 

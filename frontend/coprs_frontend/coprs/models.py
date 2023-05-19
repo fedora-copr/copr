@@ -388,6 +388,17 @@ class _CoprPublic(db.Model, helpers.Serializer):
     # allowed to build in this Copr via Packit
     packit_forge_projects_allowed = db.Column(db.Text)
 
+    # priority=NUMBER in repo configs
+    repo_priority = db.Column(db.Integer, nullable=True)
+
+    @validates("repo_priority")
+    def validate_repo_priority(self, _, value):
+        """Checks whether priority value is correct"""
+        if value < 1:
+            raise ValueError("Repo priority can't be lower than 1")
+
+        return value
+
 
 class _CoprPrivate(db.Model, helpers.Serializer):
     """

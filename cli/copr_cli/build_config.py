@@ -47,7 +47,7 @@ config_opts['dnf.conf'] += \"\"\"
 [{{ repo.id }}]
 name="{{ repo.name }}"
 baseurl={{ repo.baseurl }}
-{%- if repo.priority %}
+{%- if repo.priority and repo.priority is not none %}
 priority={{ repo.priority }}
 {%- endif %}
 {%- if repo.module_hotfixes %}
@@ -63,6 +63,7 @@ best=1
 \"\"\"
 {%- endif %}
 """
+
 
 class MockProfile(object):
     def __init__(self, data):

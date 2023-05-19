@@ -15,3 +15,7 @@ enabled_metadata=1
 {% if copr_dir.copr.module_hotfixes %}
 module_hotfixes=1
 {% endif %}
+
+{%- if repo_priority is not none %}
+priority={{ repo_priority }}
+{%- endif %}

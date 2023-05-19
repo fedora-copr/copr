@@ -15,13 +15,13 @@ except ImportError:
     from flask_wtf import Form as FlaskForm
 
 from coprs import app
+from coprs import exceptions
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs import exceptions
 
 from wtforms import ValidationError
 
@@ -654,6 +654,18 @@ class CoprForm(BaseForm):
         "Packit allowed forge projects",
         filters=[StringListFilter(), StripUrlSchemaListFilter()],
         validators=[wtforms.validators.Optional()],)
+
+    repo_priority = wtforms.IntegerField(
+        "The priority value of this repository",
+        description="""The priority value of this repository, default is 99. If there is more than one candidate
+        package for a particular operation, the one from a repo with the lowest priority value is
+        picked, possibly despite being less convenient otherwise (e.g. by being a lower version).""",
+        render_kw={"placeholder": "Optional - integer, e.g. 22"},
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.NumberRange(min=1)],
+        default=None,
+    )
 
     @property
     def errors(self):

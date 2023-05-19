@@ -77,7 +77,7 @@ class TestApiv3Projects(CoprsTestCase):
         # testing method!
         already_tested = set([
             "delete_after", "build_enable_net", "auto_createrepo", "repos",
-            "runtime_dependencies", "packit_forge_projects_allowed"
+            "runtime_dependencies", "packit_forge_projects_allowed", "repo_priority"
         ])
 
         # check non-trivial changes
@@ -91,6 +91,7 @@ class TestApiv3Projects(CoprsTestCase):
         assert old_data["auto_prune"] is True
         assert old_data["follow_fedora_branching"] is True
         assert old_data["packit_forge_projects_allowed"] == ""
+        assert old_data["repo_priority"] is None
         self.api3.modify_project(
             "test", delete_after_days=5, enable_net=True, devel_mode=True,
             repos=["http://example/repo/", "http://another/"],
@@ -100,7 +101,8 @@ class TestApiv3Projects(CoprsTestCase):
                 "https://github.com/packit/ogr",
                 "github.com/packit/requre",
                 "http://github.com/packit/packit"
-            ]
+            ],
+            repo_priority=13,
         )
         new_data = self._get_copr_id_data(1)
         delete_after = datetime.datetime.now() + datetime.timedelta(days=5)
@@ -113,6 +115,7 @@ class TestApiv3Projects(CoprsTestCase):
         old_data["bootstrap"] = "default"
         old_data["packit_forge_projects_allowed"] = "github.com/packit/ogr\ngithub.com/packit/requre\ngithub.com" \
                                                     "/packit/packit"
+        old_data["repo_priority"] = 13
         assert old_data == new_data
         old_data = new_data
 

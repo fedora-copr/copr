@@ -71,7 +71,8 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=None, devel_mode=False,
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=True,
-            fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None):
+            fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None,
+            repo_priority=None):
         """
         Create a project
 
@@ -139,6 +140,7 @@ class ProjectProxy(BaseProxy):
             "appstream": appstream,
             "runtime_dependencies": runtime_dependencies,
             "packit_forge_projects_allowed": packit_forge_projects_allowed,
+            "repo_priority": repo_priority,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
@@ -157,7 +159,8 @@ class ProjectProxy(BaseProxy):
              auto_prune=None, use_bootstrap_container=None, devel_mode=None,
              delete_after_days=None, multilib=None, module_hotfixes=None,
              bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=None,
-             fedora_review=None, appstream=None, runtime_dependencies=None, packit_forge_projects_allowed=None):
+             fedora_review=None, appstream=None, runtime_dependencies=None, packit_forge_projects_allowed=None,
+             repo_priority=None):
         """
         Edit a project
 
@@ -223,6 +226,7 @@ class ProjectProxy(BaseProxy):
             "appstream": appstream,
             "runtime_dependencies": runtime_dependencies,
             "packit_forge_projects_allowed": packit_forge_projects_allowed,
+            "repo_priority": repo_priority,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

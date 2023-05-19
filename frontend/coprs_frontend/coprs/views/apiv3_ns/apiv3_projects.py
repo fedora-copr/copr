@@ -39,6 +39,7 @@ def to_dict(copr):
         "appstream": copr.appstream,
         "packit_forge_projects_allowed": copr.packit_forge_projects_allowed_list,
         "follow_fedora_branching": copr.follow_fedora_branching,
+        "repo_priority": copr.repo_priority,
     }
 
 
@@ -162,6 +163,7 @@ def add_project(ownername):
             runtime_dependencies=_form_field_repos(form.runtime_dependencies),
             appstream=form.appstream.data,
             packit_forge_projects_allowed=_form_field_repos(form.packit_forge_projects_allowed),
+            repo_priority=form.repo_priority.data,
         )
         db.session.commit()
     except (DuplicateException,
