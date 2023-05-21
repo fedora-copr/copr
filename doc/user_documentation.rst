@@ -32,6 +32,42 @@ How to enable copr repository?
 
 :ref:`how_to_enable_repo`
 
+
+Public Copr instances
+---------------------
+
+Copr is a free software and anyone can maintain their own instance in
+case the Fedora Copr instance doesn't suit their needs. This is a list
+of known Copr instances:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Instance
+     - Description
+     - Links
+
+   * - https://copr.fedorainfracloud.org
+     - |
+       | Fedora Copr instance which is also
+       | considered to be the default Copr
+       | instance by many users and tools.
+     - `Contact <https://docs.pagure.org/copr.copr/index.html#communication>`__,
+       `Issues <https://github.com/fedora-copr/copr/issues>`__
+
+   * - https://copr.stg.fedoraproject.org
+     - |
+       | Fedora Copr staging instance is useful for
+       | testing the upcoming changes.
+       | We periodically delete all its data.
+     -
+
+   * - https://eur.openeuler.openatom.cn
+     - openEuler Copr instance
+     - `Contact <https://mailweb.openeuler.org/hyperkitty/list/infra@openeuler.org/>`__,
+       `Issues <https://quickissue.openeuler.org/en/issues/>`__
+
+
 Build Source Types
 ------------------
 
