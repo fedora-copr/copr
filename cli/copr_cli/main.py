@@ -1101,7 +1101,8 @@ def setup_parser():
     parser_create = subparsers.add_parser("create", help="Create a new copr")
     parser_create.add_argument("name",
                                help="The name of the copr to create")
-    parser_create.add_argument("--chroot", dest="chroots", action="append",
+    parser_create.add_argument("--chroot", dest="chroots", metavar="CHROOT",
+                               action="append",
                                help="Chroot to use for this copr")
 
 
@@ -1181,7 +1182,8 @@ def setup_parser():
     parser_modify = subparsers.add_parser("modify", help="Modify existing copr")
 
     parser_modify.add_argument("name", help="The name of the copr to modify")
-    parser_modify.add_argument("--chroot", dest="chroots", action="append",
+    parser_modify.add_argument("--chroot", dest="chroots", metavar="CHROOT",
+                               action="append",
                                help="Chroot to use for this copr")
     parser_modify.add_argument("--description",
                                help="Description of the copr")
@@ -1388,12 +1390,14 @@ def setup_parser():
               "default is usually set to 5 hours on Copr Frontend."))
     parser_build_parent.add_argument("--nowait", action="store_true", default=False,
                                      help="Don't wait for build")
-    parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
+    parser_build_parent.add_argument("-r", "--chroot", dest="chroots",
+                                     metavar="CHROOT", action="append",
                                      help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
 
     parser_build_parent.add_argument(
         "--exclude-chroot",
         dest="exclude_chroots",
+        metavar="CHROOT",
         action="append",
         help=("If you don't need this build for all the project's chroots."
               "You can use it several times for each chroot you don't need.")
@@ -1485,7 +1489,8 @@ def setup_parser():
     # create the parser for the "download-build" command
     parser_download_build = subparsers.add_parser("download-build", help="Fetches built packages")
     parser_download_build.add_argument("build_id", help="Build ID")
-    parser_download_build.add_argument("-r", "--chroot", dest="chroots", action="append",
+    parser_download_build.add_argument("-r", "--chroot", dest="chroots",
+                                       metavar="CHROOT", action="append",
                                        help="Select chroots to fetch")
     parser_download_build.add_argument("--dest", "-d", dest="dest",
                                        help="Base directory to store packages", default=".")
