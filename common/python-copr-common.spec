@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.18
+Version:    0.19
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -115,6 +115,9 @@ version=%version %py2_install
 
 
 %changelog
+* Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 0.19-1
+- Specfile compatibility with OpenEuler
+
 * Tue Jan 24 2023 Jakub Kadlcik <frostyx@email.cz> 0.18-1
 - Periodically dump the priority queue to a JSON file
 - Use SPDX license
