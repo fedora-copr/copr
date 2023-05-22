@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.128.1.dev
 
 Name:       copr-cli
-Version:    1.108
+Version:    1.109
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -132,6 +132,13 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.109-1
+- Show CHROOT in help output instead of CHROOTS
+- More readable errors related to implicit ownername
+- General check if it makes sense to upload SRPM
+- Describe add-package-custom and edit-package-custom in the manpage
+- Sync --timeout manpage docs with --help output
+
 * Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.108-1
 - Bump release version for release mess 
 
