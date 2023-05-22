@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.66
+Version: 0.67
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -336,6 +336,13 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Mon May 22 2023 Jakub Kadlcik <frostyx@email.cz> 0.67-1
+- Add loggs to python-backoff decorator
+- Set git.safe_directory as repo rootdir
+- Explain how to reproduce the build locally
+- Retry only git clone without checkouting
+- Use git checkout instead of switch but ignore files
+
 * Tue Apr 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.66-1
 - Ise 'git switch', not 'git checkout'
 
