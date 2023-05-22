@@ -1,3 +1,6 @@
+COPR_TEST_IMAGE ?= copr_test_image
+CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
+
 .PHONY: check test lint unittests
 
 # we keep this serialized to avoid messed standard output
@@ -13,7 +16,12 @@ unittests:
 lint:
 	vcs-diff-lint
 
+build-test-image:
+	$(CONTAINER_ENGINE) build -f ../build_aux/Containerfile.unittest . -t $(COPR_TEST_IMAGE)
+
+enter-test-image:
+	$(CONTAINER_ENGINE) run -v .:/home/copr_user/copr_bind:Z -ti $(COPR_TEST_IMAGE) /bin/bash
+
 unittest-in-container:
-	podman build -f ../build_aux/Containerfile.unittest . -t copr_test_image
-	podman run --rm -it copr_test_image /bin/sh -c "./run_tests.sh -vv -s"
-	podman image rm copr_test_image
+	$(CONTAINER_ENGINE) run --rm -v .:/home/copr_user/copr_bind:Z \
+		-it $(COPR_TEST_IMAGE) /bin/sh -c "./run_tests.sh -vvv -s --no-coverage"
