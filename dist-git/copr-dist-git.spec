@@ -1,7 +1,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-dist-git
-Version:    0.64
+Version:    0.65
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Mon May 22 2023 Jakub Kadlcik <frostyx@email.cz> 0.65-1
+- Improve logging feedback for importing package
+
 * Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 0.64-1
 - Bump version for release mess
 
