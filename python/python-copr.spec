@@ -9,7 +9,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.128.1.dev
+Version:    1.129
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -238,6 +238,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.129-1
+- General check if it makes sense to upload SRPM
+
 * Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.128-1
 - Rebuilding for release mess
 
