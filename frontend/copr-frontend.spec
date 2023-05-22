@@ -48,7 +48,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.199
+Version:    1.200
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -392,6 +392,21 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.200-1
+- Send follow_fedora_branching value via API
+- Add support for OIDC
+- Allow submitting EPEL8 module builds
+- Show resalloc-webui link in the task queue
+- Accept the OpenID response as a POST request
+- OpenAPI first steps
+- Automatically create aliases for routes with trailing slash
+- Include the Amazon Linux logo for Amazon Linux chroots
+- General check if it makes sense to upload SRPM
+- Add command for generating usage treemap
+- Frontend: add loggs to python-backoff decorator
+- APIv3 rpmrepo: provide module_hotfixes opt
+- Show API config even for not logged users
+
 * Wed Apr 05 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.199-1
 - Bump version for release mess
 
