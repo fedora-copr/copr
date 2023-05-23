@@ -21,7 +21,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.67
+Version: 0.68
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -336,6 +336,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 0.68-1
+- Fix python3-backoff dependency
+
 * Mon May 22 2023 Jakub Kadlcik <frostyx@email.cz> 0.67-1
 - Add loggs to python-backoff decorator
 - Set git.safe_directory as repo rootdir
