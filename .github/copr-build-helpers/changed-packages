@@ -7,16 +7,21 @@ push)
     diff_against=$1
     ;;
 pull_request)
-    diff_against=$GITHUB_BASE_REF
+    diff_against=$2
     # Pull request event from a remote fork
     git config --global --add safe.directory '*'
     git config --global advice.detachedHead false
-    git fetch origin main:main
     ;;
 *)
     echo >&2 "Unknown GITHUB_EVENT_NAME, diffing against $diff_against"
     ;;
 esac
+
+# Some debugging info
+true "\$GITHUB_REF: $GITHUB_REF"
+true "\$GITHUB_SHA: $GITHUB_SHA"
+git rev-parse HEAD >&2
+git rev-parse "$diff_against" >&2
 
 echo -n "{"
 echo -n '"package": ['
