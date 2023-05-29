@@ -1,0 +1,119 @@
+.. _release_notes_2023_05_25:
+
+Highlights from 2023-05-25 release
+==================================
+
+Updated client packages are shipped in `Fedora 37`_, `Fedora 38`_, `EPEL 7`_,
+`EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+OpenAPI and Swagger
+-------------------
+
+We are trying to provide useful documentation for every Copr component or
+interesting feature but one of the things that was consistently not well
+documented was our API, see `#1865`_. It is not finished yet but we started
+working on an `OpenAPI`_ documentation using `Swagger`_. When you open the
+`Copr API`_ page, it shows a link to the `API documentation`_. At this moment,
+only a fraction of endpoints are documented but we've got to start somewhere.
+
+
+OpenID Connect (OIDC)
+---------------------
+
+Thanks to `the contribution`_ from `@pkking`_, Copr has support for
+authenticating users through OpenID Connect (OIDC). This feature is not
+configured for the Fedora Copr instance yet but we are planning to enable it in
+the future.
+
+
+Documentation
+-------------
+
+Within this release, we prioritized documentation improvements:
+
+- The ``[copr-build]`` keyword `is now documented`_
+- `Pagure PR/commit flagging description`_ was improved and has images
+- The whole `Pagure documentation`_ was moved into a separate document
+- `#2681`_ - Fixed `allowed licenses`_ link
+- `#2528`_ - Explained that `SRPM is downloaded only once`_ per build
+- `#1465`_ - Up-to-date `Copr architecture`_ diagram, now written in PlantUML
+- `#2173`_ - The ``add-package-custom`` and ``edit-package-custom`` are now
+  described in the ``copr-cli`` manual page
+- Maintenance documentation improvements such as `backup recovery page`_
+
+
+Notable changes
+---------------
+
+- The `API page`_ used to show different information for logged and anonymous
+  users. Many users were confused by this and couldn't find their API config
+  because of it. Copr now shows the API config even for anonymous users,
+  instructing them to log in.
+- At the start of each ``builder-live.log`` there are now instructions on how to
+  reproduce the build locally using the ``copr-rpmbuild`` tool. The instructions
+  are not limited to the Fedora Copr instance but should work for all known Copr
+  instances.
+- New API endpoint ``/api_3/rpmrepo/`` providing all project repositories in one
+  call. It is used by the new `DNF5 Copr plugin`_
+- The ``follow_fedora_branching`` field is now returned via the API
+- The `task queue`_ now shows a link to the `Resalloc WebUI`_ page. It is still
+  in an early stage of development and looks clearly unfinished. But it already
+  allows you to see how many builders are available, what are they doing, and so
+  on.
+- You can see `graphs of how much others use Copr`_
+
+
+Bugfixes
+--------
+
+- `#2566`_ - When an SCM build was submitted from a repository with an
+  unambiguous branch name and filename, the build got stuck in an infinite loop
+- When ``git checkout <committish>`` failed, Copr repeated the whole cloning
+  and checkout process again, causing more harm than good. Now only the checkout
+  action is repeated.
+- `#2658`_ - A general check before uploading a SRPM file using ``copr-cli``. It
+  shouldn't happen anymore that you finish uploading a SRPM file and then get an
+  error that your token expired, project permissions are incorrect, or anything
+  else.
+- `#2696`_ - Fixed broken login caused by ``405 Method Not Allowed`` error
+- `#2714`_ - More readable errors related to implicit (taken from ``copr-cli``
+  config file) owner name
+- `#2703`_ - It is now possible to submit EPEL module builds
+
+
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-c15818fa6a
+.. _`Fedora 38`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-b5f68e66f1
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-089195859d
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-324f3ad766
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-719e93c2cf
+
+.. _`API page`: https://copr.fedorainfracloud.org/api/
+.. _`Copr API`: https://copr.fedorainfracloud.org/api/
+.. _`API documentation`: https://copr.fedorainfracloud.org/api_3/docs
+.. _`@pkking`: https://github.com/pkking
+.. _`DNF5 Copr plugin`: https://dnf5.readthedocs.io/en/latest/dnf5_plugins/copr.8.html
+.. _`allowed licenses`: https://docs.fedoraproject.org/en-US/legal/allowed-licenses
+.. _`task queue`: https://copr.fedorainfracloud.org/status/
+.. _`Resalloc WebUI`: https://download.copr.fedorainfracloud.org/resalloc
+.. _`the contribution`: https://github.com/fedora-copr/copr/pull/2713
+.. _`is now documented`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html#auto-rebuilding
+.. _`Pagure PR/commit flagging description`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html#pr-commit-flagging
+.. _`Pagure documentation`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html
+.. _`SRPM is downloaded only once`: https://docs.pagure.org/copr.copr/user_documentation.html#distgit
+.. _`Copr architecture`: https://docs.pagure.org/copr.copr/developer_documentation/architecture.html
+.. _`backup recovery page`: https://docs.pagure.org/copr.copr/backup_recovery.html
+.. _`graphs of how much others use Copr`: https://copr.fedorainfracloud.org/usage/
+.. _`OpenAPI`: https://www.openapis.org/
+.. _`Swagger`: https://swagger.io/
+
+.. _`#2566`: https://github.com/fedora-copr/copr/issues/2566
+.. _`#1865`: https://github.com/fedora-copr/copr/issues/1865
+.. _`#2681`: https://github.com/fedora-copr/copr/issues/2681
+.. _`#2528`: https://github.com/fedora-copr/copr/issues/2528
+.. _`#1465`: https://github.com/fedora-copr/copr/issues/1465
+.. _`#2173`: https://github.com/fedora-copr/copr/issues/2173
+.. _`#2658`: https://github.com/fedora-copr/copr/issues/2658
+.. _`#2696`: https://github.com/fedora-copr/copr/issues/2696
+.. _`#2714`: https://github.com/fedora-copr/copr/issues/2714
+.. _`#2703`: https://github.com/fedora-copr/copr/issues/2703
