@@ -128,7 +128,10 @@ class CoprsLogic(object):
             query = query.filter(models.Copr.deleted.is_(False))
 
         if not include_unlisted_on_hp:
-            query = query.filter(models.Copr.unlisted_on_hp.is_(False))
+            query = (
+                query.filter(models.Copr.unlisted_on_hp.is_(False))
+                .filter(models.Copr.delete_after.is_(None))
+            )
 
         return query
 
