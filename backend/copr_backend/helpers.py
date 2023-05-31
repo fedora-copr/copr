@@ -427,22 +427,24 @@ class BackendConfigReader(object):
         return opts
 
 
-def uses_devel_repo(front_url, username, projectname):
+def get_project_info(front_url, username, projectname):
+    """
+    Get JSON data from Frontend API page with the info about the given project.
+    """
     client = Client({"copr_url": front_url})
-    project = client.project_proxy.get(username, projectname)
+    return client.project_proxy.get(username, projectname)
+
+
+def uses_devel_repo(front_url, username, projectname, project=None):
+    """
+    Detect if the given project uses the "pre-release" builds being managed by
+    metadata in a seprate devel/ directory.  If project object is given, we
+    use it instead of doing additional API call to frontend to get the info.
+    """
+    if project is None:
+        client = Client({"copr_url": front_url})
+        project = client.project_proxy.get(username, projectname)
     return bool(project.get("devel_mode", False))
-
-
-def get_persistent_status(front_url, username, projectname):
-    client = Client({"copr_url": front_url})
-    project = client.project_proxy.get(username, projectname)
-    return bool(project.get("persistent", True))
-
-
-def get_auto_prune_status(front_url, username, projectname):
-    client = Client({"copr_url": front_url})
-    project = client.project_proxy.get(username, projectname)
-    return bool(project.get("auto_prune", True))
 
 
 # def log(lf, msg, quiet=None):
