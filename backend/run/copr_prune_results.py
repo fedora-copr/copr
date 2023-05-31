@@ -61,7 +61,8 @@ def runcmd(cmd):
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
-def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
+def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days,
+                  appstream):
     """
     Running prunerepo in background worker.  We don't check the return value, so
     the best we can do is that we return useful success/error message that will
@@ -73,7 +74,7 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days):
         if rpms:
             LOG.info("Going to remove %s RPMs in %s", len(rpms), chroot_path)
             call_copr_repo(directory=chroot_path, rpms_to_remove=rpms,
-                           logger=LOG)
+                           logger=LOG, appstream=appstream)
         clean_copr(chroot_path, prune_days, verbose=True)
     except Exception:  # pylint: disable=broad-except
         LOG.exception("Error pruning chroot %s/%s/%s", username, projectdir,
@@ -175,9 +176,12 @@ class Pruner(object):
         projectname = projectdir.split(':', 1)[0]
         LOG.info("projectname = %s", projectname)
 
+        appstream = False
         try:
             project_info = get_project_info(self.opts.frontend_base_url,
                                             username, projectname)
+
+            appstream = project_info.get("appstream", False)
 
             if uses_devel_repo(self.opts.frontend_base_url, username,
                                projectname, project_info):
@@ -230,7 +234,8 @@ class Pruner(object):
 
             self.pool.apply_async(run_prunerepo,
                                   (chroot_path, username,
-                                   projectdir, sub_dir_name, self.prune_days))
+                                   projectdir, sub_dir_name, self.prune_days,
+                                   appstream))
 
 
 def clean_copr(path, days=DEF_DAYS, verbose=True):
