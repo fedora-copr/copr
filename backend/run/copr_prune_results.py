@@ -16,8 +16,14 @@ from prunerepo.helpers import get_rpms_to_remove
 
 from copr.v3.exceptions import CoprException
 
-from copr_backend.helpers import BackendConfigReader, get_redis_logger
-from copr_backend.helpers import uses_devel_repo, get_persistent_status, get_auto_prune_status, call_copr_repo
+from copr_backend.helpers import (
+    BackendConfigReader,
+    call_copr_repo,
+    get_project_info,
+    get_redis_logger,
+    uses_devel_repo,
+)
+
 from copr_backend.frontend import FrontendClient
 
 
@@ -170,15 +176,21 @@ class Pruner(object):
         LOG.info("projectname = %s", projectname)
 
         try:
-            if uses_devel_repo(self.opts.frontend_base_url, username, projectname):
+            project_info = get_project_info(self.opts.frontend_base_url,
+                                            username, projectname)
+
+            if uses_devel_repo(self.opts.frontend_base_url, username,
+                               projectname, project_info):
                 LOG.info("Skipped %s/%s since auto createrepo option is disabled",
                          username, projectdir)
                 return
-            if get_persistent_status(self.opts.frontend_base_url, username, projectname):
+
+            if bool(project_info.get("persistent", True)):
                 LOG.info("Skipped %s/%s since the project is persistent",
                          username, projectdir)
                 return
-            if not get_auto_prune_status(self.opts.frontend_base_url, username, projectname):
+
+            if not bool(project_info.get("auto_prune", True)):
                 LOG.info("Skipped %s/%s since auto-prunning is disabled for the project",
                          username, projectdir)
                 return
