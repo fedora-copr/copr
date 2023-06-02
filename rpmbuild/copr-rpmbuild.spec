@@ -139,7 +139,13 @@ Requires: yum-utils
 %latest_requires ca-certificates
 %latest_requires distribution-gpg-keys
 %if 0%{?fedora}
-%latest_requires dnf
+
+%if 0%{?fedora} >= 38
+%latest_requires dnf5
+%latest_requires dnf5-plugins
+%endif
+
+%latest_requires python3-dnf
 %latest_requires dnf-plugins-core
 %latest_requires libdnf
 %latest_requires librepo
