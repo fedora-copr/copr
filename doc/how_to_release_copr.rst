@@ -145,6 +145,8 @@ For each package do::
     tito release fedora-git-clients
     # run this for copr-messaging package
     tito release fedora-git-messaging
+    # run this for copr-rpmbuild and python3-copr-common package
+    tito release fedora-git-common
     # run this for other (server) packages (copr-frontend, copr-backend, ...)
     tito release fedora-git
 
