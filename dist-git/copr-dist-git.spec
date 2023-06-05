@@ -30,7 +30,7 @@ Recommends: logrotate
 Requires: systemd
 Requires: httpd
 Requires: coreutils
-Requires: crudini
+Requires: /usr/bin/crudini
 Requires: dist-git
 Requires: python3-copr-common >= %copr_common_version
 Requires: python3-requests
