@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.169
+Version:    1.170
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Jun 05 2023 Pavel Raiskup <praiskup@redhat.com> 1.170-1
+- copr_prune_results.py: don't enforce appstream-builder, ask FE
+- copr_prune_results.py: just one API call to FE per one repo
+
 * Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.169-1
 - Forking: better handle FileExistsError
 - Run the copr-rpmbuild command with task URL, not build ID
