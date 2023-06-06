@@ -18,5 +18,7 @@ def get_redis_connection(opts):
         kwargs["host"] = opts.redis_host
     if hasattr(opts, "redis_port"):
         kwargs["port"] = opts.redis_port
+    if hasattr(opts, "redis_password"):
+        kwargs["password"] = opts.redis_password
 
     return StrictRedis(encoding="utf-8", decode_responses=True, **kwargs)

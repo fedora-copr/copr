@@ -486,9 +486,10 @@ class RedisConnectionProvider(object):
         self.host = config.get("REDIS_HOST", "127.0.0.1")
         self.port = int(config.get("REDIS_PORT", "6379"))
         self.db = db
+        self.password = config.get("REDIS_PASSWORD", None)
 
     def get_connection(self):
-        return StrictRedis(host=self.host, port=self.port, db=self.db)
+        return StrictRedis(host=self.host, port=self.port, db=self.db, password=self.password)
 
 
 def get_redis_connection():

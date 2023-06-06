@@ -288,6 +288,9 @@ class BackendConfigReader(object):
         opts.redis_port = _get_conf(
             cp, "backend", "redis_port", "6379")
 
+        opts.redis_password = _get_conf(
+            cp, "backend", "redis_password", None)
+
         opts.redis_db = _get_conf(
             cp, "backend", "redis_db", "0")
 

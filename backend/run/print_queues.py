@@ -14,6 +14,7 @@ redis_config = {
     'host': opts['redis_host'],
     'port': opts['redis_port'],
     'db': opts['redis_db'],
+    'password': opts['redis_password'],
 }
 
 for i in range(0, NUM_QUEUES):
