@@ -571,6 +571,29 @@ class TestModifyRepo(object):
             assert len(lines) == 1
             assert "pruned on" in lines[0]
 
+    @mock.patch("copr_prune_results.get_rpms_to_remove")
+    @mock.patch("copr_prune_results.LOG", logging.getLogger())
+    def test_pruner_arg_max(self, patched_get_rpms):
+        rpm_count = 10000
+        rpm_name = "x"*77+".rpm"
+        rpms_found = [rpm_name] * rpm_count
+        patched_get_rpms.return_value = rpms_found
+
+        with mock.patch("copr_prune_results.subprocess.Popen") as patched_popen:
+            patched_popen.return_value.communicate.return_value = ("","")
+            patched_popen.return_value.returncode = 0
+            run_prunerepo("/tmp", "blah", "blah", "blah", 0, False)
+            first_call = patched_popen.call_args_list[0][0][0]
+            assert len(patched_popen.call_args_list) == 2
+
+        assert list == type(first_call)
+        assert 1000 < len(first_call) < 9000*2+100
+        # Test we can execute.
+        subprocess.check_call(["/bin/true"] + first_call)
+
+        opts = ["--rpms-to-remove", rpm_name] * 9000
+        assert first_call == ["copr-repo", "--batched", "/tmp"] + opts + ["--no-appstream-metadata"]
+
     @pytest.mark.parametrize('run_bg', [True, False])
     @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
     def test_copr_repo_timeouted_check(self, f_second_build, run_bg):
