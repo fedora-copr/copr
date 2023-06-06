@@ -61,6 +61,17 @@ def runcmd(cmd):
         raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
+
+def arg_max_splitter(args, window):
+    """
+    Split the ARGS into a list of SUB-ARGS with at most WINDOW items.
+    """
+    length = len(args)
+    i = 0
+    while i*window < length:
+        yield args[i*window:(i+1)*window]
+        i += 1
+
 def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days,
                   appstream):
     """
@@ -70,8 +81,26 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days,
     """
     try:
         LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
-        rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
-        if rpms:
+        all_rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
+
+        # See https://github.com/fedora-copr/copr/issues/1817 for more info
+        # about reasoning, but here comes TL;DR:
+        #
+        # The call_copr_repo() calls `copr-repo --rpms-to-remove RPM
+        # --rpms-to-remove RPM ...` command.  `copr-repo` then calls
+        # `createrepo_c --delete RPM --delete RPM`.  The example enormous
+        # project has name average RPM length of 76.45 characters.  So we
+        # empirically tested that we can correctly execute this command:
+        #
+        #   subprocess.call(["/bin/echo"] + ["--rpms-to-remove", "x"*77] * 18867)
+        #
+        # From this perspective, using a limit with roughly half of it should
+        # give the system stack enough space for other nuances.  The limit is
+        # big enough, after not cleaning the enormous project for months or
+        # maybe years, we accumulated 100k packages, meaning that the first
+        # run_prunerepo() call will only do a few calls to `call_copr_repo()`,
+        # and then we'll rarely hit the limit.
+        for rpms in arg_max_splitter(all_rpms, window=9000):
             LOG.info("Going to remove %s RPMs in %s", len(rpms), chroot_path)
             call_copr_repo(directory=chroot_path, rpms_to_remove=rpms,
                            logger=LOG, appstream=appstream)
