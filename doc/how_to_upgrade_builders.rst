@@ -28,6 +28,7 @@ Requirements
   ``copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org``
 * ssh access to ``batcave01.iad2.fedoraproject.org``, and sudo access there
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
+* IBM Cloud API token assigned to the Fedora Copr team (see team's Bitwaarden)
 
 
 .. _prepare_aws_source_images:
@@ -237,11 +238,10 @@ uploading`_, pushed to **quay.io** service  as
 
     $ qcow_image=/tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
     $ podman_image=quay.io/praiskup/ibmcloud-cli
-    $ podman run --rm -ti -v $qcow_image:/image.qcow2:z $podman_image upload-image
+    $ export IBMCLOUD_API_KEY=....
+    $ podman run -e IBMCLOUD_API_KEY --rm -ti -v $qcow_image:/image.qcow2:z $podman_image upload-image
     ....
-    + ibmcloud login -r jp-tok -u coprteam@fedoraproject.org
-    API endpoint: https://cloud.ibm.com
-    Password> <use our team password here, stored in bitwaarden>
+    + ibmcloud login -r jp-tok
     ....
     Uploaded image "r022-8509865b-0347-4a00-bbfe-bb6df1c5a384"
     ("copr-builder-image-s390x-20220119-142944")
