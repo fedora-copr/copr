@@ -8,9 +8,10 @@ import base64
 
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
+from functools import wraps
+from typing import Type
 from urllib.request import urlretrieve
 from copr.exceptions import CoprRequestException
-from requests import RequestException
 from munch import Munch
 
 import modulemd_tools.yaml
@@ -30,8 +31,70 @@ from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
+def lock_action_method(func):
+    """Lock a resource before calling method and unlock it once method ends."""
+    @wraps(func)
+    def _caller(self, *args, **kwargs):
+        self.lock.lock()
+        try:
+            retval = func(self, *args, **kwargs)
+        finally:
+            # try to unlock resource in every possible scenario to prevent waiting
+            # for the resource till timeout ends
+            self.lock.unlock()
+
+        return retval
+    return _caller
+
+
+class ActionLock:
+    """
+    Perform lock on project level. If action which works with project needs to modify
+    the project resource and keep the atomicity of it.
+
+    TODO: It may be useful to implement also lock on per-build level
+    """
+    def __init__(self, data, frontend_client, action_type, allowed_actions_to_run=None):
+        self.frontend_client = frontend_client
+
+        new_value = data.get("new_value")
+        if new_value:
+            self.ownername, self.projectname = new_value.split("/")
+        else:
+            self.ownername, self.projectname = data["ownername"], data["projectname"]
+
+        # these actions are allowed to run even on locked resource, think of it as a
+        # some kind of semaphore
+        self.allowed_actions_to_run: list[Type["Action"]] = allowed_actions_to_run or []
+
+        self._project_lock_status_endpoint = f"project-lock-status/{self.ownername}/{self.projectname}"
+        self._action_type = action_type
+
+    def lock(self):
+        self.frontend_client.post(self._project_lock_status_endpoint, data={"lock_value": True})
+
+    def unlock(self):
+        self.frontend_client.post(self._project_lock_status_endpoint, data={"lock_value": False})
+
+    def get_resource_lock_state(self):
+        return self.frontend_client.get(self._project_lock_status_endpoint).json()["locked"]
+
+    def wait_for_resource_to_be_unlocked(self, seconds_to_sleep=60):
+        if self._action_type in self.allowed_actions_to_run:
+            return
+
+        lock_timeout = 3600  # to prevent deadlock
+        while self.get_resource_lock_state():
+            if lock_timeout <= 0:
+                self.unlock()
+                return
+
+            lock_timeout -= 1
+            time.sleep(seconds_to_sleep)
+
+
 class Action(object):
-    """ Object to send data back to fronted
+    """ Object to send data back to frontend
 
     :param copr_backend.callback.FrontendCallback frontent_callback:
         object to post data back to frontend
@@ -48,9 +111,9 @@ class Action(object):
     """
 
     @classmethod
-    def create_from(cls, opts, action, log=None):
+    def create_from(cls, opts, action, frontend_client, log=None):
         action_class = cls.get_action_class(action)
-        return action_class(opts, action, log)
+        return action_class(opts, action, frontend_client, log)
 
     @classmethod
     def get_action_class(cls, action):
@@ -81,7 +144,7 @@ class Action(object):
         return action_class
 
     # TODO: get more form opts, decrease number of parameters
-    def __init__(self, opts, action, log=None):
+    def __init__(self, opts, action, frontend_client, log=None):
 
         self.opts = opts
         self.data = action
@@ -89,6 +152,12 @@ class Action(object):
         self.destdir = self.opts.destdir
         self.front_url = self.opts.frontend_base_url
         self.results_root_url = self.opts.results_baseurl
+        self.frontend_client = frontend_client
+
+        # lock around actions - If set to True then the corresponding action  is prone
+        # to race conditions, thus lock this action so one action of this type is
+        # processed at the same time
+        self.lock = ActionLock(self.data, frontend_client, self.__class__)
 
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
@@ -270,6 +339,7 @@ class Delete(Action):
 
 
 class DeleteProject(Delete):
+    @lock_action_method
     def run(self):
         self.log.debug("Action delete copr")
         result = ActionResult.SUCCESS

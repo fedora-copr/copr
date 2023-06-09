@@ -409,6 +409,10 @@ class _CoprPrivate(db.Model, helpers.Serializer):
     # remote Git sites auth info
     scm_api_auth_json = db.Column(db.Text)
 
+    # if set to True then an action prone to race condition is working with this
+    # resource
+    copr_resource_locked = db.Column(db.Boolean, default=False)
+
 
 class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """

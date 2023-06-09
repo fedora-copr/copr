@@ -6,7 +6,7 @@ from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
+from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
 from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.helpers import streamed_json
 
@@ -484,3 +484,22 @@ def chroots_prunerepo_status():
 def final_prunerepo_done():
     chroots_pruned = flask.request.get_json()
     return flask.jsonify(MockChrootsLogic.prunerepo_finished(chroots_pruned))
+
+
+@app.route("/project-lock-status/<ownername>/<projectname>/", methods=["GET", "PUT"])
+def get_project_lock_status():
+    """
+    Get or change the lock value of Copr project.
+    """
+    ownername = flask.request.json.get("ownername")
+    projectname = flask.request.json.get("projectname")
+    coprs = CoprsLogic.get_by_ownername_coprname(ownername, projectname)
+    if flask.request.method == "GET":
+        return flask.jsonify({
+            "locked": coprs.copr_resource_locked
+        })
+
+    new_lock_value = flask.request.json.get("lock_value")
+    coprs.update({"copr_resource_locked": new_lock_value})
+    db.session.commit()
+    return flask.jsonify(coprs)

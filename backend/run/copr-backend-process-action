@@ -29,7 +29,10 @@ class ActionBackgroundWorker(BackendBackgroundWorker):
                            resp.status_code)
             return result
         action_task = resp.json()
-        action = Action.create_from(self.opts, action_task, log=self.log)
+        action = Action.create_from(self.opts, action_task, self.frontend_client, log=self.log)
+
+        action.lock.wait_for_resource_to_be_unlocked()
+
         try:
             self.log.info("Executing: %s", str(action))
             result = action.run()
