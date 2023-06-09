@@ -665,12 +665,14 @@ def pkg_name_evr(spec_file_path, srpm_path, logger):
     """
     try:
         spec = Specfile(spec_file_path)
+        return spec.expanded_name, format_evr(spec.expanded_epoch,
+                                              spec.expanded_version,
+                                              spec.expanded_release)
     except Exception:  # pylint: disable=broad-exception-caught
         # Specfile library raises too many exception to name the in except block
         logger.exception("Exception appeared during handling spec file: %s", spec_file_path)
         return pkg_name_evr_from_srpm(srpm_path, logger)
 
-    return spec.expanded_name, format_evr(spec.expanded_epoch, spec.expanded_version, spec.expanded_release)
 
 
 def pkg_name_evr_from_srpm(srpm_path, logger):
