@@ -29,7 +29,11 @@ class FedoraReview(AutomationTool):
         Do we want to run `fedora-review` tool for this particular task?
         Depends on the project settings and the chroot that we build in.
         """
-        return self.chroot.startswith("fedora-") and self.fedora_review_enabled
+        if not self.chroot:
+            return False
+        if not self.chroot.startswith("fedora-"):
+            return False
+        return self.fedora_review_enabled
 
     def run(self):
         """

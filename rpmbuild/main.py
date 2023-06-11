@@ -231,6 +231,7 @@ def build_srpm(args, config):
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")
+    run_automation_tools(task, resultdir, None, log)
 
 
 def build_rpm(args, config):
