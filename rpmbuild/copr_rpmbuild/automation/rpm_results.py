@@ -16,9 +16,9 @@ class RPMResults(AutomationTool):
     @property
     def enabled(self):
         """
-        Do this for every build
+        Do this for every RPM build
         """
-        return True
+        return self.chroot is not None
 
     def run(self):
         """
