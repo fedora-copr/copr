@@ -311,7 +311,8 @@ def test_prev_build_backup(f_build_rpm_case):
     assert len(glob.glob(os.path.join(prev_results, rsync_patt))) == 1
 
 
-def test_full_srpm_build(f_build_srpm):
+@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
+def test_full_srpm_build(_parse_results, f_build_srpm):
     worker = f_build_srpm.bw
     worker.process()
     assert worker.job.pkg_name == "example"
@@ -326,7 +327,9 @@ def test_full_srpm_build(f_build_srpm):
 
 
 @mock.patch("copr_backend.background_worker_build.find_spec_file")
-def test_full_srpm_build_without_specfile(mock_find_spec_file, f_build_srpm):
+@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
+def test_full_srpm_build_without_specfile(_parse_results, mock_find_spec_file,
+                                          f_build_srpm):
     mock_find_spec_file.return_value = None
 
     worker = f_build_srpm.bw
@@ -784,7 +787,8 @@ def test_createrepo_failure(mc_call_copr_repo, f_build_rpm_case, caplog):
     ], caplog)
 
 @_patch_bwbuild_object("pkg_name_evr")
-def test_pkg_collect_failure(mc_pkg_evr, f_build_srpm, caplog):
+@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
+def test_pkg_collect_failure(_parse_results, mc_pkg_evr, f_build_srpm, caplog):
     mc_pkg_evr.side_effect = CoprBackendSrpmError("srpm error")
     config = f_build_srpm
     worker = config.bw
@@ -868,7 +872,8 @@ def test_unable_to_start_builder(f_build_srpm, caplog):
     assert_logs_dont_exist(["Retry"], caplog)
 
 @_patch_bwbuild_object("time.sleep", mock.MagicMock())
-def test_retry_vm_factory_take(f_build_srpm, caplog):
+@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
+def test_retry_vm_factory_take(_parse_results, f_build_srpm, caplog):
     config = f_build_srpm
     rhf = config.resalloc_host_factory
     host = config.host

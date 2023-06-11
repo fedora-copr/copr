@@ -1011,18 +1011,33 @@ class BuildsLogic(object):
                         buildchroot.status = chroot_status
                         db.session.add(buildchroot)
 
+            def finish(chroot, status):
+                chroot.status = status
+                chroot.ended_on = upd_dict.get("ended_on") or time.time()
+                chroot.started_on = upd_dict.get("started_on", chroot.ended_on)
+                db.session.add(chroot)
+
             build.source_status = new_status
             if new_status == StatusEnum("failed") or \
                    new_status == StatusEnum("skipped"):
                 for ch in build.build_chroots:
-                    ch.status = new_status
-                    ch.ended_on = upd_dict.get("ended_on") or time.time()
-                    ch.started_on = upd_dict.get("started_on", ch.ended_on)
-                    db.session.add(ch)
+                    finish(ch, new_status)
 
             if new_status == StatusEnum("failed"):
                 build.fail_type = FailTypeEnum("srpm_build_error")
                 BuildsLogic.delete_local_source(build)
+
+            # Skip excluded architectures
+            if upd_dict.get("chroot") == "srpm-builds" and upd_dict.get("results"):
+                for chroot in build.build_chroots:
+                    arch = chroot.mock_chroot.arch
+
+                    exclusivearch = upd_dict["results"]["exclusivearch"]
+                    if exclusivearch and arch not in exclusivearch:
+                        finish(chroot, StatusEnum("skipped"))
+
+                    if arch in upd_dict["results"]["excludearch"]:
+                        finish(chroot, StatusEnum("skipped"))
 
             cls.process_update_callback(build)
             db.session.add(build)
