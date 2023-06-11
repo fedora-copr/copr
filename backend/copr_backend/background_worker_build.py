@@ -35,7 +35,7 @@ from copr_backend.vm_alloc import ResallocHostFactory
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "0.54.1.dev"
+MIN_BUILDER_VERSION = "0.68.dev"
 CANCEL_CHECK_PERIOD = 5
 
 MESSAGES = {
@@ -291,10 +291,6 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         Parse `results.json` and update the `self.job` object.
         """
-        if self.job.chroot == "srpm-builds":
-            # We care only about final RPMs
-            return
-
         path = os.path.join(self.job.results_dir, "results.json")
         if not os.path.exists(path):
             raise BackendError("results.json file not found in resultdir")

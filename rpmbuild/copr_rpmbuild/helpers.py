@@ -101,6 +101,17 @@ def locate_srpm(dirpath):
     return srpm_path
 
 
+def get_rpm_header(path):
+    """
+    Examine a RPM package file and return its header
+    See docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch16s04.html
+    """
+    ts = rpm.TransactionSet()
+    with open(path, "rb") as f:
+        hdr = ts.hdrFromFdno(f.fileno())
+        return hdr
+
+
 def get_package_name(spec_path):
     """
     Obtain name of a package described by spec

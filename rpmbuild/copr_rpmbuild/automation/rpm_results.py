@@ -3,9 +3,9 @@ Create `results.json` file
 """
 
 import os
-import rpm
 import simplejson
 from copr_rpmbuild.automation.base import AutomationTool
+from copr_rpmbuild.helpers import get_rpm_header
 
 
 class RPMResults(AutomationTool):
@@ -53,7 +53,7 @@ class RPMResults(AutomationTool):
             msg = "File name doesn't end with '.rpm': {}".format(path)
             raise ValueError(msg)
 
-        hdr = cls.get_rpm_header(path)
+        hdr = get_rpm_header(path)
         arch = "src" if filename.endswith(".src.rpm") else hdr["arch"]
         return {
             "name": hdr["name"],
@@ -62,14 +62,3 @@ class RPMResults(AutomationTool):
             "release": hdr["release"],
             "arch": arch,
         }
-
-    @staticmethod
-    def get_rpm_header(path):
-        """
-        Examine a RPM package file and return its header
-        See docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch16s04.html
-        """
-        ts = rpm.TransactionSet()
-        with open(path, "r") as f:
-            hdr = ts.hdrFromFdno(f.fileno())
-            return hdr
