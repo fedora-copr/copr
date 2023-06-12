@@ -90,10 +90,12 @@ def dist_git_upload_completed():
     for branch, git_hash in flask.request.json.get("branch_commits", {}).items():
         branch_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(build_id, branch)
         for ch in branch_chroots:
+            collected_branch_chroots.append((ch.task_id))
+            if ch.status == StatusEnum("skipped"):
+                continue
             ch.status = StatusEnum("pending")
             ch.git_hash = git_hash
             db.session.add(ch)
-            collected_branch_chroots.append((ch.task_id))
 
     final_source_status = StatusEnum("succeeded")
     for ch in build.build_chroots:
