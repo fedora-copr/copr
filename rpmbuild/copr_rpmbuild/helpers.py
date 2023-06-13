@@ -14,6 +14,7 @@ from collections import OrderedDict
 import backoff
 import rpm
 import munch
+from specfile import Specfile
 
 from six.moves.urllib.parse import urlparse
 from copr_common.enums import BuildSourceEnum
@@ -377,3 +378,50 @@ def is_srpm_build(task):
     Return `True` if the `self.source_dict` belongs to a SRPM build task
     """
     return task.get("source_type") is not None
+
+
+class Spec:
+    """
+    Wrapper around `specfile.Specfile` to easily access attributes that we need
+    """
+
+    def __init__(self, path):
+        try:
+            # TODO We want to loop over all name-version chroots and parse the
+            # spec values for each of them. For that, we will set dist macros.
+            # It expect tuples like this: [("fedora", "39"), ("foo", "bar")]
+            macros = []
+            self.spec = Specfile(path, macros=macros)
+        except TypeError as ex:
+            raise RuntimeError("No .spec file") from ex
+        except OSError as ex:
+            raise RuntimeError(ex) from ex
+
+        self.path = path
+        self.tags = self.spec.tags(self.spec.parsed_sections.package).content
+
+    def __getattr__(self, name):
+        return getattr(self.spec, name)
+
+    @property
+    def exclusivearch(self):
+        """
+        Evaluated %{exclusivearch} as a list
+        """
+        return self.safe_attr("exclusivearch").split()
+
+    @property
+    def excludearch(self):
+        """
+        Evaluated %{excludearch} as a list
+        """
+        return self.safe_attr("excludearch").split()
+
+    def safe_attr(self, name):
+        """
+        Return evaluated spec file attribute or empty string
+        """
+        try:
+            return getattr(self.tags, name).expanded_value
+        except AttributeError:
+            return ""
