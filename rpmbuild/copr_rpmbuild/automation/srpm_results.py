@@ -5,7 +5,7 @@ Create `results.json` file for SRPM builds
 import os
 import simplejson
 from copr_rpmbuild.automation.base import AutomationTool
-from copr_rpmbuild.helpers import locate_srpm, get_rpm_header
+from copr_rpmbuild.helpers import locate_spec, Spec
 
 
 class SRPMResults(AutomationTool):
@@ -33,7 +33,7 @@ class SRPMResults(AutomationTool):
         """
         Return ``dict`` with interesting package metadata
         """
-        srpm = locate_srpm(self.resultdir)
-        hdr = get_rpm_header(srpm)
+        spec_path = locate_spec(self.resultdir)
+        spec = Spec(spec_path)
         keys = ["name", "exclusivearch", "excludearch"]
-        return {key: hdr[key] for key in keys}
+        return {key: getattr(spec, key) for key in keys}

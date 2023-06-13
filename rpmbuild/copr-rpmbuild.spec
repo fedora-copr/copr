@@ -40,6 +40,7 @@ BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
 BuildRequires: %{python_pfx}-simplejson
+BuildRequires: %{python_pfx}-specfile
 BuildRequires: python3-backoff >= 1.9.0
 
 BuildRequires: /usr/bin/argparse-manpage
@@ -57,6 +58,7 @@ Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-simplejson
+Requires: %{python_pfx}-specfile
 Requires: python3-backoff >= 1.9.0
 
 Requires: mock >= 2.0
