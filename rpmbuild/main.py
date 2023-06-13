@@ -227,7 +227,8 @@ def build_srpm(args, config):
         os.listdir(resultdir)))
 
     # extract spec file from SRPM
-    subprocess.run(f"rpm2archive -n < {locate_srpm(resultdir)} | tar xf - '*.spec'", shell=True, check=False)
+    cmd = f"rpm2archive -n < {locate_srpm(resultdir)} | tar xf - '*.spec'"
+    subprocess.run(cmd, shell=True, check=False, cwd=resultdir)
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")
