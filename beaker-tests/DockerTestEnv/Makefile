@@ -10,7 +10,7 @@ bld: build
 run:
 	docker run \
 		-dit \
-		-v $(mkfile_path)/../../../copr:/root/copr \
+		-v $(mkfile_path)/../..:/root/copr \
 		--name="test-env" \
 		-h test-env \
 		-w /root/ \
