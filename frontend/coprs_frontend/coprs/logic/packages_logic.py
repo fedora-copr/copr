@@ -169,10 +169,15 @@ class PackagesLogic(object):
         return package
 
     @classmethod
+    def _normalize_git_clone_url(cls, clone_url):
+        normalized = clone_url.rstrip("/")
+        return normalized.removesuffix(".git")
+
+    @classmethod
     def get_for_webhook_rebuild(
         cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref, pkg_name: Optional[str]
     ) -> List[Package]:
-        clone_url_stripped = clone_url.rstrip(".git")
+        clone_url_stripped = cls._normalize_git_clone_url(clone_url)
 
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
@@ -184,7 +189,7 @@ class PackagesLogic(object):
         result = []
         for package in packages:
             package_clone_url = package.source_json_dict.get('clone_url', '')
-            package_clone_url_stripped = package_clone_url.rstrip(".git")
+            package_clone_url_stripped = cls._normalize_git_clone_url(package_clone_url)
 
             if package_clone_url_stripped != clone_url_stripped:
                 continue
