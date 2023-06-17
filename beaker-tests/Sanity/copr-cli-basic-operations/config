@@ -10,6 +10,7 @@
 : "${BACKEND_URL=https://copr-be-dev.cloud.fedoraproject.org}"
 : "${DISTGIT_URL=https://copr-dist-git-dev.fedorainfracloud.org}"
 : "${OWNER=@copr}"
+: "${VENDOR=Fedora Copr (devel) - group @copr}"
 
 # Owner and project
 NAME_VAR="TEST$(date +%s%N)" # names should be unique
