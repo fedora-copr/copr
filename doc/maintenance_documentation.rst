@@ -20,7 +20,7 @@ This section contains information about maintenance topics. You may also be inte
    :maxdepth: 1
 
    aws_tips_and_tricks
-   enlarge_disk_copr_be
+   enlarge_volumes
    raid_on_backend
    backup_recovery
 
