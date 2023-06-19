@@ -45,7 +45,7 @@ from coprs.views.misc import (
 
 from coprs.views.coprs_ns import coprs_ns
 
-from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
+from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic, packages_logic
 from coprs.helpers import generate_repo_url, \
     url_for_copr_view, CounterStatType
 
@@ -86,6 +86,8 @@ def coprs_show(page=1):
     # users_count = models.User.query.count()
     users_count = users_logic.UsersLogic.get_multiple_with_projects().count()
 
+    packages_count = packages_logic.PackagesLogic.count() if app.config.get("PACKAGES_COUNT", False) else None
+
     # flask.g.user is none when no user is logged - showing builds from everyone
     # TODO: builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5) takes too much time, optimize sql
     # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
@@ -100,6 +102,7 @@ def coprs_show(page=1):
                                  recent=recent,
                                  projects_count=projects_count,
                                  users_count=users_count,
+                                 packages_count=packages_count,
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  users_builds=users_builds,
