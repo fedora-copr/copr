@@ -175,6 +175,8 @@ class Config(object):
     # OIDC is opt-in
     OIDC_LOGIN = False
 
+    PACKAGES_COUNT = False
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

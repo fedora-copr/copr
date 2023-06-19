@@ -22,6 +22,13 @@ log = app.logger
 class PackagesLogic(object):
 
     @classmethod
+    def count(cls):
+        """
+        Get packages count
+        """
+        return models.Package.query.count()
+
+    @classmethod
     def get_by_id(cls, package_id):
         return models.Package.query.filter(models.Package.id == package_id)
 
