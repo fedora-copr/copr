@@ -223,6 +223,12 @@ used to create SRPM).  For more info, have a look at
 :ref:`custom_source_method`.
 
 
+Reproducing the builds locally
+------------------------------
+
+There's a separate document :ref:`reproducing_builds`.
+
+
 Temporary projects
 ------------------
 
