@@ -4,7 +4,6 @@ PyYAML
 redis
 retask
 python-daemon
-bunch
 # documentation
 sphinx
 sphinx-argparse
