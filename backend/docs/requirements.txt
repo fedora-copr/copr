@@ -6,7 +6,6 @@ redis
 mock
 requests
 python-daemon
-bunch
 lockfile
 
 
