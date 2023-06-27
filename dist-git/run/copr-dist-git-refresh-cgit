@@ -26,25 +26,10 @@ single_repo ()
         *.git) ;;
         *) subpath=$subpath.git ;;
     esac
-cat <<EOF
 
+    echo "
 repo.url=$subpath
-repo.name=$subpath
-repo.path=/$reposdir/$subpath/
-repo.owner=
-repo.desc=Unnamed repository; edit this file 'description' to name the repository.
-repo.section=
-repo.enable-blame=0
-repo.enable-commit-graph=0
-repo.enable-log-filecount=0
-repo.enable-log-linecount=0
-repo.enable-remote-branches=0
-repo.enable-subject-links=0
-repo.enable-html-serving=0
-repo.hide=0
-repo.ignore=0
-
-EOF
+repo.path=$reposdir/$subpath/"
 }
 
 tempfile_from ()
