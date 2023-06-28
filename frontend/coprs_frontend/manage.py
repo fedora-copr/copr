@@ -42,6 +42,7 @@ import commands.fixup_unnoticed_chroots
 import commands.chroots_template
 import commands.warning_banner
 import commands.usage_treemap
+import commands.failed_to_succeeded_stats
 
 from coprs import app
 
@@ -94,6 +95,7 @@ commands_list =	[
     "delete_dirs",
     "warning_banner",
     "usage_treemap",
+    "failed_to_succeeded_stats",
 ]
 
 
