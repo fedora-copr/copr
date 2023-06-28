@@ -1,6 +1,6 @@
 .. _seeddb:
 
-Populate DB with pruduction data
+Populate DB with production data
 ================================
 
 While setting your local development environment, you might want to
