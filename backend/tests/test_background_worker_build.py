@@ -27,7 +27,6 @@ from copr_backend.exceptions import CoprSignError, FrontendClientException
 from copr_backend.vm_alloc import ResallocHost, RemoteHostAllocationTerminated
 from copr_backend.background_worker_build import COMMANDS, MIN_BUILDER_VERSION
 from copr_backend.sshcmd import SSHConnectionError
-from copr_backend.exceptions import CoprBackendSrpmError
 
 import testlib
 from testlib import assert_logs_exist, assert_logs_dont_exist
@@ -169,6 +168,7 @@ def f_build_srpm(f_build_something):
     to build RPM.
     """
     config = f_build_something
+    config.ssh.resultdir = "srpm-builds/02914697"
     config.fe_client.return_value.get.return_value = _get_srpm_job()
     config.ssh.set_command(
         "copr-rpmbuild --verbose --drop-resultdir --srpm --task-url "
@@ -315,32 +315,15 @@ def test_prev_build_backup(f_build_rpm_case):
 def test_full_srpm_build(_parse_results, f_build_srpm):
     worker = f_build_srpm.bw
     worker.process()
-    assert worker.job.pkg_name == "example"
+    assert worker.job.pkg_name == "hello"
 
     # TODO: fix this is ugly pkg_version testament
     assert worker.job.pkg_version is None
-    assert worker.job.__dict__["pkg_version"] == "1.0.14-1"
+    assert worker.job.__dict__["pkg_version"] == "2.8-1"
 
     assert worker.job.srpm_url == (
         "https://example.com/results/@copr/PROJECT_2/srpm-builds/"
-        "00855954/example-1.0.14-1.fc30.src.rpm")
-
-
-@mock.patch("copr_backend.background_worker_build.find_spec_file")
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_full_srpm_build_without_specfile(_parse_results, mock_find_spec_file,
-                                          f_build_srpm):
-    mock_find_spec_file.return_value = None
-
-    worker = f_build_srpm.bw
-    worker.process()
-
-    assert worker.job.pkg_name == "example"
-    assert worker.job.pkg_version is None
-    assert worker.job.__dict__["pkg_version"] == "1.0.14-1.fc30"
-    assert worker.job.srpm_url == (
-            "https://example.com/results/@copr/PROJECT_2/srpm-builds/"
-            "00855954/example-1.0.14-1.fc30.src.rpm")
+        "00855954/hello-2.8-1.src.rpm")
 
 
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
@@ -785,20 +768,6 @@ def test_createrepo_failure(mc_call_copr_repo, f_build_rpm_case, caplog):
         "Worker failed build, took ",
         "Finished build: id=848963 failed=True ",
     ], caplog)
-
-@_patch_bwbuild_object("pkg_name_evr")
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_pkg_collect_failure(_parse_results, mc_pkg_evr, f_build_srpm, caplog):
-    mc_pkg_evr.side_effect = CoprBackendSrpmError("srpm error")
-    config = f_build_srpm
-    worker = config.bw
-    worker.process()
-    assert_logs_exist([
-        "Error while collecting built packages",
-        "Worker failed build, took ",
-        "Finished build: id=855954 failed=True ",
-    ], caplog)
-    assert worker.job.status == 0  # fail
 
 @_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
 def test_existing_compressed_file(_parse_results, f_build_rpm_case, caplog):

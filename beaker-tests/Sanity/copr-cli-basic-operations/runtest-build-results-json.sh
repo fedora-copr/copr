@@ -22,6 +22,16 @@ rlJournalStart
         rlRun "parse_build_id"
         rlRun "copr watch-build $BUILD_ID"
 
+        # Check the SRPM results.json file that is stored on backend
+        URL_PATH="results/${NAME_PREFIX}TestResultsJson/srpm-builds/$(build_id_with_leading_zeroes)/results.json"
+        path="$RESULTDIR/results.json"
+        rlRun "curl $BACKEND_URL/$URL_PATH > $path"
+        rlRun "cat $path |jq -e '.name == \"hello\"'"
+        rlRun "cat $path |jq -e '.epoch == null'"
+        rlRun "cat $path |jq -e '.version == \"2.8\"'"
+        rlRun "cat $path |jq -e '.release == \"1\"'"
+
+        # Check results.json for the final chroots
         checkResults()
         {
             orig_file=$1

@@ -35,5 +35,6 @@ class SRPMResults(AutomationTool):
         """
         spec_path = locate_spec(self.resultdir)
         spec = Spec(spec_path)
-        keys = ["name", "exclusivearch", "excludearch"]
+        keys = ["name", "epoch", "version", "release",
+                "exclusivearch", "excludearch"]
         return {key: getattr(spec, key) for key in keys}

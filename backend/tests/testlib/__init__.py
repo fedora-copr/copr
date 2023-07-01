@@ -134,6 +134,7 @@ class FakeSSHConnection(SSHConnection):
                          0, "", "")
         self.set_command("copr-rpmbuild-log",
                          0, "build log stdout\n", "build log stderr\n")
+        self.resultdir = "fedora-30-x86_64/00848963-example"
 
     def set_command(self, cmd, exit_code, stdout, stderr, action=None,
                     return_action=None):
@@ -177,8 +178,8 @@ class FakeSSHConnection(SSHConnection):
     def rsync_download(self, src, dest, logfile=None, max_retries=0):
         data = os.environ["TEST_DATA_DIRECTORY"]
         trail_slash = src.endswith("/")
-        src = os.path.join(data, "build_results", "fedora-30-x86_64",
-                           "00848963-example")
+        src = os.path.join(data, "build_results", self.resultdir)
+
         if trail_slash:
             src = src + "/"
 
@@ -193,7 +194,7 @@ class FakeSSHConnection(SSHConnection):
         if self.unlink_success:
             os.unlink(os.path.join(dest, "success"))
 
-        if "PROJECT_2" in dest:
+        if "PROJECT_2" in dest and "fedora-30-x86_64" in dest:
             os.unlink(os.path.join(dest, "example-1.0.14-1.fc30.x86_64.rpm"))
 
 def assert_logs_exist(messages, caplog):
