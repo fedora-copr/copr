@@ -840,8 +840,8 @@ class CoprDirsLogic(object):
         """
         copr_ids = cls.get_copr_ids_with_pr_dirs().all()
 
-        remove_dirs = []
         for copr_id in copr_ids:
+            remove_dirs = []
             copr_id = copr_id[0]
             all_dirs = cls.get_all_with_latest_submitted_build(copr_id)
             for copr_dir in all_dirs:
@@ -857,13 +857,14 @@ class CoprDirsLogic(object):
                 cls.delete_with_builds(dir_object)
                 remove_dirs.append(dirname)
 
-        action = models.Action(
-            action_type=ActionTypeEnum("remove_dirs"),
-            object_type="copr",
-            data=json.dumps(remove_dirs),
-            created_on=int(time.time()))
-
-        db.session.add(action)
+            action = models.Action(
+                action_type=ActionTypeEnum("remove_dirs"),
+                object_type="copr",
+                data=json.dumps(remove_dirs),
+                created_on=int(time.time()),
+                copr_id=copr_id,
+            )
+            db.session.add(action)
 
     @classmethod
     def copr_name_from_dirname(cls, dirname):

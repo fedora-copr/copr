@@ -2150,6 +2150,9 @@ class Action(db.Model, helpers.Serializer):
     # time ended as returned by int(time.time())
     ended_on = db.Column(db.Integer, index=True)
 
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=True, index=True)
+    copr = db.relationship("Copr", backref=db.backref("actions"))
+
     def __str__(self):
         return self.__unicode__()
 

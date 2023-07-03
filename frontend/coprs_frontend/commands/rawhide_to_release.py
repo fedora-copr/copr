@@ -137,7 +137,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
             ))
 
         if len(data["builds"]):
-            actions_logic.ActionsLogic.send_rawhide_to_release(data)
+            actions_logic.ActionsLogic.send_rawhide_to_release(copr, data)
 
         db.session.commit()
 
