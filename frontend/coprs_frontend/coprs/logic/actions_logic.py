@@ -132,6 +132,7 @@ class ActionsLogic(object):
                 object_id=0,
                 data=json.dumps(data_dict),
                 created_on=int(time.time()),
+                copr_id=copr.id,
             )
             if priority is not None:
                 action.priority = priority
@@ -148,7 +149,8 @@ class ActionsLogic(object):
                                object_type="copr",
                                object_id=copr.id,
                                data=json.dumps(data_dict),
-                               created_on=int(time.time()))
+                               created_on=int(time.time()),
+                               copr_id=copr.id)
         db.session.add(action)
         return action
 
@@ -200,7 +202,8 @@ class ActionsLogic(object):
             object_type="build",
             object_id=build.id,
             data=json.dumps(cls.get_build_delete_data(build)),
-            created_on=int(time.time())
+            created_on=int(time.time()),
+            copr_id=build.copr.id
         )
         db.session.add(action)
         return action
@@ -246,7 +249,8 @@ class ActionsLogic(object):
             action_type=ActionTypeEnum("delete"),
             object_type="builds",
             data=json.dumps(data),
-            created_on=int(time.time())
+            created_on=int(time.time()),
+            copr_id=builds[0].copr.id,
         )
         db.session.add(action)
         return action
@@ -286,7 +290,8 @@ class ActionsLogic(object):
             action_type=ActionTypeEnum("update_comps"),
             object_type="copr_chroot",
             data=json.dumps(data_dict),
-            created_on=int(time.time())
+            created_on=int(time.time()),
+            copr_id=chroot.copr.id,
         )
         db.session.add(action)
         return action
@@ -308,17 +313,19 @@ class ActionsLogic(object):
             object_type="copr",
             data=json.dumps(data_dict),
             created_on=int(time.time()),
+            copr_id=copr.id,
         )
         db.session.add(action)
         return action
 
     @classmethod
-    def send_rawhide_to_release(cls, data):
+    def send_rawhide_to_release(cls, copr, data):
         action = models.Action(
             action_type=ActionTypeEnum("rawhide_to_release"),
             object_type="None",
             data=json.dumps(data),
             created_on=int(time.time()),
+            copr_id=copr.id,
         )
         db.session.add(action)
         return action
@@ -338,6 +345,7 @@ class ActionsLogic(object):
             new_value="{0}".format(dst.full_name),
             data=json.dumps({"user": dst.owner_name, "copr": dst.name, "builds_map": builds_map}),
             created_on=int(time.time()),
+            copr_id=dst.id,
         )
         db.session.add(action)
         return action
@@ -364,6 +372,7 @@ class ActionsLogic(object):
             new_value="",
             data=json.dumps(data),
             created_on=int(time.time()),
+            copr_id=copr.id,
         )
         db.session.add(action)
         return action
@@ -386,7 +395,8 @@ class ActionsLogic(object):
             object_type="chroot",
             object_id=None,
             data=json.dumps(data_dict),
-            created_on=int(time.time())
+            created_on=int(time.time()),
+            copr_id=copr_chroot.copr.id,
         )
         db.session.add(action)
         return action
