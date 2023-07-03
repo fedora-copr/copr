@@ -933,7 +933,7 @@ class PackageFormPyPI(BasePackageForm):
         choices=[
             ("pyp2rpm", "pyp2rpm"),
             ("pyp2spec", "pyp2spec"),
-        ], default="pyp2rpm")
+        ], default="pyp2spec")
 
     spec_template = wtforms.SelectField(
         "Spec template",
