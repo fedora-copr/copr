@@ -1294,7 +1294,7 @@ def setup_parser():
         dest="spec_generator",
         help="Tool for generating specfile from a PyPI package",
         choices=["pyp2rpm", "pyp2spec"],
-        default="pyp2rpm",
+        default="pyp2spec",
     )
 
     parser_pypi_args_optional.add_argument("--template", "-t", dest="spec_template",
