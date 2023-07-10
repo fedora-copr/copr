@@ -2129,6 +2129,7 @@ class Action(db.Model, helpers.Serializer):
     # see ActionTypeEnum
     action_type = db.Column(db.Integer, nullable=False)
     # copr, ...; downcase name of class of modified object
+    # TODO: replace this in the future with enhanced ActionTypeEnum()
     object_type = db.Column(db.String(20))
     # id of the modified object
     object_id = db.Column(db.Integer)
