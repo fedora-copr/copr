@@ -1,5 +1,5 @@
 import flask
-from copr_common.enums import StatusEnum
+from copr_common.enums import StatusEnum, ActionTypeEnum
 from coprs import db, app
 from coprs import models
 from coprs.logic import actions_logic
@@ -287,14 +287,28 @@ def build_task_canceled(task_id):
 @backend_ns.route("/pending-actions/")
 def pending_actions():
     'get the list of actions backand should take care of'
+    busy_namespaces = set()
     data = []
+    # waiting repos are ordered
     for action in actions_logic.ActionsLogic.get_waiting():
+        if (
+            action.object_type == "copr"
+            and action.action_type == ActionTypeEnum("delete")
+        ):
+            busy_namespaces.add(action.copr.full_name)
+        elif action.copr and action.copr.full_name in busy_namespaces:
+            # e.g. copr delete _ && copr fork _; will cause race condition
+            # so don't process new action with the same namespace until delete
+            # action is processed
+            # https://github.com/fedora-copr/copr/issues/2698
+            continue
+
         data.append({
             'id': action.id,
             'priority': action.priority or action.default_priority,
         })
-    return flask.json.dumps(data)
 
+    return flask.json.dumps(data)
 
 
 @backend_ns.route("/action/<int:action_id>/")

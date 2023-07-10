@@ -11,6 +11,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs import app
 
 
+# pylint: disable=unused-argument
 class TestGetBuildTask(CoprsTestCase):
 
     def test_module_name_empty(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -403,10 +404,7 @@ class TestWaitingActions(CoprsTestCase):
     def test_pending_actions_list(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
-        assert actions == [
-            {'id': 1, 'priority': DefaultActionPriorityEnum("delete")},
-            {'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")}
-        ]
+        assert actions == [{'id': 1, 'priority': DefaultActionPriorityEnum("delete")}]
 
         self.delete_action.result = BackendResultEnum("success")
         self.db.session.add(self.delete_action)
@@ -415,6 +413,27 @@ class TestWaitingActions(CoprsTestCase):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
         assert len(actions) == 1
+        assert actions == [{'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")}]
+
+    def test_dont_send_pending_actions_whe_delete(
+            self, f_users, f_coprs, f_actions_delete_and_create, f_db
+    ):
+        r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
+        actions = json.loads(r.data.decode("utf-8"))
+        assert actions == [{'id': 1, 'priority': DefaultActionPriorityEnum("delete")}]
+
+        self.delete_action.result = BackendResultEnum("success")
+        self.db.session.add(self.delete_action)
+        self.db.session.commit()
+
+        # now other pending tasks are unlocked since delete ended
+        r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
+        actions = json.loads(r.data.decode("utf-8"))
+        assert len(actions) == 2
+        assert sorted(actions, key=lambda d: d["id"]) == [
+            {'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")},
+            {'id': 3, 'priority': DefaultActionPriorityEnum("createrepo")},
+        ]
 
     def test_get_action_succeeded(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/action/1/",
@@ -576,3 +595,6 @@ class TestImportingBuilds(CoprsTestCase):
         data = json.loads(r.data.decode("utf-8"))
         assert data[0]["srpm_url"] == "http://foo"
         assert data[1]["srpm_url"] == "http://bar"
+
+
+# pylint: enable=unused-argument

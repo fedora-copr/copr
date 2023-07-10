@@ -684,12 +684,34 @@ def foo():
                                            old_value="asd/qwe",
                                            new_value=None,
                                            result=BackendResultEnum("waiting"),
-                                           created_on=int(time.time()))
+                                           created_on=int(time.time()),
+                                           copr_id=self.c1.id)
         self.cancel_build_action = models.Action(action_type=ActionTypeEnum("cancel_build"),
                                                  data=json.dumps({'task_id': 123}),
                                                  result=BackendResultEnum("waiting"),
-                                                 created_on=int(time.time()))
+                                                 created_on=int(time.time()),
+                                                 copr_id=self.c1.id)
         self.db.session.add_all([self.delete_action, self.cancel_build_action])
+
+    @pytest.fixture
+    def f_actions_delete_and_create(self, f_db, f_actions):  # pylint: disable=unused-argument
+        data_dict = {
+            "ownername": "fooownername",
+            "projectname": "foocoprname",
+            "project_dirnames": ["foodirname"],
+            "chroots": "foochroot",
+            "appstream": False,
+            "devel": False,
+        }
+
+        self.create_action = models.Action(action_type=ActionTypeEnum("createrepo"),
+                                           object_type="repository",
+                                           object_id=0,
+                                           data=json.dumps(data_dict),
+                                           result=BackendResultEnum("waiting"),
+                                           created_on=int(time.time()),
+                                           copr_id=self.c1.id)
+        self.db.session.add(self.create_action)
 
     @pytest.fixture
     def f_modules(self):
