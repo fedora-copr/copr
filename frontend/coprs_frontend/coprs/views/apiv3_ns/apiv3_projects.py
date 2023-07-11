@@ -1,19 +1,53 @@
+# pylint: disable=missing-class-docstring
+
+from http import HTTPStatus
+
 import flask
-from coprs.views.apiv3_ns import (query_params, get_copr, pagination, Paginator,
-                                  GET, POST, PUT, DELETE, set_defaults)
+
+from flask_restx import Namespace, Resource
+
+from coprs.views.apiv3_ns import (
+    get_copr,
+    restx_pagination,
+    Paginator,
+    set_defaults,
+    deprecated_route_method_type,
+    restx_editable_copr,
+)
 from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms, db_session_scope
-from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import apiv3_ns, rename_fields_helper
+from coprs.views.misc import restx_api_login_required
+from coprs.views.apiv3_ns import rename_fields_helper, api, query_to_parameters
+from coprs.views.apiv3_ns.schema.schemas import (
+    project_model,
+    project_add_input_model,
+    project_edit_input_model,
+    project_fork_input_model,
+    project_delete_input_model,
+    fullname_params,
+    pagination_project_model,
+    ownername_params,
+    pagination_params,
+)
+from coprs.views.apiv3_ns.schema.docs import query_docs
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.exceptions import (DuplicateException, NonAdminCannotCreatePersistentProject,
-                              NonAdminCannotDisableAutoPrunning, ActionInProgressException,
-                              InsufficientRightsException, BadRequest, ObjectNotFound,
-                              InvalidForm)
-from . import editable_copr
+from coprs.exceptions import (
+    DuplicateException,
+    NonAdminCannotCreatePersistentProject,
+    NonAdminCannotDisableAutoPrunning,
+    ActionInProgressException,
+    InsufficientRightsException,
+    BadRequest,
+    ObjectNotFound,
+    InvalidForm,
+)
+
+
+apiv3_projects_ns = Namespace("project", description="Projects")
+api.add_namespace(apiv3_projects_ns)
 
 
 def to_dict(copr):
@@ -40,6 +74,11 @@ def to_dict(copr):
         "packit_forge_projects_allowed": copr.packit_forge_projects_allowed_list,
         "follow_fedora_branching": copr.follow_fedora_branching,
         "repo_priority": copr.repo_priority,
+        # TODO: unify projectname and name or (good luck) force marshaling to work
+        #  without it. Marshaling tries to create a docs page for the endpoint to
+        #  HTML with argument names the same as they are defined in methods
+        #  but we have this inconsistency between name - projectname
+        "projectname": copr.name,
     }
 
 
@@ -78,201 +117,385 @@ def owner2tuple(ownername):
     return user, group
 
 
-@apiv3_ns.route("/project", methods=GET)
-@query_params()
-def get_project(ownername, projectname):
-    copr = get_copr(ownername, projectname)
-    return flask.jsonify(to_dict(copr))
+@apiv3_projects_ns.route("/")
+class Project(Resource):
+    @query_to_parameters
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "OK, Project data follows...")
+    @apiv3_projects_ns.response(
+        HTTPStatus.NOT_FOUND.value, "No such Copr project found in database"
+    )
+    def get(self, ownername, projectname):
+        """
+        Get a project
+        Get details for a single Copr project according to ownername and projectname.
+        """
+        copr = get_copr(ownername, projectname)
+        return to_dict(copr)
 
 
-@apiv3_ns.route("/project/list", methods=GET)
-@pagination()
-@query_params()
-def get_project_list(ownername=None, **kwargs):
-    query = CoprsLogic.get_multiple()
-    if ownername:
-        query = CoprsLogic.filter_by_ownername(query, ownername)
-    paginator = Paginator(query, models.Copr, **kwargs)
-    projects = paginator.map(to_dict)
-    return flask.jsonify(items=projects, meta=paginator.meta)
-
-
-@apiv3_ns.route("/project/search", methods=GET)
-@pagination()
-@query_params()
-# @TODO should the param be query or projectname?
-def search_projects(query, **kwargs):
-    try:
-        search_query = CoprsLogic.get_multiple_fulltext(query)
-        paginator = Paginator(search_query, models.Copr, **kwargs)
+@apiv3_projects_ns.route("/list")
+class ProjectList(Resource):
+    @restx_pagination
+    @query_to_parameters
+    @apiv3_projects_ns.doc(params=ownername_params | pagination_params)
+    @apiv3_projects_ns.marshal_list_with(pagination_project_model)
+    @apiv3_projects_ns.response(
+        HTTPStatus.PARTIAL_CONTENT.value, HTTPStatus.PARTIAL_CONTENT.description
+    )
+    def get(self, ownername=None, **kwargs):
+        """
+        Get list of projects
+        Get details for multiple Copr projects according to ownername
+        """
+        query = CoprsLogic.get_multiple()
+        if ownername:
+            query = CoprsLogic.filter_by_ownername(query, ownername)
+        paginator = Paginator(query, models.Copr, **kwargs)
         projects = paginator.map(to_dict)
-    except ValueError as ex:
-        raise BadRequest(str(ex))
-    return flask.jsonify(items=projects, meta=paginator.meta)
+        return {"items": projects, "meta": paginator.meta}
 
 
-@apiv3_ns.route("/project/add/<ownername>", methods=POST)
-@api_login_required
-def add_project(ownername):
-    user, group = owner2tuple(ownername)
-    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
-    form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group)
-    set_defaults(data, form_class)
-    form = form_class(data, meta={'csrf': False})
+@apiv3_projects_ns.route("/search")
+class ProjectSearch(Resource):
+    @restx_pagination
+    @query_to_parameters
+    @apiv3_projects_ns.doc(params=query_docs)
+    @apiv3_projects_ns.marshal_list_with(pagination_project_model)
+    @apiv3_projects_ns.response(
+        HTTPStatus.PARTIAL_CONTENT.value, HTTPStatus.PARTIAL_CONTENT.description
+    )
+    # TODO: should the param be query or projectname?
+    def get(self, query, **kwargs):
+        """
+        Get list of projects
+        Get details for multiple Copr projects according to search query.
+        """
+        try:
+            search_query = CoprsLogic.get_multiple_fulltext(query)
+            paginator = Paginator(search_query, models.Copr, **kwargs)
+            projects = paginator.map(to_dict)
+        except ValueError as ex:
+            raise BadRequest(str(ex)) from ex
+        return {"items": projects, "meta": paginator.meta}
 
-    if not form.validate_on_submit():
-        raise InvalidForm(form)
-    validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
-    bootstrap = None
-    # backward compatibility
-    use_bootstrap_container = form.use_bootstrap_container.data
-    if use_bootstrap_container is not None:
-        bootstrap = "on" if use_bootstrap_container else "off"
-    if form.bootstrap.data is not None:
-        bootstrap = form.bootstrap.data
+@apiv3_projects_ns.route("/add/<ownername>")
+class ProjectAdd(Resource):
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=ownername_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_add_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project created")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    def post(self, ownername):
+        """
+        Create new Copr project
+        Create new Copr project for ownername with specified data inserted in form.
+        """
+        user, group = owner2tuple(ownername)
+        data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+        form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group)
+        set_defaults(data, form_class)
+        form = form_class(data, meta={"csrf": False})
 
-    try:
+        if not form.validate_on_submit():
+            raise InvalidForm(form)
+        validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
-        def _form_field_repos(form_field):
-            return " ".join(form_field.data.split())
+        bootstrap = None
+        # backward compatibility
+        use_bootstrap_container = form.use_bootstrap_container.data
+        if use_bootstrap_container is not None:
+            bootstrap = "on" if use_bootstrap_container else "off"
+        if form.bootstrap.data is not None:
+            bootstrap = form.bootstrap.data
 
-        copr = CoprsLogic.add(
-            name=form.name.data.strip(),
-            repos=_form_field_repos(form.repos),
-            user=user,
-            selected_chroots=form.selected_chroots,
-            description=form.description.data,
-            instructions=form.instructions.data,
-            check_for_duplicates=True,
-            unlisted_on_hp=form.unlisted_on_hp.data,
-            build_enable_net=form.enable_net.data,
-            group=group,
-            persistent=form.persistent.data,
-            auto_prune=form.auto_prune.data,
-            bootstrap=bootstrap,
-            isolation=form.isolation.data,
-            homepage=form.homepage.data,
-            contact=form.contact.data,
-            disable_createrepo=form.disable_createrepo.data,
-            delete_after_days=form.delete_after_days.data,
-            multilib=form.multilib.data,
-            module_hotfixes=form.module_hotfixes.data,
-            fedora_review=form.fedora_review.data,
-            follow_fedora_branching=form.follow_fedora_branching.data,
-            runtime_dependencies=_form_field_repos(form.runtime_dependencies),
-            appstream=form.appstream.data,
-            packit_forge_projects_allowed=_form_field_repos(form.packit_forge_projects_allowed),
-            repo_priority=form.repo_priority.data,
-        )
-        db.session.commit()
-    except (DuplicateException,
+        try:
+
+            def _form_field_repos(form_field):
+                return " ".join(form_field.data.split())
+
+            copr = CoprsLogic.add(
+                name=form.name.data.strip(),
+                repos=_form_field_repos(form.repos),
+                user=user,
+                selected_chroots=form.selected_chroots,
+                description=form.description.data,
+                instructions=form.instructions.data,
+                check_for_duplicates=True,
+                unlisted_on_hp=form.unlisted_on_hp.data,
+                build_enable_net=form.enable_net.data,
+                group=group,
+                persistent=form.persistent.data,
+                auto_prune=form.auto_prune.data,
+                bootstrap=bootstrap,
+                isolation=form.isolation.data,
+                homepage=form.homepage.data,
+                contact=form.contact.data,
+                disable_createrepo=form.disable_createrepo.data,
+                delete_after_days=form.delete_after_days.data,
+                multilib=form.multilib.data,
+                module_hotfixes=form.module_hotfixes.data,
+                fedora_review=form.fedora_review.data,
+                follow_fedora_branching=form.follow_fedora_branching.data,
+                runtime_dependencies=_form_field_repos(form.runtime_dependencies),
+                appstream=form.appstream.data,
+                packit_forge_projects_allowed=_form_field_repos(
+                    form.packit_forge_projects_allowed
+                ),
+                repo_priority=form.repo_priority.data,
+            )
+            db.session.commit()
+        except (
+            DuplicateException,
             NonAdminCannotCreatePersistentProject,
-            NonAdminCannotDisableAutoPrunning) as err:
-        db.session.rollback()
-        raise err
-    return flask.jsonify(to_dict(copr))
+            NonAdminCannotDisableAutoPrunning,
+        ) as err:
+            db.session.rollback()
+            raise err
+
+        return to_dict(copr)
 
 
-@apiv3_ns.route("/project/edit/<ownername>/<projectname>", methods=PUT)
-@api_login_required
-def edit_project(ownername, projectname):
-    copr = get_copr(ownername, projectname)
-    data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
-    form = forms.CoprForm(data, meta={'csrf': False})
+@apiv3_projects_ns.route("/edit/<ownername>/<projectname>")
+class ProjectEdit(Resource):
+    @staticmethod
+    def _common(ownername, projectname):
+        copr = get_copr(ownername, projectname)
+        data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+        form = forms.CoprForm(data, meta={"csrf": False})
 
-    if not form.validate_on_submit():
-        raise InvalidForm(form)
-    validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
+        if not form.validate_on_submit():
+            raise InvalidForm(form)
+        validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
-    for field in form:
-        if field.data is None or field.name in ["csrf_token", "chroots"]:
-            continue
-        if field.name not in data.keys():
-            continue
-        setattr(copr, field.name, field.data)
+        for field in form:
+            if field.data is None or field.name in ["csrf_token", "chroots"]:
+                continue
+            if field.name not in data.keys():
+                continue
+            setattr(copr, field.name, field.data)
 
-    if form.chroots.data:
-        CoprChrootsLogic.update_from_names(
-            flask.g.user, copr, form.chroots.data)
+        if form.chroots.data:
+            CoprChrootsLogic.update_from_names(flask.g.user, copr, form.chroots.data)
 
-    try:
-        CoprsLogic.update(flask.g.user, copr)
-        if copr.group: # load group.id
-            _ = copr.group.id
-        db.session.commit()
-    except (ActionInProgressException,
+        try:
+            CoprsLogic.update(flask.g.user, copr)
+            if copr.group:  # load group.id
+                _ = copr.group.id
+            db.session.commit()
+        except (
+            ActionInProgressException,
             InsufficientRightsException,
-            NonAdminCannotDisableAutoPrunning) as ex:
-        db.session.rollback()
-        raise ex
-
-    return flask.jsonify(to_dict(copr))
-
-
-@apiv3_ns.route("/project/fork/<ownername>/<projectname>", methods=PUT)
-@api_login_required
-def fork_project(ownername, projectname):
-    copr = get_copr(ownername, projectname)
-
-    # @FIXME we want "ownername" from the outside, but our internal Form expects "owner" instead
-    data = get_form_compatible_data(preserve=["chroots"])
-    data["owner"] = data.get("ownername")
-
-    form = forms.CoprForkFormFactory \
-        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(data, meta={'csrf': False})
-
-    if form.validate_on_submit() and copr:
-        try:
-            dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
-            if flask.g.user.name != form.owner.data and not dstgroup:
-                return ObjectNotFound("There is no such group: {}".format(form.owner.data))
-
-            dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
-            if dst_copr and form.confirm.data != True:
-                raise BadRequest("You are about to fork into existing project: {}\n"
-                                 "Please use --confirm if you really want to do this".format(form.name.data))
-            fcopr, _ = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data,
-                                              dstgroup=dstgroup)
-            db.session.commit()
-
-        except (ActionInProgressException, InsufficientRightsException) as err:
+            NonAdminCannotDisableAutoPrunning,
+        ) as ex:
             db.session.rollback()
-            raise err
-    else:
-        raise InvalidForm(form)
+            raise ex
 
-    return flask.jsonify(to_dict(fcopr))
+        return to_dict(copr)
+
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_edit_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project successfully edited")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    def put(self, ownername, projectname):
+        """
+        Edit Copr project
+        Edit existing Copr project for ownername/projectname in form.
+        """
+        return self._common(ownername, projectname)
+
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_edit_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project successfully edited")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    @deprecated_route_method_type(apiv3_projects_ns, "POST", "PUT")
+    def post(self, ownername, projectname):
+        """
+        Edit Copr project
+        Edit existing Copr project for ownername/projectname in form.
+        """
+        return self._common(ownername, projectname)
 
 
-@apiv3_ns.route("/project/delete/<ownername>/<projectname>", methods=DELETE)
-@api_login_required
-def delete_project(ownername, projectname):
-    copr = get_copr(ownername, projectname)
-    copr_dict = to_dict(copr)
-    form = forms.APICoprDeleteForm(meta={'csrf': False})
+@apiv3_projects_ns.route("/fork/<ownername>/<projectname>")
+class ProjectFork(Resource):
+    @staticmethod
+    def _common(ownername, projectname):
+        copr = get_copr(ownername, projectname)
 
-    if form.validate_on_submit() and copr:
-        try:
-            ComplexLogic.delete_copr(copr)
-        except (ActionInProgressException,
-                InsufficientRightsException) as err:
-            db.session.rollback()
-            raise err
+        # @FIXME we want "ownername" from the outside, but our internal Form expects "owner" instead
+        data = get_form_compatible_data(preserve=["chroots"])
+        data["owner"] = data.get("ownername")
+
+        form = forms.CoprForkFormFactory.create_form_cls(
+            copr=copr, user=flask.g.user, groups=flask.g.user.user_groups
+        )(data, meta={"csrf": False})
+
+        if form.validate_on_submit() and copr:
+            try:
+                dstgroup = (
+                    [
+                        g
+                        for g in flask.g.user.user_groups
+                        if g.at_name == form.owner.data
+                    ]
+                    or [None]
+                )[0]
+                if flask.g.user.name != form.owner.data and not dstgroup:
+                    return ObjectNotFound(
+                        "There is no such group: {}".format(form.owner.data)
+                    )
+
+                dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+                if dst_copr and not form.confirm.data:
+                    raise BadRequest(
+                        "You are about to fork into existing project: {}\n"
+                        "Please use --confirm if you really want to do this".format(
+                            form.name.data
+                        )
+                    )
+                fcopr, _ = ComplexLogic.fork_copr(
+                    copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup
+                )
+                db.session.commit()
+
+            except (ActionInProgressException, InsufficientRightsException) as err:
+                db.session.rollback()
+                raise err
         else:
+            raise InvalidForm(form)
+
+        return to_dict(fcopr)
+
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_fork_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project is forking...")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    def post(self, ownername, projectname):
+        """
+        Fork Copr project
+        Fork Copr project for specified ownername/projectname insto your namespace.
+        """
+        return self._common(ownername, projectname)
+
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_fork_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project is forking...")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    @deprecated_route_method_type(apiv3_projects_ns, "PUT", "POST")
+    def put(self, ownername, projectname):
+        """
+        Fork Copr project
+        Fork Copr project for specified ownername/projectname insto your namespace.
+        """
+        return self._common(ownername, projectname)
+
+
+@apiv3_projects_ns.route("/delete/<ownername>/<projectname>")
+class ProjectDelete(Resource):
+    @staticmethod
+    def _common(ownername, projectname):
+        copr = get_copr(ownername, projectname)
+        copr_dict = to_dict(copr)
+        form = forms.APICoprDeleteForm(meta={"csrf": False})
+
+        if form.validate_on_submit() and copr:
+            try:
+                ComplexLogic.delete_copr(copr)
+            except (ActionInProgressException, InsufficientRightsException) as err:
+                db.session.rollback()
+                raise err
+
             db.session.commit()
-    else:
-        raise InvalidForm(form)
-    return flask.jsonify(copr_dict)
+        else:
+            raise InvalidForm(form)
+        return copr_dict
 
-@apiv3_ns.route("/project/regenerate-repos/<ownername>/<projectname>", methods=PUT)
-@api_login_required
-@editable_copr
-def regenerate_repos(copr):
-    """
-    This function will regenerate all repository metadata for a project.
-    """
-    with db_session_scope():
-        ActionsLogic.send_createrepo(copr, devel=False)
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_delete_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Project successfully deleted")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    def delete(self, ownername, projectname):
+        """
+        Delete Copr project
+        Delete specified ownername/projectname Copr project forever.
+        """
+        return self._common(ownername, projectname)
 
-    return flask.jsonify(to_dict(copr))
+    @restx_api_login_required
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.expect(project_delete_input_model)
+    @apiv3_projects_ns.response(HTTPStatus.OK.value, "Project successfully deleted")
+    @apiv3_projects_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    @deprecated_route_method_type(apiv3_projects_ns, "POST", "DELETE")
+    def post(self, ownername, projectname):
+        """
+        Delete Copr project
+        Delete specified ownername/projectname Copr project forever.
+        """
+        return self._common(ownername, projectname)
+
+
+@apiv3_projects_ns.route("/regenerate-repos/<ownername>/<projectname>")
+class RegenerateRepos(Resource):
+    @staticmethod
+    def _common(copr):
+        with db_session_scope():
+            ActionsLogic.send_createrepo(copr, devel=False)
+
+        return to_dict(copr)
+
+    @restx_api_login_required
+    @restx_editable_copr
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.response(
+        HTTPStatus.OK.value, "OK, reposirory metadata regenerated"
+    )
+    def put(self, copr):
+        """
+        Regenerate all repository metadata for a Copr project
+        """
+        return self._common(copr)
+
+    @restx_api_login_required
+    @restx_editable_copr
+    @apiv3_projects_ns.doc(params=fullname_params)
+    @apiv3_projects_ns.marshal_with(project_model)
+    @apiv3_projects_ns.response(
+        HTTPStatus.OK.value, "OK, reposirory metadata regenerated"
+    )
+    @deprecated_route_method_type(apiv3_projects_ns, "POST", "PUT")
+    def post(self, copr):
+        """
+        Regenerate all repository metadata for a Copr project
+        """
+        return self._common(copr)
