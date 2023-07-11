@@ -15,17 +15,16 @@ from coprs.exceptions import (
         UnknownSourceTypeException,
         InvalidForm,
 )
-from coprs.views.misc import api_login_required
+from coprs.views.misc import api_login_required, restx_api_login_required
 from coprs import db, models, forms, helpers
 from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
-from coprs.views.apiv3_ns.schema import (
+from coprs.views.apiv3_ns.schema.schemas import (
     package_model,
-    add_package_params,
-    edit_package_params,
-    get_package_parser,
-    add_package_parser,
-    edit_package_parser,
+    package_get_input_model,
+    package_add_input_model,
+    package_edit_input_model,
 )
+from coprs.views.apiv3_ns.schema.docs import add_package_docs, edit_package_docs
 from coprs.logic.packages_logic import PackagesLogic
 
 # @TODO if we need to do this on several places, we should figure a better way to do it
@@ -110,9 +109,7 @@ def get_arg_to_bool(argument):
 
 @apiv3_packages_ns.route("/")
 class GetPackage(Resource):
-    parser = get_package_parser()
-
-    @apiv3_packages_ns.expect(parser)
+    @apiv3_packages_ns.expect(package_get_input_model)
     @apiv3_packages_ns.marshal_with(package_model)
     def get(self):
         """
@@ -171,11 +168,9 @@ def get_package_list(ownername, projectname, with_latest_build=False,
 
 @apiv3_packages_ns.route("/add/<ownername>/<projectname>/<package_name>/<source_type_text>")
 class PackageAdd(Resource):
-    parser = add_package_parser()
-
-    @api_login_required
-    @apiv3_packages_ns.doc(params=add_package_params)
-    @apiv3_packages_ns.expect(parser)
+    @restx_api_login_required
+    @apiv3_packages_ns.doc(params=add_package_docs)
+    @apiv3_packages_ns.expect(package_add_input_model)
     @apiv3_packages_ns.marshal_with(package_model)
     def post(self, ownername, projectname, package_name, source_type_text):
         """
@@ -195,11 +190,9 @@ class PackageAdd(Resource):
 @apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/")
 @apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/<source_type_text>")
 class PackageEdit(Resource):
-    parser = edit_package_parser()
-
-    @api_login_required
-    @apiv3_packages_ns.doc(params=edit_package_params)
-    @apiv3_packages_ns.expect(parser)
+    @restx_api_login_required
+    @apiv3_packages_ns.doc(params=edit_package_docs)
+    @apiv3_packages_ns.expect(package_edit_input_model)
     @apiv3_packages_ns.marshal_with(package_model)
     def post(self, ownername, projectname, package_name, source_type_text=None):
         """

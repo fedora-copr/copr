@@ -933,3 +933,23 @@ def generate_repo_id_and_name_ext(dependent, url, dep_idx):
         generate_repo_name(url),
     )
     return repo_id, name
+
+
+def multiple_get(dictionary: dict, *keys) -> list:
+    """
+    Get multiple values from dictionary.
+    Args:
+        dictionary: Any dictionary
+        *keys: list of keys to obtain from dictionary
+    Returns:
+        *keys values in the same order as keys were given.
+    """
+    empty = "__empty_content"
+    result = []
+    for key in keys:
+        content = dictionary.get(key, empty)
+        if content == empty:
+            raise KeyError(f"Key missing: {key}")
+
+        result.append(content)
+    return result

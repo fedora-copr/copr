@@ -4,12 +4,12 @@
 
 import flask
 from flask_restx import Namespace, Resource
-from coprs.views.misc import api_login_required
+from coprs.views.misc import api_login_required, request_multiple_args
 from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
-from coprs.views.apiv3_ns.schema import (
+from coprs.views.apiv3_ns.schema.schemas import (
     project_chroot_model,
     project_chroot_build_config_model,
-    project_chroot_parser,
+    project_chroot_get_input_model,
 )
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
 from coprs.exceptions import ObjectNotFound, InvalidForm
@@ -75,35 +75,37 @@ def rename_fields(input_dict):
 
 @apiv3_project_chroots_ns.route("/")
 class ProjectChroot(Resource):
-    parser = project_chroot_parser()
-
-    @apiv3_project_chroots_ns.expect(parser)
+    @apiv3_project_chroots_ns.expect(project_chroot_get_input_model)
     @apiv3_project_chroots_ns.marshal_with(project_chroot_model)
     def get(self):
         """
         Get a project chroot
         Get settings for a single project chroot.
         """
-        args = self.parser.parse_args()
-        copr = get_copr(args.ownername, args.projectname)
-        chroot = ComplexLogic.get_copr_chroot(copr, args.chrootname)
+        # pylint: disable-next=unbalanced-tuple-unpacking
+        ownername, projectname, chrootname = request_multiple_args(
+            "ownername", "projectname", "chrootname"
+        )
+        copr = get_copr(ownername, projectname)
+        chroot = ComplexLogic.get_copr_chroot(copr, chrootname)
         return to_dict(chroot)
 
 
 @apiv3_project_chroots_ns.route("/build-config")
 class BuildConfig(Resource):
-    parser = project_chroot_parser()
-
-    @apiv3_project_chroots_ns.expect(parser)
+    @apiv3_project_chroots_ns.expect(project_chroot_get_input_model)
     @apiv3_project_chroots_ns.marshal_with(project_chroot_build_config_model)
     def get(self):
         """
         Get a build config
         Generate a build config based on a project chroot settings.
         """
-        args = self.parser.parse_args()
-        copr = get_copr(args.ownername, args.projectname)
-        chroot = ComplexLogic.get_copr_chroot(copr, args.chrootname)
+        # pylint: disable-next=unbalanced-tuple-unpacking
+        ownername, projectname, chrootname = request_multiple_args(
+            "ownername", "projectname", "chrootname"
+        )
+        copr = get_copr(ownername, projectname)
+        chroot = ComplexLogic.get_copr_chroot(copr, chrootname)
         if not chroot:
             raise ObjectNotFound('Chroot not found.')
         return to_build_config_dict(chroot)

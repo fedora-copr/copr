@@ -2,9 +2,11 @@ import base64
 import datetime
 import functools
 from functools import wraps
+from http import HTTPStatus
+
 import flask
 
-from flask import send_file
+from flask import send_file, jsonify
 
 from copr_common.enums import RoleEnum
 from coprs import app
@@ -14,10 +16,11 @@ from coprs import models
 from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.exceptions import ObjectNotFound
+from coprs.exceptions import ObjectNotFound, BadRequest
 from coprs.measure import checkpoint_start
 from coprs.auth import FedoraAccounts, UserAuth, OpenIDConnect
 from coprs.oidc import oidc_enabled
+from coprs.helpers import multiple_get
 from coprs import oidc
 
 @app.before_request
@@ -156,41 +159,49 @@ def logout():
     return UserAuth.logout()
 
 
+def _shared_api_login_required_wrapper():
+    token = None
+    api_login = None
+    if "Authorization" in flask.request.headers:
+        base64string = flask.request.headers["Authorization"]
+        base64string = base64string.split()[1].strip()
+        userstring = base64.b64decode(base64string)
+        (api_login, token) = userstring.decode("utf-8").split(":")
+    token_auth = False
+    if token and api_login:
+        user = UsersLogic.get_by_api_login(api_login).first()
+        if (user and user.api_token == token and
+                user.api_token_expiration >= datetime.date.today()):
+            token_auth = True
+            flask.g.user = user
+    if not token_auth:
+        url = 'https://' + app.config["PUBLIC_COPR_HOSTNAME"]
+        url = helpers.fix_protocol_for_frontend(url)
+
+        msg = "Attempting to use invalid or expired API login '%s'"
+        app.logger.info(msg, api_login)
+
+        output = {
+            "output": "notok",
+            "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
+        }
+        jsonout = flask.jsonify(output)
+        jsonout.status_code = 401
+        return jsonout
+    return None
+
+
 def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        token = None
-        api_login = None
         # flask.g.user can be already set in case a user is using gssapi auth,
         # in that case before_request was called and the user is known.
         if flask.g.user is not None:
             return f(*args, **kwargs)
-        if "Authorization" in flask.request.headers:
-            base64string = flask.request.headers["Authorization"]
-            base64string = base64string.split()[1].strip()
-            userstring = base64.b64decode(base64string)
-            (api_login, token) = userstring.decode("utf-8").split(":")
-        token_auth = False
-        if token and api_login:
-            user = UsersLogic.get_by_api_login(api_login).first()
-            if (user and user.api_token == token and
-                    user.api_token_expiration >= datetime.date.today()):
-                token_auth = True
-                flask.g.user = user
-        if not token_auth:
-            url = 'https://' + app.config["PUBLIC_COPR_HOSTNAME"]
-            url = helpers.fix_protocol_for_frontend(url)
+        retval = _shared_api_login_required_wrapper()
+        if retval is not None:
+            return retval
 
-            msg = "Attempting to use invalid or expired API login '%s'"
-            app.logger.info(msg, api_login)
-
-            output = {
-                "output": "notok",
-                "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
-            }
-            jsonout = flask.jsonify(output)
-            jsonout.status_code = 401
-            return jsonout
         return f(*args, **kwargs)
     return decorated_function
 
@@ -308,3 +319,79 @@ def req_with_pagination(f):
             raise ObjectNotFound("Invalid pagination format") from err
         return f(*args, page=page, **kwargs)
     return wrapper
+
+
+# Flask-restx specific decorator - don't use them with regular Flask API!
+# TODO: delete/unify decorators for regular Flask and Flask-restx API once migration
+#  is done
+
+
+def restx_api_login_required(endpoint_method):
+    """
+
+    Args:
+        endpoint_method:
+
+    Returns:
+
+    """
+    @wraps(endpoint_method)
+    def check_if_api_login_is_required(self, *args, **kwargs):
+        # flask.g.user can be already set in case a user is using gssapi auth,
+        # in that case before_request was called and the user is known.
+        if flask.g.user is not None:
+            return endpoint_method(self, *args, **kwargs)
+        retval = _shared_api_login_required_wrapper()
+        if retval is not None:
+            return retval
+
+        return endpoint_method(self, *args, **kwargs)
+    return check_if_api_login_is_required
+
+
+def make_response(content, status=HTTPStatus.OK):
+    """
+    Make Flask response with specified status
+    """
+    response = jsonify(content)
+    response.status_code = status.value
+    return response
+
+
+def payload_multiple_get(payload: dict, *parameters) -> list:
+    """
+    Get multiple values from dictionary.
+
+    Args:
+        payload: Any dictionary obtain from API request
+        *parameters: list of parameters to obtain values from request
+    Returns:
+        *parameters values in the same order as they were given.
+    """
+    try:
+        return multiple_get(payload, parameters)
+    except KeyError as exc:
+        raise BadRequest(str(exc)) from exc
+
+
+def request_multiple_args(*query_params) -> list:
+    """
+    Get multiple values from query parameters.
+
+    Args:
+         missing query parameters
+        *query_params: list of args to obtain values from flask.request.args
+    Returns:
+        *args values in the same order as they were given.
+    """
+    result = []
+    flask_args = flask.request.args
+    empty = "__empty_content"
+    for arg in query_params:
+        flask_arg = flask_args.get(arg, empty)
+        if flask_arg == empty:
+            raise BadRequest(f"Missing arg: {arg}")
+
+        result.append(flask_arg)
+
+    return result

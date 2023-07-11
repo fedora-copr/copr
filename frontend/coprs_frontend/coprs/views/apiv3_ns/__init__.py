@@ -1,20 +1,16 @@
 import json
+
 import flask
 import wtforms
 import sqlalchemy
 import inspect
 from functools import wraps
 from werkzeug.datastructures import ImmutableMultiDict, MultiDict
-from werkzeug.exceptions import HTTPException, NotFound, GatewayTimeout
 from sqlalchemy.orm.attributes import InstrumentedAttribute
-from flask_restx import Api, Namespace, Resource
-from coprs import app
+from flask_restx import Api, Namespace
 from coprs.exceptions import (
     AccessRestricted,
-    ActionInProgressException,
     CoprHttpException,
-    InsufficientStorage,
-    ObjectNotFound,
     BadRequest,
 )
 from coprs.logic.complex_logic import ComplexLogic
@@ -51,48 +47,67 @@ api = Api(
 # HTTP methods
 GET = ["GET"]
 POST = ["POST"]
+# TODO: POST != PUT nor DELETE, we should use at least use these methods according
+#  conventions -> POST to create new element, PUT to update element, DELETE to delete
+#  https://www.ibm.com/docs/en/urbancode-release/6.1.1?topic=reference-rest-api-conventions
 PUT = ["POST", "PUT"]
 DELETE = ["POST", "DELETE"]
 
 
+def _convert_path_params_to_query(endpoint_method, params_to_not_look_for, **kwargs):
+    sig = inspect.signature(endpoint_method)
+    params = list(set(sig.parameters) - params_to_not_look_for)
+    for arg in params:
+        if arg not in flask.request.args:
+            # If parameter is present in the URL path, we can use its
+            # value instead of failing that it is missing in query
+            # parameters, e.g. let's have a view decorated with these
+            # two routes:
+            #     @foo_ns.route("/foo/bar/<int:build>/<chroot>")
+            #     @foo_ns.route("/foo/bar") accepting ?build=X&chroot=Y
+            #     @query_params()
+            # Then we need the following condition to get the first
+            # route working
+            if arg in flask.request.view_args:
+                continue
+
+            # If parameter has a default value, it is not required
+            default_parameter_value = sig.parameters[arg].default
+            if default_parameter_value != sig.parameters[arg].empty:
+                kwargs[arg] = default_parameter_value
+                continue
+
+            raise BadRequest("Missing argument {}".format(arg))
+
+        kwargs[arg] = flask.request.args.get(arg)
+    return kwargs
+
+
 def query_params():
+    params_to_not_look_for = {"args", "kwargs"}
+
     def query_params_decorator(f):
         @wraps(f)
         def query_params_wrapper(*args, **kwargs):
-            sig = inspect.signature(f)
-            params = [x for x in sig.parameters]
-            params = list(set(params) - {"args", "kwargs"})
-            for arg in params:
-                if arg not in flask.request.args:
-                    # If parameter is present in the URL path, we can use its
-                    # value instead of failing that it is missing in query
-                    # parameters, e.g. let's have a view decorated with these
-                    # two routes:
-                    #     @foo_ns.route("/foo/bar/<int:build>/<chroot>")
-                    #     @foo_ns.route("/foo/bar") accepting ?build=X&chroot=Y
-                    #     @query_params()
-                    # Then we need the following condition to get the first
-                    # route working
-                    if arg in flask.request.view_args:
-                        continue
-
-                    # If parameter has a default value, it is not required
-                    if sig.parameters[arg].default == sig.parameters[arg].empty:
-                        raise BadRequest("Missing argument {}".format(arg))
-                kwargs[arg] = flask.request.args.get(arg)
+            kwargs = _convert_path_params_to_query(f, params_to_not_look_for, **kwargs)
             return f(*args, **kwargs)
         return query_params_wrapper
     return query_params_decorator
+
+
+def _shared_pagination_wrapper(**kwargs):
+    form = PaginationForm(flask.request.args)
+    if not form.validate():
+        raise CoprHttpException(form.errors)
+    kwargs.update(form.data)
+    return kwargs
 
 
 def pagination():
     def pagination_decorator(f):
         @wraps(f)
         def pagination_wrapper(*args, **kwargs):
-            form = PaginationForm(flask.request.args)
-            if not form.validate():
-                raise CoprHttpException(form.errors)
-            kwargs.update(form.data)
+            kwargs = _shared_pagination_wrapper(**kwargs)
             return f(*args, **kwargs)
         return pagination_wrapper
     return pagination_decorator
@@ -232,19 +247,24 @@ class ListPaginator(Paginator):
         return objects[self.offset : limit]
 
 
+def _check_if_user_can_edit_copr(ownername, projectname):
+    copr = get_copr(ownername, projectname)
+    if not flask.g.user.can_edit(copr):
+        raise AccessRestricted(
+            "User '{0}' can not see permissions for project '{1}' " \
+            "(missing admin rights)".format(
+                flask.g.user.name,
+                '/'.join([ownername, projectname])
+            )
+        )
+    return copr
+
+
 def editable_copr(f):
     @wraps(f)
-    def wrapper(ownername, projectname, **kwargs):
-        copr = get_copr(ownername, projectname)
-        if not flask.g.user.can_edit(copr):
-            raise AccessRestricted(
-                "User '{0}' can not see permissions for project '{1}' "\
-                "(missing admin rights)".format(
-                    flask.g.user.name,
-                    '/'.join([ownername, projectname])
-                )
-            )
-        return f(copr, **kwargs)
+    def wrapper(ownername, projectname):
+        copr = _check_if_user_can_edit_copr(ownername, projectname)
+        return f(copr)
     return wrapper
 
 
@@ -374,3 +394,109 @@ def rename_fields_helper(input_dict, replace):
         for value in values:
             output.add(new_key, value)
     return output
+
+
+# Flask-restx specific decorator - don't use them with regular Flask API!
+# TODO: delete/unify decorators for regular Flask and Flask-restx API once migration
+#  is done
+
+
+def path_to_query(endpoint_method):
+    """
+    Decorator converting path parameters to query parameters
+
+    Returns:
+        Endpoint that has its path parameters converted as query parameters.
+    """
+    params_to_not_look_for = {"self", "args", "kwargs"}
+
+    @wraps(endpoint_method)
+    def convert_path_parameters_of_endpoint_method(self, *args, **kwargs):
+        kwargs = _convert_path_params_to_query(endpoint_method, params_to_not_look_for, **kwargs)
+        return endpoint_method(self, *args, **kwargs)
+    return convert_path_parameters_of_endpoint_method
+
+
+def deprecated_route_method(ns: Namespace, msg):
+    """
+    Decorator that display a deprecation warning in headers and docs.
+
+    Usage:
+        class Endpoint(Resource):
+            ...
+            @deprecated_route_method("POST", "PUT")
+            ...
+            def get():
+                return {"scary": "BOO!"}
+
+    Args:
+        ns: flask-restx Namespace
+        msg: Deprecation warning message.
+    """
+    def decorate_endpoint_method(endpoint_method):
+        # render deprecation in API docs
+        ns.deprecated(endpoint_method)
+
+        @wraps(endpoint_method)
+        def warn_user_in_headers(self, *args, **kwargs):
+            custom_header = {"Warning": f"This method is deprecated: {msg}"}
+            resp = endpoint_method(self, *args, **kwargs)
+            if not isinstance(resp, tuple):
+                # only resp body as dict was passed
+                return resp, custom_header
+
+            for part_of_resp in resp[1:]:
+                if isinstance(part_of_resp, dict):
+                    part_of_resp |= custom_header
+                    return resp
+
+            return resp + (custom_header,)
+
+        return warn_user_in_headers
+    return decorate_endpoint_method
+
+
+def deprecated_route_method_type(ns: Namespace, deprecated_method_type: str, use_instead: str):
+    """
+    Calls deprecated_route decorator with specific message about deprecated method.
+
+    Usage:
+        class Endpoint(Resource):
+            ...
+            @deprecated_route_method_type("POST", "PUT")
+            ...
+            def get():
+                return {"scary": "BOO!"}
+
+    Args:
+        ns: flask-restx Namespace
+        deprecated_method_type: method enum e.g. POST
+        use_instead: method user should use instead
+    """
+    def call_deprecated_endpoint_method(endpoint_method):
+        msg = f"Use {use_instead} method instead of {deprecated_method_type}"
+        return deprecated_route_method(ns, msg)(endpoint_method)
+    return call_deprecated_endpoint_method
+
+
+def restx_editable_copr(endpoint_method):
+    """
+    Raises an exception if user don't have permissions for editing Copr repo.
+    """
+    @wraps(endpoint_method)
+    def editable_copr_getter(self, ownername, projectname):
+        copr = _check_if_user_can_edit_copr(ownername, projectname)
+        return endpoint_method(self, copr)
+    return editable_copr_getter
+
+
+def restx_pagination(endpoint_method):
+    """
+    Validates pagination arguments and converts pagination parameters from query to
+     kwargs.
+    """
+    @wraps(endpoint_method)
+    def create_pagination(self, *args, **kwargs):
+        kwargs = _shared_pagination_wrapper(**kwargs)
+        return endpoint_method(self, *args, **kwargs)
+    return create_pagination
