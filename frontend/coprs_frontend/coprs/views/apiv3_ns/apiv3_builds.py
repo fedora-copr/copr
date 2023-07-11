@@ -15,10 +15,8 @@ from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper
-from coprs.views.apiv3_ns.schema import (
-    build_model,
-    get_build_params,
-)
+from coprs.views.apiv3_ns.schema.schemas import build_model
+from coprs.views.apiv3_ns.schema.docs import get_build_docs
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.coprs_logic import CoprDirsLogic
@@ -36,8 +34,6 @@ from . import (
     DELETE,
 )
 from .json2form import get_form_compatible_data
-
-
 
 
 apiv3_builds_ns = Namespace("build", description="Builds")
@@ -95,7 +91,7 @@ def render_build(build):
 @apiv3_builds_ns.route("/<int:build_id>")
 class GetBuild(Resource):
 
-    @apiv3_builds_ns.doc(params=get_build_params)
+    @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(build_model)
     def get(self, build_id):
         """

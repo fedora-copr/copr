@@ -2,6 +2,7 @@ import base64
 import datetime
 import functools
 from functools import wraps
+
 import flask
 
 from flask import send_file
@@ -156,41 +157,49 @@ def logout():
     return UserAuth.logout()
 
 
+def _shared_api_login_required_wrapper():
+    token = None
+    api_login = None
+    if "Authorization" in flask.request.headers:
+        base64string = flask.request.headers["Authorization"]
+        base64string = base64string.split()[1].strip()
+        userstring = base64.b64decode(base64string)
+        (api_login, token) = userstring.decode("utf-8").split(":")
+    token_auth = False
+    if token and api_login:
+        user = UsersLogic.get_by_api_login(api_login).first()
+        if (user and user.api_token == token and
+                user.api_token_expiration >= datetime.date.today()):
+            token_auth = True
+            flask.g.user = user
+    if not token_auth:
+        url = 'https://' + app.config["PUBLIC_COPR_HOSTNAME"]
+        url = helpers.fix_protocol_for_frontend(url)
+
+        msg = "Attempting to use invalid or expired API login '%s'"
+        app.logger.info(msg, api_login)
+
+        output = {
+            "output": "notok",
+            "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
+        }
+        jsonout = flask.jsonify(output)
+        jsonout.status_code = 401
+        return jsonout
+    return None
+
+
 def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        token = None
-        api_login = None
         # flask.g.user can be already set in case a user is using gssapi auth,
         # in that case before_request was called and the user is known.
         if flask.g.user is not None:
             return f(*args, **kwargs)
-        if "Authorization" in flask.request.headers:
-            base64string = flask.request.headers["Authorization"]
-            base64string = base64string.split()[1].strip()
-            userstring = base64.b64decode(base64string)
-            (api_login, token) = userstring.decode("utf-8").split(":")
-        token_auth = False
-        if token and api_login:
-            user = UsersLogic.get_by_api_login(api_login).first()
-            if (user and user.api_token == token and
-                    user.api_token_expiration >= datetime.date.today()):
-                token_auth = True
-                flask.g.user = user
-        if not token_auth:
-            url = 'https://' + app.config["PUBLIC_COPR_HOSTNAME"]
-            url = helpers.fix_protocol_for_frontend(url)
+        retval = _shared_api_login_required_wrapper()
+        if retval is not None:
+            return retval
 
-            msg = "Attempting to use invalid or expired API login '%s'"
-            app.logger.info(msg, api_login)
-
-            output = {
-                "output": "notok",
-                "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
-            }
-            jsonout = flask.jsonify(output)
-            jsonout.status_code = 401
-            return jsonout
         return f(*args, **kwargs)
     return decorated_function
 
@@ -308,3 +317,30 @@ def req_with_pagination(f):
             raise ObjectNotFound("Invalid pagination format") from err
         return f(*args, page=page, **kwargs)
     return wrapper
+
+
+# Flask-restx specific helpers/decorators - don't use them with regular Flask API!
+# TODO: delete/unify decorators for regular Flask and Flask-restx API once migration
+#  is done
+
+
+def restx_api_login_required(endpoint_method):
+    """
+    Checks whether API login is required for an endpoint which is decorated
+     by this decorator.
+
+    Returns:
+        notok API response if API login failed
+    """
+    @wraps(endpoint_method)
+    def check_if_api_login_is_required(self, *args, **kwargs):
+        # flask.g.user can be already set in case a user is using gssapi auth,
+        # in that case before_request was called and the user is known.
+        if flask.g.user is not None:
+            return endpoint_method(self, *args, **kwargs)
+        retval = _shared_api_login_required_wrapper()
+        if retval is not None:
+            return retval
+
+        return endpoint_method(self, *args, **kwargs)
+    return check_if_api_login_is_required
