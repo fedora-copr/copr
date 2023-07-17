@@ -652,6 +652,9 @@ class Commands(object):
             if args.spec:
                 cmd.extend(["-A", "*.spec"])
 
+            if args.logs:
+                cmd.extend(["-A", "*.log.gz"])
+
             if args.review:
                 cmd.extend([
                     "-A", "files.dir",
@@ -1511,6 +1514,12 @@ def setup_parser():
         dest="review",
         action="store_true",
         help="Download only the fedora-review files",
+    )
+    parser_download_build.add_argument(
+        "--logs",
+        dest="logs",
+        action="store_true",
+        help="Download only the .log files",
     )
     parser_download_build.set_defaults(func="action_download_build")
 
