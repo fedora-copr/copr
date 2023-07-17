@@ -152,7 +152,12 @@ class BatchedCreaterepo:
                 self.log.info("Key %s already processed, skip", key)
                 continue
 
-            task_opts = json.loads(task_dict["task"])
+            try:
+                task_opts = json.loads(task_dict["task"])
+            except KeyError:
+                self.log.info("KeyError exception. Task dictionary for key %s: %s",
+                              key, task_dict)
+                raise
 
             skip = False
             for attr in ["devel", "appstream"]:
