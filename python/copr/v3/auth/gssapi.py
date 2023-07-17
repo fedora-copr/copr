@@ -9,7 +9,6 @@ try:
 except ImportError:
     requests_gssapi = None
 
-from future.utils import raise_from
 from copr.v3.exceptions import CoprAuthException
 from copr.v3.requests import munchify, handle_errors
 from copr.v3.auth.base import BaseAuth
@@ -40,7 +39,8 @@ class Gssapi(BaseAuth):
         except requests_gssapi.exceptions.SPNEGOExchangeError as err:
             msg = "Can not get session for {0} cookie via GSSAPI: {1}".format(
                 self.config["copr_url"], err)
-            raise_from(CoprAuthException(msg), err)
+            # TODO: change to `raise from` once we stop supporting rhel7
+            raise CoprAuthException(msg)  # pylint: disable=raise-missing-from
 
         handle_errors(response)
         data = munchify(response)
