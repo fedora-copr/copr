@@ -13,6 +13,9 @@ packages:
     files_to_sync:
       - python-copr.spec
     upstream_tag_template: python-copr-{version}
+    actions:
+      post-upstream-clone:
+        - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr-common `git rev-parse --short HEAD`"
 
   python-copr-common:
     downstream_package_name: python-copr-common
