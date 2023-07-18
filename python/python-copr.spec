@@ -37,7 +37,6 @@ BuildRequires: python-configparser
 BuildRequires: pytest
 BuildRequires: python2-devel
 BuildRequires: python2-requests-gssapi
-BuildRequires: python-future
 # for doc package
 BuildRequires: python-sphinx
 BuildRequires: python-docutils
@@ -52,7 +51,6 @@ BuildRequires: python-munch
 BuildRequires: python2-filelock
 BuildRequires: python2-configparser
 BuildRequires: python2-requests-gssapi
-BuildRequires: python-future
 # for doc package
 BuildRequires: python2-sphinx
 BuildRequires: python2-docutils
@@ -84,7 +82,6 @@ Requires: python-requests-toolbelt
 Requires: python-requests-gssapi
 Requires: python-setuptools
 Requires: python-six >= 1.9.0
-Requires: python-future
 %else
 Requires: python2-configparser
 Requires: python2-munch
@@ -94,7 +91,6 @@ Requires: python2-requests-toolbelt
 Requires: python2-setuptools
 Requires: python2-requests-gssapi
 Requires: python2-six >= 1.9.0
-Requires: python-future
 %endif
 
 %{?python_provide:%python_provide python2-copr}
@@ -121,7 +117,6 @@ BuildRequires: python3-requests-toolbelt
 BuildRequires: python3-six
 BuildRequires: python3-sphinx
 BuildRequires: python3-requests-gssapi
-BuildRequires: python3-future
 
 Requires: python3-munch
 Requires: python3-filelock
@@ -130,7 +125,6 @@ Requires: python3-requests-toolbelt
 Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-requests-gssapi
-Requires: python3-future
 
 %{?python_provide:%python_provide python3-copr}
 
@@ -142,7 +136,6 @@ BuildRequires: python3-devel
 BuildRequires: python3-sphinx
 BuildRequires: python3-pytest
 BuildRequires: python3-requests-gssapi
-BuildRequires: python3-future
 BuildRequires: python3-filelock
 BuildRequires: pyproject-rpm-macros
 

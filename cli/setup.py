@@ -19,7 +19,6 @@ requires = [
     'simplejson',
     'jinja2',
     'setuptools',
-    'future',
 ]
 
 __name__ = 'copr-cli'
