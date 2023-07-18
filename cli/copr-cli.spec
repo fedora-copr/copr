@@ -35,7 +35,6 @@ Requires:      python3-jinja2
 Requires:      python3-simplejson
 Requires:      python3-humanize
 Requires:      python3-koji
-Requires:      python3-future
 
 Recommends:    python3-progress
 Suggests:      python3-beautifulsoup4
@@ -49,13 +48,11 @@ BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 BuildRequires: python3-munch
-BuildRequires: python3-future
 %else
 Requires:      python-copr >= %min_python_copr_version
 Requires:      python-jinja2
 Requires:      python-simplejson
 Requires:      python-humanize
-Requires:      python-future
 
 BuildRequires: pytest
 BuildRequires: python-copr >= %min_python_copr_version
@@ -67,7 +64,6 @@ BuildRequires: python2-responses
 BuildRequires: python-setuptools
 BuildRequires: python-simplejson
 BuildRequires: python-munch
-BuildRequires: python-future
 %endif
 
 # We historically shipped empty doc package, uninstall it.

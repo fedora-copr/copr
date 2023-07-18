@@ -20,7 +20,6 @@ requires = [
     'setuptools',
     'six',
     'munch',
-    'future',
 ]
 
 __description__ = "Python client for copr service."
