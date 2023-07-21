@@ -1,9 +1,9 @@
-%if 0%{?rhel} > 7 || 0%{?fedora}
-%global __python %_bindir/python3
-%global with_python3 1
-%else
+%if 0%{?rhel} && 0%{?rhel} <= 7
 %global __python %_bindir/python2
 %global with_python2 1
+%else
+%global __python %_bindir/python3
+%global with_python3 1
 %endif
 
 %global min_python_copr_version 1.128.1
