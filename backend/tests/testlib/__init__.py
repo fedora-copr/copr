@@ -177,7 +177,8 @@ class FakeSSHConnection(SSHConnection):
     def rsync_download(self, src, dest, logfile=None, max_retries=0):
         data = os.environ["TEST_DATA_DIRECTORY"]
         trail_slash = src.endswith("/")
-        src = os.path.join(data, "build_results", "00848963-example")
+        src = os.path.join(data, "build_results", "fedora-30-x86_64",
+                           "00848963-example")
         if trail_slash:
             src = src + "/"
 
