@@ -119,8 +119,8 @@ def f_third_build(f_second_build):
     Same as ``f_second_build``, but one more build.
     """
     ctx = f_second_build
-    source = os.path.join(os.environ["TEST_DATA_DIRECTORY"],
-                          "build_results", "00848963-example",
+    source = os.path.join(os.environ["TEST_DATA_DIRECTORY"], "build_results",
+                          "fedora-30-x86_64", "00848963-example",
                           "example-1.0.14-1.fc30.x86_64.rpm")
     build = '00000003-example'
     ctx.builds.append(build)
