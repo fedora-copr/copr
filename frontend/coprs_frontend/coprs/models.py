@@ -2206,8 +2206,7 @@ class Group(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(127))
 
-    # TODO: add unique=True
-    fas_name = db.Column(db.String(127))
+    fas_name = db.Column(db.String(127), unique=True)
 
     @property
     def at_name(self):

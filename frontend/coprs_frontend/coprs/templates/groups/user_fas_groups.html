@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import fas_group_href, initialize_datatables %}
+{% from "_helpers.html" import initialize_datatables %}
 {% block title %}Add a Group{% endblock %}
 {% block header %}Add a Group{% endblock %}
 
@@ -37,7 +37,7 @@
     <tbody>
     {% for team in teams %}
       <tr>
-        <td><a href="{{ fas_group_href(team) }}">
+        <td><a href="{{ config.GROUP_INFO.link.format(name=team) }}">
           {{ team }}
         </a></td>
         <td>

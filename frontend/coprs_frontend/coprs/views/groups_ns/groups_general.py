@@ -10,6 +10,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs import app
+from coprs.oidc import oidc_enabled
 
 from ... import db
 from ..misc import login_required
@@ -21,6 +22,15 @@ from . import groups_ns
 @groups_ns.route("/activate/<fas_group>", methods=["GET", "POST"])
 @login_required
 def activate_group(fas_group):
+    msg_fmt = "Group {} is activated in the system under the alias {}"
+
+    group = UsersLogic.get_group_by_fas_name(fas_group).first()
+    if group:
+         # can't have more than one alias for a group
+        flask.flash(msg_fmt.format(group.fas_name, group.name), "success")
+        return flask.redirect(url_for(
+            "groups_ns.list_projects_by_group", group_name=group.name))
+
     form = ActivateFasGroupForm()
 
     if form.validate_on_submit():
@@ -31,22 +41,17 @@ def activate_group(fas_group):
 
         if fas_group not in flask.g.user.user_teams:
             raise InsufficientRightsException(
-                "User '{}' doesn't have access to fas group {}"
+                "User '{}' doesn't have access to group {}"
                 .format(flask.g.user.username, fas_group))
 
         alias = form.name.data
-        group = UsersLogic.get_group_by_fas_name_or_create(
-            fas_group, alias)
+        group = UsersLogic.create_group_by_fas_name(fas_group, alias)
 
-        db.session.add(group)
         db.session.commit()
 
-        flask.flash(
-            "FAS group {} is activated in the Copr under the alias {} "
-            .format(fas_group, alias)
-        )
+        flask.flash(msg_fmt.format(group.fas_name, group.name), "success")
         return flask.redirect(url_for(
-            "groups_ns.list_projects_by_group", group_name=alias))
+            "groups_ns.list_projects_by_group", group_name=group.name))
 
     else:
         return flask.render_template(
@@ -85,7 +90,7 @@ def list_projects_by_group(group_name, page=1):
 @groups_ns.route("/list/my")
 @login_required
 def list_user_groups():
-    if not (app.config['FAS_LOGIN'] or app.config['LDAP_URL']):
+    if not (app.config['FAS_LOGIN'] or app.config['LDAP_URL'] or oidc_enabled(app.config)):
         raise ObjectNotFound("Fedora Accounts or LDAP groups not enabled")
 
     teams = flask.g.user.user_teams
