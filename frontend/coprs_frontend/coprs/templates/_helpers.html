@@ -304,7 +304,7 @@
         <span class="badge">{{ g.user.coprs_count }}</span>
         My projects
       </a>
-    {% if config.FAS_LOGIN or config.LDAP_URL %}
+    {% if config.FAS_LOGIN or config.LDAP_URL or config.OIDC_LOGIN %}
       <a href="{{url_for('groups_ns.list_user_groups') }}" class="list-group-item">
         <span class="badge"> {{ user.user_groups|length }} </span>
         My groups
@@ -457,11 +457,6 @@
 {% macro package_href(package) %}
   {{- copr_url('coprs_ns.copr_package', package.copr, package_name=package.name) -}}
 {% endmacro %}
-
-{%- macro fas_group_href(name) -%}
-https://accounts.fedoraproject.org/group/{{name}}
-{%- endmacro -%}
-
 
 {% macro repo_file_href(copr, repo, arch=None) %}
 {%- if not arch %}
