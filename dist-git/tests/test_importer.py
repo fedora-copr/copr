@@ -119,12 +119,14 @@ class TestImporter(Base):
         assert mc_import_package.call_args[0][2] == self.url_task.branches
         assert mc_import_package.call_args[0][3] == 'somepath.src.rpm'
 
-        print(self.importer.post_back_safe.has_calls([
-            mock.call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
-                       'pkg_version': '1.2', 'git_hash': '123', 'repo_name': 'foo'}),
-            mock.call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
-                       'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
-        ]))
+        self.importer.post_back_safe.assert_has_calls([
+            mock.call({
+                'build_id': 123,
+                'pkg_name': 'foo',
+                'pkg_evr': '1.2',
+                'reponame': 'foo',
+                'branch_commits': {'f22': '123', 'f23': '124'}}),
+        ])
 
 
     @mock.patch("copr_dist_git.import_dispatcher.Importer", return_value=MagicMock())
