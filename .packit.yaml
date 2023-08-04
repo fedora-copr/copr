@@ -1,3 +1,4 @@
+---
 # See the documentation for more information:
 # https://packit.dev/docs/configuration/
 upstream_project_url: https://github.com/fedora-copr/copr.git
@@ -139,7 +140,7 @@ jobs:
     trigger: pull_request
     targets:
       - fedora-all-x86_64
-    manual_trigger: True # needs to be triggered by the `/packit build` comment
+    manual_trigger: true  # needs to be triggered by the `/packit build` comment
 
   - job: copr_build
     packages:
@@ -153,7 +154,7 @@ jobs:
       - fedora-all-aarch64
       - fedora-all-ppc64le
       - epel-all-x86_64
-    manual_trigger: True # needs to be triggered by the `/packit build` comment
+    manual_trigger: true  # needs to be triggered by the `/packit build` comment
 
   - job: copr_build
     packages:
@@ -165,7 +166,7 @@ jobs:
       - fedora-all-ppc64le
       - epel-9-x86_64
       - epel-8-x86_64
-    manual_trigger: True # needs to be triggered by the `/packit build` comment
+    manual_trigger: true  # needs to be triggered by the `/packit build` comment
 
   # Main commit builds:
 
@@ -182,7 +183,7 @@ jobs:
       - fedora-all-x86_64
     owner: packit
     project: copr
-    preserve_project: True
+    preserve_project: true
 
   - job: copr_build
     packages:
@@ -199,7 +200,7 @@ jobs:
       - epel-all-x86_64
     owner: packit
     project: copr
-    preserve_project: True
+    preserve_project: true
 
   - job: copr_build
     packages:
@@ -214,4 +215,4 @@ jobs:
       - epel-8-x86_64
     owner: packit
     project: copr
-    preserve_project: True
+    preserve_project: true
