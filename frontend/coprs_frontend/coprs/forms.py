@@ -656,10 +656,8 @@ class CoprForm(BaseForm):
         validators=[wtforms.validators.Optional()],)
 
     repo_priority = wtforms.IntegerField(
-        "The priority value of this repository",
-        description="""The priority value of this repository, default is 99. If there is more than one candidate
-        package for a particular operation, the one from a repo with the lowest priority value is
-        picked, possibly despite being less convenient otherwise (e.g. by being a lower version).""",
+        "Use the priority=<INT> config option for repositories in this "
+        "project, see man dnf.conf(5) for more info.",
         render_kw={"placeholder": "Optional - integer, e.g. 22"},
         validators=[
             wtforms.validators.Optional(),
