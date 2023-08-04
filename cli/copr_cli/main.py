@@ -1179,8 +1179,10 @@ def setup_parser():
               "created for you (as soon as they are available) as rawhide "
               "chroot forks."))
 
-    parser_create.add_argument("--repo-priority", default=None,
-                               help="Set the priority value of this repository")
+    parser_create.add_argument(
+        "--repo-priority", default=None,
+        help=("Use the priority=<INT> config option for repositories in this "
+              "project, see man dnf.conf(5) for more info."))
 
     create_and_modify_common_opts(parser_create)
 
