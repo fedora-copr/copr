@@ -206,6 +206,16 @@ class WebUIRequests(_RequestsInterface):
         resp = self.client.post(route, data=form_data)
         return resp
 
+    def resubmit_build_id(self, build_id):
+        build = models.Build.query.get(build_id)
+        path = f"/coprs/{build.copr.full_name}/new_build_rebuild/{build_id}"
+        response = self.client.post(
+            path,
+            data={},
+        )
+        assert response.status_code == 302
+        return response
+
 
 class API3Requests(_RequestsInterface):
     """
@@ -424,9 +434,10 @@ class BackendRequests:
         assert self.update(form_data).status_code == 200
 
 
-    def finish_build(self, build_id, package_name=None, pkg_version="1"):
+    def finish_srpm_and_import(self, build_id, package_name=None, pkg_version="1"):
         """
-        Given the build_id, finish the build with succeeded state
+        Given the build_id, finish the source build, import it, and move the
+        corresponding BuildChroot instances to /pending-jobs/.
         """
         build = models.Build.query.get(build_id)
         if not package_name:
@@ -459,6 +470,12 @@ class BackendRequests:
                "reponame": "some/repo"
         }))
 
+
+    def finish_build(self, build_id, package_name=None, pkg_version="1"):
+        """
+        Given the build_id, finish the build with succeeded state
+        """
+        self.finish_srpm_and_import(build_id, package_name, pkg_version)
         # finish rpms
         update_requests = []
         for build_chroot in models.BuildChroot.query.filter_by(build_id=build_id).all():

@@ -11,6 +11,7 @@ import json
 import base64
 import operator
 import os
+import re
 from urllib.parse import urljoin
 import uuid
 import time
@@ -1530,6 +1531,15 @@ class Build(db.Model, helpers.Serializer):
         """Whether appstream metadata should be generated for a build."""
         return self.copr.appstream
 
+    def backend_enqueue_buildchroots(self):
+        """
+        When the sources are successfully imported into dist-git, and the set of
+        buildchroots is generated, do some last-minute BuildChroot preprations
+        before hand-it over to Backend (into pending-jobs queue).
+        """
+        for bch in self.build_chroots:
+            bch.backend_enqueue()
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
@@ -1540,7 +1550,33 @@ class DistGitBranch(db.Model, helpers.Serializer):
     name = db.Column(db.String(50), primary_key=True)
 
 
-class MockChroot(db.Model, helpers.Serializer):
+class TagMixin:
+    """
+    Work with tags assigned to BuildChroots or MockChroots uniformly.  Typically
+    used as additional tags for the Resalloc system to match appropriate
+    builder.
+    """
+    tags_raw = db.Column(db.String(50), nullable=True)
+
+    @property
+    def tags(self):
+        """
+        Return the list (of strings) of MockChroot tags.
+        """
+        return self.tags_raw.split() if self.tags_raw else []
+
+    def set_tags(self, tags):
+        """
+        Convert the given list of tags into a space separated string (the
+        internal "tags_raw" format).  Empty list NULLs the field.
+        """
+        if not tags:
+            self.tags_raw = None
+        else:
+            self.tags_raw = " ".join(tags)
+
+
+class MockChroot(db.Model, TagMixin, helpers.Serializer):
     """
     Representation of mock chroot
     """
@@ -1577,10 +1613,6 @@ class MockChroot(db.Model, helpers.Serializer):
     multilib_pairs = {
         'x86_64': 'i386',
     }
-
-    # A space separated list of tags.  Typically used as additional tags for the
-    # Resalloc system to match appropriate builder.
-    tags_raw = db.Column(db.String(50), nullable=True)
 
     @classmethod
     def latest_fedora_branched_chroot(cls, arch='x86_64'):
@@ -1619,13 +1651,6 @@ class MockChroot(db.Model, helpers.Serializer):
         attr_list = super(MockChroot, self).serializable_attributes
         attr_list.extend(["name", "os"])
         return attr_list
-
-    @property
-    def tags(self):
-        """
-        Return the list (of strings) of MockChroot tags.
-        """
-        return self.tags_raw.split() if self.tags_raw else []
 
     @property
     def os_family(self):
@@ -1878,7 +1903,7 @@ class CoprChroot(db.Model, helpers.Serializer):
         return settings
 
 
-class BuildChroot(db.Model, helpers.Serializer):
+class BuildChroot(db.Model, TagMixin, helpers.Serializer):
     """
     Representation of Build<->MockChroot relation
     """
@@ -2059,6 +2084,43 @@ class BuildChroot(db.Model, helpers.Serializer):
         dirname = self.build.copr_dir.full_name
         package = self.build.package.name
         return "{}/{}/{}".format(app.config["DIST_GIT_CLONE_URL"], dirname, package)
+
+    def _compile_extra_buildchroot_tags(self):
+        """
+        Convert the EXTRA_BUILDCHROOT_TAGS to EXTRA_BUILDCHROOT_TAGS_COMPILED
+        array with items having the "compiled" field.  Just optimization to not
+        re-compile over again within the same process.
+        """
+        if "EXTRA_BUILDCHROOT_TAGS_COMPILED" in app.config:
+            return
+        new_array = app.config["_EXTRA_BUILDCHROOT_TAGS_COMPILED"] = []
+        for rule in app.config["EXTRA_BUILDCHROOT_TAGS"]:
+            try:
+                rule["compiled"] = re.compile(rule["pattern"])
+                new_array.append(rule)
+            except re.error:
+                # Don't stop the server if user makes a regexp error.
+                app.logger.exception("Invalid regexp: %s", rule["pattern"])
+
+    def backend_enqueue(self):
+        """
+        The sources are successfully prepared in copr-dist-git, it's time to
+        place this buildchroot task into the "pending-jobs" queue.
+        """
+        # now is the time to add tags...?
+        # now is the time to skip exclude arch...?
+        pkg_path = (
+            f"{self.build.copr_dir.full_name}/"
+            f"{self.mock_chroot.name}/"
+            f"{self.build.package.name}"
+        )
+
+        self._compile_extra_buildchroot_tags()
+        tags = []
+        for rule in app.config["_EXTRA_BUILDCHROOT_TAGS_COMPILED"]:
+            if rule["compiled"].match(pkg_path):
+                tags.extend(rule["tags"])
+        self.set_tags(tags)
 
 
 class BuildChrootResult(db.Model, helpers.Serializer):

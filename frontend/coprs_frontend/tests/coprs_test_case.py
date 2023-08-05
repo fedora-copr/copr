@@ -9,6 +9,7 @@ import datetime
 import uuid
 
 import pytest
+from sqlalchemy import desc
 import decorator
 
 import coprs
@@ -881,6 +882,10 @@ def foo():
                                         project_ownername)
         build_id = out.json["id"]
         self.backend.finish_build(build_id, pkg_version=pkg_version)
+
+    @property
+    def last_build(self):
+        return models.Build.query.order_by(desc(models.Build.id)).first()
 
 
 class TransactionDecorator(object):
