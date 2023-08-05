@@ -359,7 +359,7 @@ class BuildsLogic(object):
 
         if data_type in ["for_backend", "overview"]:
             query = query.options(
-                load_only("build_id"),
+                load_only("build_id", "tags_raw"),
                 joinedload('build').load_only("id", "is_background", "submitted_by", "batch_id")
                 .options(
                     # from copr project info we only need the project name
@@ -452,9 +452,9 @@ class BuildsLogic(object):
                 raise UnrepeatableBuildException("Build sources were not fully imported into CoprDistGit.")
 
         build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
+                               package=source_build.package,
                                pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
                                srpm_url=source_build.srpm_url, copr_dirname=source_build.copr_dir.name, **build_options)
-        build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
         build.resubmitted_from_id = source_build.id
 
@@ -862,6 +862,8 @@ class BuildsLogic(object):
             git_hashes=git_hashes,
             status=chroot_status,
         )
+        if skip_import and srpm_url:
+            build.backend_enqueue_buildchroots()
         return build
 
     @classmethod

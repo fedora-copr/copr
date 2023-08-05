@@ -177,6 +177,9 @@ class Config(object):
 
     PACKAGES_COUNT = False
 
+    EXTRA_BUILDCHROOT_TAGS = []
+
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

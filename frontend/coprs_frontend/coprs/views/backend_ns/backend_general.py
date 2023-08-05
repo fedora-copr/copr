@@ -104,6 +104,9 @@ def dist_git_upload_completed():
             ch.status = StatusEnum("failed")
             db.session.add(ch)
 
+    if final_source_status == StatusEnum("succeeded"):
+        build.backend_enqueue_buildchroots()
+
     build.source_status = final_source_status
     db.session.add(build)
     db.session.commit()
@@ -143,7 +146,7 @@ def get_build_record(task, for_backend=False):
             "sandbox": task.build.sandbox,
             "background": bool(task.build.is_background),
             "chroot": task.mock_chroot.name,
-            "tags": task.mock_chroot.tags,
+            "tags": task.mock_chroot.tags + task.tags,
         }
 
         if for_backend:
