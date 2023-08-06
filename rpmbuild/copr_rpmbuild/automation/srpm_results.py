@@ -5,7 +5,12 @@ Create `results.json` file for SRPM builds
 import os
 import simplejson
 from copr_rpmbuild.automation.base import AutomationTool
-from copr_rpmbuild.helpers import locate_spec, Spec
+from copr_rpmbuild.helpers import (
+    get_rpm_header,
+    locate_srpm,
+    locate_spec,
+    Spec,
+)
 
 
 class SRPMResults(AutomationTool):
@@ -33,8 +38,20 @@ class SRPMResults(AutomationTool):
         """
         Return ``dict`` with interesting package metadata
         """
-        spec_path = locate_spec(self.resultdir)
-        spec = Spec(spec_path)
         keys = ["name", "epoch", "version", "release",
                 "exclusivearch", "excludearch"]
-        return {key: getattr(spec, key) for key in keys}
+        try:
+            path = locate_spec(self.resultdir)
+            spec = Spec(path)
+            return {key: getattr(spec, key) for key in keys}
+
+        except Exception:  # pylint: disable=broad-exception-caught
+            # Specfile library raises too many exception to name the
+            # in except block
+            msg = "Exception appeared during handling spec file: {0}".format(path)
+            self.log.exception(msg)
+
+            # Fallback to querying NEVRA from the SRPM package header
+            path = locate_srpm(self.resultdir)
+            hdr = get_rpm_header(path)
+            return {key: hdr[key] for key in keys}
