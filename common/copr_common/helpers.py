@@ -22,3 +22,22 @@ def script_requires_user(username):
         )
         sys.stderr.write(msg)
         sys.exit(1)
+
+
+def chroot_to_branch(chroot):
+    """
+    Get a git branch name from chroot. Follow the fedora naming standard.
+    """
+    name, version, _arch = chroot.rsplit("-", 2)
+    if name == "fedora":
+        if version == "rawhide":
+            return "master"
+        abbrev = "f"
+    elif name == "epel" and int(version) <= 6:
+        abbrev = "el"
+    elif name == "mageia" and version == "cauldron":
+        abbrev = "cauldron"
+        version = ""
+    elif name == "mageia":
+        abbrev = "mga"
+    return "{}{}".format(abbrev, version)

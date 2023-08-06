@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.19
+Version:    0.19.1.dev0
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -74,6 +74,8 @@ Summary: %{summary}
 
 %prep
 %setup -q
+# Check that setup.py version matches our version
+grep '"%version"' setup.py
 
 
 %build
