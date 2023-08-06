@@ -108,6 +108,11 @@ def get_rpm_header(path):
     See docs.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch16s04.html
     """
     ts = rpm.TransactionSet()
+    # I don't want to copy-paste the value of the protected variable.
+    # IMHO there is only a low chance it will get removed and even if it gets,
+    # we have tests to catch it anyway
+    # pylint: disable=protected-access
+    ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES)
     with open(path, "rb") as f:
         hdr = ts.hdrFromFdno(f.fileno())
         return hdr
