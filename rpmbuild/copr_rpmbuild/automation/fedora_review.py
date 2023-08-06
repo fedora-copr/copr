@@ -74,5 +74,5 @@ class FedoraReview(AutomationTool):
             except FileNotFoundError:
                 pass
         shutil.rmtree(srcdir)
-        print("Moving the results into `fedora-review' directory.")
-        print("Review template in: {}".format(os.path.join(dstdir, results[0])))
+        self.log.info("Moving the results into `fedora-review' directory.")
+        self.log.info("Review template in: %s", os.path.join(dstdir, results[0]))
