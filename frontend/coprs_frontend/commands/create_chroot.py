@@ -1,8 +1,8 @@
 import click
 
+from copr_common.helpers import chroot_to_branch
 from coprs import exceptions
 from coprs import db
-from coprs.helpers import chroot_to_branch
 from coprs.logic import coprs_logic
 
 

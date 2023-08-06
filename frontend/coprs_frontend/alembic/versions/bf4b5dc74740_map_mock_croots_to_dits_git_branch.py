@@ -10,15 +10,16 @@ Create Date: 2017-05-19 07:55:05.743045
 revision = 'bf4b5dc74740'
 down_revision = '38ea34def9a'
 
+# pylint: disable=wrong-import-position
 from alembic import op
 import sqlalchemy as sa
 
 from sqlalchemy.orm import sessionmaker
+from copr_common.helpers import chroot_to_branch
 
 import sys, os
 sys.path.append(os.getcwd())
 from coprs.models import MockChroot
-from coprs.helpers import chroot_to_branch
 from coprs.logic.coprs_logic import BranchesLogic
 
 def upgrade():
