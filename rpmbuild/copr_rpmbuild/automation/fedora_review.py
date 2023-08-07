@@ -48,11 +48,11 @@ class FedoraReview(AutomationTool):
         try:
             result = run_cmd(cmd, cwd=self.resultdir)
             self.log.info(result.stdout)
-            self._filter_results_directory()
         except RuntimeError as ex:
             self.log.warning("Fedora review failed\nerr:\n%s", ex)
             self.log.warning("The build itself will not be marked "
                              "as failed because of this")
+        self._filter_results_directory()
 
     def _filter_results_directory(self):
         """
@@ -66,6 +66,13 @@ class FedoraReview(AutomationTool):
         srcdir = os.path.join(self.resultdir, self.package_name)
         dstdir = os.path.join(self.resultdir, "fedora-review")
         os.makedirs(dstdir, exist_ok=True)
+
+        # The fedora-review command failed so early that it didn't even create
+        # the resultdir. Nothing to do here.
+        if not os.path.exists(srcdir):
+            self.log.error("Can't find fedora-review results: %s", srcdir)
+            return
+
         results = ["review.txt", "licensecheck.txt", "rpmlint.txt", "files.dir"]
         for result in results:
             try:
