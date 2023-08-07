@@ -11,13 +11,18 @@ def is_config_valid(config):
     """
     If OpenID Connect is enabled
     """
-    return "OIDC_LOGIN" in config and config["OIDC_LOGIN"] is True
+    return "OIDC_LOGIN" in config and config["OIDC_LOGIN"] is True and \
+            "OIDC_PROVIDER_NAME" in config and config["OIDC_PROVIDER_NAME"]
 
 
 def oidc_enabled(config):
     """
     Check whether the config is valid
     """
+    if not is_config_valid(config):
+        logger.error("OIDC_LOGIN or OIDC_PROVIDER_NAME is empty")
+        return False
+
     if not config.get("OIDC_CLIENT"):
         logger.error("OIDC_CLIENT is empty")
         return False
@@ -47,7 +52,7 @@ def init_oidc_app(app):
     When configs check failed, a invalid client object is returned
     """
     oidc = OAuth(app)
-    if oidc_enabled(app.config) and is_config_valid(app.config):
+    if oidc_enabled(app.config):
         client_id = app.config.get("OIDC_CLIENT")
         secret = app.config.get("OIDC_SECRET")
         client_kwargs = {

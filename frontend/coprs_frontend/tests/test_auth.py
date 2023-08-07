@@ -3,7 +3,7 @@
 from unittest import mock
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
-from coprs.auth import GroupAuth
+from coprs.auth import GroupAuth, LDAPGroups
 
 
 class TestGroupAuth(CoprsTestCase):
@@ -29,7 +29,7 @@ class TestGroupAuth(CoprsTestCase):
             b'cn=another-group-2,ou=foo,ou=bar,dc=company,dc=com'
         ]
         user = mock.MagicMock()
-        GroupAuth.update_user_groups(user)
+        GroupAuth.update_user_groups(user, LDAPGroups.group_names(user.username))
         assert user.openid_groups == {
             "fas_groups": ["group1", "group2", "another-group",
                            "another-group-2"]}

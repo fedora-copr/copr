@@ -4,6 +4,7 @@ import flask
 from coprs import app
 from coprs.constants import BANNER_LOCATION
 from coprs.helpers import current_url
+from coprs.oidc import oidc_enabled
 
 
 @app.context_processor
@@ -67,7 +68,7 @@ def login_menu():
                 'desc': 'sign up',
             })
 
-        if config['OIDC_LOGIN'] and config['OIDC_PROVIDER_NAME']:
+        if oidc_enabled(config):
             menu.append({
                 'link': flask.url_for("misc.oidc_login"),
                 'desc': '{} login'.format(app.config['OIDC_PROVIDER_NAME']),

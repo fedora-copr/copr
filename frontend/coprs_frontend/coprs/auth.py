@@ -92,37 +92,26 @@ class GroupAuth:
     `app.config["FAS_LOGIN"]` and `app.config["KRB5_LOGIN"]` should be
     encapsulated within this class.
     """
-
     @classmethod
-    def update_user_groups(cls, user, oid_resp=None):
+    def update_user_groups(cls, user, groups=None):
         """
         Upon a successful login, try to (a) load the list of groups from
         authoritative source, and (b) (re)set the user.openid_groups.
         """
-
         def _do_update(user, grouplist):
             user.openid_groups = {
                 "fas_groups": grouplist,
             }
+        if not groups:
+            groups = []
 
-        if oid_resp:
-            _do_update(user, OpenIDGroups.group_names(oid_resp))
+        if not isinstance(groups, list):
+            app.logger.error("groups should be a list object")
             return
 
-        # If we have a LDAP pre-configured, now is the right time to load the
-        # data, or fail.
-        keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
-        if all(app.config[k] for k in keys):
-            _do_update(user, LDAPGroups.group_names(user.username))
-            return
-
-        # We only ever call update_user_groups() with oid_resp!= None with FAS
-        assert not app.config["FAS_LOGIN"]
-
-        app.logger.warning("Nowhere to get groups from")
-        # This copr doesn't support groups.
-        _do_update(user, [])
-
+        app.logger.info(f"groups add: {groups}")
+        _do_update(user, groups)
+        return
 
 class FedoraAccounts:
     """
@@ -193,7 +182,7 @@ class FedoraAccounts:
         # Update user attributes from FAS
         user.mail = oid_resp.email
         user.timezone = oid_resp.timezone
-        GroupAuth.update_user_groups(user, oid_resp)
+        GroupAuth.update_user_groups(user, OpenIDGroups.group_names(oid_resp))
         return user
 
 
@@ -239,7 +228,9 @@ class Kerberos:
         # Create a new user object
         krb_config = app.config['KRB5_LOGIN']
         user.mail = username + "@" + krb_config['email_domain']
-        GroupAuth.update_user_groups(user)
+        keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
+        if all(app.config[k] for k in keys):
+            GroupAuth.update_user_groups(user, LDAPGroups.group_names(user.username))
         return user
 
     @staticmethod
@@ -402,4 +393,15 @@ class OpenIDConnect:
             and userinfo['zoneinfo'] else None
 
         user = UserAuth.get_or_create_user(userinfo['username'], userinfo['email'], zoneinfo)
+        GroupAuth.update_user_groups(user, OpenIDConnect.groups_from_userinfo(userinfo))
         return user
+
+    @staticmethod
+    def groups_from_userinfo(userinfo):
+        """
+        Create a `models.User` object from oidc user info
+        """
+        if not userinfo:
+            return None
+
+        return userinfo.get("groups")
