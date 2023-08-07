@@ -438,10 +438,6 @@ def process_new_build_upload(copr, add_view, url_on_success):
 def copr_new_build_rebuild(copr, build_id):
     view='coprs_ns.copr_new_build'
     url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
-    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
-
-
-def process_rebuild(copr, build_id, view, url_on_success):
     def factory(**build_options):
         source_build = ComplexLogic.get_build_safe(build_id)
         BuildsLogic.create_new_from_other_build(
@@ -461,10 +457,6 @@ def process_rebuild(copr, build_id, view, url_on_success):
 @login_required
 @req_with_copr
 def copr_repeat_build(copr, build_id):
-    return process_copr_repeat_build(build_id, copr)
-
-
-def process_copr_repeat_build(build_id, copr):
     build = ComplexLogic.get_build_safe(build_id)
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
