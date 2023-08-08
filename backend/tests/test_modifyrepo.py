@@ -547,9 +547,10 @@ class TestModifyRepo(object):
             pass
 
         assert call_copr_repo(chrootdir)
-        name = glob.glob(os.path.join(chrootdir, "repodata", "*-comps.xml.gz"))
-        assert os.path.exists(name[0])
 
+        name = glob.glob(os.path.join(chrootdir, "repodata", "*-comps.xml.*"))
+        assert os.path.exists(name[0])
+        assert name[0].endswith((".zst", ".gz"))
 
     @skip("Works locally and in Copr but fails in Koji")
     @mock.patch("copr_prune_results.LOG", logging.getLogger())
