@@ -7,6 +7,14 @@ import glob
 import gzip
 from xml.dom import minidom
 
+try:
+    # This import tracebacks on F37 but we need it only on F39+
+    # pylint: disable=import-outside-toplevel
+    from zstandard import ZstdDecompressor
+except ImportError:
+    pass
+
+
 def load_primary_xml(dirname):
     '''
     Parse priary.xml from the given repodata directory path, and return
@@ -16,8 +24,7 @@ def load_primary_xml(dirname):
     hrefs = set()
     names = set()
     primary = glob.glob(os.path.join(dirname, '*primary*xml*'))[0]
-    with gzip.open(primary) as fprimary:
-        xml_content = fprimary.read()
+    xml_content = extract(primary)
 
     dom = minidom.parseString(xml_content)
 
@@ -36,3 +43,14 @@ def load_primary_xml(dirname):
         'hrefs': hrefs,
         'names': names,
     }
+
+def extract(path):
+    if path.endswith(".zst"):
+        with open(path, "rb") as fp:
+            decompressor = ZstdDecompressor()
+            return decompressor.stream_reader(fp).read()
+
+    if path.endswith(".gz"):
+        with gzip.open(path) as fp:
+            return fp.read()
+    raise ValueError("Unexpected extension: {0}".format(path))
