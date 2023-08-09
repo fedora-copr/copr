@@ -31,9 +31,11 @@ class SRPMResults(AutomationTool):
         Create `results.json`
         """
         data = self.get_package_info()
+        data_json = json.dumps(data, indent=4)
+        self.log.info("Package info: %s", data_json)
         path = os.path.join(self.resultdir, "results.json")
         with open(path, "w", encoding="utf-8") as dst:
-            json.dump(data, dst, indent=4)
+            dst.write(data_json)
 
     def get_package_info(self):
         """
@@ -52,7 +54,7 @@ class SRPMResults(AutomationTool):
             msg = "Exception appeared during handling spec file: {0}".format(path)
             self.log.exception(msg)
 
-            # Fallback to querying NEVRA from the SRPM package header
             path = locate_srpm(self.resultdir)
+            self.log.warning("Querying NEVRA from SRPM header: %s", path)
             hdr = get_rpm_header(path)
             return {key: hdr[key] for key in keys}
