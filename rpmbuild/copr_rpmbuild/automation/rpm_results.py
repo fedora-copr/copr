@@ -2,8 +2,9 @@
 Create `results.json` file
 """
 
+import json
 import os
-import simplejson
+
 from copr_rpmbuild.automation.base import AutomationTool
 from copr_rpmbuild.helpers import get_rpm_header
 
@@ -28,7 +29,7 @@ class RPMResults(AutomationTool):
         packages = {"packages": nevras}
         path = os.path.join(self.resultdir, "results.json")
         with open(path, "w") as dst:
-            simplejson.dump(packages, dst, indent=4)
+            json.dump(packages, dst, indent=4)
 
     def find_results_nevras_dicts(self):
         """
