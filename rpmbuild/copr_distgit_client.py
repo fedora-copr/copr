@@ -99,18 +99,29 @@ def _load_config(directory):
 
 def download(url, filename):
     """ Download URL as FILENAME using curl command """
+
+    if not hasattr(download, "curl_has_retry_all_errors"):
+        # Drop this once EL8 is not a thing to support
+        output = check_output(["curl", "--help", "all"])
+        # method's static variable to avoid using 'global'
+        download.curl_has_retry_all_errors = b"--retry-all-errors" in output
+
     command = [
         "curl",
         "-H", "Pragma:",
         "-o", filename,
         "--location",
+        "--connect-timeout", "60",
+        "--retry", "3", "--retry-delay", "10",
         "--remote-time",
         "--show-error",
         "--fail",
-        url,
     ]
 
-    if call(command):
+    if download.curl_has_retry_all_errors:
+        command += ["--retry-all-errors"]
+
+    if call(command + [url]):
         raise RuntimeError("Can't download file {0}".format(filename))
 
 
