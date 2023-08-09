@@ -196,7 +196,7 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
 
     try:
         log.debug("clone the pkg repository into repo_dir directory")
-        commands.clone(reponame, target=repo_dir)
+        commands.clone(reponame, target=repo_dir, skip_hooks=True)
     except Exception as e:
         log.error("Failed to clone the Git repository and add files.")
         raise PackageImportException(str(e))
