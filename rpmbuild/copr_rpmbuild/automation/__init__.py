@@ -20,3 +20,4 @@ def run_automation_tools(task, resultdir, mock_config_file, log):
             continue
         log.info("Running %s tool", tool.__class__.__name__)
         tool.run()
+        log.info("%s finished", tool.__class__.__name__)

@@ -27,9 +27,11 @@ class RPMResults(AutomationTool):
         """
         nevras = self.find_results_nevras_dicts()
         packages = {"packages": nevras}
+        packages_json = json.dumps(packages, indent=4)
+        self.log.info("Package info:\n%s", packages_json)
         path = os.path.join(self.resultdir, "results.json")
-        with open(path, "w") as dst:
-            json.dump(packages, dst, indent=4)
+        with open(path, "w", encoding="utf-8") as dst:
+            dst.write(packages_json)
 
     def find_results_nevras_dicts(self):
         """
