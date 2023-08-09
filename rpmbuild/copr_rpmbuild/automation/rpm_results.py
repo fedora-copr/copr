@@ -57,7 +57,7 @@ class RPMResults(AutomationTool):
         arch = "src" if filename.endswith(".src.rpm") else hdr["arch"]
         return {
             "name": hdr["name"],
-            "epoch": hdr["epoch"] or 0,
+            "epoch": hdr["epoch"],
             "version": hdr["version"],
             "release": hdr["release"],
             "arch": arch,
