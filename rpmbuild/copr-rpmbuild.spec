@@ -39,7 +39,6 @@ BuildRequires: %{python}-pytest
 BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
-BuildRequires: %{python_pfx}-simplejson
 BuildRequires: %{python_pfx}-specfile >= 0.19.0
 BuildRequires: python3-backoff >= 1.9.0
 
@@ -57,7 +56,6 @@ Requires: %{python}-copr-common >= %copr_common_version
 Requires: %{python_pfx}-jinja2
 Requires: %{python_pfx}-munch
 Requires: %{python}-requests
-Requires: %{python_pfx}-simplejson
 Requires: %{python_pfx}-specfile >= 0.19.0
 Requires: python3-backoff >= 1.9.0
 

@@ -2,8 +2,9 @@
 Create `results.json` file for SRPM builds
 """
 
+import json
 import os
-import simplejson
+
 from copr_rpmbuild.automation.base import AutomationTool
 from copr_rpmbuild.helpers import (
     get_rpm_header,
@@ -32,7 +33,7 @@ class SRPMResults(AutomationTool):
         data = self.get_package_info()
         path = os.path.join(self.resultdir, "results.json")
         with open(path, "w", encoding="utf-8") as dst:
-            simplejson.dump(data, dst, indent=4)
+            json.dump(data, dst, indent=4)
 
     def get_package_info(self):
         """

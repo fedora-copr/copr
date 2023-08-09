@@ -13,11 +13,6 @@ import pprint
 import shlex
 import pkg_resources
 
-try:
-    from simplejson.scanner import JSONDecodeError
-except ImportError:
-    JSONDecodeError = Exception
-
 from copr_common.request import SafeRequest, RequestError
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
@@ -320,8 +315,8 @@ def get_vanilla_build_config(url):
             raise RuntimeError("No valid build_config at {0}".format(url))
         return build_config
 
-    except JSONDecodeError:
-        raise RuntimeError("No valid build_config at {0}".format(url))
+    except json.decoder.JSONDecodeError as ex:
+        raise RuntimeError("No valid build_config at {0}".format(url)) from ex
 
 
 def read_task_from_file(path):
@@ -330,8 +325,8 @@ def read_task_from_file(path):
             return json.loads(f.read())
     except OSError as ex:
         raise RuntimeError(ex)
-    except json.decoder.JSONDecodeError:
-        raise RuntimeError("No valid build_config at {0}".format(path))
+    except json.decoder.JSONDecodeError as ex:
+        raise RuntimeError("No valid build_config at {0}".format(path)) from ex
 
 
 if __name__ == "__main__":
