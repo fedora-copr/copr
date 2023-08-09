@@ -406,7 +406,10 @@ class Spec:
         self.tags = self.spec.tags(self.spec.parsed_sections.package).content
 
     def __getattr__(self, name):
-        return getattr(self.spec, name)
+        value = getattr(self.spec, name)
+        if name == "epoch" and value is not None:
+            return int(value)
+        return value
 
     @property
     def exclusivearch(self):
