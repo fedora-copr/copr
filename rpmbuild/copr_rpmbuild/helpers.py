@@ -406,8 +406,7 @@ class Spec:
         self.tags = self.spec.tags(self.spec.parsed_sections.package).content
 
     def __getattr__(self, name):
-        value = getattr(self.spec, name)
-        return value
+        return self.safe_attr(name)
 
     @property
     def epoch(self):
