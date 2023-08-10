@@ -407,9 +407,17 @@ class Spec:
 
     def __getattr__(self, name):
         value = getattr(self.spec, name)
-        if name == "epoch" and value is not None:
-            return int(value)
         return value
+
+    @property
+    def epoch(self):
+        """
+        Evaluated %{epoch} as integer or None
+        """
+        value = self.safe_attr("epoch")
+        if value in [None, ""]:
+            return None
+        return int(value)
 
     @property
     def exclusivearch(self):
