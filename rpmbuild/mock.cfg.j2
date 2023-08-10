@@ -52,7 +52,7 @@ metadata_expire=0
 cost=1
 best=1
 
-{%- if "priority" in repo and priority is not none %}
+{%- if repo.get("priority") is not none %}
 priority={{ repo["priority"] }}
 {%- endif %}
 
