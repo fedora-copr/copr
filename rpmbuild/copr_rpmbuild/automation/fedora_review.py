@@ -73,7 +73,8 @@ class FedoraReview(AutomationTool):
             self.log.error("Can't find fedora-review results: %s", srcdir)
             return
 
-        results = ["review.txt", "licensecheck.txt", "rpmlint.txt", "files.dir"]
+        results = ["review.txt", "review.json", "licensecheck.txt",
+                   "rpmlint.txt", "files.dir"]
         for result in results:
             try:
                 os.rename(os.path.join(srcdir, result),
