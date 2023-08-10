@@ -458,6 +458,18 @@ class BuildsLogic(object):
         build.pkg_version = source_build.pkg_version
         build.resubmitted_from_id = source_build.id
 
+        # Skip previously skipped chroots (ExcludeArch, ExclusiveArch, etc)
+        # We need this only for "SRPM upload" builds because they completely
+        # skip the SRPM build phase. Other build methods build SRPM pacakge
+        # again and send the parsed results to backend and frontend. Therefore
+        # from this point of view, there is no difference between resubmitted
+        # and not-resubmitted builds.
+        skipped = [ch.name for ch in source_build.build_chroots
+                   if ch.status == StatusEnum("skipped")]
+        for chroot in build.build_chroots:
+            if chroot.name in skipped:
+                chroot.status = StatusEnum("skipped")
+
         return build
 
     @classmethod
