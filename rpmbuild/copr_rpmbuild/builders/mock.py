@@ -8,7 +8,6 @@ import subprocess
 from jinja2 import Environment, FileSystemLoader
 from ..helpers import (
     locate_spec,
-    locate_srpm,
     CONF_DIRS,
     get_mock_uniqueext,
     GentlyTimeoutedPopen,
@@ -50,10 +49,7 @@ class MockBuilder(object):
         spec = locate_spec(self.sourcedir)
         shutil.copy(spec, self.resultdir)
         try:
-            self.produce_srpm(spec, self.sourcedir, self.resultdir)
-
-            srpm = locate_srpm(self.resultdir)
-            self.produce_rpm(srpm, self.resultdir)
+            self.produce_rpm(spec, self.sourcedir, self.resultdir)
         finally:
             self.mock_clean()
 
@@ -165,9 +161,10 @@ class MockBuilder(object):
 
         return tuples
 
-    def produce_rpm(self, srpm, resultdir):
+    def produce_rpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [
-               "--rebuild", srpm,
+               "--spec", spec,
+               "--sources", sources,
                "--resultdir", resultdir,
                "--uniqueext", self.uniqueext,
                "-r", self.mock_config_file]

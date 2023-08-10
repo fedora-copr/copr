@@ -26,8 +26,6 @@ def f_mock_calls():
         mock.patch('copr_rpmbuild.builders.mock.shutil'),
         mock.patch('copr_rpmbuild.builders.mock.locate_spec',
                    new=mock.MagicMock(return_value='spec')),
-        mock.patch('copr_rpmbuild.builders.mock.locate_srpm',
-                   new=mock.MagicMock(return_value='srpm')),
         mock.patch('copr_rpmbuild.builders.mock.get_mock_uniqueext',
                    new=mock.MagicMock(return_value='0')),
     ]
@@ -80,7 +78,7 @@ class TestMockBuilder(object):
         self.child_config = os.path.join(self.configdir, 'child.cfg')
 
         self.mock_rpm_call = [
-            'unbuffer', 'mock', '--rebuild', 'srpm',
+            'unbuffer', 'mock', '--spec', 'spec', '--sources', self.sourcedir,
             '--resultdir', self.resultdir, '--uniqueext', '0',
             '-r', self.child_config,
         ]
@@ -172,12 +170,8 @@ config_opts['macros']['%_disable_source_fetch'] = '0'
         """ test that mock options are correctly constructed """
         MockBuilder(self.task, self.sourcedir, self.resultdir,
                     self.config).run()
-        assert len(f_mock_calls) == 2 # srpm + rpm
-
+        assert len(f_mock_calls) == 1
         call = f_mock_calls[0]
-        assert call[0][0] == self.mock_srpm_call
-
-        call = f_mock_calls[1]
         assert call[0][0] == self.mock_rpm_call
 
     @mock.patch("copr_rpmbuild.builders.mock.subprocess.call")
@@ -190,9 +184,10 @@ config_opts['macros']['%_disable_source_fetch'] = '0'
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         process = mock.MagicMock(returncode=0)
         popen_mock.return_value = process
-        builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/results")
+        builder.produce_rpm("foo.spec", "/path/to/foo", "/path/to/results")
         assert_cmd = ['unbuffer', 'mock',
-                      '--rebuild', '/path/to/pkg.src.rpm',
+                      '--spec', 'foo.spec',
+                      '--sources', '/path/to/foo',
                       '--resultdir', '/path/to/results',
                       '--uniqueext', '2',
                       '-r', builder.mock_config_file]
@@ -228,13 +223,8 @@ config_opts['macros']['%_disable_source_fetch'] = '0'
             MockBuilder(self.task, self.sourcedir, self.resultdir,
                         self.config).run()
 
-        assert len(f_mock_calls) == 2 # srpm + rpm
-
-        # srpm call isn't affected by modules
+        assert len(f_mock_calls) == 1
         call = f_mock_calls[0]
-        assert call[0][0] == self.mock_srpm_call
-
-        call = f_mock_calls[1]
         assert call[0][0] == self.mock_rpm_call
 
         expected1 = "config_opts['macros']['%buildtag'] = '.copr10'\n"
