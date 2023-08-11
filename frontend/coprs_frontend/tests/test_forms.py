@@ -1,8 +1,9 @@
+import re
 import pytest
 import flask
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
-from coprs.forms import PinnedCoprsForm, CoprFormFactory, CreateModuleForm
+from coprs.forms import PinnedCoprsForm, CoprFormFactory, CreateModuleForm, REGEX_BOOTSTRAP_IMAGE
 
 
 class TestCoprsFormFactory(CoprsTestCase):
@@ -94,3 +95,11 @@ class TestCreateModuleForm(CoprsTestCase):
                                     profile_names=["foo", "bar"])
             assert not form.validate()
             assert "Missing profile name" in form.errors["profile_names"][0]
+
+
+def test_form_regexes():
+    assert re.match(REGEX_BOOTSTRAP_IMAGE, "fedora:33")
+    assert re.match(REGEX_BOOTSTRAP_IMAGE, "fedora")
+    assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora:rawhide")
+    assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora")
+    assert not re.match(REGEX_BOOTSTRAP_IMAGE, "docker://example.com/test:30")

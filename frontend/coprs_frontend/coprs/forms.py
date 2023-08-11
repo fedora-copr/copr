@@ -26,6 +26,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from wtforms import ValidationError
 
 FALSE_VALUES = {False, "false", ""}
+REGEX_BOOTSTRAP_IMAGE = r"^[-\./\w]+(:\w+)?$"
 
 
 class NoneFilter():
@@ -138,9 +139,10 @@ def create_mock_bootstrap_image_field():
         validators=[
             wtforms.validators.Optional(),
             wtforms.validators.Regexp(
-                r"^\w+(:\w+)?$",
+                REGEX_BOOTSTRAP_IMAGE,
                 message=("Enter valid bootstrap image id "
-                         "(<name>[:<tag>], e.g. fedora:33)."))],
+                         "(<name>[:<tag>], e.g. fedora:33 or "
+                         "registry.fedoraproject.org/fedora:rawhide)."))],
         filters=[
             lambda x: None if not x else x
         ],
