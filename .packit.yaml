@@ -2,7 +2,7 @@
 # See the documentation for more information:
 # https://packit.dev/docs/configuration/
 upstream_project_url: https://github.com/fedora-copr/copr.git
-
+packit_instances: ["stg"]
 packages:
 
   python-copr:
