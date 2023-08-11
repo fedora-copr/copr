@@ -22,9 +22,9 @@ class SRPMResults(AutomationTool):
     @property
     def enabled(self):
         """
-        Do this for every RPM build
+        Do this for every SRPM build
         """
-        return not self.chroot
+        return self.task["source_type"] is not None
 
     def run(self):
         """
