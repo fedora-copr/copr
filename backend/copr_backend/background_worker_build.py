@@ -678,9 +678,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 }
             self.log.info("build details: %s", build_details)
         except Exception as e:
-            raise BackendError(
-                "Error while collecting built packages for {}: {}"
-                .format(job.task_id, str(e)))
+            self.log.exception("Can't collect build results for %s",
+                               job.task_id)
+            raise BackendError("Can not deduct build details") from e
 
         return build_details
 
