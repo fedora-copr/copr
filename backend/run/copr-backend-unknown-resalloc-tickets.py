@@ -57,8 +57,10 @@ if __name__ == "__main__":
     min_used = min(used)
     all_known = all_ids()
     unknown = all_known - used
+
+    print("These are old tickets, Copr uses only newer IDs, close them:")
     for unknown_id in sorted(unknown):
         if unknown_id < min_used:
             print(f"resalloc ticket-close {unknown_id}")
         else:
-            print("This seems like a new ID: %d", unknown_id)
+            print(f"This seems relatively new to blindly close: {unknown_id}")
