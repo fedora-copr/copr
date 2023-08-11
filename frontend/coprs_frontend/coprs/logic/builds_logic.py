@@ -1034,11 +1034,12 @@ class BuildsLogic(object):
                 for chroot in build.build_chroots:
                     arch = chroot.mock_chroot.arch
 
-                    exclusivearch = upd_dict["results"]["exclusivearch"]
+                    exclusivearch = upd_dict["results"].get("exclusivearch")
                     if exclusivearch and arch not in exclusivearch:
                         finish(chroot, StatusEnum("skipped"))
 
-                    if arch in upd_dict["results"]["excludearch"]:
+                    excludearch = upd_dict["results"].get("excludearch")
+                    if arch in excludearch:
                         finish(chroot, StatusEnum("skipped"))
 
             cls.process_update_callback(build)
