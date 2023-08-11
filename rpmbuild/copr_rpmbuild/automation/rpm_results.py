@@ -19,7 +19,7 @@ class RPMResults(AutomationTool):
         """
         Do this for every RPM build
         """
-        return self.chroot is not None
+        return self.task["source_type"] is None
 
     def run(self):
         """
