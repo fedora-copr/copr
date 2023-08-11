@@ -14,6 +14,7 @@ packages:
     files_to_sync:
       - python-copr.spec
     upstream_tag_template: python-copr-{version}
+    upstream_tag_include: "^python-copr-.*"
     actions:
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr-common `git rev-parse --short HEAD`"
@@ -27,6 +28,7 @@ packages:
     files_to_sync:
       - python-copr-common.spec
     upstream_tag_template: python-copr-common-{version}
+    upstream_tag_include: "^python-copr-common-.*"
 
   copr-backend:
     downstream_package_name: copr-backend
@@ -37,6 +39,7 @@ packages:
     files_to_sync:
       - copr-backend.spec
     upstream_tag_template: copr-backend-{version}
+    upstream_tag_include: "^copr-backend-.*"
 
   copr-dist-git:
     downstream_package_name: copr-dist-git
@@ -47,6 +50,7 @@ packages:
     files_to_sync:
       - copr-dist-git.spec
     upstream_tag_template: copr-dist-git-{version}
+    upstream_tag_include: "^copr-dist-git-.*"
 
   copr-keygen:
     downstream_package_name: copr-keygen
@@ -57,6 +61,7 @@ packages:
     files_to_sync:
       - copr-keygen.spec
     upstream_tag_template: copr-keygen-{version}
+    upstream_tag_include: "^copr-keygen-.*"
 
   copr-messaging:
     downstream_package_name: copr-messaging
@@ -67,6 +72,7 @@ packages:
     files_to_sync:
       - copr-messaging.spec
     upstream_tag_template: copr-messaging-{version}
+    upstream_tag_include: "^copr-messaging-.*"
 
   copr-rpmbuild:
     downstream_package_name: copr-rpmbuild
@@ -80,6 +86,7 @@ packages:
     actions:
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
+    upstream_tag_include: "^copr-rpmbuild-.*"
 
   copr-selinux:
     downstream_package_name: copr-selinux
@@ -90,6 +97,7 @@ packages:
     files_to_sync:
       - copr-selinux.spec
     upstream_tag_template: copr-selinux-{version}
+    upstream_tag_include: "^copr-selinux-.*"
 
   copr-cli:
     downstream_package_name: copr-cli
@@ -100,6 +108,7 @@ packages:
     files_to_sync:
       - copr-cli.spec
     upstream_tag_template: copr-cli-{version}
+    upstream_tag_include: "^copr-cli-.*"
     actions:
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
@@ -113,6 +122,7 @@ packages:
     files_to_sync:
       - copr-frontend.spec
     upstream_tag_template: copr-frontend-{version}
+    upstream_tag_include: "^copr-frontend-.*"
     actions:
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
