@@ -59,7 +59,7 @@ Requires: %{python}-requests
 Requires: %{python_pfx}-specfile >= 0.19.0
 Requires: python3-backoff >= 1.9.0
 
-Requires: mock >= 2.0
+Requires: mock >= 5.0
 Requires: git
 Requires: git-svn
 # for the /bin/unbuffer binary
