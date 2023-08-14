@@ -271,8 +271,7 @@ def test_waiting_for_repo_success(mc_time, f_build_rpm_case_no_repodata, caplog)
     assert (logging.INFO, MESSAGES["repo_waiting"]) \
         in [(r[1], r[2]) for r in caplog.record_tuples]
 
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_full_rpm_build_no_sign(_parse_results, f_build_rpm_case, caplog):
+def test_full_rpm_build_no_sign(f_build_rpm_case, caplog):
     """
     Go through the whole (successful) build of a binary RPM
     """
@@ -311,8 +310,7 @@ def test_prev_build_backup(f_build_rpm_case):
     assert len(glob.glob(os.path.join(prev_results, rsync_patt))) == 1
 
 
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_full_srpm_build(_parse_results, f_build_srpm):
+def test_full_srpm_build(f_build_srpm):
     worker = f_build_srpm.bw
     worker.process()
     assert worker.job.pkg_name == "hello"
@@ -328,8 +326,7 @@ def test_full_srpm_build(_parse_results, f_build_srpm):
 
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
 @mock.patch("copr_backend.sign._sign_one")
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_build_and_sign(_parse_results, mc_sign_one, f_build_rpm_sign_on, caplog):
+def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
     worker.process()
@@ -581,9 +578,8 @@ def test_cancel_before_start(f_build_rpm_sign_on, caplog):
     ], caplog)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
-def test_build_retry(_parse_results, f_build_rpm_sign_on):
+def test_build_retry(f_build_rpm_sign_on):
     config = f_build_rpm_sign_on
     worker = config.bw
     class _SideEffect():
@@ -693,8 +689,7 @@ def test_cancel_build_during_log_download(f_build_rpm_sign_on, caplog):
         COMMON_MSGS["not finished"],
     ], caplog)
 
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_ssh_connection_error(_parse_results, f_build_rpm_case, caplog):
+def test_ssh_connection_error(f_build_rpm_case, caplog):
     class _SideEffect:
         counter = 0
         def __call__(self):
@@ -721,8 +716,7 @@ def test_average_step():
 
 @_patch_bwbuild_object("time.sleep", mock.MagicMock())
 @_patch_bwbuild_object("time.time")
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_retry_for_ssh_tail_failure(_parse_results, mc_time, f_build_rpm_case,
+def test_retry_for_ssh_tail_failure(mc_time, f_build_rpm_case,
                                     caplog):
     mc_time.side_effect = list(range(500))
     class _SideEffect:
@@ -769,8 +763,7 @@ def test_createrepo_failure(mc_call_copr_repo, f_build_rpm_case, caplog):
         "Finished build: id=848963 failed=True ",
     ], caplog)
 
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_existing_compressed_file(_parse_results, f_build_rpm_case, caplog):
+def test_existing_compressed_file(f_build_rpm_case, caplog):
     config = f_build_rpm_case
     config.ssh.precreate_compressed_log_file = True
     worker = config.bw
@@ -781,8 +774,7 @@ def test_existing_compressed_file(_parse_results, f_build_rpm_case, caplog):
         "Finished build: id=848963 failed=False ",  # still success!
     ], caplog)
 
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_tail_f_nonzero_exit(_parse_results, f_build_rpm_case, caplog):
+def test_tail_f_nonzero_exit(f_build_rpm_case, caplog):
     config = f_build_rpm_case
     worker = config.bw
     class _SideEffect:
@@ -841,8 +833,7 @@ def test_unable_to_start_builder(f_build_srpm, caplog):
     assert_logs_dont_exist(["Retry"], caplog)
 
 @_patch_bwbuild_object("time.sleep", mock.MagicMock())
-@_patch_bwbuild_object("BuildBackgroundWorker._parse_results")
-def test_retry_vm_factory_take(_parse_results, f_build_srpm, caplog):
+def test_retry_vm_factory_take(f_build_srpm, caplog):
     config = f_build_srpm
     rhf = config.resalloc_host_factory
     host = config.host

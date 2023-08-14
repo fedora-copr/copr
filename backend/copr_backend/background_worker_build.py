@@ -5,7 +5,6 @@ BuildBackgroundWorker class + internals.
 import glob
 import logging
 import os
-import shlex
 import shutil
 import statistics
 import time
@@ -649,20 +648,23 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         return build_details
 
     def _collect_built_packages(self, job):
-        self.log.info("Listing built binary packages in %s",
-                      job.results_dir)
+        """
+        Return all built RPM packages as one string, e.g.
+        'copr-builder 0.68\ncopr-distgit-client 0.68\ncopr-rpmbuild 0.68'
+        """
+        self.log.info("Listing built binary packages in %s", job.results_dir)
 
-        cmd = (
-            "builtin cd {0} && "
-            "for f in `ls *.rpm | grep -v \"src.rpm$\"`; do"
-            "   rpm --nosignature -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
-            "done".format(shlex.quote(job.results_dir))
-        )
+        # pylint: disable=unsubscriptable-object
+        assert isinstance(self.job.results, dict)
 
-        result = run_cmd(cmd, shell=True, logger=self.log)
-        built_packages = result.stdout.strip()
-        self.log.info("Built packages:\n%s", built_packages)
-        return built_packages
+        packages = []
+        for pkg in self.job.results["packages"]:
+            if pkg["arch"] == "src":
+                continue
+            packages.append("{0} {1}".format(pkg["name"], pkg["version"]))
+
+        self.log.info("Built packages:\n%s", packages)
+        return "\n".join(packages)
 
 
     def _get_build_details(self, job):
