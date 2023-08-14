@@ -630,13 +630,15 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         build_details = {'srpm_url': ''}
         self.log.info("Retrieving SRPM info from %s", job.results_dir)
 
-        results_path = os.path.join(job.results_dir, "results.json")
-        with open(results_path, "r", encoding="utf-8") as fp:
-            results = json.load(fp)
+        # pylint: disable=unsubscriptable-object
+        assert isinstance(self.job.results, dict)
 
-        build_details["pkg_name"] = results["name"]
+        build_details["pkg_name"] = self.job.results["name"]
         build_details["pkg_version"] = format_evr(
-            results["epoch"], results["version"], results["release"])
+            self.job.results["epoch"],
+            self.job.results["version"],
+            self.job.results["release"],
+        )
 
         pattern = os.path.join(job.results_dir, '*.src.rpm')
         srpm_file = glob.glob(pattern)[0]
