@@ -3,7 +3,7 @@
 %endif
 
 %global prunerepo_version 1.20
-%global tests_version 3
+%global tests_version 4
 %global tests_tar test-data-copr-backend
 
 %global copr_common_version 0.16.4.dev
