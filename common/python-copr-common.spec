@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.19.1.dev0
+Version:    0.20
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -117,6 +117,10 @@ version=%version %py2_install
 
 
 %changelog
+* Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 0.20-1
+- move chroot_to_branch from frontend to copr-common
+- redis authentication support added
+
 * Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 0.19-1
 - Specfile compatibility with OpenEuler
 
