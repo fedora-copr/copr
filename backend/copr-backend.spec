@@ -9,7 +9,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-backend
-Version:    1.171
+Version:    1.172
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,18 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.172-1
+- dump the /update/ payload to worker.log
+- don't run external command(s) to collect built packages
+- don't eat the "build detail collecting" traceback
+- fixes in the unknown-resalloc-tickets.py helper
+- more careful format_evr() method
+- fix tests for zst compression on F39+
+- log task dict in case of error returned from redis
+- skip builds for ExcludeArch and "not" ExclusiveArch
+- offload NEVRA (s)rpm parsing to copr-rpmbuild
+- redis authentication support added
+
 * Tue Jun 06 2023 Pavel Raiskup <praiskup@redhat.com> 1.171-1
 - copr_prune_results.py: work-around the arg_max problem
 
