@@ -41,25 +41,25 @@ rlJournalStart
             rlAssertEquals "There should be 4 results" "$(jq '.packages|length' < "$path")" 4
 
             rlRun "cat $path |jq -e '.packages[0].name == \"hello\"'"
-            rlRun "cat $path |jq -e '.packages[0].epoch == 0'"
+            rlRun "cat $path |jq -e '.packages[0].epoch == null'"
             rlRun "cat $path |jq -e '.packages[0].version == \"2.8\"'"
             rlRun "cat $path |jq -e '.packages[0].release == \"1.fc$FEDORA_VERSION\"'"
             rlRun "cat $path |jq -e '.packages[0].arch == \"src\"'"
 
             rlRun "cat $path |jq -e '.packages[1].name == \"hello\"'"
-            rlRun "cat $path |jq -e '.packages[1].epoch == 0'"
+            rlRun "cat $path |jq -e '.packages[1].epoch == null'"
             rlRun "cat $path |jq -e '.packages[1].version == \"2.8\"'"
             rlRun "cat $path |jq -e '.packages[1].release == \"1.fc$FEDORA_VERSION\"'"
             rlRun "cat $path |jq -e '.packages[1].arch == \"x86_64\"'"
 
             rlRun "cat $path |jq -e '.packages[2].name == \"hello-debuginfo\"'"
-            rlRun "cat $path |jq -e '.packages[2].epoch == 0'"
+            rlRun "cat $path |jq -e '.packages[2].epoch == null'"
             rlRun "cat $path |jq -e '.packages[2].version == \"2.8\"'"
             rlRun "cat $path |jq -e '.packages[2].release == \"1.fc$FEDORA_VERSION\"'"
             rlRun "cat $path |jq -e '.packages[2].arch == \"x86_64\"'"
 
             rlRun "cat $path |jq -e '.packages[3].name == \"hello-debugsource\"'"
-            rlRun "cat $path |jq -e '.packages[3].epoch == 0'"
+            rlRun "cat $path |jq -e '.packages[3].epoch == null'"
             rlRun "cat $path |jq -e '.packages[3].version == \"2.8\"'"
             rlRun "cat $path |jq -e '.packages[3].release == \"1.fc$FEDORA_VERSION\"'"
             rlRun "cat $path |jq -e '.packages[3].arch == \"x86_64\"'"
@@ -101,7 +101,7 @@ END
 
     rlPhaseStartCleanup
         cleanProject "${NAME_PREFIX}TestResultsJson"
-        rlRun "rm -rf $RESULTDIR/*"
+        cleanAction rlRun "rm -rf $RESULTDIR/*"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
