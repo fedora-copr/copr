@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.200
+Version:    1.201
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -381,6 +381,24 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.201-1
+- buildchroot results returned via API can provide epoch==null
+- skip ExcludeArch and ExclusiveArch for resubmitted builds
+- added support for OIDC groups
+- allow specifying fully-qualified Mock bootstrap images
+- move chroot_to_branch() method to python-copr-common
+- config-based build-chroot tags, allows using Reslloc "on-demand" resources
+- relationship between Action model and Copr model added
+- the 1:1 between (FAS) groups and Copr groups is now enforced
+- priority=X added to the per-project repo configuration
+- make the pyp2spec the default PyPI spec generator in Copr
+- new failed-to-succeeded-stats command
+- add packages count at homepage (opt-in)
+- better clone_url matching on webhooks
+- added redis authentication support
+- don't list temporary projects on the main homepage
+- confirmation needed before 'drop-db' is executed
+
 * Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.200-1
 - Send follow_fedora_branching value via API
 - Add support for OIDC
