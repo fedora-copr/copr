@@ -15,17 +15,19 @@ class TestAPIv3BuildChrootsResults(CoprsTestCase):
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_builds", "f_db")
-    def test_build_chroot_built_packages(self):
+    @pytest.mark.parametrize("value", [None, 1, 11])
+    def test_build_chroot_built_packages(self, value):
         """
         Test the endpoint for getting built packages (NEVRA dicts) for a given
         build chroot.
         """
         self.db.session.add(self.b1, self.b1_bc)
+
         built_packages = {
             "packages": [
                 {
                     "name": "hello",
-                    "epoch": 0,
+                    "epoch": value,
                     "version": "2.8",
                     "release": "1.fc33",
                     "arch": "x86_64"

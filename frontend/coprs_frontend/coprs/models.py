@@ -2137,7 +2137,7 @@ class BuildChrootResult(db.Model, helpers.Serializer):
     )
 
     name = db.Column(db.Text, nullable=False)
-    epoch = db.Column(db.Integer, default=0)
+    epoch = db.Column(db.Integer, default=None)
     version = db.Column(db.Text, nullable=False)
     release = db.Column(db.Text, nullable=False)
     arch = db.Column(db.Text, nullable=False)
