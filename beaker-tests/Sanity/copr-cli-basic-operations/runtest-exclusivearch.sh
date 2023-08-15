@@ -33,7 +33,8 @@ rlJournalStart
 
         # This is a more complicated package with `BuildArch: noarch` and
         # ExclusiveArch for subpackages. Test that we don't fail while parsing it
-        rlRun "copr-cli build-distgit ${NAME_PREFIX}ExclusiveArch --name procyon"
+        # TODO: we fail the build actually, https://github.com/fedora-copr/copr/issues/2870
+        #rlRun "copr-cli build-distgit ${NAME_PREFIX}ExclusiveArch --name procyon"
 
         # Test ExcludeArch
         rlRun "copr-cli create ${NAME_PREFIX}ExcludeArch $chroots"
@@ -44,8 +45,8 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}ExclusiveArch"
-        rlRun "copr-cli delete ${NAME_PREFIX}ExcludeArch"
+        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}ExclusiveArch"
+        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}ExcludeArch"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd

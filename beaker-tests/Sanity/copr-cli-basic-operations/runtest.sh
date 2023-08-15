@@ -341,8 +341,8 @@ rlJournalStart
         # build the package
         rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
 
-        # create pyp2rpm package
-        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename motionpaint --pythonversions 3"
+        # create pyp2spec (default) package
+        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename copr-cli --pythonversions 3"
 
         # build the package
         rlRun "copr-cli build-package --name test_package_pypi ${NAME_PREFIX}Project6 -r $CHROOT"
