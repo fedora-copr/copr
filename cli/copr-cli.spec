@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.128.1
 
 Name:       copr-cli
-Version:    1.109
+Version:    1.110
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -128,6 +128,11 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.110-1
+- priority=X support for copr DNF repositories added
+- new 'copr-cli download-build --logs' option added
+- make the pyp2spec tool the default PyPI spec generator
+
 * Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 1.109-1
 - Show CHROOT in help output instead of CHROOTS
 - More readable errors related to implicit ownername
