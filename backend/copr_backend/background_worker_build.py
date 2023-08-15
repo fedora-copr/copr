@@ -248,6 +248,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 info_file_path, error,
             ))
 
+    def _update_frontend_task(self, data):
+        self.log.info("Sending build state back to frontend: %s",
+                      json.dumps(data, indent=4))
+        self.frontend_client.update(data)
+
     def _mark_running(self, attempt):
         """
         Announce everywhere that a build process started now.
@@ -262,9 +267,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self.log.info("Not re-notifying FE and msg buses for the new host.")
             return
 
-        self.log.info("Marking build as running on frontend")
         data = {"builds": [self.job.to_dict()]}
-        self.frontend_client.update(data)
+        self._update_frontend_task(data)
 
         for topic in ['build.start', 'chroot.start']:
             self.sender.announce(topic, self.job, self.last_hostname)
@@ -283,7 +287,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("Worker %s build, took %s", text_status,
                       self.job.took_seconds)
         data = {"builds": [self.job.to_dict()]}
-        self.frontend_client.update(data)
+        self._update_frontend_task(data)
         self.sender.announce("build.end", self.job, self.last_hostname)
 
     def _parse_results(self):
