@@ -1,7 +1,7 @@
 %global copr_common_version 0.16.4.dev
 
 Name:       copr-dist-git
-Version:    0.66
+Version:    0.67
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,13 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 0.67-1
+- tell rpkg not to generate pre-push hook
+- allow importing pre-generated srpm in rpkg
+- refresh pyrpkg.Commands after import_srpm
+- make the generated cgitrc include file much smaller
+- redis authentication support added
+
 * Tue May 23 2023 Jakub Kadlcik <frostyx@email.cz> 0.66-1
 - Skip broken tests caused by new python3-rpkg
 
