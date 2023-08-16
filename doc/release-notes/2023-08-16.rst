@@ -1,0 +1,120 @@
+.. _release_notes_2023_08_16:
+
+Highlights from 2023-08-16 release
+==================================
+
+Updated client packages are shipped in `Fedora 37`_, `Fedora 38`_, `EPEL 7`_,
+`EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+
+Possibility to specify a priority for a repository
+--------------------------------------------------
+
+DNF repositories may have the ``priority=N`` value set in ``.repo`` files.  If
+some package exists in multiple repositories, DNF installs the one with the
+latest greatest NEVRA, unless repo priority is different.  Then, no matter the
+NEVRA, the package from the most prioritized repo is installed by DNF. See
+``man dnf.conf`` for more info. With this release, you can newly ``copr
+create --repo-priority N`` to configure the repo ``priority=N`` value.  The
+result of using values ``>= 99`` typically is that both at buildtime and
+runtime, packages from the corresponding Copr project repository are always
+preferred by DNF.
+
+
+Skip chroots based on ``ExcludeArch`` and ``ExclusiveArch``
+-----------------------------------------------------------
+
+Packages can define ``ExcludeArch`` and ``ExclusiveArch`` in their spec file to
+indicate which architectures are (not) supported and for which the package
+should not be built. These specfile tags are now respected by Copr, and
+builds in the "excluded" chroots are silently skipped without causing
+overall build failure (previously the build was started, leading to
+an expected ``rpmbuild`` chroot build failure, and overall build failure).
+
+
+Documentation
+-------------
+
+- `#2695`_ - Copr defines custom RPM macros in the buildroot. `They are now
+  documented`_
+- `#1755`_ - New documentation `how to reproduce build locally`_
+- We started documenting the list of `known Copr instances`_
+
+
+Notable changes
+---------------
+
+- `@pkking`_ contributed many patches to support running Copr servers on
+  `openEuler`_
+- `#2791`_ - The default PyPI spec generator is now ``pyp2spec``
+- `#2627`_ - Each Copr build is done in two phases. First, a SRPM package is
+  built from outside sources, and then RPM packages are built for each
+  chroot. However, each RPM build silently rebuilt the SRPM package for the
+  second time. We now skip this intermediate step to make the builds faster.
+- `#2779`_ - New script to measure the time between failed and succeeded builds
+- Temporary projects are not listed on the main page anymore
+- Option to download only log files using ``copr-cli download-build``
+- Speedup of custom builds that use a bootstrap image by not installing
+  ``dnf-command(builddep)``
+- Projects that opted-in for running ``fedora-review`` now provide
+  ``review.json`` file next to the standard ``review.txt`` (see
+  `FedoraReview#310`_)
+- Copr started using the `python-specfile`_ library for getting metadata about
+  the package being built, instead of (a) generating an SRPM and (b) reading
+  metadata from that SRPM.  This allows us to get distro-agnostic metadata
+  (e.g. ``Release`` without ``%dist`` tag  by overriding it to an empty string),
+  and e.g. send valid messages, see `#1701`_.
+
+
+Bugfixes
+--------
+
+- `RHBZ 2046034`_ - We started releasing copr-rpmbuild for EPEL9 as well
+- `#2410`_ - Probably the most frequently reported bug as of late. The ``cgit``
+  web interface for Copr DistGit was temporarily disabled because it could
+  easily DOS the server.
+- `#2739`_ - DNF5 is always updated to the latest version on builders
+- `#2772`_ - Some webhooks triggers were missed and didn't trigger
+  appropriate Copr packages
+- `#2563`_ - Fixed links to LDAP groups
+- `#2825`_ - It is possible to create only one Copr group per FAS group
+- `#2847`_ - Package imports were failing because of rpkg pre-push
+  hooks
+- `fedora-review-service#28`_, `FedoraReview#486`_ - If the ``fedora-review``
+  command failed, it produced results to an incorrect directory, making all URLs
+  return 404
+- `#2854`_ - It is now possible to specify fully-qualified bootstrap images,
+  e.g. ``registry.fedoraproject.org/fedora:rawhide``
+
+
+
+.. _`Fedora 37`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-0966b33a92
+.. _`Fedora 38`: https://bodhi.fedoraproject.org/updates/FEDORA-2023-44860fb082
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-4519b66845
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-134dfe248c
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2023-69b82c6596
+
+.. _`RHBZ 2046034`: https://bugzilla.redhat.com/show_bug.cgi?id=2046034
+.. _`#2695`: https://github.com/fedora-copr/copr/issues/2695
+.. _`#2739`: https://github.com/fedora-copr/copr/issues/2739
+.. _`#2410`: https://github.com/fedora-copr/copr/issues/2410
+.. _`#2772`: https://github.com/fedora-copr/copr/issues/2772
+.. _`#1755`: https://github.com/fedora-copr/copr/issues/1755
+.. _`#2779`: https://github.com/fedora-copr/copr/issues/2779
+.. _`#2791`: https://github.com/fedora-copr/copr/issues/2791
+.. _`#2825`: https://github.com/fedora-copr/copr/issues/2825
+.. _`#2563`: https://github.com/fedora-copr/copr/issues/2563
+.. _`#2847`: https://github.com/fedora-copr/copr/issues/2847
+.. _`#2854`: https://github.com/fedora-copr/copr/issues/2854
+.. _`#2627`: https://github.com/fedora-copr/copr/issues/2627
+.. _`#1701`: https://github.com/fedora-copr/copr/issues/1701
+.. _`fedora-review-service#28`: https://github.com/FrostyX/fedora-review-service/issues/28
+.. _`FedoraReview#486`: https://pagure.io/FedoraReview/issue/486
+.. _`FedoraReview#310`: https://pagure.io/FedoraReview/issue/310
+
+.. _`They are now documented`: https://docs.pagure.org/copr.copr/user_documentation.html#rpm-macros
+.. _`known Copr instances`: https://docs.pagure.org/copr.copr/user_documentation.html#public-copr-instances
+.. _`@pkking`: https://github.com/pkking
+.. _`openEuler`: https://www.openeuler.org/en/
+.. _`how to reproduce build locally`: https://docs.pagure.org/copr.copr/user_documentation/reproducing_builds.html#reproducing-builds
+.. _`python-specfile`: https://github.com/packit/specfile
