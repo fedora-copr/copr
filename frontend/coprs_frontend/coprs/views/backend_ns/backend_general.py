@@ -5,8 +5,7 @@ from coprs import models
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
-from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
+from coprs.logic.coprs_logic import MockChrootsLogic
 from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.helpers import streamed_json
 
@@ -171,7 +170,7 @@ def get_build_record(task, for_backend=False):
             "repo_priority": task.build.copr.repo_priority
         })
 
-        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+        copr_chroot = ComplexLogic.get_copr_chroot_safe(task.build.copr, task.mock_chroot.name)
         modules = copr_chroot.module_setup_commands
         if modules:
             build_record["modules"] = {'toggle': modules}

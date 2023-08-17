@@ -287,7 +287,9 @@ class ComplexLogic(object):
 
         if not chroot:
             raise ObjectNotFound(
-                message="Chroot name {} does not exist.".format(chroot_name))
+                message="Chroot name {0} does not exist in Copr {1}."
+                .format(chroot_name, copr.full_name)
+            )
 
         return chroot
 
