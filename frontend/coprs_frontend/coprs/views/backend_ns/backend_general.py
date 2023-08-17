@@ -136,61 +136,55 @@ def get_build_record(task, for_backend=False):
     if not task:
         return None
 
-    build_record = None
-    try:
-        build_record = {
-            "task_id": task.task_id,
-            "build_id": task.build.id,
-            "project_owner": task.build.copr.owner_name,
-            "sandbox": task.build.sandbox,
-            "background": bool(task.build.is_background),
-            "chroot": task.mock_chroot.name,
-            "tags": task.mock_chroot.tags + task.tags,
-        }
+    build_record = {
+        "task_id": task.task_id,
+        "build_id": task.build.id,
+        "project_owner": task.build.copr.owner_name,
+        "sandbox": task.build.sandbox,
+        "background": bool(task.build.is_background),
+        "chroot": task.mock_chroot.name,
+        "tags": task.mock_chroot.tags + task.tags,
+    }
 
-        if for_backend:
-            return build_record
+    if for_backend:
+        return build_record
 
-        build_record.update({
-            "project_name": task.build.copr_name,
-            "project_dirname": task.build.copr_dirname,
-            "submitter": task.build.submitter[0],
-            "repos": task.build.repos,
-            "memory_reqs": task.build.memory_reqs,
-            "timeout": task.build.timeout,
-            "enable_net": task.build.enable_net,
-            "git_repo": task.distgit_clone_url,
-            "git_hash": task.git_hash,
-            "package_name": task.build.package.name,
-            "package_version": task.build.pkg_version,
-            "uses_devel_repo": task.build.copr.devel_mode,
-            "isolation": task.build.isolation,
-            "fedora_review": task.build.copr.fedora_review,
-            "appstream": bool(task.build.appstream),
-            "repo_priority": task.build.copr.repo_priority
-        })
+    build_record.update({
+        "project_name": task.build.copr_name,
+        "project_dirname": task.build.copr_dirname,
+        "submitter": task.build.submitter[0],
+        "repos": task.build.repos,
+        "memory_reqs": task.build.memory_reqs,
+        "timeout": task.build.timeout,
+        "enable_net": task.build.enable_net,
+        "git_repo": task.distgit_clone_url,
+        "git_hash": task.git_hash,
+        "package_name": task.build.package.name,
+        "package_version": task.build.pkg_version,
+        "uses_devel_repo": task.build.copr.devel_mode,
+        "isolation": task.build.isolation,
+        "fedora_review": task.build.copr.fedora_review,
+        "appstream": bool(task.build.appstream),
+        "repo_priority": task.build.copr.repo_priority
+    })
 
-        copr_chroot = ComplexLogic.get_copr_chroot_safe(task.build.copr, task.mock_chroot.name)
-        modules = copr_chroot.module_setup_commands
-        if modules:
-            build_record["modules"] = {'toggle': modules}
+    copr_chroot = ComplexLogic.get_copr_chroot_safe(task.build.copr, task.mock_chroot.name)
+    modules = copr_chroot.module_setup_commands
+    if modules:
+        build_record["modules"] = {'toggle': modules}
 
-        build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
-        build_record["repos"] = build_config.get("repos")
-        build_record["buildroot_pkgs"] = build_config.get("additional_packages")
-        build_record["with_opts"] = build_config.get("with_opts")
-        build_record["without_opts"] = build_config.get("without_opts")
+    build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
+    build_record["repos"] = build_config.get("repos")
+    build_record["buildroot_pkgs"] = build_config.get("additional_packages")
+    build_record["with_opts"] = build_config.get("with_opts")
+    build_record["without_opts"] = build_config.get("without_opts")
 
-        bch_bootstrap = BuildConfigLogic.build_bootstrap_setup(
-            build_config, task.build)
-        build_record.update(bch_bootstrap)
-        bch_isolation = BuildConfigLogic.get_build_isolation(
-            build_config, task.build)
-        build_record.update(bch_isolation)
-
-    except Exception as err:
-        app.logger.exception(err)
-        return None
+    bch_bootstrap = BuildConfigLogic.build_bootstrap_setup(
+        build_config, task.build)
+    build_record.update(bch_bootstrap)
+    bch_isolation = BuildConfigLogic.get_build_isolation(
+        build_config, task.build)
+    build_record.update(bch_isolation)
 
     return build_record
 
@@ -210,34 +204,29 @@ def get_srpm_build_record(task, for_backend=False):
     else:
         chroot = None
 
-    try:
-        build_record = {
-            "task_id": task.task_id,
-            "build_id": task.id,
-            "project_owner": task.copr.owner_name,
-            "sandbox": task.sandbox,
-            "background": bool(task.is_background),
-            "chroot": chroot,
-        }
+    build_record = {
+        "task_id": task.task_id,
+        "build_id": task.id,
+        "project_owner": task.copr.owner_name,
+        "sandbox": task.sandbox,
+        "background": bool(task.is_background),
+        "chroot": chroot,
+    }
 
-        if for_backend:
-            return build_record
+    if for_backend:
+        return build_record
 
-        repos = (task.source_json_dict.get("repos", "") or "").split()
-        build_record.update({
-            "source_type": task.source_type,
-            "source_json": task.source_json,
-            "submitter": task.submitter[0],
-            "project_name": task.copr_name,
-            "project_dirname": task.copr_dirname,
-            "package_name": task.package.name if task.package else None,
-            "appstream": bool(task.copr.appstream),
-            "repos": BuildConfigLogic.get_additional_repo_views(repos, chroot),
-        })
-
-    except Exception as err:
-        app.logger.exception(err)
-        return None
+    repos = (task.source_json_dict.get("repos", "") or "").split()
+    build_record.update({
+        "source_type": task.source_type,
+        "source_json": task.source_json,
+        "submitter": task.submitter[0],
+        "project_name": task.copr_name,
+        "project_dirname": task.copr_dirname,
+        "package_name": task.package.name if task.package else None,
+        "appstream": bool(task.copr.appstream),
+        "repos": BuildConfigLogic.get_additional_repo_views(repos, chroot),
+    })
 
     return build_record
 
