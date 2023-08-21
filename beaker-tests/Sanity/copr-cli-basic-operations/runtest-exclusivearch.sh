@@ -8,6 +8,7 @@ HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
 source "$HERE/helpers"
 
+exclusive_arch_package=https://pagure.io/copr/copr-test-sources/raw/master/f/exclusivearch-test-1-1.src.rpm
 
 rlJournalStart
     rlPhaseStartSetup
@@ -33,8 +34,21 @@ rlJournalStart
 
         # This is a more complicated package with `BuildArch: noarch` and
         # ExclusiveArch for subpackages. Test that we don't fail while parsing it
-        # TODO: we fail the build actually, https://github.com/fedora-copr/copr/issues/2870
-        #rlRun "copr-cli build-distgit ${NAME_PREFIX}ExclusiveArch --name procyon"
+        copr_build_and_parse_id build "${NAME_PREFIX}ExclusiveArch" "$exclusive_arch_package"
+        json=$(curl "$FRONTEND_URL/api_3/build/built-packages/$BUILD_ID" | jq)
+        echo "$json"
+
+        for arch in ppc64le s390x; do
+            chroot=fedora-$FEDORA_VERSION-$arch
+            output=$(echo "$json" | jq ".\"$chroot\".packages")
+            rlAssertEquals "$arch skipped" "$output" "[]"
+        done
+
+        for arch in aarch64 x86_64; do
+            chroot=fedora-$FEDORA_VERSION-$arch
+            output=$(echo "$json" | jq ".\"$chroot\".packages[0].version == \"1\"")
+            rlAssertEquals "$arch provides valid Version:" "$output" true
+        done
 
         # Test ExcludeArch
         rlRun "copr-cli create ${NAME_PREFIX}ExcludeArch $chroots"

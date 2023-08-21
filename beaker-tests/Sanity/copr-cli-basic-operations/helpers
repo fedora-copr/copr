@@ -25,6 +25,14 @@ quote_args()
     done
 }
 
+copr_build_and_parse_id()
+{
+    quote_args "copr-cli" "$@" --nowait
+    rlRun -s "$quote_args_result"
+    rlRun parse_build_id
+    rlRun "copr watch-build $BUILD_ID"
+}
+
 cleanAction()
 {
     quote_args "$@"
