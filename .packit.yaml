@@ -3,6 +3,10 @@
 # https://packit.dev/docs/configuration/
 upstream_project_url: https://github.com/fedora-copr/copr.git
 
+srpm_build_deps:
+  - tito
+  - git
+
 packages:
 
   python-copr:
@@ -27,6 +31,13 @@ packages:
     specfile_path: python-copr-common.spec
     files_to_sync:
       - python-copr-common.spec
+    actions:
+      create-archive:
+        - bash -c "tito build --tgz --test -o ."
+        - bash -c "ls -1t ./*.tar.gz | head -n 1"
+      get-current-version:
+        - bash -c "git describe --match python-copr-common-[0-9]* --abbrev=0 HEAD | egrep -o
+          [0-9]+\.[0-9]+"
     upstream_tag_template: python-copr-common-{version}
     upstream_tag_include: "^python-copr-common-.*"
 
