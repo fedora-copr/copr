@@ -1,7 +1,9 @@
+import contextlib
 import logging
 import os
-import time
+import shlex
 import subprocess
+import time
 
 import netaddr
 
@@ -9,6 +11,13 @@ DEFAULT_SUBPROCESS_TIMEOUT = 180
 
 class SSHConnectionError(Exception):
     pass
+
+
+def _user_readable_command(cmd):
+    if isinstance(cmd, list):
+        return ' '.join([shlex.quote(x) for x in cmd])
+    return cmd
+
 
 class SSHConnection:
     """
@@ -69,15 +78,31 @@ class SSHConnection:
         cmd.append('{0}@{1}'.format(self.user, self.host))
         return cmd
 
+    @contextlib.contextmanager
+    def _popen_timeouted(self, command, *args, **kwargs):
+        """
+        Wrap subprocess.Popen, catch TimeoutExpired errors and re-raise as
+        SSHConnectionError.
+        """
+        timeouted = False
+        with subprocess.Popen(command, *args, **kwargs) as proc:
+            cmd_user = _user_readable_command(command)
+            try:
+                self.log.info("Popen command started: %s", cmd_user)
+                yield proc
+            except subprocess.TimeoutExpired:
+                # We can not raise SSHConnectionError here, that would be
+                # unexpected for the subprocess context manager logic!
+                timeouted = True
+                proc.kill()
+        if timeouted:
+            raise SSHConnectionError(f"Command over SSH timeouted: {cmd_user}")
+
     def _run(self, user_command, stdout, stderr, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
-        with subprocess.Popen(real_command, stdout=stdout, stderr=stderr,
-                              encoding="utf-8") as proc:
-            try:
-                retval = proc.wait(timeout=subprocess_timeout)
-            except subprocess.TimeoutExpired as exc:
-                proc.kill()
-                raise SSHConnectionError("SSH command Timeouted") from exc
+        with self._popen_timeouted(real_command, stdout=stdout, stderr=stderr,
+                                   encoding="utf-8") as proc:
+            retval = proc.wait(timeout=subprocess_timeout)
 
         if retval == 255:
             # Because we don't manage the control path (that's done in ssh
@@ -148,16 +173,10 @@ class SSHConnection:
 
     def _run_expensive(self, user_command, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
-        with subprocess.Popen(real_command, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, encoding="utf-8") as proc:
-            try:
-                stdout, stderr = proc.communicate(timeout=subprocess_timeout)
-            except subprocess.TimeoutExpired as exc:
-                proc.kill()
-                stdout, stderr = proc.communicate()
-                raise SSHConnectionError(
-                    f"Command over SSH timeouted:\n"
-                    f"OUT:\n{stdout}\nERR:\n{stderr}") from exc
+        with self._popen_timeouted(
+                real_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                encoding="utf-8") as proc:
+            stdout, stderr = proc.communicate(timeout=subprocess_timeout)
 
         if proc.returncode == 255:
             # Value 255 means either that 255 was returned by remote command or
@@ -228,13 +247,10 @@ class SSHConnection:
             ssh_opts, full_source_path, dest, log_filepath)
 
         self.log.info("rsyncing of %s to %s started", full_source_path, dest)
-        with subprocess.Popen(command, shell=True) as cmd:
+        with self._popen_timeouted(command, shell=True) as cmd:
             try:
                 cmd.wait(timeout=subprocess_timeout)
                 self.log.info("rsyncing finished.")
-            except subprocess.TimeoutExpired as exc:
-                cmd.kill()
-                raise SSHConnectionError("Timeout: rsync over Popen") from exc
             except Exception as error:
                 self.log.error(
                     "Failed to download data from builder due to Popen error, "
