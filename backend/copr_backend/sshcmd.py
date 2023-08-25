@@ -5,6 +5,8 @@ import subprocess
 
 import netaddr
 
+DEFAULT_SUBPROCESS_TIMEOUT = 180
+
 class SSHConnectionError(Exception):
     pass
 
@@ -67,10 +69,15 @@ class SSHConnection(object):
         cmd.append('{0}@{1}'.format(self.user, self.host))
         return cmd
 
-    def _run(self, user_command, stdout, stderr):
+    def _run(self, user_command, stdout, stderr, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
         proc = subprocess.Popen(real_command, stdout=stdout, stderr=stderr, encoding="utf-8")
-        retval = proc.wait()
+        try:
+            retval = proc.wait(timeout=subprocess_timeout)
+        except subprocess.TimeoutExpired as exc:
+            proc.kill()
+            raise SSHConnectionError("SSH command Timeouted") from exc
+
         if retval == 255:
             # Because we don't manage the control path (that's done in ssh
             # configuration), we can not really check that 255 exit status is
@@ -79,7 +86,8 @@ class SSHConnection(object):
 
         return retval
 
-    def run(self, user_command, stdout=None, stderr=None, max_retries=0):
+    def run(self, user_command, stdout=None, stderr=None, max_retries=0,
+            subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """
         Run user_command (blocking) and redirect stdout and/or stderr into
         pre-opened python file descriptor.  When stdout/stderr is not set, the
@@ -112,10 +120,12 @@ class SSHConnection(object):
         rc = -1
         with open(os.devnull, "w") as devnull:
             rc = self._retry(self._run, max_retries,
-                             user_command, stdout or devnull, stderr or devnull)
+                             user_command, stdout or devnull, stderr or devnull,
+                             subprocess_timeout)
         return rc
 
-    def run_expensive(self, user_command, max_retries=0):
+    def run_expensive(self, user_command, max_retries=0,
+                      subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """
         Run user_command (blocking) and return exit status together with
         standard outputs in string variables.  Note that this can pretty easily
@@ -132,13 +142,22 @@ class SSHConnection(object):
             Tripple (rc, stdout, stderr).  Stdout and stderr are strings, those
             might be pretty large.
         """
-        return self._retry(self._run_expensive, max_retries, user_command)
+        return self._retry(self._run_expensive, max_retries, user_command,
+                           subprocess_timeout)
 
-    def _run_expensive(self, user_command):
+    def _run_expensive(self, user_command, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
         proc = subprocess.Popen(real_command, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, encoding="utf-8")
-        stdout, stderr = proc.communicate()
+        try:
+            stdout, stderr = proc.communicate(timeout=subprocess_timeout)
+        except subprocess.TimeoutExpired as exc:
+            proc.kill()
+            stdout, stderr = proc.communicate()
+            raise SSHConnectionError(
+                f"Command over SSH timeouted:\n"
+                f"OUT:\n{stdout}\nERR:\n{stderr}") from exc
+
         if proc.returncode == 255:
             # Value 255 means either that 255 was returned by remote command or
             # the ssh connection broke.  Because we need to handle "Connection
@@ -173,7 +192,8 @@ class SSHConnection(object):
             host = "[{}]".format(host)
         return "{}@{}:{}".format(self.user, host, src)
 
-    def rsync_download(self, src, dest, logfile=None, max_retries=0):
+    def rsync_download(self, src, dest, logfile=None, max_retries=0,
+                       subprocess_timeout=None):
         """
         Run rsync over pre-allocated socket (by the config)
 
@@ -190,9 +210,10 @@ class SSHConnection(object):
         Store the logs to ``logfile`` within ``dest`` directory.  The dest
         directory needs to exist.
         """
-        self._retry(self._rsync_download, max_retries, src, dest, logfile)
+        self._retry(self._rsync_download, max_retries, src, dest, logfile,
+                    subprocess_timeout)
 
-    def _rsync_download(self, src, dest, logfile=None):
+    def _rsync_download(self, src, dest, logfile, subprocess_timeout):
         ssh_opts = "ssh"
         if self.config_file:
             ssh_opts += " -F " + self.config_file
@@ -208,8 +229,11 @@ class SSHConnection(object):
         try:
             self.log.info("rsyncing of %s to %s started", full_source_path, dest)
             cmd = subprocess.Popen(command, shell=True)
-            cmd.wait()
+            cmd.wait(timeout=subprocess_timeout)
             self.log.info("rsyncing finished.")
+        except subprocess.TimeoutExpired as exc:
+            cmd.kill()
+            raise SSHConnectionError("Timeout: rsync over Popen") from exc
         except Exception as error:
             self.log.error(
                 "Failed to download data from builder due to Popen error, "

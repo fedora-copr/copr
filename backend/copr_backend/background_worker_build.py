@@ -469,7 +469,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         with open(self.job.builder_log, 'w') as logfile:
             # We can not use 'max_retries' here because that would concatenate
             # the attempts to the same log file.
-            if self.ssh.run(live_cmd, stdout=logfile, stderr=logfile):
+            if self.ssh.run(live_cmd, stdout=logfile, stderr=logfile,
+                            subprocess_timeout=None):
                 return "{} shouldn't exit != 0".format(live_cmd)
         return None
 

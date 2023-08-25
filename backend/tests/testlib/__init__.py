@@ -8,7 +8,7 @@ import shutil
 from unittest.mock import MagicMock
 
 from copr_backend.background_worker_build import COMMANDS
-from copr_backend.sshcmd import SSHConnection, SSHConnectionError
+from copr_backend.sshcmd import SSHConnection, SSHConnectionError, DEFAULT_SUBPROCESS_TIMEOUT
 
 
 def minimal_be_config(where, overrides=None):
@@ -154,7 +154,8 @@ class FakeSSHConnection(SSHConnection):
             raise SSHConnectionError("undefined cmd '{}' in FakeSSHConnection"
                                      .format(cmd))
 
-    def run(self, user_command, stdout=None, stderr=None, max_retries=0):
+    def run(self, user_command, stdout=None, stderr=None, max_retries=0,
+            subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """ fake SSHConnection.run() """
         with open(os.devnull, "w") as devnull:
             out = stdout or devnull
@@ -164,7 +165,8 @@ class FakeSSHConnection(SSHConnection):
             err.write(res[2])
             return res[0]
 
-    def run_expensive(self, user_command, max_retries=0):
+    def run_expensive(self, user_command, max_retries=0,
+                      subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """ fake SSHConnection.run_expensive() """
         res = self.get_command(user_command)
         return (res[0], res[1], res[2])
@@ -175,7 +177,8 @@ class FakeSSHConnection(SSHConnection):
     def _full_source_path(self, src):
         return src
 
-    def rsync_download(self, src, dest, logfile=None, max_retries=0):
+    def rsync_download(self, src, dest, logfile=None, max_retries=0,
+                       subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         data = os.environ["TEST_DATA_DIRECTORY"]
         trail_slash = src.endswith("/")
         src = os.path.join(data, "build_results", self.resultdir)
