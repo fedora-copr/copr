@@ -10,7 +10,7 @@ DEFAULT_SUBPROCESS_TIMEOUT = 180
 class SSHConnectionError(Exception):
     pass
 
-class SSHConnection(object):
+class SSHConnection:
     """
     SSH connection representation.
 
@@ -71,12 +71,13 @@ class SSHConnection(object):
 
     def _run(self, user_command, stdout, stderr, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
-        proc = subprocess.Popen(real_command, stdout=stdout, stderr=stderr, encoding="utf-8")
-        try:
-            retval = proc.wait(timeout=subprocess_timeout)
-        except subprocess.TimeoutExpired as exc:
-            proc.kill()
-            raise SSHConnectionError("SSH command Timeouted") from exc
+        with subprocess.Popen(real_command, stdout=stdout, stderr=stderr,
+                              encoding="utf-8") as proc:
+            try:
+                retval = proc.wait(timeout=subprocess_timeout)
+            except subprocess.TimeoutExpired as exc:
+                proc.kill()
+                raise SSHConnectionError("SSH command Timeouted") from exc
 
         if retval == 255:
             # Because we don't manage the control path (that's done in ssh
@@ -118,7 +119,7 @@ class SSHConnection(object):
 
         """
         rc = -1
-        with open(os.devnull, "w") as devnull:
+        with open(os.devnull, "w", encoding="utf8") as devnull:
             rc = self._retry(self._run, max_retries,
                              user_command, stdout or devnull, stderr or devnull,
                              subprocess_timeout)
@@ -147,16 +148,16 @@ class SSHConnection(object):
 
     def _run_expensive(self, user_command, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
-        proc = subprocess.Popen(real_command, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, encoding="utf-8")
-        try:
-            stdout, stderr = proc.communicate(timeout=subprocess_timeout)
-        except subprocess.TimeoutExpired as exc:
-            proc.kill()
-            stdout, stderr = proc.communicate()
-            raise SSHConnectionError(
-                f"Command over SSH timeouted:\n"
-                f"OUT:\n{stdout}\nERR:\n{stderr}") from exc
+        with subprocess.Popen(real_command, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, encoding="utf-8") as proc:
+            try:
+                stdout, stderr = proc.communicate(timeout=subprocess_timeout)
+            except subprocess.TimeoutExpired as exc:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+                raise SSHConnectionError(
+                    f"Command over SSH timeouted:\n"
+                    f"OUT:\n{stdout}\nERR:\n{stderr}") from exc
 
         if proc.returncode == 255:
             # Value 255 means either that 255 was returned by remote command or
@@ -226,19 +227,19 @@ class SSHConnection(object):
         command = "/usr/bin/rsync -rltDvH --chmod=D755,F644 -e '{}' {} {}/ &> {}".format(
             ssh_opts, full_source_path, dest, log_filepath)
 
-        try:
-            self.log.info("rsyncing of %s to %s started", full_source_path, dest)
-            cmd = subprocess.Popen(command, shell=True)
-            cmd.wait(timeout=subprocess_timeout)
-            self.log.info("rsyncing finished.")
-        except subprocess.TimeoutExpired as exc:
-            cmd.kill()
-            raise SSHConnectionError("Timeout: rsync over Popen") from exc
-        except Exception as error:
-            self.log.error(
-                "Failed to download data from builder due to Popen error, "
-                "original error: %s", error)
-            raise SSHConnectionError("POpen failure in rsync.")
+        self.log.info("rsyncing of %s to %s started", full_source_path, dest)
+        with subprocess.Popen(command, shell=True) as cmd:
+            try:
+                cmd.wait(timeout=subprocess_timeout)
+                self.log.info("rsyncing finished.")
+            except subprocess.TimeoutExpired as exc:
+                cmd.kill()
+                raise SSHConnectionError("Timeout: rsync over Popen") from exc
+            except Exception as error:
+                self.log.error(
+                    "Failed to download data from builder due to Popen error, "
+                    "original error: %s", error)
+                raise SSHConnectionError("Popen failure in rsync.") from error
 
         if cmd.returncode != 0:
             err_msg = (
