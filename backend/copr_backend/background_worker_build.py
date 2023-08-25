@@ -419,7 +419,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.ssh = SSHConnection(
             user=self.opts.build_user,
             host=self.host.hostname,
-            config_file=self.opts.ssh.builder_config
+            config_file=self.opts.ssh.builder_config,
+            log=self.log,
         )
 
     def _cancel_running_worker(self):
