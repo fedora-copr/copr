@@ -53,6 +53,8 @@ def get_project_rpmrepo_metadata(copr):
     gen_opts = {}
     if copr.module_hotfixes:
         gen_opts["module_hotfixes"] = "1"
+    if copr.repo_priority:
+        gen_opts["priority"] = copr.repo_priority
 
     for name_release, info in repos_info.items():
         repo = repos[name_release] = {
