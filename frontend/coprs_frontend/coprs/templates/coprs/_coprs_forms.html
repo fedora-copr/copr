@@ -159,7 +159,7 @@ render_bootstrap_options %}
     {{ render_field(form.repo_priority,
         class="short-input-field",
         placeholder='Optional',
-        info='Set the priority value of this repository. Defaults to 99.') }}
+        info='Use the priority=&lt;INT&gt; config option for repositories in this project, see man dnf.conf(5) for more info.') }}
 
     {{ render_field(form.isolation, placeholder='default') }}
 

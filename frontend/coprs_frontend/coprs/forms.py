@@ -658,8 +658,7 @@ class CoprForm(BaseForm):
         validators=[wtforms.validators.Optional()],)
 
     repo_priority = wtforms.IntegerField(
-        "Use the priority=<INT> config option for repositories in this "
-        "project, see man dnf.conf(5) for more info.",
+        "Repo priority",
         render_kw={"placeholder": "Optional - integer, e.g. 22"},
         validators=[
             wtforms.validators.Optional(),
