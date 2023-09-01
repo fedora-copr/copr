@@ -267,6 +267,7 @@ def create_from_scm():
             committish=form.committish.data,
             subdirectory=form.subdirectory.data,
             spec=form.spec.data,
+            prepare_script=form.prepare_script.data,
             srpm_build_method=form.srpm_build_method.data,
             **options,
         )

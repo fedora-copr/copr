@@ -203,6 +203,7 @@ def process_new_build_scm(copr, add_view, url_on_success):
             form.committish.data,
             form.subdirectory.data,
             form.spec.data,
+            form.prepare_script.data,
             form.srpm_build_method.data,
             form.selected_chroots,
             **build_options

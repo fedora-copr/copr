@@ -16,8 +16,9 @@ log = logging.getLogger("__main__")
 
 MAKE_SRPM_TEPMLATE = (
     "set -x && "
-    'cd {0} && '
     'echo -e "[safe]\ndirectory = {4}" > ~/.gitconfig && '
+    '. {5} && '
+    'cd {0} && '
     'make -f {1} srpm outdir="{2}" spec="{3}"'
 )
 
@@ -40,6 +41,10 @@ class ScmProvider(Provider):
 
         # make_srpm method can create root-owned files in resultdir
         self.use_safe_resultdir = self.srpm_build_method == "make_srpm"
+
+        self.file_prepare_script = os.path.join(self.workdir, 'prepare_script')
+        with open(self.file_prepare_script, 'w') as script:
+            script.write(source_dict['prepare_script'])
 
     def generate_rpkg_config(self):
         parsed_clone_url = urlparse(self.clone_url)
@@ -108,6 +113,7 @@ class ScmProvider(Provider):
         mock_workdir = self._mock_mountpoint(self.workdir)
         mock_resultdir = self._mock_mountpoint(self.resultdir)
         mock_repodir = helpers.path_join(mock_workdir, self.repo_dirname)
+        mock_file_prepare_script = helpers.path_join(mock_workdir, self.file_prepare_script)
         mock_cwd = helpers.path_join(mock_repodir, self.repo_subdir)
         mock_spec_path = helpers.path_join(
             mock_repodir, os.path.join(self.repo_subdir, self.spec_relpath))
@@ -118,7 +124,7 @@ class ScmProvider(Provider):
 
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
         make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(mock_cwd, makefile_path,
-                mock_resultdir, mock_spec_path, mock_repodir)
+                mock_resultdir, mock_spec_path, mock_repodir, mock_file_prepare_script)
 
         mock_config_file = self.generate_mock_config()
         return ['mock', '--uniqueext', get_mock_uniqueext(),

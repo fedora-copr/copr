@@ -491,11 +491,13 @@ class BuildsLogic(object):
 
     @classmethod
     def create_new_from_scm(cls, user, copr, scm_type, clone_url,
-                            committish='', subdirectory='', spec='', srpm_build_method='rpkg',
+                            committish='', subdirectory='', spec='', prepare_script='',
+                            srpm_build_method='rpkg',
                             chroot_names=None, copr_dirname=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
+        :type prepare_script: str
 
         :type chroot_names: List[str]
 
@@ -507,6 +509,7 @@ class BuildsLogic(object):
                                   "committish": committish,
                                   "subdirectory": subdirectory,
                                   "spec": spec,
+                                  "prepare_script": prepare_script,
                                   "srpm_build_method": srpm_build_method})
         return cls.create_new(user, copr, source_type, source_json, chroot_names, copr_dirname=copr_dirname, **build_options)
 

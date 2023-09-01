@@ -120,6 +120,11 @@ scm_type_field = String(
     example="git",
 )
 
+scm_prepare_script = String(
+    description="Script code sourced(!) by shell before running make (only with `make srpm` type)",
+    example="MY_ENV_FOO=hello",
+)
+
 source_build_method_field = String(
     description="https://docs.pagure.org/copr.copr/user_documentation.html#scm",
     example="tito",
@@ -507,6 +512,7 @@ def add_package_parser():
         field2arg("subdirectory", subdirectory_field),
         field2arg("spec", spec_field),
         field2arg("scm_type", scm_type_field),
+        field2arg('prepare_script', scm_prepare_script)
 
         # Rubygems
         field2arg("gem_name", gem_name_field),

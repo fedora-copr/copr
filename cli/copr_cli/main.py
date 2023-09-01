@@ -382,6 +382,7 @@ class Commands(object):
             "subdirectory": args.subdirectory,
             "spec": args.spec,
             "scm_type": args.scm_type,
+            "prepare_script": ''.join(args.prepare_script.readlines()) if args.prepare_script else '',
             "source_build_method": args.srpm_build_method,
         }
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
@@ -794,6 +795,7 @@ class Commands(object):
             "subdirectory": args.subdirectory,
             "spec": args.spec,
             "scm_type": args.scm_type,
+            "prepare_script": ''.join(args.prepare_script.readlines()) if args.prepare_script else '',
             "source_build_method": args.srpm_build_method,
             "max_builds": args.max_builds,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
@@ -1328,6 +1330,8 @@ def setup_parser():
                                         help="relative path from the subdirectory to the .spec file")
     parser_scm_args_parent.add_argument("--type", dest="scm_type", choices=["git", "svn"], default="git",
                                         help="Specify versioning tool. Default is 'git'.")
+    parser_scm_args_parent.add_argument('--prepare-script', type=argparse.FileType('r'),
+                                        help='text file (script) to be used as prepare script for make_srpm method')
     parser_scm_args_parent.add_argument("--method", dest="srpm_build_method", default="rpkg",
                                         choices=["rpkg", "tito", "tito_test", "make_srpm"],
                                         help="Srpm build method. Default is 'rpkg'.")
