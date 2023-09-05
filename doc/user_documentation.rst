@@ -607,8 +607,8 @@ b. is governed in whole or in part by a license not contained in the
    https://docs.fedoraproject.org/en-US/legal/allowed-licenses,
    as that list may be revised from time to time by the Fedora Council;
 
-c. is categorized as a "Forbidden Item" at
-   https://fedoraproject.org/wiki/Forbidden_items,
+c. is categorized as a "Not-Allowed Item" at
+   https://docs.fedoraproject.org/en-US/legal/not-allowed-licenses/
    as that page may be revised from time to time by the Fedora
    Council;
 
