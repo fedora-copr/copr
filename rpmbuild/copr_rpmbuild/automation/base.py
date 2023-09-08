@@ -10,13 +10,14 @@ class AutomationTool:
     interface.
     """
 
-    def __init__(self, task, resultdir, mock_config_file, log):
+    def __init__(self, task, resultdir, mock_config_file, log, config):
         self.task = task
         self.resultdir = resultdir
         self.mock_config_file = mock_config_file
         self.log = log
         self.package_name = task["package_name"]
         self.chroot = task["chroot"]
+        self.config = config
 
     @property
     def enabled(self):

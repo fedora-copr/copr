@@ -227,7 +227,7 @@ def build_srpm(args, config):
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")
-    run_automation_tools(task, resultdir, None, log)
+    run_automation_tools(task, resultdir, None, log, config)
 
 
 def build_rpm(args, config):
@@ -268,7 +268,8 @@ def build_rpm(args, config):
         builder = MockBuilder(task, distgit.clone_to, resultdir, config)
         builder.run()
         builder.touch_success_file()
-        run_automation_tools(task, resultdir, builder.mock_config_file, log)
+        run_automation_tools(
+            task, resultdir, builder.mock_config_file, log, config)
     finally:
         builder.archive_configs()
         distgit.cleanup()

@@ -8,14 +8,14 @@ from copr_rpmbuild.automation.srpm_results import SRPMResults
 from copr_rpmbuild.automation.rpm_results import RPMResults
 
 
-def run_automation_tools(task, resultdir, mock_config_file, log):
+def run_automation_tools(task, resultdir, mock_config_file, log, config):
     """
     Iterate over all supported post-build tools (e.g. `fedora-review`,
     `rpmlint`, etc) and run the desired ones for a given task.
     """
     tools = [FedoraReview, SRPMResults, RPMResults]
     for _class in tools:
-        tool = _class(task, resultdir, mock_config_file, log)
+        tool = _class(task, resultdir, mock_config_file, log, config)
         if not tool.enabled:
             continue
         log.info("Running %s tool", tool.__class__.__name__)
