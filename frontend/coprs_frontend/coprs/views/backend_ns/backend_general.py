@@ -172,6 +172,11 @@ def get_build_record(task, for_backend=False):
         })
 
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+        if not copr_chroot:
+            app.logger.error("The %s chroot is disabled (build %s)",
+                             task.mock_chroot.name, task.build.id)
+            return None
+
         modules = copr_chroot.module_setup_commands
         if modules:
             build_record["modules"] = {'toggle': modules}
