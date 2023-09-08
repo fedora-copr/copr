@@ -119,9 +119,13 @@ app.config["RESTX_INCLUDE_ALL_MODELS"] = True
 app.config["ERROR_INCLUDE_MESSAGE"] = False
 
 
-from coprs.oidc import init_oidc_app
+with app.app_context():
+    setup_log()
 
+
+from coprs.oidc import init_oidc_app
 oidc = init_oidc_app(app)
+
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general
@@ -175,8 +179,6 @@ from coprs.views.explore_ns import explore_ns
 from coprs.error_handlers import get_error_handler, RestXErrorHandler
 import coprs.context_processors
 
-with app.app_context():
-    setup_log()
 
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(apiv3_ns.apiv3_ns)
