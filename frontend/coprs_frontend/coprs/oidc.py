@@ -17,6 +17,10 @@ def oidc_enabled(config):
     """
     Check whether the config is valid
     """
+    if config.get("OIDC_LOGIN") is False:
+        # OIDC is an optional feature, don't log anything if it is disabled
+        return False
+
     if not is_config_valid(config):
         app.logger.error("OIDC_LOGIN or OIDC_PROVIDER_NAME is empty")
         return False
