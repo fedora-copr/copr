@@ -8,6 +8,7 @@ import os
 from copr_rpmbuild.automation.base import AutomationTool
 from copr_rpmbuild.helpers import (
     get_rpm_header,
+    macros_for_task,
     locate_srpm,
     locate_spec,
     Spec,
@@ -44,8 +45,9 @@ class SRPMResults(AutomationTool):
         keys = ["name", "epoch", "version", "release",
                 "exclusivearch", "excludearch"]
         try:
+            macros = macros_for_task(self.task, self.config)
             path = locate_spec(self.resultdir)
-            spec = Spec(path)
+            spec = Spec(path, macros)
             return {key: getattr(spec, key) for key in keys}
 
         except Exception:  # pylint: disable=broad-exception-caught
