@@ -2,7 +2,11 @@
 Abstraction for RPM and SRPM builds on backend.
 """
 
-from copr_common.worker_manager import WorkerManager, PredicateWorkerLimit
+from copr_common.worker_manager import (
+    GroupWorkerLimit,
+    WorkerManager,
+    PredicateWorkerLimit,
+)
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.helpers import get_chroot_arch
 
@@ -131,6 +135,19 @@ class ArchitectureWorkerLimit(PredicateWorkerLimit):
         def predicate(x):
             return x.requested_arch == architecture
         super().__init__(predicate, limit, name="arch_{}".format(architecture))
+
+
+class ArchitectureUserWorkerLimit(GroupWorkerLimit):
+    """
+    Limit number of machines of specific architecture we give to a single
+    Copr owner (user or group).
+    """
+    def __init__(self, architecture, limit):
+        super().__init__(
+            lambda x: f"{x.requested_arch}_{x.owner}",
+            limit,
+            name=f"arch_{architecture}_owner",
+        )
 
 
 class BuildTagLimit(PredicateWorkerLimit):

@@ -215,9 +215,9 @@ def _get_limits_conf(parser):
             "option.  Please use format: "
             "builds_max_workers_{0} = {1}1=COUNT,{1}2=COUNT")
     err2 = ("Duplicate left value '{}' in 'builds_max_workers_{}' configuration")
-    limits = {"arch": {}, "tag": {}}
+    limits = {"arch": {}, "tag": {}, "arch_per_owner": {}}
 
-    for config_type in ["arch", "tag"]:
+    for config_type in ["arch", "tag", "arch_per_owner"]:
         option = "builds_max_workers_{}".format(config_type)
         raw = _get_conf(parser, "backend", option, None)
         if raw:

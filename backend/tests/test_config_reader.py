@@ -37,7 +37,8 @@ class TestBackendConfigReader:
     def test_minimal_file_and_defaults(self):
         opts = BackendConfigReader(self.get_minimal_config_file()).read()
         assert opts.destdir == "/tmp"
-        assert opts.builds_limits == {'arch': {}, 'tag': {}, 'owner': 20, 'sandbox': 10}
+        assert opts.builds_limits == {'arch': {}, 'tag': {}, 'owner': 20,
+                                      'sandbox': 10, 'arch_per_owner': {}}
 
     def test_correct_build_limits(self):
         opts = BackendConfigReader(
@@ -48,6 +49,7 @@ class TestBackendConfigReader:
                     "builds_max_workers_tag = Power9=9\n"
                     "builds_max_workers_owner = 5\n"
                     "builds_max_workers_sandbox = 3\n"
+                    "builds_max_workers_arch_per_owner = ppc64le=11, s390x=5\n"
                 ))).read()
         assert opts.builds_limits == {
             'arch': {
@@ -58,7 +60,11 @@ class TestBackendConfigReader:
                 'Power9': 9,
             },
             'owner': 5,
-            'sandbox': 3
+            'sandbox': 3,
+            'arch_per_owner': {
+                'ppc64le': 11,
+                's390x': 5,
+            },
         }
 
     @pytest.mark.parametrize("broken_config", [

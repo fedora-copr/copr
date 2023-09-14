@@ -6,6 +6,7 @@ from copr_common.worker_manager import GroupWorkerLimit
 from copr_backend.dispatcher import BackendDispatcher
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
+    ArchitectureUserWorkerLimit,
     BuildTagLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
@@ -83,9 +84,14 @@ class BuildDispatcher(BackendDispatcher):
         super().__init__(backend_opts)
         self.max_workers = backend_opts.builds_max_workers
 
-        for tag_type in ["arch", "tag"]:
-            lclass = ArchitectureWorkerLimit if tag_type == "arch" else \
-                     BuildTagLimit
+        for tag_type in ["arch", "tag", "arch_per_owner"]:
+            match tag_type:
+                case "arch":
+                    lclass = ArchitectureWorkerLimit
+                case "tag":
+                    lclass = BuildTagLimit
+                case "arch_per_owner":
+                    lclass = ArchitectureUserWorkerLimit
             for tag, limit in backend_opts.builds_limits[tag_type].items():
                 self.log.info("setting %s(%s) limit to %s", tag_type, tag, limit)
                 self.limits.append(lclass(tag, limit))
