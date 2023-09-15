@@ -1940,6 +1940,7 @@ class BuildChroot(db.Model, TagMixin, helpers.Serializer):
                                                         passive_deletes=True))
     git_hash = db.Column(db.String(40))
     status = db.Column(db.Integer, default=StatusEnum("waiting"))
+    status_reason = db.Column(db.Text)
 
     started_on = db.Column(db.Integer, index=True)
     ended_on = db.Column(db.Integer, index=True)

@@ -138,8 +138,9 @@
   {% endif %}
 {% endmacro %}
 
-{% macro build_state_text(state) %}
-  <span class="build-{{ state }}" title="{{ state | build_state_description }}">
+{% macro build_state_text(state, reason=None) %}
+  <span class="build-{{ state }}"
+        title="{{ reason or state | build_state_description }}">
   {% if state == "importing" %}
     <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "pending" %}
