@@ -1048,10 +1048,14 @@ class BuildsLogic(object):
 
                     exclusivearch = upd_dict["results"].get("exclusivearch")
                     if exclusivearch and arch not in exclusivearch:
+                        chroot.status_reason = \
+                            "This chroot was skipped because of ExclusiveArch"
                         finish(chroot, StatusEnum("skipped"))
 
                     excludearch = upd_dict["results"].get("excludearch")
                     if arch in excludearch:
+                        chroot.status_reason = \
+                            "This chroot was skipped because of ExcludeArch"
                         finish(chroot, StatusEnum("skipped"))
 
             cls.process_update_callback(build)

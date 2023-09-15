@@ -209,7 +209,8 @@ def build_state_decoration(state):
         "canceled": "The build has been cancelled manually.",
         "running": "Build in progress.",
         "pending": "Build is waiting in queue for a backend worker.",
-        "skipped": "This package has already been built previously.",
+        "skipped": ("This package was skipped, see the reason "
+                    "for each chroot separately."),
         "starting": "Backend worker is trying to acquire a builder machine.",
         "importing": "Package sources are being imported into Copr DistGit.",
         "waiting": "Task is waiting for something else to finish.",

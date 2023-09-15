@@ -272,7 +272,7 @@
                 {% endfor %}
               </td>
               <td>
-                {{ build_state_text(chroot.state) }}
+                {{ build_state_text(chroot.state, chroot.status_reason) }}
               </td>
             </tr>
           {% endfor %}
