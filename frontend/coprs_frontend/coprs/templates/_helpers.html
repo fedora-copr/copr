@@ -355,6 +355,7 @@
     <div class="panel-heading">
       <h3 class="panel-title"> Recent Builds - <a href="{{ url_for('recent_ns.all') }}">View All</a></h3>
     </div>
+    {%- if builds %}
     <div class="list-group">
       {% for build in builds %}
         <a href="{{copr_url('coprs_ns.copr_build', build.copr, build_id=build.id)}}" class="list-group-item">
@@ -379,6 +380,7 @@
         </a>
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 {% endmacro %}
 
