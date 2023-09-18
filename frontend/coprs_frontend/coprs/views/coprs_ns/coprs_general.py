@@ -91,7 +91,9 @@ def coprs_show(page=1):
     # flask.g.user is none when no user is logged - showing builds from everyone
     # TODO: builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5) takes too much time, optimize sql
     # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
-    users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 4)
+    # users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 4)
+    # err - this is all taking so much time, do not display this box on main page
+    users_builds = None
 
     data = builds_logic.BuildsLogic.get_small_graph_data('30min')
 
