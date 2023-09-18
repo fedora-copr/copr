@@ -38,13 +38,14 @@ def cmd_readable(cmd):
     return ' '.join([shlex.quote(part) for part in cmd])
 
 
-def run_cmd(cmd, cwd=".", preexec_fn=None):
+def run_cmd(cmd, cwd=".", preexec_fn=None, env=None):
     """
     Runs given command in a subprocess.
 
     :param list(str) cmd: command to be executed and its arguments
     :param str cwd: In which directory to execute the command
     :param func preexec_fn: a callback invoked before exec in subprocess
+    :param dict env: environment variables to set for process
 
     :raises RuntimeError
     :returns munch.Munch(cmd, stdout, stderr, returncode)
@@ -53,7 +54,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
 
     try:
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn, env=env)
         (stdout, stderr) = process.communicate()
     except OSError as e:
         if e.errno == errno.ENOENT:
