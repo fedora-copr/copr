@@ -10,8 +10,27 @@ https://fedoraproject.org/wiki/Package_Review_Process
 
 import os
 import shutil
+from contextlib import contextmanager
+from typing import Generator
+
 from copr_rpmbuild.helpers import run_cmd
 from copr_rpmbuild.automation.base import AutomationTool
+
+
+@contextmanager
+def cache_directory(resultdir) -> Generator[str, None, None]:
+    """
+    Create a directory for a job to use as the XDG cache.
+
+    :param str resultdir: Parent directory for the run results
+    :return: Path to cache directory
+    """
+    cachedir = os.path.join(resultdir, "cache")
+    try:
+        os.makedirs(cachedir, exist_ok=True)
+        yield cachedir
+    finally:
+        shutil.rmtree(cachedir)
 
 
 class FedoraReview(AutomationTool):
@@ -44,17 +63,17 @@ class FedoraReview(AutomationTool):
             "--name", self.package_name,
             "--mock-config", self.mock_config_file,
         ]
+        with cache_directory(self.resultdir) as cachedir:
+            try:
+                result = run_cmd(cmd, cwd=self.resultdir, env={"XDG_CACHE_HOME": cachedir})
+                self.log.info(result.stdout)
+            except RuntimeError as ex:
+                self.log.warning("Fedora review failed\nerr:\n%s", ex)
+                self.log.warning("The build itself will not be marked "
+                                 "as failed because of this")
+            self._filter_results_directory(cachedir)
 
-        try:
-            result = run_cmd(cmd, cwd=self.resultdir)
-            self.log.info(result.stdout)
-        except RuntimeError as ex:
-            self.log.warning("Fedora review failed\nerr:\n%s", ex)
-            self.log.warning("The build itself will not be marked "
-                             "as failed because of this")
-        self._filter_results_directory()
-
-    def _filter_results_directory(self):
+    def _filter_results_directory(self, cachedir: str):
         """
         Currently, fedora-review tool doesn't have an option to specify
         a destdir, and produces output to a directory called after the package
@@ -66,6 +85,18 @@ class FedoraReview(AutomationTool):
         srcdir = os.path.join(self.resultdir, self.package_name)
         dstdir = os.path.join(self.resultdir, "fedora-review")
         os.makedirs(dstdir, exist_ok=True)
+
+        logfile = os.path.join(cachedir, "fedora-review.log")
+
+        # The fedora-review command failed to start so badly that it didn't even create a log file.
+        # Given how early that should happen, this merits investigation.
+        if not os.path.exists(logfile):
+            self.log.error("Can't find fedora-review log: %s", logfile)
+            self.log.error("Please raise a bug on https://github.com/fedora-copr/copr including a link to this build")
+            # If the log file doesn't exist, there's zero chance the results exist
+            return
+
+        os.rename(logfile, os.path.join(dstdir, "fedora-review.log"))
 
         # The fedora-review command failed so early that it didn't even create
         # the resultdir. Nothing to do here.

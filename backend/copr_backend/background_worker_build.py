@@ -513,14 +513,15 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         except SSHConnectionError as exc:
             return "Stopped following builder for broken SSH: {}".format(exc)
 
-    def _compress_live_logs(self):
+    def _compress_logs(self):
         """
-        Compress builder-live.log and backend.log by gzip.
+        Compress builder-live.log, backend.log, and fedora-review.log using gzip.
         Never raise any exception!
         """
         logs = [
             self.job.builder_log,
             self.job.backend_log,
+            self.job.review_log,
         ]
 
         # For automatic redirect from log to log.gz, consider configuring
@@ -530,6 +531,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         #   url.rewrite-if-not-file = ("^/(.*)/builder-live.log$" => "/$1/redirect-builder-live.log")
         #   url.redirect += ( "^/(.*)/redirect-backend.log$" => "/$1/backend.log.gz" )
         #   url.rewrite-if-not-file += ("^/(.*)/backend.log$" => "/$1/redirect-backend.log")
+        #   url.redirect += ( "^/(.*)/redirect-backend.log$" => "/$1/fedora-review.log.gz" )
+        #   url.rewrite-if-not-file += ("^/(.*)/backend.log$" => "/$1/redirect-fedora-review.log")
         #
         #   $HTTP["url"] =~ "\.log\.gz$" {
         #       magnet.attract-physical-path-to = ( "/etc/lighttpd/content-encoding-gzip-if-exists.lua" )
@@ -543,7 +546,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         #   end
         #
         # Or Apache with:
-        #     <FilesMatch "^(builder-live|backend)\.log$">
+        #     <FilesMatch "^(builder-live|backend|fedora-review)\.log$">
         #     RewriteEngine on
         #     RewriteCond %{REQUEST_FILENAME} !-f
         #     RewriteRule ^(.*)$ %{REQUEST_URI}.gz [R]
@@ -556,6 +559,12 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 # would interactively ask whether we want to overwrite the
                 # existing file, and it would deadlock the worker.
                 self.log.error("Compressed log %s exists", dest)
+                continue
+
+            if not os.path.exists(src):
+                # fedora-review.log has a good chance of not existing
+                # We should be ready for other similar files
+                self.log.warning("Not trying to compress %s as it does not exist", src)
                 continue
 
             self.log.info("Compressing %s by gzip", src)
@@ -814,7 +823,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self._drop_host()
             if self.job:
                 self._mark_finished()
-                self._compress_live_logs()
+                self._compress_logs()
             else:
                 self.log.error("No job object from Frontend")
             self.redis_set_worker_flag("status", "done")

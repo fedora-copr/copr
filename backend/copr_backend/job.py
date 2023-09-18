@@ -145,6 +145,13 @@ class BuildJob(object):
         return os.path.join(self.results_dir, "builder-live.log")
 
     @property
+    def review_log(self):
+        """
+        The log file from running fedora-review
+        """
+        return os.path.join(self.results_dir, "fedora-review/fedora-review.log")
+
+    @property
     def rsync_log_name(self):
         return "build-{:08d}.rsync.log".format(self.build_id)
 
