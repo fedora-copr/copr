@@ -5,7 +5,7 @@ from coprs import models
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
-from coprs.logic.coprs_logic import MockChrootsLogic
+from coprs.logic.coprs_logic import CoprChrootsLogic, MockChrootsLogic
 from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.helpers import streamed_json
 
@@ -81,7 +81,7 @@ def dist_git_upload_completed():
     build_id = flask.request.json.get("build_id")
 
     try:
-        build = ComplexLogic.get_build_safe(build_id)
+        build = ComplexLogic.get_build(build_id)
     except ObjectNotFound:
         return flask.jsonify({"updated": False})
 
@@ -168,7 +168,7 @@ def get_build_record(task, for_backend=False):
         "repo_priority": task.build.copr.repo_priority
     })
 
-    copr_chroot = ComplexLogic.get_copr_chroot_safe(task.build.copr, task.mock_chroot.name)
+    copr_chroot = CoprChrootsLogic.get_by_name_or_none(task.build.copr, task.mock_chroot.name)
     modules = copr_chroot.module_setup_commands
     if modules:
         build_record["modules"] = {'toggle': modules}
@@ -419,7 +419,7 @@ def starting_build():
     data = flask.request.json
 
     try:
-        build = ComplexLogic.get_build_safe(data.get('build_id'))
+        build = ComplexLogic.get_build(data.get('build_id'))
     except ObjectNotFound:
         return flask.jsonify({"can_start": False})
 
@@ -440,7 +440,7 @@ def reschedule_build_chroot():
     chroot = flask.request.json.get("chroot")
 
     try:
-        build = ComplexLogic.get_build_safe(build_id)
+        build = ComplexLogic.get_build(build_id)
     except ObjectNotFound:
         response["result"] = "noop"
         response["msg"] = "Build {} wasn't found".format(build_id)

@@ -65,7 +65,7 @@ class ComplexLogic(object):
 
             for dep in analyzed_copr.runtime_deps:
                 try:
-                    copr_dep = cls.get_copr_by_repo_safe(dep)
+                    copr_dep = cls.get_copr_by_repo(dep)
                 except exceptions.ObjectNotFound:
                     non_existing.add(dep)
                     continue
@@ -170,120 +170,232 @@ class ComplexLogic(object):
         return fcopr, created
 
     @staticmethod
-    def get_group_copr_safe(group_name, copr_name, **kwargs):
-        group = ComplexLogic.get_group_by_name_safe(group_name)
+    def get_group_copr(group_name, copr_name, **kwargs):
+        """
+        Get group Copr by group and copr name.
+
+        Returns:
+            Copr model
+
+        Raises:
+            ObjectNotFound to API if nothing is found in database
+        """
+        group = ComplexLogic.get_group_by_name(group_name)
         try:
             return CoprsLogic.get_by_group_id(
                 group.id, copr_name, **kwargs).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Project @{}/{} does not exist."
-                        .format(group_name, copr_name))
+                message="Project @{}/{} does not exist.".format(
+                    group_name, copr_name
+                )
+            ) from exc
 
     @staticmethod
-    def get_copr_safe(user_name, copr_name, **kwargs):
+    def get_copr(user_name, copr_name, **kwargs):
         """ Get one project.
 
-        This always return personal project. For group projects see get_group_copr_safe().
+        This always return personal project. For group projects see get_group_copr().
         """
         try:
             return CoprsLogic.get(user_name, copr_name, **kwargs).filter(Copr.group_id.is_(None)).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Project {}/{} does not exist."
-                        .format(user_name, copr_name))
+                message="Project {}/{} does not exist.".format(
+                    user_name, copr_name
+                )
+            ) from exc
 
     @staticmethod
-    def get_copr_by_owner_safe(owner_name, copr_name, **kwargs):
+    def get_copr_by_owner(owner_name, copr_name, **kwargs):
+        """
+        Get Copr by owner name and copr name.
+
+        Returns:
+            Copr model
+
+        Raises:
+            ObjectNotFound to API if nothing is found in database
+        """
         if owner_name[0] == "@":
-            return ComplexLogic.get_group_copr_safe(owner_name[1:], copr_name, **kwargs)
-        return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
+            return ComplexLogic.get_group_copr(owner_name[1:], copr_name, **kwargs)
+        return ComplexLogic.get_copr(owner_name, copr_name, **kwargs)
 
     @staticmethod
-    def get_copr_by_repo_safe(repo_url):
+    def get_copr_by_repo(repo_url):
+        """
+        Safely get copr repo by repo url.
+
+        Args:
+            repo_url: str
+
+        Returns:
+            Copr repo or None in case of invalid url format or different url
+             scheme than copr.
+
+        Raises:
+            ObjectNotFound to the API if no such Copr (group) result was found
+             in database.
+        """
         copr_repo = helpers.copr_repo_fullname(repo_url)
         if not copr_repo:
             return None
         try:
             owner, copr = copr_repo.split("/")
-        except:
+        except ValueError:
             # invalid format, e.g. multiple slashes in copr_repo
             return None
-        return ComplexLogic.get_copr_by_owner_safe(owner, copr)
+        return ComplexLogic.get_copr_by_owner(owner, copr)
 
     @staticmethod
-    def get_copr_dir_safe(ownername, copr_dirname, **kwargs):
+    def get_copr_dir(ownername, copr_dirname):
+        """
+        Get CoprDir by owner name and dir name.
+
+        Returns:
+            CoprDir model
+
+        Raises:
+            ObjectNotFound to the API if no result was found in database.
+        """
         try:
             return CoprDirsLogic.get_by_ownername(ownername, copr_dirname).one()
-        except sqlalchemy.orm.exc.NoResultFound:
-            raise ObjectNotFound(message="copr dir {}/{} does not exist."
-                        .format(ownername, copr_dirname))
+        except sqlalchemy.orm.exc.NoResultFound as exc:
+            raise ObjectNotFound(
+                message="copr dir {}/{} does not exist.".format(
+                    ownername, copr_dirname
+                )
+            ) from exc
 
     @staticmethod
-    def get_copr_by_id_safe(copr_id):
+    def get_copr_by_id(copr_id):
+        """
+        Get Copr by its ID.
+
+        Returns:
+            Copr model
+
+        Raises:
+            ObjectNotFound to the API if no such project with ID exists.
+        """
         try:
             return CoprsLogic.get_by_id(copr_id).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Project with id {} does not exist."
-                        .format(copr_id))
+                message="Project with id {} does not exist.".format(copr_id)
+            ) from exc
 
     @staticmethod
-    def get_build_safe(build_id):
+    def get_build(build_id):
+        """
+        Get Build by its ID.
+
+        Returns:
+            Build model
+
+        Raises:
+            ObjectNotFound to the API if no such build with ID exists.
+        """
         try:
             return BuildsLogic.get_by_id(build_id).one()
-        except (sqlalchemy.orm.exc.NoResultFound,
-                sqlalchemy.exc.DataError):
+        except (sqlalchemy.orm.exc.NoResultFound, sqlalchemy.exc.DataError) as exc:
             raise ObjectNotFound(
-                message="Build {} does not exist.".format(build_id))
+                message="Build {} does not exist.".format(build_id)
+            ) from exc
 
     @staticmethod
     def get_build_chroot(build_id, chrootname):
         """
-        Return a `models.BuildChroot` instance based on build ID and name of the chroot.
-        If there is no such chroot, `ObjectNotFound` execption is raised.
+        Get a BuildChroot instance based on build ID and name of the chroot.
+
+        Returns:
+            BuildChroot model
+
+        Raises:
+            If there is no such chroot, `ObjectNotFound` execption is raised.
         """
-        build = ComplexLogic.get_build_safe(build_id)
+        build = ComplexLogic.get_build(build_id)
         try:
             return build.chroots_dict_by_name[chrootname]
-        except KeyError:
+        except KeyError as exc:
             msg = "Build {} was not submitted to {} chroot.".format(build_id, chrootname)
             if not MockChrootsLogic.get_from_name(chrootname).one_or_none():
                 msg = "Chroot {} does not exist".format(chrootname)
-            raise ObjectNotFound(message=msg)
+            raise ObjectNotFound(message=msg) from exc
 
     @staticmethod
-    def get_package_by_id_safe(package_id):
+    def get_package_by_id(package_id):
+        """
+        Get Package instance based on its ID.
+
+        Returns:
+            Package model
+
+        Raises:
+            ObjectNotFound to the API if no such package with ID exists.
+        """
         try:
             return PackagesLogic.get_by_id(package_id).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Package {} does not exist.".format(package_id))
+                message="Package {} does not exist.".format(package_id)
+            ) from exc
 
     @staticmethod
-    def get_package_safe(copr, package_name):
+    def get_package(copr, package_name):
+        """
+        Get Package instance based on Copr instance and package name.
+
+        Returns:
+            Package model
+
+        Raises:
+            ObjectNotFound to the API if no such package with given name
+             exists.
+        """
         try:
             return PackagesLogic.get(copr.id, package_name).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Package {} in the copr {} does not exist."
-                .format(package_name, copr))
+                message="Package {} in the copr {} does not exist.".format(
+                    package_name, copr
+                )
+            ) from exc
 
     @staticmethod
-    def get_group_by_name_safe(group_name):
+    def get_group_by_name(group_name):
+        """
+        Get Group instance based on a given name.
+
+        Returns:
+            Group model
+
+        Raises:
+            ObjectNotFound for the API if no such group name exists.
+        """
         try:
             group = UsersLogic.get_group_by_alias(group_name).one()
-        except sqlalchemy.orm.exc.NoResultFound:
+        except sqlalchemy.orm.exc.NoResultFound as exc:
             raise ObjectNotFound(
-                message="Group {} does not exist.".format(group_name))
+                message="Group {} does not exist.".format(group_name)
+            ) from exc
         return group
 
     @staticmethod
-    def get_copr_chroot_safe(copr, chroot_name):
+    def get_copr_chroot(copr, chroot_name):
+        """
+        Get CoprChroot by Copr model and chroot name.
+
+        Returns:
+            CoprChroot model
+
+        Raises:
+            ObjectNotFound for the API if no such chroot name exists in Copr.
+        """
         try:
-            chroot = CoprChrootsLogic.get_by_name_safe(copr, chroot_name)
+            chroot = CoprChrootsLogic.get_by_name_or_none(copr, chroot_name)
         except (ValueError, KeyError, RuntimeError) as e:
-            raise ObjectNotFound(message=str(e))
+            raise ObjectNotFound(message=str(e)) from e
 
         if not chroot:
             raise ObjectNotFound(
@@ -552,14 +664,14 @@ class BuildConfigLogic(object):
                 "name": "Additional repo " + helpers.generate_repo_name(repo),
             }
 
-            # We ask get_copr_by_repo_safe() here only to resolve the
+            # We ask get_copr_by_repo() here only to resolve the
             # module_hotfixes attribute.  If the asked project doesn't exist, we
             # still adjust the 'repos' variable -- the build will eventually
             # fail on repo downloading, but at least the copr maintainer will be
             # notified about the misconfiguration.  Better than just skip the
             # repo.
             try:
-                copr = ComplexLogic.get_copr_by_repo_safe(repo)
+                copr = ComplexLogic.get_copr_by_repo(repo)
             except ObjectNotFound:
                 copr = None
             if copr and copr.module_hotfixes:

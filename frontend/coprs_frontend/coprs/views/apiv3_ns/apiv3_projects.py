@@ -70,7 +70,7 @@ def owner2tuple(ownername):
     user = flask.g.user
     group = None
     if ownername[0] == "@":
-        group = ComplexLogic.get_group_by_name_safe(ownername[1:])
+        group = ComplexLogic.get_group_by_name(ownername[1:])
     elif ownername != flask.g.user.name:
         user = UsersLogic.get(ownername).first()
     if not user:

@@ -20,7 +20,7 @@ from coprs.views.coprs_ns import coprs_ns
 @req_with_copr
 def chroot_edit(copr, chrootname):
     """ Route for editing CoprChroot's """
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    chroot = ComplexLogic.get_copr_chroot(copr, chrootname)
     form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs, repos=chroot.repos,
                             module_toggle=chroot.module_toggle, with_opts=chroot.with_opts,
                             without_opts=chroot.without_opts,
@@ -51,7 +51,7 @@ def render_chroot_edit(form, copr, chroot):
 def chroot_update(copr, chrootname):
     chroot_name = chrootname
     form = forms.ChrootForm()
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
+    chroot = ComplexLogic.get_copr_chroot(copr, chroot_name)
 
     if not flask.g.user.can_edit(copr):
         raise AccessRestricted(
@@ -102,5 +102,5 @@ def chroot_view_comps(copr, chrootname):
 
 
 def render_chroot_view_comps(copr, chroot_name):
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
+    chroot = ComplexLogic.get_copr_chroot(copr, chroot_name)
     return Response(chroot.comps or "", mimetype="text/plain; charset=utf-8")

@@ -33,7 +33,7 @@ from coprs.exceptions import (
 
 @coprs_ns.route("/build/<int:build_id>/")
 def copr_build_redirect(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     copr = build.copr
     return flask.redirect(helpers.copr_url("coprs_ns.copr_build", copr, build_id=build_id))
 
@@ -53,7 +53,7 @@ def copr_build(copr, build_id):
 
 
 def render_copr_build(build_id, copr):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     return render_template("coprs/detail/build.html", build=build, copr=copr)
 
 
@@ -440,7 +440,7 @@ def copr_new_build_rebuild(copr, build_id):
     view='coprs_ns.copr_new_build'
     url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
     def factory(**build_options):
-        source_build = ComplexLogic.get_build_safe(build_id)
+        source_build = ComplexLogic.get_build(build_id)
         BuildsLogic.create_new_from_other_build(
             flask.g.user, copr, source_build,
             chroot_names=form.selected_chroots,
@@ -458,7 +458,7 @@ def copr_new_build_rebuild(copr, build_id):
 @login_required
 @req_with_copr
 def copr_repeat_build(copr, build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
 
@@ -520,7 +520,7 @@ def process_cancel_build(build):
 @req_with_copr
 def copr_cancel_build(copr, build_id):
     # only the user who ran the build can cancel it
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     return process_cancel_build(build)
 
 
@@ -530,7 +530,7 @@ def copr_cancel_build(copr, build_id):
                 methods=["POST"])
 @login_required
 def copr_delete_build(username, coprname, build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
 
     try:
         builds_logic.BuildsLogic.delete_build(flask.g.user, build)

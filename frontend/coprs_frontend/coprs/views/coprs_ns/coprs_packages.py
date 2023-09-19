@@ -63,7 +63,7 @@ def copr_packages(copr, page=1):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/")
 @req_with_copr
 def copr_package(copr, package_name):
-    package = ComplexLogic.get_package_safe(copr, package_name)
+    package = ComplexLogic.get_package(copr, package_name)
     return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/status_image/last_build.png")
@@ -71,7 +71,7 @@ def copr_package(copr, package_name):
 @req_with_copr
 def copr_package_icon(copr, package_name):
     try:
-        package = ComplexLogic.get_package_safe(copr, package_name)
+        package = ComplexLogic.get_package(copr, package_name)
     except ObjectNotFound:
         return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
@@ -96,7 +96,7 @@ def copr_rebuild_all_packages(copr):
         try:
             packages = []
             for package_name in form.packages.data:
-                packages.append(ComplexLogic.get_package_safe(copr, package_name))
+                packages.append(ComplexLogic.get_package(copr, package_name))
 
             PackagesLogic.batch_build(
                 flask.g.user,
@@ -126,7 +126,7 @@ def copr_rebuild_all_packages(copr):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
 def copr_rebuild_package(copr, package_name):
-    package = ComplexLogic.get_package_safe(copr, package_name)
+    package = ComplexLogic.get_package(copr, package_name)
     data = package.source_json_dict
 
     if package.source_type_text == "scm":
@@ -204,7 +204,7 @@ def copr_new_package(copr, source_type_text):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type_text>")
 @req_with_copr
 def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
-    package = ComplexLogic.get_package_safe(copr, package_name)
+    package = ComplexLogic.get_package(copr, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
     data["chroot_denylist"] = package.chroot_denylist_raw
@@ -311,7 +311,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
 @login_required
 @req_with_copr
 def copr_delete_package(copr, package_id):
-    package = ComplexLogic.get_package_by_id_safe(package_id)
+    package = ComplexLogic.get_package_by_id(package_id)
 
     try:
         PackagesLogic.delete_package(flask.g.user, package)

@@ -49,7 +49,7 @@ def delete_data():
 @user_ns.route("/customize-pinned/<group_name>")
 @login_required
 def pinned_projects(group_name=None):
-    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name_safe(group_name)
+    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name(group_name)
     return render_pinned_projects(owner)
 
 
@@ -76,7 +76,7 @@ def render_pinned_projects(owner, form=None):
 @user_ns.route("/customize-pinned/<group_name>", methods=["POST"])
 @login_required
 def pinned_projects_post(group_name=None):
-    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name_safe(group_name)
+    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name(group_name)
     url_on_success = helpers.owner_url(owner)
     return process_pinned_projects_post(owner, url_on_success)
 

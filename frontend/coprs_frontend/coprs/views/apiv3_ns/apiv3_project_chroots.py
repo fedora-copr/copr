@@ -86,7 +86,7 @@ class ProjectChroot(Resource):
         """
         args = self.parser.parse_args()
         copr = get_copr(args.ownername, args.projectname)
-        chroot = ComplexLogic.get_copr_chroot_safe(copr, args.chrootname)
+        chroot = ComplexLogic.get_copr_chroot(copr, args.chrootname)
         return to_dict(chroot)
 
 
@@ -103,7 +103,7 @@ class BuildConfig(Resource):
         """
         args = self.parser.parse_args()
         copr = get_copr(args.ownername, args.projectname)
-        chroot = ComplexLogic.get_copr_chroot_safe(copr, args.chrootname)
+        chroot = ComplexLogic.get_copr_chroot(copr, args.chrootname)
         if not chroot:
             raise ObjectNotFound('Chroot not found.')
         return to_build_config_dict(chroot)
@@ -116,7 +116,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_form_compatible_data(preserve=["additional_modules"]))
     form = forms.ModifyChrootForm(data, meta={'csrf': False})
-    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    chroot = ComplexLogic.get_copr_chroot(copr, chrootname)
 
     if not form.validate_on_submit():
         raise InvalidForm(form)

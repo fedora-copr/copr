@@ -40,5 +40,14 @@ normal form. Having numeric primary keys is a convention agreed among team
 members.
 
 
+## Safe, or_none methods
+
+In sake of consistency we have two conventions when naming a method/function
+
+- `*_safe`: Some methods are considered as "safe" in the sense of "safe from exceptions". They
+deal with the exceptions in proper way and/or logs the errors.
+- `*_or_none`: returns the desired output or if object was not found in the database they
+return None.
+
 
 [pep8]: https://www.python.org/dev/peps/pep-0008/
