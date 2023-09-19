@@ -47,7 +47,7 @@
 
 Name:       copr-frontend
 Version:    1.201
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPL-2.0-or-later
@@ -381,6 +381,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue Sep 19 2023 Miroslav Suchý <msuchy@redhat.com> 1.201-2
+- frontend: do not display recent builds box on main page
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.201-1
 - buildchroot results returned via API can provide epoch==null
 - skip ExcludeArch and ExclusiveArch for resubmitted builds
