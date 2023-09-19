@@ -241,7 +241,7 @@ def copr_add(username=None, group_name=None):
     for chroot in MockChrootsLogic.get_multiple(active_only=True):
         comments[chroot.name] = chroot.comment
     if group_name:
-        group = ComplexLogic.get_group_by_name_safe(group_name)
+        group = ComplexLogic.get_group_by_name(group_name)
         return flask.render_template("coprs/group_add.html", form=form, group=group, comments=comments)
     return flask.render_template("coprs/add.html", form=form, comments=comments)
 
@@ -257,7 +257,7 @@ def copr_new(username=None, group_name=None):
     group = None
     redirect = "coprs/add.html"
     if group_name:
-        group = ComplexLogic.get_group_by_name_safe(group_name)
+        group = ComplexLogic.get_group_by_name(group_name)
         redirect = "coprs/group_add.html"
 
     form = forms.CoprFormFactory.create_form_cls(group=group)()
@@ -737,8 +737,8 @@ def process_copr_repositories(copr, on_success):
         raise ValidationError("Ambiguous to what project the chroot belongs")
 
     if not copr:
-        copr = ComplexLogic.get_copr_by_owner_safe(form.ownername.data,
-                                                   form.projectname.data)
+        copr = ComplexLogic.get_copr_by_owner(form.ownername.data,
+                                              form.projectname.data)
     if not flask.g.user.can_edit(copr):
         flask.flash("You don't have access to this page.", "error")
         return flask.redirect(url_for_copr_details(copr))
@@ -766,7 +766,7 @@ def process_copr_repositories(copr, on_success):
 @coprs_ns.route("/id/<copr_id>/createrepo/", methods=["POST"])
 @login_required
 def copr_createrepo(copr_id):
-    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    copr = ComplexLogic.get_copr_by_id(copr_id)
     if not flask.g.user.can_edit(copr):
         flask.flash(
             "You are not allowed to recreate repository metadata of copr with id {}.".format(copr_id), "error")
@@ -939,7 +939,7 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
         owner_name = runtime_dep.owner.name
         if isinstance(runtime_dep.owner, models.Group):
             owner_name = "@{0}".format(owner_name)
-        copr_dep_dir = ComplexLogic.get_copr_dir_safe(owner_name, runtime_dep.name)
+        copr_dep_dir = ComplexLogic.get_copr_dir(owner_name, runtime_dep.name)
         response_content += "\n" + render_repo_template(copr_dep_dir, mock_chroot,
                                                         runtime_dep=dep_idx,
                                                         dependent=copr_dir.copr)

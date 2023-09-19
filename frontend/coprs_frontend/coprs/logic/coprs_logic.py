@@ -622,7 +622,7 @@ class CoprPermissionsLogic(object):
 
 class CoprDirsLogic(object):
     @classmethod
-    def get_by_copr_safe(cls, copr, dirname):
+    def get_by_copr_or_none(cls, copr, dirname):
         """
         Return _query_ for getting CoprDir by Copr and dirname
         """
@@ -637,7 +637,7 @@ class CoprDirsLogic(object):
         Return CoprDir instance per given Copr instance and dirname.  Raise
         ObjectNotFound if it doesn't exist.
         """
-        coprdir = cls.get_by_copr_safe(copr, dirname)
+        coprdir = cls.get_by_copr_or_none(copr, dirname)
         if not coprdir:
             raise exceptions.ObjectNotFound(
                 "Dirname '{}' doesn't exist in '{}' copr".format(
@@ -669,7 +669,7 @@ class CoprDirsLogic(object):
         submitted.  We don't create the "main" CoprDirs here (those are created
         when a new project is created.
         """
-        copr_dir = cls.get_by_copr_safe(copr, dirname)
+        copr_dir = cls.get_by_copr_or_none(copr, dirname)
         if copr_dir:
             return copr_dir
 
@@ -948,9 +948,17 @@ class CoprChrootsLogic(object):
         return cls.get_by_mock_chroot_id(copr, mc.id)
 
     @classmethod
-    def get_by_name_safe(cls, copr, chroot_name):
+    def get_by_name_or_none(cls, copr, chroot_name):
         """
-        :rtype: models.CoprChroot
+        Get CoprChroot in Copr model by chroot name.
+
+        Args:
+            copr: Copr model
+            chroot_name: str
+
+        Returns:
+            CoprChroot model or None if no such chroot name in given Copr
+             model exists.
         """
         try:
             return cls.get_by_name(copr, chroot_name).one()

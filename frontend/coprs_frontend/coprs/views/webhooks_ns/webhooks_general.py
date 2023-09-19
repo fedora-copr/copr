@@ -51,7 +51,7 @@ def copr_id_and_uuid_required(route):
 
         copr_id = kwargs.pop('copr_id')
         try:
-            copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+            copr = ComplexLogic.get_copr_by_id(copr_id)
         except ObjectNotFound:
             return "PROJECT_NOT_FOUND\n", 404
 
@@ -71,7 +71,7 @@ def package_name_required(route):
 
         package_name = kwargs.pop('package_name')
         try:
-            package = ComplexLogic.get_package_safe(copr, package_name)
+            package = ComplexLogic.get_package(copr, package_name)
         except ObjectNotFound:
             return "PACKAGE_NOT_FOUND\n", 404
 
@@ -85,7 +85,7 @@ def package_name_required(route):
 def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
     # For the documentation of the data we receive see:
     # https://confluence.atlassian.com/bitbucket/event-payloads-740262817.html
-    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    copr = ComplexLogic.get_copr_by_id(copr_id)
     if copr.webhook_secret != uuid:
         raise AccessRestricted("This webhook is not valid")
 
@@ -128,7 +128,7 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
         return "OK", 200
     # For the documentation of the data we receive see:
     # https://developer.github.com/v3/activity/events/types/#pushevent
-    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    copr = ComplexLogic.get_copr_by_id(copr_id)
     if copr.webhook_secret != uuid:
         raise AccessRestricted("This webhook is not valid")
 
@@ -175,7 +175,7 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
 def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     # For the documentation of the data we receive see:
     # https://gitlab.com/help/user/project/integrations/webhooks#events
-    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    copr = ComplexLogic.get_copr_by_id(copr_id)
     if copr.webhook_secret != uuid:
         raise AccessRestricted("This webhook is not valid")
 
@@ -267,7 +267,7 @@ def webhooks_coprdir_custom(ownername, dirname, uuid, package_name):
         return "PROJECT_NOT_FOUND\n", 404
 
     try:
-        package = ComplexLogic.get_package_safe(copr, package_name)
+        package = ComplexLogic.get_package(copr, package_name)
     except ObjectNotFound:
         return "PACKAGE_NOT_FOUND\n", 404
 

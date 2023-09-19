@@ -51,7 +51,7 @@ class ScmPackage(object):
         self.committish = self.source_json_dict.get('committish') or ''
         self.subdirectory = self.source_json_dict.get('subdirectory') or ''
 
-        self.package = ComplexLogic.get_package_by_id_safe(db_row.id)
+        self.package = ComplexLogic.get_package_by_id(db_row.id)
         self.copr = self.package.copr
 
     def build(self, source_dict_update, copr_dir, update_callback,

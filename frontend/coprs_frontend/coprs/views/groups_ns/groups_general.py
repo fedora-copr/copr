@@ -65,7 +65,7 @@ def activate_group(fas_group):
 @groups_ns.route("/g/<group_name>/coprs/", defaults={"page": 1})
 @groups_ns.route("/g/<group_name>/coprs/<int:page>")
 def list_projects_by_group(group_name, page=1):
-    group = ComplexLogic.get_group_by_name_safe(group_name)
+    group = ComplexLogic.get_group_by_name(group_name)
 
     pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_group_id(group.id)] if page == 1 else []
     query = CoprsLogic.get_multiple_by_group_id(group.id)

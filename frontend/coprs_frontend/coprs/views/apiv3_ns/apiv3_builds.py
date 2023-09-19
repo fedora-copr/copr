@@ -102,7 +102,7 @@ class GetBuild(Resource):
         Get a build
         Get details for a single Copr build.
         """
-        build = ComplexLogic.get_build_safe(build_id)
+        build = ComplexLogic.get_build(build_id)
         result = to_dict(build)
 
         # Workaround - `marshal_with` needs the input `build_id` to be present
@@ -154,13 +154,13 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
 
 @apiv3_ns.route("/build/source-chroot/<int:build_id>/", methods=GET)
 def get_source_chroot(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     return flask.jsonify(to_source_chroot(build))
 
 
 @apiv3_ns.route("/build/source-build-config/<int:build_id>/", methods=GET)
 def get_source_build_config(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     return flask.jsonify(to_source_build_config(build))
 
 
@@ -169,14 +169,14 @@ def get_build_built_packages(build_id):
     """
     Return built packages (NEVRA dicts) for a given build
     """
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     return flask.jsonify(build.results_dict)
 
 
 @apiv3_ns.route("/build/cancel/<int:build_id>", methods=PUT)
 @api_login_required
 def cancel_build(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     BuildsLogic.cancel_build(flask.g.user, build)
     db.session.commit()
     return render_build(build)
@@ -396,7 +396,7 @@ def process_creating_new_build(copr, form, create_new_build):
 @apiv3_ns.route("/build/delete/<int:build_id>", methods=DELETE)
 @api_login_required
 def delete_build(build_id):
-    build = ComplexLogic.get_build_safe(build_id)
+    build = ComplexLogic.get_build(build_id)
     build_dict = to_dict(build)
     BuildsLogic.delete_build(flask.g.user, build)
     db.session.commit()

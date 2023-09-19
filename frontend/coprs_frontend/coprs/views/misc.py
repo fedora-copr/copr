@@ -238,10 +238,10 @@ def req_with_copr(f):
         coprname = kwargs.pop("coprname")
         if "group_name" in kwargs:
             group_name = kwargs.pop("group_name")
-            copr = ComplexLogic.get_group_copr_safe(group_name, coprname, with_mock_chroots=True)
+            copr = ComplexLogic.get_group_copr(group_name, coprname, with_mock_chroots=True)
         else:
             username = kwargs.pop("username")
-            copr = ComplexLogic.get_copr_safe(username, coprname, with_mock_chroots=True)
+            copr = ComplexLogic.get_copr(username, coprname, with_mock_chroots=True)
         return f(copr, **kwargs)
     return wrapper
 
@@ -254,7 +254,7 @@ def req_with_copr_dir(f):
         else:
             ownername = kwargs.pop("username")
         copr_dirname = kwargs.pop("copr_dirname")
-        copr_dir = ComplexLogic.get_copr_dir_safe(ownername, copr_dirname)
+        copr_dir = ComplexLogic.get_copr_dir(ownername, copr_dirname)
         return f(copr_dir, **kwargs)
     return wrapper
 
