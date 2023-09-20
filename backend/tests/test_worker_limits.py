@@ -5,7 +5,7 @@ Test classes which inherit from WorkerLimit
 # pylint: disable=protected-access
 
 from copr_common.worker_manager import (
-    GroupWorkerLimit,
+    HashWorkerLimit,
     PredicateWorkerLimit,
     StringCounter,
 )
@@ -93,7 +93,7 @@ def test_predicate_worker_limit_sometimes():
     assert wl.check(_QT(5)) is False
 
 def test_group_worker_limit():
-    wl = GroupWorkerLimit(lambda x: x.group, 2)
+    wl = HashWorkerLimit(lambda x: x.group, 2)
     for _ in ["first", "cleared", "cleared"]:
         for task in [0, 1, 2]:
             wl.worker_added(str(task), _QT(str(task)))
@@ -115,8 +115,8 @@ def test_worker_limit_info():
     limits = [
         PredicateWorkerLimit(lambda _: True, 8),
         PredicateWorkerLimit(lambda _: True, 8, name='allmatch'),
-        GroupWorkerLimit(lambda x: x.owner, 4),
-        GroupWorkerLimit(lambda x: x.sandbox, 2, name='sandbox'),
+        HashWorkerLimit(lambda x: x.owner, 4),
+        HashWorkerLimit(lambda x: x.sandbox, 2, name='sandbox'),
         ArchitectureWorkerLimit("x86_64", 3),
         ArchitectureWorkerLimit("aarch64", 2),
         ArchitectureUserWorkerLimit("aarch64", 2),
@@ -131,7 +131,7 @@ def test_worker_limit_info():
         'w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64',
         "limit info: 'allmatch', matching: w:7, w:7-fedora-rawhide-x86_64, "
         'w:7-fedora-32-x86_64, w:7-fedora-31-x86_64',
-        "limit info: Unnamed 'GroupWorkerLimit' limit, counter: cecil=2, bedrich=2",
+        "limit info: Unnamed 'HashWorkerLimit' limit, counter: cecil=2, bedrich=2",
         "limit info: 'sandbox', counter: sb1=1, sb2=2",
         "limit info: 'arch_x86_64', matching: w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64",
         "limit info: 'arch_aarch64'",

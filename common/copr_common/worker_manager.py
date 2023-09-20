@@ -127,9 +127,10 @@ class StringCounter:
         return ", ".join(items)
 
 
-class GroupWorkerLimit(WorkerLimit):
+class HashWorkerLimit(WorkerLimit):
     """
-    Assign task to groups, and set maximum number of workers per each group.
+    Assign tasks to groups per the return value of the HASHER(TASK) method.  Set
+    maximum number of workers **per each such group**.
     """
     def __init__(self, hasher, limit, name=None):
         """
