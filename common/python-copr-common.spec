@@ -36,6 +36,7 @@ BuildRequires: python-setuptools
 BuildRequires: python-pytest
 BuildRequires: python-mock
 BuildRequires: python-requests
+BuildRequires: python-six
 %endif
 
 %if %{with python3}
@@ -43,6 +44,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest
 BuildRequires: python3-requests
+BuildRequires: python3-six
 %endif
 
 %global _description\
