@@ -6,7 +6,7 @@ import os
 import sys
 import logging
 from copr_common.dispatcher import Dispatcher
-from copr_common.worker_manager import GroupWorkerLimit
+from copr_common.worker_manager import HashWorkerLimit
 from copr_dist_git.importer import Importer, ImportWorkerManager
 
 
@@ -48,7 +48,7 @@ class ImportDispatcher(Dispatcher):
         for limit_type in ['sandbox', 'owner']:
             limit = LIMITS[limit_type]
             self.log.info("setting %s limit to %s", limit_type, limit)
-            self.limits.append(GroupWorkerLimit(
+            self.limits.append(HashWorkerLimit(
                 lambda x, limit=limit_type: getattr(x, limit),
                 limit,
                 name=limit_type,

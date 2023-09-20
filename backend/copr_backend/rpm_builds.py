@@ -3,7 +3,7 @@ Abstraction for RPM and SRPM builds on backend.
 """
 
 from copr_common.worker_manager import (
-    GroupWorkerLimit,
+    HashWorkerLimit,
     WorkerManager,
     PredicateWorkerLimit,
 )
@@ -137,7 +137,7 @@ class ArchitectureWorkerLimit(PredicateWorkerLimit):
         super().__init__(predicate, limit, name="arch_{}".format(architecture))
 
 
-class ArchitectureUserWorkerLimit(GroupWorkerLimit):
+class ArchitectureUserWorkerLimit(HashWorkerLimit):
     """
     Limit number of machines of specific architecture we give to a single
     Copr owner (user or group).

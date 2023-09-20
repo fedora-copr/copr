@@ -2,7 +2,7 @@
 BuildDispatcher related classes.
 """
 
-from copr_common.worker_manager import GroupWorkerLimit
+from copr_common.worker_manager import HashWorkerLimit
 from copr_backend.dispatcher import BackendDispatcher
 from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
@@ -99,7 +99,7 @@ class BuildDispatcher(BackendDispatcher):
         for limit_type in ['sandbox', 'owner']:
             max_builders = backend_opts.builds_limits[limit_type]
             self.log.info("setting %s limit to %s", limit_type, max_builders)
-            self.limits.append(GroupWorkerLimit(
+            self.limits.append(HashWorkerLimit(
                 lambda x, limit=limit_type: getattr(x, limit),
                 max_builders,
                 name=limit_type,
