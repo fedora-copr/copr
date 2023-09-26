@@ -556,7 +556,7 @@ class CoprForm(BaseForm):
         "Delete after days",
         validators=[
             wtforms.validators.Optional(),
-            wtforms.validators.NumberRange(min=-1, max=60)
+            wtforms.validators.NumberRange(min=-1, max=720) #max allowable value for delete_after_days updated to 2 years
         ],
         filters=[(lambda x : -1 if x is None else x)])
 
