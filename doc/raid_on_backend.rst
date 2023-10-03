@@ -48,6 +48,53 @@ Attaching volume
 There's a `ansible configuration`_ for this, and `list of volumes`_.
 
 
+Adding more space
+-----------------
+
+1. Create two ``gp3`` volumes in EC2 of the same size and type, tag them with
+   ``FedoraGroup: copr``, ``CoprInstance: production``, ``CoprPurpose:
+   infrastructure``.  Attach them to a freshly started temporary instance (we
+   don't want to overload I/O with the `initial RAID sync <mdadm_sync>`_ on
+   production backend).  Make sure the instance type has enough EBS throughput
+   to perform the initial sync quickly enough.
+
+2. Always partition the disks with a single partition on them, otherwise kernel
+   might have troubles to auto-assemble the disk arrays::
+
+        cfdisk /dev/nvmeXn1
+        cfdisk /dev/nvmeYn1
+
+3. Create the ``raid1`` array on both the new **partitions**::
+
+        $ mdadm --create --name=raid-be-03 --verbose /dev/mdXYZ --level=1 --raid-devices=2 /dev/nvmeXn1p1 /dev/nvmeYn1p1
+
+   Wait till the new empty `array is synchronized <mdadm_sync>`_ (may take hours
+   or days, note we sync 2x16T).  Check the details with ``mdadm -Db
+   /dev/md/raid-be-03``.  See the tips bellow how to make the sync speed
+   unlimited with ``sysctl``.
+
+   .. note::
+
+        In case the disk is marked "readonly", you might need
+        the ``mdadm --readwrite /dev/md/raid-be-03`` command.
+
+4. Place the new ``raid1`` array into the volume group as a new physical
+   volume (vgextend does pvcreate automatically)::
+
+    $ vgextend copr-backend-data /dev/md/raid-be-03
+
+5. Extend the logical volume to span all the free space::
+
+    $ lvextend -l +100%FREE /dev/copr-backend-data/copr-backend-data
+
+6. Resize the underlying ``ext4`` filesystem (takes 15 minutes and more!)::
+
+    $ resize2fs /dev/copr-backend-data/copr-backend-data
+
+7. Switch the volume types from ``gpp3`` to ``sc1``, we don't need the power of
+   ``gp3`` for backend purposes.
+
+
 Other tips
 ----------
 
@@ -64,3 +111,4 @@ considering the large RAM.
 
 .. _`ansible configuration`: https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/tasks/mount_fs.yml
 .. _`list of volumes`: https://pagure.io/fedora-infra/ansible/blob/main/f/inventory/group_vars/copr_all_instances_aws
+.. _mdadm_sync: https://raid.wiki.kernel.org/index.php/Initial_Array_Creation
