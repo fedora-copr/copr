@@ -584,16 +584,16 @@ class TestModifyRepo(object):
             patched_popen.return_value.communicate.return_value = ("","")
             patched_popen.return_value.returncode = 0
             run_prunerepo("/tmp", "blah", "blah", "blah", 0, False)
-            first_call = patched_popen.call_args_list[0][0][0]
-            assert len(patched_popen.call_args_list) == 2
+            call = patched_popen.call_args_list[1][0][0]
+            assert len(patched_popen.call_args_list) == 3
 
-        assert list == type(first_call)
-        assert 1000 < len(first_call) < 9000*2+100
+        assert list == type(call)
+        assert 1000 < len(call) < 9000*2+100
         # Test we can execute.
-        subprocess.check_call(["/bin/true"] + first_call)
+        subprocess.check_call(["/bin/true"] + call)
 
         opts = ["--rpms-to-remove", rpm_name] * 9000
-        assert first_call == ["copr-repo", "--batched", "/tmp"] + opts + ["--no-appstream-metadata"]
+        assert call == ["copr-repo", "--batched", "/tmp"] + opts + ["--no-appstream-metadata"]
 
     @pytest.mark.parametrize('run_bg', [True, False])
     @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
