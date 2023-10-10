@@ -44,6 +44,10 @@ parser.add_argument(
         action='store_true',
         help=("Also prune chroots that are inactive and we already did "
               "the last prunerepo there, implies --no-mtime-optimization"))
+parser.add_argument(
+        "--no-threads",
+        action="store_true",
+        help="Don't use multiprocessing. This is useful for debugging with ipdb")
 
 def list_subdir(path):
     dir_names = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -130,6 +134,7 @@ class Pruner(object):
                                               logger=LOG)
         self.mtime_optimization = True
         self.prune_finalized_chroots = False
+        self.no_threads = False
         self.workers = getattr(self.opts, "prune_workers", None)
         self.pool = multiprocessing.Pool(processes=self.workers)
         if cmdline_opts:
@@ -140,6 +145,9 @@ class Pruner(object):
                 # would skip all the old chroots because probably nobody touched
                 # them for a very long time.
                 self.mtime_optimization = False
+
+            if cmdline_opts.no_threads:
+                self.no_threads = True
 
     def run(self):
         response = self.frontend_client.get("chroots-prunerepo-status")
@@ -268,10 +276,19 @@ class Pruner(object):
                              sub_dir_name, touched_before)
                     continue
 
-            self.pool.apply_async(run_prunerepo,
-                                  (chroot_path, username,
-                                   projectdir, sub_dir_name, self.prune_days,
-                                   appstream))
+            args = [chroot_path, username, projectdir, sub_dir_name,
+                    self.prune_days, appstream]
+            self.maybe_async(run_prunerepo, args)
+
+    def maybe_async(self, func, args):
+        """
+        If multiprocessing support is enabled, run `func` in a separate process,
+        otherwise simply call the `func`.
+        """
+        if self.no_threads:
+            func(*args)
+        else:
+            self.pool.apply_async(func, args)
 
 
 def clean_copr(path, days=DEF_DAYS, verbose=True):
