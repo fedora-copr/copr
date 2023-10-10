@@ -81,6 +81,13 @@ def run_prunerepo(chroot_path, username, projectdir, sub_dir_name, prune_days,
     """
     try:
         LOG.info("Pruning of %s/%s/%s started", username, projectdir, sub_dir_name)
+
+        repodata = os.path.join(chroot_path, "repodata")
+        if not os.path.exists(repodata):
+            LOG.info("Recreating missing repodata for %s/%s/%s",
+                     username, projectdir, sub_dir_name)
+            call_copr_repo(directory=chroot_path, logger=LOG, appstream=appstream)
+
         all_rpms = get_rpms_to_remove(chroot_path, days=prune_days, log=LOG)
 
         # See https://github.com/fedora-copr/copr/issues/1817 for more info
