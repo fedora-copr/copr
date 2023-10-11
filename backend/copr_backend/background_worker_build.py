@@ -561,7 +561,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 self.log.error("Compressed log %s exists", dest)
                 continue
 
-            if not os.path.exists(src):
+            if not os.path.exists(src) and src == self.job.review_log:
                 # fedora-review.log has a good chance of not existing
                 # We should be ready for other similar files
                 self.log.warning("Not trying to compress %s as it does not exist", src)
