@@ -179,6 +179,8 @@ class Config(object):
 
     EXTRA_BUILDCHROOT_TAGS = []
 
+    RECENT_BUILDS_ON_FRONTPAGE = False
+
 
 class ProductionConfig(Config):
     DEBUG = False
