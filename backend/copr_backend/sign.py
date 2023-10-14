@@ -167,7 +167,7 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
     try:
         get_pubkey(username, projectname, log, opts.sign_domain)
     except CoprSignNoKeyError:
-        create_user_keys(username, projectname, opts)
+        create_user_keys(username, projectname, opts, try_indefinitely=True)
 
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
@@ -185,7 +185,7 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
                             .format([err[0] for err in errors]))
 
 
-def create_user_keys(username, projectname, opts):
+def create_user_keys(username, projectname, opts, try_indefinitely=False):
     """
     Generate a new key-pair at sign host
 
@@ -204,7 +204,7 @@ def create_user_keys(username, projectname, opts):
     keygen_url = "http://{}/gen_key".format(opts.keygen_host)
     query = dict(url=keygen_url, data=data, method="post")
     try:
-        request = SafeRequest(log=log)
+        request = SafeRequest(log=log, try_indefinitely=try_indefinitely)
         response = request.send(**query)
     except Exception as e:
         raise CoprKeygenRequestError(
