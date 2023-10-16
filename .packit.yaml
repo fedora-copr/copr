@@ -3,6 +3,14 @@
 # https://packit.dev/docs/configuration/
 upstream_project_url: https://github.com/fedora-copr/copr.git
 
+actions: &common_actions
+  create-archive:
+    - bash -c "tito build --tgz --test -o ."
+    - bash -c "ls -1t ./*.tar.gz | head -n 1"
+  get-current-version:
+    - bash -c "git describe --match $PACKIT_CONFIG_PACKAGE_NAME-[0-9]* --abbrev=0 HEAD | egrep -o
+      [0-9]+\.[0-9]+"
+
 packages:
 
   python-copr:
@@ -16,6 +24,7 @@ packages:
     upstream_tag_template: python-copr-{version}
     upstream_tag_include: "^python-copr-.*"
     actions:
+      <<: *common_actions
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr-common `git rev-parse --short HEAD`"
 
@@ -84,6 +93,7 @@ packages:
       - copr-rpmbuild.spec
     upstream_tag_template: copr-rpmbuild-{version}
     actions:
+      <<: *common_actions
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
     upstream_tag_include: "^copr-rpmbuild-.*"
@@ -110,6 +120,7 @@ packages:
     upstream_tag_template: copr-cli-{version}
     upstream_tag_include: "^copr-cli-.*"
     actions:
+      <<: *common_actions
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
 
@@ -124,6 +135,7 @@ packages:
     upstream_tag_template: copr-frontend-{version}
     upstream_tag_include: "^copr-frontend-.*"
     actions:
+      <<: *common_actions
       post-upstream-clone:
         - sh -c "wait-for-copr --owner $COPR_OWNER --project $COPR_PROJECT python-copr `git rev-parse --short HEAD`"
 
@@ -132,6 +144,9 @@ srpm_build_deps:
   # The wait-for-copr tool is used to resolve waiting for dependent builds.
   # (Comes from the packit/packit-stable Copr project that is already enabled in the environment.)
   - wait-for-copr
+  - tito
+  - git
+
 
 merge_pr_in_ci: False
 
