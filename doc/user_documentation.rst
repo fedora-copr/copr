@@ -870,6 +870,26 @@ Please take a look at :ref:`rpkg_util_v3`.
 
 See separate page :ref:`koji_vs_copr`.
 
+.. _`How to deal with Copr and RPMAutoSpec?`:
+
+.. rubric:: How to deal with Copr and RPMAutoSpec? :ref: `¶ <How to deal with Copr and RPMAutoSpec?>`
+
+The easiest way is to use `DistGit source type <#distgit>`.
+
+If you need to fine tune the process and alter it somehow you can -
+Set the source type to "Custom", and use the following script::
+
+    #! /bin/sh -x
+    git clone <git url> <project name>
+    cd <project name>
+    spectool -g <spec file>
+    rpmautospec process-distgit <spec file> <spec file>
+
+Set the Buildroot dependencies to "git rpmdevtools rpmautospec" and
+the Result directory to the same <project name> string used in the
+script.
+
+
 .. _`I have a problem and I need to talk to a human.`:
 
 .. rubric:: I have a problem and I need to talk to a human.  :ref:`¶ <I have a problem and I need to talk to a human.>`
