@@ -153,6 +153,11 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
 
     :raises: :py:class:`backend.exceptions.CoprSignError` failed to sign at least one package
     """
+
+    if chroot == 'srpm-builds':
+        log.info("Source builds are not signed")
+        return
+
     rpm_list = [
         os.path.join(path, filename)
         for filename in os.listdir(path)
