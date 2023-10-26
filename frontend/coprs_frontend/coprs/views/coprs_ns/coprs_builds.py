@@ -362,6 +362,7 @@ def copr_new_build_custom(copr):
             form.chroot.data,
             form.builddeps.data,
             form.resultdir.data,
+            form.repos.data,
             chroot_names=form.selected_chroots,
             **build_options
         )
