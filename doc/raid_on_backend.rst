@@ -3,13 +3,15 @@
 How to manage RAID 10 on copr-backend
 =====================================
 
-There are currently four AWS EBS sc1 volumes (4x12T, 144MB/s per volume) forming
-a RAID 10 array.  On top of this is a LVM volume group named
-``copr-backend-data`` (24T, and we can add more space in the future).
+There are currently six AWS EBS sc1 volumes used for hosting Copr Backend build
+results. Four disks are forming one 24T ``raid10``, two more disk form 16T
+``raid1``.  These two arrays are used as "physical volumes" for the
+``copr-backend-data`` LVM volume group, and we have a single logical volume on
+it with the same name ``copr-backend-data`` (``ext4`` formatted, mounted as
+``/var/lib/copr/public_html``).
 
-Everything is configured so the machine should start and mount everything
-correctly.  We just can keep monitoring ``/proc/mdstat`` from time to time.
-
+Everything is configured so the machine starts on its own and mounts everything
+correctly.  We just need to take a look at ``/proc/mdstat`` from time to time.
 
 Manually checking/stopping checks
 ---------------------------------
@@ -27,10 +29,11 @@ It's not safe to just force detach the volume in AWS EC2, it could cause data
 corruption.  Since there are several layers (volumes -> raid -> LVM -> ext4) we
 need to go the vice versa while detaching.
 
-1. unmount: ``umount /var/lib/copr/public_html``
-2. disable volume group: ``vgchange -a n copr-backend-data``
-3. stop the raid: ``mdadm --stop /dev/md127``
-4. now you can detach in ec2
+1. stop apache, copr-backend, cron jobs, etc.
+2. unmount: ``umount /var/lib/copr/public_html``
+3. disable volume group: ``vgchange -a n copr-backend-data``
+4. stop raids: ``mdadm --stop /dev/md127``
+5. now you can detach the volumes from the instance in ec2
 
 
 Attaching volume
