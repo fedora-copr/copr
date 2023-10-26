@@ -874,20 +874,32 @@ See separate page :ref:`koji_vs_copr`.
 
 .. rubric:: How to deal with Copr and RPMAutoSpec? :ref: `¶ <How to deal with Copr and RPMAutoSpec?>`
 
-The easiest way is to use `DistGit source type <#distgit>`.
+The easiest way is to use `DistGit source type <#distgit>`.  It automatically
+expands ``%autorelease`` and ``%autochangelog`` from the cloned dist-git
+repository.
 
 If you need to fine tune the process and alter it somehow you can -
 Set the source type to "Custom", and use the following script::
 
     #! /bin/sh -x
+    package=<package>
+    copr-distgit-client clone "$package" --dist-git fedora
+    cd "$package" || exit 1
+    .. tweak the spec file or checkout the desired branch ..
+    copr-distgit-client sources  # download sources
+    copr-distgit-client srpm --outputdir .
+    bsdtar xf /tmp/cpio-2.14-4.src.rpm -C "$COPR_RESULTDIR"
+
+Set the Buildroot dependencies to ``copr-distgit-client bsdtar``.  Alternatively
+you can go even deeper and use ``git rpmdevtools rpmautospec`` deps with::
+
     git clone <git url> <project name>
     cd <project name>
     spectool -g <spec file>
     rpmautospec process-distgit <spec file> <spec file>
 
-Set the Buildroot dependencies to "git rpmdevtools rpmautospec" and
-the Result directory to the same <project name> string used in the
-script.
+In this case specify the result directory to the same ``<project name>`` string
+used in the script.
 
 
 .. _`I have a problem and I need to talk to a human.`:
