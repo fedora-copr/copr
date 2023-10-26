@@ -631,6 +631,12 @@ though they are recommended to do so. In particular, kernel modules
 may be built in Copr, as long as they don't violate the license
 requirements in point 2. above.
 
+.. _`faq-high-performance-builders`:
+
+.. rubric:: Can you lend me faster Copr builders? :ref:`¶ <faq-high-performance-builders>`
+
+Yes, glad you asking!  But you don't always want this, see — :ref:`high_performance_builders`.
+
 .. _`Is it safe to use Copr?`:
 
 .. rubric::  Is it safe to use Copr? :ref:`¶ <Is it safe to use Copr?>`
