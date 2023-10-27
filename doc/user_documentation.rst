@@ -3,28 +3,28 @@
 User Documentation
 ==================
 
-This section contains information for users of Copr Build System. You can find a running Copr instance at http://copr.fedorainfracloud.org/.
-You may also be interested in :ref:`developer_documentation` and :ref:`downloads`.
+This section contains information for users of the Copr Build System. You can find a running Copr instance at http://copr.fedorainfracloud.org/.
+You may also be interested in the :ref:`developer_documentation` and :ref:`downloads`.
 
 Quick start
 -----------
 
-If you are completely new to COPR build system, those steps will get you setup quickly:
+If you are completely new to the COPR build system, follow these steps to get set up quickly:
 
-1) setup a FAS account here: https://accounts.fedoraproject.org
-2) log in into COPR (link at the top right corner of COPR HP: https://copr.fedorainfracloud.org/)
-3) go to https://copr.fedorainfracloud.org/api/
-4) copy the generated auth token into ``~/.config/copr``
-5) install copr-cli tool: ``sudo dnf install copr-cli`` (if you are on Fedora)
-6) run ``copr-cli create first-project --chroot fedora-rawhide-x86_64`` to create your first project
-7) run ``copr-cli build first-project <path to your srpm>`` to run your first build
+1) Set up a FAS account here: https://accounts.fedoraproject.org.
+2) Log in to COPR (link at the top right corner of the COPR homepage: https://copr.fedorainfracloud.org/).
+3) Visit https://copr.fedorainfracloud.org/api/.
+4) Copy the generated authentication token into your ``~/.config/copr`` file.
+5) Install the copr-cli tool: ``sudo dnf install copr-cli`` (if you are using Fedora).
+6) Run ``copr-cli create first-project --chroot fedora-rawhide-x86_64`` to create your first project.
+7) Run ``copr-cli build first-project <path to your SRPM>`` to initiate your first build.
 
-If you don't have an srpm yet, see https://pagure.io/rpkg-util on how to build one.
+If you don't have an SRPM yet, see https://rpm-packaging-guide.github.io/ for instructions on how to build one.
 
 Tutorial
 --------
 
-See :ref:`screenshots_tutorial` for interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_
+Refer to :ref:`screenshots_tutorial` for guidance on interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_.
 
 
 How to enable copr repository?
