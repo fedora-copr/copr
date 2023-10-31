@@ -870,11 +870,11 @@ Please take a look at :ref:`rpkg_util_v3`.
 
 See separate page :ref:`koji_vs_copr`.
 
-.. _`How to deal with Copr and RPMAutoSpec?`:
+.. _`faq-autospec`:
 
-.. rubric:: How to deal with Copr and RPMAutoSpec? :ref: `¶ <How to deal with Copr and RPMAutoSpec?>`
+.. rubric:: How to deal with Copr and RPMAutoSpec? :ref:`¶ <faq-autospec>`
 
-The easiest way is to use `DistGit source type <#distgit>`.  It automatically
+The easiest way is to use :ref:`DistGit source type <dist-git method>`.  It automatically
 expands ``%autorelease`` and ``%autochangelog`` from the cloned dist-git
 repository.
 
@@ -888,7 +888,7 @@ Set the source type to "Custom", and use the following script::
     .. tweak the spec file or checkout the desired branch ..
     copr-distgit-client sources  # download sources
     copr-distgit-client srpm --outputdir .
-    bsdtar xf /tmp/cpio-2.14-4.src.rpm -C "$COPR_RESULTDIR"
+    bsdtar xf *.src.rpm -C "$COPR_RESULTDIR"
 
 Set the Buildroot dependencies to ``copr-distgit-client bsdtar``.  Alternatively
 you can go even deeper and use ``git rpmdevtools rpmautospec`` deps with::
