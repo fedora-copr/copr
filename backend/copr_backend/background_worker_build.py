@@ -2,6 +2,7 @@
 BuildBackgroundWorker class + internals.
 """
 
+import functools
 import glob
 import logging
 import os
@@ -109,6 +110,18 @@ class LoggingPrivateFilter(logging.Filter):
             )
 
         return 1
+
+
+def skipped_for_source_build(f):
+    """ Mark method no-op for the source build (srpm-builds dir) """
+    @functools.wraps(f)
+    def wrapper(self, *args, **kwargs):
+        if self.job.chroot == 'srpm-builds':
+            self.log.debug("Skipping method %s for source build", f.__name__)
+            return None
+        return f(self, *args, **kwargs)
+    return wrapper
+
 
 class BuildBackgroundWorker(BackendBackgroundWorker):
     """
@@ -593,6 +606,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if not os.path.exists(successfile):
             raise BackendError("No success file => build failure")
 
+    @skipped_for_source_build
     def _sign_built_packages(self):
         """
             Sign built rpms
@@ -703,6 +717,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         return build_details
 
+    @skipped_for_source_build
     def _add_pubkey(self):
         """
         Adds pubkey.gpg with public key to ``chroot_dir`` using
