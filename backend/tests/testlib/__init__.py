@@ -178,7 +178,8 @@ class FakeSSHConnection(SSHConnection):
         return src
 
     def rsync_download(self, src, dest, logfile=None, max_retries=0,
-                       subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
+                       subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT,
+                       filter_=None):
         data = os.environ["TEST_DATA_DIRECTORY"]
         trail_slash = src.endswith("/")
         src = os.path.join(data, "build_results", self.resultdir)

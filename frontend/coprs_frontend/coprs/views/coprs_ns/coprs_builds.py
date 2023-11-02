@@ -148,6 +148,8 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
             "isolation": form.isolation.data,
             "with_build_id": form.with_build_id.data,
             "after_build_id": form.after_build_id.data,
+            "allow_user_ssh": form.allow_user_ssh.data,
+            "ssh_public_keys": form.ssh_public_keys.data,
         }
 
         try:
@@ -458,6 +460,23 @@ def copr_new_build_rebuild(copr, build_id):
 @login_required
 @req_with_copr
 def copr_repeat_build(copr, build_id):
+    return _copr_repeat_build(copr, build_id, False)
+
+
+@coprs_ns.route("/<username>/<coprname>/repeat_build_ssh/<int:build_id>/",
+                methods=["GET", "POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/repeat_build_ssh/<int:build_id>/",
+                methods=["GET", "POST"])
+@login_required
+@req_with_copr
+def copr_repeat_build_ssh(copr, build_id):
+    """
+    Resubmit a build and keep the builder alive for user SSH
+    """
+    return _copr_repeat_build(copr, build_id, True)
+
+
+def _copr_repeat_build(copr, build_id, allow_user_ssh):
     build = ComplexLogic.get_build(build_id)
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
@@ -496,9 +515,10 @@ def copr_repeat_build(copr, build_id):
             # check checkbox on all the chroots that have not been (successfully) built before
             if (ch.name not in build_chroot_names) or (ch.name in build_failed_chroot_names):
                 form.chroots.data.append(ch.name)
+
     return flask.render_template(
         "coprs/detail/add_build/rebuild.html",
-        copr=copr, build=build, form=form)
+        copr=copr, build=build, form=form, allow_user_ssh=allow_user_ssh)
 
 
 ################################ Cancel ################################

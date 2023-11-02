@@ -1321,6 +1321,28 @@ def _get_build_form(active_chroots, form, package=None):
 
     F.packit_forge_project = wtforms.StringField(default=None)
 
+    F.allow_user_ssh = wtforms.BooleanField(
+        "Allow user SSH",
+        default=False,
+        false_values=FALSE_VALUES,
+    )
+    F.ssh_public_keys = wtforms.TextAreaField("User public SSH keys")
+
+    def validate_ssh_public_keys(form, field):
+        # pylint: disable=unused-variable
+        if form.allow_user_ssh.data is not True:
+            return
+        if field.data:
+            return
+        raise wtforms.ValidationError("Please specify Public SSH keys")
+
+    # FIXME It is non-trivial to show validation for our resubmit forms because
+    # on failure they redirect to a different page and return 500. It would
+    # require to restructure `coprs_builds.py:_copr_repeat_build` and I don't
+    # want to do that now. Once it is done, enable the validation by
+    # uncommenting the following line:
+    # F.validate_ssh_public_keys = validate_ssh_public_keys
+
     def _validate_batch_opts(form, field):
         counterpart = form.with_build_id
         modifies = False

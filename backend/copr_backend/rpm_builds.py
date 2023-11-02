@@ -150,6 +150,25 @@ class ArchitectureUserWorkerLimit(HashWorkerLimit):
         )
 
 
+class UserSSHLimit(HashWorkerLimit):
+    """
+    Limit the number of builders that allow user SSH
+    """
+    def __init__(self, limit):
+        def hasher(x):
+            # We don't allow user SSH for SRPM builds, returning None will
+            # make this unlimited
+            if x.source_build:
+                return None
+
+            # Don't limit builds that doesn't allow user SSH
+            # pylint: disable=protected-access
+            if not x._task.get("allow_user_ssh"):
+                return None
+            return x.owner
+        super().__init__(hasher, limit, name="userssh")
+
+
 class BuildTagLimit(PredicateWorkerLimit):
     """
     Limit the amount of concurrently running builds per given build tag.

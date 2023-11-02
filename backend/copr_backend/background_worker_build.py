@@ -10,10 +10,17 @@ import shutil
 import statistics
 import time
 import json
+import shlex
 
+from datetime import datetime
 from packaging import version
 
 from copr_common.enums import StatusEnum
+from copr_common.helpers import (
+    USER_SSH_DEFAULT_EXPIRATION,
+    USER_SSH_MAX_EXPIRATION,
+    USER_SSH_EXPIRATION_PATH,
+)
 
 from copr_backend.background_worker import BackendBackgroundWorker
 from copr_backend.cancellable_thread import CancellableThreadTask
@@ -51,6 +58,9 @@ MESSAGES = {
 
 COMMANDS = {
     "rpm_q_builder": "rpm -q copr-rpmbuild --qf \"%{VERSION}\n\"",
+    "echo_authorized_keys": "echo {0} >> /root/.ssh/authorized_keys",
+    "set_expiration": "echo -n {0} > " + USER_SSH_EXPIRATION_PATH,
+    "cat_expiration": "cat {0}".format(USER_SSH_EXPIRATION_PATH),
 }
 
 
@@ -139,6 +149,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.builder_livelog = os.path.join(self.builder_dir, "main.log")
         self.builder_results = os.path.join(self.builder_dir, "results")
         self.ssh = None
+        self.root_ssh = None
         self.job = None
         self.host = None
         self.canceled = False
@@ -307,6 +318,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         Parse `results.json` and update the `self.job` object.
         """
+        # When user SSH is allowed, we don't download any results from the
+        # builder for safety reasons. Don't try to parse anything.
+        if self.job.ssh_public_keys:
+            return
+
         path = os.path.join(self.job.results_dir, "results.json")
         if not os.path.exists(path):
             raise BackendError("results.json file not found in resultdir")
@@ -589,12 +605,19 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         Retry rsync-download the results several times.
         """
+        filter_ = None
+        if self.job.ssh_public_keys:
+            self.log.info("Builder allowed user SSH, not downloading the "
+                          "results for safety reasons.")
+            filter_ = ["+ success", "+ *.spec", "- *"]
+
         self.log.info("Downloading results from builder")
         self.ssh.rsync_download(
             self.builder_results + "/",
             self.job.results_dir,
             logfile=self.job.rsync_log_name,
             max_retries=2,
+            filter_=filter_,
         )
 
     def _check_build_success(self):
@@ -683,6 +706,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         self.log.info("Listing built binary packages in %s", job.results_dir)
 
+        if self.job.ssh_public_keys:
+            return ""
+
         # pylint: disable=unsubscriptable-object
         assert isinstance(self.job.results, dict)
 
@@ -740,6 +766,123 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("Added pubkey for user %s project %s into: %s",
                       user, project, pubkey_path)
 
+    @skipped_for_source_build
+    def _setup_for_user_ssh(self):
+        """
+        Setup the builder for user SSH
+        https://github.com/fedora-copr/debate/tree/main/user-ssh-builders
+
+        If the builder setup for user SSH becomes more complicated than just
+        installing the public key, we might want to move the code to a script
+        within `copr-builder` and call it here or from `copr-rpmbuild`. There
+        is no requirement for it to be here.
+        """
+        if not self.job.ssh_public_keys:
+            return
+        self._alloc_root_ssh_connection()
+        self._deploy_user_ssh()
+        self._set_default_expiration()
+
+    def _alloc_root_ssh_connection(self):
+        self.log.info("Allocating root ssh connection to builder")
+        self.root_ssh = SSHConnection(
+            user="root",
+            host=self.host.hostname,
+            config_file=self.opts.ssh.builder_config,
+            log=self.log,
+        )
+
+    def _deploy_user_ssh(self):
+        """
+        Deploy user public key to the builder, so that they can connect via SSH.
+        """
+        pubkey = shlex.quote(self.job.ssh_public_keys)
+        cmd = COMMANDS["echo_authorized_keys"].format(pubkey)
+        rc, _out, _err = self.root_ssh.run_expensive(cmd)
+        if rc != 0:
+            self.log.error("Failed to deploy user SSH key for %s",
+                           self.job.project_owner)
+            return
+        self.log.info("Deployed user SSH key for %s", self.job.project_owner)
+
+    def _set_default_expiration(self):
+        """
+        Set the default expiration time for the builder
+        """
+        default = self.job.started_on + USER_SSH_DEFAULT_EXPIRATION
+        cmd = COMMANDS["set_expiration"].format(shlex.quote(str(default)))
+        rc, _out, _err = self.root_ssh.run_expensive(cmd)
+        if rc != 0:
+            # This only affects the `copr-builder show` command to print unknown
+            # remaining time. It won't affect the backend in terminating the
+            # buidler when it is supposed to
+            self.log.error("Failed to set the default expiration time")
+            return
+        self.log.info("The expiration time was set to %s", default)
+
+    def _builder_expiration(self):
+        """
+        Find the user preference for the builder expiration.
+        """
+        rc, out, _err = self.root_ssh.run_expensive(
+            COMMANDS["cat_expiration"], subprocess_timeout=60)
+        if rc == 0:
+            try:
+                return datetime.fromtimestamp(float(out))
+            except ValueError:
+                pass
+        self.log.error("Unable to query builder expiration file")
+        return None
+
+    def _keep_alive_for_user_ssh(self):
+        """
+        Wait until user releases the VM or until it expires.
+        """
+        if not self.job.ssh_public_keys:
+            return
+
+        # We are calculating the limits from when the job started but we may
+        # want to consider starting the watch when job ends.
+        default = datetime.fromtimestamp(
+            self.job.started_on + USER_SSH_DEFAULT_EXPIRATION)
+        maxlimit = datetime.fromtimestamp(
+            self.job.started_on + USER_SSH_MAX_EXPIRATION)
+
+        # Highlight this portion of the log because it is the only part of
+        # the backend.log that is directly for the end users
+        self.log.info("\n\nKeeping builder alive for user SSH")
+        self.log.info("The owner of this build can connect using:")
+        self.log.info("ssh root@%s", self.host.hostname)
+        self.log.info("Unless you connect to the builder and prolong its "
+                      "expiration, it will be shut-down in %s",
+                      default.strftime("%Y-%m-%d %H:%M"))
+        self.log.info("After connecting, run `copr-builder help' for "
+                      "complete instructions\n\n")
+
+        def _keep_alive():
+            while True:
+                if self.canceled:
+                    self.log.warning("Build canceled, VM will be shut-down soon")
+                    break
+                expiration = self._builder_expiration() or default
+                if datetime.now() > expiration:
+                    self.log.warning("VM expired, it will be shut-down soon")
+                    break
+                if datetime.now() > maxlimit:
+                    msg = "VM exceeded max limit, it will be shut-down soon"
+                    self.log.warning(msg)
+                    break
+                time.sleep(60)
+
+        CancellableThreadTask(
+            _keep_alive,
+            self._cancel_task_check_request,
+            self._cancel_running_worker,
+            check_period=CANCEL_CHECK_PERIOD,
+        ).run()
+        if self.canceled:
+            raise BuildCanceled
+
     def build(self, attempt):
         """
         Attempt to build.
@@ -754,6 +897,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self._fill_build_info_file()
         self._cancel_if_requested()
         self._mark_running(attempt)
+        self._setup_for_user_ssh()
         self._start_remote_build()
         transfer_failure = CancellableThreadTask(
             self._transfer_log_file,
@@ -766,6 +910,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if transfer_failure:
             raise BuildRetry("SSH problems when downloading live log: {}"
                              .format(transfer_failure))
+
+        self._keep_alive_for_user_ssh()
         self._download_results()
         self._drop_host()
 

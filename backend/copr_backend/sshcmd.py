@@ -213,7 +213,7 @@ class SSHConnection:
         return "{}@{}:{}".format(self.user, host, src)
 
     def rsync_download(self, src, dest, logfile=None, max_retries=0,
-                       subprocess_timeout=None):
+                       subprocess_timeout=None, filter_=None):
         """
         Run rsync over pre-allocated socket (by the config)
 
@@ -231,9 +231,9 @@ class SSHConnection:
         directory needs to exist.
         """
         self._retry(self._rsync_download, max_retries, src, dest, logfile,
-                    subprocess_timeout)
+                    subprocess_timeout, filter_)
 
-    def _rsync_download(self, src, dest, logfile, subprocess_timeout):
+    def _rsync_download(self, src, dest, logfile, subprocess_timeout, filter_):
         ssh_opts = "ssh"
         if self.config_file:
             ssh_opts += " -F " + self.config_file
@@ -243,8 +243,21 @@ class SSHConnection:
         log_filepath = "/dev/null"
         if logfile:
             log_filepath = os.path.join(dest, logfile)
-        command = "/usr/bin/rsync -rltDvH --chmod=D755,F644 -e '{}' {} {}/ &> {}".format(
-            ssh_opts, full_source_path, dest, log_filepath)
+
+        command = [
+            "/usr/bin/rsync",
+            "-rltDvH",
+            "--chmod=D755,F644",
+            "-e", "'{}'".format(ssh_opts),
+        ]
+        for value in filter_ or []:
+            command.extend(["--filter", shlex.quote(value)])
+        command.extend([
+            full_source_path,
+            "{}/".format(dest),
+            "&>", log_filepath,
+        ])
+        command = " ".join(command)
 
         self.log.info("rsyncing of %s to %s started", full_source_path, dest)
         with self._popen_timeouted(command, shell=True) as cmd:

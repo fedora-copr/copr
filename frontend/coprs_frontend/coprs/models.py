@@ -1091,6 +1091,9 @@ class Build(db.Model, helpers.Serializer):
     # used by webhook builds; e.g. github.com:praiskup, or pagure.io:jdoe
     submitted_by = db.Column(db.Text)
 
+    # Keep builder alive after the build finishes and allow user SSH access
+    ssh_public_keys = db.Column(db.Text)
+
     # if a build was resubmitted from another build, this column will contain the original build id
     # the original build id is not here as a foreign key because the original build can be deleted so we can lost
     # the info that the build was resubmitted
@@ -1445,6 +1448,12 @@ class Build(db.Model, helpers.Serializer):
         if not submitter:
             # If we don't know build submitter, use "random" value and keep the
             # build separated from any other.
+            submitter = uuid.uuid4()
+
+        # If user SSH is allowed, use "random" value and keep the build
+        # separated from other users and other builds of the same user
+        is_rpm_build = self.source_state in helpers.FINISHED_STATES
+        if self.ssh_public_keys and is_rpm_build:
             submitter = uuid.uuid4()
 
         return '{0}--{1}'.format(self.copr.full_name, submitter)

@@ -1,0 +1,249 @@
+#! /usr/bin/python3
+
+"""
+Allow users to control their Copr builder instance
+https://github.com/fedora-copr/debate/tree/main/user-ssh-builders
+"""
+
+import os
+import sys
+import argparse
+from datetime import datetime, timedelta
+from contextlib import suppress
+from copr_common.helpers import (
+    timedelta_to_dhms,
+    USER_SSH_MAX_EXPIRATION,
+    USER_SSH_EXPIRATION_PATH,
+)
+from copr_rpmbuild.helpers import read_config
+
+
+def cmd_help():
+    """
+    Print full instructions for working with the builder instance.
+    Ideally we would have this in MOTD but that would cause problems in cases
+    like `if $(ssh stroj cat foo|head -n1) == "foo"`. So instead, we instruct
+    users to run `copr-builder help` manually.
+    """
+    print(
+        "You have been entrusted with root access to a Copr builder.\n"
+        "Please be responsible.\n"
+        "\n"
+        "This is a private computer system, unauthorized access is strictly\n"
+        "prohibited. It is to be used only for Copr-related purposes,\n"
+        "not as your personal computing system.\n"
+        "\n"
+        "Please be aware that the legal restrictions for what you can build\n"
+        "in Copr apply here as well.\n"
+        "https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr\n"
+        "\n"
+        "You can display more information about the builder using\n"
+        "`copr-builder show`\n"
+        "\n"
+        "What to do next?\n"
+        "\n"
+        "By default, the builder will be destroyed after 30 minutes. Extend\n"
+        "this period with `copr-builder prolong`.\n"
+        "\n"
+        "The selected (in Copr web UI) build was automatically resubmitted,\n"
+        "you can find the process with `ps ax |grep copr-rpmbuild`.\n"
+        "The results are produced in `/var/lib/copr-rpmbuild/`. See the\n"
+        "information at the beginning of the builder-live.log on how to\n"
+        "reproduce the build manually.\n"
+        "\n"
+        "Once you are finished and don't need the builder anymore,\n"
+        "please return it using `copr-builder release`.\n"
+        "\n"
+        "Happy debugging."
+    )
+
+
+class CMDShow:
+    """
+    Show information about the current builder
+
+    We can copy a JSON task file from backend or create it in copr-rpmbuild
+    Otherwise we don't have that much information to show
+    We can maybe have --keep-ssh parameter for copr-rpmbuild. Which would dump
+    the file. In the future we might want to show:
+      - Build ID for which the instance was spawned
+      - The user for which the instance was spawned
+    """
+    def __init__(self, config):
+        self.config = config
+
+    def run(self):
+        """
+        Print the information
+        """
+        print("Remaining time for the machine: {0}".format(self.remaining_time))
+        print("Current copr-rpmbuild PID: {0}".format(self.copr_rpmbuild_pid))
+
+    @property
+    def copr_rpmbuild_pid(self):
+        """
+        PID of the current/last `copr-rpmbuild` process
+        """
+        path = self.config.get("main", "pidfile")
+        with suppress(OSError), open(path, "r", encoding="utf-8") as fp:
+            pid = fp.read()
+            if pid.isdecimal():
+                return pid
+        return None
+
+    @property
+    def expiration(self):
+        """
+        The user preference of when the VM should expire
+        """
+        try:
+            with open(USER_SSH_EXPIRATION_PATH, "r", encoding="utf-8") as fp:
+                timestamp = float(fp.read())
+                return datetime.fromtimestamp(timestamp)
+        except (OSError, ValueError):
+            return None
+
+    @property
+    def maxlimit(self):
+        """
+        The maximum allowed time the builder can be prolonged to. It is easy
+        for the user to hack this and return any date they want but it doesn't
+        matter. Backend is the one who ultimately decides.
+        """
+        path = os.path.expanduser("~/.ssh/authorized_keys")
+        mtime = os.path.getmtime(path)
+        return datetime.fromtimestamp(mtime + USER_SSH_MAX_EXPIRATION)
+
+    @property
+    def remaining_time(self):
+        """
+        Human friendly representation of remaining time for the VM
+        """
+        if not self.expiration:
+            return "unknown"
+
+        delta = self.expiration - datetime.now()
+        if delta.total_seconds() < 0:
+            return "expired"
+
+        if self.expiration > self.maxlimit:
+            return self.maxlimit
+
+        # TODO Print reasonable value when `copr-builder prolong --hours 666`
+        days, hours, minutes, seconds = timedelta_to_dhms(delta)
+        return ("{0} days, {1} hours, {2} minutes, {3} seconds"
+                .format(days, hours, minutes, seconds))
+
+
+def cmd_prolong(args, config):
+    """
+    Prolong the VM expiration time
+    """
+    cmdshow = CMDShow(config)
+    requested = cmdshow.expiration + timedelta(hours=args.hours)
+    maxlimit = cmdshow.maxlimit
+
+    if requested > maxlimit:
+        dateformat = "%Y-%m-%d %H:%M"
+        print("You wanted to prolong the builder until {0}\nbut the limit is {1}"
+              .format(requested.strftime(dateformat),
+                      maxlimit.strftime(dateformat)))
+        sys.exit(1)
+
+    with open(USER_SSH_EXPIRATION_PATH, "w+", encoding="utf-8") as fp:
+        fp.write(str(requested.timestamp()))
+    print("Prolonged to {0}".format(requested))
+
+
+def cmd_release():
+    """
+    Mark this VM as expired
+    """
+    expiration = datetime.now() - timedelta(minutes=1)
+    with open(USER_SSH_EXPIRATION_PATH, "w+", encoding="utf-8") as fp:
+        fp.write(str(expiration.timestamp()))
+    print("Releasing this VM, it will be shut-down soon")
+
+
+def get_parser():
+    """
+    Return argument parser
+    """
+    parser = argparse.ArgumentParser(
+        "copr-builder",
+        description="Control a Copr builder",
+    )
+    subparsers = parser.add_subparsers(title="actions")
+
+    # Help parser
+
+    parser_help = subparsers.add_parser(
+        "help",
+        help="All users should read this",
+    )
+    parser_help.set_defaults(command="help")
+
+    # Show parser
+
+    parser_show = subparsers.add_parser(
+        "show",
+        help="Show information about the current builder",
+    )
+    parser_show.set_defaults(command="show")
+
+    # Prolong parser
+    # Alternativelly extend
+
+    parser_prolong = subparsers.add_parser(
+        "prolong",
+        help="Prolong the VM expiration time",
+    )
+    parser_prolong.add_argument(
+        "--hours",
+        type=int,
+        required=True,
+        help="Prolong by this many of hours",
+    )
+    parser_prolong.set_defaults(command="prolong")
+
+    # Release parser
+    # Alternativelly finish/end/kill/stop/destroy
+
+    parser_release = subparsers.add_parser(
+        "release",
+        help="Destroy this VM",
+    )
+    parser_release.set_defaults(command="release")
+    return parser
+
+
+def main():
+    """
+    Main
+    """
+    parser = get_parser()
+    args = parser.parse_args()
+    config = read_config()
+
+    if "command" not in args:
+        parser.print_help()
+
+    elif args.command == "help":
+        cmd_help()
+
+    elif args.command == "show":
+        cmd = CMDShow(config)
+        cmd.run()
+
+    elif args.command == "prolong":
+        cmd_prolong(args, config)
+
+    elif args.command == "release":
+        cmd_release()
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

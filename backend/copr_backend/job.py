@@ -27,6 +27,7 @@ class BuildJob(object):
                 - timeout: default worker timeout
 
         """
+        # pylint: disable=too-many-statements
 
         self.timeout = worker_opts.timeout
         self.frontend_base_url = worker_opts.frontend_base_url
@@ -72,6 +73,8 @@ class BuildJob(object):
 
         self.results = None
         self.appstream = None
+        self.allow_user_ssh = None
+        self.ssh_public_keys = None
 
         # TODO: validate update data
         for key, val in task_data.items():
