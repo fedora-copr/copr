@@ -68,8 +68,8 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}FedoraReview"
-        rlRun "rm -rf $resultdir/*"
+        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}FedoraReview"
+        cleanupAction rlRun "rm -rf $resultdir/*"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
