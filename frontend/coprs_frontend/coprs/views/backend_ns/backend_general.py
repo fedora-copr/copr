@@ -144,6 +144,7 @@ def get_build_record(task, for_backend=False):
         "background": bool(task.build.is_background),
         "chroot": task.mock_chroot.name,
         "tags": task.mock_chroot.tags + task.tags,
+        "allow_user_ssh": bool(task.build.ssh_public_keys),
     }
 
     if for_backend:
@@ -165,7 +166,8 @@ def get_build_record(task, for_backend=False):
         "isolation": task.build.isolation,
         "fedora_review": task.build.copr.fedora_review,
         "appstream": bool(task.build.appstream),
-        "repo_priority": task.build.copr.repo_priority
+        "repo_priority": task.build.copr.repo_priority,
+        "ssh_public_keys": task.build.ssh_public_keys,
     })
 
     copr_chroot = CoprChrootsLogic.get_by_name_or_none(task.build.copr, task.mock_chroot.name)

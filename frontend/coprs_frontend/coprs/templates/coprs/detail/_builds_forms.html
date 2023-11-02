@@ -215,8 +215,18 @@
 {% endmacro %}
 
 
-{% macro copr_build_form_rebuild(form, view, copr, build) %}
+{% macro copr_build_form_rebuild(form, view, copr, build, allow_user_ssh) %}
   {{ copr_build_form_begin(form, view, copr, build, hide_panels=True) }}
+
+  {% if allow_user_ssh %}
+    <h3>SSH access to the builder</h3>
+    <input type="hidden" name="allow_user_ssh" value="{{ allow_user_ssh }}">
+    {{ render_field(form.ssh_public_keys, label='Public SSH keys',
+                    placeholder='Newline separated public SSH keys, e.g. ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDR+QU9...',
+                    rows=8, cols=50) }}
+  {% endif %}
+
+  <h3> New Build Options </h3>
   {{ copr_build_form_end(form, view, copr, hide_panels=True) }}
 {% endmacro %}
 
@@ -237,6 +247,16 @@
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-restart"></span> Resubmit
+      </button>
+    </form>
+{% endmacro %}
+
+{# TODO Refactor, all of the forms are the same #}
+{% macro copr_resubmit_allow_user_ssh_form(build, page, class="") %}
+    <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_repeat_build_ssh', build.copr, build_id=build.id) }}" method="post">
+      <input type="hidden" value="page" value="{{ page }}">
+      <button class="btn btn-default" type="submit">
+        <span class="pficon pficon-restart"></span> Resubmit and allow SSH
       </button>
     </form>
 {% endmacro %}

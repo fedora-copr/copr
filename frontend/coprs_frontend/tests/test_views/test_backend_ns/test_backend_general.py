@@ -140,6 +140,7 @@ class TestWaitingBuilds(CoprsTestCase):
             'project_owner': 'user2',
             'sandbox': 'user2/foocopr--user2',
             'tags': ['foo', 'bar'],
+            'allow_user_ssh': False,
         }, {
             'build_id': 3,
             'task_id': '3-fedora-17-i386',
@@ -148,6 +149,7 @@ class TestWaitingBuilds(CoprsTestCase):
             'project_owner': 'user2',
             'sandbox': 'user2/foocopr--user2',
             'tags': [],
+            'allow_user_ssh': False,
         }]
 
 # status = 0 # failure

@@ -309,7 +309,7 @@ class BuildsLogic(object):
         if data_type in ["for_backend", "overview"]:
 
             load_build_fields = ["is_background", "submitted_by", "batch_id",
-                                 "user_id"]
+                                 "user_id", "ssh_public_keys", "source_status"]
             if data_type == "for_backend":
                 # The custom method allows us to set the chroot for SRPM builds
                 load_build_fields += ["source_type", "source_json"]
@@ -360,7 +360,7 @@ class BuildsLogic(object):
         if data_type in ["for_backend", "overview"]:
             query = query.options(
                 load_only("build_id", "tags_raw"),
-                joinedload('build').load_only("id", "is_background", "submitted_by", "batch_id")
+                joinedload('build').load_only("id", "is_background", "submitted_by", "batch_id", "ssh_public_keys", "source_status")
                 .options(
                     # from copr project info we only need the project name
                     joinedload('copr').load_only("user_id", "group_id", "name")
@@ -546,7 +546,8 @@ class BuildsLogic(object):
         """
         source_type = helpers.BuildSourceEnum("rubygems")
         source_json = json.dumps({"gem_name": gem_name})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, copr_dirname=copr_dirname, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names,
+                              copr_dirname=copr_dirname, **build_options)
 
     @classmethod
     def create_new_from_custom(cls, user, copr, script, script_chroot=None, script_builddeps=None,
@@ -710,6 +711,7 @@ class BuildsLogic(object):
             with_build_id=build_options.get("with_build_id"),
             package_chroots_subset=package_chroots_subset,
             packit_forge_project=build_options.get("packit_forge_project"),
+            ssh_public_keys=build_options.get("ssh_public_keys"),
         )
 
         if "timeout" in build_options:
@@ -808,7 +810,8 @@ class BuildsLogic(object):
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None, copr_dirname=None, bootstrap=None, isolation=None,
             package=None, after_build_id=None, with_build_id=None,
-            package_chroots_subset=None, packit_forge_project=None):
+            package_chroots_subset=None, packit_forge_project=None,
+            ssh_public_keys=None):
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
@@ -862,6 +865,7 @@ class BuildsLogic(object):
             copr_dir=copr_dir,
             bootstrap=bootstrap,
             isolation=isolation,
+            ssh_public_keys=ssh_public_keys,
         )
 
         if timeout:

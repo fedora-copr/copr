@@ -8,6 +8,7 @@ from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
     ArchitectureUserWorkerLimit,
     BuildTagLimit,
+    UserSSHLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
 )
@@ -104,6 +105,11 @@ class BuildDispatcher(BackendDispatcher):
                 max_builders,
                 name=limit_type,
             ))
+
+        limit = backend_opts.builds_limits["userssh"]
+        userssh = UserSSHLimit(limit)
+        self.log.info("setting %s limit to %s", "userssh", limit)
+        self.limits.append(userssh)
 
     def get_frontend_tasks(self):
         """

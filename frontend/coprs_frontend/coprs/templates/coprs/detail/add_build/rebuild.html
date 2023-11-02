@@ -25,6 +25,24 @@
   <div class="col-sm-12">
     <h2> Resubmit build {{ build.id }}  </h2>
     <p> Resubmitting a build will rebuild the same sources again. </p>
+
+    {% if allow_user_ssh %}
+      <h3>SSH access to the builder</h3>
+      <p>
+        You will obtain a SSH access to the builder to easily debug your
+        package within the Copr infrastructure.
+        <br>
+        Check your <code>backend.log</code> for instructions on how
+        to connect to the builder.
+        <br>
+        After connecting, run <code>copr-builder help</code> for instructions on
+        how to work with the builder.
+        <br>
+        There is a limit for max 2 builders wih SSH access per user. The rest of
+        builds will remain in the <code>pending</code> state until a slot is freed.
+      </p>
+    {% endif %}
+
     <h3> Original Build Details </h3>
     <dl class="dl-horizontal">
       <dt> Package:</dt>
@@ -47,8 +65,9 @@
       </dd>
       {{ describe_source(build.source_type_text, build.source_json_dict) }}
     </dl>
-    <h3> New Build Options </h3>
-    {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild', copr, build) }}
+
+    {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild',
+       copr, build, allow_user_ssh) }}
   </div>
 </div>
 {% endblock %}

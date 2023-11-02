@@ -7,6 +7,20 @@ import os
 import pwd
 import sys
 
+
+# When build is resubmitted with user SSH,
+# how long the builder is kept alive if user doesn't prolong it (in seconds).
+USER_SSH_DEFAULT_EXPIRATION = 60 * 60
+
+# When build is resubmitted with user SSH,
+# how long the builder can be prolonged to be kept alive (in seconds).
+USER_SSH_MAX_EXPIRATION = 60 * 60 * 24 * 2
+
+# When build is resubmitted with user SSH,
+# in what file the expiration timestamp should be stored
+USER_SSH_EXPIRATION_PATH = "/run/copr-builder-expiration"
+
+
 def script_requires_user(username):
     """
     Exit if the current system user name doesn't equal to the USERNAME argument.
@@ -41,3 +55,14 @@ def chroot_to_branch(chroot):
     elif name == "mageia":
         abbrev = "mga"
     return "{}{}".format(abbrev, version)
+
+
+def timedelta_to_dhms(delta):
+    """
+    By default the `datetime.timedelta` provides only days and seconds. Minutes,
+    hours, and the human friendly number of seconds, needs to be calculated.
+    """
+    days, remainder = divmod(delta.total_seconds(), 24 * 60 * 60)
+    hours, remainder = divmod(remainder, 60 * 60)
+    minutes, seconds = divmod(remainder, 60)
+    return int(days), int(hours), int(minutes), int(seconds)

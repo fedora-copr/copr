@@ -4,7 +4,7 @@
 %global rpm_python      python3-rpm
 %global sitelib         %python3_sitelib
 
-%global copr_common_version 0.12.1.dev
+%global copr_common_version 0.21.1.dev
 
 # do not build debuginfo sub-packages
 %define debug_package %nil
@@ -245,6 +245,7 @@ EOF
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 755 bin/copr-builder %buildroot%_bindir
 install -p -m 755 bin/copr-builder-cleanup %buildroot%_bindir
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
@@ -301,6 +302,7 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 %files -n copr-builder
 %license LICENSE
+%_bindir/copr-builder
 %_bindir/copr-update-builder
 %_bindir/copr-builder-cleanup
 %_sysconfdir/copr-builder

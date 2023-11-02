@@ -240,6 +240,8 @@ def _get_limits_conf(parser):
         parser, "backend", "builds_max_workers_sandbox", 10, mode="int")
     limits['owner'] = _get_conf(
         parser, "backend", "builds_max_workers_owner", 20, mode="int")
+    limits['userssh'] = _get_conf(
+        parser, "backend", "builds_max_userssh", 2, mode="int")
     return limits
 
 
