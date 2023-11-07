@@ -50,17 +50,33 @@ def all_ids():
     return tickets
 
 
+def print_once(message):
+    """
+    Print the given message just once, even if called multiple times.
+    """
+    # get the function-static storage
+    storage = getattr(print_once, "_storage", {})
+    setattr(print_once, "_storage", storage)
+    if message not in storage:
+        print(message)
+        storage[message] = True
+
+
 if __name__ == "__main__":
     script_requires_user("resalloc")
 
     used = used_ids()
+
+    # This is the oldest ticket that Copr Backend currently uses.
     min_used = min(used)
+
     all_known = all_ids()
     unknown = all_known - used
 
-    print("These are old tickets, Copr uses only newer IDs, close them:")
     for unknown_id in sorted(unknown):
         if unknown_id < min_used:
+            print_once("These are old tickets, Copr only uses newer tickets, close them:")
             print(f"resalloc ticket-close {unknown_id}")
         else:
-            print(f"This seems relatively new to blindly close: {unknown_id}")
+            print_once("These tickets are relatively new for closing blindly, double check!")
+            print(f"resalloc ticket-check {unknown_id}")
