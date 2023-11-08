@@ -3,6 +3,7 @@ Allocate VMs
 """
 
 import time
+import yaml
 from resalloc.client import Connection as ResallocConnection
 
 
@@ -91,6 +92,34 @@ class ResallocHost(RemoteHost):
     """
     ticket = None
 
+    """ RESALLOC_NAME """
+    name = None
+
+    def parse_ticket_data(self):
+        """
+        Historically we expected a single-line input containing hostname/IP.  We
+        continue to support this format.  But if the output looks like YAML
+        document, we parse the output and detect additional metadata.
+        """
+        output = str(self.ticket.output)
+        lines = output.split("\n")
+        if lines[0] == "---":
+            try:
+                data = yaml.safe_load(output)
+                # We expect IP or hostname here
+                self.hostname = data["host"]
+                # RESALLOC_NAME
+                self.name = data["name"]
+            except yaml.YAMLError as exc:
+                raise RemoteHostAllocationTerminated(
+                    f"Can't parse YAML data from the resalloc ticket:\n{output}") from exc
+            except KeyError as exc:
+                raise RemoteHostAllocationTerminated(
+                    f"Missing YAML fields in the resalloc ticket output\n{output}") from exc
+        else:
+            # The old format
+            self.hostname = lines[0]
+
     def check_ready(self):
         self.ticket.collect()
         if self.ticket.closed:
@@ -98,7 +127,7 @@ class ResallocHost(RemoteHost):
             raise RemoteHostAllocationTerminated
         if not self.ticket.ready:
             return False
-        self.hostname = str(self.ticket.output).strip()
+        self.parse_ticket_data()
         return True
 
     def release(self):
@@ -111,6 +140,8 @@ class ResallocHost(RemoteHost):
             message += ", ticket_id={}".format(self.ticket.id)
         if self.hostname:
             message += ", hostname={}".format(self.hostname)
+        if self.name:
+            message += ", name={}".format(self.name)
         return message
 
 

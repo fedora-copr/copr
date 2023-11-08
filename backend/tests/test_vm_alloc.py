@@ -24,6 +24,15 @@ def test_ticket(_rcon):
     assert host.check_ready()
     assert host.hostname == "1.1.1.1"
 
+    host.ticket.output = (
+        "---\n"
+        "host: 1.2.3.4\n"
+        "name: copr_pool_123456\n"
+    )
+    assert host.check_ready()
+    assert host.hostname == "1.2.3.4"
+    assert host.name == "copr_pool_123456"
+
     host.ticket.closed = True
     with pytest.raises(RemoteHostAllocationTerminated):
         assert host.check_ready()
