@@ -8,30 +8,12 @@ Get rpm either from upstream copr: https://copr.fedorainfracloud.org/coprs/g/cop
     dnf copr enable @copr/copr
     dnf install -y copr-backend copr-selinux
 
-or checkout git repo and build with rpkg::
+2. Configure Resalloc server for automatic VM allocation (either on the same
+   machine, or other) ::
 
-    dnf install rpkg
+    dnf install resalloc-server
 
-    git clone https://github.com/fedora-copr/copr.git
-    cd copr
-
-    rpkg --path backend spec --outdir /tmp/rpkg
-    rpkg --path selinux spec --outdir /tmp/rpkg
-    rpkg --path python spec --outdir /tmp/rpkg
-
-    dnf builddep /tmp/rpkg/copr-backend.spec
-    dnf builddep /tmp/rpkg/copr-selinux.spec
-    dnf builddep /tmp/rpkg/python-copr.spec
-
-    cd backend && rpkg local && cd ..
-    cd selinux && rpkg local && cd ..
-    cd python && rpkg local && cd ..
-
-    dnf install -C <path to the built rpms>
-
-
-2. Prepare ansible playbooks to spawn and terminate VM builders using your VM provider.
-    You could find some inspiration in ``backend/conf/playbooks/``.
+   Edit ``/etc/resallocserver/*.yaml`` files to configure.
 
 3. Edit ``/etc/copr/copr-be.conf`` to reflect your setup. Look at example ``backend/conf/copr-be.conf.example``.
 

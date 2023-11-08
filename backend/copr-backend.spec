@@ -174,8 +174,6 @@ install -d %{buildroot}%{_sysconfdir}/logstash.d
 install -d %{buildroot}%{_datadir}/logstash/patterns/
 cp -a conf/logstash/lighttpd.pattern %{buildroot}%{_datadir}/logstash/patterns/lighttpd.pattern
 
-cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
-
 install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
 cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d/copr_backend.conf
 
@@ -218,7 +216,6 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/lighttpd
-%doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/*.service
@@ -239,7 +236,6 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %doc
 %{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
-%exclude %{_pkgdocdir}/playbooks
 
 %changelog
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.172-1
