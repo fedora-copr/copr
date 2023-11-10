@@ -16,6 +16,7 @@ This section contains information about maintenance topics. You may also be inte
    How to rename chroots <how_to_rename_chroot>
    Fedora Copr hypervisors <maintenance/hypervisors>
    Fedora Copr outage announcements <maintenance/announce_outage>
+   Fedora Copr credentials <maintenance/credentials>
 
 
 .. toctree::
