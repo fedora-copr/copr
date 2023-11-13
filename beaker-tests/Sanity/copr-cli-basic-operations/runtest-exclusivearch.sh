@@ -52,7 +52,7 @@ rlJournalStart
 
         # Test ExcludeArch
         rlRun "copr-cli create ${NAME_PREFIX}ExcludeArch $chroots"
-        rlRun "copr-cli build-distgit ${NAME_PREFIX}ExcludeArch --name python-giacpy"
+        rlRun "copr-cli build ${NAME_PREFIX}ExcludeArch files/pkg-with-excludearch.spec "
         rlRun "copr monitor ${NAME_PREFIX}ExcludeArch > $OUTPUT"
         rlAssertEquals "Skipped chroots" `cat $OUTPUT |grep "skipped" |wc -l` 3
         rlAssertEquals "Succeeded chroots" `cat $OUTPUT |grep "succeeded" |wc -l` 1
