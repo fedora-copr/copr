@@ -18,6 +18,7 @@ from coprs import app
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
+from coprs.constants import CommonDescriptions
 from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
@@ -625,11 +626,11 @@ class CoprForm(BaseForm):
 
     # Deprecated, use `enable_net` instead
     build_enable_net = wtforms.BooleanField(
-            "Enable internet access during builds",
+            CommonDescriptions.ENABLE_NET.description,
             default=False, false_values=FALSE_VALUES)
 
     enable_net = wtforms.BooleanField(
-            "Enable internet access during builds",
+            CommonDescriptions.ENABLE_NET.description,
             default=False, false_values=FALSE_VALUES)
 
     module_hotfixes = wtforms.BooleanField(
@@ -1057,9 +1058,9 @@ class PackageFormCustom(BasePackageForm):
         filters=[StringListFilter()])
 
     chroot = wtforms.SelectField(
-        'Mock chroot',
+        CommonDescriptions.MOCK_CHROOT.description,
         choices=[],
-        default='fedora-latest-x86_64',
+        default=CommonDescriptions.MOCK_CHROOT.default,
     )
 
     resultdir = wtforms.StringField(
@@ -1624,8 +1625,8 @@ class CoprForkFormFactory(object):
 
 
 class ModifyChrootForm(ChrootForm):
-    buildroot_pkgs = wtforms.StringField('Additional packages to be always present in minimal buildroot')
-    repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
+    buildroot_pkgs = wtforms.StringField(CommonDescriptions.ADDITIONAL_PACKAGES.description)
+    repos = wtforms.TextAreaField(CommonDescriptions.ADDITIONAL_REPOS.description,
                                   validators=[UrlRepoListValidator(),
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])

@@ -8,10 +8,12 @@ Try to be consistent with field names and its corresponding names in API so
 
 from flask_restx.fields import String, List, Integer, Boolean, Url, Raw
 
+from coprs.constants import CommonDescriptions
+
 # TODO: split these fields to some hierarchy e.g. using dataclasses or to some clusters
 
-# TODO: Use some shared constants for description - a lot of it is basically copied
-#  description from forms
+# If you find that some descriptions/examples can be shared between forms and
+# fields, please specify it in CommonDescriptions
 
 id_field = Integer(
     description="Numeric ID",
@@ -19,17 +21,17 @@ id_field = Integer(
 )
 
 mock_chroot = String(
-    description="Mock chroot",
-    example="fedora-rawhide-x86_64",
+    description=CommonDescriptions.MOCK_CHROOT.description,
+    example=CommonDescriptions.MOCK_CHROOT.default,
 )
 
 ownername = String(
-    description="User or group name",
+    description="User name or group name (starts with @)",
     example="@copr",
 )
 
 full_name = String(
-    description="Full name of the project",
+    description="Full name of the project in format ownername/projectname",
     example="@copr/pull-requests",
 )
 
@@ -39,12 +41,12 @@ projectname = String(
 )
 
 project_dirname = String(
-    description="",
+    description="Path to directory in project separated by colon",
     example="copr-dev:pr:123",
 )
 
 packagename = String(
-    description="Name of the package",
+    description="Name of the package in project",
     example="copr-cli",
 )
 
@@ -56,18 +58,18 @@ comps_name = String(
 
 additional_repos = List(
     String,
-    description="Additional repos to be used for builds in this chroot",
+    description=CommonDescriptions.ADDITIONAL_REPOS.description,
 )
 
 additional_packages = List(
     String,
-    description="Additional packages to be always present in minimal buildroot",
+    description=CommonDescriptions.ADDITIONAL_PACKAGES.description,
 )
 
 additional_modules = List(
     String,
     description=(
-        "List of modules that will be enabled " "or disabled in the given chroot"
+        "List of modules that will be enabled or disabled in the given chroot"
     ),
     example=["module1:stream", "!module2:stream"],
 )
@@ -101,7 +103,7 @@ repo_priority = Integer(
 )
 
 enable_net = Boolean(
-    description="Enable internet access during builds",
+    description=CommonDescriptions.ENABLE_NET.description,
 )
 
 source_type = String(
@@ -123,24 +125,17 @@ source_build_method = String(
 )
 
 pypi_package_name = String(
-    description="Package name in the Python Package Index.",
+    description=CommonDescriptions.PYPI_PACKAGE_NAME.description,
     example="copr",
 )
 
 pypi_package_version = String(
-    description="PyPI package version",
+    description=CommonDescriptions.PYPI_PACKAGE_VERSION.description,
     example="1.128pre",
 )
 
-# TODO We are copy-pasting descriptions from web UI to this file. This field
-# is an ideal candidate for figuring out how to share the descriptions
 spec_generator = String(
-    description=(
-        "Tool for generating specfile from a PyPI package. "
-        "The options are full-featured pyp2rpm with cross "
-        "distribution support, and pyp2spec that is being actively "
-        "developed and considered to be the future."
-    ),
+    description=CommonDescriptions.SPEC_GENERATOR.description,
     example="pyp2spec",
 )
 
@@ -162,7 +157,7 @@ python_versions = List(
 )
 
 auto_rebuild = Boolean(
-    description="Auto-rebuild the package? (i.e. every commit or new tag)",
+    description=CommonDescriptions.AUTO_REBUILD.description,
 )
 
 clone_url = String(

@@ -41,7 +41,7 @@ with context %}
     {{ copr_package_form_rubygems(form_rubygems, view, copr, package) }}
 
   {% elif source_type_text == "custom" %}
-    {{ copr_package_form_custom(form_custom, view, copr, package) }}
+    {{ copr_package_form_custom(form_custom, view, copr, package, common_descriptions) }}
 
   {% else %}
     <h3>Wrong source type</h3>

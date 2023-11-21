@@ -37,14 +37,14 @@
 </form>
 {% endmacro %}
 
-{% macro render_webhook_rebuild(form) %}
+{% macro render_webhook_rebuild(form, common_descriptions) %}
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup">
       Auto-rebuild
     </label>
     <div class="col-sm-10">
       <input type="checkbox" name="webhook_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
-      Auto-rebuild the package? (i.e. every commit or new tag)
+      {{ common_descriptions.SPEC_GENERATOR.description }}
       | See <a href="{{ copr_url('coprs_ns.copr_integrations', copr) }}">Integrations</a>
     </div>
   </div>
@@ -88,7 +88,7 @@
 
 {% macro copr_package_form_pypi(form, view, copr, package) %}
     {{ copr_package_form_begin(form, view, copr, package) }}
-    {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
+    {{ render_field(form.pypi_package_name, placeholder="{{ common_descriptions.PYPI_PACKAGE_NAME.description }}.") }}
 
     {{ render_field(
          form.spec_generator,
@@ -132,11 +132,11 @@
 {% endmacro %}
 
 
-{% macro copr_package_form_custom(form, view, copr, package) %}
+{% macro copr_package_form_custom(form, view, copr, package, common_descriptions) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
   {{ copr_method_form_fileds_custom(form) }}
   {{ render_generic_pkg_form(form) }}
-  {{ render_webhook_rebuild(form) }}
+  {{ render_webhook_rebuild(form, common_descriptions) }}
   {{ copr_package_form_end(form, package, 'custom') }}
 {% endmacro %}
 
@@ -164,7 +164,7 @@
 {% endmacro %}
 
 
-{% macro copr_package_form_scm(form, view, copr, package) %}
+{% macro copr_package_form_scm(form, view, copr, package, common_descriptions) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
 
   {{ render_field(form.scm_type) }}
@@ -175,7 +175,7 @@
 
   {{ render_srpm_build_method_box(form) }}
   {{ render_generic_pkg_form(form) }}
-  {{ render_webhook_rebuild(form) }}
+  {{ render_webhook_rebuild(form, common_descriptions) }}
   {{ copr_package_form_end(form, package, 'mock_scm') }}
 {% endmacro %}
 

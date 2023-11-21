@@ -9,6 +9,7 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 
+from coprs.constants import CommonDescriptions
 from coprs.logic import builds_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -271,7 +272,8 @@ def render_add_build_pypi(copr, form, view, package=None):
     if not form:
         form = forms.BuildFormPyPIFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/pypi.html",
-                                 copr=copr, form=form, view=view, package=package)
+                                 copr=copr, form=form, view=view, package=package,
+                                 common_descriptions=CommonDescriptions)
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_pypi/", methods=["POST"])

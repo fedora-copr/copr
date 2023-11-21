@@ -6,6 +6,7 @@ from coprs import app
 from coprs import db
 from coprs import forms
 from coprs import helpers
+from coprs.constants import CommonDescriptions
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns.coprs_builds import (
     render_add_build_scm,
@@ -185,7 +186,8 @@ def copr_add_package(copr, source_type_text="scm", **kwargs):
                                  form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"],
                                  form_distgit=form['distgit'],
-                                 form_custom=form['custom'])
+                                 form_custom=form['custom'],
+                                 common_descriptions=CommonDescriptions)
 
 
 @coprs_ns.route("/<username>/<coprname>/package/new/<source_type_text>", methods=["POST"])
@@ -234,7 +236,8 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
                                  form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"],
                                  form_distgit=form["distgit"],
-                                 form_custom=form['custom'])
+                                 form_custom=form['custom'],
+                                 common_descriptions=CommonDescriptions)
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type_text>", methods=["POST"])

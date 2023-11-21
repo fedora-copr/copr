@@ -149,7 +149,7 @@
 {% endmacro %}
 
 
-{% macro copr_build_form_pypi(form, view, copr) %}
+{% macro copr_build_form_pypi(form, view, copr, common_descriptions) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
     {{ source_description(
@@ -161,15 +161,12 @@
        )
     }}
 
-    {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
+    {{ render_field(form.pypi_package_name, placeholder="{{ common_descriptions.PYPI_PACKAGE_NAME.description }}.") }}
     {{ render_field(form.pypi_package_version, placeholder="Optional - Version of the package PyPI") }}
 
     {{ render_field(
          form.spec_generator,
-         info="Tool for generating specfile from a PyPI package. The options "
-               "are full-featured <strong>pyp2rpm</strong> with cross "
-               "distribution support, and <strong>pyp2spec</strong> that is "
-               "being actively developed and considered to be the future."
+         info="{{ common_descriptions.SPEC_GENERATOR.description }}"
        )
     }}
 
