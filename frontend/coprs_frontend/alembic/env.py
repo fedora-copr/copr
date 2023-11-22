@@ -1,3 +1,5 @@
+import sys
+import os
 from alembic import context
 from logging.config import fileConfig
 
@@ -13,13 +15,11 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import sys
-import os
 
 # alembic doesn't include cwd by default
 sys.path.append(os.getcwd())
 
-from coprs import db
+from coprs import app, db  # pylint: disable=wrong-import-position
 target_metadata = db.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -66,7 +66,8 @@ def run_migrations_online():
     finally:
         connection.close()
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+with app.app_context():
+    if context.is_offline_mode():
+        run_migrations_offline()
+    else:
+        run_migrations_online()
