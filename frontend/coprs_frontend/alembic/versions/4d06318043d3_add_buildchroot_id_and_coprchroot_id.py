@@ -10,11 +10,12 @@ import time
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.orm import declarative_base
 
 revision = '4d06318043d3'
 down_revision = '6f83ea2ba416'
 
-Base = sa.ext.declarative.declarative_base()
+Base = declarative_base()
 
 FIRST_TIME = time.time()
 

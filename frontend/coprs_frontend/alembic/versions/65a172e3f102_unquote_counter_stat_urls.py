@@ -6,9 +6,13 @@ Revises: 004a017535dc
 Create Date: 2022-09-14 23:28:35.890110
 """
 
+import os
+import sys
 import sqlalchemy as sa
 from alembic import op
-from coprs.models import CounterStat
+
+sys.path.append(os.getcwd())
+from coprs.models import CounterStat  # pylint: disable=wrong-import-position
 
 
 revision = '65a172e3f102'
