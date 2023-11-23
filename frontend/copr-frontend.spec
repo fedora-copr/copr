@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.201
+Version:    1.202
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -381,6 +381,18 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 1.202-1
+- make alembic working on F39+
+- unify naming convention for "_safe" methods
+- don't ignore custom method repos when resubmitting from the WebUI
+- the "recent copr builds" on homepage are opt-in configurable
+- allow keeping temporary projects up to 2 years
+- don't log errors/tracebacks if OIDC is disabled
+- don't create a separate logger for the oidc.py file
+- explain the reason for skipping chroot builds
+- better priority=X docs in web-UI
+- propagate the "priority" value in 'dnf5 copr enable' output
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.201-1
 - buildchroot results returned via API can provide epoch==null
 - skip ExcludeArch and ExclusiveArch for resubmitted builds
