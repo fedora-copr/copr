@@ -1,7 +1,7 @@
 %global copr_common_version 0.20.1.dev1
 
 Name:       copr-dist-git
-Version:    0.67
+Version:    0.68
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 0.68-1
+- use the renamed HashWorkerLimit instead of GroupWorkerLimit
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 0.67-1
 - tell rpkg not to generate pre-push hook
 - allow importing pre-generated srpm in rpkg
