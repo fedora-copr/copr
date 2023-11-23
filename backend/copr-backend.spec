@@ -9,7 +9,7 @@
 %global copr_common_version 0.20.1.dev1
 
 Name:       copr-backend
-Version:    1.172
+Version:    1.173
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -238,6 +238,20 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 1.173-1
+- enforce createrepo_c gzip compression (f39+ switched to zstd)
+- self-identify the resalloc resource in logs
+- dropping the documentary playbooks from copr-backend payload
+- nicer unknown-resalloc-tickets output
+- worker to not call keygen for source builds at all
+- don't sign products of srpm-build
+- longer timeout for fallback generating GPG keys after build
+- recreate missing repodata so that prunerepo doesn't traceback
+- use the rename HashWorkerLimit instead of GroupWorkerLimit
+- provide per-arch & per-owner worker limit implemented
+- collect and compress fedora-review logs after run
+- react on staled SSH connections in some cases
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.172-1
 - dump the /update/ payload to worker.log
 - don't run external command(s) to collect built packages
