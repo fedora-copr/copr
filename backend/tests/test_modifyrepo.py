@@ -428,7 +428,7 @@ class TestModifyRepo(object):
         assert popen.call_args_list[0][0][0] == \
             ["/usr/bin/createrepo_c", repodir, database_option,
              "--ignore-lock", "--local-sqlite", "--cachedir", "/tmp/",
-             "--workers", "8", "--update"] + additional_args
+             "--workers", "8", "--general-compress-type=gz", "--update"] + additional_args
 
     @pytest.mark.skipif(
         distro.id() == 'fedora' and int(distro.version()) >= 36,
