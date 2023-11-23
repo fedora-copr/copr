@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.20.1.dev1
+Version:    0.21
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -119,6 +119,10 @@ version=%version %py2_install
 
 
 %changelog
+* Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 0.21-1
+- rename GroupWorkerLimit to HashWorkerLimit
+- explicitly build-depend on python-six
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 0.20-1
 - move chroot_to_branch from frontend to copr-common
 - redis authentication support added
