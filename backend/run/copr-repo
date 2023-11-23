@@ -137,8 +137,9 @@ def _database_option(chroot: str) -> str:
 
 
 def run_createrepo(opts):
+    compression = "--general-compress-type=gz"
     createrepo_cmd = ['/usr/bin/createrepo_c', opts.directory, _database_option(opts.chroot), '--ignore-lock',
-                      '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8']
+                      '--local-sqlite', '--cachedir', '/tmp/', '--workers', '8', compression]
 
     if "epel-5" in opts.directory or "rhel-5" in opts.directory:
         # this is because rhel-5 doesn't know sha256
