@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.69
+Version: 0.70
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -320,6 +320,10 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 0.70-1
+- collect and compress fedora-review logs after run
+- use Copr custom macros when parsing the specfile
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 0.69-1
 - require python-specfile (in new enough) version, and use it for specfile
   parsing instead of parsing the metadata from SRPMs
