@@ -1,0 +1,42 @@
+.. _release_notes_2023_11_28:
+
+Fixes in the 2023-11-28 release
+===============================
+
+This update does not include updated client packages.
+
+- Added many compatibility fixes for the Fedora 39 environment.
+
+- Source builds (building SRPMs from forges, etc.) no longer communicate with
+  the ``copr-keygen`` instance.  This change aims to speed up overall build
+  processing and resolve a race condition between "key-pair preparation" and
+  the signing of the first "srpm build" products which used to fail in some
+  cases.
+
+- Resubmitting a Custom build now copies additional external per-build
+  repositories into the new build.
+
+- Default maximum configurable time for temporary projects is now set to 2 years
+  (previously 2 months).
+
+- When a build chroot ends up in the "skipped" state, web-UI now documents the
+  reasons for the skip.
+
+- The "priority" field for per-project repositories is now better explained in
+  the web UI form.
+
+- The "priority" field in repositories is now also included in the
+  ``dnf5 copr enable`` repo files.
+
+- The repository pruning script no longer fails for directories lacking the
+  ``./repodata`` subdirectory.  This typically indicates a previous
+  ``createrepo_c`` failure.  The now runs ``createrepo_c`` itself to create the
+  missing ``./repodata`` directory.
+  ``createrepo_c`` failed previously for any reason.
+
+- The new version implemented a more granular per-architecture/per-user limit
+  for applying finer-grained FUP (Fair Usage Policy).
+
+- The new version brings an improved detection and handling of stalled SSH
+  connections to builders.
+
