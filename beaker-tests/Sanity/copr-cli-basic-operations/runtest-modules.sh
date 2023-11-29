@@ -185,6 +185,7 @@ rlJournalStart
         sed -i "s/\$OWNER/$USER/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
         sed -i "s|\$DISTGIT_URL|$DISTGIT_URL|g" /tmp/coprtestmodule.yaml
+        sed -i "s|\$DISTGIT_BRANCH_FEDORA|$DISTGIT_BRANCH_FEDORA|g" /tmp/coprtestmodule.yaml
         rlRun "copr-cli build-module --distgit fedora --yaml /tmp/coprtestmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 1 $PACKAGES

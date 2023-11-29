@@ -11,6 +11,7 @@
 : "${DISTGIT_URL=https://copr-dist-git-dev.fedorainfracloud.org}"
 : "${OWNER=@copr}"
 : "${VENDOR=Fedora Copr (devel) - group @copr}"
+: "${DISTGIT_BRANCH_FEDORA_PREFIX=f}"
 
 # Owner and project
 NAME_VAR="TEST$(date +%s%N)" # names should be unique
@@ -28,7 +29,7 @@ CHROOT="fedora-$FEDORA_VERSION-x86_64"
 PREV_CHROOT="fedora-$PREV_FEDORA_VERSION-x86_64"
 
 BRANCH="f$FEDORA_VERSION"
-
+DISTGIT_BRANCH_FEDORA=$DISTGIT_BRANCH_FEDORA_PREFIX$FEDORA_VERSION
 
 # Useful paths
 SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

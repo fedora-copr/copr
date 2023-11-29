@@ -28,5 +28,5 @@ data:
         rpms:
           ed:
             rationale: An example of Copr package
-            ref: $PLATFORM
+            ref: $DISTGIT_BRANCH_FEDORA
             repository: '$DISTGIT_URL/git/$OWNER/$PROJECT/ed.git'
