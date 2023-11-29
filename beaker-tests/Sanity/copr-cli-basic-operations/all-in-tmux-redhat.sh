@@ -8,6 +8,7 @@ FRONTEND_URL=https://$FRONTEND_HOST
 BACKEND_URL=https://dev-coprbe.devel.redhat.com
 DISTGIT_URL=https://dev-copr-dist-git.devel.redhat.com
 VENDOR="Red Hat Internal Copr (devel) - "
+DISTGIT_BRANCH_FEDORA_PREFIX=fedora/
 
 set -e
 
@@ -26,5 +27,5 @@ EOF
 
 fi
 
-export OWNER FRONTEND_URL BACKEND_URL DISTGIT_URL VENDOR
+export OWNER FRONTEND_URL BACKEND_URL DISTGIT_URL VENDOR DISTGIT_BRANCH_FEDORA_PREFIX
 exec "$our_dir/all-in-tmux.sh" "$@"
