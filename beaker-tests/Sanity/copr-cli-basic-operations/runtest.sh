@@ -515,8 +515,9 @@ rlJournalStart
         cleanProject "${NAME_PREFIX}CoprDirTest"
 
         # and make sure we haven't left any mess
-        rlRun "copr-cli list | grep $NAME_PREFIX" 1
-
+        if $COPR_CLEANUP; then
+            rlRun "copr-cli list | grep $NAME_PREFIX" 1
+        fi
         cleanAction rm -rf "$TMP"
     rlPhaseEnd
 rlJournalPrintText
