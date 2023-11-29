@@ -91,8 +91,11 @@ Adding more space
 
     $ resize2fs /dev/copr-backend-data/copr-backend-data
 
-7. Switch the volume types from ``gpp3`` to ``sc1``, we don't need the power of
+7. Switch the volume types from ``gp3`` to ``sc1``, we don't need the power of
    ``gp3`` for backend purposes.
+
+8. Modify the https://github.com/fedora-copr/ansible-fedora-copr group vars
+   referencing the set(s) of volume IDs.
 
 
 Other tips
