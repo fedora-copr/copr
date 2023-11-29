@@ -27,7 +27,7 @@ rlJournalStart
 
         # Test ExclusiveArch
         rlRun "copr-cli create ${NAME_PREFIX}ExclusiveArch $chroots"
-        rlRun "copr-cli build-distgit ${NAME_PREFIX}ExclusiveArch --name biosdevname --commit $BRANCH"
+        rlRun "copr-cli build-distgit ${NAME_PREFIX}ExclusiveArch --distgit fedora --name biosdevname --commit $BRANCH"
         rlRun "copr monitor ${NAME_PREFIX}ExclusiveArch > $OUTPUT"
         rlAssertEquals "Skipped chroots" `cat $OUTPUT |grep "skipped" |wc -l` 3
         rlAssertEquals "Succeeded chroots" `cat $OUTPUT |grep "succeeded" |wc -l` 1
