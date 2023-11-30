@@ -127,3 +127,8 @@ setup_checks()
     # mismatch, such tests will fail and it is not trivial to find out why.
     rlRun "cat /etc/os-release |grep VERSION_ID=${FEDORA_VERSION}"
 }
+
+join_lines()
+{
+    tr '\n' ' ' | sed 's/ $//'
+}

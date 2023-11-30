@@ -44,12 +44,25 @@ function wait_for_finished_module()
     local packages=$2
     local tmp=$3
     local timeout=1800
-    local started=$(date +%s)
+    local started now built_count states states_one_line
+
+    started=$(date +%s)
+    rlLog "Waiting till packages are built: $packages"
     while :; do
         now=$(date +%s)
-        copr-cli list-packages $project --with-all-builds > $tmp
-        if [ `cat $tmp |grep state |grep "succeeded\|failed" |wc -l` -eq $packages ]; then break; fi;
-        if [ $(($now - $timeout)) -gt $started ]; then break; fi;
+        copr-cli list-packages "$project" --with-all-builds > "$tmp"
+        states=$(jq '.[].builds[].state' < "$tmp")
+        states_one_line=$(echo "$states" | join_lines)
+        built_count=$(echo "$states" | grep -e succeeded -e failed -e canceled -c)
+        rlLog "Currently existing packages: $(jq '.[].name' < "$tmp" | join_lines) (states: $states_one_line)"
+        if test "$built_count" -ge "$packages"; then
+            rlLogInfo "Successful waiting for $packages builds, states: $states_one_line"
+            break
+        fi
+        if [ $(( now - timeout)) -gt "$started" ]; then
+            rlLogFatal "This waiting is taking too long... stopping."
+            break
+        fi
         sleep 10
     done
 }
@@ -64,7 +77,7 @@ function test_successful_packages()
     local tmp=$2
     rlAssertEquals "All packages should succeed" `cat $tmp |grep "state" | grep "succeeded" |wc -l` `echo $packages |wc -w`
     for pkg in $packages; do
-        rlAssertEquals "Package $pkg is missing" `cat $tmp |jq '.[] | .name' |grep "$pkg" |wc -l` 1
+        rlAssertEquals "Package $pkg is present" "$(jq '.[].name' <"$tmp" | grep "$pkg" -c)" 1
     done
 }
 
