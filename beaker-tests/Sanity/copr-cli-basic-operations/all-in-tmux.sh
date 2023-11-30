@@ -19,6 +19,12 @@ for arg; do
     *all-in-tmux*|*runtest-production.sh|*upload_authentication.sh)
         continue
         ;;
+    *openmandriva*)
+        case $FRONTEND_URL in
+        *redhat*)
+            continue ;;
+        esac
+        ;;
     esac
 
     quoted=$(printf %q "$arg")
