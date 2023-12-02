@@ -579,9 +579,10 @@ class CoprForm(BaseForm):
 
     disable_createrepo = wtforms.BooleanField(default=False,
             label="Create repositories manually",
-            description="""Repository meta data is normally refreshed
-            after each build.  If you want to do this manually, turn
-            this option on.""",
+            description="""Repository metadata is normally refreshed
+            and published after each build. If you want to publish metadata
+            manually, turn this option on. Note that builds in this copr will
+            always see refreshed metadata regardless of this option.""",
             false_values=FALSE_VALUES)
 
     unlisted_on_hp = wtforms.BooleanField(
