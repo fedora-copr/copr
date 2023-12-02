@@ -880,6 +880,27 @@ contents of the directories.  Either please ignore the inconsistency, or visit
 the `non-cached host variant
 <http://copr-be.cloud.fedoraproject.org/results/>`_.
 
+.. _`faq-build-timeout`:
+
+.. rubric:: My build failed because of a timeout, why?  :ref:`¶ <faq-build-timeout>`
+
+Builds are not allowed to run forever. The default limit is 5 hours
+(18000 seconds) but users can increase it up to 30 hours (108000
+seconds).
+
+.. admonition:: Deployment specific
+
+    The `Fedora Copr <https://copr.fedorainfracloud.org/>`_ instance increases
+    the maximum limit to 50 hours (180000 seconds).
+
+If the timeout limit is exceeded, the build will be killed
+with the following error message::
+
+    !! Copr timeout => sending INT
+    Copr build error: Build failed
+    Shared connection to builder closed.
+
+
 .. _`Weird SCM build failure?`:
 
 .. rubric:: Weird SCM build failure? :ref:`¶ <Weird SCM build failure?>`
