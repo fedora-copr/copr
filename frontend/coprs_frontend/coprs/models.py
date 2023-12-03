@@ -876,8 +876,6 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     def validate_max_builds(self, field, value):
         return None if value == 0 else value
 
-    builds = db.relationship("Build", order_by="Build.id")
-
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("packages"))
@@ -1064,7 +1062,11 @@ class Build(db.Model, helpers.Serializer):
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("builds"))
     package_id = db.Column(db.Integer, db.ForeignKey("package.id"), index=True)
-    package = db.relationship("Package")
+    package = db.relationship(
+        "Package",
+        backref=db.backref("builds", viewonly=True, order_by="Build.id"),
+        foreign_keys=[package_id],
+    )
 
     chroots = association_proxy("build_chroots", "mock_chroot")
 
