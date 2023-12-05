@@ -138,7 +138,7 @@ spec:
             - name: locks
               mountPath: /var/lock/copr-backend
           command: ["/usr/bin/tini", "--"]
-          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "actions"]
+          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher-backend", "actions"]
 
         - name: builds
           image: "{{ copr_backend_image }}"
@@ -156,7 +156,7 @@ spec:
             - name: HOME
               value: /backend-home
           command: ["/usr/bin/tini", "--"]
-          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher", "builds"]
+          args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher-backend", "builds"]
 
       # start these containers on the same node with copr-backend-httpd!
       affinity:
