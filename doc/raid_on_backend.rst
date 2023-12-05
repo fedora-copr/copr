@@ -54,7 +54,7 @@ Adding more space
 1. Create two ``gp3`` volumes in EC2 of the same size and type, tag them with
    ``FedoraGroup: copr``, ``CoprInstance: production``, ``CoprPurpose:
    infrastructure``.  Attach them to a freshly started temporary instance (we
-   don't want to overload I/O with the `initial RAID sync <mdadm_sync>`_ on
+   don't want to overload I/O with the `initial RAID sync <mdadm_sync_>`_ on
    production backend).  Make sure the instance type has enough EBS throughput
    to perform the initial sync quickly enough.
 
@@ -68,7 +68,7 @@ Adding more space
 
         $ mdadm --create --name=raid-be-03 --verbose /dev/mdXYZ --level=1 --raid-devices=2 /dev/nvmeXn1p1 /dev/nvmeYn1p1
 
-   Wait till the new empty `array is synchronized <mdadm_sync>`_ (may take hours
+   Wait till the new empty `array is synchronized <mdadm_sync_>`_ (may take hours
    or days, note we sync 2x16T).  Check the details with ``mdadm -Db
    /dev/md/raid-be-03``.  See the tips bellow how to make the sync speed
    unlimited with ``sysctl``.
