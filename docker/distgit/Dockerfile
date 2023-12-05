@@ -54,4 +54,4 @@ RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run
 USER copr-dist-git
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher imports"]
+CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher-dist-git imports"]

@@ -34,7 +34,7 @@ services:
     build:
       context: docker/backend
     hostname: backend-build
-    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher", "builds"]
+    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "builds"]
     depends_on:
       - backend-log
       - resalloc
@@ -48,7 +48,7 @@ services:
     build:
       context: docker/backend
     hostname: backend-action
-    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher", "actions"]
+    command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "actions"]
     depends_on:
       - backend-log
       - resalloc

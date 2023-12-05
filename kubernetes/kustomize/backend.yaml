@@ -69,7 +69,7 @@ spec:
         - image: copr_backend-action:latest
           imagePullPolicy: Always
           name: action
-          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr", "--", "/usr/bin/copr-run-dispatcher", "actions"]
+          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr", "--", "/usr/bin/copr-run-dispatcher-dist-git", "actions"]
           resources:
             requests:
               cpu: 200m
@@ -86,7 +86,7 @@ spec:
         - image: copr_backend-build:latest
           imagePullPolicy: Always
           name: build
-          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr","-G", "obsrun", "--", "/usr/bin/copr-run-dispatcher", "builds"]
+          command: ["/tini", "--", "/usr/sbin/runuser", "-u", "copr", "-g", "copr","-G", "obsrun", "--", "/usr/bin/copr-run-dispatcher-backend", "builds"]
           resources:
             requests:
               cpu: 200m

@@ -8,7 +8,7 @@ Wants=logrotate.timer
 User=copr-dist-git
 Group=packager
 AmbientCapabilities=CAP_SETGID
-ExecStart=/usr/bin/copr-run-dispatcher imports
+ExecStart=/usr/bin/copr-run-dispatcher-dist-git imports
 KillMode=process
 Restart=on-failure
 
