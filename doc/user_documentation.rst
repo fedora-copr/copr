@@ -563,6 +563,27 @@ only in Copr and ignored by Koji. It is easy to do::
   %endif
 
 
+Creating repositories manually
+------------------------------
+
+After a build is finished, Copr automatically adds its results to the project RPM
+repository. When maintaining a large software stack consisting of hundreds of
+packages (e.g. KDE or Gnome), it may be useful to disable this feature and
+create repositories manually. That way you can atomically move your repository
+from one consistent state to another.
+
+In such case, after a build is finished, Copr adds the results only to an
+internal ``devel/repodata`` repository. It's results are not available to
+users but the repository is enabled for all subsequent builds in the project.
+Once you are ready to publish the changes to users, click the
+"Regenerate Repositories" button in your project overview.
+
+Please note that there are some historical inconsistencies in the naming of this
+feature. There is a "Create repositories manually" checkbox in the project
+settings, ``copr-cli create --disable_createrepo`` in CLI, and ``devel_mode`` in
+the API. They are all the same feature.
+
+
 Modularity
 ----------
 
