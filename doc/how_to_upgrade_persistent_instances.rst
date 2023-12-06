@@ -32,6 +32,11 @@ be done post-upgrade.
 Avoid conducting the pre-upgrade too far in advance of the actual upgrade.
 Ideally, perform this phase a couple of hours or a day before.
 
+Announce the outage
+-------------------
+
+See a specific document :ref:`announcing_fedora_copr_outage`, namely the
+"planned" outage state.
 
 Preparation
 -----------
@@ -191,6 +196,14 @@ Outage window
 When initiating this section, aim for time efficiency as the services will be
 down and inaccessible to users.
 
+Let users know
+--------------
+
+See :ref:`announcing_fedora_copr_outage` again, ad "ongoning" issue.
+
+Move IPs and Volumes to the New Instances
+-----------------------------------------
+
 .. warning::
    Prepare to follow the instructions provided during the playbook run.  You'll
    need to perform manual steps such as DB backups, consistency checks, etc.
@@ -279,10 +292,8 @@ option, click ``Actions``, navigate to ``Instance settings`` and then to
 Final steps
 -----------
 
-Remember to announce on `fedora devel`_ and `copr devel`_ mailing lists as well
-as in the ``#fedora-buildsys`` channel that everything is functional again.
-
-Close the infrastructure ticket to complete the upgrade process.
+See a specific document :ref:`announcing_fedora_copr_outage`, the "resolved"
+section.
 
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
 .. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
