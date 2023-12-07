@@ -73,7 +73,7 @@ def user_exists(app, mail):
     :raises: GpgErrorException
 
     """
-    cmd = gpg_cmd + ["--list-secret-keys", "--with-colons", "<{0}>".format(mail)]
+    cmd = gpg_cmd + ["--armor", "--batch", "--export", "<{0}>".format(mail)]
 
     try:
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -83,12 +83,12 @@ def user_exists(app, mail):
         raise GpgErrorException(msg="unhandled exception during gpg call",
                                 cmd=" ".join(cmd), err=e)
 
-    if handle.returncode == 0:
+    if "BEGIN PGP PUBLIC KEY BLOCK" in stdout.decode("utf-8"):
         # TODO: validate that the key is ultimately trusted
         log.debug("user {} has keys in keyring".format(mail))
         ensure_passphrase_exist(app, mail)
         return True
-    elif "error reading key" in stderr.decode():
+    elif "nothing exported" in stderr.decode("utf-8"):
         log.debug("user {} not found in keyring".format(mail))
         return False
     else:
