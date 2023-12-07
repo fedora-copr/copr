@@ -103,12 +103,15 @@ class MockPopenHandle(object):
 @mock.patch("copr_keygen.logic.Popen")
 class TestUserExists(TestCase):
     def test_exists(self, popen, ensure_passphrase):
-        popen.return_value = MockPopenHandle(0)
+        stdout = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmQENB..."
+        popen.return_value = MockPopenHandle(stdout=stdout)
         ensure_passphrase.return_value = True
         assert logic.user_exists(app, TEST_EMAIL)
 
     def test_not_exists(self, popen, ensure_passphrase):
-        popen.return_value = MockPopenHandle(1, stderr="error reading key")
+        # The exit code for the GPG command is zero even on failure
+        stderr = "gpg: WARNING: nothing exported"
+        popen.return_value = MockPopenHandle(0, stderr=stderr)
         ensure_passphrase.return_value = True
         assert not logic.user_exists(app, TEST_EMAIL)
 
