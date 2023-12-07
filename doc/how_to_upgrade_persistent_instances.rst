@@ -4,11 +4,6 @@
 How to Upgrade Fedora Copr Persistent VMs (Amazon AWS)
 ******************************************************
 
-.. note::
-   This document is specific to Amazon AWS. For OpenStack, refer to the
-   :ref:`outdated documentation for OpenStack <how_to_upgrade_persistent_instances_openstack>`.
-
-
 This document describes the process of upgrading persistent VM instance(s)
 (e.g., ``copr-fe-dev.aws.fedoraproject.org``) to a new Fedora version by
 creating a completely new VM to replace the old one.

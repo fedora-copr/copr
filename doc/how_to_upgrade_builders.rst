@@ -8,7 +8,6 @@ This article explains how to upgrade the Copr builders images in
 - :ref:`AWS <prepare_aws_source_images>` (x86_64 and aarch64),
 - :ref:`LibVirt/OpenStack <prepare_libvirt_source_images>` (x86_64 and ppc64le),
 - :ref:`IBM Cloud <prepare_ibmcloud_source_images>` (s390x),
-- |ss| :ref:`We currently don't work with OpenStack separately <how_to_upgrade_builders_openstack>` |se|.
 
 This HOWTO is useful for upgrading images to a newer Fedora release, or for just
 updating all the packages contained within the builder images.  This image
