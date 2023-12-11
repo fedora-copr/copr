@@ -8,7 +8,7 @@
 
 Copr ("Community projects") is a service that builds your open-source projects and creates your own RPM repositories. See it in action [here](https://copr.fedoraproject.org).
 
-![See Copr workflow](/copr/copr/raw/master/f/doc/img/copr-workflow.png)
+![See Copr workflow](doc/img/copr-workflow.png)
 
 ## Using Copr
 Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
