@@ -3,7 +3,13 @@ import pytest
 import flask
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
-from coprs.forms import PinnedCoprsForm, CoprFormFactory, CreateModuleForm, REGEX_BOOTSTRAP_IMAGE
+from coprs.forms import (
+    PinnedCoprsForm,
+    CoprFormFactory,
+    CreateModuleForm,
+    REGEX_BOOTSTRAP_IMAGE,
+    REGEX_CHROOT_DENYLIST,
+)
 
 
 class TestCoprsFormFactory(CoprsTestCase):
@@ -103,3 +109,21 @@ def test_form_regexes():
     assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora:rawhide")
     assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora")
     assert not re.match(REGEX_BOOTSTRAP_IMAGE, "docker://example.com/test:30")
+
+    items = [
+        "fedora",
+        "fedora-*-x86_64",
+        "fedora-*-*",
+        "fedora-39-x86_64",
+        "fedora-rawhide-aarch64",
+        "amazonlinux-2023-aarch64",
+        "centos-stream+epel-next-9-x86_64",
+        "openeuler-22.03-x86_64",
+        "opensuse-leap-15.4-x86_64",
+        "opensuse-leap-15.4-x86_64",
+    ]
+    for item in items:
+        assert re.match(REGEX_CHROOT_DENYLIST, item)
+
+    for item in ["fe|ora", "#fedora", "fedora/39", "fedora:39"]:
+        assert not re.match(REGEX_CHROOT_DENYLIST, item)

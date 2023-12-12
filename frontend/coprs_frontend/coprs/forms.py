@@ -27,6 +27,7 @@ from wtforms import ValidationError
 
 FALSE_VALUES = {False, "false", ""}
 REGEX_BOOTSTRAP_IMAGE = r"^[-\./\w]+(:\w+)?$"
+REGEX_CHROOT_DENYLIST = r"^[a-z0-9-_*.+]+$"
 
 
 class NoneFilter():
@@ -823,9 +824,10 @@ def validate_chroot_denylist(_form, field):
         string = field.data
         items = [x.lstrip().rstrip() for x in string.split(',')]
         for item in items:
-            pattern = r'^[a-z0-9-_*]+$'
-            if not re.match(pattern, item):
-                raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(item, pattern))
+            if not re.match(REGEX_CHROOT_DENYLIST, item):
+                raise wtforms.ValidationError(
+                    'Pattern "{0}" does not match "{1}"'
+                    .format(item, REGEX_CHROOT_DENYLIST))
 
             matched = set()
             all_chroots = MockChrootsLogic.active_names()
