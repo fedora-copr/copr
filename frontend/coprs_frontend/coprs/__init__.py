@@ -11,6 +11,7 @@ try:
     from flask_caching import Cache
 except ImportError:
     from flask_cache import Cache
+from flask_session import Session
 from flask_openid import OpenID
 from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse
@@ -38,17 +39,19 @@ oid = OpenID(
     extension_responses=[TeamsResponse]
 )
 
+session = Session(app)
+
 db = SQLAlchemy(app)
 
 @contextmanager
 def db_session_scope():
     """Provide a transactional scope around a series of operations."""
-    session = db.session
+    db_session = db.session
     try:
-        yield session
-        session.commit()
+        yield db_session
+        db_session.commit()
     except Exception as err:
-        session.rollback()
+        db_session.rollback()
         raise
 
 whooshee = Whooshee(app)

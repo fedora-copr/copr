@@ -20,8 +20,6 @@ from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.engine.default import DefaultDialect
 from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
-from werkzeug.urls import url_encode
-
 from copr_common.enums import EnumType, StatusEnum
 # TODO: don't import BuildSourceEnum from helpers, use copr_common.enum instead
 from copr_common.enums import BuildSourceEnum # pylint: disable=unused-import
@@ -786,7 +784,7 @@ def current_url(**kwargs):
     new_args.update(kwargs)
     if not new_args:
         return flask.request.path
-    return '{}?{}'.format(flask.request.path, url_encode(new_args))
+    return '{}?{}'.format(flask.request.path, urlencode(new_args))
 
 
 def parse_fullname(full_name):

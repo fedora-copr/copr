@@ -42,7 +42,7 @@ class RedisSessionInterface(SessionInterface):
         return timedelta(days=1)
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
         if not sid:
             sid = self.generate_sid()
             return self.session_class(sid=sid, new=True)
@@ -58,7 +58,7 @@ class RedisSessionInterface(SessionInterface):
         if not session:
             self.redis.delete(self.prefix + session.sid)
             if session.modified:
-                response.delete_cookie(app.session_cookie_name,
+                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
                                        domain=domain)
             return
         redis_exp = self.get_redis_expiration_time(app, session)
@@ -69,6 +69,6 @@ class RedisSessionInterface(SessionInterface):
         key_exp = self.prefix + session.sid
         self.redis.setex(key_exp, time_exp, val)
 
-        response.set_cookie(app.session_cookie_name, session.sid,
+        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session.sid,
                             expires=cookie_exp, httponly=True,
                             domain=domain)

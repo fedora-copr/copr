@@ -101,8 +101,10 @@ class CoprsTestCase(object):
 
     @property
     def auth_header(self):
-        return {"Authorization": b"Basic " +
-                base64.b64encode("doesntmatter:{0}".format(self.backend_passwd).encode("utf-8"))}
+        return {
+            "Authorization": "Basic " + base64.b64encode("doesntmatter:{0}".format(
+                self.backend_passwd).encode("utf-8")).decode("utf-8")
+        }
 
     @pytest.fixture
     def f_db(self):

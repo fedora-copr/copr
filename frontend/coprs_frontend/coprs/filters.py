@@ -19,7 +19,8 @@ from pygments.formatters import HtmlFormatter
 
 import humanize
 
-from flask import Markup, url_for
+from flask import url_for
+from markupsafe import Markup
 
 from copr_common.enums import ModuleStatusEnum, StatusEnum
 from coprs import app
