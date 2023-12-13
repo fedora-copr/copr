@@ -81,7 +81,9 @@ def copr_package_icon(copr, package_name):
     package = PackagesLogic.get_packages_with_latest_builds_for_dir(
         copr.main_dir, packages=[package])[0]
 
-    return send_build_icon(package.latest_build, no_cache=True)
+    # When the package has no builds yet, this attribute is not set
+    build = getattr(package, "latest_build", None)
+    return send_build_icon(build, no_cache=True)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
