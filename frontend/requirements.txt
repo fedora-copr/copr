@@ -1,6 +1,7 @@
 Flask
 Flask-OpenID
 Flask-SQLAlchemy
+Flask-Session
 Flask-WTF
 flask-whooshee
 pytest
@@ -8,6 +9,7 @@ pytest-cov
 blinker
 pytz
 markdown
+markupsafe
 pyLibravatar
 pydns # pyLibravatar uses this
 python-dateutil

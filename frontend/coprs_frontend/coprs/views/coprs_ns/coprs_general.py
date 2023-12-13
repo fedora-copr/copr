@@ -15,6 +15,7 @@ import flask
 from flask import render_template, url_for, stream_with_context
 import sqlalchemy
 from wtforms import ValidationError
+from markupsafe import Markup
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -536,7 +537,7 @@ def copr_edit(copr, form=None):
 
 def _check_rpmfusion(repos):
     if "rpmfusion" in repos:
-        message = flask.Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr">What I can build in Copr</a>.')
+        message = Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr">What I can build in Copr</a>.')
         flask.flash(message, "error")
 
 
