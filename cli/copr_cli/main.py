@@ -1340,7 +1340,7 @@ def setup_parser():
         "--namespace", dest="namespace", default=None,
         help=(
             "Some DistGit instances (e.g. the Fedora Copr dist-git) use "
-            "a namespaced clone/lookaside URLs.  Typically it meas that "
+            "a namespaced clone/lookaside URLs.  Typically it means that "
             "one package may be hosted in the same DistGit instance "
             "multiple times, in multiple namespaces.  Specify the NAMESPACE "
             "here (e.g. @copr/copr for @copr/copr/copr-cli package)."),
