@@ -25,17 +25,10 @@ def oidc_enabled(config):
         app.logger.error("OIDC_LOGIN or OIDC_PROVIDER_NAME is empty")
         return False
 
-    if not config.get("OIDC_CLIENT"):
-        app.logger.error("OIDC_CLIENT is empty")
-        return False
-
-    if not config.get("OIDC_SECRET"):
-        app.logger.error("OIDC_SECRET is empty")
-        return False
-
-    if not config.get("OIDC_SCOPES"):
-        app.logger.error("OIDC_SCOPES is empty")
-        return False
+    for key in ["OIDC_CLIENT", "OIDC_SECRET", "OIDC_SCOPES"]:
+        if not config.get(key):
+            app.logger.error("%s is empty", key)
+            return False
 
     if not config.get("OIDC_TOKEN_AUTH_METHOD"):
         app.logger.warning("OIDC_SCOPES is empty, using default method: client_secret_basic")
