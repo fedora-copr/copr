@@ -34,11 +34,32 @@ def oidc_enabled(config):
         app.logger.warning("OIDC_SCOPES is empty, using default method: client_secret_basic")
         config["OIDC_TOKEN_AUTH_METHOD"] = "client_secret_basic"
 
+    username_claim = config.get("OIDC_USERNAME_CLAIM")
+    if username_claim and \
+       not username_claim in ("username", "preferred_username"):
+        app.logger.error(
+            f"Invalid setting {repr(username_claim)} for OIDC_USERNAME_CLAIM, " +
+            "expected one of: \"username\", \"preferred_username\""
+        )
+        return False
+
     return config.get("OIDC_METADATA") or (
         config.get("OIDC_AUTH_URL")
         and config.get("OIDC_TOKEN_URL")
         and config.get("OIDC_USERINFO_URL")
     )
+
+
+def oidc_username_from_userinfo(config, userinfo):
+    """
+    Return a unique user name from UserInfo
+    """
+    try:
+        return userinfo[config.get("OIDC_USERNAME_CLAIM", "username")]
+    except KeyError as exc:
+        raise RuntimeError(
+            "Can't get unique username, see OIDC_USERNAME_CLAIM configuration docs"
+        ) from exc
 
 
 def init_oidc_app(app):

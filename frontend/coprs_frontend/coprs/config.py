@@ -175,6 +175,21 @@ class Config(object):
     # OIDC is opt-in
     OIDC_LOGIN = False
 
+    # The "claim" (for our purposes: a piece of information in the
+    # UserInfo returned by an OIDC provider) to use as a unique
+    # username.  There are two supported values:
+    #
+    #  - "username" (the default): a non-standard Ipsilon extension
+    #    that provides unique user names.
+    #
+    #  - "preferred_username": a claim that is specified in the OpenID
+    #    Connect standard, but one that the standard forbids Relying
+    #    Parties from using for this purpose since they are not
+    #    guaranteed to be unique.  This option is offered regardless,
+    #    since oftentimes this claim is unique to a specific user in
+    #    practice.
+    OIDC_USERNAME_CLAIM = "username"
+
     PACKAGES_COUNT = False
 
     EXTRA_BUILDCHROOT_TAGS = []
