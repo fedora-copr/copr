@@ -17,7 +17,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
 from coprs.auth import FedoraAccounts, UserAuth, OpenIDConnect
-from coprs.oidc import oidc_enabled
+from coprs.oidc import oidc_enabled, oidc_username_from_userinfo
 from coprs import oidc
 
 @app.before_request
@@ -115,7 +115,7 @@ def oidc_auth():
     oidc.copr.authorize_access_token()
     userinfo = oidc.copr.userinfo()
     user = OpenIDConnect.user_from_userinfo(userinfo)
-    flask.session["oidc"] = userinfo['username']
+    flask.session["oidc"] = oidc_username_from_userinfo(app.config, userinfo)
     return do_create_or_login(user)
 
 

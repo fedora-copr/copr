@@ -11,6 +11,7 @@ from coprs import oid
 from coprs import app
 from coprs.exceptions import CoprHttpException, AccessRestricted
 from coprs.logic.users_logic import UsersLogic
+from coprs.oidc import oidc_username_from_userinfo
 
 
 class UserAuth:
@@ -391,8 +392,9 @@ class OpenIDConnect:
 
         zoneinfo = userinfo['zoneinfo'] if 'zoneinfo' in userinfo \
             and userinfo['zoneinfo'] else None
+        username = oidc_username_from_userinfo(app.config, userinfo)
 
-        user = UserAuth.get_or_create_user(userinfo['username'], userinfo['email'], zoneinfo)
+        user = UserAuth.get_or_create_user(username, userinfo['email'], zoneinfo)
         GroupAuth.update_user_groups(user, OpenIDConnect.groups_from_userinfo(userinfo))
         return user
 
