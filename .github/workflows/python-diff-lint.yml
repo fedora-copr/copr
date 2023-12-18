@@ -40,7 +40,7 @@ jobs:
         if: ${{ always() }}
 
       - name: Upload SARIF to GitHub using github/codeql-action/upload-sarif
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ steps.VCS_Diff_Lint.outputs.sarif }}
         if: ${{ always() }}
