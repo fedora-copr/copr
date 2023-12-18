@@ -33,7 +33,7 @@ jobs:
             selinux
 
       - name: Upload artifact with detected defects in SARIF format
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: VCS Diff Lint SARIF
           path: ${{ steps.VCS_Diff_Lint.outputs.sarif }}
