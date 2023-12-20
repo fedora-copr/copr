@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from coprs import app
@@ -40,11 +41,21 @@ class CounterStatLogic(object):
         try:
             csl = CounterStatLogic.get(name).one()
             csl.counter = CounterStat.counter + count
+            db.session.add(csl)
         except NoResultFound:
-            csl = CounterStatLogic.add(name, counter_type)
-            csl.counter = count
+            try:
+                csl = CounterStatLogic.add(name, counter_type)
+                csl.counter = count
+                db.session.add(csl)
+                db.session.commit()
+                db.session.refresh(csl)
+            except IntegrityError:
+                # race condition - someone was faster
+                # try again first block
+                csl = CounterStatLogic.get(name).one()
+                csl.counter = CounterStat.counter + count
+                db.session.add(csl)
 
-        db.session.add(csl)
         return csl
 
     @classmethod
