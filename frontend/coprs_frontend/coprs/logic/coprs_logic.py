@@ -12,6 +12,7 @@ from sqlalchemy import not_
 from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.event import listens_for
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
@@ -690,9 +691,15 @@ class CoprDirsLogic(object):
                 f"Wrong directory '{dirname}' specified.  Directory name can "
                 "consist of alpha-numeric strings separated by colons.")
 
-        copr_dir = models.CoprDir(name=dirname, copr=copr, main=False)
+        try:
+            copr_dir = models.CoprDir(name=dirname, copr=copr, main=False)
+            db.session.add(copr_dir)
+            db.session.commit()
+            db.session.refresh(copr_dir)
+        except IntegrityError:
+            copr_dir = cls.get_by_copr(copr, dirname)
+            return copr_dir
         ActionsLogic.send_createrepo(copr, dirnames=[dirname])
-        db.session.add(copr_dir)
         return copr_dir
 
 
