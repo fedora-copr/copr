@@ -149,7 +149,7 @@ def get_package_list(ownername, projectname, with_latest_build=False,
     if len(packages) > MAX_PACKAGES_WITHOUT_PAGINATION:
         raise ApiError("Too many packages, please use pagination. "
                        "Requests are limited to only {0} packages at once."
-                       .format(MAX_PACKAGES_WITHOUT_PAGINATION))
+                       .format(MAX_PACKAGES_WITHOUT_PAGINATION), 413)
 
     # Query latest builds for all packages at once. We can't use this solution
     # for querying latest successfull builds, so that will be a little slower
@@ -286,17 +286,21 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
                 add_function = formdata.setlist if type(value) == list else formdata.add
                 add_function(key, value)
         form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, meta={'csrf': False})
-    except UnknownSourceTypeException:
-        raise ApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
+    except UnknownSourceTypeException as ex:
+        msg = ("Unsupported package source type {source_type_text}"
+               .format(source_type_text=source_type_text))
+        raise ApiError(msg, 400) from ex
 
     if form.validate_on_submit():
         if not package:
             try:
                 package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
-            except InsufficientRightsException:
-                raise ApiError("Insufficient permissions.")
-            except DuplicateException:
-                raise ApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
+            except InsufficientRightsException as ex:
+                raise ApiError("Insufficient permissions.", 403) from ex
+            except DuplicateException as ex:
+                msg = ("Package {0} already exists in copr {1}."
+                       .format(form.package_name.data, copr.full_name))
+                raise ApiError(msg, 409) from ex
 
         try:
             source_type = helpers.BuildSourceEnum(source_type_text)
@@ -316,7 +320,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
         db.session.add(package)
         db.session.commit()
     else:
-        raise ApiError(form.errors)
+        raise InvalidForm(form)
 
     return flask.jsonify({
         "output": "ok",
