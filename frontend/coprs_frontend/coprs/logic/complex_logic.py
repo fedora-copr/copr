@@ -23,7 +23,7 @@ from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 
 from coprs.logic.users_logic import UsersLogic
-from coprs.models import User, Copr
+from coprs.models import User, Copr, AutomationUser
 from coprs.logic.coprs_logic import (CoprsLogic, CoprDirsLogic, CoprChrootsLogic,
                                      PinnedCoprsLogic, MockChrootsLogic)
 
@@ -93,7 +93,7 @@ class ComplexLogic(object):
         """
 
         if admin_action:
-            user = copr.user
+            user = AutomationUser(name="automation user")
         else:
             user = flask.g.user
 
