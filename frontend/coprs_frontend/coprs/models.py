@@ -120,6 +120,7 @@ class AutomationUser(AbstractUser):
         log entries more readable.
         """
         self.username = name
+        self.admin = True
 
 
 class User(db.Model, helpers.Serializer, AbstractUser):

@@ -1202,7 +1202,7 @@ class BuildsLogic(object):
         """
         :type user: models.User or models.AutomationUser
         :type build: models.Build
-        :send_delete_action: boolean, set to True to let backend remove the
+        :param send_delete_action: boolean, set to True to let backend remove the
             build data
         """
         cls.check_build_to_delete(user, build)
