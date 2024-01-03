@@ -40,23 +40,17 @@ class CounterStatLogic(object):
         """
         try:
             csl = CounterStatLogic.get(name).one()
-            csl.counter = CounterStat.counter + count
-            db.session.add(csl)
         except NoResultFound:
             try:
                 csl = CounterStatLogic.add(name, counter_type)
-                csl.counter = count
                 db.session.add(csl)
                 db.session.commit()
-                db.session.refresh(csl)
             except IntegrityError:
                 # race condition - someone was faster
-                # try again first block
-                csl = CounterStatLogic.get(name).one()
-                csl.counter = CounterStat.counter + count
-                db.session.add(csl)
-
-        return csl
+                pass
+        db.session.query(CounterStat).filter(CounterStat.name==name).\
+            update({"counter": CounterStat.counter + count})
+        db.session.commit()
 
     @classmethod
     def get_copr_repo_dl_stat(cls, copr):
