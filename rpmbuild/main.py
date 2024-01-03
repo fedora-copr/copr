@@ -301,10 +301,8 @@ def dump_configs(args, config):
     resultdir = config.get("main", "resultdir")
     builder = MockBuilder(task, None, resultdir, config)
 
-    configdir = os.path.join(resultdir, "configs")
-    config_paths = builder.prepare_configs(configdir)
-    for config_path in config_paths:
-        log.info("Wrote: "+config_path)
+    builder.prepare_configs()
+    log.info("Wrote: %s", builder.mock_config_file)
 
 
 def get_vanilla_build_config(url):
