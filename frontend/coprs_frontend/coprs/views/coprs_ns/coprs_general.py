@@ -877,8 +877,18 @@ def _render_external_repo_template(dep, copr_dir, mock_chroot, dep_idx):
                                  url=baseurl) + "\n"
 
 
-@cache.memoize(timeout=5*60)
 def render_generate_repo_file(copr_dir, name_release, arch=None):
+    name = helpers.get_stat_name(
+        CounterStatType.REPO_DL,
+        copr_dir=copr_dir,
+        name_release=name_release,
+    )
+    CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
+    db.session.commit()
+    return render_generate_repo_file_cached(copr_dir, name_release, arch=arch)
+
+@cache.memoize(timeout=5*60)
+def render_generate_repo_file_cached(copr_dir, name_release, arch=None):
     copr = copr_dir.copr
 
     # redirect the aliased chroot only if it is not enabled yet
@@ -963,14 +973,6 @@ def render_generate_repo_file(copr_dir, name_release, arch=None):
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
         "filename={0}.repo".format(copr_dir.repo_name)
-
-    name = helpers.get_stat_name(
-        CounterStatType.REPO_DL,
-        copr_dir=copr_dir,
-        name_release=name_release,
-    )
-    CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
-    db.session.commit()
 
     return response
 
