@@ -481,8 +481,9 @@ class FullnameSchema(ParamsSchema):
 
 
 @dataclass
-class OwnernameSchema(ParamsSchema):
+class ProjectParamsSchema(ParamsSchema):
     ownername: String
+    exist_ok: Boolean
 
 
 # OUTPUT MODELS
@@ -515,5 +516,5 @@ project_delete_input_model = ProjectDelete.get_cls().input_model()
 package_get_params = PackageGet.get_cls().params_schema()
 project_chroot_get_params = ProjectChrootGet.get_cls().params_schema()
 fullname_params = FullnameSchema.get_cls().params_schema()
-ownername_params = OwnernameSchema.get_cls().params_schema()
+project_params = ProjectParamsSchema.get_cls().params_schema()
 pagination_params = PaginationMeta.get_cls().params_schema()

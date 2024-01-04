@@ -426,3 +426,25 @@ class TestApiV3Permissions(CoprsTestCase):
         r = self.auth_post('/request/user2/barcopr', permissions, u)
         assert r.status_code == 200
         assert len(calls) == 2
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_add_exist_ok(self):
+        route = "/api_3/project/add/{}".format(self.transaction_username)
+        data = {"name": "foo", "chroots": ["fedora-rawhide-i386"]}
+
+        # There is no conflict, we can obviously create the project
+        response = self.api3.post(route, data)
+        assert response.status_code == 200
+
+        # The project already exists
+        response = self.api3.post(route, data)
+        assert response.status_code == 400
+        assert "already have a project" in json.loads(response.data)["error"]
+
+        # When using exist_ok, the request is successful, and existing project
+        # is returned
+        route += "?exist_ok=True"
+        response = self.api3.post(route, data)
+        assert response.status_code == 200
+        assert json.loads(response.data)["full_name"] == "user1/foo"

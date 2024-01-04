@@ -406,6 +406,14 @@ confirm = Boolean(
     )
 )
 
+exist_ok = Boolean(
+    description=(
+        "Don't fail if a project with this owner and name already exist, "
+        "return the existing instance instead. Please be aware that the "
+        "project attributes are not updated in such case."
+    )
+)
+
 # TODO: these needs description
 
 chroot_repos = Raw()
