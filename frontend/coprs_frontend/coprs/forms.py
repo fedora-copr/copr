@@ -262,7 +262,7 @@ class SrpmValidator(object):
 
 class CoprUniqueNameValidator(object):
 
-    def __init__(self, message=None, user=None, group=None):
+    def __init__(self, message=None, user=None, group=None, exist_ok=False):
         if not message:
             if group is None:
                 message = "You already have a project named '{}'."
@@ -273,6 +273,8 @@ class CoprUniqueNameValidator(object):
             user = flask.g.user
         self.user = user
         self.group = group
+        self.exist_ok = exist_ok
+        self.copr = None
 
     def __call__(self, form, field):
         if self.group:
@@ -281,6 +283,11 @@ class CoprUniqueNameValidator(object):
         else:
             existing = CoprsLogic.exists_for_user(
                 self.user, field.data).first()
+
+        # Save the existing copr instance, so we can later return it without
+        # querying the database again
+        if existing and self.exist_ok:
+            self.copr = existing
 
         if existing and str(existing.id) != form.id.data:
             raise wtforms.ValidationError(self.message.format(field.data))
@@ -704,7 +711,7 @@ class CoprForm(BaseForm):
 class CoprFormFactory(object):
 
     @staticmethod
-    def create_form_cls(user=None, group=None, copr=None):
+    def create_form_cls(user=None, group=None, copr=None, exist_ok=False):
         class F(CoprForm):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
@@ -717,7 +724,8 @@ class CoprFormFactory(object):
                 validators=[
                     wtforms.validators.DataRequired(),
                     NameCharactersValidator(),
-                    CoprUniqueNameValidator(user=user, group=group),
+                    CoprUniqueNameValidator(user=user, group=group,
+                                            exist_ok=exist_ok),
                     NameNotNumberValidator()
                 ])
 

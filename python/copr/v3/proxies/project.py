@@ -72,7 +72,7 @@ class ProjectProxy(BaseProxy):
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=True,
             fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None,
-            repo_priority=None):
+            repo_priority=None, exist_ok=False):
         """
         Create a project
 
@@ -115,6 +115,7 @@ class ProjectProxy(BaseProxy):
         endpoint = "/project/add/{ownername}"
         params = {
             "ownername": ownername,
+            "exist_ok": exist_ok,
         }
         data = {
             "name": projectname,

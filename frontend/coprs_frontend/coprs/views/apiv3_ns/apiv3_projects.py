@@ -26,7 +26,7 @@ from coprs.views.apiv3_ns.schema.schemas import (
     project_delete_input_model,
     fullname_params,
     pagination_project_model,
-    ownername_params,
+    project_params,
     pagination_params,
 )
 from coprs.views.apiv3_ns.schema.docs import query_docs
@@ -139,7 +139,7 @@ class Project(Resource):
 class ProjectList(Resource):
     @restx_pagination
     @query_to_parameters
-    @apiv3_projects_ns.doc(params=ownername_params | pagination_params)
+    @apiv3_projects_ns.doc(params=project_params | pagination_params)
     @apiv3_projects_ns.marshal_list_with(pagination_project_model)
     @apiv3_projects_ns.response(
         HTTPStatus.PARTIAL_CONTENT.value, HTTPStatus.PARTIAL_CONTENT.description
@@ -184,25 +184,39 @@ class ProjectSearch(Resource):
 @apiv3_projects_ns.route("/add/<ownername>")
 class ProjectAdd(Resource):
     @restx_api_login_required
-    @apiv3_projects_ns.doc(params=ownername_params)
+    @query_to_parameters
+    @apiv3_projects_ns.doc(params=project_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_add_input_model)
     @apiv3_projects_ns.response(HTTPStatus.OK.value, "Copr project created")
     @apiv3_projects_ns.response(
         HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
     )
-    def post(self, ownername):
+    def post(self, ownername, exist_ok=False):
         """
         Create new Copr project
         Create new Copr project for ownername with specified data inserted in form.
         """
+        exist_ok = flask.request.args.get("exist_ok") == "True"
         user, group = owner2tuple(ownername)
         data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
-        form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group)
+        form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group,
+                                                           exist_ok=exist_ok)
         set_defaults(data, form_class)
         form = form_class(data, meta={"csrf": False})
 
         if not form.validate_on_submit():
+            if exist_ok:
+                # This is an ugly hack to avoid additional database query.
+                # If a project with this owner and name already exists, the
+                # `CoprUniqueNameValidator` saved its instance. Let's find the
+                # validator and return the existing copr instance.
+                for validator in form.name.validators:
+                    if not isinstance(validator, forms.CoprUniqueNameValidator):
+                        continue
+                    if not validator.copr:
+                        continue
+                    return to_dict(validator.copr)
             raise InvalidForm(form)
         validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
