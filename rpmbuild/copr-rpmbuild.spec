@@ -72,6 +72,7 @@ Requires: sed
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg
 Recommends: python-srpm-macros
+Recommends: copr-distgit-client
 Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
