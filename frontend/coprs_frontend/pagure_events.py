@@ -187,8 +187,15 @@ def git_compare_urls(url1, url2):
 
 
 class build_on_fedmsg_loop():
-
     def __call__(self, message):
+        with app.app_context():
+            # Process the message.  Keep the logic in a separate method; it is
+            # sometimes useful to call the_call() without the explicit
+            # app_context (namely test cases that get app context in
+            # setup_method).
+            return self.the_call(message)
+
+    def the_call(self, message):
         pp = pprint.PrettyPrinter(width=120)
 
         log.debug('Parsing...')
