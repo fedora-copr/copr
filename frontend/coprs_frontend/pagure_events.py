@@ -188,6 +188,12 @@ def git_compare_urls(url1, url2):
 
 class build_on_fedmsg_loop():
     def __call__(self, message):
+        """
+        The fedora-messaging hook/callback method reacting on delivered
+        messages (one call per one message).  It is convenient to work with
+        a class instance object while fedora-messaging requires us to provide
+        callable — using `__call__()`.
+        """
         with app.app_context():
             # Process the message.  Keep the logic in a separate method; it is
             # sometimes useful to call the_call() without the explicit
@@ -196,6 +202,13 @@ class build_on_fedmsg_loop():
             return self.the_call(message)
 
     def the_call(self, message):
+        """
+        Process the message.  Needs to be called within a Flask's application
+        context.
+        """
+        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-statements
+
         pp = pprint.PrettyPrinter(width=120)
 
         log.debug('Parsing...')
@@ -297,7 +310,7 @@ class build_on_fedmsg_loop():
                     )
                     if build:
                         log.info('\t -> {}'.format(build.to_dict()))
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     log.exception(str(e))
                     db.session.rollback()
                 else:
