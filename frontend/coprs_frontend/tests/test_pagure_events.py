@@ -76,7 +76,7 @@ class TestPagureEvents(CoprsTestCase):
             'io.pagure.prod.pagure.pull-request.updated',
             self.data['msg']
         )
-        build(message)
+        build.the_call(message)
         builds = self.models.Build.query.all()
         assert len(builds) == 1
         assert builds[0].scm_object_type == 'pull-request'
@@ -158,7 +158,7 @@ class TestPagureEvents(CoprsTestCase):
             'io.pagure.prod.pagure.git.receive',
             self.data['msg']
         )
-        build(message)
+        build.the_call(message)
         builds = self.models.Build.query.all()
         assert len(builds) == 1
         assert builds[0].scm_object_type == 'commit'

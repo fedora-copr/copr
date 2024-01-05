@@ -100,7 +100,7 @@ class PullRequestTrigger:
                 'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
                 'tests/integration/conftest.py b/tests/integration/conftest.py index '
                 '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
-            self.build(message)
+            self.build.the_call(message)
 
         builds = models.Build.query.order_by("id").all()
 
