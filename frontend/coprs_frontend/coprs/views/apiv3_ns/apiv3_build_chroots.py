@@ -1,10 +1,29 @@
-import flask
-from coprs.views.apiv3_ns import apiv3_ns
+# pylint: disable=missing-class-docstring
+
+from http import HTTPStatus
+
+from flask_restx import Namespace, Resource
+
+from coprs.views.apiv3_ns import api, query_to_parameters
 from coprs import models
 from coprs.logic.builds_logic import BuildChrootsLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.complex_logic import BuildConfigLogic, ComplexLogic
-from . import query_params, pagination, Paginator, GET
+from coprs.views.apiv3_ns.schema.schemas import (
+    build_chroot_model,
+    build_chroot_params,
+    build_id_params,
+    pagination_params,
+    pagination_build_chroot_model,
+    build_chroot_config_model,
+    nevra_packages_model,
+)
+from coprs.views.apiv3_ns import restx_pagination
+from . import Paginator
+
+
+apiv3_bchroots_ns = Namespace("build-chroot", description="Build Chroots")
+api.add_namespace(apiv3_bchroots_ns)
 
 
 def to_dict(build_chroot):
@@ -36,41 +55,92 @@ def build_config(build_chroot):
     return dict_data
 
 
-@apiv3_ns.route("/build-chroot", methods=GET)
-@apiv3_ns.route("/build-chroot/<int:build_id>/<chrootname>", methods=GET)  # deprecated
-@query_params()
-def get_build_chroot(build_id, chrootname):
-    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
-    return flask.jsonify(to_dict(chroot))
+@apiv3_bchroots_ns.route("/")
+@apiv3_bchroots_ns.route(
+    "/<int:build_id>/<chrootname>",
+    doc={"deprecated": True, "description": "Use query parameters instead"},
+)
+class BuildChroot(Resource):
+    @query_to_parameters
+    @apiv3_bchroots_ns.doc(params=build_chroot_params)
+    @apiv3_bchroots_ns.marshal_with(build_chroot_model)
+    @apiv3_bchroots_ns.response(HTTPStatus.OK.value, "OK, Build chroot data follows...")
+    @apiv3_bchroots_ns.response(
+        HTTPStatus.NOT_FOUND.value, "No such Build chroot exist"
+    )
+    def get(self, build_id, chrootname):
+        """
+        Get build chroot
+        Get information about specific build chroot by build id and mock chroot name.
+        """
+        chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
+        return to_dict(chroot)
 
 
-@apiv3_ns.route("/build-chroot/list", methods=GET)
-@apiv3_ns.route("/build-chroot/list/<int:build_id>", methods=GET)
-@pagination()
-@query_params()
-def get_build_chroot_list(build_id, **kwargs):
-    # For the python3-copr <= 1.105
-    if kwargs.get("order") == "name":
-        kwargs.pop("order")
-    query = BuildChrootsLogic.filter_by_build_id(BuildChrootsLogic.get_multiply(), build_id)
-    paginator = Paginator(query, models.BuildChroot, **kwargs)
-    chroots = paginator.map(to_dict)
-    return flask.jsonify(items=chroots, meta=paginator.meta)
+@apiv3_bchroots_ns.route("/list")
+@apiv3_bchroots_ns.route(
+    "/list/<int:build_id>",
+    doc={"deprecated": True, "description": "Use query parameters instead"},
+)
+class BuildChrootList(Resource):
+    @restx_pagination
+    @query_to_parameters
+    @apiv3_bchroots_ns.doc(params=build_id_params | pagination_params)
+    @apiv3_bchroots_ns.marshal_list_with(pagination_build_chroot_model)
+    @apiv3_bchroots_ns.response(
+        HTTPStatus.PARTIAL_CONTENT.value, HTTPStatus.PARTIAL_CONTENT.description
+    )
+    def get(self, build_id, **kwargs):
+        """
+        List Build chroots
+        List build chroots by build id and pagination query.
+        """
+        # For the python3-copr <= 1.105
+        if kwargs.get("order") == "name":
+            kwargs.pop("order")
+        query = BuildChrootsLogic.filter_by_build_id(BuildChrootsLogic.get_multiply(), build_id)
+        paginator = Paginator(query, models.BuildChroot, **kwargs)
+        chroots = paginator.map(to_dict)
+        return {"items": chroots, "meta": paginator.meta}
 
 
-@apiv3_ns.route("/build-chroot/build-config", methods=GET)
-@apiv3_ns.route("/build-chroot/build-config/<int:build_id>/<chrootname>", methods=GET)  # deprecated
-@query_params()
-def get_build_chroot_config(build_id, chrootname):
-    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
-    return flask.jsonify(build_config(chroot))
+@apiv3_bchroots_ns.route("/build-config")
+@apiv3_bchroots_ns.route(
+    "/build-config/<int:build_id>/<chrootname>",
+    doc={"deprecated": True, "description": "Use query parameters instead"},
+)
+class BuildChrootConfig(Resource):
+    @query_to_parameters
+    @apiv3_bchroots_ns.doc(params=build_chroot_params)
+    @apiv3_bchroots_ns.marshal_with(build_chroot_config_model, skip_none=True)
+    @apiv3_bchroots_ns.response(HTTPStatus.OK.value, "OK, Build chroot config follows...")
+    @apiv3_bchroots_ns.response(
+        HTTPStatus.NOT_FOUND.value, "No such Build chroot exist"
+    )
+    def get(self, build_id, chrootname):
+        """
+        Get Build chroot config
+        Get Build chroot by build id and its mock chroot name.
+        """
+        chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
+        return build_config(chroot)
 
 
-@apiv3_ns.route("/build-chroot/built-packages/", methods=GET)
-@query_params()
-def get_build_chroot_built_packages(build_id, chrootname):
-    """
-    Return built packages (NEVRA dicts) for a given build chroot
-    """
-    chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
-    return flask.jsonify(chroot.results_dict)
+@apiv3_bchroots_ns.route("/built-packages")
+class BuildChrootPackages(Resource):
+    @query_to_parameters
+    @apiv3_bchroots_ns.doc(params=build_chroot_params)
+    @apiv3_bchroots_ns.marshal_with(nevra_packages_model)
+    @apiv3_bchroots_ns.response(
+        HTTPStatus.OK.value, "OK, dict containing all built packages in this chroot follows..."
+    )
+    @apiv3_bchroots_ns.response(
+        HTTPStatus.NOT_FOUND.value, "No such Build chroot exist"
+    )
+    def get(self, build_id, chrootname):
+        """
+        Get built packages
+        Get built packages (NEVRA dicts) for a given mock chroot name.
+        """
+        chroot = ComplexLogic.get_build_chroot(build_id, chrootname)
+        return chroot.results_dict

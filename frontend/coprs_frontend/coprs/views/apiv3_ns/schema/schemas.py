@@ -25,14 +25,21 @@ Things used for the input/output:
 
 
 from dataclasses import dataclass, fields, asdict, MISSING
-from functools import wraps
 from typing import Any
 
-from flask_restx.fields import String, List, Integer, Boolean, Nested, Url, Raw
+from flask_restx.fields import String, List, Integer, Boolean, Nested, Raw
 
 from coprs.views.apiv3_ns import api
 from coprs.views.apiv3_ns.schema import fields as schema_fields
-from coprs.views.apiv3_ns.schema.fields import scm_type, mock_chroot, additional_repos, clone
+from coprs.views.apiv3_ns.schema.fields import (
+    scm_type,
+    mock_chroot,
+    additional_repos,
+    clone,
+    id_field,
+    url,
+    Url,
+)
 
 
 @dataclass
@@ -221,20 +228,6 @@ class PaginationMeta(ParamsSchema):
 _pagination_meta_model = PaginationMeta.get_cls().model()
 
 
-# checks if `items` in Pagination schema are defined (don't have None value)
-def _check_if_items_are_defined(method):
-    @wraps(method)
-    def check_items(self, *args, **kwargs):
-        if getattr(self, "items") is None:
-            raise KeyError(
-                "No items are defined in Pagination. Perhaps you forgot to"
-                " specify it when creating Pagination instance?"
-            )
-        return method(self, *args, **kwargs)
-
-    return check_items
-
-
 @dataclass
 class Pagination(Schema):
     """
@@ -245,8 +238,13 @@ class Pagination(Schema):
     items: Any = None
     meta: Nested = Nested(_pagination_meta_model)
 
-    @_check_if_items_are_defined
     def model(self):
+        if self.items is None:
+            raise KeyError(
+                "No items are defined in Pagination. Perhaps you forgot to"
+                " specify it when creating Pagination instance?"
+            )
+
         return super().model()
 
 
@@ -486,6 +484,55 @@ class ProjectParamsSchema(ParamsSchema):
     exist_ok: Boolean
 
 
+@dataclass
+class BuildChroot(Schema):
+    started_on: Integer
+    ended_on: Integer
+    state: String
+    name: String = mock_chroot
+    result_url: Url = url
+
+
+@dataclass
+class BuildChrootParams(ParamsSchema):
+    build_id: Integer = id_field
+    chrootname: String = mock_chroot
+
+    __all_required: bool = True
+
+
+@dataclass
+class BuildChrootConfig(Schema):
+    additional_repos: List
+    additional_packages: List
+    with_opts: List
+    without_opts: List
+    enable_net: Boolean
+    is_background: Boolean
+    memory_limit: Integer
+    timeout: Integer
+    bootstrap: String
+    bootstrap_image: String
+    repos: List = List(Nested(_repo_model))
+
+
+@dataclass
+class Nevra(Schema):
+    arch: String
+    epoch: Integer
+    release: String
+    version: String
+    name: String = String(description="Package name")
+
+
+_nevra_model = Nevra.get_cls().model()
+
+
+@dataclass
+class NevraPackages(Schema):
+    packages: List = List(Nested(_nevra_model))
+
+
 # OUTPUT MODELS
 project_chroot_model = ProjectChroot.get_cls().model()
 project_chroot_build_config_model = ProjectChrootBuildConfig.get_cls().model()
@@ -493,8 +540,12 @@ source_dict_scm_model = SourceDictScm.get_cls().model()
 source_dict_pypi_model = SourceDictPyPI.get_cls().model()
 package_model = Package.get_cls().model()
 project_model = Project.get_cls().model()
+build_chroot_model = BuildChroot.get_cls().model()
+build_chroot_config_model = BuildChrootConfig.get_cls().model()
+nevra_packages_model = NevraPackages.get_cls().model()
 
 pagination_project_model = Pagination(items=List(Nested(project_model))).model()
+pagination_build_chroot_model = Pagination(items=List(Nested(build_chroot_model))).model()
 
 source_package_model = _source_package_model
 build_model = _build_model
@@ -518,3 +569,5 @@ project_chroot_get_params = ProjectChrootGet.get_cls().params_schema()
 fullname_params = FullnameSchema.get_cls().params_schema()
 project_params = ProjectParamsSchema.get_cls().params_schema()
 pagination_params = PaginationMeta.get_cls().params_schema()
+build_chroot_params = BuildChrootParams.get_cls().params_schema()
+build_id_params = {"build_id": build_chroot_params["build_id"]}
