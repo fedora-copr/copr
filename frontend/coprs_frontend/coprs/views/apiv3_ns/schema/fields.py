@@ -6,7 +6,7 @@ Try to be consistent with field names and its corresponding names in API so
 """
 
 
-from flask_restx.fields import String, List, Integer, Boolean, Url, Raw
+from flask_restx.fields import String, List, Integer, Boolean, Raw, StringMixin
 
 # TODO: split these fields to some hierarchy e.g. using dataclasses or to some clusters
 
@@ -16,6 +16,27 @@ from flask_restx.fields import String, List, Integer, Boolean, Url, Raw
 # TODO: some fields needs examples
 
 # TODO: this file is not perfect in documenting... missing enums, choices, etc.
+
+
+class Url(StringMixin, Raw):
+    """
+    Feel free to drop this if you want to spend 4 hours why the fuck everything
+     stopped working. TLDR; query_to_parameters and flask_restx.fields.Url.output
+     aren't friends.
+
+    Flask_restx is opinionated and tries to follow some conventions, we break one of
+     them by query_to_parameters decorator. The problem begins when Url field is used
+     in marshaling because flask_restx tries to be clever and it is building example
+     URL for you to documentation page as output. And to be even more clever, if no
+     URL from user was provided, it uses flask.request.endpoint route and tries to
+     build endpoint with correct values. Remember we tinker with the values in
+     query_to_parameters so it screws.
+    """
+    __schema_format__ = "uri"
+
+    def __init__(self, example=None, **kwargs):
+        self.example = example or "https://www.example.uwu/xyz"
+        super().__init__(example=example, **kwargs)
 
 
 id_field = Integer(
@@ -170,7 +191,7 @@ auto_rebuild = Boolean(
     description="Auto-rebuild the package? (i.e. every commit or new tag)",
 )
 
-clone_url = String(
+clone_url = Url(
     description="URL to your Git or SVN repository",
     example="https://github.com/fedora-copr/copr.git",
 )
@@ -195,8 +216,6 @@ chroots = List(
     description="List of chroot names",
     example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
 )
-
-chroots.clone()
 
 submitted_on = Integer(
     description="Timestamp when the build was submitted",
@@ -414,6 +433,20 @@ exist_ok = Boolean(
     )
 )
 
+timeout = Integer(
+    default=18000,
+    example=123123,
+    description="Number of seconds we allow the builds to run.",
+)
+
+release = String(example="1.fc39")
+
+epoch = Integer(example=3)
+
+arch = String(example="x86_64")
+
+version = String(example="1.0")
+
 # TODO: these needs description
 
 chroot_repos = Raw()
@@ -424,13 +457,13 @@ verify = Boolean()
 
 priority = Integer()
 
+memory_limit = Integer()
+
 # TODO: specify those only in Repo schema?
 
 baseurl = Url()
 
-url = String()
-
-version = String()
+url = Url()
 
 webhook_rebuild = Boolean()
 
