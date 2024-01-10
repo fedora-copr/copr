@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:37
+FROM registry.fedoraproject.org/fedora:39
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
@@ -46,8 +46,7 @@ RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 
 # setup root user
-RUN echo 'root:passwd' | chpasswd && \
-    mkdir /root/.ssh && chmod 700 /root /root/.ssh
+RUN echo 'root:passwd' | chpasswd && chmod 700 /root /root/.ssh
 
 # setup copr user
 RUN set -x ; \
