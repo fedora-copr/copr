@@ -1451,8 +1451,9 @@ def setup_parser():
     # create the parser for the "build" (url/upload) command
     parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
                                          help="Build packages to a specified copr")
-    parser_build.add_argument("pkgs", nargs="+",
-                              help="filename of SRPM or URL of packages to build")
+    parser_build.add_argument(
+        "pkgs", nargs="+",
+        help="List of filenames or URLs for SRPMs or SPEC files to build packages")
 
     parser_build.set_defaults(func="action_build")
 
