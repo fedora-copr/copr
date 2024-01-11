@@ -159,6 +159,19 @@ class _BuildMessage(_CoprProjectMessage):
             release=release,
         )
 
+    @property
+    def usernames(self):
+        """
+        List of usernames that are affected by the action that caused this message.
+
+        Those users will be notified by FMN if they chose to receive their notifications.
+        """
+        usernames = [self.submitter, self.body.get("owner")]
+        # filter out nones and groups and deduplicate
+        usernames = set(u for u in usernames if isinstance(u, str) and not u.startswith("@"))
+        # return it sorted
+        return list(sorted(usernames))
+
 
 class _BuildChrootMessage(_BuildMessage):
     @property

@@ -46,6 +46,15 @@ class BuildChrootEnded(_BuildChrootMessage):
             self.status,
         )
 
+    @property
+    def agent_name(self):
+        """The username who caused the action that generated this message."""
+        # The canceled status can be caused by the submitter but also any other
+        # that has build or admin access. To be safe we don't set it as the
+        # agent_name.
+        # The other statuses are not caused by the user who started the build
+        return None
+
 
 class BuildChrootStarted(_BuildChrootMessage):
     """
@@ -57,6 +66,11 @@ class BuildChrootStarted(_BuildChrootMessage):
             super(BuildChrootStarted, self)._str_prefix(),
             self.chroot,
         )
+
+    @property
+    def agent_name(self):
+        """The username who caused the action that generated this message."""
+        return self.submitter
 
 
 class BuildChrootStartedV1(_PreFMBuildMessage, BuildChrootStarted):
