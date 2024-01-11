@@ -128,6 +128,11 @@ class _PreFMBuildMessage(_BuildChrootMessage):
     def package_name(self):
         return self.body.get('pkg')
 
+    @property
+    def submitter(self):
+        """The username of the person who submitted the build."""
+        return self.body.get('user')
+
     def _evr(self):
         evr = self.body.get('version')
         if not evr:

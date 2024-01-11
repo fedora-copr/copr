@@ -139,3 +139,8 @@ class _OldStompChrootMessage(_BuildChrootMessage):
     def package_name(self):
         name, _, _, _ = self._nevr()
         return name
+
+    @property
+    def submitter(self):
+        """The username of the person who submitted the build."""
+        return self.body.get('submitter')

@@ -108,6 +108,14 @@ class BuildChrootStartedV1Test(unittest.TestCase):
         assert message.package_release == '1.fc31'
         assert message.package_epoch is None
 
+    def test_agent_name(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.agent_name == "churchyard"
+
+    def test_usernames(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.usernames == ["churchyard"]
+
 
 class BuildChrootEndedV1Test(BuildChrootStartedV1Test):
     msg_class = schema.BuildChrootEndedV1
@@ -150,6 +158,21 @@ class BuildChrootEndedV1Test(BuildChrootStartedV1Test):
         assert message.package_release == '1.fc30'
         assert message.package_epoch is None
 
+    def test_agent_name(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.agent_name is None
+
+    def test_agent_name_canceled(self):
+        body = copy.deepcopy(self.fedmsg_message["msg"])
+        body["status"] = 2
+        message = self.msg_class(body=body)
+        # The submitter isn't the only one that can cancel a build.
+        assert message.agent_name is None
+
+    def test_usernames(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.usernames == ["kbaig"]
+
 
 class BuildChrootStartedV1DontUseTest(BuildChrootStartedV1Test):
     msg_class = schema.BuildChrootStartedV1DontUse
@@ -191,6 +214,14 @@ class BuildChrootStartedV1DontUseTest(BuildChrootStartedV1Test):
         assert message.package_version == "20190626_1356"
         assert message.package_release == "0"
         assert message.package_epoch == '10'
+
+    def test_agent_name(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.agent_name == "praiskup"
+
+    def test_usernames(self):
+        message = self.msg_class(body=self.fedmsg_message["msg"])
+        assert message.usernames == ["praiskup"]
 
 
 class BuildChrootStompOldStartTest(unittest.TestCase):
