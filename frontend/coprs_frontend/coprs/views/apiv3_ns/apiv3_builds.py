@@ -228,7 +228,7 @@ def check_before_build():
     copr = get_copr()
 
     # Raises an exception if CoprDir doesn't exist
-    if data["project_dirname"]:
+    if data.get("project_dirname"):
         CoprDirsLogic.get_by_copr(copr, data["project_dirname"])
 
     # Permissions check
