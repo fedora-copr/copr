@@ -325,7 +325,14 @@ class Commands(object):
         # Before we start uploading potentially large source RPM file, make sure
         # that the user has valid credentials and can build in the project.
         self.client.build_proxy.check_before_build(
-            username, projectname, project_dirname, buildopts)
+            ownername=username,
+            projectname=projectname,
+            # documentation says user can create directory with copr build, but
+            # /build/check-before-build endpoint checks for presence of this
+            # dirname even before creating it in this check.
+            project_dirname=None,
+            buildopts=buildopts,
+        )
 
         builds = []
         for pkg in args.pkgs:
