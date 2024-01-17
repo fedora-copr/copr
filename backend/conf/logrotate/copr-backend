@@ -2,7 +2,7 @@
 
 /var/log/copr-backend/*.log {
     weekly
-    rotate 13
+    rotate 6
     copytruncate
     compress
     notifempty
@@ -12,7 +12,7 @@
 
 /var/log/copr-backend/workers/worker-*.log {
     weekly
-    rotate 13
+    rotate 6
     copytruncate
     compress
     notifempty
