@@ -141,6 +141,6 @@ class _OldStompChrootMessage(_BuildChrootMessage):
         return name
 
     @property
-    def submitter(self):
-        """The username of the person who submitted the build."""
+    def _raw_submitter(self):
+        """The username of the person who submitted the build. May be namespaced."""
         return self.body.get('submitter')

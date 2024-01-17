@@ -129,8 +129,8 @@ class _PreFMBuildMessage(_BuildChrootMessage):
         return self.body.get('pkg')
 
     @property
-    def submitter(self):
-        """The username of the person who submitted the build."""
+    def _raw_submitter(self):
+        """The username of the person who submitted the build. May be namespaced."""
         return self.body.get('user')
 
     def _evr(self):

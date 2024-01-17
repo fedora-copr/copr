@@ -112,6 +112,12 @@ class BuildChrootStartedV1Test(unittest.TestCase):
         message = self.msg_class(body=self.fedmsg_message["msg"])
         assert message.agent_name == "churchyard"
 
+    def test_agent_name_namespaced(self):
+        body = copy.deepcopy(self.fedmsg_message["msg"])
+        body["user"] = "github.com:churchyard"
+        message = self.msg_class(body=body)
+        assert message.agent_name is None
+
     def test_usernames(self):
         message = self.msg_class(body=self.fedmsg_message["msg"])
         assert message.usernames == ["churchyard"]
