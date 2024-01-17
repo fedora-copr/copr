@@ -160,6 +160,15 @@ class _BuildMessage(_CoprProjectMessage):
         )
 
     @property
+    def submitter(self):
+        """The username of the person who submitted the build."""
+        username = self._raw_submitter
+        if isinstance(username, str) and ":" in username:
+            # This is namespaced, such as github.com:foobar
+            return None
+        return username
+
+    @property
     def usernames(self):
         """
         List of usernames that are affected by the action that caused this message.
