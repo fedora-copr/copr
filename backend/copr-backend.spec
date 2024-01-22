@@ -57,6 +57,7 @@ BuildRequires: python3-setproctitle
 BuildRequires: python3-sphinx
 BuildRequires: python3-tabulate
 BuildRequires: python3-zstandard
+BuildRequires: python3-cachetools
 BuildRequires: modulemd-tools >= 0.6
 BuildRequires: prunerepo >= %prunerepo_version
 BuildRequires: dnf
@@ -95,6 +96,7 @@ Requires:   python3-retask
 Requires:   python3-setproctitle
 Requires:   python3-tabulate
 Requires:   python3-boto3
+Requires:   python3-cachetools
 Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
