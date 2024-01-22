@@ -83,7 +83,7 @@ def _fake_host():
     host = ResallocHost()
     host._is_ready = True
     host.hostname = "1.2.3.4"
-    host.ticket = mock.MagicMock()
+    host.ticket = mock.MagicMock(failed=False)
     host.ticket.id = 10
     host.release = mock.MagicMock()
     return host

@@ -14,6 +14,7 @@ import shlex
 
 from datetime import datetime
 from packaging import version
+from cachetools.func import ttl_cache
 
 from copr_common.enums import StatusEnum
 from copr_common.helpers import (
@@ -397,7 +398,26 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.debug("setting title: %s", text)
         self.setproctitle(text)
 
+    def _check_build_interrupted(self):
+        """
+        Should we interrupet a running worker?
+        """
+        return (self._check_failed_resalloc_ticket()
+                or self._cancel_task_check_request())
+
+    @ttl_cache(ttl=10*60)
+    def _check_failed_resalloc_ticket(self):
+        """
+        Did the resalloc ticket fail?
+        """
+        self.host.ticket.collect()
+        self.log.info("Status: %s", self.host.ticket.failed)
+        return self.host.ticket.failed
+
     def _cancel_task_check_request(self):
+        """
+        Was the build canceled by the user?
+        """
         self.canceled = bool(self.redis_get_worker_flag("cancel_request"))
         return self.canceled
 
@@ -452,12 +472,15 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             log=self.log,
         )
 
-    def _cancel_running_worker(self):
+    def _discard_running_worker(self):
         """
         This is "canceling" callback to CancellableThreadTask, so please never
         raise any exception.  The worst case scenario is that nothing is
         canceled.
         """
+        if not self.canceled:
+            return
+
         self._proctitle("Canceling running task...")
         self.redis_set_worker_flag("canceling", 1)
         try:
@@ -901,12 +924,14 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self._start_remote_build()
         transfer_failure = CancellableThreadTask(
             self._transfer_log_file,
-            self._cancel_task_check_request,
-            self._cancel_running_worker,
+            self._check_build_interrupted,
+            self._discard_running_worker,
             check_period=CANCEL_CHECK_PERIOD,
         ).run()
         if self.canceled:
             raise BuildCanceled
+        if self.host.ticket.failed:
+            transfer_failure = "Resalloc ticket FAILED"
         if transfer_failure:
             raise BuildRetry("SSH problems when downloading live log: {}"
                              .format(transfer_failure))
