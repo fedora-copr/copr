@@ -264,7 +264,7 @@
 {% macro copr_build_delete_form(build, page, class="") %}
   <form class="{{class}}" action="{{ url_for('coprs_ns.copr_delete_build', username=build.copr.user.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
     <input type="hidden" value="page" value="{{ page }}">
-    <button class="btn btn-default" type="submit">
+    <button class="btn btn-danger" type="submit">
       <span class="pficon pficon-delete"></span> Delete
     </button>
   </form>
@@ -294,4 +294,23 @@
       return false;
   });
   </script>
+{% endmacro %}
+
+{% macro copr_build_feed_log_detective(build, class="") %}
+  {% set url = "https://log-detective.com/contribute/copr/%s/%s" %}
+  {% set chroots = build.build_chroots|selectattr("state", "equalto", "failed") %}
+  <div class="dropdown {{ class }}">
+    <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">
+      <span class="fa fa-external-link"></span>
+      Log Detective
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      {% for chroot in chroots %}
+      <li><a href="{{ url |format(build.id, chroot.name) }}">Report {{ chroot.name }}</a></li>
+      {% else %}
+      <li><a href="{{ url |format(build.id, 'srpm-builds') }}">Report SRPM build</a></li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endmacro %}
