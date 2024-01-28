@@ -1,5 +1,11 @@
 {% extends "coprs/detail.html" %}
-{% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_resubmit_allow_user_ssh_form, copr_build_delete_form %}
+{% from "coprs/detail/_builds_forms.html" import
+   copr_build_cancel_form,
+   copr_build_repeat_form,
+   copr_resubmit_allow_user_ssh_form,
+   copr_build_delete_form,
+   copr_build_feed_log_detective
+%}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_describe_failure.html" import describe_failure %}
 {% from "_helpers.html" import chroot_to_os_logo, build_state_text, build_state, copr_name %}
@@ -27,6 +33,10 @@
 {% if g.user.can_edit(copr) or build.user == g.user %}
     {{ copr_build_delete_form(build, page, class="pull-right button-build-action") }}
 {% endif %}
+{% endif %}
+
+{% if build.state == "failed" %}
+    {{ copr_build_feed_log_detective(build, class="pull-right button-build-action") }}
 {% endif %}
 
 {% if g.user and g.user.can_build_in(copr) and build.cancelable %}
