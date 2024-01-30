@@ -300,7 +300,8 @@
   {% set url = "https://log-detective.com/contribute/copr/%s/%s" %}
   {% set chroots = build.build_chroots|selectattr("state", "equalto", "failed") %}
   <div class="dropdown {{ class }}">
-    <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">
+    <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown"
+            title="Annotate the failure in Log Detective to train AI to recognize this issue">
       <span class="fa fa-external-link"></span>
       Log Detective
       <span class="caret"></span>
