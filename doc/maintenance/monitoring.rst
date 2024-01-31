@@ -3,7 +3,7 @@
 How Fedora Copr is monitored
 ============================
 
-`Nagios`_ and `Nagios external`_ are the main monitoring services for Fedora
+`Nagios`_ (with `hypervisors' checks`_) and `Nagios external`_ are the main monitoring services for Fedora
 Copr.  That's by fact that the `Fedora Infrastructure`_ team uses Nagios, and we
 tightly cooperate with that team (they help us with the ping&power support).
 
@@ -34,3 +34,4 @@ The following image illustrates the monitoring work-flow:
 .. _`periodically submits`: https://copr.fedorainfracloud.org/coprs/g/copr/copr-ping/builds/
 .. _`usage statistics`: https://copr-be.cloud.fedoraproject.org/stats/index.html
 .. _`analyze storage`: https://github.com/fedora-copr/copr/blob/main/backend/run/copr-backend-analyze-results
+.. _`hypervisors' checks`: https://nagios.fedoraproject.org/nagios/cgi-bin//status.cgi?hostgroup=copr_hypervisor&style=detail
