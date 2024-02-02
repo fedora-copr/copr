@@ -29,7 +29,10 @@ load-plugins=pylint_copr_plugin
 #     We still support Python 2.7 (EL7) for clients.
 # unspecified-encoding
 #     Python2.7: TypeError: 'encoding' is an invalid keyword argument for this function
-disable=import-error,useless-object-inheritance,super-with-arguments,consider-using-f-string,unspecified-encoding
+# too-many-instance-attributes
+#     Local variables are often pretty hard to avoid, yet switching to
+#     dataclasses almost never makes sense.
+disable=import-error,useless-object-inheritance,super-with-arguments,consider-using-f-string,unspecified-encoding,too-many-instance-attributes
 
 [VARIABLES]
 # A regular expression matching names used for dummy variables (i.e. not used).
