@@ -7,6 +7,8 @@ import time
 
 import netaddr
 
+from copr_common.subprocess_live_output import PosixPipedProcess
+
 DEFAULT_SUBPROCESS_TIMEOUT = 180
 
 class SSHConnectionError(Exception):
@@ -154,8 +156,10 @@ class SSHConnection:
                       subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """
         Run user_command (blocking) and return exit status together with
-        standard outputs in string variables.  Note that this can pretty easily
-        waste a lot of memory, run() is better option.
+        standard outputs in string variables.  Note that we limit the standard
+        (error) output buffer sizes to 10kB; if exceeded, SSHConnectionError is
+        raised.  SSHConnectionError is also raised if any non-UTF8 character
+        present in one of the outputs.
 
         :param user_command:
             Command (string) to be run as string (note: use shlex.quote).
@@ -165,18 +169,39 @@ class SSHConnection:
             ``max_retries`` times.  Default is no re-try.
 
         :returns:
-            Tripple (rc, stdout, stderr).  Stdout and stderr are strings, those
-            might be pretty large.
+            Tripple (rc, stdout, stderr)
         """
         return self._retry(self._run_expensive, max_retries, user_command,
                            subprocess_timeout)
 
     def _run_expensive(self, user_command, subprocess_timeout):
         real_command = self._ssh_base() + [user_command]
-        with self._popen_timeouted(
-                real_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                encoding="utf-8") as proc:
-            stdout, stderr = proc.communicate(timeout=subprocess_timeout)
+
+        proc = PosixPipedProcess(real_command,
+                                 stdout_limit=1024*10,
+                                 stderr_limit=1024*10,
+                                 timeout=subprocess_timeout)
+
+        stdout = stderr = b''
+        for chunk, filename in proc.readchunks():
+            if filename == 'stdout':
+                stdout += chunk
+            else:
+                stderr += chunk
+
+        try:
+            stdout = stdout.decode("utf-8")
+            stderr = stderr.decode("utf-8")
+        except UnicodeDecodeError as err:
+            raise SSHConnectionError("Non-UTF8 characters in SSH output.") from err
+
+        if proc.timeouted():
+            raise SSHConnectionError("SSH timeouted: " +
+                                     _user_readable_command(real_command))
+
+        if proc.has_cut():
+            raise SSHConnectionError("SSH output was too long: " +
+                                     _user_readable_command(real_command))
 
         if proc.returncode == 255:
             # Value 255 means either that 255 was returned by remote command or
