@@ -37,17 +37,13 @@ Prepare AWS source images
 
 You need to find proper (official) ``ami-*`` Fedora image IDs, bound to
 your desired VM location.  You can e.g. go to `Fedora Cloud Page`_ and search
-for ``GP2 HVM AMIs`` (for x86_64) and ``arm64 AMIs`` (for aarch64) sections.
+for ``AWS`` images. There are different buttons for x86_64 and aarch64
+architectures. Click the *List AWS EC2 region* button.
 
-You should see there the *Click to launch* buttons.  When you click on them a
-new window should appear (javascript) with a list of available server locations.
-So you see the small "blue cloud" icon/hyperlink related to the desired server
-location (we are using N.Virginia option, aka ``us-east-1``, but we should move
-to ``us-west-*`` soon).
-
-Do not click the launch button and do not proceed to launch the instance
-manually through Amazon AWS launcher. Only remember the
-``ami-0c830793775595d4b`` ID part.
+Do not launch any instance, only find an AMI ID
+(e.g. ``ami-0c830793775595d4b``) for our region - we are using
+N.Virginia option, aka ``us-east-1``, but we should move to
+``us-west-*`` soon.
 
 Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - resalloc``,
 and execute for ``x86_64`` arch::
@@ -55,6 +51,7 @@ and execute for ``x86_64`` arch::
     $ copr-resalloc-aws-new-x86_64 \
         --initial-preparation --create-snapshot-image --debug \
         --name copr-builder-image-x86_64 \
+        --instance-type=c7i.xlarge \
         --ami <ami_ID>
     ...
      * Image ID: ami-0ebce709a474af685
@@ -68,6 +65,7 @@ we don't need yet another additional volume when starting builders)::
         --initial-preparation --create-snapshot-image --debug \
         --additional-volume-size 160 \
         --name copr-builder-image-aarch64 \
+        --instance-type=c7g.xlarge \
         --ami <ami_ID>
     ...
      * Image ID: ami-0942a35ec3999e00d
@@ -77,7 +75,7 @@ Continue fixing the scripts/playbooks/fedora till you succeed like that ^^.
 Repeat the previous steps.
 
 The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
-options in `Ansible git repo`_, in file ``inventory/group_vars/copr_back_dev_aws``
+options in `Ansible git repo`_, in file ``inventory/group_vars/copr_dev_aws``
 and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
 
 
@@ -163,16 +161,13 @@ Test that the image spawns correctly::
     # 'copr-builder-20210524_085845'.
     [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/resalloc_provision/osuosl-vm
 
-    # increase the `max_prealloc` value in one of the hypervisors and OSUOSL
-    # (when testing ppc64le images) by a value 1 (e.g. 2=>3) so resalloc server
-    # begins starting new machine(s)
-    [root@copr-be-dev ~][STG]# vim /etc/resallocserver/pools.yaml
-
-    # wait a minute or so for the new VMs
+    # delete current VMs to start spawning new ones
     [root@copr-be-dev ~][STG]# su - resalloc
     Last login: Fri Jun 14 12:43:16 UTC 2019 on pts/0
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-delete --all
 
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep STARTING
+    # wait a minute or so for the new VMs
+    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list |grep copr_hv_ |grep STARTING
     30784 - copr_hv_x86_64_02_dev_00030784_20210524_090406 pool=copr_hv_x86_64_02_dev tags= status=STARTING releases=0 ticket=NULL
 
     [resalloc@copr-be-dev ~][STG]$ tail -f /var/log/resallocserver/hooks/030784_alloc
@@ -188,6 +183,9 @@ address (can be an IPv6 one), you are mostly done::
 
     [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
     145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
+
+For ``copr_builder_images.osuosl.ppc64le`` we will use the same buidler image as
+for hypervisor ppc64le.
 
 
 .. _prepare_ibmcloud_source_images:
@@ -223,7 +221,7 @@ Now, find a ``qcow2`` image we'll be updating, take a look at the
 Architecture** category, and **Fedora Cloud qcow2**.  Being on the remote VM,
 start with::
 
-    #> copr-image https://download.fedoraproject.org/pub/fedora-secondary/releases/35/Cloud/s390x/images/Fedora-Cloud-Base-35-1.2.s390x.qcow2
+    $ copr-image https://download.fedoraproject.org/pub/fedora-secondary/releases/35/Cloud/s390x/images/Fedora-Cloud-Base-35-1.2.s390x.qcow2
     ...
     + qemu-img convert -f qcow2 /tmp/wip-image-HkgkS.qcow2 -c -O qcow2 -o compat=0.10 /tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
     ...
@@ -237,7 +235,7 @@ uploading`_, pushed to **quay.io** service  as
 
     $ qcow_image=/tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
     $ podman_image=quay.io/praiskup/ibmcloud-cli
-    $ export IBMCLOUD_API_KEY=....
+    $ export IBMCLOUD_API_KEY=....  # find in Bitwarden
     $ podman run -e IBMCLOUD_API_KEY --rm -ti -v $qcow_image:/image.qcow2:z $podman_image upload-image
     ....
     + ibmcloud login -r jp-tok
@@ -250,10 +248,9 @@ Note the image ID somewhere, will be used in Ansible inventory, as
 starts well on ``copr-be-dev``,  by::
 
     # su - resalloc
-    $ /var/lib/resallocserver/resalloc_provision/ibm-cloud-vm \
-        --log-level debug \
-        create test-machine \
-        --image-uuid r022-2a904fb5-e69c-4ba7-b5ea-d6215ba4a6ee
+    $ RESALLOC_NAME=copr_ic_s390x_us_east_dev \
+        /var/lib/resallocserver/resalloc_provision/ibm-cloud-vm \
+        create test-machine
 
 ... but note that the first start takes some time, till the image is properly
 populated!  So if the script timeouts on ssh, please re-try.
@@ -271,9 +268,10 @@ Testing
 If the images for all supported architectures are updated (according to previous
 sections), the `staging copr instance`_ is basically ready for testing.  Update
 the `Ansible git repo`_ for all the changes in playbooks above, and also update
-the ``copr_builder_images`` option in ``inventory/group_vars/copr_back_dev`` so
-it points to correct image names.  Once the changes are pushed upstream, you
-should re-provision the backend configuration from batcave::
+the ``copr_builder_images`` option in ``inventory/group_vars/copr_dev_aws`` so
+it points to correct image names. and increment the
+``copr_builder_fedora_version`` number.  Once the changes are pushed upstream,
+you should re-provision the backend configuration from batcave::
 
     $ ssh batcave01.iad2.fedoraproject.org
     $ sudo rbac-playbook \
@@ -295,7 +293,7 @@ Production
 
 There is a substantially less work for production instance. You just need to
 equivalently update the production configuration file
-``./inventory/group_vars/copr_back``, so the ``copr_builder_images`` config
+``./inventory/group_vars/copr_aws``, so the ``copr_builder_images`` config
 points to the same image names as development instance does.  And re-run
 playbook from batcave::
 
@@ -310,7 +308,7 @@ the old but currently unused builders by::
     $ resalloc-maint resource-delete --unused
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
-.. _`Fedora Cloud page`: https://alt.fedoraproject.org/cloud
+.. _`Fedora Cloud page`: https://fedoraproject.org/cloud/download
 .. _`Alternate Architectures page`:  https://alt.fedoraproject.org/alt
 .. _`Koji compose directory listing`: https://kojipkgs.fedoraproject.org/compose/cloud/
 .. _`Ansible git repo`: https://infrastructure.fedoraproject.org/cgit/ansible.git/
