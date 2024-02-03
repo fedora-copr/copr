@@ -4,6 +4,7 @@ Common Copr code for dealing with HTTP requests
 
 import json
 import time
+import pkg_resources
 from requests import get, post, put, RequestException
 
 
@@ -17,6 +18,13 @@ class SafeRequest:
 
     # Prolong the sleep time before asking frontend again
     SLEEP_INCREMENT_TIME = 5
+
+    # Use package name and version for the user agent
+    package_name = 'copr-common'
+    user_agent = {
+        'name': package_name,
+        'version': pkg_resources.require(package_name)[0].version
+    }
 
     def __init__(self, auth=None, log=None, try_indefinitely=False, timeout=2 * 60):
         self.auth = auth
@@ -50,7 +58,10 @@ class SafeRequest:
                                              **kwargs)
 
     def _send_request(self, url, method, data=None, **kwargs):
-        headers = {"content-type": "application/json"}
+        headers = {
+            "content-type": "application/json",
+            "User-Agent": "{name}/{version}".format(**SafeRequest.user_agent),
+        }
         auth = ("user", self.auth) if self.auth else None
 
         try:
