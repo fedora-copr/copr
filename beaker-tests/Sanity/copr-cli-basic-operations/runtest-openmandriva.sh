@@ -11,10 +11,8 @@ source "$HERE/helpers"
 PACKAGE="https://raw.githubusercontent.com/fedora-copr/test-data-copr-backend/main/to_prune/00999998-dummy-pkg/dummy-pkg-2-1.fc34.src.rpm"
 
 CHROOTS="  --chroot openmandriva-cooker-aarch64"
-CHROOTS+=" --chroot openmandriva-cooker-i686"
 CHROOTS+=" --chroot openmandriva-cooker-x86_64"
 CHROOTS+=" --chroot openmandriva-rolling-aarch64"
-CHROOTS+=" --chroot openmandriva-rolling-i686"
 CHROOTS+=" --chroot openmandriva-rolling-x86_64"
 
 
