@@ -86,6 +86,9 @@ class Schema:
 
     @staticmethod
     def _convert_schema_class_dict_to_schema(d: dict) -> dict:
+        """
+        Returns the same dictionary that was passed as param, doesn't create copy of it.
+        """
         # if in fields.py file is attribute that has different name
         # than model, add it to `unicorn_fields` like
         # "field_name_in_fields.py": "what_you_want_to_name_it"
@@ -533,6 +536,47 @@ class NevraPackages(Schema):
     packages: List = List(Nested(_nevra_model))
 
 
+@dataclass
+class ModuleBuild(Schema):
+    nsv: String
+
+
+@dataclass
+class WebhookSecret(Schema):
+    id_field: String
+    name: String
+    ownername: String
+    full_name: String
+    webhook_secret: String
+
+
+@dataclass
+class ModuleAdd(InputSchema):
+    modulemd: String
+    distgit: String
+    scmurl: String
+
+
+@dataclass
+class _ModulePackage(Schema):
+    name: String
+    # inconsistent keys in chroots dict, impossible with flask-restx to do
+    chroots: Raw = Raw(
+        description="Chroots and their states",
+        example={"fedora-rawhide-i386": {"state": "waiting", "status": 1, "build_id": 1}},
+    )
+
+
+_module_package_model = _ModulePackage.get_cls().model()
+
+
+@dataclass
+class Monitor(Schema):
+    message: String = String(example="Project monitor request successful")
+    output: String = String(example="ok")
+    packages: List = List(Nested(_module_package_model))
+
+
 # OUTPUT MODELS
 project_chroot_model = ProjectChroot.get_cls().model()
 project_chroot_build_config_model = ProjectChrootBuildConfig.get_cls().model()
@@ -543,6 +587,9 @@ project_model = Project.get_cls().model()
 build_chroot_model = BuildChroot.get_cls().model()
 build_chroot_config_model = BuildChrootConfig.get_cls().model()
 nevra_packages_model = NevraPackages.get_cls().model()
+module_build_model = ModuleBuild.get_cls().model()
+webhook_secret_model = WebhookSecret.get_cls().model()
+monitor_model = Monitor.get_cls().model()
 
 pagination_project_model = Pagination(items=List(Nested(project_model))).model()
 pagination_build_chroot_model = Pagination(items=List(Nested(build_chroot_model))).model()
@@ -561,6 +608,7 @@ project_add_input_model = ProjectAdd.get_cls().input_model()
 project_edit_input_model = ProjectEdit.get_cls().input_model()
 project_fork_input_model = ProjectFork.get_cls().input_model()
 project_delete_input_model = ProjectDelete.get_cls().input_model()
+module_add_input_model = ModuleAdd.get_cls().input_model()
 
 
 # PARAMETER SCHEMAS

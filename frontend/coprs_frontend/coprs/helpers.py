@@ -6,9 +6,9 @@ import math
 import random
 import string
 import json
-from os.path import normpath
 import posixpath
 import re
+from os.path import normpath
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
 import html5_parser
@@ -829,7 +829,6 @@ def db_column_length(column):
     return getattr(column, "property").columns[0].type.length
 
 
-@flask.stream_with_context
 def streamed_json(stream, start_string=None, stop_string=None):
     """
     Flask response generator for JSON structures (arrays only for now)
@@ -867,7 +866,7 @@ def streamed_json(stream, start_string=None, stop_string=None):
 
     def _response():
         return app.response_class(
-            _batched_stream(),
+            flask.stream_with_context(_batched_stream()),
             mimetype="application/json",
         )
 

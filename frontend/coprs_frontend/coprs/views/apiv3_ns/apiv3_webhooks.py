@@ -2,11 +2,21 @@
 APIv3 endpoints related to webhooks
 """
 
-import flask
+# pylint: disable=missing-class-docstring
+
+
+from http import HTTPStatus
+
+from flask_restx import Namespace, Resource
+
 from coprs import db
-from coprs.views.misc import api_login_required
-from coprs.views.apiv3_ns import editable_copr, POST
-from coprs.views.apiv3_ns import apiv3_ns
+from coprs.views.misc import restx_api_login_required
+from coprs.views.apiv3_ns import api, restx_editable_copr
+from coprs.views.apiv3_ns.schema.schemas import fullname_params, webhook_secret_model
+
+
+apiv3_webhooks_ns = Namespace("webhook", description="Webhooks")
+api.add_namespace(apiv3_webhooks_ns)
 
 
 def to_dict(copr):
@@ -23,15 +33,22 @@ def to_dict(copr):
     }
 
 
-@apiv3_ns.route("/webhook/generate/<ownername>/<projectname>", methods=POST)
-@api_login_required
-@editable_copr
-def new_webhook_secret(copr):
-    """
-    Generate a new webhook secret for a given project.
-    Not an additional secret, though. The previous secret gets lost.
-    """
-    copr.new_webhook_secret()
-    db.session.add(copr)
-    db.session.commit()
-    return flask.jsonify(to_dict(copr))
+@apiv3_webhooks_ns.route("/generate/<ownername>/<projectname>")
+class WebhookSecret(Resource):
+    @restx_api_login_required
+    @restx_editable_copr
+    @apiv3_webhooks_ns.doc(params=fullname_params)
+    @apiv3_webhooks_ns.marshal_with(webhook_secret_model)
+    @apiv3_webhooks_ns.response(HTTPStatus.OK.value, "Webhook secret created")
+    @apiv3_webhooks_ns.response(
+        HTTPStatus.BAD_REQUEST.value, HTTPStatus.BAD_REQUEST.description
+    )
+    def post(self, copr):
+        """
+        Generate a new webhook secret for a given project.
+        Not an additional secret, though. The previous secret gets lost.
+        """
+        copr.new_webhook_secret()
+        db.session.add(copr)
+        db.session.commit()
+        return to_dict(copr)

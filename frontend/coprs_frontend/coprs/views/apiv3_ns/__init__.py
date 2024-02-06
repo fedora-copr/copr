@@ -113,14 +113,16 @@ def pagination():
     return pagination_decorator
 
 
+def _shared_file_upload_wrapper():
+    data = json.loads(flask.request.files["json"].read()) or {}
+    flask.request.form = ImmutableMultiDict(list(data.items()))
+
 def file_upload():
     def file_upload_decorator(f):
         @wraps(f)
         def file_upload_wrapper(*args, **kwargs):
             if "json" in flask.request.files:
-                data = json.loads(flask.request.files["json"].read()) or {}
-                tuples = [(k, v) for k, v in data.items()]
-                flask.request.form = ImmutableMultiDict(tuples)
+                _shared_file_upload_wrapper()
             return f(*args, **kwargs)
         return file_upload_wrapper
     return file_upload_decorator
@@ -506,3 +508,15 @@ def restx_pagination(endpoint_method):
         kwargs = _shared_pagination_wrapper(**kwargs)
         return endpoint_method(self, *args, **kwargs)
     return create_pagination
+
+
+def restx_file_upload(endpoint_method):
+    """
+    Allow uploading a file to a form via endpoint by using this function as an endpoint decorator.
+    """
+    @wraps(endpoint_method)
+    def inner(self, *args, **kwargs):
+        if "json" in flask.request.files:
+            _shared_file_upload_wrapper()
+        return endpoint_method(self, *args, **kwargs)
+    return inner
