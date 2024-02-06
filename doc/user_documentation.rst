@@ -67,6 +67,7 @@ of known Copr instances:
      - `Contact <https://mailweb.openeuler.org/hyperkitty/list/infra@openeuler.org/>`__,
        `Issues <https://quickissue.openeuler.org/en/issues/>`__
 
+.. _build_source_types:
 
 Build Source Types
 ------------------
