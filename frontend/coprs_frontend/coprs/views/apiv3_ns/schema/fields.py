@@ -439,6 +439,13 @@ timeout = Integer(
     description="Number of seconds we allow the builds to run.",
 )
 
+nsv = String(
+    example="name-stream-version",
+    description="NSV of the module build in format name-stream-version."
+)
+
+webhook_secret = String(example="really-secret-string-do-not-share")
+
 release = String(example="1.fc39")
 
 epoch = Integer(example=3)
@@ -446,6 +453,8 @@ epoch = Integer(example=3)
 arch = String(example="x86_64")
 
 version = String(example="1.0")
+
+modulemd = Raw(example="YAML file", description="Modulemd YAML file")
 
 # TODO: these needs description
 
@@ -458,6 +467,10 @@ verify = Boolean()
 priority = Integer()
 
 memory_limit = Integer()
+
+distgit = String()
+
+scmurl = Url()
 
 # TODO: specify those only in Repo schema?
 
