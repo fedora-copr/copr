@@ -53,7 +53,11 @@ Enter url of your src.rpm files. This url must be accessible from internet. You 
 
 .. image:: _static/5-new-build-upload.png
 
-There is also possibility to upload src.rpm file directly from your computer, building package from your git repository with source code and spec file and many other ways to submit the build. You can choose a way that you like the most.
+There is also possibility to upload src.rpm file directly from your
+computer, building package from your git repository with source code
+and spec file and
+:ref:`many other ways to submit the build <build_source_types>`. You
+can choose a way that you like the most.
 
 ----
 
