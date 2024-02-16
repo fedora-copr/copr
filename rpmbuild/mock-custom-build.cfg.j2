@@ -2,9 +2,12 @@ include('/etc/mock/{{ chroot }}.cfg')
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True
 
+{# See https://github.com/fedora-copr/copr/issues/3140 #}
+{%- if not chroot.startswith("fedora-40-") %}
 # We don't do 'dnf builddep' for the custom method, so we don't need to install
 # python3-dnf-plugins core or dnf5-plugins at all.
 config_opts["bootstrap_image_ready"] = True
+{% endif %}
 
 # Don't mixup caches with the normal mock build.
 config_opts["root"] = "copr-custom-" + config_opts["root"]
