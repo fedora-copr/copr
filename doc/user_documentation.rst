@@ -24,7 +24,8 @@ If you don't have an SRPM yet, see https://rpm-packaging-guide.github.io/ for in
 Tutorial
 --------
 
-Refer to :ref:`screenshots_tutorial` for guidance on interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_.
+Refer to :ref:`screenshots_tutorial` or :ref:`video_tutorial` for
+guidance on interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_.
 
 
 How to enable copr repository?
