@@ -563,6 +563,7 @@ only in Copr and ignored by Koji. It is easy to do::
   # This happens only in Copr
   %endif
 
+.. _creating_repositories_manually:
 
 Creating repositories manually
 ------------------------------
@@ -766,6 +767,9 @@ Note that we keep the build with the greatest EPOCH:NAME-VERSION-RELEASE,
 even though that build might not be the newest one.  Also, if there are
 two builds of the same package version, it is undefined which one is going
 to be kept.
+
+Projects that opted-in for :ref:`creating_repositories_manually`, are
+exempt from the old package removal because of technical limitations.
 
 .. _`How is Copr pronounced?`:
 
