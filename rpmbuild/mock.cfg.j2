@@ -40,7 +40,7 @@ config_opts['module_setup_commands'] = {{ modules |pprint }}
 {%- endif %}
 
 {% if repos %}
-config_opts[f"{config_opts.package_manager}.conf"] += """
+config_opts["dnf.conf"] += """
 {% for repo in repos %}
 [{{ repo["id"] }}]
 name='{{ repo["name"] }}'
