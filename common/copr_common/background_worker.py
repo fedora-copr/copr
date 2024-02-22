@@ -39,7 +39,7 @@ class BackgroundWorker:
         self.log.addHandler(logging.StreamHandler())
 
         if os.getuid() == 0:
-            self.log.error("this needs to be run as 'copr' user")
+            self.log.error("running as UID=0 (root), probably not expected")
             sys.exit(1)
 
         self.opts = None
