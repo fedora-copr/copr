@@ -14,6 +14,15 @@ import setproctitle
 from copr_common.redis_helpers import get_redis_connection
 
 
+@contextlib.contextmanager
+def nullcontext():
+    """
+    contextlib.nullcontext is not available in Python 3.6, but we are still
+    Python 3.6+ compatible because of EL 8
+    """
+    yield None
+
+
 class BackgroundWorker:
     """
     copr-backend-process-* abstraction
@@ -158,7 +167,7 @@ class BackgroundWorker:
 
     def process(self):
         """ process the task """
-        context = contextlib.nullcontext()
+        context = nullcontext()
         if self.args.daemon:
             context = daemon.DaemonContext(umask=0o022)
 
