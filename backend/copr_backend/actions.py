@@ -16,7 +16,7 @@ from munch import Munch
 import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionResult, ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from copr_common.worker_manager import WorkerManager
 
 from copr_backend.worker_manager import BackendQueueTask
@@ -119,7 +119,7 @@ class Createrepo(Action):
         appstream = data["appstream"]
         devel = data["devel"]
 
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
 
         done_count = 0
         for project_dirname in project_dirnames:
@@ -136,7 +136,7 @@ class Createrepo(Action):
 
                 if not call_copr_repo(repo, appstream=appstream, devel=devel,
                                       logger=self.log):
-                    result = ActionResult.FAILURE
+                    result = BackendResultEnum("failure")
 
         return result
 
@@ -165,7 +165,7 @@ class Fork(Action, GPGMixin):
 
         if not os.path.exists(old_path):
             self.log.info("Source copr directory doesn't exist: %s", old_path)
-            result = ActionResult.FAILURE
+            result = BackendResultEnum("failure")
             return result
 
         try:
@@ -213,16 +213,16 @@ class Fork(Action, GPGMixin):
 
                     self.log.info("Forked build %s as %s", src_path, dst_path)
 
-            result = ActionResult.SUCCESS
+            result = BackendResultEnum("success")
             for chroot_path in chroot_paths:
                 if not call_copr_repo(chroot_path, logger=self.log):
-                    result = ActionResult.FAILURE
+                    result = BackendResultEnum("failure")
 
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
             self.log.error(traceback.format_exc())
-            result = ActionResult.FAILURE
+            result = BackendResultEnum("failure")
         return result
 
 
@@ -235,13 +235,13 @@ class Delete(Action):
                               chroot_builddirs, build_ids, appstream):
         """ call /bin/copr-repo --delete """
         devel = uses_devel_repo(self.front_url, ownername, projectname)
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
         for chroot, subdirs in chroot_builddirs.items():
             chroot_path = os.path.join(self.destdir, ownername, project_dirname,
                                        chroot)
             if not os.path.exists(chroot_path):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
-                result = ActionResult.FAILURE
+                result = BackendResultEnum("failure")
                 continue
 
             self.log.info("Deleting subdirs [%s] in %s",
@@ -253,7 +253,7 @@ class Delete(Action):
                 # In srpm-builds we don't create repodata at all
                 if not call_copr_repo(chroot_path, delete=subdirs, devel=devel, appstream=appstream,
                                       logger=self.log):
-                    result = ActionResult.FAILURE
+                    result = BackendResultEnum("failure")
 
             for build_id in build_ids or []:
                 log_paths = [
@@ -272,7 +272,7 @@ class Delete(Action):
 class DeleteProject(Delete):
     def run(self):
         self.log.debug("Action delete copr")
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
 
         ext_data = json.loads(self.data["data"])
         ownername = ext_data["ownername"]
@@ -280,7 +280,7 @@ class DeleteProject(Delete):
 
         if not ownername:
             self.log.error("Received empty ownername!")
-            result = ActionResult.FAILURE
+            result = BackendResultEnum("failure")
             return result
 
         for dirname in project_dirnames:
@@ -310,7 +310,7 @@ class CompsUpdate(Action):
         path = os.path.join(self.destdir, ownername, projectname, chroot)
         ensure_dir_exists(path, self.log)
         local_comps_path = os.path.join(path, "comps.xml")
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
             self.log.info("deleted comps.xml for %s/%s/%s from %s ",
@@ -323,7 +323,7 @@ class CompsUpdate(Action):
             except Exception:
                 self.log.exception("Failed to update comps from %s at location %s",
                                    remote_comps_url, local_comps_path)
-                result = ActionResult.FAILURE
+                result = BackendResultEnum("failure")
         return result
 
 
@@ -347,13 +347,13 @@ class DeleteMultipleBuilds(Delete):
         build_ids = ext_data["build_ids"]
         appstream = ext_data["appstream"]
 
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
         for project_dirname, chroot_builddirs in project_dirnames.items():
-            if ActionResult.FAILURE == \
+            if BackendResultEnum("failure") == \
                self._handle_delete_builds(ownername, projectname,
                                           project_dirname, chroot_builddirs,
                                           build_ids, appstream):
-                result = ActionResult.FAILURE
+                result = BackendResultEnum("failure")
         return result
 
 
@@ -379,7 +379,7 @@ class DeleteBuild(Delete):
             appstream = ext_data["appstream"]
         except KeyError:
             self.log.exception("Invalid action data")
-            return ActionResult.FAILURE
+            return BackendResultEnum("failure")
 
         return self._handle_delete_builds(ownername, projectname,
                                           project_dirname, chroot_builddirs,
@@ -400,9 +400,9 @@ class DeleteChroot(Delete):
 
         if not os.path.isdir(chroot_path):
             self.log.error("Directory %s not found", chroot_path)
-            return ActionResult.SUCCESS
+            return BackendResultEnum("success")
         shutil.rmtree(chroot_path)
-        return ActionResult.SUCCESS
+        return BackendResultEnum("success")
 
 
 class GenerateGpgKey(Action, GPGMixin):
@@ -414,14 +414,14 @@ class GenerateGpgKey(Action, GPGMixin):
         projectname = ext_data["projectname"]
 
         success = self.generate_gpg_key(ownername, projectname)
-        return ActionResult.SUCCESS if success else ActionResult.FAILURE
+        return BackendResultEnum("success") if success else BackendResultEnum("failure")
 
 
 class RawhideToRelease(Action):
     def run(self):
         data = json.loads(self.data["data"])
         appstream = data["appstream"]
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
@@ -445,16 +445,16 @@ class RawhideToRelease(Action):
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
 
             if not call_copr_repo(chrootdir, appstream=appstream, logger=self.log):
-                result = ActionResult.FAILURE
+                result = BackendResultEnum("failure")
         except:
-            result = ActionResult.FAILURE
+            result = BackendResultEnum("failure")
 
         return result
 
 
 class BuildModule(Action):
     def run(self):
-        result = ActionResult.SUCCESS
+        result = BackendResultEnum("success")
         try:
             data = json.loads(self.data["data"])
             ownername = data["ownername"]
@@ -505,11 +505,11 @@ class BuildModule(Action):
                     self.log.info("Module artifacts: %s", artifacts)
                     modulemd_tools.yaml.dump(mmd_yaml, destdir)
                     if not call_copr_repo(destdir, appstream=appstream, logger=self.log):
-                        result = ActionResult.FAILURE
+                        result = BackendResultEnum("failure")
 
         except Exception:
             self.log.exception("handle_build_module failed")
-            result = ActionResult.FAILURE
+            result = BackendResultEnum("failure")
 
         return result
 
@@ -532,10 +532,10 @@ class RemoveDirs(Action):
                 self.log.error("RemoveDirs: %s not found", directory)
 
     def run(self):
-        result = ActionResult.FAILURE
+        result = BackendResultEnum("failure")
         try:
             self._run_internal()
-            result = ActionResult.SUCCESS
+            result = BackendResultEnum("success")
         except OSError:
             self.log.exception("RemoveDirs OSError")
         return result

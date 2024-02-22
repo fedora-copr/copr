@@ -4,8 +4,10 @@
 Process one Action task provided by frontend (on backend).
 """
 
+from copr_common.enums import BackendResultEnum
+
 from copr_backend.background_worker import BackendBackgroundWorker
-from copr_backend.actions import Action, ActionResult
+from copr_backend.actions import Action
 
 
 class ActionBackgroundWorker(BackendBackgroundWorker):
@@ -22,7 +24,7 @@ class ActionBackgroundWorker(BackendBackgroundWorker):
 
     def handle_action(self, action_id):
         self.log.info("Handling action %s", action_id)
-        result = ActionResult.FAILURE
+        result = BackendResultEnum("failure")
         resp = self.frontend_client.get('action/{}'.format(action_id))
         if resp.status_code != 200:
             self.log.error("failed to download task, apache code %s",
@@ -38,13 +40,13 @@ class ActionBackgroundWorker(BackendBackgroundWorker):
         return result
 
     def handle_task(self):
-        result = ActionResult.FAILURE
+        result = BackendResultEnum("failure")
         action_id = self.args.task_id
         try:
             result = self.handle_action(action_id)
         finally:
             self.log.info("Action %s ended with status=%s", action_id,
-                          ActionResult(int(result)))
+                          BackendResultEnum(int(result)))
             self.redis_set_worker_flag('status', str(result))
 
 

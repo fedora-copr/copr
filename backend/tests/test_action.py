@@ -15,10 +15,10 @@ from munch import Munch
 import pytest
 from requests import RequestException
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 
 from testlib.repodata import load_primary_xml
-from copr_backend.actions import Action, ActionResult
+from copr_backend.actions import Action
 from copr_backend.exceptions import CoprKeygenRequestError
 
 
@@ -231,7 +231,7 @@ class TestAction(object):
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
 
         assert result_dict["id"] == 1
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert result_dict["result"] == BackendResultEnum("success")
         assert result_dict["job_ended_on"] == self.test_time
 
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
@@ -262,7 +262,7 @@ class TestAction(object):
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
 
         assert result_dict["id"] == 1
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert result_dict["result"] == BackendResultEnum("success")
         assert result_dict["job_ended_on"] == self.test_time
 
         assert os.path.exists(os.path.join(tmp_dir, "old_dir"))
@@ -292,7 +292,7 @@ class TestAction(object):
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
 
         assert result_dict["id"] == 1
-        assert result_dict["result"] == ActionResult.FAILURE
+        assert result_dict["result"] == BackendResultEnum("failure")
         assert result_dict["message"] == "Destination directory already exist."
         assert result_dict["job_ended_on"] == self.test_time
 
@@ -321,7 +321,7 @@ class TestAction(object):
 
         assert os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
         assert not os.path.exists(os.path.join(tmp_dir, "foo", "baz"))
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
         assert os.path.exists(os.path.join(tmp_dir, "old_dir"))
         assert not os.path.exists(os.path.join(tmp_dir, "foo", "bar"))
 
@@ -346,7 +346,7 @@ class TestAction(object):
 
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
         assert result_dict["id"] == 6
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert result_dict["result"] == BackendResultEnum("success")
         assert result_dict["job_ended_on"] == self.test_time
 
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
@@ -373,7 +373,7 @@ class TestAction(object):
         )
         result = test_action.run()
         assert len(mc_call.call_args_list) == 0
-        assert result == ActionResult.FAILURE
+        assert result == BackendResultEnum("failure")
 
     @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_build_succeeded(self, mc_devel, mc_time):
@@ -412,7 +412,7 @@ class TestAction(object):
         )
 
         assert os.path.exists(foo_pkg_dir)
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
         assert not os.path.exists(foo_pkg_dir)
         assert not os.path.exists(log_path)
         assert os.path.exists(chroot_1_dir)
@@ -474,7 +474,7 @@ class TestAction(object):
             },
         )
 
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
         new_primary = load_primary_xml(repodata)
         new_primary_devel = load_primary_xml(repodata_devel)
@@ -518,7 +518,7 @@ class TestAction(object):
             },
         )
         # just fail
-        assert test_action.run() == ActionResult.FAILURE
+        assert test_action.run() == BackendResultEnum("failure")
 
     @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_two_chroots(self, mc_devel, mc_time):
@@ -571,7 +571,7 @@ class TestAction(object):
                 }),
             },
         )
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
         assert not os.path.exists(os.path.join(chroot_20_path, "build-00000015.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-00000015.log"))
@@ -643,7 +643,7 @@ class TestAction(object):
             },
         )
 
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
         assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
         assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
@@ -695,7 +695,7 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
         result = test_action.run()
-        assert result == ActionResult.FAILURE
+        assert result == BackendResultEnum("failure")
 
         # shouldn't touch chroot dirs
         assert os.path.exists(chroot_20_path)
@@ -778,7 +778,7 @@ class TestAction(object):
                 "id": 8
             },
         )
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
             cmd = ["copr-repo", "--batched",
@@ -811,7 +811,7 @@ class TestAction(object):
                 "id": 9
             },
         )
-        assert test_action.run() == ActionResult.FAILURE
+        assert test_action.run() == BackendResultEnum("failure")
 
     @unittest.skip("Fixme, test doesn't work.")
     @mock.patch("copr_backend.actions.create_user_keys")
@@ -840,7 +840,7 @@ class TestAction(object):
 
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
         assert result_dict["id"] == 11
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert result_dict["result"] == BackendResultEnum("success")
 
         assert mc_cuk.call_args == expected_call
 
@@ -852,7 +852,7 @@ class TestAction(object):
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
 
         assert result_dict["id"] == 11
-        assert result_dict["result"] == ActionResult.FAILURE
+        assert result_dict["result"] == BackendResultEnum("failure")
 
         # test, that key creation is skipped when signing is disabled
         self.opts.do_sign = False
@@ -863,7 +863,7 @@ class TestAction(object):
         assert not mc_cuk.called
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
         assert result_dict["id"] == 11
-        assert result_dict["result"] == ActionResult.SUCCESS
+        assert result_dict["result"] == BackendResultEnum("success")
 
     @unittest.skip("Fixme, test doesn't work.")
     def test_request_exception_is_taken_care_of_when_posting_to_frontend(self, mc_time):
@@ -933,12 +933,12 @@ class TestAction(object):
 
         assert os.path.exists(foo_pkg_dir)
         assert os.path.exists(chroot_1_dir)
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
         assert not os.path.exists(foo_pkg_dir)
         assert not os.path.exists(chroot_1_dir)
 
         # The action shouldn't fail even when the directory doesn't exist anymore
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
     @httpretty.activate()
     def test_comps_create(self, mc_time):
@@ -971,7 +971,7 @@ class TestAction(object):
             opts=self.opts,
             action=action_dict,
         )
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
 
         file = os.path.join(self.opts.destdir,
                             "praiskup/ping/fedora-rawhide-x86_64",
@@ -993,7 +993,7 @@ class TestAction(object):
                 ]),
             },
         )
-        assert test_action.run() == ActionResult.SUCCESS
+        assert test_action.run() == BackendResultEnum("success")
         assert mock_rmtree.call_args_list == [
             mock.call('/var/lib/copr/public_html/results/@python/python3.8:pr:11'),
             mock.call('/var/lib/copr/public_html/results/jdoe/some:pr:123'),
