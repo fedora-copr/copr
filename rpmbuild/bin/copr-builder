@@ -18,44 +18,52 @@ from copr_common.helpers import (
 from copr_rpmbuild.helpers import read_config
 
 
+CMD_HELP = """
+You have been entrusted with access to a Copr builder.
+Please be responsible.
+
+This is a private computer system, unauthorized access is strictly
+prohibited. It is to be used only for Copr-related purposes,
+not as your personal computing system.
+
+Please be aware that the legal restrictions for what you can build
+in Copr apply here as well.
+https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr
+
+You can display more help on how to use the builder by running copr-builder:
+    $ copr-builder --help
+
+What to do next?
+By default, the builder will be destroyed after 30 minutes. Extend
+this period with:
+    $ copr-builder prolong
+
+The selected (in Copr web UI) build was automatically resubmitted,
+you can find the process with:
+    $ ps ax | grep '[c]opr-rpmbuild'
+
+You can reproduce Copr builds on your this machine by running copr-rpmbuild
+specified in the builder-live logs. For example:
+
+    $ /usr/bin/copr-rpmbuild --verbose --drop-resultdir --srpm --task-url {BUILD_TASK_URL}
+
+The results are produced in `/var/lib/copr-rpmbuild/`. See the
+information at the beginning of the builder-live.log on how to
+reproduce the build manually.
+
+Once you are finished and don't need the builder anymore,
+please return it using:
+    $ copr-builder release
+
+Happy debugging.
+"""
+
+
 def cmd_help():
     """
     Print full instructions for working with the builder instance.
-    Ideally we would have this in MOTD but that would cause problems in cases
-    like `if $(ssh stroj cat foo|head -n1) == "foo"`. So instead, we instruct
-    users to run `copr-builder help` manually.
     """
-    print(
-        "You have been entrusted with root access to a Copr builder.\n"
-        "Please be responsible.\n"
-        "\n"
-        "This is a private computer system, unauthorized access is strictly\n"
-        "prohibited. It is to be used only for Copr-related purposes,\n"
-        "not as your personal computing system.\n"
-        "\n"
-        "Please be aware that the legal restrictions for what you can build\n"
-        "in Copr apply here as well.\n"
-        "https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr\n"
-        "\n"
-        "You can display more information about the builder using\n"
-        "`copr-builder show`\n"
-        "\n"
-        "What to do next?\n"
-        "\n"
-        "By default, the builder will be destroyed after 30 minutes. Extend\n"
-        "this period with `copr-builder prolong`.\n"
-        "\n"
-        "The selected (in Copr web UI) build was automatically resubmitted,\n"
-        "you can find the process with `ps ax |grep copr-rpmbuild`.\n"
-        "The results are produced in `/var/lib/copr-rpmbuild/`. See the\n"
-        "information at the beginning of the builder-live.log on how to\n"
-        "reproduce the build manually.\n"
-        "\n"
-        "Once you are finished and don't need the builder anymore,\n"
-        "please return it using `copr-builder release`.\n"
-        "\n"
-        "Happy debugging."
-    )
+    print(CMD_HELP)
 
 
 class CMDShow:
