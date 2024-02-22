@@ -14,7 +14,9 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from copr_backend.actions import Action, ActionType, ActionResult
+from copr_common.enums import ActionTypeEnum
+
+from copr_backend.actions import Action, ActionResult
 from copr_backend.exceptions import CreateRepoError, CoprKeygenRequestError
 from requests import RequestException
 
@@ -125,7 +127,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.LEGAL_FLAG,
+                "action_type": ActionTypeEnum("legal-flag"),
                 "id": 1
             },
         )
@@ -147,7 +149,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.FORK,
+                "action_type": ActionTypeEnum("fork"),
                 "id": 1,
                 "object_type": "copr",
                 "data": json.dumps(
@@ -218,7 +220,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.RENAME,
+                "action_type": ActionTypeEnum("rename"),
                 "id": 1,
                 "old_value": "old_dir",
                 "new_value": "new_dir"
@@ -249,7 +251,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.RENAME,
+                "action_type": ActionTypeEnum("rename"),
                 "id": 1,
                 "old_value": "old_dir",
                 "new_value": "new_dir"
@@ -279,7 +281,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.RENAME,
+                "action_type": ActionTypeEnum("rename"),
                 "id": 1,
                 "old_value": "old_dir",
                 "new_value": "new_dir"
@@ -305,7 +307,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "copr",
                 "id": 6,
                 # baz doesn't exist
@@ -333,7 +335,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "copr",
                 "id": 6,
                 "old_value": "old_dir",
@@ -363,7 +365,7 @@ class TestAction(object):
             action={
                 "id": 1,
                 "object_id": 1,
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "data": self.ext_data_for_delete_build,
             },
@@ -400,7 +402,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "id": 7,
                 "old_value": "old_dir",
@@ -455,7 +457,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "id": 7,
                 "object_id": 49,
@@ -507,7 +509,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "id": 7,
                 "old_value": "old_dir",
@@ -552,7 +554,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "object_id": 15,
                 "id": 15,
@@ -622,7 +624,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "object_id": 15,
                 "id": 15,
@@ -675,7 +677,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "build",
                 "object_id": 15,
                 "id": 15,
@@ -731,7 +733,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "builds",
                 "id": 7,
                 "data": ext_data,
@@ -771,7 +773,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.CREATEREPO,
+                "action_type": ActionTypeEnum("createrepo"),
                 "data": action_data,
                 "id": 8
             },
@@ -804,7 +806,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.CREATEREPO,
+                "action_type": ActionTypeEnum("createrepo"),
                 "data": action_data,
                 "id": 9
             },
@@ -827,7 +829,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.GEN_GPG_KEY,
+                "action_type": ActionTypeEnum("gen_gpg_key"),
                 "data": action_data,
                 "id": 11
             },
@@ -875,7 +877,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "copr",
                 "id": 6,
                 "old_value": "old_dir",
@@ -920,7 +922,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.DELETE,
+                "action_type": ActionTypeEnum("delete"),
                 "object_type": "chroot",
                 "id": None,
                 "old_value": None,
@@ -984,7 +986,7 @@ class TestAction(object):
         test_action = Action.create_from(
             opts=self.opts,
             action={
-                "action_type": ActionType.REMOVE_DIRS,
+                "action_type": ActionTypeEnum("remove_dirs"),
                 "data": json.dumps([
                     "@python/python3.8:pr:11",
                     "jdoe/some:pr:123",

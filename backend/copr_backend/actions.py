@@ -16,7 +16,7 @@ from munch import Munch
 import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionResult
+from copr_common.enums import ActionResult, ActionTypeEnum
 from copr_common.worker_manager import WorkerManager
 
 from copr_backend.worker_manager import BackendQueueTask
@@ -56,18 +56,18 @@ class Action(object):
     def get_action_class(cls, action):
         action_type = action["action_type"]
         action_class = {
-            ActionType.LEGAL_FLAG: LegalFlag,
-            ActionType.CREATEREPO: Createrepo,
-            ActionType.UPDATE_COMPS: CompsUpdate,
-            ActionType.GEN_GPG_KEY: GenerateGpgKey,
-            ActionType.RAWHIDE_TO_RELEASE: RawhideToRelease,
-            ActionType.FORK: Fork,
-            ActionType.BUILD_MODULE: BuildModule,
-            ActionType.DELETE: Delete,
-            ActionType.REMOVE_DIRS: RemoveDirs,
+            ActionTypeEnum("legal-flag"): LegalFlag,
+            ActionTypeEnum("createrepo"): Createrepo,
+            ActionTypeEnum("update_comps"): CompsUpdate,
+            ActionTypeEnum("gen_gpg_key"): GenerateGpgKey,
+            ActionTypeEnum("rawhide_to_release"): RawhideToRelease,
+            ActionTypeEnum("fork"): Fork,
+            ActionTypeEnum("build_module"): BuildModule,
+            ActionTypeEnum("delete"): Delete,
+            ActionTypeEnum("remove_dirs"): RemoveDirs,
         }.get(action_type, None)
 
-        if action_type == ActionType.DELETE:
+        if action_type == ActionTypeEnum("delete"):
             object_type = action["object_type"]
             action_class = {
                 "copr": DeleteProject,
@@ -539,22 +539,6 @@ class RemoveDirs(Action):
         except OSError:
             self.log.exception("RemoveDirs OSError")
         return result
-
-
-# TODO: sync with ActionTypeEnum from common
-class ActionType(object):
-    DELETE = 0
-    RENAME = 1
-    LEGAL_FLAG = 2
-    CREATEREPO = 3
-    UPDATE_COMPS = 4
-    GEN_GPG_KEY = 5
-    RAWHIDE_TO_RELEASE = 6
-    FORK = 7
-    UPDATE_MODULE_MD = 8  # Deprecated
-    BUILD_MODULE = 9
-    CANCEL_BUILD = 10
-    REMOVE_DIRS = 11
 
 
 class ActionQueueTask(BackendQueueTask):
