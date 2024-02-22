@@ -5,22 +5,22 @@ import shutil
 import time
 import tarfile
 import subprocess
-from munch import Munch
-
-import pytest
-import httpretty
-
 import unittest
+
 from unittest import mock
 from unittest.mock import MagicMock
 
-from copr_common.enums import ActionTypeEnum
-
-from copr_backend.actions import Action, ActionResult
-from copr_backend.exceptions import CreateRepoError, CoprKeygenRequestError
+import httpretty
+from munch import Munch
+import pytest
 from requests import RequestException
 
+from copr_common.enums import ActionTypeEnum
+
 from testlib.repodata import load_primary_xml
+from copr_backend.actions import Action, ActionResult
+from copr_backend.exceptions import CoprKeygenRequestError
+
 
 RESULTS_ROOT_URL = "http://example.com/results"
 STDOUT = "stdout"
