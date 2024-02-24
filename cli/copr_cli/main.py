@@ -210,7 +210,7 @@ class Commands(object):
             owner = m.group(2)
             if not owner:
                 try:
-                    self.username
+                    owner = self.username
                 except:
                     log.error("Wrong chroot path format '%s'. Use the full "
                               "'<owner>/<project>/<chroot>' format or "
@@ -621,7 +621,7 @@ class Commands(object):
         username = args.username
         if not username:
             try:
-                self.username
+                username = self.username
             except:
                 log.error("The 'username|@groupname' not specified.  Either "
                           "specify it, or authenticate to list your projects.")
