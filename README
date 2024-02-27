@@ -20,6 +20,4 @@ Overview of use:
 - it retrieves the results and saves them into the results dir
 - it returns the build status and where to find the results to the front end
 
-copr project is licensed under GPLv2+ (see LICENSE file for details),
-except for Java parts (contents of java directory) which are licensed
-under Apache License v2.0 (see java/LICENSE).
+copr project is licensed under GPLv2+ (see LICENSE file for details)
