@@ -327,10 +327,7 @@ class Commands(object):
         self.client.build_proxy.check_before_build(
             ownername=username,
             projectname=projectname,
-            # documentation says user can create directory with copr build, but
-            # /build/check-before-build endpoint checks for presence of this
-            # dirname even before creating it in this check.
-            project_dirname=None,
+            project_dirname=project_dirname,
             buildopts=buildopts,
         )
 
