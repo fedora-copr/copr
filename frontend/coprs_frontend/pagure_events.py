@@ -279,8 +279,7 @@ class build_on_fedmsg_loop():
 
                 if event_info.object_type == 'pull-request':
                     dirname = pkg.copr.name + ':pr:' + str(event_info.object_id)
-                    copr_dir = CoprDirsLogic.get_or_create(pkg.copr, dirname,
-                                                           trusted_caller=True)
+                    copr_dir = CoprDirsLogic.get_or_create(pkg.copr, dirname)
                     update_callback = 'pagure_flag_pull_request'
                     scm_object_url = os.path.join(base_url, event_info.project_url_path,
                                                   'c', str(event_info.end_commit))
