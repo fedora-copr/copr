@@ -664,7 +664,7 @@ class CoprDirsLogic(object):
         return all([c.isnumeric() for c in parts[2]])
 
     @classmethod
-    def get_or_create(cls, copr, dirname, trusted_caller=False):
+    def get_or_create(cls, copr, dirname):
         """
         Create a CoprDir on-demand, e.g. before pull-request builds is
         submitted.  We don't create the "main" CoprDirs here (those are created
@@ -680,7 +680,7 @@ class CoprDirsLogic(object):
                 copr.name,
             ))
 
-        if not trusted_caller and not cls._valid_custom_dir_suffix(copr, dirname):
+        if not cls._valid_custom_dir_suffix(copr, dirname):
             raise exceptions.BadRequest(
                 f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE> "
                 f"or {copr.name}:pr:<ID> (for automatically removed directories)"
