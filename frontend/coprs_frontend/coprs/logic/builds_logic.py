@@ -320,24 +320,45 @@ class BuildsLogic(object):
 
         if data_type in ["for_backend", "overview"]:
 
-            load_build_fields = ["is_background", "submitted_by", "batch_id",
-                                 "user_id", "ssh_public_keys", "source_status"]
+            load_build_fields = [
+                models.Build.is_background,
+                models.Build.submitted_by,
+                models.Build.batch_id,
+                models.Build.user_id,
+                models.Build.ssh_public_keys,
+                models.Build.source_status,
+            ]
             if data_type == "for_backend":
                 # The custom method allows us to set the chroot for SRPM builds
-                load_build_fields += ["source_type", "source_json"]
+                load_build_fields += [
+                    models.Build.source_type,
+                    models.Build.source_json,
+                ]
 
             query = query.options(
                 load_only(*load_build_fields),
                 # from copr project info we only need the project name
-                joinedload('copr').load_only("user_id", "group_id", "name")
+                joinedload(models.Build.copr).load_only(
+                    models.Copr.user_id,
+                    models.Copr.group_id,
+                    models.Copr.name,
+                )
                 .options(
-                    joinedload('user').load_only("username"),
-                    joinedload("group").load_only("name")
+                    joinedload(models.Copr.user).load_only(
+                        models.User.username,
+                    ),
+                    joinedload(models.Copr.group).load_only(
+                        models.Group.name,
+                    )
                 ),
                 # submitter
-                joinedload('user').load_only("username"),
+                joinedload(models.Build.user).load_only(
+                    models.User.username,
+                ),
                 # preload also batch info
-                joinedload('batch').load_only("blocked_by_id"),
+                joinedload(models.Build.batch).load_only(
+                    models.Batch.blocked_by_id,
+                ),
             )
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
@@ -371,21 +392,48 @@ class BuildsLogic(object):
 
         if data_type in ["for_backend", "overview"]:
             query = query.options(
-                load_only("build_id", "tags_raw"),
-                joinedload('build').load_only("id", "is_background", "submitted_by", "batch_id", "ssh_public_keys", "source_status")
+                load_only(
+                    models.BuildChroot.build_id,
+                    models.BuildChroot.tags_raw,
+                ),
+                joinedload(models.BuildChroot.build).load_only(
+                    models.Build.id,
+                    models.Build.is_background,
+                    models.Build.submitted_by,
+                    models.Build.batch_id,
+                    models.Build.ssh_public_keys,
+                    models.Build.source_status,
+                )
                 .options(
                     # from copr project info we only need the project name
-                    joinedload('copr').load_only("user_id", "group_id", "name")
+                    joinedload(models.Build.copr).load_only(
+                        models.Copr.user_id,
+                        models.Copr.group_id,
+                        models.Copr.name,
+                    )
                     .options(
-                        joinedload('user').load_only("username"),
-                        joinedload("group").load_only("name")
+                        joinedload(models.Copr.user).load_only(
+                            models.User.username,
+                        ),
+                        joinedload(models.Copr.group).load_only(
+                            models.Group.name,
+                        )
                     ),
                     # submitter
-                    joinedload('user').load_only("username"),
+                    joinedload(models.Build.user).load_only(
+                        models.User.username,
+                    ),
                     # preload also batch info
-                    joinedload('batch').load_only("blocked_by_id"),
+                    joinedload(models.Build.batch).load_only(
+                        models.Batch.blocked_by_id,
+                    ),
                 ),
-                joinedload('mock_chroot').load_only("os_version", "os_release", "arch", "tags_raw"),
+                joinedload(models.BuildChroot.mock_chroot).load_only(
+                    models.MockChroot.os_version,
+                    models.MockChroot.os_release,
+                    models.MockChroot.arch,
+                    models.MockChroot.tags_raw,
+                ),
             )
 
         if background is not None:
@@ -425,7 +473,8 @@ class BuildsLogic(object):
         if dirname:
             copr_dir = coprs_logic.CoprDirsLogic.get_by_copr(copr, dirname)
             query = query.filter(models.Build.copr_dir_id==copr_dir.id)
-        query = query.options(selectinload('build_chroots'), selectinload('package'))
+        query = query.options(selectinload(models.Build.build_chroots),
+                              selectinload(models.Build.package))
         return query
 
     @classmethod
@@ -1523,13 +1572,23 @@ class BuildsMonitorLogic(object):
         """
         return (
             models.BuildChroot.query
-            .join(models.Build)
-            .join(models.Package)
+            .join(models.BuildChroot.build)
+            .join(models.Build.package)
             .options(
-                load_only("build_id", "status", "mock_chroot_id", "result_dir"),
-                contains_eager("build").load_only("package_id", "copr_dir_id",
-                                                  "pkg_version")
-                    .contains_eager("package").load_only("name"),
+                load_only(
+                    models.BuildChroot.build_id,
+                    models.BuildChroot.status,
+                    models.BuildChroot.mock_chroot_id,
+                    models.BuildChroot.result_dir,
+                ),
+                contains_eager(models.BuildChroot.build).load_only(
+                    models.Build.package_id,
+                    models.Build.copr_dir_id,
+                    models.Build.pkg_version,
+                )
+                .contains_eager(models.Build.package).load_only(
+                    models.Package.name,
+                ),
             )
             .filter(models.BuildChroot.mock_chroot_id.in_(mock_chroot_ids))
             .filter(models.Build.copr_dir==copr_dir)

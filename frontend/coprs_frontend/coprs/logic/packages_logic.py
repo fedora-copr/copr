@@ -115,7 +115,7 @@ class PackagesLogic(object):
         packages_map = {package.id: package for package in packages}
 
         builds = (models.Build.query.filter(models.Build.id.in_(builds_ids))
-                  .options(selectinload('build_chroots'))
+                  .options(selectinload(models.Build.build_chroots))
                   .yield_per(1000))
 
         for build in builds:

@@ -56,7 +56,10 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         .join(models.CoprChroot)
         .filter(models.Copr.follow_fedora_branching == True)
         .filter(models.CoprChroot.mock_chroot == mock_rawhide_chroot)
-        .options(joinedload('copr_chroots').joinedload('mock_chroot'))
+        .options(
+            joinedload(models.Copr.copr_chroots)
+            .joinedload(models.CoprChroot.mock_chroot)
+        )
     )
 
     mock_chroot.comment = mock_rawhide_chroot.comment
@@ -87,7 +90,10 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
 
         fork_builds = (
             db.session.query(models.Build)
-            .options(joinedload('build_chroots').joinedload('mock_chroot'))
+            .options(
+                joinedload(models.Build.build_chroots)
+                .joinedload(models.BuildChroot.mock_chroot)
+            )
             .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide))
         ).all()
 
