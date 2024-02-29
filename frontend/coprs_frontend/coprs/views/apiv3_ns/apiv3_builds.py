@@ -229,7 +229,7 @@ def check_before_build():
 
     # Raises an exception if CoprDir doesn't exist
     if data.get("project_dirname"):
-        CoprDirsLogic.get_by_copr(copr, data["project_dirname"])
+        CoprDirsLogic.get_or_validate(copr, data["project_dirname"])
 
     # Permissions check
     if not flask.g.user.can_build_in(copr):

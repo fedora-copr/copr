@@ -664,16 +664,10 @@ class CoprDirsLogic(object):
         return all([c.isnumeric() for c in parts[2]])
 
     @classmethod
-    def get_or_create(cls, copr, dirname):
+    def validate(cls, copr, dirname):
         """
-        Create a CoprDir on-demand, e.g. before pull-request builds is
-        submitted.  We don't create the "main" CoprDirs here (those are created
-        when a new project is created.
+        Raise exception if dirname is invalid for copr.
         """
-        copr_dir = cls.get_by_copr_or_none(copr, dirname)
-        if copr_dir:
-            return copr_dir
-
         if not dirname.startswith(copr.name+':'):
             raise MalformedArgumentException(
                 "Copr dirname must start with '{}:' prefix".format(
@@ -691,6 +685,31 @@ class CoprDirsLogic(object):
                 f"Wrong directory '{dirname}' specified.  Directory name can "
                 "consist of alpha-numeric strings separated by colons.")
 
+    @classmethod
+    def get_or_validate(cls, copr, dirname):
+        """
+        Return the existing CoprDir object if it exists; otherwise, check
+        whether it can be created (has valid name) and return None.
+
+        Note that we first check if the directory exists, and then we perform
+        the name validation.  This is intentional for cases where the validation
+        rules may need to be changed in the future.  In such cases, we still
+        want to return existing directories that do not match the new rules.
+        """
+        if copr_dir := cls.get_by_copr_or_none(copr, dirname):
+            return copr_dir
+        cls.validate(copr, dirname)
+        return None
+
+    @classmethod
+    def get_or_create(cls, copr, dirname):
+        """
+        Create a CoprDir on-demand, e.g. before pull-request builds is
+        submitted.  We don't create the "main" CoprDirs here (those are created
+        when a new project is created.
+        """
+        if copr_dir := cls.get_or_validate(copr, dirname):
+            return copr_dir
         try:
             copr_dir = models.CoprDir(name=dirname, copr=copr, main=False)
             db.session.add(copr_dir)
