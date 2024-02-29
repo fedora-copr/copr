@@ -50,10 +50,10 @@ rlJournalStart
         rlAssertEquals "" `grep -r 'does not exist' $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
 
-        # Or a non-existing CoprDir
+        # Or a non-existing and invalid CoprDir
         OUTPUT=`mktemp`
         rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec:foo $HERE/files/vera.spec &> $OUTPUT" 1
-        rlAssertEquals "" `grep -r "doesn't exist" $OUTPUT |wc -l` 1
+        rlAssertEquals "" `grep -r "Please use directory format" $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
 
         # Or a non-existing chroot
