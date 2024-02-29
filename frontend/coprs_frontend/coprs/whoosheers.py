@@ -4,6 +4,7 @@ import time
 
 from subprocess import Popen, PIPE
 from flask_whooshee import AbstractWhoosheer
+from sqlalchemy import text
 
 from coprs import app
 from coprs import models
@@ -78,25 +79,28 @@ class CoprWhoosheer(AbstractWhoosheer):
     def get_chroot_info(cls, copr):
         # NOTE: orm db session for Copr model is already committed at the point insert_*/update_* methods are called.
         # Hence we use db.engine directly (for a new session).
-        result = db.engine.execute(
-            """
-            SELECT os_release, os_version, arch
-            FROM mock_chroot
-            JOIN copr_chroot ON copr_chroot.mock_chroot_id=mock_chroot.id
-            WHERE copr_chroot.copr_id={0}
-            """.format(copr.id)
-        )
+
+        with db.engine.connect() as connection:
+            result = connection.execute(text(
+                """
+                SELECT os_release, os_version, arch
+                FROM mock_chroot
+                JOIN copr_chroot ON copr_chroot.mock_chroot_id=mock_chroot.id
+                WHERE copr_chroot.copr_id={0}
+                """.format(copr.id)
+            ))
         return ["{}-{}-{}".format(t[0], t[1], t[2]) for t in result.fetchall()]
 
     @classmethod
     def get_package_names(cls, copr):
-        result = db.engine.execute(
-            """
-            SELECT name
-            FROM package
-            WHERE copr_id={0}
-            """.format(copr.id)
-        )
+        with db.engine.connect() as connection:
+            result = connection.execute(text(
+                """
+                SELECT name
+                FROM package
+                WHERE copr_id={0}
+                """.format(copr.id)
+            ))
         return [row[0] for row in result.fetchall()]
 
     @classmethod
@@ -105,12 +109,13 @@ class CoprWhoosheer(AbstractWhoosheer):
         for change in changes:
             if change[0].__class__ in cls.models:
                 copr_id = change[0].get_search_related_copr_id()
-                db.engine.execute(
-                    """
-                    UPDATE copr SET latest_indexed_data_update = {0}
-                    WHERE copr.id = {1}
-                    """.format(int(time.time()), copr_id)
-                )
+                with db.engine.connect() as connection:
+                    connection.execute(text(
+                        """
+                        UPDATE copr SET latest_indexed_data_update = {0}
+                        WHERE copr.id = {1}
+                        """.format(int(time.time()), copr_id)
+                    ))
 
 
 class WhoosheeStamp(object):
