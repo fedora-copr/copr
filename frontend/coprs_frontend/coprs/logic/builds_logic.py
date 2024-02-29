@@ -166,7 +166,13 @@ class BuildsLogic(object):
                 AND NOT build.canceled
         """)
 
-        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("pending"))
+        with db.engine.connect() as connection:
+            params = {
+                "start": start,
+                "end": end,
+                "status": StatusEnum("pending")
+            }
+            res = connection.execute(query, params)
         return res.first().result
 
     @classmethod
@@ -181,7 +187,13 @@ class BuildsLogic(object):
                 -- builds that have ended_on=NULL
         """)
 
-        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("running"))
+        with db.engine.connect() as connection:
+            params = {
+                "start": start,
+                "end": end,
+                "status": StatusEnum("running")
+            }
+            res = connection.execute(query, params)
         return res.first().result
 
     @classmethod

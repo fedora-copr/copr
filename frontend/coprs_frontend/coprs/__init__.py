@@ -41,7 +41,8 @@ oid = OpenID(
 
 session = Session(app)
 
-db = SQLAlchemy(app)
+# Set `future=True` to ensure compatibility between SQLAlchemy 1.x and 2.0
+db = SQLAlchemy(app, engine_options={"future": True})
 
 @contextmanager
 def db_session_scope():

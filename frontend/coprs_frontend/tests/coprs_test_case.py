@@ -9,7 +9,7 @@ import datetime
 import uuid
 
 import pytest
-from sqlalchemy import desc
+from sqlalchemy import desc, text
 import decorator
 
 import coprs
@@ -78,12 +78,15 @@ class CoprsTestCase(object):
     def teardown_method(self, method):
         # delete just data, not the tables
         self.db.session.rollback()
-        for tbl in reversed(self.db.metadata.sorted_tables):
-            self.db.engine.execute(tbl.delete())
 
-        # This table has after_create() hook with default data in models.py, so
-        # we actually need to drop it so the setup_method() re-creates the data
-        self.db.engine.execute('drop table dist_git_instance')
+        with self.db.engine.connect() as connection:
+            for tbl in reversed(self.db.metadata.sorted_tables):
+                connection.execute(tbl.delete())
+            # This table has after_create() hook with default data in models.py,
+            # so we actually need to drop it so the setup_method() re-creates
+            # the data
+            connection.execute(text('drop table dist_git_instance'))
+            connection.commit()
 
         self.app.config = self.original_config.copy()
         cache.clear()
