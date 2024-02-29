@@ -61,7 +61,9 @@ class CoprsLogic(object):
 
     @classmethod
     def attach_mock_chroots(cls, query):
-        query = (query.outerjoin(*models.Copr.mock_chroots.attr)
+        query = (query
+                 .outerjoin(models.Copr.mock_chroots.local_attr)
+                 .outerjoin(models.Copr.mock_chroots.remote_attr)
                  .options(db.contains_eager(*models.Copr.mock_chroots.attr))
                  .order_by(models.MockChroot.os_release.asc())
                  .order_by(models.MockChroot.os_version.asc())
