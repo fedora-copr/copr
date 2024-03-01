@@ -1,7 +1,7 @@
 %global copr_common_version 0.20.1.dev1
 
 Name:       copr-dist-git
-Version:    0.68
+Version:    0.69
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -140,6 +140,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.69-1
+- keep logs 6 weeks instead of 13
+- rename dispatcher scripts
+
 * Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 0.68-1
 - use the renamed HashWorkerLimit instead of GroupWorkerLimit
 
