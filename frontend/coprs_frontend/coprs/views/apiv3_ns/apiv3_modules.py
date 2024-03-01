@@ -11,7 +11,8 @@ from wtforms import ValidationError
 
 from coprs import forms, db_session_scope
 from coprs.views.apiv3_ns import api, get_copr, restx_file_upload
-from coprs.views.apiv3_ns.schema.schemas import module_build_model, fullname_params, module_add_input_model
+from coprs.views.apiv3_ns.schema.schemas import (module_build_model, fullname_params,
+                                                 module_add_input_model)
 from coprs.views.misc import restx_api_login_required
 from coprs.exceptions import DuplicateException, BadRequest, InvalidForm
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade

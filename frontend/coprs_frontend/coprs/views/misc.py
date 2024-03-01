@@ -340,7 +340,7 @@ def restx_api_login_required(endpoint_method):
             return endpoint_method(self, *args, **kwargs)
         retval = _shared_api_login_required_wrapper()
         if retval is not None:
-            return retval
+            return retval.json, retval.status_code
 
         return endpoint_method(self, *args, **kwargs)
     return check_if_api_login_is_required

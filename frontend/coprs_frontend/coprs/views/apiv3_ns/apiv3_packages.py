@@ -15,14 +15,24 @@ from coprs.exceptions import (
         UnknownSourceTypeException,
         InvalidForm,
 )
-from coprs.views.misc import api_login_required, restx_api_login_required
+from coprs.views.misc import restx_api_login_required
 from coprs import db, models, forms, helpers
-from coprs.views.apiv3_ns import apiv3_ns, api, rename_fields_helper, query_to_parameters
+from coprs.views.apiv3_ns import (
+    api,
+    rename_fields_helper,
+    query_to_parameters,
+    restx_pagination,
+    deprecated_route_method_type,
+)
 from coprs.views.apiv3_ns.schema.schemas import (
     package_model,
     package_get_params,
     package_add_input_model,
     package_edit_input_model,
+    package_get_list_params,
+    pagination_package_model,
+    build_model,
+    base_package_input_model,
 )
 from coprs.views.apiv3_ns.schema.docs import add_package_docs, edit_package_docs
 from coprs.logic.packages_logic import PackagesLogic
@@ -30,7 +40,7 @@ from coprs.logic.packages_logic import PackagesLogic
 # @TODO if we need to do this on several places, we should figure a better way to do it
 from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 
-from . import query_params, pagination, get_copr, GET, POST, PUT, DELETE, Paginator
+from . import get_copr, Paginator
 from .json2form import get_form_compatible_data
 
 
@@ -128,40 +138,42 @@ class GetPackage(Resource):
         return to_dict(package, with_latest_build, with_latest_succeeded_build)
 
 
-@apiv3_ns.route("/package/list", methods=GET)
-@pagination()
-@query_params()
-def get_package_list(ownername, projectname, with_latest_build=False,
-                     with_latest_succeeded_build=False, **kwargs):
-    """
-    Get a list of packages
-    Get a list of packages from a Copr project
-    """
+@apiv3_packages_ns.route("/list")
+class PackageGetList(Resource):
+    @restx_pagination
+    @query_to_parameters
+    @apiv3_packages_ns.doc(params=package_get_list_params)
+    @apiv3_packages_ns.marshal_with(pagination_package_model)
+    def get(self, ownername, projectname, with_latest_build=False,
+            with_latest_succeeded_build=False, **kwargs):
+        """
+        Get a list of packages
+        Get a list of packages from a Copr project
+        """
+        with_latest_build = get_arg_to_bool(with_latest_build)
+        with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
 
-    with_latest_build = get_arg_to_bool(with_latest_build)
-    with_latest_succeeded_build = get_arg_to_bool(with_latest_succeeded_build)
+        copr = get_copr(ownername, projectname)
+        query = PackagesLogic.get_all(copr.id)
+        paginator = Paginator(query, models.Package, **kwargs)
+        packages = paginator.get().all()
 
-    copr = get_copr(ownername, projectname)
-    query = PackagesLogic.get_all(copr.id)
-    paginator = Paginator(query, models.Package, **kwargs)
-    packages = paginator.get().all()
+        if len(packages) > MAX_PACKAGES_WITHOUT_PAGINATION:
+            raise ApiError("Too many packages, please use pagination. "
+                           "Requests are limited to only {0} packages at once."
+                           .format(MAX_PACKAGES_WITHOUT_PAGINATION), 413)
 
-    if len(packages) > MAX_PACKAGES_WITHOUT_PAGINATION:
-        raise ApiError("Too many packages, please use pagination. "
-                       "Requests are limited to only {0} packages at once."
-                       .format(MAX_PACKAGES_WITHOUT_PAGINATION), 413)
+        # Query latest builds for all packages at once. We can't use this solution
+        # for querying latest successfull builds, so that will be a little slower
+        if with_latest_build:
+            packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
+                copr.main_dir,
+                small_build=False,
+                packages=packages)
 
-    # Query latest builds for all packages at once. We can't use this solution
-    # for querying latest successfull builds, so that will be a little slower
-    if with_latest_build:
-        packages = PackagesLogic.get_packages_with_latest_builds_for_dir(
-            copr.main_dir,
-            small_build=False,
-            packages=packages)
-
-    items = [to_dict(p, with_latest_build, with_latest_succeeded_build)
-             for p in packages]
-    return flask.jsonify(items=items, meta=paginator.meta)
+        items = [to_dict(p, with_latest_build, with_latest_succeeded_build)
+                 for p in packages]
+        return {"items": items, "meta": paginator.meta}
 
 
 @apiv3_packages_ns.route("/add/<ownername>/<projectname>/<package_name>/<source_type_text>")
@@ -214,62 +226,121 @@ class PackageEdit(Resource):
         return to_dict(package)
 
 
-@apiv3_ns.route("/package/reset", methods=PUT)
-@api_login_required
-def package_reset():
-    copr = get_copr()
-    form = forms.BasePackageForm()
-    try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
-    except IndexError:
-        raise ObjectNotFound("No package with name {name} in copr {copr}"
-                             .format(name=form.package_name.data, copr=copr.name))
-
-    PackagesLogic.reset_package(flask.g.user, package)
-    db.session.commit()
-    return flask.jsonify(to_dict(package))
-
-
-@apiv3_ns.route("/package/build", methods=POST)
-@api_login_required
-def package_build():
-    copr = get_copr()
-    data = rename_fields(get_form_compatible_data(
-        preserve=["python_versions", "chroots", "exclude_chroots"]))
-    form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, meta={'csrf': False})
-    try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
-    except IndexError:
-        raise ObjectNotFound("No package with name {name} in copr {copr}"
-                             .format(name=form.package_name.data, copr=copr.name))
-    if form.validate_on_submit():
-        buildopts = {k: v for k, v in form.data.items() if k in data}
+@apiv3_packages_ns.route("/reset")
+class PackageReset(Resource):
+    @staticmethod
+    def _common():
+        copr = get_copr()
+        form = forms.BasePackageForm()
         try:
-            build = PackagesLogic.build_package(
-                flask.g.user, copr, package, form.selected_chroots,
-                copr_dirname=form.project_dirname.data, **buildopts)
-        except NoPackageSourceException as e:
-            raise BadRequest(str(e))
+            package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        except IndexError as exc:
+            raise ObjectNotFound(
+                "No package with name {name} in copr {copr}".format(
+                    name=form.package_name.data, copr=copr.name
+                )
+            ) from exc
+
+        PackagesLogic.reset_package(flask.g.user, package)
         db.session.commit()
-    else:
-        raise InvalidForm(form)
-    return flask.jsonify(build_to_dict(build))
+        return to_dict(package)
+
+    @restx_api_login_required
+    @apiv3_packages_ns.marshal_with(package_model)
+    @apiv3_packages_ns.expect(base_package_input_model)
+    def put(self):
+        """
+        Reset a package
+        Reset a package to its initial state.
+        """
+        return self._common()
+
+    @deprecated_route_method_type(apiv3_packages_ns, "POST", "PUT")
+    @restx_api_login_required
+    @apiv3_packages_ns.marshal_with(package_model)
+    @apiv3_packages_ns.expect(base_package_input_model)
+    def post(self):
+        """
+        Reset a package
+        Reset a package to its initial state.
+        """
+        return self._common()
 
 
-@apiv3_ns.route("/package/delete", methods=DELETE)
-@api_login_required
-def package_delete():
-    copr = get_copr()
-    form = forms.BasePackageForm()
-    try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
-    except IndexError:
-        raise ObjectNotFound("No package with name {name} in copr {copr}"
-                             .format(name=form.package_name.data, copr=copr.name))
+@apiv3_packages_ns.route("/build")
+class PackageBuild(Resource):
+    @restx_api_login_required
+    @apiv3_packages_ns.marshal_with(build_model)
+    def post(self):
+        """
+        Build a package
+        Build a package in a Copr project.
+        """
+        copr = get_copr()
+        data = rename_fields(get_form_compatible_data(
+            preserve=["python_versions", "chroots", "exclude_chroots"]))
+        form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, meta={'csrf': False})
+        try:
+            package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        except IndexError as exc:
+            raise ObjectNotFound(
+                "No package with name {name} in copr {copr}".format(
+                    name=form.package_name.data, copr=copr.name
+                )
+            ) from exc
+        if form.validate_on_submit():
+            buildopts = {k: v for k, v in form.data.items() if k in data}
+            try:
+                build = PackagesLogic.build_package(
+                    flask.g.user, copr, package, form.selected_chroots,
+                    copr_dirname=form.project_dirname.data, **buildopts)
+            except NoPackageSourceException as e:
+                raise BadRequest(str(e)) from e
+            db.session.commit()
+        else:
+            raise InvalidForm(form)
+        return build_to_dict(build)
 
-    PackagesLogic.delete_package(flask.g.user, package)
-    db.session.commit()
-    return flask.jsonify(to_dict(package))
+
+@apiv3_packages_ns.route("/delete")
+class PackageDelete(Resource):
+    @staticmethod
+    def _common():
+        copr = get_copr()
+        form = forms.BasePackageForm()
+        try:
+            package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        except IndexError as exc:
+            raise ObjectNotFound(
+                "No package with name {name} in copr {copr}".format(
+                    name=form.package_name.data, copr=copr.name
+                )
+            ) from exc
+
+        PackagesLogic.delete_package(flask.g.user, package)
+        db.session.commit()
+        return to_dict(package)
+
+    @restx_api_login_required
+    @apiv3_packages_ns.marshal_with(package_model)
+    @apiv3_packages_ns.expect(base_package_input_model)
+    def delete(self):
+        """
+        Delete a package
+        Delete a package from a Copr project.
+        """
+        return self._common()
+
+    @deprecated_route_method_type(apiv3_packages_ns, "POST", "DELETE")
+    @restx_api_login_required
+    @apiv3_packages_ns.marshal_with(package_model)
+    @apiv3_packages_ns.expect(base_package_input_model)
+    def post(self):
+        """
+        Delete a package
+        Delete a package from a Copr project.
+        """
+        return self._common()
 
 
 def process_package_add_or_edit(copr, source_type_text, package=None, data=None):

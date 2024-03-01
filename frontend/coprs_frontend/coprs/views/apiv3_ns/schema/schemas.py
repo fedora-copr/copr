@@ -386,7 +386,14 @@ class PackageGet(ParamsSchema):
 
 
 @dataclass
-class PackageAdd(_SourceDictScmFields, SourceDictPyPI, InputSchema):
+class BasePackage(InputSchema):
+    max_builds: Integer
+    webhook_rebuild: Boolean
+    packagename: String
+
+
+@dataclass
+class PackageAdd(_SourceDictScmFields, SourceDictPyPI, BasePackage, InputSchema):
     # rest of SCM
     scm_type: String
 
@@ -399,10 +406,8 @@ class PackageAdd(_SourceDictScmFields, SourceDictPyPI, InputSchema):
     resultdir: String
     chroot: String
 
-    packagename: String
     source_build_method: String
-    max_builds: Integer
-    webhook_rebuild: Boolean
+
 
 
 @dataclass
@@ -479,6 +484,18 @@ class FullnameSchema(ParamsSchema):
     projectname: String
 
     __all_required: bool = True
+
+
+@dataclass
+class CanBuildParams(FullnameSchema):
+    who: String = String(example="user123")
+
+    __all_required: bool = True
+
+
+@dataclass
+class CanBuildSchema(CanBuildParams):
+    can_build_in: Boolean = Boolean(example=True)
 
 
 @dataclass
@@ -590,9 +607,11 @@ nevra_packages_model = NevraPackages.get_cls().model()
 module_build_model = ModuleBuild.get_cls().model()
 webhook_secret_model = WebhookSecret.get_cls().model()
 monitor_model = Monitor.get_cls().model()
+can_build_in_model = CanBuildSchema.get_cls().model()
 
 pagination_project_model = Pagination(items=List(Nested(project_model))).model()
 pagination_build_chroot_model = Pagination(items=List(Nested(build_chroot_model))).model()
+pagination_package_model = Pagination(items=List(Nested(package_model))).model()
 
 source_package_model = _source_package_model
 build_model = _build_model
@@ -603,6 +622,7 @@ repo_model = _repo_model
 # INPUT MODELS
 package_add_input_model = PackageAdd.get_cls().input_model()
 package_edit_input_model = package_add_input_model
+base_package_input_model = BasePackage.get_cls().input_model()
 
 project_add_input_model = ProjectAdd.get_cls().input_model()
 project_edit_input_model = ProjectEdit.get_cls().input_model()
@@ -613,9 +633,12 @@ module_add_input_model = ModuleAdd.get_cls().input_model()
 
 # PARAMETER SCHEMAS
 package_get_params = PackageGet.get_cls().params_schema()
+package_get_list_params = package_get_params.copy()
+package_get_list_params.pop("packagename")
 project_chroot_get_params = ProjectChrootGet.get_cls().params_schema()
 fullname_params = FullnameSchema.get_cls().params_schema()
 project_params = ProjectParamsSchema.get_cls().params_schema()
 pagination_params = PaginationMeta.get_cls().params_schema()
 build_chroot_params = BuildChrootParams.get_cls().params_schema()
 build_id_params = {"build_id": build_chroot_params["build_id"]}
+can_build_params = CanBuildParams.get_cls().params_schema()
