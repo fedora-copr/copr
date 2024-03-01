@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.202
+Version:    1.203
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -385,6 +385,29 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.203-1
+- big RFE: allow user SSH to builders
+- correctly check CoprDir before upload
+- migrate projects, build-chroots, monitor, modules, mock_chroots,
+  webhooks enpoints to restx
+- add button for feeding log-detective.com
+- add runtime dependency on flask-session and markupsafe
+- keep logs 6 weeks instead of 13
+- clean expired projects (by cron) even without user permission
+- atomic increments for repo accesses, and fix racy counter tracebacks
+- fix fedora-messaging consumer for the new flask
+- allow ignoring project-exists errors during creation
+- compatibility with Werkzeug/Flask 3
+- fix race condition when creating CoprDir
+- specify 4xx status codes for ApiError exceptions
+- convert eror message to binary text before emitting
+- oidc: add OIDC_USERNAME_CLAIM
+- oidc: clean up duplicate return code
+- show unknown badge when a package has no builds yet
+- allow dot and plus characters in chroot denylist
+- more precise description for manual createrepo
+- add backref relationship between Package and Build
+
 * Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 1.202-1
 - make alembic working on F39+
 - unify naming convention for "_safe" methods
