@@ -9,7 +9,7 @@
 %global copr_common_version 0.21.1.dev1
 
 Name:       copr-backend
-Version:    1.173
+Version:    1.174
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,15 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.174-1
+- allow user SSH to builders
+- drop ActionResult and use BackendResultEnum from copr-common
+- replace backend-specific ActionType with ActionTypeEnum from copr-common
+- limit the stdout/stderr of ssh.run_expensive() commands
+- backend now periodically checks if the resalloc ticket isn't failed
+- keep logs 6 weeks instead of 13
+- rename dispatcher scripts
+
 * Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 1.173-1
 - enforce createrepo_c gzip compression (f39+ switched to zstd)
 - self-identify the resalloc resource in logs
