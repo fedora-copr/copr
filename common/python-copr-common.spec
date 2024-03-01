@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.21.1.dev1
+Version:    0.22
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -119,6 +119,13 @@ version=%version %py2_install
 
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.22-1
+- fix misleading warning for non-copr library consumers
+- add `contextlib.nullcontext` function as EL8 compat
+- limit stdout/stderr of ssh.run_expensive() commands
+- use 'copr-common/<version>' as http user agent identifier
+- changes needed to allow user SSH to builders
+
 * Thu Nov 23 2023 Pavel Raiskup <praiskup@redhat.com> 0.21-1
 - rename GroupWorkerLimit to HashWorkerLimit
 - explicitly build-depend on python-six
