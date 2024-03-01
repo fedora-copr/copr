@@ -386,6 +386,7 @@ def foo():
             copr=self.c2, name="whatsupthere-world", source_type=0)
         self.p3 = models.Package(
             copr=self.c3, name="goodbye-world", source_type=0)
+        self.db.session.add_all([self.p1, self.p2, self.p3])
 
         self.b1 = models.Build(
             copr=self.c1, copr_dir=self.c1_dir, package=self.p1,
@@ -461,6 +462,7 @@ def foo():
         self.b6_bc = []
         self.b7_bc = []
         self.b8_bc = []
+        self.db.session.add_all([self.b5, self.b6, self.b7, self.b8])
         self.db.session.flush()
 
         for build, build_chroots in zip(
@@ -478,7 +480,6 @@ def foo():
                 )
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
-        self.db.session.add_all([self.b5, self.b6, self.b7, self.b8])
 
         self.p5 = models.Package(
             copr=self.c2, name="new-package", source_type=0)
@@ -498,6 +499,7 @@ def foo():
         self.b9_bc = []
         self.b10_bc = []
         self.b11_bc = []
+        self.db.session.add_all([self.b9, self.b10, self.b11])
         self.db.session.flush()
 
         bc_status = {self.b9: {self.mc2: StatusEnum("succeeded"),
@@ -521,7 +523,6 @@ def foo():
                 )
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
-        self.db.session.add_all([self.b9, self.b10, self.b11])
 
     @pytest.fixture
     def f_fedora_branching(self, f_u1_ts_client, f_mock_chroots, f_db):
@@ -549,13 +550,13 @@ def foo():
     @pytest.fixture
     def f_hook_package(self, f_users, f_coprs, f_mock_chroots, f_builds):
         self.c1.webhook_secret = str(uuid.uuid4())
-        self.db.session.add(self.c1)
         self.pHook = models.Package(
             copr=self.c1,
             name="hook-package",
             source_type=helpers.BuildSourceEnum('scm'),
             source_json='{"clone_url": "example.com"}',
         )
+        self.db.session.add_all([self.c1, self.pHook])
 
     @pytest.fixture
     def f_build_few_chroots(self, f_mock_chroots_many):
@@ -662,6 +663,8 @@ def foo():
             copr_builder=helpers.PermissionEnum("request"),
             copr_admin=helpers.PermissionEnum("approved"))
 
+        self.db.session.add_all([self.cp1, self.cp2, self.cp3])
+
 
     @pytest.fixture
     def f_copr_more_permissions(self, f_copr_permissions):
@@ -680,7 +683,7 @@ def foo():
             copr_builder=helpers.PermissionEnum("approved"),
             copr_admin=helpers.PermissionEnum("nothing"))
 
-        self.db.session.add_all([self.cp1, self.cp2, self.cp3])
+        self.db.session.add_all([self.u4, self.cp4])
 
     @pytest.fixture
     def f_actions(self, f_db):

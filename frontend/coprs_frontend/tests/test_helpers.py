@@ -256,6 +256,7 @@ class TestHelpers(CoprsTestCase):
 
         # remove the duplicity, and commit (no traceback)
         copy.copr = target_copr
+        self.db.session.add(copy)
         self.db.session.commit()
 
         target_copr = self.models.Copr.query.get(1)
