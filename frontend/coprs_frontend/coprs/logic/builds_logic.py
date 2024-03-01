@@ -1535,7 +1535,7 @@ class BuildChrootResultsLogic:
         """
         Create a new record about a built package in some `BuildChroot`
         """
-        return models.BuildChrootResult(
+        build_chroot = models.BuildChrootResult(
             build_chroot_id=build_chroot,
             build_chroot=build_chroot,
             name=name,
@@ -1544,7 +1544,8 @@ class BuildChrootResultsLogic:
             release=release,
             arch=arch,
         )
-
+        db.session.add(build_chroot)
+        return build_chroot
 
     @classmethod
     def create_from_dict(cls, build_chroot, results):

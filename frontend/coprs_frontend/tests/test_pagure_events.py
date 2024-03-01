@@ -53,6 +53,7 @@ class TestPagureEvents(CoprsTestCase):
             copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}'
         )
+        self.db.session.add(self.p2)
         candidates = ScmPackage.get_candidates_for_rebuild("https://pagure.io/test")
         for pkg in candidates:
             dir_in_commit = pkg.is_dir_in_commit(changed_files)
@@ -71,6 +72,7 @@ class TestPagureEvents(CoprsTestCase):
             copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test/copr/copr"}'
         )
+        self.db.session.add(self.p1)
         build = build_on_fedmsg_loop()
         message = Message(
             'io.pagure.prod.pagure.pull-request.updated',
@@ -153,6 +155,7 @@ class TestPagureEvents(CoprsTestCase):
             copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
             source_json='{"clone_url": "https://pagure.io/test"}'
         )
+        self.db.session.add(self.p1)
         build = build_on_fedmsg_loop()
         message = Message(
             'io.pagure.prod.pagure.git.receive',
