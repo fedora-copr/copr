@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.10
+Version:    0.11
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -86,6 +86,10 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.11-1
+- handle namespaced usernames
+- set the agent_name and usernames properties
+
 * Mon May 22 2023 Jakub Kadlcik <frostyx@email.cz> 0.10-1
 - Derive all message classes from _CoprMessage
 
