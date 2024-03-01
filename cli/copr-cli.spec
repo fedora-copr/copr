@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.128.1
 
 Name:       copr-cli
-Version:    1.110
+Version:    1.111
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -128,6 +128,12 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.111-1
+- correctly check CoprDir name before uploading large SRPM
+- assign fallback value from self.username
+- fix `copr build` +args --help output
+- typo in --namespace help output
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.110-1
 - priority=X support for copr DNF repositories added
 - new 'copr-cli download-build --logs' option added

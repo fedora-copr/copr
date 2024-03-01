@@ -30,7 +30,7 @@ __url__ = "https://github.com/fedora-copr/copr"
 
 setup(
     name=__name__,
-    version="1.110",
+    version="1.111",
     description=__description__,
     long_description=long_description,
     author=__author__,
