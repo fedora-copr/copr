@@ -7,7 +7,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.130
+Version:    1.131
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -229,6 +229,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.131-1
+- don't fail project create action if the new exist_ok=False opt is used
+
 * Tue Aug 15 2023 Pavel Raiskup <praiskup@redhat.com> 1.130-1
 - priority=X support added for copr project repositories
 - several forward/backward compat fixes with libs/tooling
