@@ -196,6 +196,7 @@ class Config(object):
 
     RECENT_BUILDS_ON_FRONTPAGE = False
 
+    LOG_DETECTIVE_BUTTON = False
 
 class ProductionConfig(Config):
     DEBUG = False

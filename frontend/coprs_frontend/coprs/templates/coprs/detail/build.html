@@ -35,7 +35,7 @@
 {% endif %}
 {% endif %}
 
-{% if build.state == "failed" %}
+{% if config.LOG_DETECTIVE_BUTTON and build.state == "failed" %}
     {{ copr_build_feed_log_detective(build, class="pull-right button-build-action") }}
 {% endif %}
 
