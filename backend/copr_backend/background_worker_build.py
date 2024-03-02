@@ -900,7 +900,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         CancellableThreadTask(
             _keep_alive,
             self._cancel_task_check_request,
-            self._cancel_running_worker,
+            self._discard_running_worker,
             check_period=CANCEL_CHECK_PERIOD,
         ).run()
         if self.canceled:
