@@ -6,7 +6,6 @@ import contextlib
 import anytree
 import backoff
 
-from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy_utils.functions import quote as sa_quote
 from coprs import app, db, cache
