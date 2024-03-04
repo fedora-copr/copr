@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.203
+Version:    1.204
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -385,6 +385,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Mon Mar 04 2024 Pavel Raiskup <praiskup@redhat.com> 1.204-1
+- opt-in the log-detective.com button
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.203-1
 - big RFE: allow user SSH to builders
 - correctly check CoprDir before upload
