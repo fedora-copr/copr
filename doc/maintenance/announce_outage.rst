@@ -19,20 +19,34 @@ follow the steps outlined in this document.
 Planned outage
 --------------
 
-1. Prepare the infrastructure ticket similar to `this old one <https://pagure.io/fedora-infrastructure/issue/10854>`_.
+1. Red Hatters-only: Schedule a calendar event, and invite the ``Engineering
+   Outage Calendar`` room.
 
-2. Send email to `copr-devel`_ mailing list informing about an upcomming
-   release.  We usually copy-paste text of the infrastructure ticket created in a
-   previous step. Don't forget to put a link to the ticket at the end of the
-   email.  See the `example <https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/message/FVVX3Y7IVRTFW3NYVBTWX3AK3BHNRATX/>`_.
+2. Prepare `an infrastructure ticket
+   <https://pagure.io/fedora-infrastructure/new_issue>`_ using one of these
+   templates
 
-3. Adjust the `Matrix channel`_ title so it contains a message similar to::
+   .. toctree::
+       :maxdepth: 1
+
+       Upgrading packages <announce_outage_example_01>
+
+3. Send email to `copr-devel`_ mailing list informing about an upcomming
+   release.  We usually copy-paste text of the infrastructure ticket, including
+   a back-reference to the *infra ticket*.  Sending to::
+
+       copr-devel@lists.fedorahosted.org
+       copr-team@redhat.com
+       OPT-IN buildsys@lists.fedoraproject.org
+       OPT-IN devel@lists.fedoraproject.org
+
+4. Adjust the `Matrix channel`_ title so it contains a message similar to::
 
         Planned outage 2022-08-17 20:00 UTC - https://pagure.io/fedora-infrastructure/issue/10854
 
-4. Create a new "planned" `Fedora Status SOP`_ entry.
+5. Create a new "planned" `Fedora Status SOP`_ entry.
 
-6. Create warning banner on Copr homepage::
+7. Create warning banner on Copr homepage::
 
      copr-frontend warning-banner --outage_time "2022-12-31 13:00-16:00 UTC" --ticket 1234
 
