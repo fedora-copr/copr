@@ -56,9 +56,10 @@ class TestApiRPMRepo(CoprsTestCase):
         # both 'foo' and 'foo:pr:11' give the same output.
 
         self.c3.delete_after = datetime.now() + timedelta(days=180)
-        self.c3.copr_chroots[0].deleted = True
-        self.c3.copr_chroots[0].delete_after = \
-                datetime.now() + timedelta(days=10)
+        for chroot in self.c3.copr_chroots:
+            if chroot.name == "fedora-18-x86_64":
+                chroot.deleted = True
+                chroot.delete_after = datetime.now() + timedelta(days=10)
         self.db.session.commit()
 
         for dirname in [self.c3.name, self.c3.name + ':pr:11']:
