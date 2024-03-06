@@ -237,6 +237,7 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        with app.app_context():
+            main()
     except Exception as e:
         log.exception(str(e))
