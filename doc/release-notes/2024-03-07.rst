@@ -1,0 +1,96 @@
+.. _release_notes_2024_03_07:
+
+Highlights from 2024-03-07 release
+==================================
+
+Updated client packages are shipped in `Fedora 38`_, `Fedora 39`_, `Fedora 40`_,
+`EPEL 7`_, `EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+Enhancements
+------------
+
+- The Copr build system now `allows users to SSH into the Copr workers
+  <#2364_>`_.  If your build fails and you require a hands-on builder
+  experience, you can retrigger the build (with an uploaded public SSH key).
+  Once the worker is assigned to your task, the automation grants you root
+  permissions over SSH.  This feature is currently available only in the web UI.
+  To experiment, debug - open the page with the failed build and use the
+  "Resubmit and allow SSH" button.
+
+- The Copr API documentation provided at ``/api_3/docs`` URI has been updated,
+  and almost all the API endpoints are now documented.
+
+- The Copr team is working on the AI project `Log Detective`_, which aims to
+  help with build failure analysis.  Although the project is still under
+  development, you can contribute to the community by helping gather a build
+  failure training dataset.  This Copr release adds a convenience button that
+  redirects you to the `Log Detective`_ site, pre-filling the site with the
+  build failure logs to simplify the data gathering process.
+
+- The ``python-copr`` API has been enhanced to support the ``exist_ok=True``
+  argument when creating Copr projects, with this default::
+
+        def ProjectAdd.post(..., exist_ok=False):
+
+  If used with ``True``, the call will report "success" even if the project
+  already exists. This helps with CI job concurrency, where multiple jobs try to
+  ensure that the project exists.
+
+Bugfixes
+--------
+
+- `Temporary projects are again correctly removed <#2489_>`_ (the corresponding
+  cron job has been fixed).
+
+- The ``copr build <copr dir> <srpm>`` command has been fixed to support
+  creating custom directories like ``project:custom:foo``.  The logic first
+  checks that such a directory exists or at least can be created, and only then
+  proceeds with the (potentially large) SRC.RPM upload.  A corresponding race
+  condition was fixed that sometimes caused broken repository preparation and
+  subsequent build failures, requiring a "manual createrepo task".
+
+- The ``*.repo`` download counter has been fixed to properly increment without
+  race conditions.
+
+- The per-package "chroot denylist" feature has been fixed to allow you to
+  specify the literal ``.`` symbol in the pattern (some chroot names contain the
+  ``.`` symbol, like ``opensuse-leap-15.5-*``).
+
+Features/Changes for administrators
+-----------------------------------
+
+- The new release `allows the administrator <PR#3023_>`_ to specify which claim
+  from OpenIDC UserInfo should be used as a Copr username using the
+  ``OIDC_USERNAME_CLAIM`` configuration option.  For example, they may choose
+  ``preferred_username`` if they know that the values from their OIDC provider
+  will be unique.
+
+- The default configuration of Copr services is now configured to only keep 6
+  weeks of logs, instead of 13.
+
+- The ``copr-backend`` logic now periodically checks if the resalloc ticket
+  isn't in a ``FAILED`` state.  This previously caused builder `hangups in
+  confusing situations <#2888_>_`).
+
+- Copr Frontend compatibility with Werkzeug/Flask 3, this includes the fix for
+  ``fedora-messaging`` consumer (pagure events).
+
+- The ``copr-rpmbuild`` got several fixes for the new ``mock`` and
+  ``mock-core-configs`` in the DNF5 era.
+
+.. _`Log Detective`: https://log-detective.com/
+.. _`#2140`: https://github.com/fedora-copr/copr/issues/2140
+.. _`#2364`: https://github.com/fedora-copr/copr/issues/2364
+.. _`#2489`: https://github.com/fedora-copr/copr/issues/2489
+.. _`#2888`: https://github.com/fedora-copr/copr/issues/2888
+.. _`#2786`: https://github.com/fedora-copr/copr/issues/2786
+.. _`#3117`: https://github.com/fedora-copr/copr/issues/3117
+.. _`PR#3023`: https://github.com/fedora-copr/copr/pull/3023
+.. _`/api_3/docs`: https://copr.fedorainfracloud.org/api_3/docs
+
+.. _`Fedora 38`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-153d2b19a7
+.. _`Fedora 39`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-680c9d3f98
+.. _`Fedora 40`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-4eb3caaef4
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-1360839ea4
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-e9b3113fcf
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-83215d2cb5
