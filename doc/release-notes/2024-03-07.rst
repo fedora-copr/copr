@@ -70,7 +70,7 @@ Features/Changes for administrators
 
 - The ``copr-backend`` logic now periodically checks if the resalloc ticket
   isn't in a ``FAILED`` state.  This previously caused builder `hangups in
-  confusing situations <#2888_>_`).
+  confusing situations <#2888_>`_.
 
 - Copr Frontend compatibility with Werkzeug/Flask 3, this includes the fix for
   ``fedora-messaging`` consumer (pagure events).
