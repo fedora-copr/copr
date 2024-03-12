@@ -41,6 +41,7 @@ class MockBuilder(object):
         self.isolation = task.get("isolation")
         self.macros = macros_for_task(task, config)
         self.uniqueext = get_mock_uniqueext()
+        self.allow_user_ssh = task.get("allow_user_ssh")
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -113,6 +114,9 @@ class MockBuilder(object):
 
     def mock_clean(self):
         """ Do a best effort Mock cleanup. """
+        if self.allow_user_ssh:
+            return
+
         cmd = MOCK_CALL + [
             "-r", self.mock_config_file,
             "--uniqueext", self.uniqueext,
@@ -174,6 +178,12 @@ class MockBuilder(object):
 
         for without_opt in self.without_opts:
             cmd += ["--without", without_opt]
+
+        # This is safe because builds that allow user SSH access are run in
+        # a separate sandbox which is not shared with any other build (not even
+        # from the same user)
+        if self.allow_user_ssh:
+            cmd += ["--no-cleanup-after"]
 
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
                 timeout=self.timeout)
