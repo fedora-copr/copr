@@ -804,6 +804,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             return
         self._alloc_root_ssh_connection()
         self._deploy_user_ssh()
+        self._log_user_ssh_instructions()
         self._set_default_expiration()
 
     def _alloc_root_ssh_connection(self):
@@ -814,6 +815,18 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             config_file=self.opts.ssh.builder_config,
             log=self.log,
         )
+
+    def _log_user_ssh_instructions(self):
+        expiration = datetime.fromtimestamp(
+            self.job.started_on + USER_SSH_DEFAULT_EXPIRATION)
+
+        self.log.info("The owner of this build can connect using:")
+        self.log.info("ssh root@%s", self.host.hostname)
+        self.log.info("Unless you connect to the builder and prolong its "
+                      "expiration, it will be shut-down in %s",
+                      expiration.strftime("%Y-%m-%d %H:%M"))
+        self.log.info("After connecting, run `copr-builder help' for "
+                      "complete instructions")
 
     def _deploy_user_ssh(self):
         """
@@ -873,14 +886,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         # Highlight this portion of the log because it is the only part of
         # the backend.log that is directly for the end users
-        self.log.info("\n\nKeeping builder alive for user SSH")
-        self.log.info("The owner of this build can connect using:")
-        self.log.info("ssh root@%s", self.host.hostname)
-        self.log.info("Unless you connect to the builder and prolong its "
-                      "expiration, it will be shut-down in %s",
-                      default.strftime("%Y-%m-%d %H:%M"))
-        self.log.info("After connecting, run `copr-builder help' for "
-                      "complete instructions\n\n")
+        self.log.info("Keeping builder alive for user SSH")
 
         def _keep_alive():
             while True:
