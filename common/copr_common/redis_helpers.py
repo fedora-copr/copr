@@ -12,13 +12,18 @@ def get_redis_connection(opts):
     :rtype: StrictRedis
     """
     kwargs = {}
-    if hasattr(opts, "redis_db"):
-        kwargs["db"] = opts.redis_db
-    if hasattr(opts, "redis_host"):
-        kwargs["host"] = opts.redis_host
-    if hasattr(opts, "redis_port"):
-        kwargs["port"] = opts.redis_port
-    if hasattr(opts, "redis_password"):
-        kwargs["password"] = opts.redis_password
+    for key in ["db", "host", "port", "password"]:
+        config_key = "redis_" + key
+
+        # dict-like objects
+        if isinstance(opts, dict):
+            if config_key in opts:
+                kwargs[key] = opts[config_key]
+                continue
+
+        # class-like objects
+        if hasattr(opts, config_key):
+            kwargs[key] = getattr(opts, config_key)
+            continue
 
     return StrictRedis(encoding="utf-8", decode_responses=True, **kwargs)
