@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.22
+Version:    0.23
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -119,6 +119,9 @@ version=%version %py2_install
 
 
 %changelog
+* Fri Mar 15 2024 Pavel Raiskup <praiskup@redhat.com> 0.23-1
+- make get_redis_connection to accept dict-like 'opts' argument
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.22-1
 - fix misleading warning for non-copr library consumers
 - add `contextlib.nullcontext` function as EL8 compat
