@@ -21,24 +21,48 @@ die() { echo >&2 "FATAL: $*"; exit 1; }
 
 test -n "$1" || { usage && exit 1 ; }
 
-fedoras=
+where_to=STAGE
+case $(basename "$0") in
+*move-prod)
+    where_to=PROD
+    ;;
+esac
+
+distros=
 for build; do
-    fedora_version=${build//*fc/}
-    case $fedora_version in
-        [0-9][0-9]) ;;
-        *) die "wrong fedora id '$fedora_version'" ;;
+
+    case $build in
+    *fc[0-9][0-9])
+        distro=f
+        distro_version=${build//*fc/}
+        ;;
+    *el[0-9]|*el[0-9][0-9])
+        distro=epel
+        distro_version=${build//*el/}
+        ;;
+    *) die "Unknown build: $build" ;;
     esac
 
-    case $fedoras in
-    *" $fedora_version "*) ;;  # already in
-    *) fedoras="$fedoras $fedora_version "
+    case $distro_version in
+        [0-9][0-9]|[0-9]) ;;
+        *) die "wrong $distro id '$distro_version'" ;;
     esac
 
-    eval "fedora_$fedora_version=\"\$fedora_$fedora_version $build\""
+    id=${distro}$distro_version
+    case $distros in
+    *" $id "*) ;;  # already in
+    *) distros="$distros $id "
+    esac
+
+    eval "distro_$id=\"\$distro_$id $build\""
 done
 
-for fedora in $fedoras; do
-    eval "builds=\$fedora_$fedora"
-    echo "Infra STG $fedora:$builds"
-    koji tag-build "f$fedora-infra-candidate" $builds
+for distro in $distros; do
+    eval "builds=\$distro_$distro"
+    echo "Infra $where_to $distro -> $builds"
+    if test $where_to = STAGE; then
+        koji tag-build "$distro-infra-candidate" $builds
+    else
+        koji move "$distro"-infra-stg "$distro"-infra $builds
+    fi
 done
