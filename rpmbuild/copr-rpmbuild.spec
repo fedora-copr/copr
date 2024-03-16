@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.71
+Version: 0.72
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -323,6 +323,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Sat Mar 16 2024 Pavel Raiskup <praiskup@redhat.com> 0.72-1
+- don't clean after builds with user ssh access
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.71-1
 - don't set bootstrap_image_ready for rawhide
 - no Jinja-vars in config_opts keys (mock-core-configs 40.2 compat)
