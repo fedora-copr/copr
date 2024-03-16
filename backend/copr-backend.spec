@@ -9,7 +9,7 @@
 %global copr_common_version 0.21.1.dev1
 
 Name:       copr-backend
-Version:    1.175
+Version:    1.176
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Sat Mar 16 2024 Pavel Raiskup <praiskup@redhat.com> 1.176-1
+- print user SSH instructions before the build starts
+
 * Mon Mar 04 2024 Pavel Raiskup <praiskup@redhat.com> 1.175-1
 - call correct (renamed) _discard_running_worker() internal method
 
