@@ -231,6 +231,16 @@ Reproducing the builds locally
 There's a separate document :ref:`reproducing_builds`.
 
 
+SSH access to Copr builders
+---------------------------
+
+Sometimes it is useful to manually debug failed builds not locally but
+within the Copr infrastructure. That's why it is possible to allow SSH
+access to a copr builder. More information in the `SSH access to Copr
+builders <https://frostyx.cz/posts/ssh-access-to-copr-builders>`_ blog
+post.
+
+
 Temporary projects
 ------------------
 
