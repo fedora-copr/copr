@@ -15,7 +15,8 @@ Enhancements
   Once the worker is assigned to your task, the automation grants you root
   permissions over SSH.  This feature is currently available only in the web UI.
   To experiment, debug - open the page with the failed build and use the
-  "Resubmit and allow SSH" button.
+  "Resubmit and allow SSH" button. Please read more in the `SSH access to
+  Copr builders`_ blog post.
 
 - The Copr API documentation provided at ``/api_3/docs`` URI has been updated,
   and almost all the API endpoints are now documented.
@@ -87,6 +88,7 @@ Features/Changes for administrators
 .. _`#3117`: https://github.com/fedora-copr/copr/issues/3117
 .. _`PR#3023`: https://github.com/fedora-copr/copr/pull/3023
 .. _`/api_3/docs`: https://copr.fedorainfracloud.org/api_3/docs
+.. _`SSH access to Copr builders`: https://frostyx.cz/posts/ssh-access-to-copr-builders
 
 .. _`Fedora 38`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-153d2b19a7
 .. _`Fedora 39`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-680c9d3f98
