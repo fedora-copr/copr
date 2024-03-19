@@ -155,10 +155,30 @@ For each package do::
     ``copr-cli`` or copr server pacakges because of a missing dependency to
     ``python3-copr`` or ``python3-copr-common`` that you have just built in Koji. To
     fix this, you need to create a
-    `Bodhi override for those dependencies <https://fedoraproject.org/wiki/Bodhi/BuildRootOverrides>`_.
+    `Bodhi override for those dependencies <https://fedoraproject.org/wiki/Bodhi/BuildRootOverrides>`_
+    for example you can use this snippet::
+
+        cd your/checkout/directory/copr-cli
+        for i in f38 f39 f40 epel7 epel8 epel9; do
+            git checkout $i
+            git pull
+            fedpkg override create --duration 1 --notes "Copr 2024 March Release"
+        done
+
     It takes up to 30 minutes to for the override to be available in the buildroot::
 
         koji wait-repo f34-build --build=python-copr-common-0.13-1.fc34
+        for ver in 38 39 40 41; do
+            koji wait-repo f$ver-build --build=python-copr-common-0.22-1.fc$ver || echo ERROR $ver
+        done
+        Successfully waited 0:00 for python-copr-common-0.22-1.fc38 to appear in the f38-build repo
+        ...
+
+        for ver in 8 9; do
+            koji wait-repo epel$ver-build --build=python-copr-common-0.22-1.el$ver || echo ERROR $ver
+        done
+        Successfully waited 0:00 for python-copr-common-0.22-1.el8 to appear in the epel8-build repo
+        ...
 
 .. warning::
 
