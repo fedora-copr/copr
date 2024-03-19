@@ -108,6 +108,7 @@ BuildRequires: python3dist(redis)
 BuildRequires: python3dist(requests)
 BuildRequires: python3dist(sphinx)
 BuildRequires: python3dist(sphinxcontrib-httpdomain)
+BuildRequires: python3dist(sqlalchemy) < 2
 BuildRequires: python3dist(sqlalchemy-utils)
 BuildRequires: python3dist(whoosh)
 BuildRequires: python3dist(wtforms) >= 2.2.1
