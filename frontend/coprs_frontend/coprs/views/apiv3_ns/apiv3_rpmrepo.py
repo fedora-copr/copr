@@ -1,8 +1,11 @@
+# pylint: disable=missing-class-docstring
+
 """
 /api_3/rpmrepo routes
 """
 
-import flask
+from flask_restx import Resource, Namespace
+
 from coprs import app
 from coprs.logic.coprs_logic import (
     CoprsLogic,
@@ -13,10 +16,7 @@ from coprs.logic.complex_logic import (
     ComplexLogic
 )
 
-from coprs.views.apiv3_ns import (
-    apiv3_ns,
-    GET,
-)
+from coprs.views.apiv3_ns import api
 
 from coprs import cache
 from coprs.logic.complex_logic import ReposLogic
@@ -27,6 +27,11 @@ from coprs.helpers import (
     get_stat_name,
     CounterStatType,
 )
+
+
+apiv3_rpmrepo_ns = Namespace("rpmrepo", description="RPM Repo")
+api.add_namespace(apiv3_rpmrepo_ns)
+
 
 @cache.memoize(timeout=2*60)
 def get_project_rpmrepo_metadata(copr):
@@ -128,20 +133,21 @@ def get_project_rpmrepo_metadata(copr):
             }
         })
 
+    return data
 
-    return flask.jsonify(data)
 
-@apiv3_ns.route("/rpmrepo/<ownername>/<dirname>/<name_release>/", methods=GET)
-def rpmrepo_route(ownername, dirname, name_release):
-    """
-    Wrap get_project_rpmrepo_metadata() JSON provider, and gather some
-    statistics.
-    """
-    copr = CoprsLogic.get_by_ownername_and_dirname(ownername, dirname)
-    name = get_stat_name(
-        CounterStatType.REPO_DL,
-        copr_dir=copr.main_dir,
-        name_release=name_release,
-    )
-    CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
-    return get_project_rpmrepo_metadata(copr)
+@apiv3_rpmrepo_ns.route("/<ownername>/<dirname>/<name_release>")
+class RpmRepo(Resource):
+    def get(self, ownername, dirname, name_release):
+        """
+        Wrap get_project_rpmrepo_metadata() JSON provider, and gather some
+        statistics.
+        """
+        copr = CoprsLogic.get_by_ownername_and_dirname(ownername, dirname)
+        name = get_stat_name(
+            CounterStatType.REPO_DL,
+            copr_dir=copr.main_dir,
+            name_release=name_release,
+        )
+        CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
+        return get_project_rpmrepo_metadata(copr)

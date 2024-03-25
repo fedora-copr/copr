@@ -99,6 +99,8 @@ services:
     build:
       context: docker/frontend/
     hostname: frontend
+    command:
+      - /bin/bash
     depends_on:
       - database
       - redis

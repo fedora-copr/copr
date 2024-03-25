@@ -7,12 +7,12 @@ import re
 from fnmatch import fnmatch
 
 import flask
-from flask_restx import Namespace
+from flask_restx import Namespace, Resource
 
 from coprs import app, oid, db
-from coprs.views.apiv3_ns import apiv3_ns, api
+from coprs.views.apiv3_ns import api
 from coprs.exceptions import AccessRestricted
-from coprs.views.misc import api_login_required
+from coprs.views.misc import restx_api_login_required
 from coprs.auth import UserAuth
 
 
@@ -31,7 +31,7 @@ def gssapi_login_action():
     if "web-ui" in flask.request.full_path:
         flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
         return flask.redirect(oid.get_next_url())
-    return flask.jsonify(auth_check_response())
+    return auth_check_response()
 
 
 def krb_straighten_username(krb_remote_user):
@@ -58,15 +58,18 @@ def krb_straighten_username(krb_remote_user):
     return username
 
 
-apiv3_general_ns = Namespace("home", path="/",
-                             description="APIv3 general endpoints")
+apiv3_general_ns = Namespace("", description="APIv3 general endpoints")
 api.add_namespace(apiv3_general_ns)
 
 
-@apiv3_ns.route("/auth-check")
-@api_login_required
-def auth_check():
-    return flask.jsonify(auth_check_response())
+@apiv3_general_ns.route("/auth-check")
+class AuthCheck(Resource):
+    @restx_api_login_required
+    def get(self):
+        """
+        Check if the user is authenticated
+        """
+        return auth_check_response()
 
 
 def auth_403(message):
@@ -77,44 +80,44 @@ def auth_403(message):
     raise AccessRestricted(message)
 
 
-@apiv3_ns.route("/gssapi_login/", methods=["GET"])
-@apiv3_ns.route("/gssapi_login/web-ui/", methods=["GET"])
-def gssapi_login():
-    """
-    Log-in using the GSSAPI/Kerberos credentials
+@apiv3_general_ns.route("/gssapi_login")
+@apiv3_general_ns.route("/gssapi_login/web-ui")
+class GssApiLogin(Resource):
+    def get(self):
+        """
+        Log-in using the GSSAPI/Kerberos credentials
 
-    Note that if we are able to get here, either the user is authenticated
-    correctly, or apache is mis-configured and it does not perform KRB
-    authentication at all (REMOTE_USER wouldn't be set, see below).
-    """
+        Note that if we are able to get here, either the user is authenticated
+        correctly, or apache is mis-configured and it does not perform KRB
+        authentication at all (REMOTE_USER wouldn't be set, see below).
+        """
+        # Already logged in?
+        if flask.g.user is not None:
+            return gssapi_login_action()
 
-    # Already logged in?
-    if flask.g.user is not None:
+        if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
+            # For local testing (without krb5 keytab and other configuration)
+            flask.request.environ['REMOTE_USER'] = os.environ['TEST_REMOTE_USER']
+
+        if 'REMOTE_USER' not in flask.request.environ:
+            nocred = "Kerberos authentication failed (no credentials provided)"
+            return auth_403(nocred)
+
+        krb_username = flask.request.environ['REMOTE_USER']
+        app.logger.debug("krb5 login attempt: " + krb_username)
+        username = krb_straighten_username(krb_username)
+        if not username:
+            return auth_403("invalid krb5 username, contact administrators: " + krb_username)
+
+        user = UserAuth.user_object(username=username)
+        db.session.add(user)
+        db.session.commit()
+
+        flask.g.user = user
+        flask.session['krb5_login'] = user.name
+        app.logger.info(
+            "%s '%s' logged in",
+            "Admin" if user.admin else "User",
+            user.name
+        )
         return gssapi_login_action()
-
-    if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
-        # For local testing (without krb5 keytab and other configuration)
-        flask.request.environ['REMOTE_USER'] = os.environ['TEST_REMOTE_USER']
-
-    if 'REMOTE_USER' not in flask.request.environ:
-        nocred = "Kerberos authentication failed (no credentials provided)"
-        return auth_403(nocred)
-
-    krb_username = flask.request.environ['REMOTE_USER']
-    app.logger.debug("krb5 login attempt: " + krb_username)
-    username = krb_straighten_username(krb_username)
-    if not username:
-        return auth_403("invalid krb5 username, contact administrators: " + krb_username)
-
-    user = UserAuth.user_object(username=username)
-    db.session.add(user)
-    db.session.commit()
-
-    flask.g.user = user
-    flask.session['krb5_login'] = user.name
-    app.logger.info(
-        "%s '%s' logged in",
-        "Admin" if user.admin else "User",
-        user.name
-    )
-    return gssapi_login_action()

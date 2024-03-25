@@ -1,6 +1,14 @@
 FROM fedora:39
 
-RUN dnf update -y && dnf install python-pytest-cov copr-dist-git rpmdevtools python3-copr copr-cli dnf-plugins-core -y
+RUN dnf update -y && \
+        dnf install -y \
+            python-pytest-cov \
+            copr-dist-git \
+            rpmdevtools \
+            python3-copr \
+            copr-cli \
+            dnf-plugins-core && \
+        dnf clean all
 
 RUN useradd copr_user
 USER copr_user
