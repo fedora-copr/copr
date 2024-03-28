@@ -17,7 +17,7 @@ This tutorial will show you how to use ``copr-cli``.
 3. `Submitting builds <https://www.youtube.com/watch?v=7dYs5hUaA1Y>`_
 4. Introspecting builds
 5. Building from PyPI, RubyGems, and others
-6. Custom build method
+6. `Custom build method <https://www.youtube.com/watch?v=cTzXha2N6Xs>`_
 7. Working with packages
 
 Workflows
@@ -27,3 +27,4 @@ Copr-related packaging workflows:
 
 - `Submitting Copr packages into Fedora <https://www.youtube.com/watch?v=w3e3W00KqVI>`_
 - Packit and automatic rebuilds
+- Reproducing Copr builds locally
