@@ -456,6 +456,52 @@ version = String(example="1.0")
 
 modulemd = Raw(example="YAML file", description="Modulemd YAML file")
 
+status = String(
+    example="succeeded",
+    description="Status of the build",
+)
+
+chroot_names = List(
+    String,
+    description="List of chroot names",
+    example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
+)
+
+background = is_background
+
+copr_dirname = project_dirname
+
+after_build_id = Integer(
+    description="Build after the batch containing the Build ID build",
+    example=123,
+)
+
+with_build_id = Integer(
+    description="Build in the same batch with the Build ID build",
+    example=123,
+)
+
+packit_forge_project = String(
+    description="Forge project name that Packit passes",
+    example="github.com/fedora-copr/copr",
+    # hide this so we don't confuse our users in the API docs
+    # packit uses this internally to check whether given packit build is allowed
+    # to build from the source upstream project into tis copr project
+    # packit_forge_project in packit_forge_projects_allowed
+    mask=True,
+)
+
+distgit = String(
+    description="Dist-git URL we build against",
+    example="fedora",
+)
+
+namespace = String(
+    description="DistGit namescape",
+    example="@copr/copr",
+)
+
+
 # TODO: these needs description
 
 chroot_repos = Raw()
@@ -468,9 +514,9 @@ priority = Integer()
 
 memory_limit = Integer()
 
-distgit = String()
-
 scmurl = Url()
+
+result_url = Url()
 
 # TODO: specify those only in Repo schema?
 

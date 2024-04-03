@@ -85,7 +85,14 @@ class Schema:
         return result_schema
 
     @staticmethod
-    def _convert_schema_class_dict_to_schema(d: dict) -> dict:
+    def _should_be_item_candidate_to_delete(key: str, value: Any) -> bool:
+        return (key.startswith("_") or not isinstance(value, Raw)) or (
+            # masking feature is missing in marshaling
+            hasattr(value, "mask") and value.mask
+        )
+
+    @classmethod
+    def _convert_schema_class_dict_to_schema(cls, d: dict) -> dict:
         """
         Returns the same dictionary that was passed as param, doesn't create copy of it.
         """
@@ -103,7 +110,7 @@ class Schema:
 
         keys_to_delete = []
         for key, value in d.items():
-            if key.startswith("_") or not isinstance(value, Raw):
+            if cls._should_be_item_candidate_to_delete(key, value):
                 keys_to_delete.append(key)
 
         for key_to_delete in keys_to_delete:
@@ -594,6 +601,111 @@ class Monitor(Schema):
     packages: List = List(Nested(_module_package_model))
 
 
+@dataclass
+class SourceChroot(Schema):
+    state: String
+    result_url: Url
+
+
+@dataclass
+class SourceBuildConfig(Schema):
+    source_type: String
+    source_dict: Raw
+    memory_limit: Integer
+    timeout: Integer
+    is_background: Boolean
+
+
+@dataclass
+class ListBuild(ParamsSchema):
+    ownername: String
+    projectname: String
+    packagename: String
+    status: String
+
+    @property
+    def required_attrs(self) -> list:
+        return [self.ownername, self.projectname]
+
+
+@dataclass
+class _GenericBuildOptions:
+    chroot_names: List
+    background: Boolean
+    timeout: Integer
+    bootstrap: String
+    isolation: String
+    after_build_id: Integer
+    with_build_id: Integer
+    packit_forge_project: String
+    enable_net: Boolean
+
+
+@dataclass
+class _BuildDataCommon:
+    ownername: String
+    projectname: String
+
+
+@dataclass
+class CreateBuildUrl(_BuildDataCommon, _GenericBuildOptions, InputSchema):
+    project_dirname: String
+    pkgs: List = List(
+        Url,
+        description="List of urls to build from",
+        example=["https://example.com/some.src.rpm"],
+    )
+
+
+@dataclass
+class CreateBuildUpload(_BuildDataCommon, _GenericBuildOptions, InputSchema):
+    project_dirname: String
+    pkgs: List = List(Raw, description="application/x-rpm files to build from")
+
+
+@dataclass
+class CreateBuildSCM(_BuildDataCommon, _GenericBuildOptions, _SourceDictScmFields, InputSchema):
+    project_dirname: String
+    scm_type: String
+    source_build_method: String
+
+
+@dataclass
+class CreateBuildDistGit(_BuildDataCommon, _GenericBuildOptions, InputSchema):
+    distgit: String
+    namespace: String
+    package_name: String
+    committish: String
+    project_dirname: String
+
+
+@dataclass
+class CreateBuildPyPI(_BuildDataCommon, _GenericBuildOptions, SourceDictPyPI, InputSchema):
+    project_dirname: String
+
+
+@dataclass
+class CreateBuildRubyGems(_BuildDataCommon, _GenericBuildOptions, InputSchema):
+    project_dirname: String
+    gem_name: String
+
+
+@dataclass
+class CreateBuildCustom(_BuildDataCommon, _GenericBuildOptions, InputSchema):
+    script: String
+    chroot: String
+    builddeps: String
+    resultdir: String
+    project_dirname: String
+    repos: List = List(Nested(_repo_model))
+
+
+@dataclass
+class DeleteBuilds(InputSchema):
+    build_ids: List = List(Integer, description="List of build ids to delete")
+
+
+
 # OUTPUT MODELS
 project_chroot_model = ProjectChroot.get_cls().model()
 project_chroot_build_config_model = ProjectChrootBuildConfig.get_cls().model()
@@ -608,10 +720,14 @@ module_build_model = ModuleBuild.get_cls().model()
 webhook_secret_model = WebhookSecret.get_cls().model()
 monitor_model = Monitor.get_cls().model()
 can_build_in_model = CanBuildSchema.get_cls().model()
+source_chroot_model = SourceChroot.get_cls().model()
+source_build_config_model = SourceBuildConfig.get_cls().model()
+list_build_model = DeleteBuilds.get_cls().model()
 
 pagination_project_model = Pagination(items=List(Nested(project_model))).model()
 pagination_build_chroot_model = Pagination(items=List(Nested(build_chroot_model))).model()
 pagination_package_model = Pagination(items=List(Nested(package_model))).model()
+pagination_build_model = Pagination(items=List(Nested(_build_model))).model()
 
 source_package_model = _source_package_model
 build_model = _build_model
@@ -630,6 +746,15 @@ project_fork_input_model = ProjectFork.get_cls().input_model()
 project_delete_input_model = ProjectDelete.get_cls().input_model()
 module_add_input_model = ModuleAdd.get_cls().input_model()
 
+create_build_url_input_model = CreateBuildUrl.get_cls().input_model()
+create_build_upload_input_model = CreateBuildUpload.get_cls().input_model()
+create_build_scm_input_model = CreateBuildSCM.get_cls().input_model()
+create_build_distgit_input_model = CreateBuildDistGit.get_cls().input_model()
+create_build_pypi_input_model = CreateBuildPyPI.get_cls().input_model()
+create_build_rubygems_input_model = CreateBuildRubyGems.get_cls().input_model()
+create_build_custom_input_model = CreateBuildCustom.get_cls().input_model()
+delete_builds_input_model = DeleteBuilds.get_cls().input_model()
+
 
 # PARAMETER SCHEMAS
 package_get_params = PackageGet.get_cls().params_schema()
@@ -642,3 +767,4 @@ pagination_params = PaginationMeta.get_cls().params_schema()
 build_chroot_params = BuildChrootParams.get_cls().params_schema()
 build_id_params = {"build_id": build_chroot_params["build_id"]}
 can_build_params = CanBuildParams.get_cls().params_schema()
+list_build_params = ListBuild.get_cls().params_schema()
