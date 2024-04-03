@@ -1279,12 +1279,14 @@ class BuildsLogic(object):
         db.session.delete(build)
 
     @classmethod
-    def delete_builds(cls, user, build_ids):
+    def delete_builds(cls, user, build_ids, send_delete_action=True):
         """
         Delete builds specified by list of IDs
 
         :type user: models.User
         :type build_ids: list of Int
+        :param send_delete_action: boolean, set to True to let backend remove the
+            build data
         """
         to_delete = []
         no_permission = []
@@ -1317,13 +1319,13 @@ class BuildsLogic(object):
 
             raise BadRequest(msg)
 
-        if to_delete:
+        if to_delete and send_delete_action:
             ActionsLogic.send_delete_multiple_builds(to_delete)
 
-        for build in to_delete:
-            for build_chroot in build.build_chroots:
-                db.session.delete(build_chroot)
+        log.info("User '%s' removing builds: %s",
+                 user.username, [x.id for x in to_delete])
 
+        for build in to_delete:
             db.session.delete(build)
 
     @classmethod

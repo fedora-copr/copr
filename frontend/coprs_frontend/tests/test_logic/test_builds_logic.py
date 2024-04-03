@@ -380,6 +380,22 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b4.id).one()
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_delete_multiple_builds_chroots_deleted(self):
+        """
+        Test that the delete_builds method deletes all related chroots
+        """
+        self.b3.source_status = StatusEnum("failed")
+        self.b4.source_status = StatusEnum("failed")
+        build_ids = [self.b3.id, self.b4.id]
+
+        query = models.BuildChroot.query.filter(
+            models.BuildChroot.build_id.in_(build_ids))
+
+        assert query.count() > 0
+        BuildsLogic.delete_builds(self.u2, build_ids)
+        assert query.count() == 0
+
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds")
     def test_resubmit_build_inherit_git_hash(self):
         orig_git_hash = self.b1.build_chroots[0].git_hash
