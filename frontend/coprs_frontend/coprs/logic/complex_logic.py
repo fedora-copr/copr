@@ -4,6 +4,7 @@ import os
 import datetime
 import time
 import fnmatch
+from itertools import batched
 import flask
 import sqlalchemy
 
@@ -15,7 +16,7 @@ from coprs import models
 from coprs import exceptions
 from coprs import cache
 from coprs.constants import DEFAULT_COPR_REPO_PRIORITY
-from coprs.exceptions import ObjectNotFound, ActionInProgressException
+from coprs.exceptions import ObjectNotFound
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.batches_logic import BatchesLogic
 from coprs.logic.packages_logic import PackagesLogic
@@ -97,34 +98,43 @@ class ComplexLogic(object):
         else:
             user = flask.g.user
 
-        builds_query = BuildsLogic.get_multiple_by_copr(copr=copr)
+        builds = [x.id for x in BuildsLogic.get_multiple_by_copr(copr=copr)]
 
         if copr.persistent:
             raise exceptions.InsufficientRightsException("This project is protected against deletion.")
 
-        for build in builds_query:
+        for chunk in batched(builds, 1000):
             # Don't send delete action for each build, rather send an action to delete
             # a whole project as a part of CoprsLogic.delete_unsafe() method.
-            BuildsLogic.delete_build(user, build, send_delete_action=False)
+            BuildsLogic.delete_builds(user, chunk, send_delete_action=False)
 
         CoprsLogic.delete_unsafe(user, copr)
 
 
     @classmethod
-    def delete_expired_projects(cls):
+    def delete_expired_projects(cls, limit=None):
         query = (
             models.Copr.query
             .filter(models.Copr.delete_after.isnot(None))
             .filter(models.Copr.delete_after < datetime.datetime.now())
             .filter(models.Copr.deleted.isnot(True))
+            .limit(limit)
         )
+        deleted = 0
         for copr in query.all():
             print("deleting project '{}'".format(copr.full_name))
             try:
-               cls.delete_copr(copr, admin_action=True)
-            except ActionInProgressException as e:
+                cls.delete_copr(copr, admin_action=True)
+                deleted += 1
+            except exceptions.BadRequest as e:
+                # Ideally, we would like to catch only ActionInProgressException
+                # but the BuildsLogic.delete_builds method generalizes the
+                # exceptions and raises BadRequest.
+                if "still running" not in str(e):
+                    raise e
                 print(e)
                 print("project {} postponed".format(copr.full_name))
+        return deleted
 
 
     @classmethod
