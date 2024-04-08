@@ -28,6 +28,7 @@ def clear_tarballs(git_repository_root, lookaside_location):
             lookasidepkgs_path = os.path.join(lookaside_location, username_projectname, package_name)
             result = None
             try:
+                # this script is provided by dist-git.rpm (not Copr)
                 result = run_cmd(['remove_unused_sources', repos_path, lookasidepkgs_path])
             except RunCommandException:
                 log.debug(result)
