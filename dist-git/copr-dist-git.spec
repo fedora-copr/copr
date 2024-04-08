@@ -31,7 +31,8 @@ Requires: systemd
 Requires: httpd
 Requires: coreutils
 Requires: /usr/bin/crudini
-Requires: dist-git
+# last bump for the remove_unused_sources script
+Requires: dist-git >= 1.12
 Requires: python3-copr-common >= %copr_common_version
 Requires: python3-requests
 Requires: python3-rpkg >= 1.66-6
@@ -94,8 +95,6 @@ cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
 
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
-
-mv %{buildroot}%{_bindir}/remove_unused_sources %{buildroot}%{_bindir}/copr-prune-dist-git-sources
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
