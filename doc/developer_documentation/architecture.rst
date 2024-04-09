@@ -1,3 +1,5 @@
+.. _architecture:
+
 Basic Copr build process / Architecture diagram
 -----------------------------------------------
 
