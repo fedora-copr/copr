@@ -1,8 +1,11 @@
 # coding: utf-8
 
 import os
-import pytest
 
+from unittest import mock
+from unittest.mock import MagicMock
+
+import pytest
 from pyrpkg import rpkgError
 from munch import Munch
 
@@ -15,8 +18,7 @@ from copr_dist_git.package_import import (
     setup_git_repo,
 )
 
-from unittest import mock
-from unittest.mock import MagicMock
+from copr_dist_git.helpers import distgit_cmd_path
 
 MODULE_REF = 'copr_dist_git.package_import'
 
@@ -116,11 +118,11 @@ class TestPackageImport(Base):
         branches = ['f25', 'f26']
         setup_git_repo(reponame, branches)
         mc_subprocess_check_output.assert_has_calls([
-            mock.call(['/usr/share/dist-git/setup_git_package', 'foo'],
+            mock.call([distgit_cmd_path('setup_git_package'), 'foo'],
                       stderr=-2, encoding='utf-8'),
-            mock.call(['/usr/share/dist-git/mkbranch', 'f25', 'foo'],
+            mock.call([distgit_cmd_path('mkbranch'), 'f25', 'foo'],
                       stderr=-2, encoding='utf-8'),
-            mock.call(['/usr/share/dist-git/mkbranch', 'f26', 'foo'],
+            mock.call([distgit_cmd_path('mkbranch'), 'f26', 'foo'],
                       stderr=-2, encoding='utf-8'),
             mock.call(['copr-dist-git-refresh-cgit', 'foo'],
                       stderr=-2, encoding='utf-8'),

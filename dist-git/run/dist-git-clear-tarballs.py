@@ -12,8 +12,8 @@ import pwd
 import logging
 from configparser import ConfigParser
 
-from copr_dist_git.helpers import run_cmd, ConfigReader
 from copr_common.tree import walk_limited
+from copr_dist_git.helpers import ConfigReader, distgit_cmd_path, run_cmd
 from copr_dist_git.exceptions import RunCommandException
 
 log = logging.getLogger(__name__)
@@ -29,7 +29,8 @@ def clear_tarballs(git_repository_root, lookaside_location):
             result = None
             try:
                 # this script is provided by dist-git.rpm (not Copr)
-                result = run_cmd(['remove_unused_sources', repos_path, lookasidepkgs_path])
+                result = run_cmd([distgit_cmd_path('remove_unused_sources'),
+                                  repos_path, lookasidepkgs_path])
             except RunCommandException:
                 log.debug(result)
 

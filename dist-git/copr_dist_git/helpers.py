@@ -231,3 +231,10 @@ def get_distgit_opts(path):
         sys.exit(1)
 
     return config_reader.read()
+
+
+def distgit_cmd_path(script_name):
+    """
+    Return full path to the dist-git.rpm provided script.
+    """
+    return os.path.join("/usr/share/dist-git", script_name)
