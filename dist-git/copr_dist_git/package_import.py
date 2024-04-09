@@ -105,7 +105,7 @@ def setup_git_repo(reponame, branches):
     log.info("make sure repos exist: {}".format(reponame))
     brand_new_package = False
     try:
-        cmd = ["/usr/share/dist-git/setup_git_package", reponame]
+        cmd = [helpers.distgit_cmd_path("setup_git_package"), reponame]
         subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
         brand_new_package = True
     except subprocess.CalledProcessError as e:
@@ -121,7 +121,7 @@ def setup_git_repo(reponame, branches):
 
     for branch in branches:
         try:
-            cmd = ["/usr/share/dist-git/mkbranch", branch, reponame]
+            cmd = [helpers.distgit_cmd_path("mkbranch"), branch, reponame]
             subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
         except subprocess.CalledProcessError as e:
             log.error("cmd: {}, rc: {}, msg: {}"
