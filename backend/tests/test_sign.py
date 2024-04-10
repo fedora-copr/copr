@@ -151,10 +151,9 @@ class TestSign(object):
         with pytest.raises(CoprSignError):
             _sign_one(fake_path, self.usermail, "sha256", MagicMock())
 
-    @staticmethod
     @mock.patch("copr_backend.sign.time.sleep")
     @mock.patch("copr_backend.sign.Popen")
-    def test_call_sign_bin_repeatedly(mc_popen, _sleep):
+    def test_call_sign_bin_repeatedly(self, mc_popen, _sleep):
         """
         Test that we attempt to run /bin/sign multiple times if it returns
         non-zero exit status

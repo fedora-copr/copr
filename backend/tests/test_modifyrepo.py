@@ -375,9 +375,8 @@ class TestModifyRepo(object):
         call = popen.call_args_list[0]
         assert call[0][0] == ['copr-repo', '--batched', '/some/dir', '--add', 'xxx']
 
-    @staticmethod
     @mock.patch("copr_backend.helpers.subprocess.Popen")
-    def test_copr_repo_do_stat(popen):
+    def test_copr_repo_do_stat(self, popen):
         """ do_stat=True adds --do-stat option """
         popen.return_value.communicate.return_value = ("", "")
         popen.return_value.returncode = 0
@@ -488,9 +487,8 @@ class TestModifyRepo(object):
         task_dict = self.redis.hgetall(keys[0])
         assert task_dict["status"] == "success"
 
-    @staticmethod
     @mock.patch("copr_backend.helpers.subprocess.Popen")
-    def test_copr_repo_rpms_to_remove_in_call(popen):
+    def test_copr_repo_rpms_to_remove_in_call(self, popen):
         """ check that list of rpm files to be removed is added to copr-repo call """
         popen.return_value.communicate.return_value = ("","")
         popen.return_value.returncode = 0

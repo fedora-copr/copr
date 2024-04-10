@@ -197,8 +197,7 @@ class TestDistGitDownload(object):
             _load_config(modified_dir)
             assert "Duplicate prefix /redhat" in str(err)
 
-    @staticmethod
-    def test_no_git_config():
+    def test_no_git_config(self):
         with pytest.raises(RuntimeError) as err:
             _detect_clone_url()
             assert "is not a git" in str(err)
