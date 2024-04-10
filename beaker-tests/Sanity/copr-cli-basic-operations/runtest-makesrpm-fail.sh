@@ -21,7 +21,7 @@ rlJournalStart
         rlRun "copr-cli create $PROJECT --chroot $CHROOT" 0
 
         rlRun -s "copr-cli buildscm --method make_srpm \
---clone-url https://pagure.io/copr/copr-hello.git \
+--clone-url https://github.com/fedora-copr/copr-test-hello.git \
 --commit noluck-make-srpm $PROJECT" 4
         rlRun parse_build_id
         output=$(get_srpm_builder_log | grep "^stderr output$")

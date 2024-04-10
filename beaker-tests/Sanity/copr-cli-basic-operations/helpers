@@ -1,10 +1,10 @@
 #!/bin/sh
 
-HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/hello-2.8-1.src.rpm
-EVIL_HELLO=https://pagure.io/copr/copr-test-sources/raw/master/f/evilhello-2.8-2.src.rpm
-SRPM_BUILDTAG=https://pagure.io/copr/copr-test-sources/raw/master/f/buildtag-0-0.src.rpm
-COPR_HELLO_GIT=https://pagure.io/copr/copr-hello.git
-COPR_HELLO_2_GIT=https://pagure.io/copr/copr-hello-2.git
+HELLO=https://github.com/fedora-copr/copr-test-sources/raw/main/hello-2.8-1.src.rpm
+EVIL_HELLO=https://github.com/fedora-copr/copr-test-sources/raw/main/evilhello-2.8-2.src.rpm
+SRPM_BUILDTAG=https://github.com/fedora-copr/copr-test-sources/raw/main/buildtag-0-0.src.rpm
+COPR_HELLO_GIT=https://github.com/fedora-copr/copr-test-hello.git
+COPR_HELLO_2_GIT=https://github.com/fedora-copr/copr-test-hello-2.git
 DNF_COPR_ID=tested-copr
 
 parse_build_id()
