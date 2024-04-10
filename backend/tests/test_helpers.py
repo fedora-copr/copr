@@ -67,8 +67,7 @@ class TestHelpers(object):
         split = ("ed", "1.14.2", "5.fc30", "2", "x86_64")
         assert format_filename(zero_epoch=True, *split) == "ed-2:1.14.2-5.fc30.x86_64"
 
-    @staticmethod
-    def test_walk_limited():
+    def test_walk_limited(self):
         paths = [
             "user1/foo/srpm-builds/111/foo-1.src.rpm",
             "user1/foo/srpm-builds/111/foo-1.log",
@@ -109,8 +108,7 @@ class TestHelpers(object):
             assert files == []
 
 
-    @staticmethod
-    def test_recursive_copy_and_link_rpms():
+    def test_recursive_copy_and_link_rpms(self):
 
         def _write(filename, contents):
             with open(filename, "w", encoding="utf-8") as fd:
