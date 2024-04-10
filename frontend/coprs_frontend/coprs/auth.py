@@ -238,8 +238,10 @@ class Kerberos:
     def _krb5_login_redirect(next_url=None):
         if app.config['KRB5_LOGIN']:
             # Pick the first one for now.
-            return flask.redirect(flask.url_for("apiv3_ns.gssapi_login",
-                                                next=next_url))
+            return flask.redirect(
+                # url_for takes the namespace + class method converted from camelCase to snake_case
+                flask.url_for("apiv3_ns.general_gssapi_login", next=next_url)
+            )
         flask.flash("Unable to pick krb5 login page", "error")
         return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 

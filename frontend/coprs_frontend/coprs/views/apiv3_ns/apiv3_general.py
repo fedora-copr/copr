@@ -58,7 +58,7 @@ def krb_straighten_username(krb_remote_user):
     return username
 
 
-apiv3_general_ns = Namespace("", description="APIv3 general endpoints")
+apiv3_general_ns = Namespace("general", description="APIv3 general endpoints",  path="/")
 api.add_namespace(apiv3_general_ns)
 
 
@@ -82,7 +82,7 @@ def auth_403(message):
 
 @apiv3_general_ns.route("/gssapi_login")
 @apiv3_general_ns.route("/gssapi_login/web-ui")
-class GssApiLogin(Resource):
+class GSSAPILogin(Resource):
     def get(self):
         """
         Log-in using the GSSAPI/Kerberos credentials
