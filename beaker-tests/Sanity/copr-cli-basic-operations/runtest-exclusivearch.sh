@@ -8,7 +8,7 @@ HERE=$(dirname "$(realpath "$0")")
 source "$HERE/config"
 source "$HERE/helpers"
 
-exclusive_arch_package=https://pagure.io/copr/copr-test-sources/raw/master/f/exclusivearch-test-1-1.src.rpm
+exclusive_arch_package=https://github.com/fedora-copr/copr-test-sources/raw/main/exclusivearch-test-1-1.src.rpm
 
 rlJournalStart
     rlPhaseStartSetup

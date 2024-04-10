@@ -110,7 +110,7 @@ rlJournalStart
         # try to install - FAIL ( public project metadata not updated)
         rlRun "dnf install -y hello" 1
         # build 2nd package ( requires 1st package for the build)
-        rlRun "copr-cli build ${NAME_PREFIX}Project2 https://pagure.io/copr/copr-test-sources/raw/master/f/hello_beaker_test_2-0.0.1-1.src.rpm"
+        rlRun "copr-cli build ${NAME_PREFIX}Project2 https://github.com/fedora-copr/copr-test-sources/raw/main/hello_beaker_test_2-0.0.1-1.src.rpm"
         # try to install - FAIL ( public project metadata not updated)
         rlRun "dnf install -y hello_beaker_test_2" 1
         # re-enabling metadata generation
