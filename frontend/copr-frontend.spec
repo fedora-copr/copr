@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.204
+Version:    1.205
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -385,6 +385,13 @@ usermod -L copr-fe
 
 
 %changelog
+* Fri Apr 12 2024 Jakub Kadlcik <frostyx@email.cz> 1.205-1
+- Update download stats footnote
+- Migrate more enpoints to flask-restx
+- Speedup the removal of temporary projects
+- Add link to the Outdated chroots removal policy
+- Compatibility with SQLAlchemy 2.0
+
 * Mon Mar 04 2024 Pavel Raiskup <praiskup@redhat.com> 1.204-1
 - opt-in the log-detective.com button
 
