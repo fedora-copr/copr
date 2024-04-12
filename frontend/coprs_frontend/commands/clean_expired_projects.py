@@ -11,5 +11,5 @@ def clean_expired_projects():
     Clean all the expired temporary projects.  This command is meant to be
     executed by cron.
     """
-    while ComplexLogic.delete_expired_projects(limit=100):
+    while ComplexLogic.delete_expired_projects(limit=10):
         db.session.commit()
