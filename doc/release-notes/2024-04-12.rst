@@ -1,0 +1,44 @@
+.. _release_notes_2024_04_12:
+
+Highlights from 2024-04-12 release
+==================================
+
+A small maintenance release of copr-frontend.
+
+
+Enhancements
+------------
+
+- `#2996`_, `#2999`_, `#3001`_, `#3002`_ - More and more APIv3 endpoints are
+  being migrated to `Flask-RESTX`_ and being documented. Please see
+  https://copr.fedorainfracloud.org/api_3/docs
+
+
+Bugfixes
+--------
+
+- `#2489`_ - The removal of temporary project was too inefficient and had to be
+  temporarily disabled because it would collapse the whole copr-frontend
+  server. After this release, your temporary projects should be finally removed.
+- `#3056`_ - The script for checking updates from https://release-monitoring.org
+  works again
+- `#2601`_ - Explanation of downloaded stats is now correct
+
+
+Maintenance
+-----------
+
+- `#3130`_ - Compatibility with SQLAlchemy 2.0
+
+
+
+.. _`Flask-RESTX`: https://flask-restx.readthedocs.io/en/latest/
+.. _`#2996`: https://github.com/fedora-copr/copr/issues/2996
+.. _`#2999`: https://github.com/fedora-copr/copr/issues/2999
+.. _`#3001`: https://github.com/fedora-copr/copr/issues/3001
+.. _`#3002`: https://github.com/fedora-copr/copr/issues/3002
+.. _`#3130`: https://github.com/fedora-copr/copr/issues/3130
+.. _`#2489`: https://github.com/fedora-copr/copr/issues/2489
+.. _`#3056`: https://github.com/fedora-copr/copr/issues/3056
+.. _`#2601`: https://github.com/fedora-copr/copr/issues/2601
+.. _`#3130`: https://github.com/fedora-copr/copr/issues/3130
