@@ -7,6 +7,7 @@ import anytree
 import backoff
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import text
 from sqlalchemy_utils.functions import quote as sa_quote
 from coprs import app, db, cache
 from coprs.helpers import WorkList
@@ -29,9 +30,9 @@ def _lock_table(table):
     # (while reading is not blocked) until the end of the transaction
     # (commit / rollback)
     with db.engine.connect() as connection:
-        connection.execute("LOCK TABLE {} IN EXCLUSIVE MODE;".format(
-            sa_quote(db.engine, table),
-        ))
+        connection.execute(text("LOCK TABLE {} IN EXCLUSIVE MODE;".format(
+            sa_quote(db.engine, table)
+        )))
 
 
 @contextlib.contextmanager
