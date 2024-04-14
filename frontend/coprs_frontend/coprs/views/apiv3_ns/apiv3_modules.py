@@ -10,10 +10,10 @@ from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
 
 from coprs import forms, db_session_scope
-from coprs.views.apiv3_ns import api, get_copr, restx_file_upload
+from coprs.views.apiv3_ns import api, get_copr, file_upload
 from coprs.views.apiv3_ns.schema.schemas import (module_build_model, fullname_params,
                                                  module_add_input_model)
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs.exceptions import DuplicateException, BadRequest, InvalidForm
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
@@ -30,8 +30,8 @@ def to_dict(module):
 
 @apiv3_module_ns.route("/build/<ownername>/<projectname>")
 class Module(Resource):
-    @restx_api_login_required
-    @restx_file_upload
+    @api_login_required
+    @file_upload
     @apiv3_module_ns.doc(params=fullname_params)
     @apiv3_module_ns.expect(module_add_input_model)
     @apiv3_module_ns.marshal_with(module_build_model)

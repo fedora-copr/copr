@@ -12,7 +12,7 @@ from flask_restx import Namespace, Resource
 from coprs import app, oid, db
 from coprs.views.apiv3_ns import api
 from coprs.exceptions import AccessRestricted
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs.auth import UserAuth
 
 
@@ -64,7 +64,7 @@ api.add_namespace(apiv3_general_ns)
 
 @apiv3_general_ns.route("/auth-check")
 class AuthCheck(Resource):
-    @restx_api_login_required
+    @api_login_required
     def get(self):
         """
         Check if the user is authenticated

@@ -8,15 +8,15 @@ from flask_restx import Namespace, Resource
 
 from coprs.views.apiv3_ns import (
     get_copr,
-    restx_pagination,
+    pagination,
     Paginator,
     set_defaults,
     deprecated_route_method_type,
-    restx_editable_copr,
+    editable_copr,
 )
 from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms, db_session_scope
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import rename_fields_helper, api, query_to_parameters
 from coprs.views.apiv3_ns.schema.schemas import (
     project_model,
@@ -137,7 +137,7 @@ class Project(Resource):
 
 @apiv3_projects_ns.route("/list")
 class ProjectList(Resource):
-    @restx_pagination
+    @pagination
     @query_to_parameters
     @apiv3_projects_ns.doc(params=project_params | pagination_params)
     @apiv3_projects_ns.marshal_list_with(pagination_project_model)
@@ -159,7 +159,7 @@ class ProjectList(Resource):
 
 @apiv3_projects_ns.route("/search")
 class ProjectSearch(Resource):
-    @restx_pagination
+    @pagination
     @query_to_parameters
     @apiv3_projects_ns.doc(params=query_docs)
     @apiv3_projects_ns.marshal_list_with(pagination_project_model)
@@ -183,7 +183,7 @@ class ProjectSearch(Resource):
 
 @apiv3_projects_ns.route("/add/<ownername>")
 class ProjectAdd(Resource):
-    @restx_api_login_required
+    @api_login_required
     @query_to_parameters
     @apiv3_projects_ns.doc(params=project_params)
     @apiv3_projects_ns.marshal_with(project_model)
@@ -312,7 +312,7 @@ class ProjectEdit(Resource):
 
         return to_dict(copr)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_edit_input_model)
@@ -327,7 +327,7 @@ class ProjectEdit(Resource):
         """
         return self._common(ownername, projectname)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_edit_input_model)
@@ -394,7 +394,7 @@ class ProjectFork(Resource):
 
         return to_dict(fcopr)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_fork_input_model)
@@ -409,7 +409,7 @@ class ProjectFork(Resource):
         """
         return self._common(ownername, projectname)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_fork_input_model)
@@ -446,7 +446,7 @@ class ProjectDelete(Resource):
             raise InvalidForm(form)
         return copr_dict
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_delete_input_model)
@@ -461,7 +461,7 @@ class ProjectDelete(Resource):
         """
         return self._common(ownername, projectname)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.expect(project_delete_input_model)
@@ -487,8 +487,8 @@ class RegenerateRepos(Resource):
 
         return to_dict(copr)
 
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.response(
@@ -500,8 +500,8 @@ class RegenerateRepos(Resource):
         """
         return self._common(copr)
 
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_projects_ns.doc(params=fullname_params)
     @apiv3_projects_ns.marshal_with(project_model)
     @apiv3_projects_ns.response(

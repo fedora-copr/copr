@@ -18,7 +18,7 @@ from coprs.views.apiv3_ns.schema.schemas import (
     build_chroot_config_model,
     nevra_packages_model,
 )
-from coprs.views.apiv3_ns import restx_pagination
+from coprs.views.apiv3_ns import pagination
 from . import Paginator
 
 
@@ -83,7 +83,7 @@ class BuildChroot(Resource):
     doc={"deprecated": True, "description": "Use query parameters instead"},
 )
 class BuildChrootList(Resource):
-    @restx_pagination
+    @pagination
     @query_to_parameters
     @apiv3_bchroots_ns.doc(params=build_id_params | pagination_params)
     @apiv3_bchroots_ns.marshal_list_with(pagination_build_chroot_model)

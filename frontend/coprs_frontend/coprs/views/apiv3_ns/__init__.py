@@ -95,39 +95,6 @@ def query_params():
     return query_params_decorator
 
 
-def _shared_pagination_wrapper(**kwargs):
-    form = PaginationForm(flask.request.args)
-    if not form.validate():
-        raise CoprHttpException(form.errors)
-    kwargs.update(form.data)
-    return kwargs
-
-
-def pagination():
-    def pagination_decorator(f):
-        @wraps(f)
-        def pagination_wrapper(*args, **kwargs):
-            kwargs = _shared_pagination_wrapper(**kwargs)
-            return f(*args, **kwargs)
-        return pagination_wrapper
-    return pagination_decorator
-
-
-def _shared_file_upload_wrapper():
-    data = json.loads(flask.request.files["json"].read()) or {}
-    flask.request.form = ImmutableMultiDict(list(data.items()))
-
-def file_upload():
-    def file_upload_decorator(f):
-        @wraps(f)
-        def file_upload_wrapper(*args, **kwargs):
-            if "json" in flask.request.files:
-                _shared_file_upload_wrapper()
-            return f(*args, **kwargs)
-        return file_upload_wrapper
-    return file_upload_decorator
-
-
 class PaginationForm(wtforms.Form):
     limit = wtforms.IntegerField("Limit", validators=[wtforms.validators.Optional()])
     offset = wtforms.IntegerField("Offset", validators=[wtforms.validators.Optional()])
@@ -247,27 +214,6 @@ class ListPaginator(Paginator):
             limit = self.offset + self.limit
 
         return objects[self.offset : limit]
-
-
-def _check_if_user_can_edit_copr(ownername, projectname):
-    copr = get_copr(ownername, projectname)
-    if not flask.g.user.can_edit(copr):
-        raise AccessRestricted(
-            "User '{0}' can not see permissions for project '{1}' " \
-            "(missing admin rights)".format(
-                flask.g.user.name,
-                '/'.join([ownername, projectname])
-            )
-        )
-    return copr
-
-
-def editable_copr(f):
-    @wraps(f)
-    def wrapper(ownername, projectname):
-        copr = _check_if_user_can_edit_copr(ownername, projectname)
-        return f(copr)
-    return wrapper
 
 
 def set_defaults(formdata, form_class):
@@ -481,42 +427,55 @@ def deprecated_route_method_type(ns: Namespace, deprecated_method_type: str, use
     return call_deprecated_endpoint_method
 
 
-def restx_editable_copr(endpoint_method):
+def editable_copr(endpoint_method):
     """
     Raises an exception if user don't have permissions for editing Copr repo.
      Order matters! If flask.g.user is None then this will fail! If used with
      @api_login_required it has to be called after it:
 
     @api_login_required
-    @restx_editable_copr
+    @editable_copr
     ...
     """
     @wraps(endpoint_method)
     def editable_copr_getter(self, ownername, projectname):
-        copr = _check_if_user_can_edit_copr(ownername, projectname)
+        copr = get_copr(ownername, projectname)
+        if not flask.g.user.can_edit(copr):
+            raise AccessRestricted(
+                "User '{0}' can not see permissions for project '{1}' " \
+                "(missing admin rights)".format(
+                    flask.g.user.name,
+                    '/'.join([ownername, projectname])
+                )
+            )
+
         return endpoint_method(self, copr)
     return editable_copr_getter
 
 
-def restx_pagination(endpoint_method):
+def pagination(endpoint_method):
     """
     Validates pagination arguments and converts pagination parameters from query to
      kwargs.
     """
     @wraps(endpoint_method)
     def create_pagination(self, *args, **kwargs):
-        kwargs = _shared_pagination_wrapper(**kwargs)
+        form = PaginationForm(flask.request.args)
+        if not form.validate():
+            raise CoprHttpException(form.errors)
+        kwargs.update(form.data)
         return endpoint_method(self, *args, **kwargs)
     return create_pagination
 
 
-def restx_file_upload(endpoint_method):
+def file_upload(endpoint_method):
     """
     Allow uploading a file to a form via endpoint by using this function as an endpoint decorator.
     """
     @wraps(endpoint_method)
     def inner(self, *args, **kwargs):
         if "json" in flask.request.files:
-            _shared_file_upload_wrapper()
+            data = json.loads(flask.request.files["json"].read()) or {}
+            flask.request.form = ImmutableMultiDict(list(data.items()))
         return endpoint_method(self, *args, **kwargs)
     return inner

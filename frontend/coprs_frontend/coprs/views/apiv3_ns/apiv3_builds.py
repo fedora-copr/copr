@@ -13,7 +13,7 @@ from flask_restx import Namespace, Resource
 from copr_common.enums import StatusEnum
 from coprs import db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import api, rename_fields_helper, deprecated_route_method_type
 from coprs.views.apiv3_ns.schema.schemas import build_model, pagination_build_model, source_chroot_model, \
     source_build_config_model, list_build_params, create_build_url_input_model, create_build_upload_input_model, \
@@ -29,8 +29,8 @@ from . import (
     SubqueryPaginator,
     json2form,
     query_to_parameters,
-    restx_pagination,
-    restx_file_upload,
+    pagination,
+    file_upload,
 )
 from .json2form import get_form_compatible_data
 
@@ -141,7 +141,7 @@ class GetBuild(Resource):
 
 @apiv3_builds_ns.route("/list")
 class ListBuild(Resource):
-    @restx_pagination
+    @pagination
     @query_to_parameters
     @apiv3_builds_ns.doc(params=list_build_params)
     @apiv3_builds_ns.marshal_with(pagination_build_model)
@@ -237,7 +237,7 @@ class CancelBuild(Resource):
         db.session.commit()
         return to_dict(build)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(build_model)
     def put(self, build_id):
@@ -247,7 +247,7 @@ class CancelBuild(Resource):
         """
         return self._common(build_id)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(build_model)
     @deprecated_route_method_type(apiv3_builds_ns, "POST", "PUT")
@@ -261,7 +261,7 @@ class CancelBuild(Resource):
 
 @apiv3_builds_ns.route("/create/url")
 class CreateFromUrl(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_url_input_model)
     @apiv3_builds_ns.marshal_with(pagination_build_model)
     def post(self):
@@ -288,8 +288,8 @@ class CreateFromUrl(Resource):
 
 @apiv3_builds_ns.route("/create/upload")
 class CreateFromUpload(Resource):
-    @restx_file_upload
-    @restx_api_login_required
+    @file_upload
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_upload_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -315,7 +315,7 @@ class CreateFromUpload(Resource):
 
 @apiv3_builds_ns.route("/create/scm")
 class CreateFromScm(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_scm_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -346,7 +346,7 @@ class CreateFromScm(Resource):
 
 @apiv3_builds_ns.route("/create/distgit")
 class CreateFromDistGit(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_distgit_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -375,7 +375,7 @@ class CreateFromDistGit(Resource):
 
 @apiv3_builds_ns.route("/create/pypi")
 class CreateFromPyPi(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_pypi_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -409,7 +409,7 @@ class CreateFromPyPi(Resource):
 
 @apiv3_builds_ns.route("/create/rubygems")
 class CreateFromRubyGems(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_rubygems_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -435,7 +435,7 @@ class CreateFromRubyGems(Resource):
 
 @apiv3_builds_ns.route("/create/custom")
 class CreateCustom(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(create_build_custom_input_model)
     @apiv3_builds_ns.marshal_with(build_model)
     def post(self):
@@ -465,7 +465,7 @@ class CreateCustom(Resource):
 
 @apiv3_builds_ns.route("/delete/<int:build_id>")
 class DeleteBuild(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(build_model)
     def delete(self, build_id):
@@ -490,7 +490,7 @@ class DeleteBuilds(Resource):
         db.session.commit()
         return {"builds": build_ids}
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(delete_builds_input_model)
     @apiv3_builds_ns.marshal_with(list_build_model)
     @deprecated_route_method_type(apiv3_builds_ns, "POST", "DELETE")
@@ -501,7 +501,7 @@ class DeleteBuilds(Resource):
         """
         return self._common()
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.expect(delete_builds_input_model)
     @apiv3_builds_ns.marshal_with(list_build_model)
     def delete(self):
@@ -516,7 +516,7 @@ class DeleteBuilds(Resource):
 # this endoint is not meant to be used by the end user
 @apiv3_builds_ns.hide
 class CheckBeforeBuild(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_builds_ns.doc(
         responses={200: {"message": "It should be safe to submit a build like this"}}
     )

@@ -4,7 +4,7 @@
 
 import flask
 from flask_restx import Namespace, Resource
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import (
     api,
     rename_fields_helper,
@@ -24,7 +24,7 @@ from . import (
     get_copr,
     str_to_list,
     reset_to_defaults,
-    restx_file_upload,
+    file_upload,
 )
 from .json2form import get_form_compatible_data
 
@@ -150,8 +150,8 @@ class EditChroot(Resource):
         return to_dict(chroot)
 
     @deprecated_route_method_type(apiv3_project_chroots_ns, "POST", "PUT")
-    @restx_file_upload
-    @restx_api_login_required
+    @file_upload
+    @api_login_required
     @apiv3_project_chroots_ns.doc(params=project_chroot_get_params)
     @apiv3_project_chroots_ns.marshal_with(project_chroot_model)
     def post(self, ownername, projectname, chrootname):
@@ -161,8 +161,8 @@ class EditChroot(Resource):
         """
         return self._common(ownername, projectname, chrootname)
 
-    @restx_file_upload
-    @restx_api_login_required
+    @file_upload
+    @api_login_required
     @apiv3_project_chroots_ns.doc(params=project_chroot_get_params)
     @apiv3_project_chroots_ns.marshal_with(project_chroot_model)
     def put(self, ownername, projectname, chrootname):
