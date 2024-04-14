@@ -307,11 +307,13 @@
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">
-      {% for chroot in chroots %}
-      <li><a href="{{ url |format(build.id, chroot.name) }}">Report {{ chroot.name }}</a></li>
+      {% if build.source_state == "failed" %}
+        <li><a href="{{ url |format(build.id, 'srpm-builds') }}">Report SRPM build</a></li>
       {% else %}
-      <li><a href="{{ url |format(build.id, 'srpm-builds') }}">Report SRPM build</a></li>
-      {% endfor %}
+        {% for chroot in chroots %}
+          <li><a href="{{ url |format(build.id, chroot.name) }}">Report {{ chroot.name }}</a></li>
+        {% endfor %}
+      {% endif %}
     </ul>
   </div>
 {% endmacro %}
