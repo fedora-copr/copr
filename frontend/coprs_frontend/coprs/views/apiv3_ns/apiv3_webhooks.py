@@ -10,8 +10,8 @@ from http import HTTPStatus
 from flask_restx import Namespace, Resource
 
 from coprs import db
-from coprs.views.misc import restx_api_login_required
-from coprs.views.apiv3_ns import api, restx_editable_copr
+from coprs.views.misc import api_login_required
+from coprs.views.apiv3_ns import api, editable_copr
 from coprs.views.apiv3_ns.schema.schemas import fullname_params, webhook_secret_model
 
 
@@ -35,8 +35,8 @@ def to_dict(copr):
 
 @apiv3_webhooks_ns.route("/generate/<ownername>/<projectname>")
 class WebhookSecret(Resource):
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_webhooks_ns.doc(params=fullname_params)
     @apiv3_webhooks_ns.marshal_with(webhook_secret_model)
     @apiv3_webhooks_ns.response(HTTPStatus.OK.value, "Webhook secret created")

@@ -6,8 +6,8 @@ import flask
 
 from flask_restx import Namespace, Resource
 
-from coprs.views.apiv3_ns import api, restx_editable_copr, get_copr, deprecated_route_method_type
-from coprs.views.misc import restx_api_login_required
+from coprs.views.apiv3_ns import api, editable_copr, get_copr, deprecated_route_method_type
+from coprs.views.misc import api_login_required
 from coprs.exceptions import ObjectNotFound, BadRequest
 from coprs.helpers import PermissionEnum
 from coprs.logic.coprs_logic import CoprPermissionsLogic
@@ -44,8 +44,8 @@ class CanBuild(Resource):
 
 @apiv3_permissions_ns.route("/get/<ownername>/<projectname>")
 class GetPermissions(Resource):
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_permissions_ns.doc(params=fullname_params)
     @apiv3_permissions_ns.response(HTTPStatus.OK.value, HTTPStatus.OK.description)
     @apiv3_permissions_ns.response(
@@ -112,8 +112,8 @@ class SetPermissions(Resource):
 
         return {'updated': list(updated.keys())}
 
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_permissions_ns.doc(params=fullname_params)
     @apiv3_permissions_ns.response(HTTPStatus.OK.value, HTTPStatus.OK.description)
     @apiv3_permissions_ns.response(
@@ -126,8 +126,8 @@ class SetPermissions(Resource):
         """
         return self._common(copr)
 
-    @restx_api_login_required
-    @restx_editable_copr
+    @api_login_required
+    @editable_copr
     @apiv3_permissions_ns.doc(params=fullname_params)
     @apiv3_permissions_ns.response(HTTPStatus.OK.value, HTTPStatus.OK.description)
     @apiv3_permissions_ns.response(
@@ -171,7 +171,7 @@ class RequestPermission(Resource):
         return {'updated': bool(permission_dict)}
 
     @deprecated_route_method_type(apiv3_permissions_ns, "POST", "PUT")
-    @restx_api_login_required
+    @api_login_required
     @apiv3_permissions_ns.doc(params=fullname_params)
     @apiv3_permissions_ns.response(HTTPStatus.OK.value, HTTPStatus.OK.description)
     @apiv3_permissions_ns.response(
@@ -184,7 +184,7 @@ class RequestPermission(Resource):
         """
         return self._common(ownername, projectname)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_permissions_ns.doc(params=fullname_params)
     @apiv3_permissions_ns.response(HTTPStatus.OK.value, HTTPStatus.OK.description)
     @apiv3_permissions_ns.response(

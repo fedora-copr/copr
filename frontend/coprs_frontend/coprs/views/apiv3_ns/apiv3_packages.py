@@ -15,13 +15,13 @@ from coprs.exceptions import (
         UnknownSourceTypeException,
         InvalidForm,
 )
-from coprs.views.misc import restx_api_login_required
+from coprs.views.misc import api_login_required
 from coprs import db, models, forms, helpers
 from coprs.views.apiv3_ns import (
     api,
     rename_fields_helper,
     query_to_parameters,
-    restx_pagination,
+    pagination,
     deprecated_route_method_type,
 )
 from coprs.views.apiv3_ns.schema.schemas import (
@@ -140,7 +140,7 @@ class GetPackage(Resource):
 
 @apiv3_packages_ns.route("/list")
 class PackageGetList(Resource):
-    @restx_pagination
+    @pagination
     @query_to_parameters
     @apiv3_packages_ns.doc(params=package_get_list_params)
     @apiv3_packages_ns.marshal_with(pagination_package_model)
@@ -178,7 +178,7 @@ class PackageGetList(Resource):
 
 @apiv3_packages_ns.route("/add/<ownername>/<projectname>/<package_name>/<source_type_text>")
 class PackageAdd(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.doc(params=add_package_docs)
     @apiv3_packages_ns.expect(package_add_input_model)
     @apiv3_packages_ns.marshal_with(package_model)
@@ -200,7 +200,7 @@ class PackageAdd(Resource):
 @apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/")
 @apiv3_packages_ns.route("/edit/<ownername>/<projectname>/<package_name>/<source_type_text>")
 class PackageEdit(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.doc(params=edit_package_docs)
     @apiv3_packages_ns.expect(package_edit_input_model)
     @apiv3_packages_ns.marshal_with(package_model)
@@ -245,7 +245,7 @@ class PackageReset(Resource):
         db.session.commit()
         return to_dict(package)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.marshal_with(package_model)
     @apiv3_packages_ns.expect(base_package_input_model)
     def put(self):
@@ -256,7 +256,7 @@ class PackageReset(Resource):
         return self._common()
 
     @deprecated_route_method_type(apiv3_packages_ns, "POST", "PUT")
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.marshal_with(package_model)
     @apiv3_packages_ns.expect(base_package_input_model)
     def post(self):
@@ -269,7 +269,7 @@ class PackageReset(Resource):
 
 @apiv3_packages_ns.route("/build")
 class PackageBuild(Resource):
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.marshal_with(build_model)
     def post(self):
         """
@@ -321,7 +321,7 @@ class PackageDelete(Resource):
         db.session.commit()
         return to_dict(package)
 
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.marshal_with(package_model)
     @apiv3_packages_ns.expect(base_package_input_model)
     def delete(self):
@@ -332,7 +332,7 @@ class PackageDelete(Resource):
         return self._common()
 
     @deprecated_route_method_type(apiv3_packages_ns, "POST", "DELETE")
-    @restx_api_login_required
+    @api_login_required
     @apiv3_packages_ns.marshal_with(package_model)
     @apiv3_packages_ns.expect(base_package_input_model)
     def post(self):
