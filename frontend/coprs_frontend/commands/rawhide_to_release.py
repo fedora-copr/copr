@@ -70,80 +70,66 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
 
         copr_chroot = turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
-        data = {"projectname": copr.name,
-                "ownername": copr.owner_name,
-                "rawhide_chroot": rawhide_chroot,
-                "appstream": copr.appstream,
-                "dest_chroot": dest_chroot,
-                "builds": []}
+        for copr_dir in copr.dirs:
+            data = {"projectname": copr.name,
+                    "ownername": copr.owner_name,
+                    "copr_dir": copr_dir.name,
+                    "rawhide_chroot": rawhide_chroot,
+                    "appstream": copr.appstream,
+                    "dest_chroot": dest_chroot,
+                    "builds": []}
 
-        latest_pkg_builds_in_rawhide = (
-            db.session.query(
-                func.max(models.Build.id),
-            )
-            .join(models.BuildChroot)
-            .filter(models.Build.copr_dir_id == copr.main_dir.id)
-            .filter(models.BuildChroot.mock_chroot_id == mock_rawhide_chroot.id)
-            .filter(models.BuildChroot.status == StatusEnum("succeeded"))
-            .group_by(models.Build.package_id)
-        )
+            fork_builds = builds_to_fork(copr_dir, mock_rawhide_chroot)
 
-        fork_builds = (
-            db.session.query(models.Build)
-            .options(
-                joinedload(models.Build.build_chroots)
-                .joinedload(models.BuildChroot.mock_chroot)
-            )
-            .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide))
-        ).all()
-
-
-        # no builds to fork in this copr
-        if not len(fork_builds):
-            print("Createrepo for copr '{}', chroot '{}'".format(copr.full_name, mock_chroot.name))
-            actions_logic.ActionsLogic.send_createrepo(copr, chroots=[mock_chroot.name])
-            continue
-
-        new_build_chroots = 0
-        for build in fork_builds:
-            chroot_exists = mock_chroot in build.chroots
-
-            if chroot_exists and not retry_forked:
-                # this build should already be forked
+            # No builds to fork in this copr, at least create an empty repo
+            if not len(fork_builds):
+                print("Createrepo for '{}', chroot '{}'".format(
+                    copr_dir.full_name, mock_chroot.name))
+                actions_logic.ActionsLogic.send_createrepo(
+                    copr, dirnames=[copr_dir.name], chroots=[mock_chroot.name])
                 continue
 
-            # rbc means rawhide_build_chroot (we needed short variable)
-            rbc = None
-            for rbc in build.build_chroots:
-                if rbc.mock_chroot == mock_rawhide_chroot:
-                    break
+            new_build_chroots = 0
 
-            if not chroot_exists:
-                # forked chroot may already exists, e.g. from prevoius
-                # 'rawhide-to-release-run'
-                new_build_chroots += 1
-                dest_build_chroot = builds_logic.BuildChrootsLogic.new(
-                    build=build,
-                    mock_chroot=mock_chroot,
-                    copr_chroot=copr_chroot,
-                    **rbc.to_dict({
-                        "__columns_except__": ["id"],
-                    }),
-                )
-                dest_build_chroot.status = StatusEnum("forked")
-                db.session.add(dest_build_chroot)
+            for build in fork_builds:
+                chroot_exists = mock_chroot in build.chroots
 
-            if rbc.result_dir:
-                data['builds'].append(rbc.result_dir)
+                if chroot_exists and not retry_forked:
+                    # this build should already be forked
+                    continue
 
-        if data["builds"] or new_build_chroots:
-            print("  Fresh new build chroots: {}, regenerate {}".format(
-                new_build_chroots,
-                len(data["builds"]) - new_build_chroots,
-            ))
+                # rbc means rawhide_build_chroot (we needed short variable)
+                rbc = None
+                for rbc in build.build_chroots:
+                    if rbc.mock_chroot == mock_rawhide_chroot:
+                        break
 
-        if len(data["builds"]):
-            actions_logic.ActionsLogic.send_rawhide_to_release(copr, data)
+                if not chroot_exists:
+                    # forked chroot may already exists, e.g. from prevoius
+                    # 'rawhide-to-release-run'
+                    new_build_chroots += 1
+                    dest_build_chroot = builds_logic.BuildChrootsLogic.new(
+                        build=build,
+                        mock_chroot=mock_chroot,
+                        copr_chroot=copr_chroot,
+                        **rbc.to_dict({
+                            "__columns_except__": ["id"],
+                        }),
+                    )
+                    dest_build_chroot.status = StatusEnum("forked")
+                    db.session.add(dest_build_chroot)
+
+                if rbc.result_dir:
+                    data['builds'].append(rbc.result_dir)
+
+            if data["builds"] or new_build_chroots:
+                print("  Fresh new build chroots: {}, regenerate {}".format(
+                    new_build_chroots,
+                    len(data["builds"]) - new_build_chroots,
+                ))
+
+            if len(data["builds"]):
+                actions_logic.ActionsLogic.send_rawhide_to_release(copr, data)
 
         db.session.commit()
 
@@ -161,3 +147,30 @@ def turn_on_the_chroot_for_copr(copr, rawhide_name, mock_chroot):
             return chroot
     return coprs_logic.CoprChrootsLogic.create_chroot_from(rawhide_chroot,
                                                            mock_chroot=mock_chroot)
+
+
+def builds_to_fork(coprdir, mock_rawhide_chroot):
+    """
+    Return a list of builds that needs to be forked for every CoprDir
+    """
+    latest_pkg_builds_in_rawhide = (
+        db.session.query(
+            func.max(models.Build.id),
+        )
+        .join(models.BuildChroot)
+        .filter(models.Build.copr_dir_id == coprdir.id)
+        .filter(models.BuildChroot.mock_chroot_id == mock_rawhide_chroot.id)
+        .filter(models.BuildChroot.status == StatusEnum("succeeded"))
+        .group_by(models.Build.package_id)
+    )
+
+    fork_builds = (
+        db.session.query(models.Build)
+        .options(
+            joinedload(models.Build.build_chroots)
+            .joinedload(models.BuildChroot.mock_chroot),
+            joinedload(models.Build.copr_dir),
+        )
+        .filter(models.Build.id.in_(latest_pkg_builds_in_rawhide))
+    ).all()
+    return fork_builds
