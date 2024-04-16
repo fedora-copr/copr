@@ -1,7 +1,7 @@
 # coding: utf-8
 
+import json
 import humanize
-import simplejson
 
 
 try:
@@ -66,4 +66,4 @@ def serializable(result):
 
 
 def json_dumps(result):
-    return simplejson.dumps(serializable(result), indent=4, sort_keys=True, for_json=True)
+    return json.dumps(serializable(result), indent=4, sort_keys=True)

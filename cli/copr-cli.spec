@@ -32,7 +32,6 @@ BuildRequires: util-linux
 %if %{with python3}
 Requires:      python3-copr >= %min_python_copr_version
 Requires:      python3-jinja2
-Requires:      python3-simplejson
 Requires:      python3-humanize
 Requires:      python3-koji
 
@@ -46,12 +45,10 @@ BuildRequires: python3-humanize
 BuildRequires: python3-pytest
 BuildRequires: python3-responses
 BuildRequires: python3-setuptools
-BuildRequires: python3-simplejson
 BuildRequires: python3-munch
 %else
 Requires:      python-copr >= %min_python_copr_version
 Requires:      python-jinja2
-Requires:      python-simplejson
 Requires:      python-humanize
 
 BuildRequires: pytest
@@ -62,7 +59,6 @@ BuildRequires: python-humanize
 BuildRequires: python-mock
 BuildRequires: python2-responses
 BuildRequires: python-setuptools
-BuildRequires: python-simplejson
 BuildRequires: python-munch
 %endif
 
