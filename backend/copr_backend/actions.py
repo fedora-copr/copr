@@ -421,7 +421,6 @@ class RawhideToRelease(Action):
     def run(self):
         data = json.loads(self.data["data"])
         appstream = data["appstream"]
-        result = BackendResultEnum("success")
         try:
             chrootdir = os.path.join(self.opts.destdir, data["ownername"],
                                      data["copr_dir"], data["dest_chroot"])
@@ -444,13 +443,20 @@ class RawhideToRelease(Action):
                                     copy_function=copy2_but_hardlink_rpms)
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
+            return self._createrepo_repeatedly(chrootdir, appstream)
 
-            if not call_copr_repo(chrootdir, appstream=appstream, logger=self.log):
-                result = BackendResultEnum("failure")
-        except:
-            result = BackendResultEnum("failure")
+        # pylint: disable=broad-except
+        except Exception:
+            self.log.exception("Unexpected error when forking from rawhide")
+            return BackendResultEnum("failure")
 
-        return result
+    def _createrepo_repeatedly(self, chrootdir, appstream):
+        for i in range(5):
+            if call_copr_repo(chrootdir, appstream=appstream, logger=self.log):
+                return BackendResultEnum("success")
+            self.log.error("Createrepo failed, trying again #%s", i)
+            time.sleep(10)
+        return BackendResultEnum("failure")
 
 
 class BuildModule(Action):
