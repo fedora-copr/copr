@@ -423,14 +423,15 @@ class RawhideToRelease(Action):
         appstream = data["appstream"]
         result = BackendResultEnum("success")
         try:
-            chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
+            chrootdir = os.path.join(self.opts.destdir, data["ownername"],
+                                     data["copr_dir"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
                 self.log.info("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
 
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["ownername"],
-                                      data["projectname"], data["rawhide_chroot"], build)
+                                      data["copr_dir"], data["rawhide_chroot"], build)
                 if os.path.exists(srcdir):
                     destdir = os.path.join(chrootdir, build)
 
