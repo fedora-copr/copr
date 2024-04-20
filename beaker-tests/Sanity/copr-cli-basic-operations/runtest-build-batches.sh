@@ -39,12 +39,12 @@ rlJournalStart
         rlRun parse_build_id
         BUILD_ID_1=$BUILD_ID
 
-        rlRun "copr-cli build $PROJECT $HELLO --with-build-id $BUILD_ID_1 --nowait"
+        rlRun -s "copr-cli build $PROJECT $HELLO --with-build-id $BUILD_ID_1 --nowait"
         rlRun parse_build_id
         BUILD_ID_2=$BUILD_ID
 
         rlRun "copr-cli add-package-scm $PROJECT --name testpkg --clone-url $COPR_HELLO_GIT --method tito"
-        rlRun "copr-cli build-package $PROJECT --name testpkg --after-build-id $BUILD_ID_1 --nowait"
+        rlRun -s "copr-cli build-package $PROJECT --name testpkg --after-build-id $BUILD_ID_1 --nowait"
         rlRun parse_build_id
         BUILD_ID_3=$BUILD_ID
 
