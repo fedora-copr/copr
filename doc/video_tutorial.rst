@@ -15,7 +15,7 @@ This tutorial will show you how to use ``copr-cli``.
 1. `Authentication <https://www.youtube.com/watch?v=SUjPjYbB84Y>`_
 2. `Project management <https://www.youtube.com/watch?v=BTP-dYehC34>`_
 3. `Submitting builds <https://www.youtube.com/watch?v=7dYs5hUaA1Y>`_
-4. Introspecting builds
+4. `Fetching Build Results <https://www.youtube.com/watch?v=59D_ujWCHlQ>`_
 5. Building from PyPI, RubyGems, and others
 6. `Custom build method <https://www.youtube.com/watch?v=cTzXha2N6Xs>`_
 7. Working with packages
