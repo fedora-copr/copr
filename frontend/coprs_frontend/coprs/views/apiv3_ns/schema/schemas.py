@@ -34,7 +34,6 @@ from coprs.views.apiv3_ns.schema import fields as schema_fields
 from coprs.views.apiv3_ns.schema.fields import (
     scm_type,
     mock_chroot,
-    additional_repos,
     clone,
     id_field,
     url,
@@ -416,73 +415,78 @@ class PackageAdd(_SourceDictScmFields, SourceDictPyPI, BasePackage, InputSchema)
     source_build_method: String
 
 
+_project_fields = {
+    "homepage": schema_fields.homepage,
+    "contact": schema_fields.contact,
+    "description": schema_fields.description,
+    "instructions": schema_fields.instructions,
+    "devel_mode": schema_fields.devel_mode,
+    "unlisted_on_hp": schema_fields.unlisted_on_hp,
+    "auto_prune": schema_fields.auto_prune,
+    "enable_net": schema_fields.enable_net,
+    "bootstrap": schema_fields.bootstrap,
+    "isolation": schema_fields.isolation,
+    "module_hotfixes": schema_fields.module_hotfixes,
+    "appstream": schema_fields.appstream,
+    "packit_forge_projects_allowed": schema_fields.packit_forge_projects_allowed,
+    "follow_fedora_branching": schema_fields.follow_fedora_branching,
+    "repo_priority": schema_fields.repo_priority,
+}
 
-@dataclass
-class _ProjectFields:
-    homepage: Url
-    contact: String
-    description: String
-    instructions: String
-    devel_mode: Boolean
-    unlisted_on_hp: Boolean
-    auto_prune: Boolean
-    enable_net: Boolean
-    bootstrap: String
-    isolation: String
-    module_hotfixes: Boolean
-    appstream: Boolean
-    packit_forge_projects_allowed: String
-    follow_fedora_branching: Boolean
-    repo_priority: Integer
+_project_get_add_fields = {
+    "name": schema_fields.projectname,
+    "persistent": schema_fields.persistent,
+    "additional_repos": schema_fields.additional_repos,
+}
 
+project_model = api.model("Project", {
+    "id": schema_fields.id_field,
+    "name": schema_fields.projectname,
+    "projectname": schema_fields.projectname,
+    "ownername": schema_fields.ownername,
+    "full_name": schema_fields.full_name,
+    "chroot_repos": schema_fields.chroot_repos,
+    "persistent": schema_fields.persistent,
+    "additional_repos": schema_fields.additional_repos,
+    **_project_fields,
+})
 
-@dataclass
-class _ProjectGetAddFields:
-    name: String
-    persistent: Boolean
-    additional_repos: List
+_project_add_edit_fields = {
+    "chroots": schema_fields.chroots,
+    "bootstrap_image": schema_fields.bootstrap_image,
+    "multilib": schema_fields.multilib,
+    "fedora_review": schema_fields.fedora_review,
+    "runtime_dependencies": schema_fields.runtime_dependencies,
+}
 
+project_add_input_model = api.model("ProjectAddInput", {
+    **_project_fields,
+    **_project_get_add_fields,
+    **_project_add_edit_fields,
+})
 
-@dataclass
-class Project(_ProjectFields, _ProjectGetAddFields, Schema):
-    id_field: Integer
-    ownername: String
-    full_name: String
-    chroot_repos: Raw
+project_edit_input_model = api.model("ProjectEditInput", {
+    "repos": schema_fields.additional_repos,
+    **_project_fields,
+    **_project_add_edit_fields,
 
+})
 
-@dataclass
-class _ProjectAddEditFields:
-    chroots: List
-    bootstrap_image: String
-    multilib: Boolean
-    fedora_review: Boolean
-    runtime_dependencies: String
+project_fork_input_model = api.model("ProjectForkInput", {
+    "name": schema_fields.projectname,
+    "ownername": project_model["ownername"],
+    "confirm": Boolean(description=(
+        "If forking into a existing project, this needs to be set "
+        "to True, to confirm that user is aware of that."
+    ))
+})
 
-
-@dataclass
-class ProjectAdd(
-    _ProjectFields, _ProjectGetAddFields, _ProjectAddEditFields, InputSchema
-):
-    ...
-
-
-@dataclass
-class ProjectEdit(_ProjectFields, _ProjectAddEditFields, InputSchema):
-    # TODO: fix inconsistency - additional_repos <-> repos
-    repos: String = additional_repos
-
-
-@dataclass
-class ProjectFork(InputSchema):
-    name: String
-    ownername: String
-    confirm: Boolean
-
-
-@dataclass
-class ProjectDelete(InputSchema):
-    verify: Boolean
+project_delete_input_model = api.model("ProjectDeleteInput", {
+    "verify": Boolean(description=(
+        "Confirm that you really want to delete this project. "
+        "It cannot be undone"
+    )),
+})
 
 
 @dataclass
@@ -712,7 +716,6 @@ project_chroot_build_config_model = ProjectChrootBuildConfig.get_cls().model()
 source_dict_scm_model = SourceDictScm.get_cls().model()
 source_dict_pypi_model = SourceDictPyPI.get_cls().model()
 package_model = Package.get_cls().model()
-project_model = Project.get_cls().model()
 build_chroot_model = BuildChroot.get_cls().model()
 build_chroot_config_model = BuildChrootConfig.get_cls().model()
 nevra_packages_model = NevraPackages.get_cls().model()
@@ -739,11 +742,6 @@ repo_model = _repo_model
 package_add_input_model = PackageAdd.get_cls().input_model()
 package_edit_input_model = package_add_input_model
 base_package_input_model = BasePackage.get_cls().input_model()
-
-project_add_input_model = ProjectAdd.get_cls().input_model()
-project_edit_input_model = ProjectEdit.get_cls().input_model()
-project_fork_input_model = ProjectFork.get_cls().input_model()
-project_delete_input_model = ProjectDelete.get_cls().input_model()
 module_add_input_model = ModuleAdd.get_cls().input_model()
 
 create_build_url_input_model = CreateBuildUrl.get_cls().input_model()

@@ -418,13 +418,6 @@ bootstrap = String(
     )
 )
 
-confirm = Boolean(
-    description=(
-        "If forking into a existing project, this needs to be set to True,"
-        "to confirm that user is aware of that."
-    )
-)
-
 exist_ok = Boolean(
     description=(
         "Don't fail if a project with this owner and name already exist, "
@@ -507,8 +500,6 @@ namespace = String(
 chroot_repos = Raw()
 
 multilib = Boolean()
-
-verify = Boolean()
 
 priority = Integer()
 
