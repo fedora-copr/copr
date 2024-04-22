@@ -11,7 +11,10 @@ def update_indexes():
     recreates whoosh indexes for all projects
     """
     index = Whooshee.get_or_create_index(app, CoprWhoosheer)
-    writer = index.writer()
+
+    # Our index is huge, if necessary, tweak some performance options
+    # https://whoosh.readthedocs.io/en/latest/batch.html
+    writer = index.writer(procs=4, limitmb=128, multisegment=True)
     writer.schema = CoprWhoosheer.schema
 
     app.logger.info("Building cache")
