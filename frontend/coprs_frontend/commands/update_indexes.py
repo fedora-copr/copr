@@ -18,7 +18,8 @@ def update_indexes():
     writer.schema = CoprWhoosheer.schema
 
     app.logger.info("Building cache")
-    coprs = coprs_logic.CoprsLogic.get_all().all()
+    coprs = coprs_logic.CoprsLogic.get_multiple(
+        include_unlisted_on_hp=False).all()
     for i, copr in enumerate(coprs):
         if i%1000 == 0:
             app.logger.info("Building cache [%s/%s] - %s",
