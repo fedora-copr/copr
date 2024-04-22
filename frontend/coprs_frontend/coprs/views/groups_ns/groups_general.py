@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import flask
+import sqlalchemy
 from flask import render_template, url_for
 from coprs.exceptions import InsufficientRightsException, ObjectNotFound
 from coprs.forms import ActivateFasGroupForm
@@ -9,7 +10,7 @@ from coprs.logic import builds_logic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs import app
+from coprs import app, models
 from coprs.oidc import oidc_enabled
 
 from ... import db
@@ -70,6 +71,11 @@ def list_projects_by_group(group_name, page=1):
     pinned = [pin.copr for pin in PinnedCoprsLogic.get_by_group_id(group.id)] if page == 1 else []
     query = CoprsLogic.get_multiple_by_group_id(group.id)
     query = CoprsLogic.filter_without_ids(query, [copr.id for copr in pinned])
+    query = query.order_by(
+        sqlalchemy.nullsfirst(models.Copr.delete_after),
+        models.Copr.id.desc(),
+    )
+
     paginator = Paginator(query, query.count(), page)
     coprs = paginator.sliced_query
 

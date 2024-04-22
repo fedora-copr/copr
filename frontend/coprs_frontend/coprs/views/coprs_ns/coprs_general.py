@@ -126,7 +126,10 @@ def coprs_by_user(username=None, page=1):
     query = CoprsLogic.get_multiple_owned_by_username(username)
     query = CoprsLogic.filter_without_ids(query, [copr.id for copr in pinned])
     query = CoprsLogic.filter_without_group_projects(query)
-    query = CoprsLogic.set_query_order(query, desc=True)
+    query = query.order_by(
+        sqlalchemy.nullsfirst(models.Copr.delete_after),
+        models.Copr.id.desc(),
+    )
 
     paginator = helpers.Paginator(query, query.count(), page)
     coprs = paginator.sliced_query
