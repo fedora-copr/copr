@@ -1,8 +1,8 @@
 import pytest
 import datetime
 from coprs.mail import PermissionRequestMessage, PermissionChangeMessage, LegalFlagMessage, OutdatedChrootMessage, filter_allowlisted_recipients
+from coprs import app, models
 from tests.coprs_test_case import CoprsTestCase
-from coprs import app
 
 
 class TestMail(CoprsTestCase):
@@ -51,9 +51,24 @@ class TestMail(CoprsTestCase):
                                 "Reported by user2 <user2@spam.foo>")
 
     def test_outdated_chroot_message(self, f_users, f_coprs, f_mock_chroots, f_db):
-        chroots = [self.c1.copr_chroots[0], self.c2.copr_chroots[0]]
+        chroots = self.c1.copr_chroots + self.c2.copr_chroots + self.c3.copr_chroots
+
+        # Create more chroots within one project to later make sure line
+        # wrapping works as expected
+        for i in range(30, 38):
+            mc = models.MockChroot(os_release="fedora", os_version=i,
+                                   arch="x86_64", is_active=True)
+            mc.distgit_branch = models.DistGitBranch.query.first()
+            cc = models.CoprChroot()
+            cc.mock_chroot = mc
+            cc.copr = self.c2
+            chroots.append(cc)
+
+        now = datetime.datetime.now()
         for chroot in chroots:
-            chroot.delete_after = datetime.datetime.now() + datetime.timedelta(days=7 + 1) # 7 days = 6d, 23h, 59m, ...
+            # 7 days = 6d, 23h, 59m, ...
+            chroot.delete_after = now + datetime.timedelta(days=7 + 1)
+        chroots[3].delete_after = now + datetime.timedelta(days=5 + 1)
 
         app.config["SERVER_NAME"] = "localhost"
         app.config["DELETE_EOL_CHROOTS_AFTER"] = 123
@@ -71,14 +86,26 @@ class TestMail(CoprsTestCase):
                             "Please, visit the projects settings if you want to extend the time.\n\n"
 
                             "Project: user1/foocopr\n"
-                            "Chroot: fedora-18-x86_64\n"
-                            "Remaining: 7 days\n"
+                            "Remaining time:\n"
+                            "  7 days:\n"
+                            "    fedora-18-x86_64\n"
                             "https://localhost/coprs/user1/foocopr/repositories/\n\n"
 
                             "Project: user2/foocopr\n"
-                            "Chroot: fedora-17-x86_64\n"
-                            "Remaining: 7 days\n"
-                            "https://localhost/coprs/user2/foocopr/repositories/\n\n")
+                            "Remaining time:\n"
+                            "  7 days:\n"
+                            "    fedora-17-x86_64 fedora-17-i386 fedora-30-x86_64 fedora-31-x86_64\n"
+                            "    fedora-32-x86_64 fedora-33-x86_64 fedora-34-x86_64 fedora-35-x86_64\n"
+                            "    fedora-36-x86_64 fedora-37-x86_64\n"
+                            "https://localhost/coprs/user2/foocopr/repositories/\n\n"
+
+                            "Project: user2/barcopr\n"
+                            "Remaining time:\n"
+                            "  5 days:\n"
+                            "    fedora-18-x86_64\n"
+                            "  7 days:\n"
+                            "    fedora-rawhide-i386\n"
+                            "https://localhost/coprs/user2/barcopr/repositories/\n\n")
 
     def test_outdated_chroot_message_empty_chroots(self):
         with pytest.raises(AttributeError) as ex:
