@@ -53,7 +53,8 @@ class TestRawhideToRelease(CoprsTestCase):
         assert actions[0].appstream_shortcut != actions[1].appstream_shortcut
 
 
-@pytest.mark.usefixtures("f_copr_chroots_assigned_finished")
+@pytest.mark.usefixtures("f_copr_chroots_assigned_finished", "f_pr_dir",
+                         "f_pr_build")
 class TestBranchFedora(CoprsTestCase):
 
     def _get_actions(self):
@@ -95,6 +96,10 @@ class TestBranchFedora(CoprsTestCase):
 
         db.session.add(mch_rawhide_x86_64)
         db.session.add(cc_rawhide_x86_64)
+
+        # Build in a custom directory, let's pretend it was in rawhide
+        self.bc_pr.mock_chroot = mch_rawhide_x86_64
+
         db.session.commit()
 
         assert self._get_actions() == []
@@ -122,39 +127,62 @@ class TestBranchFedora(CoprsTestCase):
             for cch in mch.copr_chroots:
                 bchs += cch.build_chroots
 
-        assert len(bchs) == 1
-        bch = bchs[0]
+        assert len(bchs) == 2
 
-        assert bch.status == StatusEnum("forked")
-        assert bch.build.package == self.p3
+        assert bchs[0].status == StatusEnum("forked")
+        assert bchs[0].build.package == self.p3
 
-        assert self._get_actions() == ["rawhide_to_release", "createrepo"]
+        assert bchs[1].status == StatusEnum("forked")
+        assert bchs[1].build.package == self.b_pr.package
+
+        expected_actions = [
+            "rawhide_to_release",
+            "createrepo",
+            "rawhide_to_release",
+        ]
+        assert self._get_actions() == expected_actions
 
         # re-run the command, this is no-op
         branch_fedora_function(19, False, 'f19')
-        assert self._get_actions() == ["rawhide_to_release", "createrepo", "createrepo"]
+        expected_actions += ["createrepo"]
+        assert self._get_actions() == expected_actions
 
         # re-run, and re-fork all the builds, generates new action
         branch_fedora_function(19, True, 'f19')
-        assert self._get_actions() == ["rawhide_to_release", "createrepo", "createrepo",
-                                       "rawhide_to_release", "createrepo"]
+        expected_actions += [
+            "rawhide_to_release",
+            "createrepo",
+            "rawhide_to_release"
+        ]
+        assert self._get_actions() == expected_actions
 
         stdout, _ = capsys.readouterr()
         assert stdout == "\n".join([
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "Processing directory 'user2/barcopr'",
             "  Fresh new build chroots: 1, regenerate 0",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Processing directory 'user1/foocopr'",
             "Createrepo for 'user1/foocopr', chroot 'fedora-19-x86_64'",
+            "Processing directory 'user1/foocopr:PR'",
+            "  Fresh new build chroots: 1, regenerate 0",
             "fedora-19-i386 - already exists.",
             "fedora-19-x86_64 - already exists.",
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "Processing directory 'user2/barcopr'",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Processing directory 'user1/foocopr'",
             "Createrepo for 'user1/foocopr', chroot 'fedora-19-x86_64'",
+            "Processing directory 'user1/foocopr:PR'",
             "fedora-19-i386 - already exists.",
             "fedora-19-x86_64 - already exists.",
             "Handling builds in copr 'user2/barcopr', chroot 'fedora-rawhide-i386'",
+            "Processing directory 'user2/barcopr'",
             "  Fresh new build chroots: 0, regenerate 1",
             "Handling builds in copr 'user1/foocopr', chroot 'fedora-rawhide-x86_64'",
+            "Processing directory 'user1/foocopr'",
             "Createrepo for 'user1/foocopr', chroot 'fedora-19-x86_64'",
+            "Processing directory 'user1/foocopr:PR'",
+            "  Fresh new build chroots: 0, regenerate 1",
             ""
         ])
