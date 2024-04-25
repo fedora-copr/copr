@@ -1,3 +1,4 @@
+from itertools import groupby, batched
 import flask
 import platform
 from smtplib import SMTP
@@ -104,14 +105,21 @@ class OutdatedChrootMessage(Message):
         if not copr_chroots:
             raise AttributeError("No outdated chroots to notify about")
 
-        for chroot in copr_chroots:
+        # We need to sort the chroots first because `groupby` groups only
+        # consecutive keys
+        groups = groupby(sorted(copr_chroots, key=lambda x: x.copr.id), lambda x: x.copr)
+        for copr, chroots in groups:
+            block = "Project: {0}\n".format(copr.full_name)
+            block += "Remaining time:\n"
+            for days, chroots in groupby(chroots, lambda x: x.delete_after_days):
+                block += "  {0} days:\n".format(days)
+                for chroots in batched(chroots, 4):
+                    block += "    {0}\n".format(" ".join([x.name for x in chroots]))
+
             url = helpers.fix_protocol_for_frontend(
-                helpers.copr_url('coprs_ns.copr_repositories', chroot.copr, _external=True))
-            self.text += (
-                "Project: {0}\n"
-                "Chroot: {1}\n"
-                "Remaining: {2} days\n"
-                "{3}\n\n".format(chroot.copr.full_name, chroot.name, chroot.delete_after_days, url))
+                helpers.copr_url('coprs_ns.copr_repositories', copr, _external=True))
+            block += "{0}\n\n".format(url)
+            self.text += block
 
 
 def filter_allowlisted_recipients(recipients):
