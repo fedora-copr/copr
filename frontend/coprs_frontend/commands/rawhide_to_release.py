@@ -71,6 +71,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
         copr_chroot = turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
         for copr_dir in copr.dirs:
+            print("Processing directory '{}'".format(copr_dir.full_name))
             data = {"projectname": copr.name,
                     "ownername": copr.owner_name,
                     "copr_dir": copr_dir.name,
