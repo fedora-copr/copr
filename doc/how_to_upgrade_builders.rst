@@ -307,6 +307,12 @@ the old but currently unused builders by::
     $ su - resalloc
     $ resalloc-maint resource-delete --unused
 
+Cleanup
+-------
+
+When everything is up and running the new version, do not forget to delete the
+old AMIs and associated snapshots from AWS.
+
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Cloud page`: https://fedoraproject.org/cloud/download
 .. _`Alternate Architectures page`:  https://alt.fedoraproject.org/alt
