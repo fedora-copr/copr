@@ -152,6 +152,8 @@ class TestApiv3Projects(CoprsTestCase):
         }, {
         }, {
             "appstream": True,
+        }, {
+            "pulp": False,
         }]
 
         for setup in easy_changes:

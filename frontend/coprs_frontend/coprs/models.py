@@ -393,6 +393,11 @@ class _CoprPublic(db.Model, helpers.Serializer):
     # priority=NUMBER in repo configs
     repo_priority = db.Column(db.Integer, nullable=True)
 
+    # Should results for project be stored in Pulp instead of our backend
+    # results directory? This column will likely be useful only for a transition
+    # period until all projects are migrated to Pulp.
+    pulp = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
     @validates("repo_priority")
     def validate_repo_priority(self, _, value):
         """Checks whether priority value is correct"""

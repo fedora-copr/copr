@@ -20,6 +20,7 @@ from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from copr_common.worker_manager import WorkerManager
 
 from copr_backend.worker_manager import BackendQueueTask
+from copr_backend.storage import storage_for_task
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
@@ -118,26 +119,15 @@ class Createrepo(Action):
         chroots = data["chroots"]
         appstream = data["appstream"]
         devel = data["devel"]
-
+        storage = storage_for_task(data, self.opts, self.log)
         result = BackendResultEnum("success")
 
-        done_count = 0
         for project_dirname in project_dirnames:
             for chroot in chroots:
-                self.log.info("Creating repo for: %s/%s/%s",
-                              ownername, project_dirname, chroot)
-                repo = os.path.join(self.destdir, ownername,
-                                    project_dirname, chroot)
-                try:
-                    os.makedirs(repo)
-                    self.log.info("Empty repo so far, directory created")
-                except FileExistsError:
-                    pass
-
-                if not call_copr_repo(repo, appstream=appstream, devel=devel,
-                                      logger=self.log):
+                success = storage.createrepo(
+                    ownername, project_dirname, chroot, appstream, devel)
+                if not success:
                     result = BackendResultEnum("failure")
-
         return result
 
 
