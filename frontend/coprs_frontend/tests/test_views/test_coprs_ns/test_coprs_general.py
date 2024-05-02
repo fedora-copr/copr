@@ -501,6 +501,7 @@ class TestCoprUpdate(CoprsTestCase):
             "chroots": ["fedora-18-x86_64"],
             "appstream": True,
             "devel": True,
+            "pulp": False,
         }
 
         assert json.loads(action.data) == expected_data
@@ -1127,6 +1128,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "project_dirnames": ["test"],
             "appstream": False,
             "devel": False,
+            "pulp": False,
         }
         def _expected(action, chroots):
             template["chroots"] = chroots

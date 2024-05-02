@@ -1,3 +1,5 @@
+# pylint: disable=too-many-lines
+
 import os
 import json
 import tempfile
@@ -767,6 +769,7 @@ class TestAction(object):
             "appstream": True,
             "project_dirnames": ["bar"],
             "devel": False,
+            "pulp": False,
         })
         self.opts.destdir = tmp_dir
 
@@ -788,7 +791,7 @@ class TestAction(object):
 
         assert len(mc_sp_popen.call_args_list) == 2
 
-    @mock.patch("copr_backend.actions.call_copr_repo")
+    @mock.patch("copr_backend.storage.call_copr_repo")
     @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_handle_createrepo_failure_1(self, mc_devel, mc_call, mc_time):
         tmp_dir = self.make_temp_dir()
@@ -801,6 +804,7 @@ class TestAction(object):
             "appstream": True,
             "project_dirnames": ["bar"],
             "devel": False,
+            "pulp": False,
         })
         self.opts.destdir = tmp_dir
         test_action = Action.create_from(
