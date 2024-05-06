@@ -846,7 +846,9 @@ You should press Ctrl+Shift+R to invalidate your cache and reload page
 
 Groups membership is handled by `FAS <https://accounts.fedoraproject.org>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://pagure.io/fedora-infrastructure/new_issue>`_.
 You have to log out and then log in again to Copr so Copr can read your new
-settings.
+settings.  Note also that you might need to wait a few minutes till the
+`group list gets synchronized <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/ipsilon/#_known_issues>`_.
+Users also reported that `logging-out first from Ipsilon <https://id.fedoraproject.org/logout`_ might help with synchronization.
 
 Once copr knows the FAS groups you belong to, you still need to activate the
 group.  Go to `my groups <https://copr.fedorainfracloud.org/groups/list/my>`_
