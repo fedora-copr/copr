@@ -168,6 +168,7 @@ def get_build_record(task, for_backend=False):
         "appstream": bool(task.build.appstream),
         "repo_priority": task.build.copr.repo_priority,
         "ssh_public_keys": task.build.ssh_public_keys,
+        "pulp": task.build.copr.pulp,
     })
 
     copr_chroot = CoprChrootsLogic.get_by_name_or_none(task.build.copr, task.mock_chroot.name)
