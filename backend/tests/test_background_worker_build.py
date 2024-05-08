@@ -751,7 +751,7 @@ def test_build_failure(f_build_rpm_case, caplog):
     ], caplog)
     assert_messages_sent(["build.start", "chroot.start", "build.end"], worker.sender)
 
-@_patch_bwbuild_object("call_copr_repo")
+@mock.patch("copr_backend.storage.call_copr_repo")
 def test_createrepo_failure(mc_call_copr_repo, f_build_rpm_case, caplog):
     mc_call_copr_repo.return_value = False
     config = f_build_rpm_case

@@ -32,13 +32,14 @@ from copr_backend.exceptions import (
     FrontendClientException,
 )
 from copr_backend.helpers import (
-    call_copr_repo, run_cmd, register_build_result, format_evr,
+    run_cmd, register_build_result, format_evr,
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender
 from copr_backend.sign import sign_rpms_in_dir, get_pubkey
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError
 from copr_backend.vm_alloc import ResallocHostFactory
+from copr_backend.storage import storage_for_job
 
 
 MAX_HOST_ATTEMPTS = 3
@@ -644,6 +645,14 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             filter_=filter_,
         )
 
+    def _upload_results_to_storage(self):
+        """
+        Upload build results to an appropriate storage. Duplicate the data,
+        don't remove them from the original place.
+        """
+        storage = storage_for_job(self.job, self.opts, self.log)
+        storage.upload_build_results(self.job)
+
     def _check_build_success(self):
         """
         Raise BackendError if builder claims that the build failed.
@@ -666,6 +675,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         """
 
+        # Ideally, we would like to have this decision in our storage classes
+        if self.job.pulp:
+            self.log.info("Not going to sign pkgs, Pulp will take care of that")
+            return
+
         self.log.info("Going to sign pkgs from source: %s in chroot: %s",
                       self.job.task_id, self.job.chroot_dir)
 
@@ -684,21 +698,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if self.job.chroot == 'srpm-builds':
             return
 
-        project_owner = self.job.project_owner
-        project_name = self.job.project_name
-        devel = self.job.uses_devel_repo
-        appstream = self.job.appstream
-
-        base_url = "/".join([self.opts.results_baseurl, project_owner,
-                             project_name, self.job.chroot])
-
-        self.log.info("Incremental createrepo run, adding %s into %s, "
-                      "(auto-create-repo=%s)", self.job.target_dir_name,
-                      base_url, not devel)
-        if not call_copr_repo(self.job.chroot_dir, devel=devel,
-                              add=[self.job.target_dir_name],
-                              logger=self.log,
-                              appstream=appstream):
+        storage = storage_for_job(self.job, self.opts, self.log)
+        if not storage.publish_repository(self.job):
             raise BackendError("createrepo failed")
 
     def _get_srpm_build_details(self, job):
@@ -930,6 +931,26 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if self.canceled:
             raise BuildCanceled
 
+    def _cleanup(self):
+        """
+        Clean any temporary files after a job
+        Different storage solutions (e.g. Pulp) might use backend storage as a
+        temporary place for fetching builder results before uploading them
+        elsewhere.
+
+        The cleanup isn't implemented in the respective storage classes because
+        we don't want e.g. `PulpStorage` and others to know anything about our
+        backend storage implementation.
+        """
+        if self.job.pulp:
+            path = os.path.join(self.job.chroot_dir, self.job.target_dir_name)
+            for filename in os.listdir(path):
+                if not filename.endswith(".rpm"):
+                    continue
+                rpm = os.path.join(path, filename)
+                self.log.info("Removing %s, it is stored in Pulp", rpm)
+                os.remove(rpm)
+
     def build(self, attempt):
         """
         Attempt to build.
@@ -966,6 +987,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         # raise error if build failed
         try:
+            self._upload_results_to_storage()
             self._check_build_success()
             # Build _succeeded_.  Do the tasks for successful run.
             failed = False
@@ -977,6 +999,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self.job.update(build_details)
             self.job.validate()
             self._add_pubkey()
+            self._cleanup()
         except Exception as ex:
             self.log.error("Build failed: %s", ex)
             failed = True
