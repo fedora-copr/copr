@@ -67,6 +67,12 @@ And finally, in some cases, it may be useful to iterate through all objects, but
     Munch({'id': 5, 'ownername': '@copr', 'projectname': 'copr', 'state': 'canceled', ...})
 
 
+.. warning::
+   Don't remove projects, packages, builds, etc while paginating over them. It
+   may result in skipping some results. Instead, query all objects (using
+   pagination) first, and then delete them.
+
+
 Pagination parameters
 ---------------------
 
