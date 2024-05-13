@@ -525,6 +525,7 @@ usage: copr add-package-custom [-h] --script SCRIPT
                                --name PKGNAME
                                [--webhook-rebuild {on,off}]
                                [--max-builds MAX_BUILDS]
+                               [--timeout TIMEOUT]
                                project
 
 Add package of 'Custom' source type.
@@ -554,6 +555,10 @@ Enable auto-rebuilding.
 Keep only the specified number of the newest-by-id builds
 (garbage collector is run daily), zero disables (default)
 
+--timeout TIMEOUT::
+Number of seconds we allow the builds to run, default is
+18000 (5h)
+
 
 `copr-cli edit-package-custom [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -564,6 +569,7 @@ usage: copr edit-package-custom [-h]
                                 [--script-repos SCRIPT_REPOS]
                                 --name PKGNAME [--webhook-rebuild {on,off}]
                                 [--max-builds MAX_BUILDS]
+                                [--timeout TIMEOUT]
                                 project
 
 Edit source definition and type of an existing package.

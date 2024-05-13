@@ -777,6 +777,8 @@ class BuildsLogic(object):
 
         if "timeout" in build_options:
             build.timeout = build_options["timeout"]
+        else:
+            build.timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
 
         return build
 
@@ -930,7 +932,9 @@ class BuildsLogic(object):
         )
 
         if timeout:
-            build.timeout = timeout or app.config["DEFAULT_BUILD_TIMEOUT"]
+            build.timeout = timeout
+        else:
+            build.timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
 
         db.session.add(build)
         cls.assign_buildchroots(
@@ -976,7 +980,7 @@ class BuildsLogic(object):
             source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=package.copr.build_enable_net,
-            timeout=app.config["DEFAULT_BUILD_TIMEOUT"],
+            timeout=package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"],
             copr_dir=copr_dir,
             update_callback=update_callback,
             scm_object_type=scm_object_type,

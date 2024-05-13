@@ -884,6 +884,18 @@ class BasePackageForm(BaseForm):
             wtforms.validators.NumberRange(min=0, max=100)],
         default=None,
     )
+    timeout = wtforms.IntegerField(
+        "Max build time",
+        description="""Optional - number of seconds we allow the builds to run,
+        default is {0} ({1}h) )""".format(app.config["DEFAULT_BUILD_TIMEOUT"],
+            seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
+        render_kw={'placeholder': 'Optional - integer, e.g. 36000'},
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.NumberRange(min=app.config["MIN_BUILD_TIMEOUT"],
+                                           max=app.config["MAX_BUILD_TIMEOUT"])],
+        default=app.config["DEFAULT_BUILD_TIMEOUT"],
+    )
 
 
 class PackageFormScm(BasePackageForm):
@@ -1256,16 +1268,18 @@ def _get_build_form(active_chroots, form, package=None):
             return chroots
 
 
+    package_timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
+
     F.timeout = wtforms.IntegerField(
         "Timeout",
         description="Optional - number of seconds we allow the builds to run, default is {0} ({1}h)".format(
-            app.config["DEFAULT_BUILD_TIMEOUT"], seconds_to_pretty_hours(app.config["DEFAULT_BUILD_TIMEOUT"])),
+            package_timeout, seconds_to_pretty_hours(package_timeout)),
         validators=[
             wtforms.validators.Optional(),
             wtforms.validators.NumberRange(
                 min=app.config["MIN_BUILD_TIMEOUT"],
                 max=app.config["MAX_BUILD_TIMEOUT"])],
-        default=app.config["DEFAULT_BUILD_TIMEOUT"])
+        default=package_timeout)
 
     F.enable_net = BooleanFieldOptional(false_values=FALSE_VALUES)
     F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)

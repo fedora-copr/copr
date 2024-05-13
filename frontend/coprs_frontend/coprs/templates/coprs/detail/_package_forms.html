@@ -63,6 +63,7 @@
                 info="What chroots should be skipped for this package, by default we build for all.",
 )}}
 {{ render_field(form.max_builds)}}
+{{ render_field(form.timeout)}}
 {% endmacro %}
 
 {% macro render_anitya_autorebuild(form) %}

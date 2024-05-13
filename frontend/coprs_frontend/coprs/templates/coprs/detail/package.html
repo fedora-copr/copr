@@ -56,6 +56,11 @@
           <dd>{{ package.max_builds }}</dd>
           {% endif %}
 
+          {% if package.timeout %}
+          <dt>Timeout:</dt>
+          <dd>{{ package.timeout|natural_time_delta() }}</dd>
+          {% endif %}
+
           {% if package.chroot_denylist_raw %}
           <dt>Excluded chroots:</dt>
           <dd>{{ package.chroot_denylist_raw }}</dd>

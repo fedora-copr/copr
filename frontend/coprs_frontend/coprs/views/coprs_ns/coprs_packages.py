@@ -211,6 +211,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     data["webhook_rebuild"] = package.webhook_rebuild
     data["chroot_denylist"] = package.chroot_denylist_raw
     data["max_builds"] = package.max_builds
+    data["timeout"] = package.timeout
 
     if package.has_source_type_set and not source_type_text:
         source_type_text = package.source_type_text
@@ -285,6 +286,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
             package.source_json = form.source_json
             package.chroot_denylist_raw = form.chroot_denylist.data
             package.max_builds = form.max_builds.data
+            package.timeout = form.timeout.data
 
             PackagesLogic.log_being_admin(flask.g.user, package)
             db.session.add(package)

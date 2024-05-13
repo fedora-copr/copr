@@ -395,6 +395,7 @@ class PackageGet(ParamsSchema):
 @dataclass
 class BasePackage(InputSchema):
     max_builds: Integer
+    timeout: Integer
     webhook_rebuild: Boolean
     packagename: String
 
