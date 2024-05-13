@@ -121,13 +121,14 @@ class TestDistGitMethodPackage(object):
              'namespace': None,
              'committish': None,
              'max_builds': None,
+             'timeout': None,
              'webhook_rebuild': None})
 
     def test_edit_package_full(self, f_patch_package_distgit, capsys):
         _assert_output(['edit-package-distgit', '--name', 'package', '@owner/project',
                         '--commit', 'master', '--namespace', 'ns', '--distgit',
                         'centos', '--webhook-rebuild', "on", "--max-builds",
-                        "1"],
+                        "1", "--timeout", "18000"],
                        self.success_stdout, "", capsys)
         assert len(f_patch_package_distgit[1].call_args_list) == 1
         assert len(f_patch_package_distgit[0].call_args_list) == 0
@@ -139,6 +140,7 @@ class TestDistGitMethodPackage(object):
              'namespace': "ns",
              'committish': "master",
              'max_builds': "1",
+             'timeout': "18000",
              'webhook_rebuild': True})
 
     @staticmethod

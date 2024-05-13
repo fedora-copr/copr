@@ -877,6 +877,13 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     def validate_max_builds(self, field, value):
         return None if value == 0 else value
 
+    # max package build time
+    timeout = db.Column(db.Integer)
+
+    @validates('timeout')
+    def validate_timeout(self, field, value):
+        return app.config["DEFAULT_BUILD_TIMEOUT"] if value == 0 else value
+
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("packages"))
