@@ -111,9 +111,10 @@ class OutdatedChrootMessage(Message):
         for copr, chroots in groups:
             block = "Project: {0}\n".format(copr.full_name)
             block += "Remaining time:\n"
-            for days, chroots in groupby(chroots, lambda x: x.delete_after_days):
+            for days, chroots in groupby(sorted(chroots, key=lambda x: x.delete_after_days),
+                                         lambda x: x.delete_after_days):
                 block += "  {0} days:\n".format(days)
-                for chroots in batched(chroots, 4):
+                for chroots in batched(sorted(chroots, key=lambda x: x.name), 4):
                     block += "    {0}\n".format(" ".join([x.name for x in chroots]))
 
             url = helpers.fix_protocol_for_frontend(

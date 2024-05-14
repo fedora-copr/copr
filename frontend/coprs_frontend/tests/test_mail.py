@@ -67,8 +67,12 @@ class TestMail(CoprsTestCase):
         now = datetime.datetime.now()
         for chroot in chroots:
             # 7 days = 6d, 23h, 59m, ...
-            chroot.delete_after = now + datetime.timedelta(days=7 + 1)
-        chroots[3].delete_after = now + datetime.timedelta(days=5 + 1)
+            if chroot.copr.full_name == "user2/barcopr" \
+                    and chroot.name == "fedora-18-x86_64":
+                # special-case one chroot to make a message variation
+                chroot.delete_after = now + datetime.timedelta(days=5 + 1)
+            else:
+                chroot.delete_after = now + datetime.timedelta(days=7 + 1)
 
         app.config["SERVER_NAME"] = "localhost"
         app.config["DELETE_EOL_CHROOTS_AFTER"] = 123
@@ -94,7 +98,7 @@ class TestMail(CoprsTestCase):
                             "Project: user2/foocopr\n"
                             "Remaining time:\n"
                             "  7 days:\n"
-                            "    fedora-17-x86_64 fedora-17-i386 fedora-30-x86_64 fedora-31-x86_64\n"
+                            "    fedora-17-i386 fedora-17-x86_64 fedora-30-x86_64 fedora-31-x86_64\n"
                             "    fedora-32-x86_64 fedora-33-x86_64 fedora-34-x86_64 fedora-35-x86_64\n"
                             "    fedora-36-x86_64 fedora-37-x86_64\n"
                             "https://localhost/coprs/user2/foocopr/repositories/\n\n"
