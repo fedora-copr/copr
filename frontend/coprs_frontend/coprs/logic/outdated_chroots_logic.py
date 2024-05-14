@@ -83,10 +83,43 @@ class OutdatedChrootsLogic:
         cls._update_copr_chroot(copr_chroot, delete_after_days)
 
     @classmethod
-    def _update_copr_chroot(cls, copr_chroot, delete_after_days):
+    def _update_copr_chroot(cls, copr_chroot, delete_after_days, actor=None):
         delete_after_timestamp = (
             datetime.now()
             + timedelta(days=delete_after_days)
         )
-        CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
+
+        if actor is None:
+            actor = flask.g.user
+
+        CoprChrootsLogic.update_chroot(actor, copr_chroot,
                                        delete_after=delete_after_timestamp)
+
+
+    @classmethod
+    def trigger_rolling_eol_policy(cls):
+        """
+        Go through all the MockChroot.rolling -> CoprChroots, and check when the
+        last build has been done.  If it is more than
+        config.ROLLING_CHROOTS_INACTIVITY_WARNING days, mark the CoprChroot for
+        removal after ROLLING_CHROOTS_INACTIVITY_REMOVAL days.
+        """
+
+        period = app.config["ROLLING_CHROOTS_INACTIVITY_WARNING"] * 24 * 3600
+        warn_timestamp = int(datetime.now().timestamp()) - period
+
+        query = (
+            db.session.query(models.CoprChroot).join(models.MockChroot)
+            .filter(models.MockChroot.rolling.is_(True))
+            .filter(models.MockChroot.is_active.is_(True))
+            .filter(models.CoprChroot.delete_after.is_(None))
+            .filter(models.CoprChroot.last_build_timestamp.isnot(None))
+            .filter(models.CoprChroot.last_build_timestamp < warn_timestamp)
+        )
+
+        when = app.config["ROLLING_CHROOTS_INACTIVITY_REMOVAL"]
+        for chroot in query:
+            cls._update_copr_chroot(chroot, when,
+                                    models.AutomationUser("Rolling-Builds-Cleaner"))
+
+        db.session.commit()

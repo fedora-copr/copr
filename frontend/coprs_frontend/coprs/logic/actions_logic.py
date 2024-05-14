@@ -399,6 +399,7 @@ class ActionsLogic(object):
             created_on=int(time.time()),
             copr_id=copr_chroot.copr.id,
         )
+        copr_chroot.deleted = True
         db.session.add(action)
         return action
 

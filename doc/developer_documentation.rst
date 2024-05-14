@@ -40,6 +40,7 @@ Misc
 
    Brainstorming <brainstorming>
    Populate DB <seeddb>
+   Chroot EOL implementation <developer_documentation/eol-logic>
 
 
 The design and diagrams

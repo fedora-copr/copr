@@ -281,6 +281,31 @@ rst_epilog = """
 .. |se| raw:: html
 
     </strike>
+
+.. |br| raw:: html
+
+    <br/>
+
+.. |p_red| raw:: html
+
+    <p style="background-color: #f1948a;">
+
+.. |p_end| raw:: html
+
+    </p>
+
+.. |p_yel| raw:: html
+
+    <p style="background-color: #ffbf00;">
+
+.. |p_gre| raw:: html
+
+    <p style="background-color: #80ff00;">
+
+.. |p_gra| raw:: html
+
+    <p style="background-color: #d1e0e0;">
+
 """
 
 # Documents to append as an appendix to all manuals.

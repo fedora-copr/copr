@@ -202,6 +202,8 @@ class ChrootDeletionStatus(metaclass=EnumType):
     When a chroot is marked as EOL or when it is unclicked from a project,
     it goes through several stages before its data is finally deleted.
     Each `models.CoprChroot` is in one of the following states.
+
+    See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
     """
     # pylint: disable=too-few-public-methods
     vals = {
@@ -213,14 +215,10 @@ class ChrootDeletionStatus(metaclass=EnumType):
         # marked as EOL and its data is never going to be deleted.
         "deactivated": 1,
 
-        # There are multiple possible scenarios for chroots in this state:
-        # 1) The standard preservation period is not over yet. Its length
-        #    differs on whether the chroot is EOL or was unclicked from
-        #    a project but the meaning is same for both cases
-        #
-        # 2) If the chroot is EOL and we wasn't able to send a notification
-        #    about it.
-        #
+        # Preserved state.  There are multiple possible scenarios for chroots in
+        # this state:
+        # 1) The standard preservation period is not over yet.
+        # 2) If the chroot is EOL, but we weren't able to notify the user.
         # 3) Any other constraint that disallows the chroot to be deleted yet.
         #    At this moment there shouldn't be any.
         "preserved": 2,

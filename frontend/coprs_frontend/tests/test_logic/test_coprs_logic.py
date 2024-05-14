@@ -212,8 +212,16 @@ class TestCoprChrootsLogic(CoprsTestCase):
 
         # A chroot is not EOL but was unclicked from a project by its owner
         self.c2.copr_chroots[0].mock_chroot.is_active = True
+        self.c2.copr_chroots[0].deleted = True
         self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=1)
         assert outdated.all() == []
+
+        # A rolling chroot is inactive
+        self.c2.copr_chroots[0].mock_chroot.is_active = True
+        self.c2.copr_chroots[0].deleted = False
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=1)
+        assert len(outdated.all()) == 1
+
 
     def test_filter_outdated_to_be_deleted(self, f_users, f_coprs, f_mock_chroots, f_db):
         outdated = CoprChrootsLogic.filter_to_be_deleted(CoprChrootsLogic.get_multiple())
