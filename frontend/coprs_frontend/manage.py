@@ -35,6 +35,7 @@ import commands.update_graphs
 import commands.vacuum_graphs
 import commands.notify_outdated_chroots
 import commands.delete_outdated_chroots
+import commands.eol_lifeless_rolling_chroots
 import commands.clean_expired_projects
 import commands.clean_old_builds
 import commands.delete_orphans
@@ -89,6 +90,7 @@ commands_list =	[
     "vacuum_graphs",
     "notify_outdated_chroots",
     "delete_outdated_chroots",
+    "eol_lifeless_rolling_chroots",
     "clean_expired_projects",
     "clean_old_builds",
     "delete_orphans",

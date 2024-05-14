@@ -8,7 +8,7 @@ from itertools import zip_longest
 
 import flask
 
-from sqlalchemy import not_
+from sqlalchemy import not_, or_
 from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.event import listens_for
@@ -1251,18 +1251,22 @@ class CoprChrootsLogic(object):
     @classmethod
     def filter_outdated(cls, query):
         """
-        Filter query to fetch only `CoprChroot` instances that are EOL but still
-        in the data preservation period
+        Filter query to fetch only `CoprChroot` instances that are in the data
+        preservation period, but not yet expired (not yet to be removed).  Used
+        for sending e-mail notifications.
+
+        See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
         """
         return (query.filter(models.CoprChroot.delete_after
                              >= datetime.datetime.now())
-                     # Filter only such chroots that are not unclicked (deleted)
-                     # from a project. We don't want the EOL machinery for them,
-                     # they are deleted.
+                     # Filter out chroots that are manually disabled by user
+                     # (deleted, aka "unclicked", we never send e-mails there)
                      .filter(models.CoprChroot.deleted.isnot(True))
-
-                     # Filter only inactive (i.e. EOL) chroots
-                     .filter(not_(models.MockChroot.is_active)))
+                     .filter(or_(
+                         # inactive (i.e. EOL) chroots
+                         not_(models.MockChroot.is_active),
+                         # rolling EOL candidate (still active, though)
+                         models.MockChroot.rolling.is_(True))))
 
 
     @classmethod

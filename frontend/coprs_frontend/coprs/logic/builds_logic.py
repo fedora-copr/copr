@@ -1473,6 +1473,7 @@ class BuildChrootsLogic(object):
             copr_chroot = coprs_logic.CoprChrootsLogic.get_by_mock_chroot_id(
                 build.copr, mock_chroot.id
             ).one()
+        copr_chroot.build_submitted()
         return models.BuildChroot(
             mock_chroot=mock_chroot,
             copr_chroot=copr_chroot,

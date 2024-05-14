@@ -20,6 +20,7 @@ Chroots can be easily managed with these few commands.
     copr-frontend branch-fedora <new-branched-version>
     copr-frontend rawhide-to-release <rawhide-chroot> <newly-created-chroot>
     copr-frontend chroots-template [--template PATH]
+    copr-frontend eol-lifeless-rolling-chroots
 
 However, `enablement process upon Fedora branching <#branching-process>`_ and also
 `chroot deactivation when Fedora reaches it's EOL phase <#eol-deactivation-process>`_, are not that simple.
@@ -114,6 +115,22 @@ disabled and users can't build new packages in it anymore.
 
 When it is done, `send an information email to a mailing list <#mailing-lists>`_.
 See the :ref:`the disable chroots template <disable_chroots_template>`.
+
+
+Rawhide (and other rolling) chroots EOL
+---------------------------------------
+
+Run ``copr-frontend eol-lifeless-rolling-chroots`` to mark existing rolling Copr
+chroots for the future removal/deactivation — if they appear lifeless.  You
+might want to run this daily in the ``copr-frontend-optional`` cron-job file.
+The logic in this command checks that no build happened in particular rolling
+chroot for a long time, so likely no work is being done there, and the old built
+packages are _likely_ non-installable anyway (as the rolling distro moves
+forward with dependencies, but no dependency resolution is being done with
+RPMs).  If such a chroot is marked EOL, this command applies the same
+notification policy/process as with the :ref:`eol_deactivation_process` so users
+can keep the chroot alive (either by prolonging the chroot, or triggering a new
+build).
 
 
 .. _managing_chroot_comments:

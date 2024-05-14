@@ -377,3 +377,18 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         CoprChrootsLogic.update_from_names(
             self.u2, self.c2, [chroot.name for chroot in self.c2.copr_chroots])
         assert not self.c2.copr_chroots[0].delete_after
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rolling_warning(self):
+        for cc in self.models.CoprChroot.query.all():
+            if cc.copr.full_name == "user2/barcopr" and cc.name == "fedora-rawhide-i386":
+                # distant past!
+                cc.last_build_timestamp = 666
+        self.db.session.commit()
+        OutdatedChrootsLogic.trigger_rolling_eol_policy()
+        eols = self.db.session.query(self.models.CoprChroot)\
+                .filter(self.models.CoprChroot.delete_after.isnot(None)).all()
+
+        assert len(eols) == 1
+        assert eols[0].name == "fedora-rawhide-i386"
+        assert eols[0].delete_after_days == app.config["ROLLING_CHROOTS_INACTIVITY_REMOVAL"]-1

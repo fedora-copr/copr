@@ -785,6 +785,7 @@ class ReposLogic:
         """
         In case some of the `copr_chroots` is going to be deleted in the future,
         describe the reason why
+        TODO: merge with the `CoprChroot.delete_status` property
         """
         # Do we even want to show a trash icon? I.e. are any of the project
         # chroots set to be deleted in the future?
@@ -798,13 +799,19 @@ class ReposLogic:
         # project owner. Or all of them for the same reason. Also all
         # architectures may be deleted by the project owner but on a different
         # day and therefore the remaining time may be different)
+        # See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
         reasons = {}
         for chroot in delete_chroots:
             reason_format = "{0} and will remain available for another {1} days"
-            reason = reason_format.format(
-                "disabled by a project owner" if chroot.is_active else "EOL",
-                chroot.delete_after_days,
-            )
+            reason = "EOL"
+            if chroot.is_active:
+                if chroot.deleted and chroot.delete_after is not None:
+                    reason = "disabled by a project owner"
+                elif chroot.mock_chroot.rolling:
+                    reason = "a rolling chroot inactive for a long time"
+                else:
+                    raise exceptions.BadRequest(f"Unknown EOL reason {chroot.name}")
+            reason = reason_format.format(reason, chroot.delete_after_days)
             reasons.setdefault(reason, [])
             reasons[reason].append(chroot.mock_chroot.arch)
 

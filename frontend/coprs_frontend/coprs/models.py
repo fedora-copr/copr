@@ -111,13 +111,20 @@ class AbstractUser:
         """
         raise NotImplementedError
 
+    @property
+    def name(self):
+        """
+        Return the short username of the user, e.g. bkabrda
+        """
+        return self.username
+
 
 class AutomationUser(AbstractUser):
     """
     This user (instance of this class) can modify all projects; used for
     internal system operations like automatic build removals, etc.
     """
-    def can_edit(self, _copr, _ignore_admin=False):
+    def can_edit(self, _copr, ignore_admin=False):
         return True
 
     def __init__(self, name):
@@ -134,13 +141,6 @@ class User(db.Model, helpers.Serializer, AbstractUser):
     __table__ = outerjoin(_UserPublic.__table__, _UserPrivate.__table__)
     id = column_property(_UserPublic.__table__.c.id, _UserPrivate.__table__.c.user_id)
 
-    @property
-    def name(self):
-        """
-        Return the short username of the user, e.g. bkabrda
-        """
-
-        return self.username
 
     @property
     def copr_permissions(self):
@@ -1639,6 +1639,9 @@ class MockChroot(db.Model, TagMixin, helpers.Serializer):
 
     comment = db.Column(db.Text, nullable=True)
 
+    # rolling distribution, e.g. Fedora Rawhide
+    rolling = db.Column(db.Boolean, default=False)
+
     multilib_pairs = {
         'x86_64': 'i386',
     }
@@ -1712,6 +1715,8 @@ class CoprChroot(db.Model, helpers.Serializer):
         # slightly different configuration).
         db.UniqueConstraint("mock_chroot_id", "copr_id",
                             name="copr_chroot_mock_chroot_id_copr_id_uniq"),
+        db.Index("copr_chroot_rolling_last_build_idx",
+                 "mock_chroot_id", "last_build_timestamp", "delete_after"),
     )
 
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
@@ -1750,6 +1755,8 @@ class CoprChroot(db.Model, helpers.Serializer):
 
     isolation = db.Column(db.Text, default="unchanged")
     deleted = db.Column(db.Boolean, default=False, index=True)
+
+    last_build_timestamp = db.Column(db.Integer)
 
     def update_comps(self, comps_xml):
         """
@@ -1797,6 +1804,8 @@ class CoprChroot(db.Model, helpers.Serializer):
         The WTF/minute ratio for reading this method is way above bearable level
         but we are considering 5 boolean variables and basically doing 2^5
         binary table.
+
+        https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
         """
         # pylint: disable=too-many-return-statements
 
@@ -1810,7 +1819,7 @@ class CoprChroot(db.Model, helpers.Serializer):
 
             return ChrootDeletionStatus("preserved")
 
-        # Chroots that we deactivated or marked as EOL
+        # Chroots that Copr admins deactivated or marked as EOL
         if not self.is_active:
             # This chroot is not EOL, its just _temporarily_ deactivated
             if not self.delete_after and not self.delete_notify:
@@ -1829,8 +1838,19 @@ class CoprChroot(db.Model, helpers.Serializer):
 
             return ChrootDeletionStatus("preserved")
 
+        # Normal enabled && active chroots
         if not self.delete_after and not self.delete_notify:
             return ChrootDeletionStatus("active")
+
+        # EOLed rolling chroots (reactivate by a new build)
+        if self.delete_after and self.mock_chroot.rolling:
+            # We can never ever remove EOL chroots that we didn't send
+            # a notification about
+            if not self.delete_notify:
+                return ChrootDeletionStatus("preserved")
+            if self.delete_after < datetime.datetime.now():
+                return ChrootDeletionStatus("expired")
+            return ChrootDeletionStatus("preserved")
 
         raise RuntimeError("Undefined status, this shouldn't happen")
 
@@ -1930,6 +1950,14 @@ class CoprChroot(db.Model, helpers.Serializer):
         if settings['isolation'] in [None, "default"]:
             return {}
         return settings
+
+    def build_submitted(self):
+        """
+        Record that a build has been submitted into this CoprChroot.
+        """
+        self.delete_after = None
+        self.last_build_timestamp = int(time.time())
+        self.delete_notify = None
 
 
 class BuildChroot(db.Model, TagMixin, helpers.Serializer):

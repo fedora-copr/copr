@@ -198,6 +198,10 @@ class Config(object):
 
     LOG_DETECTIVE_BUTTON = False
 
+    ROLLING_CHROOTS_INACTIVITY_WARNING = 180
+    ROLLING_CHROOTS_INACTIVITY_REMOVAL = 180
+
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"

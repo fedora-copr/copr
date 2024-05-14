@@ -217,7 +217,8 @@ def foo():
         self.mc3.distgit_branch = self.mc2.distgit_branch
 
         self.mc4 = models.MockChroot(
-            os_release="fedora", os_version="rawhide", arch="i386", is_active=True)
+            os_release="fedora", os_version="rawhide", arch="i386",
+            is_active=True, rolling=True)
         self.mc4.distgit_branch = models.DistGitBranch(name='master')
 
         self.mc_basic_list = [self.mc1, self.mc2, self.mc3, self.mc4]
