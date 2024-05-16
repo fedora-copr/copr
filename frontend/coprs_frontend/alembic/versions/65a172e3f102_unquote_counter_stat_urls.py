@@ -22,7 +22,7 @@ down_revision = '004a017535dc'
 def upgrade():
     session = sa.orm.sessionmaker(bind=op.get_bind())()
     rows = (session.query(CounterStat)
-            .filter(CounterStat.name.like("%\%40%"))
+            .filter(CounterStat.name.like("%\\%40%"))
             .all())
 
     for stat in rows:
