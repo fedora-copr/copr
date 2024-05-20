@@ -217,8 +217,8 @@ latex_elements = {
 # [howto/manual]).
 latex_documents = [
     (
-        'index', 'copr.tex', u'Copr Documentation',
-        u'clime \\textless{}clime@redhat.com\\textgreater{}',
+        'index', 'copr.tex', 'Copr Documentation',
+        'Copr Team \\textless{}copr-team@redhat.com\\textgreater{}',
         'manual'
     ),
 ]
@@ -249,8 +249,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (
-        'index', 'Copr', u'Copr Documentation',
-        [u'clime <clime@redhat.com>'],
+        'index', 'Copr', 'Copr Documentation',
+        ['Copr Team <copr-team@redhat.com>'],
         1
     )
 ]
@@ -266,8 +266,8 @@ man_pages = [
 # dir menu entry, description, category)
 texinfo_documents = [
     (
-        'index', 'Copr', u'Copr Documentation',
-        u'clime <clime@redhat.com>', 'COPR',
+        'index', 'Copr', 'Copr Documentation',
+        'Copr Team <copr-team@redhat.com>', 'COPR',
         'RPM Build System',
         'Miscellaneous'
     ),
