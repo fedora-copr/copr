@@ -484,8 +484,7 @@ class DeleteBuild(Resource):
 class DeleteBuilds(Resource):
     @staticmethod
     def _common():
-        data = get_form_compatible_data(preserve=["builds"])
-        build_ids = data["builds"]
+        build_ids = flask.request.json["builds"]
         BuildsLogic.delete_builds(flask.g.user, build_ids)
         db.session.commit()
         return {"builds": build_ids}
