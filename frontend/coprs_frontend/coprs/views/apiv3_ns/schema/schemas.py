@@ -703,7 +703,7 @@ class CreateBuildCustom(_BuildDataCommon, _GenericBuildOptions, InputSchema):
 
 @dataclass
 class DeleteBuilds(InputSchema):
-    build_ids: List = List(Integer, description="List of build ids to delete")
+    builds: List = List(Integer, description="List of build ids to delete")
 
 
 
