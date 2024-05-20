@@ -597,6 +597,12 @@ settings, ``copr-cli create --disable_createrepo`` in CLI, and ``devel_mode`` in
 the API. They are all the same feature.
 
 
+High Performance Builders
+-------------------------
+
+About more powerful builders see :ref:`high_performance_builders`.
+
+
 Modularity
 ----------
 
