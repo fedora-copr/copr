@@ -9,7 +9,7 @@
 %global copr_common_version 0.21.1.dev1
 
 Name:       copr-backend
-Version:    1.176
+Version:    1.177
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.177-1
+- Multiple attempts to create repository before giving up
+- Run rawhide-to-release for all CoprDirs
+- Remove static methods from tests
+
 * Sat Mar 16 2024 Pavel Raiskup <praiskup@redhat.com> 1.176-1
 - print user SSH instructions before the build starts
 
