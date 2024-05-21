@@ -332,3 +332,7 @@ table.permissions {
   float:left;
   margin-right: 12px;
 }
+
+.outage-warning {
+  text-align: center;
+}
