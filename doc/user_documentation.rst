@@ -225,6 +225,26 @@ used to create SRPM).  For more info, have a look at
 :ref:`custom_source_method`.
 
 
+Working with Packages
+---------------------
+
+Specifying the *source build method* (see above) with each package build would
+be quite inconvenient.  However, it is possible to define a package in a Copr
+project with the *default source* and then trigger the builds using just the
+command ``copr build-package OWNER/PROJECT --name PACKAGE_NAME``.  To add or
+modify the ``PACKAGE_NAME`` default source, check ``man copr`` for the
+``copr add-package-*`` and ``copr edit-package-*`` commands' descriptions.  For
+example, the ``copr build-distgit`` build command has the
+``copr add-package-distgit`` and ``copr edit-package-distgit`` counterparts.
+
+The ``PACKAGE_NAME`` default source entry is also created with the very first
+package build in the project.  Therefore, after the ``copr build-distgit``
+action, you can skip the ``add-package-*`` command and go directly to the
+``edit-package-*`` command.
+
+See the `Demo: Working with packages <https://www.youtube.com/watch?v=ASSqempxCSI>`_
+
+
 Reproducing the builds locally
 ------------------------------
 
