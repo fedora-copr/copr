@@ -1,7 +1,7 @@
 %global copr_common_version 0.20.1.dev1
 
 Name:       copr-dist-git
-Version:    0.69
+Version:    0.70
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -139,6 +139,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.70-1
+- Don't expect remove_unused_sources is in /usr/bin
+- Drop unused lookaside-cache cleanup scripts
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.69-1
 - keep logs 6 weeks instead of 13
 - rename dispatcher scripts
