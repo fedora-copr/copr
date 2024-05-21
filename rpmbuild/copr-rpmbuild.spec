@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.72
+Version: 0.73
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -323,6 +323,9 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.73-1
+- Remove static methods from tests
+
 * Sat Mar 16 2024 Pavel Raiskup <praiskup@redhat.com> 0.72-1
 - don't clean after builds with user ssh access
 
