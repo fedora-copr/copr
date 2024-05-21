@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.205
+Version:    1.206
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -385,6 +385,25 @@ usermod -L copr-fe
 
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.206-1
+- Center the outage warning banner text
+- Fix unexpected output schema for deleting builds
+- Fix parsing build IDs to be deleted
+- add per package timeout option
+- Alembic: fix a migration syntax warning
+- EOL-emails deterministic
+- List temporary project after normal projects
+- Don't index unlisted and temporary projects
+- Speedup the update-indexes command
+- Make EOL chroot emails shorter
+- Add tests for branching custom directory
+- Run rawhide-to-release for all CoprDirs
+- Delete compatibility code between flask and flask-restx
+- Migrate builds to flask-restx
+- Fix bug in reporting failed SRPMs to log-detective
+- Commit after every 10 deleted projects instead of 100
+- Don't pass raw SQL as string but rather SQLAlchemy text
+
 * Fri Apr 12 2024 Jakub Kadlcik <frostyx@email.cz> 1.205-1
 - Update download stats footnote
 - Migrate more enpoints to flask-restx
