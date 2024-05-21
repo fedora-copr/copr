@@ -7,7 +7,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.131
+Version:    1.132
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -229,6 +229,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.132-1
+- Discourage from deleting objects while paginating over them
+- Suggest pagination only when a GET request timeouts
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 1.131-1
 - don't fail project create action if the new exist_ok=False opt is used
 
