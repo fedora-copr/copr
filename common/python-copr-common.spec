@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.23
+Version:    0.24
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -119,6 +119,9 @@ version=%version %py2_install
 
 
 %changelog
+* Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.24-1
+- Fix chroot_to_branch default
+
 * Fri Mar 15 2024 Pavel Raiskup <praiskup@redhat.com> 0.23-1
 - make get_redis_connection to accept dict-like 'opts' argument
 
