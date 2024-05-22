@@ -1,0 +1,87 @@
+.. _release_notes_2024_05_22:
+
+Highlights from 2024-05-22 release
+==================================
+
+Updated client packages are shipped in `Fedora 39`_, `Fedora 40`_, `EPEL 7`_,
+`EPEL 8`_, and `EPEL 9`_ Bodhi updates.
+
+Enhancements
+------------
+
+- Users can now set the default build timeout per package, see `PR#3259`_.
+
+- The end-of-life process for disabled chroots (started, for example, for
+  `fedora-37-x86_64` when Fedora 37 went EOL) includes an e-mail notification
+  mechanism to inform users that built RPMs are being removed.  Previously, for
+  users with many projects and many enabled chroots, these e-mails were too long
+  and hard to understand.  Jakub `simplified them <PR#3236_>`_ in this release.
+
+- The list of projects in Copr's UI (the default global list, per-group, and
+  per-user) is now sorted differently.  Temporary projects `get lower priority
+  <PR#3232_>`_ and are presented behind the normal "stable" projects,
+  giving more visibility to the "stable" projects (where people care more).
+
+- Jirka completed the long migration of Copr's APIv3 to ``flask-restx``, which
+  provides users with a very `neat self-documentation <apidocs_>`_. This is the
+  first release where all the API routes are documented.
+
+
+Bugfixes
+--------
+
+- Jakub fixed two long-standing bugs/TODOs in the Copr's Rawhide branching
+  script in this release. First, the script now branches *all* the Copr chroots,
+  including those representing `pull-request directories <#2272_>`_, and second,
+  Copr tries to generate the post-branching repository multiple times, for cases
+  when the repo generator (the ``createrepo_c`` utility) fails.  These problems
+  were `frequently reported to the Copr team <#3016_>`_ as the build-time
+  failure ``Giving up waiting for copr_base repository``.
+
+- The button for feeding LogDetective was `fixed to provide valid options
+  <#3183>`_.
+
+
+Warnings/Future changes
+-----------------------
+
+- The team is working on automatic cleanup of old Copr Backend data (build
+  results) for `lifeless rolling chroots <rollingeol_>`_ (e.g., Fedora Rawhide,
+  Fedora ELN, etc.). The effect of the policy will probably not come into effect
+  until the end of the year 2024, but be prepared that you might be affected by
+  this change.
+
+- The long-term known gray zone in Copr is the ability to build the exact same
+  package NEVRA multiple times into the same project/repositories (i.e., Copr
+  does not require you to bump Release).  This is allowed now and will be in the
+  future.  However, if such duplicates are placed into RPM repositories, it is
+  undefined which one is installed by end-users.  This "presentation" layer is
+  likely `going to change <#3262_>`_ with the `Copr-move-to-PULP <pulp_>`_ in
+  the future.
+
+
+Maintenance
+-----------
+
+- Comptibility fixes for the new Flask/SQLAlchemy versions were done.
+
+
+.. _`PR#3259`: https://github.com/fedora-copr/copr/pull/3259
+.. _`PR#3236`: https://github.com/fedora-copr/copr/pull/3236
+.. _`PR#3232`: https://github.com/fedora-copr/copr/pull/3232
+
+.. _`#2272`: https://github.com/fedora-copr/copr/issues/2272
+.. _`#3016`: https://github.com/fedora-copr/copr/issues/3016
+.. _`#3183`: https://github.com/fedora-copr/copr/issues/3183
+
+.. _`#3262`:   https://github.com/fedora-copr/copr/issues/3262
+
+.. _`pulp`: https://github.com/fedora-copr/copr/issues/2533
+.. _`apidocs`: https://copr.fedoraproject.org/api_3/docs
+.. _`rollingeol`: https://github.com/fedora-copr/copr/issues/2933
+
+.. _`Fedora 39`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-031843ba05
+.. _`Fedora 40`: https://bodhi.fedoraproject.org/updates/FEDORA-2024-d94c8815f0
+.. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-473133d592
+.. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-14e170dd45
+.. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2024-7d39fa6183
