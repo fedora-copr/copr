@@ -1267,8 +1267,9 @@ def _get_build_form(active_chroots, form, package=None):
                 return list(chroots)
             return chroots
 
-
-    package_timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
+    package_timeout = app.config["DEFAULT_BUILD_TIMEOUT"]
+    if package and package.timeout:
+        package_timeout = package.timeout
 
     F.timeout = wtforms.IntegerField(
         "Timeout",
