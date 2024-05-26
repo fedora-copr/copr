@@ -33,9 +33,9 @@ python-copr-common | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/co
 You can use [Docker](https://docs.docker.com/) to run your local test environment. You need to install `docker-compose` tool for this to work.
 
 ```
-$ git clone https://github.com/fedora-copr/copr.git
-$ cd copr
-$ docker-compose up -d
+git clone https://github.com/fedora-copr/copr.git
+cd copr
+docker-compose up -d
 ```
 
 For more information see [our wiki page](https://docs.pagure.org/copr.copr/contribute.html?highlight=contribute).
