@@ -93,6 +93,12 @@ When everything is done, `send an information email to a mailing list <#mailing-
 EOL deactivation process
 ------------------------
 
+.. warning::
+
+   Before deactivating chroots, please make sure other services such as
+   `Fedora Review Service <https://github.com/FrostyX/fedora-review-service/blob/main/conf/fedora-review-service-prod.yaml>`_
+   doesn't depend on them.
+
 When some Fedora version reaches the end of its release cycle and is marked as EOL, you can safely disable its chroots.
 Though we want to keep the chroots enabled for a short period of time (few weeks) even after EOL, so our users can
 comfortably deal with it. It can be done like this
