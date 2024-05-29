@@ -167,9 +167,8 @@ def cmd_release():
     """
     Mark this VM as expired
     """
-    expiration = datetime.now() - timedelta(minutes=1)
     with open(USER_SSH_EXPIRATION_PATH, "w+", encoding="utf-8") as fp:
-        fp.write(str(expiration.timestamp()))
+        fp.write("0")
     print("Releasing this VM, it will be shut-down soon")
 
 
