@@ -45,6 +45,7 @@ MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
 MIN_BUILDER_VERSION = "0.68.dev"
 CANCEL_CHECK_PERIOD = 5
+DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
 MESSAGES = {
     "give_up_repo":
@@ -824,7 +825,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("ssh root@%s", self.host.hostname)
         self.log.info("Unless you connect to the builder and prolong its "
                       "expiration, it will be shut-down in %s",
-                      expiration.strftime("%Y-%m-%d %H:%M"))
+                      expiration.strftime(DATETIME_FORMAT))
         self.log.info("After connecting, run `copr-builder help' for "
                       "complete instructions")
 
@@ -854,7 +855,10 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             # buidler when it is supposed to
             self.log.error("Failed to set the default expiration time")
             return
-        self.log.info("The expiration time was set to %s", default)
+
+        expiration = datetime.fromtimestamp(default)
+        self.log.info("The expiration time was set to %s",
+                      expiration.strftime(DATETIME_FORMAT))
 
     def _builder_expiration(self):
         """
@@ -889,17 +893,31 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("Keeping builder alive for user SSH")
 
         def _keep_alive():
+            previous_expiration = default
             while True:
                 if self.canceled:
                     self.log.warning("Build canceled, VM will be shut-down soon")
                     break
+
                 expiration = self._builder_expiration() or default
-                if datetime.now() > expiration:
+                if expiration != previous_expiration:
+                    self.log.info("VM expiration changed to: %s",
+                                  expiration.strftime(DATETIME_FORMAT))
+                    previous_expiration = expiration
+
+                now = datetime.now()
+                if now > expiration:
                     self.log.warning("VM expired, it will be shut-down soon")
+                    self.log.info("The expiration was %s and it is now %s",
+                                  expiration.strftime(DATETIME_FORMAT),
+                                  now.strftime(DATETIME_FORMAT))
                     break
-                if datetime.now() > maxlimit:
+                if now > maxlimit:
                     msg = "VM exceeded max limit, it will be shut-down soon"
                     self.log.warning(msg)
+                    self.log.info("The max limit was %s and it is now %s",
+                                  maxlimit.strftime(DATETIME_FORMAT),
+                                  now.strftime(DATETIME_FORMAT))
                     break
                 time.sleep(60)
 
