@@ -803,9 +803,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if not self.job.ssh_public_keys:
             return
         self._alloc_root_ssh_connection()
+        self._set_default_expiration()
         self._deploy_user_ssh()
         self._log_user_ssh_instructions()
-        self._set_default_expiration()
 
     def _alloc_root_ssh_connection(self):
         self.log.info("Allocating root ssh connection to builder")
