@@ -36,7 +36,6 @@ services:
     hostname: backend-build
     command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "builds"]
     depends_on:
-      - backend-log
       - resalloc
     stdin_open: true
     tty: true
@@ -50,7 +49,6 @@ services:
     hostname: backend-action
     command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "actions"]
     depends_on:
-      - backend-log
       - resalloc
     stdin_open: true
     tty: true
@@ -77,8 +75,6 @@ services:
   backend_httpd:
     build:
       context: docker/backend_httpd
-    depends_on:
-      - backend-log
     hostname: backend_httpd
     ports:
       - "5002:5002"
