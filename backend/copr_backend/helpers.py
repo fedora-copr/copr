@@ -18,12 +18,10 @@ from operator import methodcaller
 
 import traceback
 
-from datetime import datetime
+import datetime
 from threading import Thread
 
 import subprocess
-
-import pytz
 
 import munch
 from munch import Munch
@@ -452,21 +450,6 @@ def uses_devel_repo(front_url, username, projectname, project=None):
     return bool(project.get("devel_mode", False))
 
 
-# def log(lf, msg, quiet=None):
-#     if lf:
-#         now = datetime.datetime.utcnow().isoformat()
-#         try:
-#             with open(lf, "a") as lfh:
-#                 fcntl.flock(lfh, fcntl.LOCK_EX)
-#                 lfh.write(str(now) + ":" + msg + "\n")
-#                 fcntl.flock(lfh, fcntl.LOCK_UN)
-#         except (IOError, OSError) as e:
-#             sys.stderr.write(
-#                 "Could not write to logfile {0} - {1}\n".format(lf, str(e)))
-#     if not quiet:
-#         print(msg)
-#
-
 def register_build_result(opts=None, failed=False):
     """
     Remember fails to redis.
@@ -581,8 +564,7 @@ def utc_now():
     """
     :return datetime.datetime: Current utc datetime with specified timezone
     """
-    u = datetime.utcnow()
-    u = u.replace(tzinfo=pytz.utc)
+    u = datetime.datetime.now(datetime.UTC)
     return u
 
 
