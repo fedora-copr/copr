@@ -299,7 +299,7 @@ def delete_builds(opts):
             with open(prune_log, "a+") as fd:
                 fd.write("{} pruned on {}, by PID {}\n".format(
                     rpm,
-                    datetime.datetime.utcnow(),
+                    datetime.datetime.now(datetime.UTC),
                     os.getpid(),
                 ))
         except OSError:
