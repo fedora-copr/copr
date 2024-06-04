@@ -35,8 +35,7 @@ You can use [Docker](https://docs.docker.com/) to run your local test environmen
 ```
 git clone https://github.com/fedora-copr/copr.git
 cd copr
-sudo docker-compose build
-sudo docker-compose up -d
+docker compose up -d
 ```
 
 For more information see [our wiki page](https://docs.pagure.org/copr.copr/contribute.html?highlight=contribute).
