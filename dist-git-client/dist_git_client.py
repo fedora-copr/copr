@@ -1,5 +1,5 @@
 """
-copr-distgit-client code, moved to module to simplify unit-testing
+dist-git-client code, moved to a python module to simplify unit-testing
 """
 
 import argparse
@@ -9,6 +9,7 @@ import glob
 import logging
 import shlex
 import os
+import shutil
 import subprocess
 import sys
 from six.moves.urllib.parse import urlparse
@@ -370,18 +371,18 @@ def clone(args, config):
     ])
 
 def _get_argparser():
-    parser = argparse.ArgumentParser(prog="copr-distgit-client",
+    parser = argparse.ArgumentParser(prog="dist-git-client",
                                      description="""\
 A simple, configurable python utility that is able to download sources from
 various dist-git instances, and generate source RPMs.
 The utility is able to automatically map the "origin" .git/config clone URL
 (or --forked-from URL, if specified) to a corresponding dist-git instance
-configured in /etc/copr-distgit-client directory.
+configured in /etc/dist-git-client directory.
 """)
 
     # main parser
     default_confdir = os.environ.get("COPR_DISTGIT_CLIENT_CONFDIR",
-                                     "/etc/copr-distgit-client")
+                                     "/etc/dist-git-client")
     parser.add_argument(
         "--configdir", default=default_confdir,
         help="Where to load configuration files from")
@@ -441,7 +442,7 @@ configured in /etc/copr-distgit-client directory.
     clone_parser.add_argument(
         "--dist-git",
         default="fedora",
-        help=("The DistGit ID as configured in /etc/copr-distgit-client/"),
+        help=("The DistGit ID as configured in /etc/dist-git-client/"),
     )
 
     clone_parser.add_argument(
@@ -454,6 +455,29 @@ configured in /etc/copr-distgit-client directory.
     )
 
     return parser
+
+
+def unittests_init_git(files=None):
+    """
+    Initialize .git/ directory.  This method is only used for unit-testing.
+    """
+    check_output(["git", "init", ".", "-b", "main"])
+    shutil.rmtree(".git/hooks")
+    check_output(["git", "config", "user.email", "you@example.com"])
+    check_output(["git", "config", "user.name", "Your Name"])
+    check_output(["git", "config", "advice.detachedHead", "false"])
+
+    for filename, content in files:
+        dirname = os.path.dirname(filename)
+        try:
+            os.makedirs(dirname)
+        except OSError:
+            pass
+        with open(filename, "w", encoding="utf-8") as filed:
+            filed.write(content)
+        check_output(["git", "add", filename])
+
+    check_output(["git", "commit", "-m", "initial"])
 
 
 def main():

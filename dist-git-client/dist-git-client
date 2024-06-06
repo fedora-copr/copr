@@ -19,4 +19,4 @@
 
 absdir="$(dirname "$(readlink -f "$0")")"
 export PYTHONPATH="$absdir${PYTHONPATH+:$PYTHONPATH}"
-python3 "$absdir/bin/copr-distgit-client" "$@"
+python3 "$absdir/bin/dist-git-client" "$@"

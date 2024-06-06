@@ -10,7 +10,7 @@ import tempfile
 import configparser
 import pytest
 
-from copr_distgit_client import check_output
+from dist_git_client import check_output, unittests_init_git
 from copr_rpmbuild.providers.distgit import DistGitProvider
 from copr_rpmbuild.helpers import git_clone_and_checkout
 
@@ -20,7 +20,6 @@ except ImportError:
     # Python 2 version depends on mock
     import mock
 
-from tests.test_distgit_client import init_git
 from tests import TestCase
 
 class TestDistGitProvider(TestCase):
@@ -66,7 +65,7 @@ lookaside_uri_pattern = lookaside/{{filename}}
 
         output = check_output(['md5sum', datafile])
         md5 = output.decode("utf-8").strip().split(' ')[0]
-        init_git([
+        unittests_init_git([
             ("test.spec", "specfile_content\n"),
             ("sources", "{md5} datafile\n".format(md5=md5)),
         ])
