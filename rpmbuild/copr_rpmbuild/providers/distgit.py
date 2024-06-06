@@ -9,7 +9,7 @@ from .base import Provider
 
 class DistGitProvider(Provider):
     """
-    DistGit provider, wrapper around copr-distgit-client script
+    DistGit provider, wrapper around the dist-git-client script
     """
 
     clone_url = None
@@ -33,10 +33,10 @@ class DistGitProvider(Provider):
         """
         helpers.git_clone_and_checkout(self.clone_url, self.committish,
                                        self.clone_to)
-        helpers.run_cmd(["copr-distgit-client", "sources"], cwd=self.clone_to)
+        helpers.run_cmd(["dist-git-client", "sources"], cwd=self.clone_to)
 
     def produce_srpm(self):
         self.produce_sources()
         helpers.run_cmd([
-            "copr-distgit-client", "srpm", "--outputdir", self.resultdir
+            "dist-git-client", "srpm", "--outputdir", self.resultdir
         ], cwd=self.clone_to)

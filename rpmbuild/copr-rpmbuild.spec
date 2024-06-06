@@ -33,6 +33,7 @@ BuildRequires: %{python}-httmock
 %endif
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
+BuildRequires: dist-git-client
 BuildRequires: git
 BuildRequires: %{python}-setuptools
 BuildRequires: %{python}-pytest
@@ -72,7 +73,7 @@ Requires: sed
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg
 Recommends: python-srpm-macros
-Recommends: copr-distgit-client
+Recommends: dist-git-client
 Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
@@ -88,7 +89,7 @@ build build-id 12345 for chroot epel-7-x86_64.
 %package -n copr-builder
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
-Requires: copr-distgit-client = %{version}-%{release}
+Requires: dist-git-client
 
 %if 0%{?fedora}
 # replacement for yum/yum-utils, to be able to work with el* chroots
@@ -151,31 +152,9 @@ build build-id 12345 for chroot epel-7-x86_64.
 This package contains all optional modules for building SRPM.
 
 
-%package -n copr-distgit-client
-Summary: Utility to download sources from dist-git
-
-Requires: %{_bindir}/git
-Requires: curl
-Requires: %{python_pfx}-six
-%if 0%{?fedora} || 0%{?rhel} > 9
-Requires: %{python_pfx}-rpmautospec
-BuildRequires: %{python_pfx}-rpmautospec
-%endif
-
-
-%description -n copr-distgit-client
-A simple, configurable python utility that is able to download sources from
-various dist-git instances, and generate source RPMs.
-
-The utility is able to automatically map the .git/config clone URL into
-the corresponding dist-git instance configuration.
-
-
 %prep
 %setup -q
-for script in bin/copr-rpmbuild* \
-              bin/copr-distgit*
-do
+for script in bin/copr-rpmbuild*; do
     sed -i '1 s|#.*python.*|#! /usr/bin/%python|' "$script"
 done
 
@@ -266,19 +245,6 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
   done
 )
 
-install -p -m 755 bin/copr-distgit-client %buildroot%_bindir
-argparse-manpage --pyfile copr_distgit_client.py \
-    --function _get_argparser \
-    --author "Copr Team" \
-    --author-email "copr-team@redhat.com" \
-    --url %url --project-name Copr \
-> %{buildroot}%{_mandir}/man1/copr-distgit-client.1
-mkdir -p %{buildroot}%{_sysconfdir}/copr-distgit-client
-install -p -m 644 etc/copr-distgit-client/default.ini \
-    %{buildroot}%{_sysconfdir}/copr-distgit-client
-mkdir -p %{buildroot}%{sitelib}
-install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_sitelib}
-
 
 %files
 %{!?_licensedir:%global license %doc}
@@ -309,18 +275,6 @@ install -p -m 644 copr_distgit_client.py %{buildroot}%{expand:%%%{python}_siteli
 %_sysconfdir/copr-builder
 %dir %mock_config_overrides
 %doc %mock_config_overrides/README
-
-
-%files -n copr-distgit-client
-%license LICENSE
-%_bindir/copr-distgit-client
-%_mandir/man1/copr-distgit-client.1*
-%dir %_sysconfdir/copr-distgit-client
-%config %_sysconfdir/copr-distgit-client/default.ini
-%sitelib/copr_distgit_client.*
-%if "%{?python}" != "python2"
-%sitelib/__pycache__/copr_distgit_client*
-%endif
 
 
 %changelog
