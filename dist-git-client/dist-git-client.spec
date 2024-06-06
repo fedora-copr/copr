@@ -19,7 +19,6 @@ Requires: /usr/bin/git
 
 BuildRequires: python3-pytest
 BuildRequires: python3-rpm-macros
-BuildRequires: python3-six
 BuildRequires: /usr/bin/argparse-manpage
 BuildRequires: /usr/bin/git
 
