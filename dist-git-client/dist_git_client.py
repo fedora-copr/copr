@@ -12,7 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 try:
     from rpmautospec import (
