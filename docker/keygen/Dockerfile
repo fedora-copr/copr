@@ -2,7 +2,7 @@ FROM registry.fedoraproject.org/fedora:39
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+ARG ADDITIONAL_COPR_REPOSITORIES="@mock/mock-stable"
 
 # Create copr-signer:copr-signer manually, so we can
 # be sure that the UID and GID is same on all keygen containers
@@ -28,6 +28,7 @@ RUN set -ex ; \
                    redis \
                    tini \
                    && \
+    && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
     dnf -y install copr-keygen && \
     dnf clean all
 
