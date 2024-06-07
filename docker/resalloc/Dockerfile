@@ -15,6 +15,7 @@ RUN dnf install -y ansible \
                    sqlite \
                    findutils \
                    openssh-clients \
+    && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
     && dnf clean all
 
 # copy filesystem setup
