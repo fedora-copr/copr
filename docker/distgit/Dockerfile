@@ -22,7 +22,7 @@ RUN set -ex ; \
                    python3-ipdb \
                    tini \
                    && \
-    dnf -y install copr-dist-git && \
+    dnf -y install copr-dist-git bind-utils && \
     dnf clean all
 
 RUN rm /etc/httpd/conf.d/ssl.conf
@@ -50,6 +50,8 @@ RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
 RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock" ; \
     chown -R copr-dist-git:root $directories && \
     chmod -R g+rwX $directories
+
+RUN sed -i 's|frontend|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr-dist-git.conf
 
 USER copr-dist-git
 
