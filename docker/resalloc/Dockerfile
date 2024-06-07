@@ -24,6 +24,9 @@ RUN RUN set -ex ; \
                    findutils \
                    openssh-clients \
     && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
+    && dnf install mock-rpmfusion-nonfree -y \
+    && sed -i 's|epel-next-9-x86_64.cfg|alma+epel-9-x86_64.cfg|' /etc/mock/epel-next+rpmfusion_free-9-x86_64.cfg \
+    && sed -i 's|epel-next-8-x86_64.cfg|alma+epel-8-x86_64.cfg|' /etc/mock/epel-next+rpmfusion_free-8-x86_64.cfg \
     && dnf clean all
 
 # copy filesystem setup
