@@ -1,7 +1,7 @@
 FROM registry.fedoraproject.org/fedora:39
 MAINTAINER copr-devel@lists.fedorahosted.org
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+ARG ADDITIONAL_COPR_REPOSITORIES="@mock/mock-stable"
 
 # TERM is to make the tito work in container, rhbz#1733043
 ENV TERM=linux
@@ -31,6 +31,7 @@ RUN set -ex ; \
                    copr-frontend \
                    modulemd-tools \
                    python3-authlib \
+    && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
     && dnf clean all
 
 COPY files/ /
