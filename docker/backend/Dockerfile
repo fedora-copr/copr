@@ -38,8 +38,12 @@ RUN set -ex ; \
                    expect \
     && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
     && dnf install mock-rpmfusion-nonfree -y \
-    && sed -i 's|epel-next-9-x86_64.cfg|alma+epel-9-x86_64.cfg|' /etc/mock/epel-next+rpmfusion_free-9-x86_64.cfg \
-    && sed -i 's|epel-next-8-x86_64.cfg|alma+epel-8-x86_64.cfg|' /etc/mock/epel-next+rpmfusion_free-8-x86_64.cfg \
+    && sed -i 's|epel-9-x86_64.cfg|alma+epel-9-x86_64.cfg|' /etc/mock/epel+rpmfusion_free-9-x86_64.cfg \
+    && sed -i 's|epel-8-x86_64.cfg|alma+epel-8-x86_64.cfg|' /etc/mock/epel+rpmfusion_free-8-x86_64.cfg \
+    && cat /etc/mock/epel-next-9-x86_64-rpmfusion_free.cfg > /etc/mock/epel-next-8-x86_64-rpmfusion_free.cfg \
+    && cat /etc/mock/epel-next-9-x86_64-rpmfusion_nonfree.cfg > /etc/mock/epel-next-8-x86_64-rpmfusion_nonfree.cfg \
+    && sed -i 's|epel-next-9-x86_64.cfg|epel-next-8-x86_64.cfg|' /etc/mock/epel-next-8-x86_64-rpmfusion_free.cfg \
+    && sed -i 's|epel-next+rpmfusion_free-9-x86_64.cfg|epel-next+rpmfusion_free-8-x86_64.cfg|' /etc/mock/epel-next-8-x86_64-rpmfusion_nonfree.cfg \
     && dnf -y install copr-backend \
     && dnf clean all
 
