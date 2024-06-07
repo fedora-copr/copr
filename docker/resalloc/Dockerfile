@@ -1,6 +1,9 @@
 FROM registry.fedoraproject.org/fedora:39
 MAINTAINER copr-devel@lists.fedorahosted.org
 
+
+ARG ADDITIONAL_COPR_REPOSITORIES="@mock/mock-stable"
+
 # Deployment instructions are described here
 # https://github.com/praiskup/resalloc/blob/master/docs/start-resalloc-server.txt
 #
