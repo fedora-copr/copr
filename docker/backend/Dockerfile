@@ -1,7 +1,7 @@
 FROM registry.fedoraproject.org/fedora:39
 MAINTAINER copr-devel@lists.fedorahosted.org
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+ARG ADDITIONAL_COPR_REPOSITORIES="@mock/mock-stable"
 
 ENV export LANG=en_US.UTF-8
 ENV PYTHONPATH="/usr/share/copr/"
@@ -36,6 +36,7 @@ RUN set -ex ; \
                    rng-tools \
 # for unbuffer package
                    expect \
+    && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
     && dnf -y install copr-backend \
     && dnf clean all
 
