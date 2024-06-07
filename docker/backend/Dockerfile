@@ -37,7 +37,7 @@ RUN set -ex ; \
 # for unbuffer package
                    expect \
     && dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-39.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-39.noarch.rpm -y \
-    && dnf install mock-rpmfusion-nonfree -y \
+    && dnf install mock-rpmfusion-nonfree bind-utils -y \
     && sed -i 's|epel-9-x86_64.cfg|alma+epel-9-x86_64.cfg|' /etc/mock/epel+rpmfusion_free-9-x86_64.cfg \
     && sed -i 's|epel-8-x86_64.cfg|alma+epel-8-x86_64.cfg|' /etc/mock/epel+rpmfusion_free-8-x86_64.cfg \
     && cat /etc/mock/epel-next-9-x86_64-rpmfusion_free.cfg > /etc/mock/epel-next-8-x86_64-rpmfusion_free.cfg \
@@ -66,6 +66,9 @@ RUN set -x ; \
     cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
     cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown copr:copr -R /home/copr
+RUN sed -i 's|backend_httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
+RUN sed -i 's|localhost|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
+RUN sed -i 's|frontend|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
 
 # system setup for copr-backend
 RUN usermod -a -G mock copr
