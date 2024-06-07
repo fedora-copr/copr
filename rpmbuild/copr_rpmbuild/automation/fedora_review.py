@@ -105,7 +105,7 @@ class FedoraReview(AutomationTool):
             return
 
         results = ["review.txt", "review.json", "licensecheck.txt",
-                   "rpmlint.txt", "files.dir"]
+                   "rpmlint.txt", "files.dir", "diff.txt"]
         for result in results:
             try:
                 os.rename(os.path.join(srcdir, result),
