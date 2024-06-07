@@ -10,7 +10,12 @@ ARG ADDITIONAL_COPR_REPOSITORIES="@mock/mock-stable"
 # Copr production deployment is described here
 # https://pagure.io/fedora-infra/ansible/blob/master/f/roles/copr/backend/tasks/resalloc.yml
 
-RUN dnf install -y ansible \
+RUN RUN set -ex ; \
+    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
+        || dnf -y install dnf-plugins-core \
+        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
+    dnf -y update && \
+    dnf install -y ansible \
                    vim \
                    resalloc \
                    resalloc-aws \
