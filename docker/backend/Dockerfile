@@ -83,10 +83,10 @@ RUN chown copr:root /etc/sign.conf && \
 RUN mkdir /var/lock/copr-backend
 RUN chown copr:copr /var/lock/copr-backend
 
-RUN sed -i 's|backend_httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
-RUN sed -i 's|localhost|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
-RUN sed -i 's|frontend|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
-RUN sed -i 's|distgit-httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
+RUN sed -i 's|backend_httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr-be.conf
+RUN sed -i 's|localhost|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr-be.conf
+RUN sed -i 's|frontend|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr-be.conf
+RUN sed -i 's|distgit-httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr-be.conf
 
 # using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
 RUN rngd -r /dev/urandom
