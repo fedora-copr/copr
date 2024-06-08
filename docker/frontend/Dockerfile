@@ -69,11 +69,9 @@ RUN chmod -R g+rwX \
     /var/log/httpd/
 
 RUN sed -i 's|localhost|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
-RUN sed -i 's|frontend|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
 RUN sed -i 's|backend_httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
 RUN sed -i 's|distgit-httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
 RUN sed -i 's|BUILDER_IPS = ["127.0.0.1"]|BUILDER_IPS = ["'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'"]|' /etc/copr/copr.conf
-RUN sed -i 's|distgit-httpd|'$(dig @resolver4.opendns.com myip.opendns.com +short -4)'|' /etc/copr/copr.conf
 
 # Use copr-fe user when running outside of OpenShift
 USER copr-fe
