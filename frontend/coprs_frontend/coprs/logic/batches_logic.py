@@ -8,7 +8,6 @@ import backoff
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from sqlalchemy_utils.functions import quote as sa_quote
 from coprs import app, db, cache
 from coprs.helpers import WorkList
 from coprs.models import Batch, Build
@@ -31,7 +30,8 @@ def _lock_table(table):
     # (commit / rollback)
     with db.engine.connect() as connection:
         connection.execute(text("LOCK TABLE {} IN EXCLUSIVE MODE;".format(
-            sa_quote(db.engine, table)
+            # https://docs.sqlalchemy.org/en/13/core/internals.html#sqlalchemy.sql.compiler.IdentifierPreparer.quote
+            db.engine.identifier_preparer.quote(table)
         )))
 
 
