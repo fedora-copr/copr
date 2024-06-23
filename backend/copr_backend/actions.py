@@ -118,19 +118,19 @@ class Createrepo(Action):
         result = BackendResultEnum("success")
 
         for project_dirname in project_dirnames:
-            for chroot in chroots:
-                # Fake a Job interface
-                # So far it has been useful to pass `Job` objects to all storage
-                # methods. Unfortunatelly jobs represent only builds and not
-                # actions for which the interface is different. Until we better
-                # know what we want, I am faking the Job interface.
-                job = Munch(data)
-                job.project_owner = data["ownername"]
-                job.project_name = project_dirname
-                job.chroot = chroot
-                job.uses_devel_repo = data["devel"]
+            # Fake a Job interface
+            # So far it has been useful to pass `Job` objects to all storage
+            # methods. Unfortunatelly jobs represent only builds and not
+            # actions for which the interface is different. Until we better
+            # know what we want, I am faking the Job interface.
+            job = Munch(data)
+            job.project_owner = data["ownername"]
+            job.project_name = project_dirname
+            job.uses_devel_repo = data["devel"]
+            storage = storage_for_job(job, self.opts, self.log)
 
-                storage = storage_for_job(job, self.opts, self.log)
+            for chroot in chroots:
+                job.chroot = chroot
                 success = storage.init_project(job)
                 if not success:
                     result = BackendResultEnum("failure")
