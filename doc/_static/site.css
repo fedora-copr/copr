@@ -34,3 +34,7 @@ div.sphinxsidebar input, h1#search-documentation ~ form > input {
 thead tr th {
     padding-bottom: 0px !important;
 }
+
+.wy-menu-vertical a:visited {
+    color: #d9d9d9;
+}
