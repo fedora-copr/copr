@@ -648,7 +648,13 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
     def _upload_results_to_storage(self):
         """
         Upload build results to an appropriate storage. Duplicate the data,
-        don't remove them from the original place.
+        don't remove them from the original place. At the end, a `self._cleanup`
+        method will remove the temporary data.
+
+        Currently, we need to run several more methods between this method and
+        the cleanup but it should be possible to rearrange the steps, so that
+        this method could upload the results and remove the temporary files
+        at the same time.
         """
         storage = storage_for_job(self.job, self.opts, self.log)
         storage.upload_build_results(self.job)
@@ -936,7 +942,12 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         Clean any temporary files after a job
         Different storage solutions (e.g. Pulp) might use backend storage as a
         temporary place for fetching builder results before uploading them
-        elsewhere.
+        elsewhere. There are multiple reasons for this:
+
+        1. Builders don't have Pulp credentials, so we have to use a temporary
+           place on the backend storage
+        2. Some actions (`self._check_build_success`, `self._parse_results`)
+           need to be run on results on backend storage
 
         The cleanup isn't implemented in the respective storage classes because
         we don't want e.g. `PulpStorage` and others to know anything about our
