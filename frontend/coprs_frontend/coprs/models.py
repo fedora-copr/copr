@@ -27,8 +27,15 @@ from libravatar import libravatar_url
 
 from flask import url_for
 
-from copr_common.enums import (ActionTypeEnum, BackendResultEnum, FailTypeEnum,
-                               ModuleStatusEnum, StatusEnum, DefaultActionPriorityEnum)
+from copr_common.enums import (
+    ActionTypeEnum,
+    BackendResultEnum,
+    FailTypeEnum,
+    ModuleStatusEnum,
+    StatusEnum,
+    DefaultActionPriorityEnum,
+    StorageEnum,
+)
 from coprs import db
 from coprs import helpers
 from coprs import app
@@ -393,10 +400,8 @@ class _CoprPublic(db.Model, helpers.Serializer):
     # priority=NUMBER in repo configs
     repo_priority = db.Column(db.Integer, nullable=True)
 
-    # Should results for project be stored in Pulp instead of our backend
-    # results directory? This column will likely be useful only for a transition
-    # period until all projects are migrated to Pulp.
-    pulp = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+    # Where should the results for this project be stored?
+    storage = db.Column(db.Integer, default=StorageEnum("backend"))
 
     @validates("repo_priority")
     def validate_repo_priority(self, _, value):

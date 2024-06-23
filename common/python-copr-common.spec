@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.24
+Version:    0.24.1.dev0
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 

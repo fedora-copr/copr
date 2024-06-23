@@ -75,7 +75,7 @@ class BuildJob(object):
         self.appstream = None
         self.allow_user_ssh = None
         self.ssh_public_keys = None
-        self.pulp = None
+        self.storage = None
 
         # TODO: validate update data
         for key, val in task_data.items():

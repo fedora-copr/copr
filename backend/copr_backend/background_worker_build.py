@@ -16,7 +16,7 @@ from datetime import datetime
 from packaging import version
 from cachetools.func import ttl_cache
 
-from copr_common.enums import StatusEnum
+from copr_common.enums import StatusEnum, StorageEnum
 from copr_common.helpers import (
     USER_SSH_DEFAULT_EXPIRATION,
     USER_SSH_MAX_EXPIRATION,
@@ -682,7 +682,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
 
         # Ideally, we would like to have this decision in our storage classes
-        if self.job.pulp:
+        if self.job.storage == StorageEnum.pulp:
             self.log.info("Not going to sign pkgs, Pulp will take care of that")
             return
 
@@ -953,7 +953,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         we don't want e.g. `PulpStorage` and others to know anything about our
         backend storage implementation.
         """
-        if self.job.pulp:
+        if self.job.storage == StorageEnum.pulp:
             path = os.path.join(self.job.chroot_dir, self.job.target_dir_name)
             for filename in os.listdir(path):
                 if not filename.endswith(".rpm"):

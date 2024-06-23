@@ -3,6 +3,7 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
 import os
+from copr_common.enums import StorageEnum
 from copr_backend.helpers import call_copr_repo
 from copr_backend.pulp import PulpClient
 
@@ -11,7 +12,7 @@ def storage_for_job(job, opts, log):
     """
     Return an appropriate storage object for a given job
     """
-    if job.pulp:
+    if job.storage == StorageEnum.pulp:
         return PulpStorage(opts, log)
     return BackendStorage(opts, log)
 

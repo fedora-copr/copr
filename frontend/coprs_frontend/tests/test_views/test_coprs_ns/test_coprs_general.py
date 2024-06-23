@@ -10,7 +10,7 @@ import flask
 from sqlalchemy import desc, and_
 
 
-from copr_common.enums import ActionTypeEnum, ActionPriorityEnum
+from copr_common.enums import ActionTypeEnum, ActionPriorityEnum, StorageEnum
 from coprs import app, cache, models
 
 from coprs.helpers import generate_repo_name
@@ -501,7 +501,7 @@ class TestCoprUpdate(CoprsTestCase):
             "chroots": ["fedora-18-x86_64"],
             "appstream": True,
             "devel": True,
-            "pulp": False,
+            "storage": StorageEnum("backend"),
         }
 
         assert json.loads(action.data) == expected_data
@@ -1128,7 +1128,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "project_dirnames": ["test"],
             "appstream": False,
             "devel": False,
-            "pulp": False,
+            "storage": StorageEnum("backend"),
         }
         def _expected(action, chroots):
             template["chroots"] = chroots

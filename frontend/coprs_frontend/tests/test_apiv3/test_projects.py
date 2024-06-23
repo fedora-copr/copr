@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+from copr_common.enums import StorageEnum
 from coprs.models import User, Copr
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -153,7 +154,7 @@ class TestApiv3Projects(CoprsTestCase):
         }, {
             "appstream": True,
         }, {
-            "pulp": False,
+            "storage": StorageEnum("backend"),
         }]
 
         for setup in easy_changes:
