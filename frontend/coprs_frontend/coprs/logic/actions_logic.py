@@ -114,7 +114,7 @@ class ActionsLogic(object):
             "project_dirnames": dirnames,
             "chroots": chroots,
             "appstream": copr.appstream,
-            "pulp": copr.pulp,
+            "storage": copr.storage,
         }
 
         run_in = set()

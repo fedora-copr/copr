@@ -137,3 +137,10 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             "git_checkout_error": 33,
             "srpm_build_error": 34,
            }
+
+
+class StorageEnum(with_metaclass(EnumType, object)):
+    """
+    Supported storages
+    """
+    vals = {"backend": 0, "pulp": 1}
