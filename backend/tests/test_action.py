@@ -17,7 +17,7 @@ from munch import Munch
 import pytest
 from requests import RequestException
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, StorageEnum
 
 from testlib.repodata import load_primary_xml
 from copr_backend.actions import Action
@@ -769,7 +769,7 @@ class TestAction(object):
             "appstream": True,
             "project_dirnames": ["bar"],
             "devel": False,
-            "pulp": False,
+            "storage": StorageEnum.backend,
         })
         self.opts.destdir = tmp_dir
 
@@ -804,7 +804,7 @@ class TestAction(object):
             "appstream": True,
             "project_dirnames": ["bar"],
             "devel": False,
-            "pulp": False,
+            "storage": StorageEnum.backend,
         })
         self.opts.destdir = tmp_dir
         test_action = Action.create_from(
