@@ -389,6 +389,7 @@ class ActionsLogic(object):
             "ownername": copr_chroot.copr.owner_name,
             "projectname": copr_chroot.copr.name,
             "chrootname": copr_chroot.name,
+            "storage": copr_chroot.copr.storage,
         }
 
         action = models.Action(

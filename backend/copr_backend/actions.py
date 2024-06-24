@@ -20,7 +20,7 @@ from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from copr_common.worker_manager import WorkerManager
 
 from copr_backend.worker_manager import BackendQueueTask
-from copr_backend.storage import storage_for_job
+from copr_backend.storage import storage_for_job, storage_for_enum
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
@@ -387,17 +387,16 @@ class DeleteChroot(Delete):
         self.log.info("Action delete project chroot.")
 
         ext_data = json.loads(self.data["data"])
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
-        chrootname = ext_data["chrootname"]
+        storage = storage_for_enum(ext_data["storage"], self.opts, self.log)
 
-        chroot_path = os.path.join(self.destdir, ownername, projectname, chrootname)
-        self.log.info("Going to delete: %s", chroot_path)
+        # Fake a Job interface
+        job = Munch()
+        job.project_owner = ext_data["ownername"]
+        job.project_name = ext_data["projectname"]
+        job.chroot = ext_data["chrootname"]
+        job.uses_devel_repo = False
 
-        if not os.path.isdir(chroot_path):
-            self.log.error("Directory %s not found", chroot_path)
-            return BackendResultEnum("success")
-        shutil.rmtree(chroot_path)
+        storage.delete_repository(job)
         return BackendResultEnum("success")
 
 

@@ -3,6 +3,7 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
 import os
+import shutil
 from copr_common.enums import StorageEnum
 from copr_backend.helpers import call_copr_repo
 from copr_backend.pulp import PulpClient
@@ -50,6 +51,12 @@ class Storage:
         """
         raise NotImplementedError
 
+    def delete_repository(self, job):
+        """
+        Delete a repository and all of its builds
+        """
+        raise NotImplementedError
+
 
 class BackendStorage(Storage):
     """
@@ -90,6 +97,19 @@ class BackendStorage(Storage):
                               add=[job.target_dir_name],
                               logger=self.log,
                               appstream=appstream)
+
+    def delete_repository(self, job):
+        ownername = job.project_owner
+        projectname = job.project_name
+        chrootname = job.chroot
+        chroot_path = os.path.join(
+            self.opts.destdir, ownername, projectname, chrootname)
+
+        self.log.info("Going to delete: %s", chroot_path)
+        if not os.path.isdir(chroot_path):
+            self.log.error("Directory %s not found", chroot_path)
+            return
+        shutil.rmtree(chroot_path)
 
 
 class PulpStorage(Storage):
@@ -177,6 +197,12 @@ class PulpStorage(Storage):
                            distribution_name, response.text)
             return False
         return True
+
+    def delete_repository(self, job):
+        repository = self._get_repository(job)
+        distribution = self._get_distribution(job)
+        self.client.delete_repository(repository)
+        self.client.delete_distribution(distribution)
 
     def _repository_name(self, job):
         return "/".join([
