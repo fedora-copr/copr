@@ -53,7 +53,20 @@ class PulpClient:
         """
         A fully qualified URL for a given API endpoint
         """
-        return self.config["base_url"] + self.config["api_root"] + endpoint
+        domain = self.config["domain"]
+        if domain == "default":
+            domain = ""
+
+        relative = os.path.normpath("/".join([
+            self.config["api_root"],
+            domain,
+            endpoint,
+        ]))
+
+        # Normpath removes the trailing slash. If it was there, put it back
+        if endpoint[-1] == "/":
+            relative += "/"
+        return self.config["base_url"] + relative
 
     @property
     def request_params(self):
