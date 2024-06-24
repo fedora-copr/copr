@@ -12,7 +12,14 @@ def storage_for_job(job, opts, log):
     """
     Return an appropriate storage object for a given job
     """
-    if job.storage == StorageEnum.pulp:
+    return storage_for_enum(job.storage, opts, log)
+
+
+def storage_for_enum(enum_value, opts, log):
+    """
+    Return an appropriate `StorageEnum` value
+    """
+    if enum_value == StorageEnum.pulp:
         return PulpStorage(opts, log)
     return BackendStorage(opts, log)
 
