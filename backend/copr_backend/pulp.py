@@ -5,7 +5,6 @@ Pulp doesn't provide an API client, we are implementing it for ourselves
 import os
 import tomllib
 import requests
-from six.moves.urllib.parse import urlencode
 
 
 class PulpClient:
@@ -53,7 +52,20 @@ class PulpClient:
         """
         A fully qualified URL for a given API endpoint
         """
-        return self.config["base_url"] + self.config["api_root"] + endpoint
+        domain = self.config["domain"]
+        if domain == "default":
+            domain = ""
+
+        relative = os.path.normpath("/".join([
+            self.config["api_root"],
+            domain,
+            endpoint,
+        ]))
+
+        # Normpath removes the trailing slash. If it was there, put it back
+        if endpoint[-1] == "/":
+            relative += "/"
+        return self.config["base_url"] + relative
 
     @property
     def request_params(self):
@@ -79,7 +91,7 @@ class PulpClient:
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
         url = self.url("api/v3/repositories/rpm/rpm/?")
-        url += urlencode({"name": name, "offset": 0, "limit": 1})
+        url += self._urlencode({"name": name, "offset": 0, "limit": 1})
         return requests.get(url, **self.request_params)
 
     def get_distribution(self, name):
@@ -90,8 +102,18 @@ class PulpClient:
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
         url = self.url("api/v3/distributions/rpm/rpm/?")
-        url += urlencode({"name": name, "offset": 0, "limit": 1})
+        url += self._urlencode({"name": name, "offset": 0, "limit": 1})
         return requests.get(url, **self.request_params)
+
+    def _urlencode(self, query):
+        """
+        Join a dict into URL query string but don't encode special characters
+        https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlencode
+        Our repository names are e.g. frostyx/test-pulp/fedora-39-x86_64.
+        The standard urlencode would change the slashes to %2F making Pulp to
+        not find the project when filtering by name.
+        """
+        return "&".join([f"{k}={v}" for k, v in query.items()])
 
     def create_distribution(self, name, repository, basepath=None):
         """
@@ -111,7 +133,7 @@ class PulpClient:
         Create an RPM publication
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Publications:-Rpm/operation/publications_rpm_rpm_create
         """
-        url = self.url("api/v3/publications/rpm/rpm")
+        url = self.url("api/v3/publications/rpm/rpm/")
         data = {"repository": repository}
         return requests.post(url, json=data, **self.request_params)
 
