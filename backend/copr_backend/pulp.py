@@ -153,3 +153,19 @@ class PulpClient:
             url = self.url("api/v3/artifacts/")
             data = {"file": fp}
             return requests.post(url, files=data, **self.request_params)
+
+    def delete_repository(self, repository):
+        """
+        Delete an RPM repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_delete
+        """
+        url = self.config["base_url"] + repository
+        return requests.delete(url, **self.request_params)
+
+    def delete_distribution(self, distribution):
+        """
+        Delete an RPM distribution
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_delete
+        """
+        url = self.config["base_url"] + distribution
+        return requests.delete(url, **self.request_params)
