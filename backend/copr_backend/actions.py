@@ -16,11 +16,11 @@ from munch import Munch
 import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionTypeEnum, BackendResultEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, StorageEnum
 from copr_common.worker_manager import WorkerManager
 
 from copr_backend.worker_manager import BackendQueueTask
-from copr_backend.storage import storage_for_job, storage_for_enum
+from copr_backend.storage import storage_for_enum
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
@@ -87,11 +87,18 @@ class Action(object):
         self.opts = opts
         self.data = action
 
+        self.ext_data = json.loads(action.get("data", "{}"))
+
         self.destdir = self.opts.destdir
         self.front_url = self.opts.frontend_base_url
         self.results_root_url = self.opts.results_baseurl
 
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
+
+        storage_enum = StorageEnum.backend
+        if isinstance(self.ext_data, dict) and "storage" in self.ext_data:
+            storage_enum = self.ext_data.get("storage")
+        self.storage = storage_for_enum(storage_enum, self.opts, self.log)
 
     def __str__(self):
         return "<{}(Action): {}>".format(self.__class__.__name__, self.data)
@@ -112,9 +119,8 @@ class LegalFlag(Action):
 class Createrepo(Action):
     def run(self):
         self.log.info("Action createrepo")
-        data = json.loads(self.data["data"])
-        project_dirnames = data["project_dirnames"]
-        chroots = data["chroots"]
+        project_dirnames = self.ext_data["project_dirnames"]
+        chroots = self.ext_data["chroots"]
         result = BackendResultEnum("success")
 
         for project_dirname in project_dirnames:
@@ -123,15 +129,14 @@ class Createrepo(Action):
             # methods. Unfortunatelly jobs represent only builds and not
             # actions for which the interface is different. Until we better
             # know what we want, I am faking the Job interface.
-            job = Munch(data)
-            job.project_owner = data["ownername"]
+            job = Munch(self.ext_data)
+            job.project_owner = self.ext_data["ownername"]
             job.project_name = project_dirname
-            job.uses_devel_repo = data["devel"]
-            storage = storage_for_job(job, self.opts, self.log)
+            job.uses_devel_repo = self.ext_data["devel"]
 
             for chroot in chroots:
                 job.chroot = chroot
-                success = storage.init_project(job)
+                success = self.storage.init_project(job)
                 if not success:
                     result = BackendResultEnum("failure")
         return result
@@ -386,17 +391,14 @@ class DeleteChroot(Delete):
     def run(self):
         self.log.info("Action delete project chroot.")
 
-        ext_data = json.loads(self.data["data"])
-        storage = storage_for_enum(ext_data["storage"], self.opts, self.log)
-
         # Fake a Job interface
         job = Munch()
-        job.project_owner = ext_data["ownername"]
-        job.project_name = ext_data["projectname"]
-        job.chroot = ext_data["chrootname"]
+        job.project_owner = self.ext_data["ownername"]
+        job.project_name = self.ext_data["projectname"]
+        job.chroot = self.ext_data["chrootname"]
         job.uses_devel_repo = False
 
-        storage.delete_repository(job)
+        self.storage.delete_repository(job)
         return BackendResultEnum("success")
 
 
