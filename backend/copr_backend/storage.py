@@ -13,16 +13,26 @@ def storage_for_job(job, opts, log):
     """
     Return an appropriate storage object for a given job
     """
-    return storage_for_enum(job.storage, opts, log)
+    # pylint: disable=too-many-function-args
+    return storage_for_enum(
+        job.storage,
+        job.project_owner,
+        job.project_name,
+        job.appstream,
+        job.uses_devel_repo,
+        opts,
+        log,
+    )
 
 
-def storage_for_enum(enum_value, opts, log):
+def storage_for_enum(enum_value, owner, project, appstream, devel, opts, log):
     """
     Return an appropriate `StorageEnum` value
     """
+    args = [owner, project, appstream, devel, opts, log]
     if enum_value == StorageEnum.pulp:
-        return PulpStorage(opts, log)
-    return BackendStorage(opts, log)
+        return PulpStorage(*args)
+    return BackendStorage(*args)
 
 
 class Storage:
@@ -30,28 +40,32 @@ class Storage:
     Storage agnostic, high-level interface for storing and acessing our data
     """
 
-    def __init__(self, opts, log):
+    def __init__(self, owner, project, appstream, devel, opts, log):
+        self.owner = owner
+        self.project = project
+        self.appstream = appstream
+        self.devel = devel
         self.opts = opts
         self.log = log
 
-    def init_project(self, job):
+    def init_project(self, dirname, chroot):
         """
         Make sure users can enable a DNF repository for this project/chroot
         """
         raise NotImplementedError
 
-    def upload_build_results(self, job):
+    def upload_build_results(self, chroot, results_dir, target_dir_name):
         """
         Add results for a new build to the storage
         """
 
-    def publish_repository(self, job):
+    def publish_repository(self, chroot, **kwargs):
         """
         Publish new build results in the repository
         """
         raise NotImplementedError
 
-    def delete_repository(self, job):
+    def delete_repository(self, chroot):
         """
         Delete a repository and all of its builds
         """
@@ -63,47 +77,38 @@ class BackendStorage(Storage):
     Store build results in `/var/lib/copr/public_html/results/`
     """
 
-    def init_project(self, job):
-        ownername = job.project_owner
-        coprdir = job.project_name
-        chroot = job.chroot
-
+    def init_project(self, dirname, chroot):
         self.log.info("Creating repo for: %s/%s/%s",
-                      ownername, coprdir, chroot)
-        repo = os.path.join(self.opts.destdir, ownername,
-                            coprdir, chroot)
+                      self.owner, dirname, chroot)
+        repo = os.path.join(self.opts.destdir, self.owner,
+                            dirname, chroot)
         try:
             os.makedirs(repo)
             self.log.info("Empty repo so far, directory created")
         except FileExistsError:
             pass
 
-        return call_copr_repo(repo, appstream=job.appstream, devel=job.devel,
+        return call_copr_repo(repo, appstream=self.appstream, devel=self.devel,
                               logger=self.log)
 
-    def publish_repository(self, job):
-        project_owner = job.project_owner
-        project_name = job.project_name
-        devel = job.uses_devel_repo
-        appstream = job.appstream
+    def publish_repository(self, chroot, **kwargs):
+        assert "chroot_dir" in kwargs
+        assert "target_dir_name" in kwargs
 
-        base_url = "/".join([self.opts.results_baseurl, project_owner,
-                             project_name, job.chroot])
+        base_url = "/".join([self.opts.results_baseurl, self.owner,
+                             self.project, chroot])
 
         self.log.info("Incremental createrepo run, adding %s into %s, "
-                      "(auto-create-repo=%s)", job.target_dir_name,
-                      base_url, not devel)
-        return call_copr_repo(job.chroot_dir, devel=devel,
-                              add=[job.target_dir_name],
+                      "(auto-create-repo=%s)", kwargs["target_dir_name"],
+                      base_url, not self.devel)
+        return call_copr_repo(kwargs["chroot_dir"], devel=self.devel,
+                              add=[kwargs["target_dir_name"]],
                               logger=self.log,
-                              appstream=appstream)
+                              appstream=self.appstream)
 
-    def delete_repository(self, job):
-        ownername = job.project_owner
-        projectname = job.project_name
-        chrootname = job.chroot
+    def delete_repository(self, chroot):
         chroot_path = os.path.join(
-            self.opts.destdir, ownername, projectname, chrootname)
+            self.opts.destdir, self.owner, self.project, chroot)
 
         self.log.info("Going to delete: %s", chroot_path)
         if not os.path.isdir(chroot_path):
@@ -120,8 +125,8 @@ class PulpStorage(Storage):
         super().__init__(*args, **kwargs)
         self.client = PulpClient.create_from_config_file()
 
-    def init_project(self, job):
-        repository = self._repository_name(job)
+    def init_project(self, dirname, chroot):
+        repository = self._repository_name(chroot)
         response = self.client.create_repository(repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp repository %s because of %s",
@@ -130,9 +135,9 @@ class PulpStorage(Storage):
 
         # When a repository is mentioned in other endpoints, it needs to be
         # mentioned by its href, not name
-        repository = self._get_repository(job)
+        repository = self._get_repository(chroot)
 
-        distribution = self._distribution_name(job)
+        distribution = self._distribution_name(chroot)
         response = self.client.create_distribution(distribution, repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp distribution %s because of %s",
@@ -142,8 +147,8 @@ class PulpStorage(Storage):
         response = self.client.create_publication(repository)
         return response.ok
 
-    def upload_build_results(self, job):
-        for root, _, files in os.walk(job.results_dir):
+    def upload_build_results(self, chroot, results_dir, target_dir_name):
+        for root, _, files in os.walk(results_dir):
             for name in files:
                 if os.path.basename(root) == "prev_build_backup":
                     continue
@@ -163,9 +168,9 @@ class PulpStorage(Storage):
 
                 artifact = response.json()["pulp_href"]
                 relative_path = os.path.join(
-                    job.project_owner, job.project_name, job.target_dir_name)
+                    self.owner, self.project, target_dir_name)
 
-                repository = self._get_repository(job)
+                repository = self._get_repository(chroot)
                 response = self.client.create_content(
                     repository, artifact, relative_path)
 
@@ -176,8 +181,8 @@ class PulpStorage(Storage):
 
                 self.log.info("Uploaded to Pulp: %s", path)
 
-    def publish_repository(self, job):
-        repository = self._get_repository(job)
+    def publish_repository(self, chroot, **kwargs):
+        repository = self._get_repository(chroot)
         response = self.client.create_publication(repository)
         if not response.ok:
             self.log.error("Failed to create Pulp publication for because %s",
@@ -185,8 +190,8 @@ class PulpStorage(Storage):
             return False
 
         publication = response.json()["results"][0]["pulp_href"]
-        distribution_name = self._distribution_name(job)
-        distribution = self._get_distribution(job)
+        distribution_name = self._distribution_name(chroot)
+        distribution = self._get_distribution(chroot)
 
         # Do we want to update the distribution to point to a specific
         # publication? When not doing so, the distribution should probably
@@ -198,31 +203,31 @@ class PulpStorage(Storage):
             return False
         return True
 
-    def delete_repository(self, job):
-        repository = self._get_repository(job)
-        distribution = self._get_distribution(job)
+    def delete_repository(self, chroot):
+        repository = self._get_repository(chroot)
+        distribution = self._get_distribution(chroot)
         self.client.delete_repository(repository)
         self.client.delete_distribution(distribution)
 
-    def _repository_name(self, job):
+    def _repository_name(self, chroot, dirname=None):
         return "/".join([
-            job.project_owner,
-            job.project_name,
-            job.chroot,
+            self.owner,
+            dirname or self.project,
+            chroot,
         ])
 
-    def _distribution_name(self, job):
-        repository = self._repository_name(job)
-        if job.uses_devel_repo:
+    def _distribution_name(self, chroot):
+        repository = self._repository_name(chroot)
+        if self.devel:
             return "{0}-devel".format(repository)
         return repository
 
-    def _get_repository(self, job):
-        name = self._repository_name(job)
+    def _get_repository(self, chroot):
+        name = self._repository_name(chroot)
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, job):
-        name = self._distribution_name(job)
+    def _get_distribution(self, chroot):
+        name = self._distribution_name(chroot)
         response = self.client.get_distribution(name)
         return response.json()["results"][0]["pulp_href"]
