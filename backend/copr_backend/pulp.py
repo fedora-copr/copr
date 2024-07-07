@@ -5,6 +5,7 @@ Pulp doesn't provide an API client, we are implementing it for ourselves
 import os
 import tomllib
 import requests
+from six.moves.urllib.parse import urlencode
 
 
 class PulpClient:
@@ -91,7 +92,7 @@ class PulpClient:
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
         url = self.url("api/v3/repositories/rpm/rpm/?")
-        url += self._urlencode({"name": name, "offset": 0, "limit": 1})
+        url += urlencode({"name": name, "offset": 0, "limit": 1})
         return requests.get(url, **self.request_params)
 
     def get_distribution(self, name):
@@ -102,7 +103,7 @@ class PulpClient:
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
         url = self.url("api/v3/distributions/rpm/rpm/?")
-        url += self._urlencode({"name": name, "offset": 0, "limit": 1})
+        url += urlencode({"name": name, "offset": 0, "limit": 1})
         return requests.get(url, **self.request_params)
 
     def get_task(self, task):
@@ -111,15 +112,6 @@ class PulpClient:
         """
         url = self.config["base_url"] + task
         return requests.get(url, **self.request_params)
-    def _urlencode(self, query):
-        """
-        Join a dict into URL query string but don't encode special characters
-        https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlencode
-        Our repository names are e.g. frostyx/test-pulp/fedora-39-x86_64.
-        The standard urlencode would change the slashes to %2F making Pulp to
-        not find the project when filtering by name.
-        """
-        return "&".join([f"{k}={v}" for k, v in query.items()])
 
     def create_distribution(self, name, repository, basepath=None):
         """
