@@ -105,6 +105,12 @@ class PulpClient:
         url += self._urlencode({"name": name, "offset": 0, "limit": 1})
         return requests.get(url, **self.request_params)
 
+    def get_task(self, task):
+        """
+        Get a detailed information about a task
+        """
+        url = self.config["base_url"] + task
+        return requests.get(url, **self.request_params)
     def _urlencode(self, query):
         """
         Join a dict into URL query string but don't encode special characters

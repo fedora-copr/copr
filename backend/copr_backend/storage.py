@@ -189,7 +189,14 @@ class PulpStorage(Storage):
                            repository, response.text)
             return False
 
-        publication = response.json()["results"][0]["pulp_href"]
+        task = response.json()["task"]
+        response = self.client.get_task(task)
+        if not response.ok:
+            self.log.error("Failed to get Pulp task %s because of %s",
+                           task, response.text)
+            return False
+
+        publication = response.json()["created_resources"][0]
         distribution_name = self._distribution_name(chroot)
         distribution = self._get_distribution(chroot)
 
