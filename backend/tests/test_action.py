@@ -488,7 +488,7 @@ class TestAction(object):
             assert new_primary['names'] == set(['prunerepo'])
             assert len(new_primary_devel['names']) == 3
 
-    @mock.patch("copr_backend.actions.call_copr_repo")
+    @mock.patch("copr_backend.storage.call_copr_repo")
     @mock.patch("copr_backend.actions.uses_devel_repo")
     def test_delete_build_succeeded_createrepo_error(self, mc_devel,
                                                      mc_call_repo, mc_time):

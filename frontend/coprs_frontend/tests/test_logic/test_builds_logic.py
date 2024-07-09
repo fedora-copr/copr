@@ -12,7 +12,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
 from coprs.request import NAMED_FILE_FROM_BYTES
 
-from copr_common.enums import StatusEnum
+from copr_common.enums import StatusEnum, StorageEnum
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
                               MalformedArgumentException,
@@ -310,7 +310,8 @@ class TestBuildsLogic(CoprsTestCase):
                     'fedora-17-x86_64': ['0000PR-pr-package'],
                 }
             },
-            'build_ids': [1, 2, 5]
+            'build_ids': [1, 2, 5],
+            'storage': StorageEnum.backend,
         }
 
         with pytest.raises(NoResultFound):

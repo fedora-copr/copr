@@ -26,8 +26,7 @@ from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, format_filename,
-                      uses_devel_repo, call_copr_repo, build_chroot_log_name,
-                      copy2_but_hardlink_rpms)
+                      call_copr_repo, copy2_but_hardlink_rpms)
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
@@ -64,7 +63,6 @@ class Action(object):
             ActionTypeEnum("rawhide_to_release"): RawhideToRelease,
             ActionTypeEnum("fork"): Fork,
             ActionTypeEnum("build_module"): BuildModule,
-            ActionTypeEnum("delete"): Delete,
             ActionTypeEnum("remove_dirs"): RemoveDirs,
         }.get(action_type, None)
 
@@ -221,72 +219,21 @@ class Fork(Action, GPGMixin):
         return result
 
 
-class Delete(Action):
-    """
-    Abstract class for all other Delete* classes.
-    """
-    # pylint: disable=abstract-method
-    def _handle_delete_builds(self, ownername, projectname, project_dirname,
-                              chroot_builddirs, build_ids, appstream):
-        """ call /bin/copr-repo --delete """
-        devel = uses_devel_repo(self.front_url, ownername, projectname)
-        result = BackendResultEnum("success")
-        for chroot, subdirs in chroot_builddirs.items():
-            chroot_path = os.path.join(self.destdir, ownername, project_dirname,
-                                       chroot)
-            if not os.path.exists(chroot_path):
-                self.log.error("%s chroot path doesn't exist", chroot_path)
-                result = BackendResultEnum("failure")
-                continue
-
-            self.log.info("Deleting subdirs [%s] in %s",
-                          ", ".join(subdirs), chroot_path)
-
-            # Run createrepo first and then remove the files (to avoid old
-            # repodata temporarily pointing at non-existing files)!
-            if chroot != "srpm-builds":
-                # In srpm-builds we don't create repodata at all
-                if not call_copr_repo(chroot_path, delete=subdirs, devel=devel, appstream=appstream,
-                                      logger=self.log):
-                    result = BackendResultEnum("failure")
-
-            for build_id in build_ids or []:
-                log_paths = [
-                    os.path.join(chroot_path, build_chroot_log_name(build_id)),
-                    # we used to create those before
-                    os.path.join(chroot_path, 'build-{}.rsync.log'.format(build_id)),
-                    os.path.join(chroot_path, 'build-{}.log'.format(build_id))]
-                for log_path in log_paths:
-                    try:
-                        os.unlink(log_path)
-                    except OSError:
-                        self.log.debug("can't remove %s", log_path)
-        return result
-
-
-class DeleteProject(Delete):
+class DeleteProject(Action):
     def run(self):
         self.log.debug("Action delete copr")
-        result = BackendResultEnum("success")
+        project_dirnames = self.ext_data["project_dirnames"]
 
-        ext_data = json.loads(self.data["data"])
-        ownername = ext_data["ownername"]
-        project_dirnames = ext_data["project_dirnames"]
-
-        if not ownername:
+        if not self.storage.owner:
             self.log.error("Received empty ownername!")
-            result = BackendResultEnum("failure")
-            return result
+            return BackendResultEnum("failure")
 
         for dirname in project_dirnames:
             if not dirname:
                 self.log.warning("Received empty dirname!")
                 continue
-            path = os.path.join(self.destdir, ownername, dirname)
-            if os.path.exists(path):
-                self.log.info("Removing copr dir %s", path)
-                shutil.rmtree(path)
-        return result
+            self.storage.delete_project(dirname)
+        return BackendResultEnum("success")
 
 
 class CompsUpdate(Action):
@@ -322,7 +269,7 @@ class CompsUpdate(Action):
         return result
 
 
-class DeleteMultipleBuilds(Delete):
+class DeleteMultipleBuilds(Action):
     def run(self):
         self.log.debug("Action delete multiple builds.")
 
@@ -334,25 +281,20 @@ class DeleteMultipleBuilds(Delete):
         #     srpm-builds: [00849545, 00849546]
         #     fedora-30-x86_64: [00849545-example, 00849545-foo]
         #   [...]
-        ext_data = json.loads(self.data["data"])
 
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
-        project_dirnames = ext_data["project_dirnames"]
-        build_ids = ext_data["build_ids"]
-        appstream = ext_data["appstream"]
+        project_dirnames = self.ext_data["project_dirnames"]
+        build_ids = self.ext_data["build_ids"]
 
         result = BackendResultEnum("success")
         for project_dirname, chroot_builddirs in project_dirnames.items():
-            if BackendResultEnum("failure") == \
-               self._handle_delete_builds(ownername, projectname,
-                                          project_dirname, chroot_builddirs,
-                                          build_ids, appstream):
+            success = self.storage.delete_builds(
+                project_dirname, chroot_builddirs, build_ids)
+            if not success:
                 result = BackendResultEnum("failure")
         return result
 
 
-class DeleteBuild(Delete):
+class DeleteBuild(Action):
     def run(self):
         self.log.info("Action delete build.")
 
@@ -363,25 +305,27 @@ class DeleteBuild(Delete):
         # chroot_builddirs:
         #   srpm-builds: [00849545]
         #   fedora-30-x86_64: [00849545-example]
-        ext_data = json.loads(self.data["data"])
 
-        try:
-            ownername = ext_data["ownername"]
-            build_ids = [self.data['object_id']]
-            projectname = ext_data["projectname"]
-            project_dirname = ext_data["project_dirname"]
-            chroot_builddirs = ext_data["chroot_builddirs"]
-            appstream = ext_data["appstream"]
-        except KeyError:
+        valid = "object_id" in self.data
+        keys = {"ownername", "projectname", "project_dirname",
+                "chroot_builddirs", "appstream"}
+        for key in keys:
+            if key not in self.ext_data:
+                valid = False
+                break
+
+        if not valid:
             self.log.exception("Invalid action data")
             return BackendResultEnum("failure")
 
-        return self._handle_delete_builds(ownername, projectname,
-                                          project_dirname, chroot_builddirs,
-                                          build_ids, appstream)
+        success = self.storage.delete_builds(
+            self.ext_data["project_dirname"],
+            self.ext_data["chroot_builddirs"],
+            [self.data['object_id']])
+        return BackendResultEnum("success" if success else "failure")
 
 
-class DeleteChroot(Delete):
+class DeleteChroot(Action):
     def run(self):
         self.log.info("Action delete project chroot.")
         chroot = self.ext_data["chrootname"]

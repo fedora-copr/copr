@@ -164,6 +164,16 @@ class PulpClient:
         }
         return requests.post(url, json=data, **self.request_params)
 
+    def delete_content(self, repository, artifacts):
+        """
+        Delete a list of artifacts from a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        path = os.path.join(repository, "modify/")
+        url = self.config["base_url"] + path
+        data = {"remove_content_units": artifacts}
+        return requests.post(url, json=data, **self.request_params)
+
     def upload_artifact(self, path):
         """
         Create an artifact
@@ -189,3 +199,42 @@ class PulpClient:
         """
         url = self.config["base_url"] + distribution
         return requests.delete(url, **self.request_params)
+
+    def list_packages(self, repository_version):
+        """
+        List packages for a given repository version
+        Ideally, we would list packages for a repository but that probably
+        isn't possible.
+
+        TODO Since we don't care about repository versions, we should probably
+        set `--retain-repo-versions=1`
+        https://discourse.pulpproject.org/t/delete-artifact-with-pulp-cli/559/6
+
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_list
+        """
+        url = self.url("api/v3/content/rpm/packages/?")
+        url += urlencode({"repository_version": repository_version})
+        return requests.get(url, **self.request_params)
+
+    def list_repositories(self, prefix):
+        """
+        Get a list of repositories whose names match a given prefix
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_list
+        """
+        url = self.url("api/v3/repositories/rpm/rpm/?")
+        url += urlencode({"name__startswith": prefix})
+        return requests.get(url, **self.request_params)
+
+    def get_latest_repository_version(self, name):
+        """
+        Return the latest repository version
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm-Versions/operation/repositories_rpm_rpm_versions_list
+        """
+        response = self.get_repository(name)
+        href = response.json()["results"][0]["versions_href"]
+
+        url = self.config["base_url"] + href + "?"
+        url += urlencode({"offset": 0, "limit": 1})
+
+        response = requests.get(url, **self.request_params)
+        return response.json()["results"][0]["pulp_href"]
