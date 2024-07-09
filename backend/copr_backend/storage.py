@@ -3,9 +3,10 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
 import os
+import json
 import shutil
 from copr_common.enums import StorageEnum
-from copr_backend.helpers import call_copr_repo
+from copr_backend.helpers import call_copr_repo, build_chroot_log_name
 from copr_backend.pulp import PulpClient
 
 
@@ -71,6 +72,18 @@ class Storage:
         """
         raise NotImplementedError
 
+    def delete_project(self, dirname):
+        """
+        Delete the whole project and all of its repositories and builds
+        """
+        raise NotImplementedError
+
+    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+        """
+        Delete multiple builds from the storage
+        """
+        raise NotImplementedError
+
 
 class BackendStorage(Storage):
     """
@@ -116,6 +129,48 @@ class BackendStorage(Storage):
             return
         shutil.rmtree(chroot_path)
 
+    def delete_project(self, dirname):
+        path = os.path.join(self.opts.destdir, self.owner, dirname)
+        if os.path.exists(path):
+            self.log.info("Removing copr dir %s", path)
+            shutil.rmtree(path)
+
+    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+        result = True
+        for chroot, subdirs in chroot_builddirs.items():
+            chroot_path = os.path.join(
+                self.opts.destdir, self.owner, dirname, chroot)
+            if not os.path.exists(chroot_path):
+                self.log.error("%s chroot path doesn't exist", chroot_path)
+                result = False
+                continue
+
+            self.log.info("Deleting subdirs [%s] in %s",
+                          ", ".join(subdirs), chroot_path)
+
+            # Run createrepo first and then remove the files (to avoid old
+            # repodata temporarily pointing at non-existing files)!
+            # In srpm-builds we don't create repodata at all
+            if chroot != "srpm-builds":
+                repo = call_copr_repo(
+                    chroot_path, delete=subdirs, devel=self.devel,
+                    appstream=self.appstream, logger=self.log)
+                if not repo:
+                    result = False
+
+            for build_id in build_ids or []:
+                log_paths = [
+                    os.path.join(chroot_path, build_chroot_log_name(build_id)),
+                    # we used to create those before
+                    os.path.join(chroot_path, 'build-{}.rsync.log'.format(build_id)),
+                    os.path.join(chroot_path, 'build-{}.log'.format(build_id))]
+                for log_path in log_paths:
+                    try:
+                        os.unlink(log_path)
+                    except OSError:
+                        self.log.debug("can't remove %s", log_path)
+        return result
+
 
 class PulpStorage(Storage):
     """
@@ -148,6 +203,7 @@ class PulpStorage(Storage):
         return response.ok
 
     def upload_build_results(self, chroot, results_dir, target_dir_name):
+        artifacts = []
         for root, _, files in os.walk(results_dir):
             for name in files:
                 if os.path.basename(root) == "prev_build_backup":
@@ -161,6 +217,16 @@ class PulpStorage(Storage):
                     continue
 
                 path = os.path.join(root, name)
+                response = self.client.upload_artifact(path)
+                if not response.ok:
+                    self.log.error("Failed to upload %s to Pulp", path)
+                    continue
+
+                artifact = response.json()["pulp_href"]
+                artifacts.append(artifact)
+                relative_path = os.path.join(
+                    self.owner, self.project, target_dir_name)
+
                 repository = self._get_repository(chroot)
                 response = self.client.create_content(repository, path)
 
@@ -170,6 +236,11 @@ class PulpStorage(Storage):
                     continue
 
                 self.log.info("Uploaded to Pulp: %s", path)
+
+        data = {"artifacts": artifacts}
+        path = os.path.join(results_dir, "pulp.json")
+        with open(path, "w+", encoding="utf8") as fp:
+            json.dump(data, fp)
 
     def publish_repository(self, chroot, **kwargs):
         repository = self._get_repository(chroot)
@@ -205,6 +276,60 @@ class PulpStorage(Storage):
         distribution = self._get_distribution(chroot)
         self.client.delete_repository(repository)
         self.client.delete_distribution(distribution)
+
+    def delete_project(self, dirname):
+        prefix = "{0}/{1}".format(self.owner, dirname)
+        response = self.client.list_repositories(prefix)
+        repositories = response.json()["results"]
+        for repository in repositories:
+            self.client.delete_repository(repository["pulp_href"])
+
+    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+        # pylint: disable=too-many-locals
+        result = True
+        for chroot, subdirs in chroot_builddirs.items():
+            if chroot == "srpm-builds":
+                continue
+
+            chroot_path = os.path.join(
+                self.opts.destdir, self.owner, dirname, chroot)
+            if not os.path.exists(chroot_path):
+                self.log.error("%s chroot path doesn't exist", chroot_path)
+                result = False
+                continue
+
+            repository = self._get_repository(chroot)
+            reponame = self._repository_name(chroot, dirname=dirname)
+            repoversion = self.client.get_latest_repository_version(reponame)
+
+            # It is currently not possible to set labels for Pulp content.
+            # https://github.com/pulp/pulpcore/issues/3338
+            # Until it is implemented, we need to query all packages from a
+            # given repository(version) and manually filter only the artifacts
+            # for this build ID. Which we know from pulp.json in the resultdir.
+            packages = self.client.list_packages(repoversion).json()["results"]
+            a2c = {x["artifact"]: x["pulp_href"] for x in packages}
+
+            for subdir in subdirs:
+                path = os.path.join(chroot_path, subdir, "pulp.json")
+                with open(path, "r", encoding="utf8") as fp:
+                    pulp = json.load(fp)
+
+                for artifact in pulp["artifacts"]:
+                    content = a2c.get(artifact)
+                    if not content:
+                        msg = "Pulp content for artifact %s doesn't exist, skipping."
+                        self.log.info(msg, artifact)
+                        continue
+
+                    response = self.client.delete_content(repository, [content])
+                    if response.ok:
+                        self.log.info("Successfully deleted Pulp content %s", content)
+                    else:
+                        result = False
+                        self.log.info("Failed to delete Pulp content %s", content)
+
+        return result
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([
