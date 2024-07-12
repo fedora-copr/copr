@@ -744,7 +744,7 @@ class CoprFormFactory(object):
                 "Delete after days",
                 validators=[
                     wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(min=0, max=60),
+                    wtforms.validators.NumberRange(min=-1, max=720),
                 ],
                 render_kw={'disabled': bool(copr and copr.persistent)})
 
