@@ -623,6 +623,43 @@ High Performance Builders
 About more powerful builders see :ref:`high_performance_builders`.
 
 
+Subprojects
+-----------
+
+This feature is also known as "CoprDirs". Inside a single project,
+it is possible to create multiple subprojects, subprepositories, or
+subdirectories, depending on your point of view.
+
+Let's show the feature on an example. First, you need to manually create
+a project. Then the subprojects are created dynamically when
+builds are submitted into them::
+
+  copr create test --chroot fedora-rawhide-x86_64
+  PKG=https://github.com/fedora-copr/copr-test-sources/raw/main/hello-2.8-1.src.rpm
+  copr build test $PKG
+  copr build test:custom:foo $PKG
+  copr build test:custom:bar $PKG
+
+This will create a ``test`` project under my namespace and
+submit one build directly into the project, one build to the
+``test:custom:foo`` subproject, and one into the ``test:custom:bar``
+subproject.
+
+The subproject builds are isolated from each other but they can all
+see builds from the main ``test`` project repository. For the time
+being, the builds in the ``test:custom:foo`` subproject don't see
+other builds from the same subproject. This is not a design choice but
+rather a missing feature.
+
+The subproject name has to start with the project name. It is followed
+by either ``:custom:`` or ``:pr:`` and a suffix. The suffix can be
+whatever the user wants.
+
+A subproject can be enabled on a user system with::
+
+  dnf copr enable frostyx/test:custom:foo
+
+
 Modularity
 ----------
 
