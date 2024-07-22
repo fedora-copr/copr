@@ -353,10 +353,8 @@ class TestAction(object):
 
         assert not os.path.exists(os.path.join(tmp_dir, "old_dir"))
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
     @mock.patch("copr_backend.actions.call_copr_repo")
-    def test_delete_no_chroot_dirs(self, mc_call, mc_devel, mc_time):
-        mc_devel.return_value = False
+    def test_delete_no_chroot_dirs(self, mc_call, mc_time):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
@@ -377,9 +375,7 @@ class TestAction(object):
         assert len(mc_call.call_args_list) == 0
         assert result == BackendResultEnum("failure")
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_build_succeeded(self, mc_devel, mc_time):
-        mc_devel.return_value = False
+    def test_delete_build_succeeded(self, mc_time):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
@@ -421,13 +417,11 @@ class TestAction(object):
         assert os.path.exists(chroot_2_dir)
 
     @pytest.mark.parametrize('devel', [False, True])
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_build_acr_reflected(self, mc_devel, mc_time, devel):
+    def test_delete_build_acr_reflected(self, mc_time, devel):
         """
         When build is deleted, we want to remove it from both devel and normal
         (production) repodata
         """
-        mc_devel.return_value = devel
         self.unpack_resource("testresults.tar.gz")
 
         chroot = os.path.join(self.test_project_dir, 'fedora-23-x86_64')
@@ -472,6 +466,7 @@ class TestAction(object):
                     "chroot_builddirs": {
                         "fedora-23-x86_64": [builddir],
                     },
+                    "devel": devel,
                 }),
             },
         )
@@ -489,8 +484,7 @@ class TestAction(object):
             assert len(new_primary_devel['names']) == 3
 
     @mock.patch("copr_backend.storage.call_copr_repo")
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_build_succeeded_createrepo_error(self, mc_devel,
+    def test_delete_build_succeeded_createrepo_error(self,
                                                      mc_call_repo, mc_time):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
@@ -522,12 +516,10 @@ class TestAction(object):
         # just fail
         assert test_action.run() == BackendResultEnum("failure")
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_two_chroots(self, mc_devel, mc_time):
+    def test_delete_two_chroots(self, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
         """
-        mc_devel.return_value = 0
         self.unpack_resource("1171796.tar.gz")
 
         chroot_20_path = os.path.join(self.tmp_dir_name, "foo", "bar", "fedora-20-x86_64")
@@ -589,13 +581,11 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_two_chroots_two_remain(self, mc_devel, mc_time):
+    def test_delete_two_chroots_two_remain(self, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
         extended: we also put two more chroots, which should be unaffected
         """
-        mc_devel.return_value = 0
         self.unpack_resource("1171796_doubled.tar.gz")
 
         subdir = os.path.join(self.tmp_dir_name, "foo", "bar")
@@ -703,10 +693,8 @@ class TestAction(object):
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_multiple_builds_succeeded(self, mc_build_devel, mc_time):
+    def test_delete_multiple_builds_succeeded(self, mc_time):
         mc_time.time.return_value = self.test_time
-        mc_build_devel.return_value = False
 
         tmp_dir = self.make_temp_dir()
 
@@ -723,6 +711,7 @@ class TestAction(object):
             "ownername": "foo",
             "projectname": "bar",
             "appstream": True,
+            "devel": False,
             "project_dirnames": {
                 'bar': {
                     "fedora-20": ["01-foo", "02-foo"],
@@ -754,11 +743,9 @@ class TestAction(object):
     # createrepo always works with non-devel directory.
     @pytest.mark.parametrize('devel', [False, True])
     @mock.patch("copr_backend.helpers.subprocess.Popen")
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_handle_createrepo_ok(self, mc_devel, mc_sp_popen, mc_time, devel):
+    def test_handle_createrepo_ok(self, mc_sp_popen, mc_time, devel):
         mc_sp_popen.return_value.communicate.return_value = ("", "")
         mc_sp_popen.return_value.returncode = 0
-        mc_devel.return_value = devel
 
         tmp_dir = self.make_temp_dir()
 
@@ -768,7 +755,7 @@ class TestAction(object):
             "projectname": "bar",
             "appstream": True,
             "project_dirnames": ["bar"],
-            "devel": False,
+            "devel": devel,
             "storage": StorageEnum.backend,
         })
         self.opts.destdir = tmp_dir
@@ -786,14 +773,15 @@ class TestAction(object):
         for chroot in ['fedora-20-x86_64', 'epel-6-i386']:
             cmd = ["copr-repo", "--batched",
                    os.path.join(self.test_project_dir, chroot)]
+            if devel:
+                cmd.append("--devel")
             exp_call = mock.call(cmd, stdout=-1, stderr=-1, shell=False, encoding='utf-8')
             assert exp_call in mc_sp_popen.call_args_list
 
         assert len(mc_sp_popen.call_args_list) == 2
 
     @mock.patch("copr_backend.storage.call_copr_repo")
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_handle_createrepo_failure_1(self, mc_devel, mc_call, mc_time):
+    def test_handle_createrepo_failure_1(self, mc_call, mc_time):
         tmp_dir = self.make_temp_dir()
         mc_call.return_value = 0 # failure
 
@@ -894,9 +882,7 @@ class TestAction(object):
         except Exception as e:
             assert False
 
-    @mock.patch("copr_backend.actions.uses_devel_repo")
-    def test_delete_chroot(self, mc_devel, mc_time):
-        mc_devel.return_value = False
+    def test_delete_chroot(self, mc_time):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
