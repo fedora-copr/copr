@@ -79,6 +79,16 @@ class TestHelpers(CoprsTestCase):
             dict(args=(m3, https_url, 'ppc64le'),
                  expected="https://example.com/path/rhel7-7.1-ppc64le/")])
 
+        m4 = deepcopy(mock_chroot)
+        m4.os_release = "centos-stream"
+        m4.os_version = "9"
+
+        test_sets.extend([
+            dict(args=(m4, http_url),
+                 expected="http://example.com/path/centos-stream-$releasever-$basearch/"),
+            dict(args=(m4, https_url),
+                 expected="https://example.com/path/centos-stream-$releasever-$basearch/")])
+
         app.config["USE_HTTPS_FOR_RESULTS"] = True
         for test_set in test_sets:
             result = generate_repo_url(*test_set["args"])
