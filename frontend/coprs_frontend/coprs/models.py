@@ -19,10 +19,12 @@ import zlib
 
 import modulemd_tools.yaml
 
-from sqlalchemy import outerjoin, text
+from sqlalchemy import outerjoin, text, DateTime
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from libravatar import libravatar_url
 
 from flask import url_for
@@ -1085,6 +1087,8 @@ class Build(db.Model, helpers.Serializer):
         backref=db.backref("builds", viewonly=True, order_by="Build.id"),
         foreign_keys=[package_id],
     )
+    webhook_history_id = db.Column(db.Integer, db.ForeignKey("webhook_history.id"), index=True)
+    webhook_history = db.relationship("WebhookHistory", backref=db.backref("builds"))
 
     chroots = association_proxy("build_chroots", "mock_chroot")
 
@@ -1569,6 +1573,13 @@ class Build(db.Model, helpers.Serializer):
         for bch in self.build_chroots:
             bch.backend_enqueue()
 
+class WebhookHistory(db.Model):
+    '''Represents a Webhook UUID & a build initiated by it.'''
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(DateTime(timezone=True), server_default=func.now())
+    # Null values are possible via custom webhook implementation that do not pass a UUID or User Agent.
+    user_agent = db.Column(db.Text,nullable=True)
+    webhook_uuid = db.Column(UUID(as_uuid=True), nullable=True)
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
