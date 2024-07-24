@@ -4,6 +4,7 @@ import flask
 from functools import wraps
 
 from coprs import db, app
+from coprs import models
 
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -79,6 +80,22 @@ def package_name_required(route):
 
     return decorated_function
 
+def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initiated_via_hook=None):
+    """
+    This methods adds info of an intercepted webhook to webhook_history db
+    along with the initiated build number(s).
+    """
+    if builds_initiated_via_hook is None:
+        log.debug("No build initiated. Webhook not logged to db.")
+        return
+
+    webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
+                                          user_agent=user_agent)
+    db.session.add(webhookRecord)
+    db.session.commit()
+
+    for build in builds_initiated_via_hook:
+        build.webhook_history_id = webhookRecord.id
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
@@ -90,6 +107,8 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
         raise AccessRestricted("This webhook is not valid")
 
     try:
+        webhook_uuid = flask.request.headers.get('X-Hook-UUID')
+        user_agent = flask.request.headers.get('User-Agent')
         payload = flask.request.json
         api_url = payload['repository']['links']['self']['href']
         clone_url = payload['repository']['links']['html']['href']
@@ -112,9 +131,12 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
         copr_id, uuid, clone_url, commits, ref_type, ref, pkg_name
     )
 
+    builds_initiated_via_webhook = []
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish},
+        build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=actor)
+        builds_initiated_via_webhook.append(build)
+    add_webhook_history_record(webhook_uuid,user_agent,builds_initiated_via_webhook)
 
     db.session.commit()
 
@@ -134,6 +156,8 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
 
     try:
         payload = flask.request.json
+        webhook_uuid = flask.request.headers.get("X-GitHub-Delivery")
+        user_agent = flask.request.headers.get("User-Agent")
         try:
             clone_url = payload['repository']['clone_url']
         except TypeError:
@@ -161,10 +185,13 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
+    builds_initiated_via_webhook = []
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish},
+        build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=sender)
+        builds_initiated_via_webhook.append(build)
 
+    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
     db.session.commit()
 
     return "OK", 200
@@ -180,6 +207,8 @@ def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
         raise AccessRestricted("This webhook is not valid")
 
     try:
+        webhook_uuid = flask.request.headers.get('X-Gitlab-Webhook-UUID')
+        user_agent = flask.request.headers.get('User-Agent')
         payload = flask.request.json
         clone_url = payload['project']['git_http_url']
         commits = []
@@ -210,9 +239,13 @@ def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
+
+    builds_initiated_via_webhook = []
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish},
+        build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=submitter)
+        builds_initiated_via_webhook.append(build.id)
+    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
 
     db.session.commit()
 
