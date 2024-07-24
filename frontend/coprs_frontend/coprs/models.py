@@ -23,6 +23,7 @@ from sqlalchemy import outerjoin, text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
+from sqlalchemy.dialects.postgresql import UUID
 from libravatar import libravatar_url
 
 from flask import url_for
@@ -1569,6 +1570,11 @@ class Build(db.Model, helpers.Serializer):
         for bch in self.build_chroots:
             bch.backend_enqueue()
 
+class WebhookHistory(db.Model):
+    '''Represents a Webhook UUID & a build initiated by it'''
+    id = db.Column(db.Integer, primary_key=True)
+    hook_uuid = db.Column(UUID(as_uuid=True), nullable=False)
+    build_id = db.Column(db.Integer, db.ForeignKey('build.id'))
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
