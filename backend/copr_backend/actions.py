@@ -95,10 +95,15 @@ class Action(object):
 
         self.log = log if log else get_redis_logger(self.opts, "backend.actions", "actions")
 
-        storage_enum = StorageEnum.backend
-        if isinstance(self.ext_data, dict) and "storage" in self.ext_data:
-            storage_enum = self.ext_data.get("storage")
-        self.storage = storage_for_enum(storage_enum, self.opts, self.log)
+        self.storage = None
+        if isinstance(self.ext_data, dict):
+            enum = self.ext_data.get("storage", StorageEnum.backend)
+            owner = self.ext_data.get("ownername")
+            project = self.ext_data.get("projectname")
+            devel = self.ext_data.get("devel")
+            appstream = self.ext_data.get("appstream")
+            self.storage = storage_for_enum(enum, owner, project, appstream,
+                                            devel, self.opts, self.log)
 
     def __str__(self):
         return "<{}(Action): {}>".format(self.__class__.__name__, self.data)
@@ -124,19 +129,8 @@ class Createrepo(Action):
         result = BackendResultEnum("success")
 
         for project_dirname in project_dirnames:
-            # Fake a Job interface
-            # So far it has been useful to pass `Job` objects to all storage
-            # methods. Unfortunatelly jobs represent only builds and not
-            # actions for which the interface is different. Until we better
-            # know what we want, I am faking the Job interface.
-            job = Munch(self.ext_data)
-            job.project_owner = self.ext_data["ownername"]
-            job.project_name = project_dirname
-            job.uses_devel_repo = self.ext_data["devel"]
-
             for chroot in chroots:
-                job.chroot = chroot
-                success = self.storage.init_project(job)
+                success = self.storage.init_project(project_dirname, chroot)
                 if not success:
                     result = BackendResultEnum("failure")
         return result
@@ -390,15 +384,8 @@ class DeleteBuild(Delete):
 class DeleteChroot(Delete):
     def run(self):
         self.log.info("Action delete project chroot.")
-
-        # Fake a Job interface
-        job = Munch()
-        job.project_owner = self.ext_data["ownername"]
-        job.project_name = self.ext_data["projectname"]
-        job.chroot = self.ext_data["chrootname"]
-        job.uses_devel_repo = False
-
-        self.storage.delete_repository(job)
+        chroot = self.ext_data["chrootname"]
+        self.storage.delete_repository(chroot)
         return BackendResultEnum("success")
 
 

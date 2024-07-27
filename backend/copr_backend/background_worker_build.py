@@ -157,6 +157,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.host = None
         self.canceled = False
         self.last_hostname = None
+        self.storage = None
 
     @classmethod
     def adjust_arg_parser(cls, parser):
@@ -382,6 +383,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.job.started_on = time.time()
         if not self.job.chroot:
             raise BackendError("Frontend job doesn't provide chroot")
+        self.storage = storage_for_job(self.job, self.opts, self.log)
 
     def _drop_host(self):
         """
@@ -656,8 +658,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         this method could upload the results and remove the temporary files
         at the same time.
         """
-        storage = storage_for_job(self.job, self.opts, self.log)
-        storage.upload_build_results(self.job)
+        self.storage.upload_build_results(
+            self.job.chroot,
+            self.job.results_dir,
+            self.job.target_dir_name,
+        )
 
     def _check_build_success(self):
         """
@@ -704,8 +709,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if self.job.chroot == 'srpm-builds':
             return
 
-        storage = storage_for_job(self.job, self.opts, self.log)
-        if not storage.publish_repository(self.job):
+        kwargs = {
+            "chroot_dir": self.job.chroot_dir,
+            "target_dir_name": self.job.target_dir_name,
+        }
+        if not self.storage.publish_repository(self.job.chroot, **kwargs):
             raise BackendError("createrepo failed")
 
     def _get_srpm_build_details(self, job):
