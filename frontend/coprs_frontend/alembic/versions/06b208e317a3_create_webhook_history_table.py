@@ -18,13 +18,15 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table('webhook_history',
-    sa.Column('id', sa.Integer()),
-    sa.Column('hook_uuid', UUID(as_uuid=True), nullable=False),
-    sa.Column('build_id', sa.Integer()),
-    sa.PrimaryKeyConstraint('id')                   
+ op.create_table('webhook_history',
+ sa.Column('id', sa.Integer()),
+ sa.Column('timestamp', sa.Integer, nullable=False),
+ sa.Column('webhook_uuid', UUID(as_uuid=True), nullable=False),
+ sa.Column('user_agent',sa.String(30), default="Unknown"),
+ sa.Column('build_id', sa.Integer()),
+ sa.PrimaryKeyConstraint('id')                   
     )
 
 
 def downgrade():
-    op.drop_table("webhook_history")
+ op.drop_table("webhook_history")
