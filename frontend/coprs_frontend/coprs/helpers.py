@@ -346,6 +346,9 @@ def generate_repo_url(mock_chroot, url, arch=None):
     if mock_chroot.os_release == "fedora":
         os_version = "$releasever"
 
+    if mock_chroot.os_release == "centos-stream":
+        os_version = "$releasever"
+
     if mock_chroot.os_release == "opensuse-leap":
         os_version = "$releasever"
 
