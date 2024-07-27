@@ -82,12 +82,11 @@ def package_name_required(route):
 
 def addHookHistoryRecord(hook_uuid, builds_initiated_via_hook):
     for build in builds_initiated_via_hook:
-#       print("\n\n\nsaving to db: copr_id:",copr_id," uuid:", hook_uuid," build:", build)
         hookRecord = models.WebhookHistory(hook_uuid=hook_uuid, build_id=build)     
         try:
             db.session.add(hookRecord)
         except:
-            print("\n\ncould not add Webhook history record\n\n")
+            log.exception("Could not add record to webhook history DB.")
     db.session.commit()            
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
@@ -134,7 +133,6 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
 @webhooks_ns.route("/github/<int:copr_id>/<uuid>/", methods=["POST"])
 @webhooks_ns.route("/github/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
 def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
-    print('\n.......\nentered webhooks git push - WEBHOOK CAUGHT\n..........\n')
     if flask.request.headers["X-GitHub-Event"] == "ping":
         return "OK", 200
     # For the documentation of the data we receive see:
