@@ -15,6 +15,7 @@ import re
 from urllib.parse import urljoin
 import uuid
 import time
+from math import floor
 import zlib
 
 import modulemd_tools.yaml
@@ -1570,10 +1571,15 @@ class Build(db.Model, helpers.Serializer):
         for bch in self.build_chroots:
             bch.backend_enqueue()
 
+def getCurrentUnixTimestamp():
+    return floor(time.time())
+
 class WebhookHistory(db.Model):
     '''Represents a Webhook UUID & a build initiated by it'''
     id = db.Column(db.Integer, primary_key=True)
-    hook_uuid = db.Column(UUID(as_uuid=True), nullable=False)
+    timestamp = db.Column(db.Integer, nullable=False, default=getCurrentUnixTimestamp)
+    user_agent = db.Column(db.String(30),nullable=False, default="Unknown")
+    webhook_uuid = db.Column(UUID(as_uuid=True), nullable=False)
     build_id = db.Column(db.Integer, db.ForeignKey('build.id'))
 
 class DistGitBranch(db.Model, helpers.Serializer):
