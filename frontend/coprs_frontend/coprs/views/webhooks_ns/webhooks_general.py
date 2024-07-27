@@ -80,13 +80,20 @@ def package_name_required(route):
 
     return decorated_function
 
-def addHookHistoryRecord(hook_uuid, builds_initiated_via_hook):
-    for build in builds_initiated_via_hook:
-        hookRecord = models.WebhookHistory(hook_uuid=hook_uuid, build_id=build)     
-        try:
-            db.session.add(hookRecord)
-        except:
-            log.exception("Could not add record to webhook history DB.")
+def addHookHistoryRecord(webhook_uuid, user_agent, builds_initiated_via_hook):
+    '''This methods adds the intercepted webhook to webhook_history db.'''
+    if(webhook_uuid is not None):
+        for build in builds_initiated_via_hook:
+            webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
+                                                  user_agent=user_agent,
+                                                  build_id=build)     
+            try:
+                db.session.add(webhookRecord)
+            except:
+                log.exception("Failed to add record to webhook_history DB.")
+    else:
+        log.debug("No record inserted Webhook Request did not contain any identifier.\
+                  Maybe the header lookup key changed?");
     db.session.commit()            
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
@@ -143,7 +150,8 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
 
     try:
         payload = flask.request.json
-        hook_uuid = flask.request.headers["X-GitHub-Delivery"]
+        webhook_uuid = flask.request.headers.get("X-GitHub-Delivery")
+        user_agent = flask.request.headers.get("User-Agent")
         try:
             clone_url = payload['repository']['clone_url']
         except TypeError:
@@ -171,13 +179,13 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
-    builds_initiated_via_hook = []
+    builds_initiated_via_webhook = []
     for package in packages:
         build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=sender)
-        builds_initiated_via_hook.append(build.id)
+        builds_initiated_via_webhook.append(build.id)
 
-    addHookHistoryRecord(hook_uuid, builds_initiated_via_hook)
+    addHookHistoryRecord(webhook_uuid, user_agent, builds_initiated_via_webhook)
     db.session.commit()
 
     return "OK", 200
