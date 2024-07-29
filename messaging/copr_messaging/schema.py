@@ -39,7 +39,8 @@ class BuildChrootEnded(_BuildChrootMessage):
         """
         raise NotImplementedError
 
-    def __str__(self):
+    def summary(self):
+        """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" ended as "{2}".'.format(
             super(BuildChrootEnded, self)._str_prefix(),
             self.chroot,
@@ -61,7 +62,8 @@ class BuildChrootStarted(_BuildChrootMessage):
     Representation of a message sent by Copr build system right before some Copr
     worker starts working on a build in a particular mock chroot.
     """
-    def __str__(self):
+    def summary(self):
+        """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" started.'.format(
             super(BuildChrootStarted, self)._str_prefix(),
             self.chroot,
