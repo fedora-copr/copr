@@ -28,7 +28,7 @@ class _CoprMessage(message.Message):
                 body = body['msg']
             kwargs['body'] = body
 
-        super(_CoprMessage, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     """
     Base class that all Copr messages should inherit from.
@@ -54,7 +54,7 @@ class _CoprMessage(message.Message):
 class _CoprProjectMessage(_CoprMessage):
     def _str_prefix(self):
         return '{0} in project "{1}"'.format(
-            super(_CoprProjectMessage, self)._str_prefix(),
+            super()._str_prefix(),
             self.project_full_name,
         )
 
@@ -85,7 +85,7 @@ class _CoprProjectMessage(_CoprMessage):
 class _BuildMessage(_CoprProjectMessage):
     def _str_prefix(self):
         return '{0}: build {1}'.format(
-            super(_BuildMessage, self)._str_prefix(),
+            super()._str_prefix(),
             self.build_id,
         )
 

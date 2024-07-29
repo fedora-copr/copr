@@ -44,7 +44,7 @@ class BuildChrootEnded(_BuildChrootMessage):
     def summary(self):
         """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" ended as "{2}".'.format(
-            super(BuildChrootEnded, self)._str_prefix(),
+            super()._str_prefix(),
             self.chroot,
             self.status,
         )
@@ -67,7 +67,7 @@ class BuildChrootStarted(_BuildChrootMessage):
     def summary(self):
         """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" started.'.format(
-            super(BuildChrootStarted, self)._str_prefix(),
+            super()._str_prefix(),
             self.chroot,
         )
 
