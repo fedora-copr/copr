@@ -80,21 +80,20 @@ def package_name_required(route):
 
     return decorated_function
 
-def addHookHistoryRecord(webhook_uuid, user_agent, builds_initiated_via_hook):
-    '''This methods adds the intercepted webhook to webhook_history db.'''
-    if(webhook_uuid is not None):
-        for build in builds_initiated_via_hook:
-            webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
-                                                  user_agent=user_agent,
-                                                  build_id=build)     
-            try:
-                db.session.add(webhookRecord)
-            except:
-                log.exception("Failed to add record to webhook_history DB.")
-    else:
-        log.debug("No record inserted Webhook Request did not contain any identifier.\
-                  Maybe the header lookup key changed?");
-    db.session.commit()            
+def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initiated_via_hook=None):
+    '''This methods adds info of an intercepted webhook to webhook_history db
+    along with the initiated build number(s).'''
+    if builds_initiated_via_hook is None:
+        log.debug("No build initiated. Webhook not loged to db.")
+        return
+
+    #For each build that was initiated by the webhook insert a record in db.
+    for build in builds_initiated_via_hook:
+        webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
+                                              user_agent=user_agent, build_id=build)
+        db.session.add(webhookRecord)
+
+    db.session.commit()
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
@@ -185,7 +184,7 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
                                     submitted_by=sender)
         builds_initiated_via_webhook.append(build.id)
 
-    addHookHistoryRecord(webhook_uuid, user_agent, builds_initiated_via_webhook)
+    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
     db.session.commit()
 
     return "OK", 200
