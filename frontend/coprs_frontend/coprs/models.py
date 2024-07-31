@@ -15,7 +15,6 @@ import re
 from urllib.parse import urljoin
 import uuid
 import time
-from math import floor
 import zlib
 
 import modulemd_tools.yaml
@@ -42,7 +41,7 @@ from coprs import db
 from coprs import helpers
 from coprs import app
 
-from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus
+from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus, getCurrentUnixTimestamp
 
 
 # Pylint Specifics for models.py:
@@ -1570,9 +1569,6 @@ class Build(db.Model, helpers.Serializer):
         """
         for bch in self.build_chroots:
             bch.backend_enqueue()
-
-def getCurrentUnixTimestamp():
-    return floor(time.time())
 
 class WebhookHistory(db.Model):
     '''Represents a Webhook UUID & a build initiated by it'''

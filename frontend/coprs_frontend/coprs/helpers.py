@@ -8,6 +8,7 @@ import string
 import json
 import posixpath
 import re
+import time
 from os.path import normpath
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
@@ -931,3 +932,6 @@ def generate_repo_id_and_name_ext(dependent, url, dep_idx):
         generate_repo_name(url),
     )
     return repo_id, name
+
+def getCurrentUnixTimestamp():
+    return math.floor(time.time())
