@@ -4,8 +4,8 @@ Pulp doesn't provide an API client, we are implementing it for ourselves
 
 import os
 import tomllib
+from urllib.parse import urlencode
 import requests
-from six.moves.urllib.parse import urlencode
 
 
 class PulpClient:
