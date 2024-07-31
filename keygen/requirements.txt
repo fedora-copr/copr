@@ -1,6 +1,5 @@
 sphinxcontrib-httpdomain
 flask
-six
 mock
 pytest
 pytest-cov

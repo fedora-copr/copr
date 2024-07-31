@@ -5,7 +5,6 @@ import sys
 
 requires = [
     'flask',
-    'six',
     'sphinxcontrib-httpdomain',
 ]
 
