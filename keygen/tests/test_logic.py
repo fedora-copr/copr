@@ -5,14 +5,8 @@ import tempfile
 import shutil
 import os
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import patch
-else:
-    import mock
-    from mock import patch
+from unittest import mock
+from unittest.mock import patch
 
 import pytest
 
