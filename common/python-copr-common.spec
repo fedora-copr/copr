@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr-common
-Version:    0.24.1.dev0
+Version:    0.25
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -119,6 +119,9 @@ version=%version %py2_install
 
 
 %changelog
+* Thu Aug 01 2024 Miroslav Suchý <msuchy@redhat.com> 0.25-1
+- frontend, backend, common: don't limit the storage to pulp only
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.24-1
 - Fix chroot_to_branch default
 
