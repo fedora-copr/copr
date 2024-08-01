@@ -81,8 +81,10 @@ def package_name_required(route):
     return decorated_function
 
 def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initiated_via_hook=None):
-    '''This methods adds info of an intercepted webhook to webhook_history db
-    along with the initiated build number(s).'''
+    """
+    This methods adds info of an intercepted webhook to webhook_history db
+    along with the initiated build number(s).
+    """
     if builds_initiated_via_hook is None:
         log.debug("No build initiated. Webhook not loged to db.")
         return
@@ -105,6 +107,8 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
         raise AccessRestricted("This webhook is not valid")
 
     try:
+        webhook_uuid = flask.request.headers.get('X-Hook-UUID')
+        user_agent = flask.request.headers.get('User-Agent')
         payload = flask.request.json
         api_url = payload['repository']['links']['self']['href']
         clone_url = payload['repository']['links']['html']['href']
@@ -127,9 +131,12 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
         copr_id, uuid, clone_url, commits, ref_type, ref, pkg_name
     )
 
+    builds_initiated_via_webhook = []
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish},
+        build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=actor)
+        builds_initiated_via_webhook.append(build.id)
+    add_webhook_history_record(webhook_uuid,user_agent,builds_initiated_via_webhook)
 
     db.session.commit()
 
@@ -200,6 +207,8 @@ def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
         raise AccessRestricted("This webhook is not valid")
 
     try:
+        webhook_uuid = flask.request.headers.get('X-Gitlab-Webhook-UUID')
+        user_agent = flask.request.headers.get('User-Agent')
         payload = flask.request.json
         clone_url = payload['project']['git_http_url']
         commits = []
@@ -230,9 +239,13 @@ def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     )
 
     committish = (ref if ref_type == 'tag' else payload.get('after', ''))
+
+    builds_initiated_via_webhook = []
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': committish},
+        build = BuildsLogic.rebuild_package(package, {'committish': committish},
                                     submitted_by=submitter)
+        builds_initiated_via_webhook.append(build.id)
+    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
 
     db.session.commit()
 
