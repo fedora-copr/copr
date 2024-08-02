@@ -36,7 +36,6 @@ from coprs.views.apiv3_ns.schema.fields import (
     mock_chroot,
     additional_repos,
     id_field,
-    url,
     Url,
 )
 
@@ -254,8 +253,12 @@ class ProjectChroot(_ProjectChrootFields, Schema):
     mock_chroot: String = fields.mock_chroot
     ownername: String = fields.ownername
     projectname: String = fields.projectname
-    comps_name: String = fields.comps_name
-    delete_after_days: Integer = fields.delete_after_days
+    comps_name: String = String(description="Name of the comps.xml file")
+    delete_after_days: Integer = Integer(
+        description=("The project will be automatically deleted after "
+                     "this many days"),
+        example=30,
+    )
 
 
 @dataclass
@@ -269,9 +272,12 @@ class ProjectChrootGet(ParamsSchema):
 
 @dataclass
 class Repo(Schema):
-    baseurl: Url = fields.baseurl
+    baseurl: Url = Url()
     module_hotfixes: Boolean = fields.module_hotfixes
-    priority: Integer = fields.priority
+    priority: Integer = Integer(
+        description="The priority value of this repository. Defaults to 99",
+        example=42,
+    )
     id_field: String = String(example="copr_base")
     name: String = String(example="Copr repository")
 
@@ -288,10 +294,19 @@ class ProjectChrootBuildConfig(_ProjectChrootFields, Schema):
 
 @dataclass
 class _SourceDictScmFields:
-    clone_url: String = fields.clone_url
+    clone_url: String = Url(
+        description="URL to your Git or SVN repository",
+        example="https://github.com/fedora-copr/copr.git",
+    )
     committish: String = fields.committish
-    spec: String = fields.spec
-    subdirectory: String = fields.subdirectory
+    spec: String = String(
+        description="Path to your .spec file under the specified subdirectory",
+        example="copr-cli.spec",
+    )
+    subdirectory: String = String(
+        description="Subdirectory where source files and .spec are located",
+        example="cli",
+    )
 
 
 @dataclass
@@ -302,17 +317,46 @@ class SourceDictScm(_SourceDictScmFields, Schema):
 
 @dataclass
 class SourceDictPyPI(Schema):
-    pypi_package_name: String = fields.pypi_package_name
-    pypi_package_version: String = fields.pypi_package_version
-    spec_generator: String = fields.spec_generator
-    spec_template: String = fields.spec_template
-    python_versions: List = fields.python_versions
+    pypi_package_name: String = String(
+        description="Package name in the Python Package Index.",
+        example="copr",
+    )
+    pypi_package_version: String = String(
+        description="PyPI package version",
+        example="1.128pre",
+    )
+    # TODO We are copy-pasting descriptions from web UI to this file. This field
+    # is an ideal candidate for figuring out how to share the descriptions
+    spec_generator: String = String(
+        description=(
+            "Tool for generating specfile from a PyPI package. "
+            "The options are full-featured pyp2rpm with cross "
+            "distribution support, and pyp2spec that is being actively "
+            "developed and considered to be the future."
+        ),
+        example="pyp2spec",
+    )
+    spec_template: String = String(
+        description=(
+            "Name of the spec template. "
+            "This option is limited to pyp2rpm spec generator."
+        ),
+        example="default",
+    )
+    python_versions: List = List(
+        String,  # We currently return string but should this be number?
+        description=(
+            "For what python versions to build. "
+            "This option is limited to pyp2rpm spec generator."
+        ),
+        example=["3", "2"],
+    )
 
 
 @dataclass
 class SourcePackage(Schema):
     name: String = fields.name
-    url: String = fields.url
+    url: String = Url()
     version: String = fields.version
 
 
@@ -328,11 +372,18 @@ class Build(Schema):
     ownername: String = fields.ownername
     project_dirname: String = fields.project_dirname
     projectname: String = fields.projectname
-    repo_url: Url = fields.repo_url
+    repo_url: Url = Url(
+        description="See REPO OPTIONS in `man 5 dnf.conf`",
+        example=("https://download.copr.fedorainfracloud.org"
+                 "/results/@copr/copr-dev/fedora-$releasever-$basearch/"),
+    )
     started_on: Integer = fields.started_on
     state: String = fields.state
     submitted_on: Integer = fields.submitted_on
-    submitter: String = fields.submitter
+    submitter: String = String(
+        description="Username of the person who submitted this build",
+        example="frostyx",
+    )
     source_package: Nested = Nested(_source_package_model)
 
 
@@ -356,7 +407,9 @@ class Package(Schema):
     projectname: String = fields.projectname
     source_type: String = fields.source_type
     source_dict: Raw = fields.source_dict
-    auto_rebuild: Boolean = fields.auto_rebuild
+    auto_rebuild: Boolean = Boolean(
+        description="Auto-rebuild the package? (i.e. every commit or new tag)",
+    )
     builds: Nested = Nested(_package_builds_model)
 
 
@@ -365,8 +418,20 @@ class PackageGet(ParamsSchema):
     ownername: String = fields.ownername
     projectname: String = fields.projectname
     packagename: String = fields.packagename
-    with_latest_build: Boolean = fields.with_latest_build
-    with_latest_succeeded_build: Boolean = fields.with_latest_succeeded_build
+    with_latest_build: Boolean = Boolean(
+        description=(
+            "The result will contain 'builds' dictionary with the latest "
+            "submitted build of this particular package within the project"
+        ),
+        default=False,
+    )
+    with_latest_succeeded_build: Boolean = Boolean(
+        description=(
+            "The result will contain 'builds' dictionary with the latest "
+            "successful build of this particular package within the project."
+        ),
+        default=False,
+    )
 
     @property
     def required_attrs(self) -> list:
@@ -375,9 +440,15 @@ class PackageGet(ParamsSchema):
 
 @dataclass
 class BasePackage(InputSchema):
-    max_builds: Integer = fields.max_builds
+    max_builds: Integer = Integer(
+        description=(
+            "Keep only the specified number of the newest-by-id builds "
+            "(garbage collector is run daily)"
+        ),
+        example=10,
+    )
     timeout: Integer = fields.timeout
-    webhook_rebuild: Boolean = fields.webhook_rebuild
+    webhook_rebuild: Boolean = Boolean()
     packagename: String = fields.packagename
 
 
@@ -400,27 +471,61 @@ class PackageAdd(_SourceDictScmFields, SourceDictPyPI, BasePackage, InputSchema)
 
 @dataclass
 class _ProjectFields:
-    homepage: Url = fields.homepage
-    contact: String = fields.contact
-    description: String = fields.description
-    instructions: String = fields.instructions
-    devel_mode: Boolean = fields.devel_mode
-    unlisted_on_hp: Boolean = fields.unlisted_on_hp
-    auto_prune: Boolean = fields.auto_prune
+    homepage: Url = Url(
+        description="Homepage URL of Copr project",
+        example="https://github.com/fedora-copr",
+    )
+    contact: String = String(
+        description="Contact email",
+        example="pretty_user@fancydomain.uwu",
+    )
+    description: String = String(
+        description="Description of Copr project",
+    )
+    instructions: String = String(
+        description="Instructions how to install and use Copr project",
+    )
+    devel_mode: Boolean = Boolean(
+        description="If createrepo should run automatically"
+    )
+    unlisted_on_hp: Boolean = Boolean(
+        description="Don't list Copr project on home page",
+    )
+    auto_prune: Boolean = Boolean(
+        description="Automatically delete builds in this project",
+    )
     enable_net: Boolean = fields.enable_net
     bootstrap: String = fields.bootstrap
     isolation: String = fields.isolation
     module_hotfixes: Boolean = fields.module_hotfixes
-    appstream: Boolean = fields.appstream
-    packit_forge_projects_allowed: String = fields.packit_forge_projects_allowed
-    follow_fedora_branching: Boolean = fields.follow_fedora_branching
-    repo_priority: Integer = fields.repo_priority
+    appstream: Boolean = Boolean(
+        description="Enable Appstream for this project",
+    )
+    packit_forge_projects_allowed: String = String(
+        description=(
+            "Whitespace separated list of forge projects that will be "
+            "allowed to build in the project via Packit"
+        ),
+        example="github.com/fedora-copr/copr github.com/another/project",
+    )
+    follow_fedora_branching: Boolean = Boolean(
+        description=(
+            "If chroots for the new branch should be auto-enabled and populated from "
+            "rawhide ones"
+        ),
+    )
+    repo_priority: Integer = Integer(
+        description="The priority value of this repository. Defaults to 99",
+        example=42,
+    )
 
 
 @dataclass
 class _ProjectGetAddFields:
     name: String = fields.name
-    persistent: Boolean = fields.persistent
+    persistent: Boolean = Boolean(
+        description="Build and project is immune against deletion",
+    )
     additional_repos: List = fields.additional_repos
 
 
@@ -429,16 +534,24 @@ class Project(_ProjectFields, _ProjectGetAddFields, Schema):
     id_field: Integer = fields.id_field
     ownername: String = fields.ownername
     full_name: String = fields.full_name
-    chroot_repos: Raw = fields.chroot_repos
+    chroot_repos: Raw = Raw()
 
 
 @dataclass
 class _ProjectAddEditFields:
     chroots: List = fields.chroots
     bootstrap_image: String = fields.bootstrap_image
-    multilib: Boolean = fields.multilib
-    fedora_review: Boolean = fields.fedora_review
-    runtime_dependencies: String = fields.runtime_dependencies
+    multilib: Boolean = Boolean()
+    fedora_review: Boolean = Boolean(
+        description="Run fedora-review tool for packages in this project"
+    )
+    runtime_dependencies: String = String(
+        description=(
+            "List of external repositories (== dependencies, specified as "
+            "baseurls) that will be automatically enabled together with "
+            "this project repository."
+        )
+    )
 
 
 @dataclass
@@ -458,12 +571,17 @@ class ProjectEdit(_ProjectFields, _ProjectAddEditFields, InputSchema):
 class ProjectFork(InputSchema):
     name: String = fields.name
     ownername: String = fields.ownername
-    confirm: Boolean = fields.confirm
+    confirm: Boolean = Boolean(
+        description=(
+            "If forking into a existing project, this needs to be set to True,"
+            "to confirm that user is aware of that."
+        )
+    )
 
 
 @dataclass
 class ProjectDelete(InputSchema):
-    verify: Boolean = fields.verify
+    verify: Boolean = Boolean()
 
 
 @dataclass
@@ -489,7 +607,13 @@ class CanBuildSchema(CanBuildParams):
 @dataclass
 class ProjectParamsSchema(ParamsSchema):
     ownername: String = fields.ownername
-    exist_ok: Boolean = fields.exist_ok
+    exist_ok: Boolean = Boolean(
+        description=(
+            "Don't fail if a project with this owner and name already exist, "
+            "return the existing instance instead. Please be aware that the "
+            "project attributes are not updated in such case."
+        )
+    )
 
 
 @dataclass
@@ -498,7 +622,7 @@ class BuildChroot(Schema):
     ended_on: Integer = fields.ended_on
     state: String = fields.state
     name: String = mock_chroot
-    result_url: Url = url
+    result_url: Url = Url()
 
 
 @dataclass
@@ -526,9 +650,9 @@ class BuildChrootConfig(Schema):
 
 @dataclass
 class Nevra(Schema):
-    arch: String = fields.arch
-    epoch: Integer = fields.epoch
-    release: String = fields.release
+    arch: String = String(example="x86_64")
+    epoch: Integer = Integer(example=3)
+    release: String = String(example="1.fc39")
     version: String = fields.version
     name: String = String(description="Package name")
 
@@ -543,7 +667,10 @@ class NevraPackages(Schema):
 
 @dataclass
 class ModuleBuild(Schema):
-    nsv: String = fields.nsv
+    nsv: String = String(
+        example="name-stream-version",
+        description="NSV of the module build in format name-stream-version."
+    )
 
 
 @dataclass
@@ -552,14 +679,19 @@ class WebhookSecret(Schema):
     name: String = fields.name
     ownername: String = fields.ownername
     full_name: String = fields.full_name
-    webhook_secret: String = fields.webhook_secret
+    webhook_secret: String = String(
+        example="really-secret-string-do-not-share"
+    )
 
 
 @dataclass
 class ModuleAdd(InputSchema):
-    modulemd: String = fields.modulemd
+    modulemd: String = Raw(
+        example="YAML file",
+        description="Modulemd YAML file"
+    )
     distgit: String = fields.distgit
-    scmurl: String = fields.scmurl
+    scmurl: String = Url()
 
 
 @dataclass
@@ -611,14 +743,32 @@ class ListBuild(ParamsSchema):
 
 @dataclass
 class _GenericBuildOptions:
-    chroot_names: List = fields.chroot_names
+    chroot_names: List = List(
+        String,
+        description="List of chroot names",
+        example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
+    )
     background: Boolean = fields.background
     timeout: Integer = fields.timeout
     bootstrap: String = fields.bootstrap
     isolation: String = fields.isolation
-    after_build_id: Integer = fields.after_build_id
-    with_build_id: Integer = fields.with_build_id
-    packit_forge_project: String = fields.packit_forge_project
+    after_build_id: Integer = Integer(
+        description="Build after the batch containing the Build ID build",
+        example=123,
+    )
+    with_build_id: Integer = Integer(
+        description="Build in the same batch with the Build ID build",
+        example=123,
+    )
+    packit_forge_project: String = String(
+        description="Forge project name that Packit passes",
+        example="github.com/fedora-copr/copr",
+        # hide this so we don't confuse our users in the API docs
+        # packit uses this internally to check whether given packit build is
+        # allowed to build from the source upstream project into tis copr
+        # project packit_forge_project in packit_forge_projects_allowed
+        mask=True,
+    )
     enable_net: Boolean = fields.enable_net
 
 
@@ -654,8 +804,11 @@ class CreateBuildSCM(_BuildDataCommon, _GenericBuildOptions, _SourceDictScmField
 @dataclass
 class CreateBuildDistGit(_BuildDataCommon, _GenericBuildOptions, InputSchema):
     distgit: String = fields.distgit
-    namespace: String = fields.namespace
-    package_name: String = fields.package_name
+    namespace: String = String(
+        description="DistGit namescape",
+        example="@copr/copr",
+    )
+    package_name: String = fields.packagename
     committish: String = fields.committish
     project_dirname: String = fields.project_dirname
 
