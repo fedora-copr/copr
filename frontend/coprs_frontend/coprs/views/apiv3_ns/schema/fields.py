@@ -527,12 +527,3 @@ url = Url()
 webhook_rebuild = Boolean()
 
 
-def clone(field):
-    """
-    Return a copy of a field
-    """
-    if hasattr(field, "clone") and callable(getattr(field, "clone")):
-        return field.clone()
-
-    kwargs = field.__dict__.copy()
-    return field.__class__(**kwargs)

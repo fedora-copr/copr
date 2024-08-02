@@ -24,18 +24,17 @@ Things used for the input/output:
 #  shares these data with each other
 
 
-from dataclasses import dataclass, fields, asdict, MISSING
+from dataclasses import dataclass, fields as dataclasses_fields, asdict
 from typing import Any
 
 from flask_restx.fields import String, List, Integer, Boolean, Nested, Raw
 
 from coprs.views.apiv3_ns import api
-from coprs.views.apiv3_ns.schema import fields as schema_fields
+from coprs.views.apiv3_ns.schema import fields
 from coprs.views.apiv3_ns.schema.fields import (
     scm_type,
     mock_chroot,
     additional_repos,
-    clone,
     id_field,
     url,
     Url,
@@ -65,24 +64,6 @@ class Schema:
             # if `not_in_fields` is not in `fields.py` you have to specify its value
             not_in_fields: String = String(some definition ...)
     """
-
-    @classmethod
-    def schema_attrs_from_fields(cls) -> dict[str, Any]:
-        """
-        Get schema attributes for schema class according to its defined attributes.
-         Attributes are taken from field file and the names should match.
-
-        Returns:
-            Schema for schema class
-        """
-        result_schema = {}
-        for attr in fields(cls):
-            if attr.default is MISSING:
-                result_schema[attr.name] = clone(getattr(schema_fields, attr.name))
-            else:
-                result_schema[attr.name] = attr.default
-
-        return result_schema
 
     @staticmethod
     def _should_be_item_candidate_to_delete(key: str, value: Any) -> bool:
@@ -123,15 +104,15 @@ class Schema:
         """
         Get instance of schema class.
         """
-        schema_dict = cls.schema_attrs_from_fields()
-        return cls(**schema_dict)
+        schema = {attr.name: attr.default for attr in dataclasses_fields(cls)}
+        return cls(**schema)
 
     def public_fields(self):
         """
         Get all fields, private fields excluded
         """
         result = []
-        for field in fields(self):
+        for field in dataclasses_fields(self):
             if not field.name.startswith("_"):
                 result.append(field)
 
@@ -229,10 +210,10 @@ class ParamsSchema(InputSchema):
 
 @dataclass
 class PaginationMeta(ParamsSchema):
-    limit: Integer
-    offset: Integer
-    order: String
-    order_type: String
+    limit: Integer = fields.limit
+    offset: Integer = fields.offset
+    order: String = fields.order
+    order_type: String = fields.order_type
 
 
 _pagination_meta_model = PaginationMeta.get_cls().model()
@@ -260,27 +241,27 @@ class Pagination(Schema):
 
 @dataclass
 class _ProjectChrootFields:
-    additional_repos: List
-    additional_packages: List
-    additional_modules: List
-    with_opts: List
-    without_opts: List
-    isolation: String
+    additional_repos: List = fields.additional_repos
+    additional_packages: List = fields.additional_packages
+    additional_modules: List = fields.additional_modules
+    with_opts: List = fields.with_opts
+    without_opts: List = fields.without_opts
+    isolation: String = fields.isolation
 
 
 @dataclass
 class ProjectChroot(_ProjectChrootFields, Schema):
-    mock_chroot: String
-    ownername: String
-    projectname: String
-    comps_name: String
-    delete_after_days: Integer
+    mock_chroot: String = fields.mock_chroot
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
+    comps_name: String = fields.comps_name
+    delete_after_days: Integer = fields.delete_after_days
 
 
 @dataclass
 class ProjectChrootGet(ParamsSchema):
-    ownername: String
-    projectname: String
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
     chrootname: String = mock_chroot
 
     __all_required: bool = True
@@ -288,9 +269,9 @@ class ProjectChrootGet(ParamsSchema):
 
 @dataclass
 class Repo(Schema):
-    baseurl: Url
-    module_hotfixes: Boolean
-    priority: Integer
+    baseurl: Url = fields.baseurl
+    module_hotfixes: Boolean = fields.module_hotfixes
+    priority: Integer = fields.priority
     id_field: String = String(example="copr_base")
     name: String = String(example="Copr repository")
 
@@ -300,39 +281,39 @@ _repo_model = Repo.get_cls().model()
 
 @dataclass
 class ProjectChrootBuildConfig(_ProjectChrootFields, Schema):
-    chroot: String
-    enable_net: Boolean
+    chroot: String = fields.chroot
+    enable_net: Boolean = fields.enable_net
     repos: List = List(Nested(_repo_model))
 
 
 @dataclass
 class _SourceDictScmFields:
-    clone_url: String
-    committish: String
-    spec: String
-    subdirectory: String
+    clone_url: String = fields.clone_url
+    committish: String = fields.committish
+    spec: String = fields.spec
+    subdirectory: String = fields.subdirectory
 
 
 @dataclass
 class SourceDictScm(_SourceDictScmFields, Schema):
-    source_build_method: String
+    source_build_method: String = fields.source_build_method
     type: String = scm_type
 
 
 @dataclass
 class SourceDictPyPI(Schema):
-    pypi_package_name: String
-    pypi_package_version: String
-    spec_generator: String
-    spec_template: String
-    python_versions: List
+    pypi_package_name: String = fields.pypi_package_name
+    pypi_package_version: String = fields.pypi_package_version
+    spec_generator: String = fields.spec_generator
+    spec_template: String = fields.spec_template
+    python_versions: List = fields.python_versions
 
 
 @dataclass
 class SourcePackage(Schema):
-    name: String
-    url: String
-    version: String
+    name: String = fields.name
+    url: String = fields.url
+    version: String = fields.version
 
 
 _source_package_model = SourcePackage.get_cls().model()
@@ -340,18 +321,18 @@ _source_package_model = SourcePackage.get_cls().model()
 
 @dataclass
 class Build(Schema):
-    chroots: List
-    ended_on: Integer
-    id_field: Integer
-    is_background: Boolean
-    ownername: String
-    project_dirname: String
-    projectname: String
-    repo_url: Url
-    started_on: Integer
-    state: String
-    submitted_on: Integer
-    submitter: String
+    chroots: List = fields.chroots
+    ended_on: Integer = fields.ended_on
+    id_field: Integer = fields.id_field
+    is_background: Boolean = fields.is_background
+    ownername: String = fields.ownername
+    project_dirname: String = fields.project_dirname
+    projectname: String = fields.projectname
+    repo_url: Url = fields.repo_url
+    started_on: Integer = fields.started_on
+    state: String = fields.state
+    submitted_on: Integer = fields.submitted_on
+    submitter: String = fields.submitter
     source_package: Nested = Nested(_source_package_model)
 
 
@@ -369,23 +350,23 @@ _package_builds_model = PackageBuilds().model()
 
 @dataclass
 class Package(Schema):
-    id_field: Integer
-    name: String
-    ownername: String
-    projectname: String
-    source_type: String
-    source_dict: Raw
-    auto_rebuild: Boolean
+    id_field: Integer = fields.id_field
+    name: String = fields.packagename
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
+    source_type: String = fields.source_type
+    source_dict: Raw = fields.source_dict
+    auto_rebuild: Boolean = fields.auto_rebuild
     builds: Nested = Nested(_package_builds_model)
 
 
 @dataclass
 class PackageGet(ParamsSchema):
-    ownername: String
-    projectname: String
-    packagename: String
-    with_latest_build: Boolean
-    with_latest_succeeded_build: Boolean
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
+    packagename: String = fields.packagename
+    with_latest_build: Boolean = fields.with_latest_build
+    with_latest_succeeded_build: Boolean = fields.with_latest_succeeded_build
 
     @property
     def required_attrs(self) -> list:
@@ -394,71 +375,70 @@ class PackageGet(ParamsSchema):
 
 @dataclass
 class BasePackage(InputSchema):
-    max_builds: Integer
-    timeout: Integer
-    webhook_rebuild: Boolean
-    packagename: String
+    max_builds: Integer = fields.max_builds
+    timeout: Integer = fields.timeout
+    webhook_rebuild: Boolean = fields.webhook_rebuild
+    packagename: String = fields.packagename
 
 
 @dataclass
 class PackageAdd(_SourceDictScmFields, SourceDictPyPI, BasePackage, InputSchema):
     # rest of SCM
-    scm_type: String
+    scm_type: String = fields.scm_type
 
     # Rubygems
-    gem_name: String
+    gem_name: String = fields.gem_name
 
     # Custom
-    script: String
-    builddeps: String
-    resultdir: String
-    chroot: String
+    script: String = fields.script
+    builddeps: String = fields.builddeps
+    resultdir: String = fields.resultdir
+    chroot: String = fields.chroot
 
-    source_build_method: String
-
+    source_build_method: String = fields.source_build_method
 
 
 @dataclass
 class _ProjectFields:
-    homepage: Url
-    contact: String
-    description: String
-    instructions: String
-    devel_mode: Boolean
-    unlisted_on_hp: Boolean
-    auto_prune: Boolean
-    enable_net: Boolean
-    bootstrap: String
-    isolation: String
-    module_hotfixes: Boolean
-    appstream: Boolean
-    packit_forge_projects_allowed: String
-    follow_fedora_branching: Boolean
-    repo_priority: Integer
+    homepage: Url = fields.homepage
+    contact: String = fields.contact
+    description: String = fields.description
+    instructions: String = fields.instructions
+    devel_mode: Boolean = fields.devel_mode
+    unlisted_on_hp: Boolean = fields.unlisted_on_hp
+    auto_prune: Boolean = fields.auto_prune
+    enable_net: Boolean = fields.enable_net
+    bootstrap: String = fields.bootstrap
+    isolation: String = fields.isolation
+    module_hotfixes: Boolean = fields.module_hotfixes
+    appstream: Boolean = fields.appstream
+    packit_forge_projects_allowed: String = fields.packit_forge_projects_allowed
+    follow_fedora_branching: Boolean = fields.follow_fedora_branching
+    repo_priority: Integer = fields.repo_priority
 
 
 @dataclass
 class _ProjectGetAddFields:
-    name: String
-    persistent: Boolean
-    additional_repos: List
+    name: String = fields.name
+    persistent: Boolean = fields.persistent
+    additional_repos: List = fields.additional_repos
 
 
 @dataclass
 class Project(_ProjectFields, _ProjectGetAddFields, Schema):
-    id_field: Integer
-    ownername: String
-    full_name: String
-    chroot_repos: Raw
+    id_field: Integer = fields.id_field
+    ownername: String = fields.ownername
+    full_name: String = fields.full_name
+    chroot_repos: Raw = fields.chroot_repos
 
 
 @dataclass
 class _ProjectAddEditFields:
-    chroots: List
-    bootstrap_image: String
-    multilib: Boolean
-    fedora_review: Boolean
-    runtime_dependencies: String
+    chroots: List = fields.chroots
+    bootstrap_image: String = fields.bootstrap_image
+    multilib: Boolean = fields.multilib
+    fedora_review: Boolean = fields.fedora_review
+    runtime_dependencies: String = fields.runtime_dependencies
 
 
 @dataclass
@@ -476,20 +456,20 @@ class ProjectEdit(_ProjectFields, _ProjectAddEditFields, InputSchema):
 
 @dataclass
 class ProjectFork(InputSchema):
-    name: String
-    ownername: String
-    confirm: Boolean
+    name: String = fields.name
+    ownername: String = fields.ownername
+    confirm: Boolean = fields.confirm
 
 
 @dataclass
 class ProjectDelete(InputSchema):
-    verify: Boolean
+    verify: Boolean = fields.verify
 
 
 @dataclass
 class FullnameSchema(ParamsSchema):
-    ownername: String
-    projectname: String
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
 
     __all_required: bool = True
 
@@ -508,15 +488,15 @@ class CanBuildSchema(CanBuildParams):
 
 @dataclass
 class ProjectParamsSchema(ParamsSchema):
-    ownername: String
-    exist_ok: Boolean
+    ownername: String = fields.ownername
+    exist_ok: Boolean = fields.exist_ok
 
 
 @dataclass
 class BuildChroot(Schema):
-    started_on: Integer
-    ended_on: Integer
-    state: String
+    started_on: Integer = fields.started_on
+    ended_on: Integer = fields.ended_on
+    state: String = fields.state
     name: String = mock_chroot
     result_url: Url = url
 
@@ -531,25 +511,25 @@ class BuildChrootParams(ParamsSchema):
 
 @dataclass
 class BuildChrootConfig(Schema):
-    additional_repos: List
-    additional_packages: List
-    with_opts: List
-    without_opts: List
-    enable_net: Boolean
-    is_background: Boolean
-    memory_limit: Integer
-    timeout: Integer
-    bootstrap: String
-    bootstrap_image: String
+    additional_repos: List = fields.additional_repos
+    additional_packages: List = fields.additional_packages
+    with_opts: List = fields.with_opts
+    without_opts: List = fields.without_opts
+    enable_net: Boolean = fields.enable_net
+    is_background: Boolean = fields.is_background
+    memory_limit: Integer = fields.memory_limit
+    timeout: Integer = fields.timeout
+    bootstrap: String = fields.bootstrap
+    bootstrap_image: String = fields.bootstrap_image
     repos: List = List(Nested(_repo_model))
 
 
 @dataclass
 class Nevra(Schema):
-    arch: String
-    epoch: Integer
-    release: String
-    version: String
+    arch: String = fields.arch
+    epoch: Integer = fields.epoch
+    release: String = fields.release
+    version: String = fields.version
     name: String = String(description="Package name")
 
 
@@ -563,28 +543,28 @@ class NevraPackages(Schema):
 
 @dataclass
 class ModuleBuild(Schema):
-    nsv: String
+    nsv: String = fields.nsv
 
 
 @dataclass
 class WebhookSecret(Schema):
-    id_field: String
-    name: String
-    ownername: String
-    full_name: String
-    webhook_secret: String
+    id_field: String = fields.id_field
+    name: String = fields.name
+    ownername: String = fields.ownername
+    full_name: String = fields.full_name
+    webhook_secret: String = fields.webhook_secret
 
 
 @dataclass
 class ModuleAdd(InputSchema):
-    modulemd: String
-    distgit: String
-    scmurl: String
+    modulemd: String = fields.modulemd
+    distgit: String = fields.distgit
+    scmurl: String = fields.scmurl
 
 
 @dataclass
 class _ModulePackage(Schema):
-    name: String
+    name: String = fields.name
     # inconsistent keys in chroots dict, impossible with flask-restx to do
     chroots: Raw = Raw(
         description="Chroots and their states",
@@ -604,25 +584,25 @@ class Monitor(Schema):
 
 @dataclass
 class SourceChroot(Schema):
-    state: String
-    result_url: Url
+    state: String = fields.state
+    result_url: Url = fields.result_url
 
 
 @dataclass
 class SourceBuildConfig(Schema):
-    source_type: String
-    source_dict: Raw
-    memory_limit: Integer
-    timeout: Integer
-    is_background: Boolean
+    source_type: String = fields.source_type
+    source_dict: Raw = fields.source_dict
+    memory_limit: Integer = fields.memory_limit
+    timeout: Integer = fields.timeout
+    is_background: Boolean = fields.is_background
 
 
 @dataclass
 class ListBuild(ParamsSchema):
-    ownername: String
-    projectname: String
-    packagename: String
-    status: String
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
+    packagename: String = fields.packagename
+    status: String = fields.status
 
     @property
     def required_attrs(self) -> list:
@@ -631,26 +611,26 @@ class ListBuild(ParamsSchema):
 
 @dataclass
 class _GenericBuildOptions:
-    chroot_names: List
-    background: Boolean
-    timeout: Integer
-    bootstrap: String
-    isolation: String
-    after_build_id: Integer
-    with_build_id: Integer
-    packit_forge_project: String
-    enable_net: Boolean
+    chroot_names: List = fields.chroot_names
+    background: Boolean = fields.background
+    timeout: Integer = fields.timeout
+    bootstrap: String = fields.bootstrap
+    isolation: String = fields.isolation
+    after_build_id: Integer = fields.after_build_id
+    with_build_id: Integer = fields.with_build_id
+    packit_forge_project: String = fields.packit_forge_project
+    enable_net: Boolean = fields.enable_net
 
 
 @dataclass
 class _BuildDataCommon:
-    ownername: String
-    projectname: String
+    ownername: String = fields.ownername
+    projectname: String = fields.projectname
 
 
 @dataclass
 class CreateBuildUrl(_BuildDataCommon, _GenericBuildOptions, InputSchema):
-    project_dirname: String
+    project_dirname: String = fields.project_dirname
     pkgs: List = List(
         Url,
         description="List of urls to build from",
@@ -660,44 +640,44 @@ class CreateBuildUrl(_BuildDataCommon, _GenericBuildOptions, InputSchema):
 
 @dataclass
 class CreateBuildUpload(_BuildDataCommon, _GenericBuildOptions, InputSchema):
-    project_dirname: String
+    project_dirname: String = fields.project_dirname
     pkgs: List = List(Raw, description="application/x-rpm files to build from")
 
 
 @dataclass
 class CreateBuildSCM(_BuildDataCommon, _GenericBuildOptions, _SourceDictScmFields, InputSchema):
-    project_dirname: String
-    scm_type: String
-    source_build_method: String
+    project_dirname: String = fields.project_dirname
+    scm_type: String = fields.scm_type
+    source_build_method: String = fields.source_build_method
 
 
 @dataclass
 class CreateBuildDistGit(_BuildDataCommon, _GenericBuildOptions, InputSchema):
-    distgit: String
-    namespace: String
-    package_name: String
-    committish: String
-    project_dirname: String
+    distgit: String = fields.distgit
+    namespace: String = fields.namespace
+    package_name: String = fields.package_name
+    committish: String = fields.committish
+    project_dirname: String = fields.project_dirname
 
 
 @dataclass
 class CreateBuildPyPI(_BuildDataCommon, _GenericBuildOptions, SourceDictPyPI, InputSchema):
-    project_dirname: String
+    project_dirname: String = fields.project_dirname
 
 
 @dataclass
 class CreateBuildRubyGems(_BuildDataCommon, _GenericBuildOptions, InputSchema):
-    project_dirname: String
-    gem_name: String
+    project_dirname: String = fields.project_dirname
+    gem_name: String = fields.gem_name
 
 
 @dataclass
 class CreateBuildCustom(_BuildDataCommon, _GenericBuildOptions, InputSchema):
-    script: String
-    chroot: String
-    builddeps: String
-    resultdir: String
-    project_dirname: String
+    script: String = fields.script
+    chroot: String = fields.chroot
+    builddeps: String = fields.builddeps
+    resultdir: String = fields.resultdir
+    project_dirname: String = fields.project_dirname
     repos: List = List(Nested(_repo_model))
 
 
