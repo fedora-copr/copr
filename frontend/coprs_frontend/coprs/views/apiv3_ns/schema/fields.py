@@ -76,10 +76,6 @@ packagename = String(
 
 package_name = packagename
 
-comps_name = String(
-    description="Name of the comps.xml file",
-)
-
 additional_repos = List(
     String,
     description="Additional repos to be used for builds in this chroot",
@@ -108,11 +104,6 @@ without_opts = List(
     description="Mock --without option",
 )
 
-delete_after_days = Integer(
-    description="The project will be automatically deleted after this many days",
-    example=30,
-)
-
 isolation = String(
     description=(
         "Mock isolation feature setup. Possible values "
@@ -121,10 +112,6 @@ isolation = String(
     example="nspawn",
 )
 
-repo_priority = Integer(
-    description="The priority value of this repository. Defaults to 99",
-    example=42,
-)
 
 enable_net = Boolean(
     description="Enable internet access during builds",
@@ -148,67 +135,10 @@ source_build_method = String(
     example="tito",
 )
 
-pypi_package_name = String(
-    description="Package name in the Python Package Index.",
-    example="copr",
-)
-
-pypi_package_version = String(
-    description="PyPI package version",
-    example="1.128pre",
-)
-
-# TODO We are copy-pasting descriptions from web UI to this file. This field
-# is an ideal candidate for figuring out how to share the descriptions
-spec_generator = String(
-    description=(
-        "Tool for generating specfile from a PyPI package. "
-        "The options are full-featured pyp2rpm with cross "
-        "distribution support, and pyp2spec that is being actively "
-        "developed and considered to be the future."
-    ),
-    example="pyp2spec",
-)
-
-spec_template = String(
-    description=(
-        "Name of the spec template. "
-        "This option is limited to pyp2rpm spec generator."
-    ),
-    example="default",
-)
-
-python_versions = List(
-    String,  # We currently return string but should this be number?
-    description=(
-        "For what python versions to build. "
-        "This option is limited to pyp2rpm spec generator."
-    ),
-    example=["3", "2"],
-)
-
-auto_rebuild = Boolean(
-    description="Auto-rebuild the package? (i.e. every commit or new tag)",
-)
-
-clone_url = Url(
-    description="URL to your Git or SVN repository",
-    example="https://github.com/fedora-copr/copr.git",
-)
 
 committish = String(
     description="Specific branch, tag, or commit that you want to build",
     example="main",
-)
-
-subdirectory = String(
-    description="Subdirectory where source files and .spec are located",
-    example="cli",
-)
-
-spec = String(
-    description="Path to your .spec file under the specified subdirectory",
-    example="copr-cli.spec",
 )
 
 chroots = List(
@@ -236,27 +166,9 @@ is_background = Boolean(
     description="The build is marked as a background job",
 )
 
-submitter = String(
-    description="Username of the person who submitted this build",
-    example="frostyx",
-)
-
 state = String(
     description="",
     example="succeeded",
-)
-
-repo_url = Url(
-    description="See REPO OPTIONS in `man 5 dnf.conf`",
-    example="https://download.copr.fedorainfracloud.org/results/@copr/copr-dev/fedora-$releasever-$basearch/",
-)
-
-max_builds = Integer(
-    description=(
-        "Keep only the specified number of the newest-by-id builds "
-        "(garbage collector is run daily)"
-    ),
-    example=10,
 )
 
 source_package_url = String(description="URL for downloading the SRPM package")
@@ -315,84 +227,9 @@ order_type = String(
     example="DESC",
 )
 
-homepage = Url(
-    description="Homepage URL of Copr project",
-    example="https://github.com/fedora-copr",
-)
-
-contact = String(
-    description="Contact email",
-    example="pretty_user@fancydomain.uwu",
-)
-
-description = String(
-    description="Description of Copr project",
-)
-
-instructions = String(
-    description="Instructions how to install and use Copr project",
-)
-
-persistent = Boolean(
-    description="Build and project is immune against deletion",
-)
-
-unlisted_on_hp = Boolean(
-    description="Don't list Copr project on home page",
-)
-
-auto_prune = Boolean(
-    description="Automatically delete builds in this project",
-)
 
 build_enable_net = Boolean(
     description="Enable networking for the builds",
-)
-
-appstream = Boolean(
-    description="Enable Appstream for this project",
-)
-
-packit_forge_projects_allowed = String(
-    description=(
-        "Whitespace separated list of forge projects that will be "
-        "allowed to build in the project via Packit"
-    ),
-    example="github.com/fedora-copr/copr github.com/another/project",
-)
-
-follow_fedora_branching = Boolean(
-    description=(
-        "If chroots for the new branch should be auto-enabled and populated from "
-        "rawhide ones"
-    ),
-)
-
-with_latest_build = Boolean(
-    description=(
-        "The result will contain 'builds' dictionary with the latest "
-        "submitted build of this particular package within the project"
-    ),
-    default=False,
-)
-
-with_latest_succeeded_build = Boolean(
-    description=(
-        "The result will contain 'builds' dictionary with the latest "
-        "successful build of this particular package within the project."
-    ),
-    default=False,
-)
-
-fedora_review = Boolean(
-    description="Run fedora-review tool for packages in this project"
-)
-
-runtime_dependencies = String(
-    description=(
-        "List of external repositories (== dependencies, specified as baseurls)"
-        "that will be automatically enabled together with this project repository."
-    )
 )
 
 bootstrap_image = String(
@@ -409,27 +246,10 @@ source_dict = Raw(
     description="http://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html"
 )
 
-devel_mode = Boolean(description="If createrepo should run automatically")
-
 bootstrap = String(
     description=(
         "Mock bootstrap feature setup. "
         "Possible values are 'default', 'on', 'off', 'image'."
-    )
-)
-
-confirm = Boolean(
-    description=(
-        "If forking into a existing project, this needs to be set to True,"
-        "to confirm that user is aware of that."
-    )
-)
-
-exist_ok = Boolean(
-    description=(
-        "Don't fail if a project with this owner and name already exist, "
-        "return the existing instance instead. Please be aware that the "
-        "project attributes are not updated in such case."
     )
 )
 
@@ -439,22 +259,7 @@ timeout = Integer(
     description="Number of seconds we allow the builds to run.",
 )
 
-nsv = String(
-    example="name-stream-version",
-    description="NSV of the module build in format name-stream-version."
-)
-
-webhook_secret = String(example="really-secret-string-do-not-share")
-
-release = String(example="1.fc39")
-
-epoch = Integer(example=3)
-
-arch = String(example="x86_64")
-
 version = String(example="1.0")
-
-modulemd = Raw(example="YAML file", description="Modulemd YAML file")
 
 status = String(
     example="succeeded",
@@ -471,59 +276,13 @@ background = is_background
 
 copr_dirname = project_dirname
 
-after_build_id = Integer(
-    description="Build after the batch containing the Build ID build",
-    example=123,
-)
-
-with_build_id = Integer(
-    description="Build in the same batch with the Build ID build",
-    example=123,
-)
-
-packit_forge_project = String(
-    description="Forge project name that Packit passes",
-    example="github.com/fedora-copr/copr",
-    # hide this so we don't confuse our users in the API docs
-    # packit uses this internally to check whether given packit build is allowed
-    # to build from the source upstream project into tis copr project
-    # packit_forge_project in packit_forge_projects_allowed
-    mask=True,
-)
-
 distgit = String(
     description="Dist-git URL we build against",
     example="fedora",
 )
 
-namespace = String(
-    description="DistGit namescape",
-    example="@copr/copr",
-)
-
-
 # TODO: these needs description
-
-chroot_repos = Raw()
-
-multilib = Boolean()
-
-verify = Boolean()
-
-priority = Integer()
 
 memory_limit = Integer()
 
-scmurl = Url()
-
 result_url = Url()
-
-# TODO: specify those only in Repo schema?
-
-baseurl = Url()
-
-url = Url()
-
-webhook_rebuild = Boolean()
-
-
