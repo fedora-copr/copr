@@ -76,18 +76,6 @@ class Schema:
         """
         Returns the same dictionary that was passed as param, doesn't create copy of it.
         """
-        # if in fields.py file is attribute that has different name
-        # than model, add it to `unicorn_fields` like
-        # "field_name_in_fields.py": "what_you_want_to_name_it"
-        unicorn_fields = {
-            "id_field": "id",
-        }
-        # pylint: disable-next=consider-using-dict-items
-        for field_to_rename in unicorn_fields:
-            if field_to_rename in d:
-                d[unicorn_fields[field_to_rename]] = d[field_to_rename]
-                d.pop(field_to_rename)
-
         keys_to_delete = []
         for key, value in d.items():
             if cls._should_be_item_candidate_to_delete(key, value):
@@ -278,7 +266,7 @@ class Repo(Schema):
         description="The priority value of this repository. Defaults to 99",
         example=42,
     )
-    id_field: String = String(example="copr_base")
+    id: String = String(example="copr_base")
     name: String = String(example="Copr repository")
 
 
@@ -367,7 +355,7 @@ _source_package_model = SourcePackage.get_cls().model()
 class Build(Schema):
     chroots: List = fields.chroots
     ended_on: Integer = fields.ended_on
-    id_field: Integer = fields.id_field
+    id: Integer = fields.id_field
     is_background: Boolean = fields.is_background
     ownername: String = fields.ownername
     project_dirname: String = fields.project_dirname
@@ -401,7 +389,7 @@ _package_builds_model = PackageBuilds().model()
 
 @dataclass
 class Package(Schema):
-    id_field: Integer = fields.id_field
+    id: Integer = fields.id_field
     name: String = fields.packagename
     ownername: String = fields.ownername
     projectname: String = fields.projectname
@@ -531,7 +519,7 @@ class _ProjectGetAddFields:
 
 @dataclass
 class Project(_ProjectFields, _ProjectGetAddFields, Schema):
-    id_field: Integer = fields.id_field
+    id: Integer = fields.id_field
     ownername: String = fields.ownername
     full_name: String = fields.full_name
     chroot_repos: Raw = Raw()
@@ -675,7 +663,7 @@ class ModuleBuild(Schema):
 
 @dataclass
 class WebhookSecret(Schema):
-    id_field: String = fields.id_field
+    id: String = fields.id_field
     name: String = fields.name
     ownername: String = fields.ownername
     full_name: String = fields.full_name
