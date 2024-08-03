@@ -115,35 +115,17 @@ class InputSchema(Schema):
     @property
     def required_attrs(self) -> list:
         """
-        Specify required attributes in model in these methods if needed.
-
-        Specify this property in subclass with required attributes. If no attribute
-         is required, then don;t specify this property in subclass.
-
-        In case every attribute is required in input schema, you have two options:
-        A):
-            Specify every attribute in required_attrs property.
-        B):
-            Define `__all_required` attribute in input schema and set it to `True`.
+        A list of required attributes in the schema
         """
         return []
-
-    def _do_require_attrs(self):
-        change_this_args_as_required = self.required_attrs
-        if getattr(self, f"_{self.__class__.__name__}__all_required", False):
-            change_this_args_as_required = [
-                getattr(self, field.name) for field in self.public_fields()
-            ]
-
-        for field in change_this_args_as_required:
-            field.required = True
 
     def input_model(self):
         """
         Returns an input model (input to @ns.expect()) with properly set required
          parameters.
         """
-        self._do_require_attrs()
+        for field in self.required_attrs:
+            field.required = True
         return api.model(self.__class__.__name__, self.schema())
 
 
@@ -163,23 +145,13 @@ class ParamsSchema(InputSchema):
          documentation taken from api_foo_ns.route. Documentation is a dictionary
          in specific structure to match Swagger UI schema.
         """
-        super()._do_require_attrs()
-        schema = {}
-        for field in self.public_fields():
-            attr = getattr(self, field.name)
-            schema[field.name] = attr.schema()
+        return {x.name: self._field_schema(x) for x in self.public_fields()}
 
-            keys_to_delete = []
-            for key, val in schema[field.name].items():
-                if val is None:
-                    keys_to_delete.append(key)
-
-            for key in keys_to_delete:
-                schema[field.name].pop(key)
-
-            if attr.required:
-                schema[field.name] |= {"required": True}
-
+    def _field_schema(self, field):
+        attr = getattr(self, field.name)
+        schema = {k: v for k, v in attr.schema().items() if v is not None}
+        if attr in self.required_attrs:
+            schema |= {"required": True}
         return schema
 
 
@@ -243,7 +215,9 @@ class ProjectChrootGet(ParamsSchema):
     projectname: String = fields.projectname
     chrootname: String = mock_chroot
 
-    __all_required: bool = True
+    @property
+    def required_attrs(self) -> list:
+        return [self.ownername, self.projectname, self.chrootname]
 
 
 @dataclass
@@ -565,14 +539,18 @@ class FullnameSchema(ParamsSchema):
     ownername: String = fields.ownername
     projectname: String = fields.projectname
 
-    __all_required: bool = True
+    @property
+    def required_attrs(self) -> list:
+        return [self.ownername, self.projectname]
 
 
 @dataclass
 class CanBuildParams(FullnameSchema):
     who: String = String(example="user123")
 
-    __all_required: bool = True
+    @property
+    def required_attrs(self) -> list:
+        return [self.who]
 
 
 @dataclass
@@ -606,7 +584,9 @@ class BuildChrootParams(ParamsSchema):
     build_id: Integer = id_field
     chrootname: String = mock_chroot
 
-    __all_required: bool = True
+    @property
+    def required_attrs(self) -> list:
+        return [self.build_id, self.chrootname]
 
 
 @dataclass
