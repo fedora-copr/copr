@@ -64,28 +64,6 @@ class Schema:
             not_in_fields: String = String(some definition ...)
     """
 
-    @staticmethod
-    def _should_be_item_candidate_to_delete(key: str, value: Any) -> bool:
-        return (key.startswith("_") or not isinstance(value, Raw)) or (
-            # masking feature is missing in marshaling
-            hasattr(value, "mask") and value.mask
-        )
-
-    @classmethod
-    def _convert_schema_class_dict_to_schema(cls, d: dict) -> dict:
-        """
-        Returns the same dictionary that was passed as param, doesn't create copy of it.
-        """
-        keys_to_delete = []
-        for key, value in d.items():
-            if cls._should_be_item_candidate_to_delete(key, value):
-                keys_to_delete.append(key)
-
-        for key_to_delete in keys_to_delete:
-            d.pop(key_to_delete)
-
-        return d
-
     @classmethod
     def get_cls(cls):
         """
@@ -98,25 +76,35 @@ class Schema:
         """
         Get all fields, private fields excluded
         """
-        result = []
-        for field in dataclasses_fields(self):
-            if not field.name.startswith("_"):
-                result.append(field)
-
-        return result
+        all_fields = dataclasses_fields(self)
+        return [x for x in all_fields if not x.name.startswith("_")]
 
     def schema(self):
         """
         Get schema dictionary with properly named key values (applies `unicorn_fields`).
-         Returns dynamic print of dataclass in dictionary.
+        Returns dynamic print of dataclass in dictionary.
         """
-        return self._convert_schema_class_dict_to_schema(asdict(self))
+        selfdict = asdict(self)
+        return {k: v for k, v in selfdict.items() if not self._is_private(k, v)}
 
     def model(self):
         """
         Get Flask-restx model for the schema class.
         """
         return api.model(self.__class__.__name__, self.schema())
+
+    @staticmethod
+    def _is_private(key: str, value: Any) -> bool:
+        """
+        Should this field be excluded from the schema?
+        """
+        return (
+            key.startswith("_")
+            # Every flask-restx field (String, List, etc) inherits from Raw
+            or not isinstance(value, Raw)
+            # Masking feature is missing in marshaling
+            or getattr(value, "mask")
+        )
 
 
 class InputSchema(Schema):
