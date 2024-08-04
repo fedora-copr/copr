@@ -25,7 +25,7 @@ except ImportError:
 try:
     import argcomplete
 except ImportError:
-    argcomplete = None
+    pass
 
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
@@ -1895,7 +1895,7 @@ def setup_parser():
     # package monitoring
     cli_monitor_parser(subparsers)
 
-    if argcomplete:
+    if "argcomplete" in sys.modules:
         argcomplete.autocomplete(parser)
     return parser
 
