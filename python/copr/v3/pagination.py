@@ -5,7 +5,7 @@ from .requests import munchify
 
 try:
     import urlparse
-    from urllib import urlencode
+    from urllib import urlencode  # type: ignore [attr-defined]
 except ImportError:
     import urllib.parse as urlparse
     from urllib.parse import urlencode
