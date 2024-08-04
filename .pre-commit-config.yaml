@@ -53,6 +53,8 @@ repos:
             types-requests,
             types-setuptools,
             types-mock,
+            types-decorator,
+            types-pytz,
             # types-click,
             # types-pkg_resources,
             # types-requests,
