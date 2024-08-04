@@ -1,9 +1,10 @@
 name: Mypi action
 
-on:
-  push:
-    paths:
-      - '*.py'
+on: [pull_request]
+# on:
+  # push:
+  #   paths:
+  #     - '*.py'
 
 jobs:
   mypy:
