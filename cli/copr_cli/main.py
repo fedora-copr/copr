@@ -62,13 +62,6 @@ BOOTSTRAP_MAP = {
     None: "default",
 }
 
-# bar
-# foo
-try:
-    input = raw_input
-except NameError:
-    pass
-
 
 class FrontendOutdatedCliException(Exception):
     """
