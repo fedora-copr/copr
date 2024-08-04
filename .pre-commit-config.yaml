@@ -52,6 +52,7 @@ repos:
             types-six,
             types-requests,
             types-setuptools,
+            types-mock,
             # types-click,
             # types-pkg_resources,
             # types-requests,

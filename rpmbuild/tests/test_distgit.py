@@ -18,7 +18,7 @@ try:
     from unittest import mock
 except ImportError:
     # Python 2 version depends on mock
-    import mock
+    import mock  # type: ignore [no-redef]
 
 from tests import TestCase
 

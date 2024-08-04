@@ -174,7 +174,7 @@ htmlhelp_basename = 'copr-keygendoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements : dict = {
+latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #'papersize': 'letterpaper',
 

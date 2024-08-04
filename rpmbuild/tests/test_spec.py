@@ -23,7 +23,7 @@ try:
      builtins = 'builtins'
 except ImportError:
      # Python 2 version depends on mock
-     import mock
+     import mock  # type: ignore [no-redef]
      builtins = '__builtin__'
 
 
