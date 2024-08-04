@@ -5,7 +5,6 @@ jobs:
 
   static-type-check:
     runs-on: ubuntu-latest
-    allow-failure: true
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v3
@@ -22,3 +21,7 @@ jobs:
     - name: Run if any of the listed files above is changed
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: mypy ${{ steps.changed-py-files.outputs.all_changed_files}} --install-types --non-interactive
+
+    - name: Set warning if previous step failed
+      if: failure()
+      run: echo "::warning::The previous step failed but we are continuing."
