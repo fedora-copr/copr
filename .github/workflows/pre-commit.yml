@@ -15,4 +15,5 @@ jobs:
           python-version: 3.x
       - uses: pre-commit/action@v3.0.1
         with:
-          extra_args: --from-ref origin/HEAD --to-ref HEAD
+          # extra_args: --from-ref origin/HEAD --to-ref HEAD
+          extra_args: --from-ref main --to-ref HEAD
