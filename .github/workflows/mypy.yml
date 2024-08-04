@@ -26,4 +26,5 @@ jobs:
 
     - name: Set warning if previous step failed
       if: failure()
-      run: echo "::warning::The previous step failed but we are continuing."
+      # run: echo "::warning::The previous step failed but we are continuing."
+      run: echo "::warning file=app.py,line=10,col=5::Code formatting issues detected"
