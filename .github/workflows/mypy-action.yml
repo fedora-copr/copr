@@ -5,6 +5,7 @@ jobs:
     name: runner / mypy
     runs-on: ubuntu-latest
     steps:
+      - run: pip install mypy
       - uses: actions/checkout@v4
       - uses: tsuyoshicho/action-mypy@v4
         with:
