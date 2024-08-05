@@ -1,13 +1,14 @@
 import os
 import re
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
+
+import json
+from fnmatch import fnmatch
 
 import flask
 import wtforms
-import json
 
 from flask_wtf.file import FileRequired, FileField
-from fnmatch import fnmatch
 
 try: # get rid of deprecation warning with newer flask_wtf
     from flask_wtf import FlaskForm

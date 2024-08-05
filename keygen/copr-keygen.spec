@@ -21,7 +21,6 @@ BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-setuptools
-BuildRequires: python3-six
 BuildRequires: python3-flask
 
 # doc
@@ -41,7 +40,6 @@ Requires:   passwd
 Recommends: logrotate
 Requires:   python3-copr-common >= %copr_common_version
 Requires:   python3-setuptools
-Requires:   python3-six
 Requires:   python3-flask
 
 # tests
@@ -64,7 +62,6 @@ Obsoletes:  copr-doc < 1.38
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
-BuildRequires: python3-six
 BuildRequires: python3-flask
 BuildRequires: python3-sphinx
 BuildRequires: python3-sphinxcontrib-httpdomain

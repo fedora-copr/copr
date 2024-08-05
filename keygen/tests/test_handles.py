@@ -1,10 +1,6 @@
 import json
-import six
 
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
+from unittest import mock
 
 
 from copr_keygen import app
