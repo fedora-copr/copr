@@ -19,11 +19,12 @@ import zlib
 
 import modulemd_tools.yaml
 
-from sqlalchemy import outerjoin, text
+from sqlalchemy import outerjoin, text, DateTime
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from libravatar import libravatar_url
 
 from flask import url_for
@@ -41,7 +42,7 @@ from coprs import db
 from coprs import helpers
 from coprs import app
 
-from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus, getCurrentUnixTimestamp
+from coprs.helpers import JSONEncodedDict, ChrootDeletionStatus
 
 
 # Pylint Specifics for models.py:
@@ -1571,11 +1572,12 @@ class Build(db.Model, helpers.Serializer):
             bch.backend_enqueue()
 
 class WebhookHistory(db.Model):
-    '''Represents a Webhook UUID & a build initiated by it'''
+    '''Represents a Webhook UUID & a build initiated by it.'''
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.Integer, nullable=False, default=getCurrentUnixTimestamp)
-    user_agent = db.Column(db.String(30),nullable=False, default="Unknown")
-    webhook_uuid = db.Column(UUID(as_uuid=True), nullable=False)
+    timestamp = db.Column(DateTime(timezone=True), server_default=func.now())
+    # Null values are possible via custom webhook implementation that do not pass a UUID or User Agent.
+    user_agent = db.Column(db.Text,nullable=True)
+    webhook_uuid = db.Column(UUID(as_uuid=True), nullable=True)
     build_id = db.Column(db.Integer, db.ForeignKey('build.id'))
 
 class DistGitBranch(db.Model, helpers.Serializer):

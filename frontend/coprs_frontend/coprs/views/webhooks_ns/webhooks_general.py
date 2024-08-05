@@ -86,7 +86,7 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initia
     along with the initiated build number(s).
     """
     if builds_initiated_via_hook is None:
-        log.debug("No build initiated. Webhook not loged to db.")
+        log.debug("No build initiated. Webhook not logged to db.")
         return
 
     #For each build that was initiated by the webhook insert a record in db.
@@ -94,8 +94,6 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initia
         webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
                                               user_agent=user_agent, build_id=build)
         db.session.add(webhookRecord)
-
-    db.session.commit()
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
