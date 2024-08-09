@@ -19,7 +19,7 @@ from openid_teams.teams import TeamsResponse
 from coprs.redis_session import RedisSessionInterface
 from coprs.request import get_request_class
 
-app = flask.Flask(__name__)
+app : flask.Flask = flask.Flask(__name__)
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
     app.config.from_object("coprs.config.ProductionConfig")
 elif "COPRS_ENVIRON_UNITTEST" in os.environ:
@@ -42,7 +42,7 @@ oid = OpenID(
 session = Session(app)
 
 # Set `future=True` to ensure compatibility between SQLAlchemy 1.x and 2.0
-db = SQLAlchemy(app, engine_options={"future": True})
+db : SQLAlchemy = SQLAlchemy(app, engine_options={"future": True})
 
 @contextmanager
 def db_session_scope():

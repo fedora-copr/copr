@@ -8,10 +8,6 @@ from .custom import CustomProvider
 from .distgit import DistGitProvider
 
 
-__all__ = [RubyGemsProvider, PyPIProvider,
-           UrlProvider, ScmProvider]
-
-
 def factory(source_type):
     try:
         return {

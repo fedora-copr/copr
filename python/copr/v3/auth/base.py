@@ -11,7 +11,7 @@ from filelock import FileLock
 try:
     from urllib.parse import urlparse
 except ImportError:
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 
 class BaseAuth(object):
