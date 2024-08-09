@@ -20,6 +20,8 @@ This file contains schemas for messages sent by Copr project.
 
 import copy
 
+from fedora_messaging import message
+
 from copr_common.enums import StatusEnum
 
 from .private.hierarchy import _BuildChrootMessage, _CoprMessage
@@ -39,9 +41,10 @@ class BuildChrootEnded(_BuildChrootMessage):
         """
         raise NotImplementedError
 
-    def __str__(self):
+    def summary(self):
+        """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" ended as "{2}".'.format(
-            super(BuildChrootEnded, self)._str_prefix(),
+            super()._str_prefix(),
             self.chroot,
             self.status,
         )
@@ -61,9 +64,10 @@ class BuildChrootStarted(_BuildChrootMessage):
     Representation of a message sent by Copr build system right before some Copr
     worker starts working on a build in a particular mock chroot.
     """
-    def __str__(self):
+    def summary(self):
+        """A one-line, human-readable representation of this message."""
         return '{0}: chroot "{1}" started.'.format(
-            super(BuildChrootStarted, self)._str_prefix(),
+            super()._str_prefix(),
             self.chroot,
         )
 
@@ -97,6 +101,12 @@ class BuildChrootStartedV1DontUse(_PreFMBuildMessage, BuildChrootStarted):
     duplicated the 'copr.build.start' message, so you should never use this.
     """
     topic = 'copr.chroot.start'
+
+    # Set the chroot message severity to DEBUG, which will not generate a notification in FMN by
+    # default. Those are always paired with a build message, so it makes more sense to notify on
+    # that one.
+    # Ref: https://fedora-messaging.readthedocs.io/en/stable/user-guide/messages.html#useful-accessors
+    severity = message.DEBUG
 
 
 class BuildChrootStartedV1Stomp(schema_stomp_old._OldStompChrootMessage,
