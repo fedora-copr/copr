@@ -716,8 +716,10 @@ def test_average_step():
 
 @_patch_bwbuild_object("time.sleep", mock.MagicMock())
 @_patch_bwbuild_object("time.time")
-def test_retry_for_ssh_tail_failure(mc_time, f_build_rpm_case,
+@_patch_bwbuild_object("BuildBackgroundWorker._build_timeouted")
+def test_retry_for_ssh_tail_failure(mc_timeouted, mc_time, f_build_rpm_case,
                                     caplog):
+    mc_timeouted.return_value = False
     mc_time.side_effect = list(range(500))
     class _SideEffect:
         counter = 0
