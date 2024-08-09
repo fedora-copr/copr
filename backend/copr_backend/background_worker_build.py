@@ -404,10 +404,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
     def _check_build_interrupted(self):
         """
-        Should we interrupet a running worker?
+        Should we interrupt a running worker?
         """
         return (self._check_failed_resalloc_ticket()
-                or self._cancel_task_check_request())
+                or self._cancel_task_check_request()
+                or self._build_timeouted())
 
     @ttl_cache(ttl=10*60)
     def _check_failed_resalloc_ticket(self):
@@ -415,8 +416,21 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         Did the resalloc ticket fail?
         """
         self.host.ticket.collect()
-        self.log.info("Status: %s", self.host.ticket.failed)
+        self.log.info("Failed resalloc ticket: %s", self.host.ticket.failed)
         return self.host.ticket.failed
+
+    def _build_timeouted(self):
+        """
+        When build timeouts, it should be handled by `copr-rpmbuild` and the
+        builder machine should mark itself as finished. When it fails to do so,
+        we have this fail-safe to know if a build timeouted and should be
+        terminated.
+        """
+        # Wait some time (1 hour) after the configured timeout for the builder
+        # to terminate itself.
+        timestamp = self.job.started_on + self.job.timeout + 60 * 60
+        limit = datetime.fromtimestamp(timestamp)
+        return datetime.now() > limit
 
     def _cancel_task_check_request(self):
         """
@@ -482,9 +496,6 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         raise any exception.  The worst case scenario is that nothing is
         canceled.
         """
-        if not self.canceled:
-            return
-
         self._proctitle("Canceling running task...")
         self.redis_set_worker_flag("canceling", 1)
         try:
@@ -994,6 +1005,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         ).run()
         if self.canceled:
             raise BuildCanceled
+        if self._build_timeouted():
+            raise BackendError("Build timeouted")
         if self.host.ticket.failed:
             transfer_failure = "Resalloc ticket FAILED"
         if transfer_failure:
