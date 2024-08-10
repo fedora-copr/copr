@@ -14,7 +14,6 @@ import warnings
 from collections import defaultdict
 
 import six
-import pkg_resources
 import requests
 
 try:
@@ -36,7 +35,7 @@ from copr.v3.pagination import next_page
 from copr_cli.helpers import cli_use_output_format, print_project_info
 from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
-from copr_cli.util import get_progress_callback, serializable
+from copr_cli.util import get_progress_callback, serializable, package_version
 from .build_config import MockProfile
 
 
@@ -1065,7 +1064,7 @@ def setup_parser():
                         help="Path to an alternative configuration file")
 
     parser.add_argument("--version", action="version",
-                        version="%(prog)s version " + pkg_resources.require('copr-cli')[0].version)
+                        version="%(prog)s version " + package_version("copr-cli"))
 
     subparsers = parser.add_subparsers(title="actions")
 

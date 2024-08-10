@@ -4,8 +4,8 @@ Common Copr code for dealing with HTTP requests
 
 import json
 import time
-import pkg_resources
 from requests import get, post, put, RequestException
+from copr_common.compat import package_version
 
 
 class SafeRequest:
@@ -23,7 +23,7 @@ class SafeRequest:
     package_name = 'copr-common'
     user_agent = {
         'name': package_name,
-        'version': pkg_resources.require(package_name)[0].version
+        'version': package_version(package_name),
     }
 
     def __init__(self, auth=None, log=None, try_indefinitely=False, timeout=2 * 60):
