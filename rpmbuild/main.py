@@ -11,24 +11,27 @@ import logging
 import shutil
 import pprint
 import shlex
-import pkg_resources
 
 from copr_common.request import SafeRequest, RequestError
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.automation import run_automation_tools
-from copr_rpmbuild.helpers import read_config, \
-    parse_copr_name, dump_live_log, copr_chroot_to_task_id, macros_for_task, locate_srpm
+from copr_rpmbuild.helpers import (
+    read_config,
+    parse_copr_name,
+    dump_live_log,
+    copr_chroot_to_task_id,
+    macros_for_task,
+    locate_srpm,
+    package_version,
+)
 from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
-try:
-    VERSION = pkg_resources.require('copr-rpmbuild')[0].version
-except pkg_resources.DistributionNotFound:
-    VERSION = 'git'
+VERSION = package_version("copr-rpmbuild")
 
 def daemonize():
     try:
