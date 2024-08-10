@@ -35,7 +35,7 @@ def f_testresults(f_temp_directory):
                             "_resources", "testresults.tar.gz")
 
     with tarfile.open(src_path, "r:gz") as tfile:
-        tfile.extractall(ctx.workdir)
+        tfile.extractall(ctx.workdir, filter="data")
     ctx.testresults = os.path.join(ctx.workdir, 'testresults')
     yield ctx
 
