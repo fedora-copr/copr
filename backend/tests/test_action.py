@@ -111,7 +111,7 @@ class TestAction(object):
         extract_to = self.test_project_dir
 
         with tarfile.open(src_path, "r:gz") as tfile:
-            tfile.extractall(self.test_project_dir)
+            tfile.extractall(self.test_project_dir, filter="data")
 
         if resource_name == "testresults.tar.gz":
             # This tar.gz is inconsistently generated, but changing it would

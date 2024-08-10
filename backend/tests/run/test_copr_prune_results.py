@@ -70,7 +70,7 @@ class TestPruneResults(object):
     def unpack_resource(self, resource_name, target):
         src_path = os.path.join(os.path.dirname(__file__), '..', '_resources', resource_name)
         with tarfile.open(src_path, 'r:gz') as tar_file:
-            tar_file.extractall(target)
+            tar_file.extractall(target, filter="data")
 
     ################################ tests ################################
 
