@@ -15,13 +15,13 @@ from unittest.mock import patch, MagicMock
 from copr_backend.daemons.log import RedisLogHandler
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_logging():
     with mock.patch("copr_backend.daemons.log.logging") as mc_logging:
         yield mc_logging
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_setproctitle():
     with mock.patch("copr_backend.daemons.log.setproctitle") as mc_spt:
         yield mc_spt

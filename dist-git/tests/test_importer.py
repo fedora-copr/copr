@@ -19,37 +19,37 @@ import copr_dist_git.import_task
 MODULE_REF = 'copr_dist_git.importer'
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_helpers():
     with mock.patch("{}.helpers".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_worker():
     with mock.patch("{}.Worker".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_import_package():
     with mock.patch("{}.import_package".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_time():
     with mock.patch("{}.time".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_get():
     with mock.patch("{}.get".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_post():
     with mock.patch("{}.post".format(MODULE_REF)) as handle:
         yield handle

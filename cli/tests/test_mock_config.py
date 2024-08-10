@@ -3,13 +3,12 @@ Unit tests for the `copr mock-config ...` command.
 """
 
 from munch import Munch
-import pytest
 
 from copr_cli import main
 
 import six
 
-from cli_tests_lib import mock, f_test_config
+from cli_tests_lib import mock, f_test_config, fixture
 
 
 class TestMockConfig():
@@ -77,7 +76,7 @@ best=1
             "isolation": "default"
         })
 
-    @pytest.yield_fixture
+    @fixture
     def f_get_build_config(self):
         method = (
             'copr.v3.proxies.project_chroot.'

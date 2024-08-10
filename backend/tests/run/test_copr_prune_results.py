@@ -18,22 +18,22 @@ sys.path.append('../../run')
 MODULE_REF = 'run.copr_prune_results'
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_runcmd():
     with mock.patch('{}.runcmd'.format(MODULE_REF)) as handle:
         yield handle
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_bcr():
     with mock.patch('{}.BackendConfigReader'.format(MODULE_REF)) as handle:
         yield handle
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_build_devel():
     with mock.patch('{}.uses_devel_repo'.format(MODULE_REF)) as handle:
         yield handle
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_pruner():
     with mock.patch('{}.Pruner'.format(MODULE_REF)) as handle:
         yield handle

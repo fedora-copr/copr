@@ -15,25 +15,25 @@ from copr_dist_git.package_import import import_package
 def scriptdir():
     return os.path.dirname(os.path.realpath(__file__))
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_setup_git_repo():
     with mock.patch("{}.setup_git_repo".format('copr_dist_git.package_import')) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_group():
     with mock.patch("os.setgid") as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_chroot():
     with mock.patch("os.chroot") as handle:
         yield handle
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 def tmpdir():
     origdir = os.getcwd()
     tdir = tempfile.mkdtemp()
@@ -44,7 +44,7 @@ def tmpdir():
     shutil.rmtree(tdir, ignore_errors=True)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def git_repos(tmpdir):
     dirname = 'git_repos'
     os.mkdir(dirname)
@@ -52,7 +52,7 @@ def git_repos(tmpdir):
     shutil.rmtree('git_repos', ignore_errors=True)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def origin(git_repos):
     print("creating origin")
     modulename = 'bob/blah/quick-package'
@@ -76,7 +76,7 @@ def origin(git_repos):
     shutil.rmtree('work', ignore_errors=True)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def branches(origin):
     branches = ['f20', 'epel7', 'el6', 'fedora/26', 'rhel-7']
     middle_branches = ['el6', 'fedora/26']
@@ -97,7 +97,7 @@ def branches(origin):
     yield (origin, branches, middle_branches, border_branches)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def lookaside(tmpdir):
     assert 0 == os.system(
     """ set -e
@@ -107,7 +107,7 @@ def lookaside(tmpdir):
     shutil.rmtree('lookaside', ignore_errors=True)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def opts_basic(tmpdir, lookaside):
     class _:
         pass

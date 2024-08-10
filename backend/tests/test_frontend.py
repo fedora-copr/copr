@@ -11,7 +11,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 import pytest
 
-@pytest.yield_fixture
+@pytest.fixture
 def post_req():
     with mock.patch("copr_common.request.post") as obj:
         yield obj
@@ -26,7 +26,7 @@ def f_request_method(request):
         yield (request.param, ctx)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_time():
     with mock.patch("copr_common.request.time") as obj:
         yield obj
