@@ -26,19 +26,19 @@ import copr_backend.actions
 
 MODULE_REF = "copr_backend.daemons.job_grab"
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_logging():
     with mock.patch("{}.logging".format(MODULE_REF)) as mc_logging:
         yield mc_logging
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_setproctitle():
     with mock.patch("{}.setproctitle".format(MODULE_REF)) as mc_spt:
         yield mc_spt
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_retask_queue():
     with mock.patch("{}.jobgrabcontrol.Channel".format(MODULE_REF)) as mc_queue:
         def make_queue(*args, **kwargs):
@@ -51,7 +51,7 @@ def mc_retask_queue():
         yield mc_queue
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_grc():
     with mock.patch("{}.get_redis_connection".format(MODULE_REF)) as handle:
         yield handle
@@ -119,7 +119,7 @@ class TestJobGrab(object):
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def mc_time(self):
         with mock.patch("{}.time".format(MODULE_REF)) as mc_time:
             mc_time.time.return_value = self.test_time

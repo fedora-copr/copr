@@ -9,9 +9,12 @@ import pytest
 
 import copr
 # pylint: disable=unused-import
-from cli_tests_lib import f_test_config
-from cli_tests_lib import mock
-from cli_tests_lib import config as mock_config
+from cli_tests_lib import (
+    f_test_config,
+    mock,
+    config as mock_config,
+    fixture,
+)
 from copr_cli import main
 
 def _main(args, capsys):
@@ -50,7 +53,7 @@ class TestDistGitMethodBuild(object):
     }
 
     @staticmethod
-    @pytest.yield_fixture
+    @fixture
     def f_patch_create_from_distgit(f_test_config, capsys):
         with mock.patch("copr.v3.proxies.build.BuildProxy.create_from_distgit") as patch:
             patch.return_value = [Munch({
@@ -102,7 +105,7 @@ class TestDistGitMethodPackage(object):
     success_stdout = "Create or edit operation was successful.\n"
 
     @staticmethod
-    @pytest.yield_fixture
+    @fixture
     def f_patch_package_distgit(f_test_config, capsys):
         with mock.patch("copr.v3.proxies.package.PackageProxy.add") as p1:
             with mock.patch("copr.v3.proxies.package.PackageProxy.edit") as p2:

@@ -17,7 +17,7 @@ except ImportError:
      import mock
      builtins = '__builtin__'
 
-@pytest.yield_fixture
+@pytest.fixture
 def f_mock_calls():
     p_popen = mock.patch('copr_rpmbuild.builders.mock.GentlyTimeoutedPopen')
 

@@ -23,49 +23,49 @@ from copr_dist_git.helpers import distgit_cmd_path
 MODULE_REF = 'copr_dist_git.package_import'
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_os_setgid():
     with mock.patch("{}.os.setgid".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_subprocess_check_output():
     with mock.patch("{}.subprocess.check_output".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_helpers():
     with mock.patch("{}.helpers".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_shutil():
     with mock.patch("{}.shutil".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_sync_branch():
     with mock.patch("{}.sync_branch".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_refresh_cgit_listing():
     with mock.patch("{}.refresh_cgit_listing".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_setup_git_repo():
     with mock.patch("{}.setup_git_repo".format(MODULE_REF)) as handle:
         yield handle
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def mc_pyrpkg_commands():
     with mock.patch("{}.Commands".format(MODULE_REF)) as handle:
         yield handle
