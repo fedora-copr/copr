@@ -2,7 +2,7 @@
 
 : ${dummy_version="$(date +"%Y%m%d_%H%M")"}
 
-spec=qiuck-package.spec
+spec=quick-package.spec
 tarball=tarball.tar.gz
 
 cat > "$spec" <<EOF
