@@ -223,7 +223,8 @@ def import_package(opts, namespace, branches, srpm_path, pkg_name):
 
         try:
             if not branch_commits:
-                upload_files = commands.import_srpm(srpm_path)
+                upload_files = commands.import_srpm(
+                    srpm_path, check_specfile_matches_repo_name=False)
                 # in case of importing, the content of directory in `reponame`
                 # changes. To update the state of `Commands` class isn't an easy
                 # process - look how much logic pyrpkg.cli.cliClient.load_cmd has
