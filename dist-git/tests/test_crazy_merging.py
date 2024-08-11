@@ -127,7 +127,7 @@ def get_srpm(version):
     assert 0 == os.system("""set -e
     mkdir -p srpm_dir && cd srpm_dir
     export dummy_version={version}
-    {script_dir}/generate_qiuck_package
+    {script_dir}/generate_quick_package
     """.format(script_dir=scriptdir(), version=version))
 
     srpm_path = os.path.join(os.getcwd(), 'srpm_dir',
