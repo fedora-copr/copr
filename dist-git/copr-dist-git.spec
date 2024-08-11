@@ -1,4 +1,4 @@
-%global copr_common_version 0.20.1.dev1
+%global copr_common_version 0.25.1~~dev0
 
 Name:       copr-dist-git
 Version:    0.70
@@ -22,7 +22,6 @@ BuildRequires: python3-requests
 BuildRequires: python3-rpkg >= 1.67-1
 BuildRequires: python3-pytest
 BuildRequires: python3-copr-common >= %copr_common_version
-BuildRequires: python3-oslo-concurrency
 BuildRequires: python3-redis
 BuildRequires: python3-setproctitle
 
@@ -37,7 +36,6 @@ Requires: python3-copr-common >= %copr_common_version
 Requires: python3-requests
 Requires: python3-rpkg >= 1.66-6
 Requires: python3-munch
-Requires: python3-oslo-concurrency
 Requires: python3-setproctitle
 Requires: python3-daemon
 Requires: python3-redis

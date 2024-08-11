@@ -2,35 +2,16 @@ import os
 import sys
 import logging
 import subprocess
-import munch
+from configparser import ConfigParser
 
-from oslo_concurrency import lockutils
-from setproctitle import getproctitle, setproctitle
-from copr_common.request import SafeRequest, RequestError
+import munch
 from munch import Munch
+from copr_common.request import SafeRequest, RequestError
 from .exceptions import FileDownloadException, RunCommandException
 
-from contextlib import contextmanager
-from configparser import ConfigParser
 
 log = logging.getLogger(__name__)
 LOCK_PATH = "/var/lock/copr-dist-git"
-
-
-@contextmanager
-def lock(name):
-    """
-    Create a lock file that can be accessed only by one thread at the time.
-    A practical use-case for this is to lock a repository so multiple versions
-    of the same package cannot be imported in paralel.
-    """
-    title = getproctitle()
-    setproctitle("{0} [locking]".format(title))
-    with lockutils.lock(name=name, external=True, lock_path=LOCK_PATH,
-                        fair=True, delay=0):
-        setproctitle("{0} [locked]".format(title))
-        yield
-    setproctitle(title)
 
 
 def _get_conf(cp, section, option, default, mode=None):

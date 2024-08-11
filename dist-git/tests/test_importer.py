@@ -5,6 +5,7 @@ import json
 
 import os
 import copy
+from tempfile import TemporaryDirectory
 import pytest
 
 from munch import Munch
@@ -111,8 +112,10 @@ class TestImporter(Base):
             reponame='foo',
             branch_commits={self.BRANCH: '123', self.BRANCH2: '124'}
         )
-        self.importer.post_back_safe = MagicMock()
-        self.importer.do_import(self.url_task)
+        with TemporaryDirectory(prefix="copr-dist-git-test-") as tmp:
+            mc_helpers.LOCK_PATH = tmp
+            self.importer.post_back_safe = MagicMock()
+            self.importer.do_import(self.url_task)
 
         assert mc_import_package.call_args[0][0] == self.opts
         assert mc_import_package.call_args[0][1] == self.url_task.repo_namespace

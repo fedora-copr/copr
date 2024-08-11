@@ -6,7 +6,7 @@
 %global tests_version 5
 %global tests_tar test-data-copr-backend
 
-%global copr_common_version 0.24.1~~dev0
+%global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
 Version:    1.177
@@ -41,7 +41,6 @@ BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-daemon
 BuildRequires: python3-dateutil
 BuildRequires: python3-distro
-BuildRequires: python3-filelock
 BuildRequires: python3-gobject
 BuildRequires: python3-httpretty
 BuildRequires: python3-humanize
@@ -81,7 +80,6 @@ Recommends: python3-copr-messaging
 Requires:   python3-daemon
 Requires:   python3-dateutil
 Recommends: python3-fedmsg
-Requires:   python3-filelock
 Requires:   python3-gobject
 Requires:   python3-humanize
 Requires:   python3-jinja2

@@ -8,6 +8,7 @@ import shutil
 from requests import get, post
 
 from copr_common.worker_manager import WorkerManager
+from copr_common.lock import lock
 
 from .package_import import import_package
 from .process_pool import Worker, Pool, SingleThreadWorker
@@ -82,8 +83,7 @@ class Importer(object):
             )
 
             repo = os.path.join(self.opts.lookaside_location, task.reponame)
-            lockfile = os.path.join(repo, "import.lock")
-            with helpers.lock(lockfile):
+            with lock(repo, lockdir=helpers.LOCK_PATH, timeout=-1, log=log):
                 result.update(import_package(
                     self.opts,
                     task.repo_namespace,

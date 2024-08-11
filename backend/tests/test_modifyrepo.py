@@ -47,7 +47,8 @@ def _lock(directory="non-existent"):
     opts.log = logging.getLogger()
     opts.directory = directory
     lock = filedict['lock']
-    with lock(opts):
+    lockdir = os.environ.get("COPR_TESTSUITE_LOCKPATH")
+    with lock(opts.directory, lockdir=lockdir, timeout=-1, log=opts.log):
         yield opts
 
 class TestModifyRepo(object):
