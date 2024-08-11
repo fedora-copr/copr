@@ -254,11 +254,11 @@ class TestProjectForking(CoprsTestCase):
                        "/results/user1/foocopr/fedora-18-x86_64/",
             "priority": None,
         }
-        build_config = bcl.generate_build_config(self.c1, "fedora-18-x86_64")
+        build_config = bcl.generate_build_config(self.c1.main_dir, "fedora-18-x86_64")
         assert build_config["repos"] == [main_repo]
 
         self.c1.repos = "copr://non/existing"
-        build_config = bcl.generate_build_config(self.c1, "fedora-18-x86_64")
+        build_config = bcl.generate_build_config(self.c1.main_dir, "fedora-18-x86_64")
 
         # We put the link there, even though baseurl points to 404.  The build
         # will later fail on downloading the repository and user will be

@@ -37,7 +37,8 @@ def to_dict(build_chroot):
 
 
 def build_config(build_chroot):
-    config = BuildConfigLogic.generate_build_config(build_chroot.build.copr, build_chroot.name)
+    config = BuildConfigLogic.generate_build_config(
+        build_chroot.build.copr_dir, build_chroot.name)
     copr_chroot = CoprChrootsLogic.get_by_name_or_none(build_chroot.build.copr, build_chroot.name)
     dict_data = {
         "repos": config.get("repos"),
