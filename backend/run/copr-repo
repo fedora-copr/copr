@@ -10,7 +10,6 @@ mess up everything around.
 """
 
 import argparse
-import contextlib
 import datetime
 import logging
 import os
@@ -19,8 +18,7 @@ import shutil
 import subprocess
 import sys
 
-import filelock
-
+from copr_common.lock import lock, LockTimeout
 from copr_backend.constants import CHROOTS_USING_SQLITE_REPODATA
 from copr_backend.createrepo import BatchedCreaterepo
 from copr_backend.helpers import (
@@ -313,24 +311,6 @@ def assert_new_createrepo():
     assert b'--recycle-pkglist' in out
 
 
-class LockTimeout(OSError):
-    """ Raised for lock() timeout, if timeout= option is set to value >= 0 """
-
-@contextlib.contextmanager
-def lock(opts, timeout=-1):
-    lock_path = os.environ.get('COPR_TESTSUITE_LOCKPATH', "/var/lock/copr-backend")
-    lock_basename = opts.directory.replace("/", "_@_") + '.lock'
-    lock_filename = os.path.join(lock_path, lock_basename)
-    opts.log.debug("acquiring lock")
-    try:
-        with filelock.FileLock(lock_filename, timeout=timeout):
-            opts.log.debug("acquired lock")
-            yield
-    except filelock.Timeout as err:
-        opts.log.debug("lock timeouted")
-        raise LockTimeout("Timeouted on lock file: {}".format(lock_path)) from err
-
-
 def main_locked(opts, batch, log):
     """
     Main method, executed under lock.
@@ -411,7 +391,9 @@ def main_try_lock(opts, batch):
             return
 
         try:
-            with lock(opts, timeout=5):
+            lockdir = os.environ.get(
+                "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
+            with lock(opts.directory, lockdir=lockdir, timeout=5, log=opts.log):
                 main_locked(opts, batch, opts.log)
                 # skip commit if main_locked() raises exception
                 batch.commit()

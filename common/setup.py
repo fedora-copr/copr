@@ -18,9 +18,15 @@ __author_email__ = "dturecek@redhat.com"
 __url__ = "https://github.com/fedora-copr/copr"
 
 
+requires = [
+    "filelock",
+    "setproctitle",
+]
+
+
 setup(
     name='copr-common',
-    version="0.25",
+    version="0.25.1.dev0",
     description=__description__,
     long_description=long_description,
     author=__author__,
@@ -30,6 +36,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     ],
+    install_requires=requires,
     packages=['copr_common'],
     include_package_data=True,
     zip_safe=False
