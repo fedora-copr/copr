@@ -19,7 +19,7 @@ BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-munch
 BuildRequires: python3-requests
-BuildRequires: python3-rpkg >= 1.66-6
+BuildRequires: python3-rpkg >= 1.67-1
 BuildRequires: python3-pytest
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-oslo-concurrency
