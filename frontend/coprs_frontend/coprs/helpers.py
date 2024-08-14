@@ -8,7 +8,6 @@ import string
 import json
 import posixpath
 import re
-import time
 from os.path import normpath
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 

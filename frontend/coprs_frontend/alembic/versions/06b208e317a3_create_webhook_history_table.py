@@ -7,7 +7,6 @@ Create Date: 2024-07-24 22:04:51.810724
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
 
 
 # revision identifiers, used by Alembic.
@@ -22,7 +21,7 @@ def upgrade():
                    sa.Column("id", sa.Integer()),
                    sa.Column("timestamp", sa.DateTime(timezone=True),
                              nullable=False, server_default=sa.func.now()),
-                   sa.Column("webhook_uuid", UUID(as_uuid=True), nullable=True),
+                   sa.Column("webhook_uuid", sa.Text(), nullable=True),
                    sa.Column("user_agent",sa.Text(), nullable=True),
                    sa.PrimaryKeyConstraint("id")
     )
