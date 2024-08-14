@@ -23,7 +23,6 @@ from sqlalchemy import outerjoin, text, DateTime
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, validates
 from sqlalchemy.event import listens_for
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from libravatar import libravatar_url
 
@@ -1573,13 +1572,15 @@ class Build(db.Model, helpers.Serializer):
         for bch in self.build_chroots:
             bch.backend_enqueue()
 
+
 class WebhookHistory(db.Model):
     '''Represents a Webhook UUID & a build initiated by it.'''
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(DateTime(timezone=True), server_default=func.now())
     # Null values are possible via custom webhook implementation that do not pass a UUID or User Agent.
     user_agent = db.Column(db.Text,nullable=True)
-    webhook_uuid = db.Column(UUID(as_uuid=True), nullable=True)
+    webhook_uuid = db.Column(db.Text, nullable=True)
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """

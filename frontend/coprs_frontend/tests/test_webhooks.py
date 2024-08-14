@@ -123,7 +123,11 @@ class TestGithubWebhook(CoprsTestCase):
                        "subdirectory": "", "committish": "", "spec": "",
                        "srpm_build_method": "rpkg"}
         self.pHook.source_json = json.dumps(source_json)
-        headers = {'X-GitHub-Event': 'push'}
+        headers = {
+            'X-GitHub-Event': 'push',
+            'X-GitHub-Delivery': 'foo-bar-baz-qux',
+            'User-Agent': 'test client',
+        }
         self.pHook.webhook_rebuild = True
         hook_payload = {
             "ref": "refs/heads/master",
@@ -146,6 +150,11 @@ class TestGithubWebhook(CoprsTestCase):
         assert r.data.decode('ascii') == 'OK'
         assert r.status_code == 200
         assert len(package.builds) == 1
+
+        history = self.models.WebhookHistory.query.all()
+        assert len(history) == 1
+        assert history[0].user_agent == "test client"
+        assert history[0].webhook_uuid == "foo-bar-baz-qux"
 
     def test_bad_uuid(self, f_hook_package, f_db):
         r = self.github_post(
@@ -188,7 +197,11 @@ class TestGitlabWebhook(CoprsTestCase):
                        "subdirectory": "", "committish": "", "spec": "",
                        "srpm_build_method": "rpkg"}
         self.pHook.source_json = json.dumps(source_json)
-        headers = {'X-Gitlab-Event': 'Push Hook'}
+        headers = {
+            'X-Gitlab-Event': 'Push Hook',
+            'X-Gitlab-Webhook-UUID': 'foo-bar-baz-qux',
+            'User-Agent': 'test client',
+        }
         self.pHook.webhook_rebuild = True
         hook_payload = {
             "object_kind": "push",
@@ -210,6 +223,11 @@ class TestGitlabWebhook(CoprsTestCase):
         assert r.data.decode('ascii') == 'OK'
         assert r.status_code == 200
         assert len(package.builds) == 1
+
+        history = self.models.WebhookHistory.query.all()
+        assert len(history) == 1
+        assert history[0].user_agent == "test client"
+        assert history[0].webhook_uuid == "foo-bar-baz-qux"
 
     def test_bad_uuid(self, f_hook_package, f_db):
         r = self.gitlab_post(
@@ -252,7 +270,11 @@ class TestBitbucketWebhook(CoprsTestCase):
                        "subdirectory": "", "committish": "", "spec": "",
                        "srpm_build_method": "rpkg"}
         self.pHook.source_json = json.dumps(source_json)
-        headers = {'X-Event-Key': 'repo:push'}
+        headers = {
+            'X-Event-Key': 'repo:push',
+            'X-Hook-UUID': 'foo-bar-baz-qux',
+            'User-Agent': 'test client',
+        }
         self.pHook.webhook_rebuild = True
         hook_payload = {
             "object_kind": "push",
@@ -294,6 +316,11 @@ class TestBitbucketWebhook(CoprsTestCase):
         assert r.data.decode('ascii') == 'OK'
         assert r.status_code == 200
         assert len(package.builds) == 1
+
+        history = self.models.WebhookHistory.query.all()
+        assert len(history) == 1
+        assert history[0].user_agent == "test client"
+        assert history[0].webhook_uuid == "foo-bar-baz-qux"
 
     def test_bad_uuid(self, f_hook_package, f_db):
         r = self.bitbucket_post(

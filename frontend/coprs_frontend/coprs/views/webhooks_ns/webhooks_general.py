@@ -1,3 +1,7 @@
+import logging
+import os
+import tempfile
+import shutil
 from typing import Optional
 
 import flask
@@ -20,10 +24,6 @@ from coprs.exceptions import (
 
 from coprs.views.webhooks_ns import webhooks_ns
 
-import logging
-import os
-import tempfile
-import shutil
 
 log = logging.getLogger(__name__)
 
@@ -80,7 +80,9 @@ def package_name_required(route):
 
     return decorated_function
 
-def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initiated_via_hook=None):
+
+def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
+                               builds_initiated_via_hook=None):
     """
     This methods adds info of an intercepted webhook to webhook_history db
     along with the initiated build number(s).
@@ -96,6 +98,7 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set', builds_initia
 
     for build in builds_initiated_via_hook:
         build.webhook_history_id = webhookRecord.id
+
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/<string:pkg_name>/", methods=["POST"])
@@ -134,9 +137,10 @@ def webhooks_bitbucket_push(copr_id, uuid, pkg_name: Optional[str] = None):
     builds_initiated_via_webhook = []
     for package in packages:
         build = BuildsLogic.rebuild_package(package, {'committish': committish},
-                                    submitted_by=actor)
+                                            submitted_by=actor)
         builds_initiated_via_webhook.append(build)
-    add_webhook_history_record(webhook_uuid,user_agent,builds_initiated_via_webhook)
+    add_webhook_history_record(webhook_uuid, user_agent,
+                               builds_initiated_via_webhook)
 
     db.session.commit()
 
@@ -188,10 +192,11 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     builds_initiated_via_webhook = []
     for package in packages:
         build = BuildsLogic.rebuild_package(package, {'committish': committish},
-                                    submitted_by=sender)
+                                            submitted_by=sender)
         builds_initiated_via_webhook.append(build)
 
-    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
+    add_webhook_history_record(webhook_uuid, user_agent,
+                               builds_initiated_via_webhook)
     db.session.commit()
 
     return "OK", 200
@@ -243,9 +248,10 @@ def webhooks_gitlab_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
     builds_initiated_via_webhook = []
     for package in packages:
         build = BuildsLogic.rebuild_package(package, {'committish': committish},
-                                    submitted_by=submitter)
-        builds_initiated_via_webhook.append(build.id)
-    add_webhook_history_record(webhook_uuid, user_agent, builds_initiated_via_webhook)
+                                            submitted_by=submitter)
+        builds_initiated_via_webhook.append(build)
+    add_webhook_history_record(webhook_uuid, user_agent,
+                               builds_initiated_via_webhook)
 
     db.session.commit()
 
