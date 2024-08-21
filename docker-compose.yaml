@@ -8,6 +8,7 @@
 #   5001:5001 -- DistGit Apache
 #   5002:5002 -- Backend Nginx
 #     --:5003 -- Keygen Apache (obtaining keys)
+#   5005:5000 -- Resalloc WebUI
 #
 # Other ports:
 #   5009:5432 -- PostgreSQL database
@@ -62,9 +63,24 @@ services:
     hostname: resalloc
     depends_on:
       - database
-    command: /usr/bin/resalloc-server
     stdin_open: true
     tty: true
+    volumes:
+      - resalloc:/persistent
+
+  resalloc-webui:
+    build:
+      context: docker/resalloc
+    hostname: resalloc-webui
+    depends_on:
+      - resalloc
+    command: python3 -c "from resallocwebui.app import app; app.run(host='0.0.0.0')"
+    stdin_open: true
+    tty: true
+    ports:
+      - "5005:5000"
+    volumes:
+      - resalloc:/persistent
 
   redis:
     image: centos/redis-32-centos7
@@ -172,3 +188,4 @@ volumes:
   dist-git:
   database:
   redis:
+  resalloc:

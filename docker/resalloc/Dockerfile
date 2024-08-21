@@ -12,6 +12,7 @@ RUN dnf install -y ansible \
                    resalloc \
                    resalloc-aws \
                    resalloc-server \
+                   resalloc-webui \
                    sqlite \
                    findutils \
                    openssh-clients \
@@ -20,5 +21,6 @@ RUN dnf install -y ansible \
 # copy filesystem setup
 COPY files/ /
 
-RUN cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) \
-    && alembic-3 upgrade head
+CMD cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) \
+    && alembic-3 upgrade head \
+    && /usr/bin/resalloc-server
