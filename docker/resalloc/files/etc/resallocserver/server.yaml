@@ -7,7 +7,7 @@
 #db_url: 'postgresql://resalloc@/resalloc'
 #For PostgreSQL listening on host/port, using password.
 #db_url: 'postgresql://resalloc:pass@localhost:5432/resalloc'
-db_url: 'sqlite:////var/lib/resallocserver/db.sqlite'
+db_url: 'sqlite:////persistent/db.sqlite'
 
 logdir: '/var/log/resallocserver'
 
