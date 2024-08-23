@@ -44,6 +44,7 @@ import commands.chroots_template
 import commands.warning_banner
 import commands.usage_treemap
 import commands.failed_to_succeeded_stats
+import commands.change_storage
 
 from coprs import app
 
@@ -98,6 +99,7 @@ commands_list =	[
     "warning_banner",
     "usage_treemap",
     "failed_to_succeeded_stats",
+    "change_storage",
 ]
 
 
