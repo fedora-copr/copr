@@ -138,7 +138,7 @@ class ActionsLogic(object):
             if priority is not None:
                 action.priority = priority
             db.session.add(action)
-
+        return action
 
     @classmethod
     def send_delete_copr(cls, copr):
