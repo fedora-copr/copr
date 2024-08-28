@@ -10,6 +10,7 @@ import argparse
 import time
 import datetime
 import shutil
+import pipes
 
 from copr_common.log import setup_script_logger
 from copr_common.tree import walk_limited
