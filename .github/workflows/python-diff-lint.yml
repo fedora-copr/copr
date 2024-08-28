@@ -31,6 +31,9 @@ jobs:
             releng
             rpmbuild
             selinux
+          linter_tags: |
+            pylint
+            ruff
 
       - name: Upload artifact with detected defects in SARIF format
         uses: actions/upload-artifact@v4
