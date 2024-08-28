@@ -161,18 +161,8 @@ class PulpStorage(Storage):
                     continue
 
                 path = os.path.join(root, name)
-                response = self.client.upload_artifact(path)
-                if not response.ok:
-                    self.log.error("Failed to upload %s to Pulp", path)
-                    continue
-
-                artifact = response.json()["pulp_href"]
-                relative_path = os.path.join(
-                    self.owner, self.project, target_dir_name)
-
                 repository = self._get_repository(chroot)
-                response = self.client.create_content(
-                    repository, artifact, relative_path)
+                response = self.client.create_content(repository, path)
 
                 if not response.ok:
                     self.log.error("Failed to create Pulp content for: %s, %s",
