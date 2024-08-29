@@ -130,6 +130,18 @@ class BuildsLogic(object):
         return result
 
     @classmethod
+    def get_users_by_time(cls, start, end):
+        """ Returns number of user that submitted at least one build in
+            the period.
+        """
+        result = db.session.query(models.Build.user_id)\
+            .join(models.BuildChroot)\
+            .filter(models.BuildChroot.ended_on > start)\
+            .filter(models.BuildChroot.started_on < end)\
+            .group_by(models.Build.user_id).count()
+        return result
+
+    @classmethod
     def get_chroot_histogram(cls, start, end):
         chroots = []
         chroot_query = BuildChroot.query\
@@ -149,6 +161,7 @@ class BuildsLogic(object):
                 if l[0] == mock_chroot.id:
                     l[0] = mock_chroot.name
         return chroots
+
 
     @classmethod
     def get_pending_jobs_bucket(cls, start, end):
