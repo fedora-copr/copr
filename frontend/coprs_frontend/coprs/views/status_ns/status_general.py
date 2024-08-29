@@ -165,6 +165,7 @@ def stats():
     curr_time = int(time())
     chroots_24h = builds_logic.BuildsLogic.get_chroot_histogram(curr_time - 86400, curr_time)
     chroots_90d = builds_logic.BuildsLogic.get_chroot_histogram(curr_time - 90*86400, curr_time)
+    users_in_past_month = builds_logic.BuildsLogic.get_users_by_time(curr_time - 30*86400, curr_time)
     data_24h = builds_logic.BuildsLogic.get_task_graph_data('10min')
     data_90d = builds_logic.BuildsLogic.get_task_graph_data('24h')
     actions_24h = builds_logic.ActionsLogic.get_action_graph_data('10min')
@@ -173,6 +174,7 @@ def stats():
     return flask.render_template("status/stats.html",
                                  data1=data_24h,
                                  data2=data_90d,
+                                 users_in_past_month=users_in_past_month,
                                  chroots1=chroots_24h,
                                  chroots2=chroots_90d,
                                  actions1=actions_24h,
