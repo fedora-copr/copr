@@ -28,9 +28,7 @@ Source0:    %name-%version.tar.gz
 BuildRequires: %{python}-copr-common >= %copr_common_version
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
-%if 0%{?rhel} == 0 || 0%{?rhel} != 6
 BuildRequires: %{python}-httmock
-%endif
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
 BuildRequires: dist-git-client

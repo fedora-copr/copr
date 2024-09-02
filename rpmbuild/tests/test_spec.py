@@ -1,22 +1,15 @@
 import configparser
-
 import os
-import distro
-import pytest
 
-try:
-    from httmock import urlmatch, HTTMock
-
-    @urlmatch(netloc=r'(.*\.)?example\.com$')
-    def example_com_match(url, request):
-        return 'some-content'
-
-except:
-    pass
-
+from httmock import urlmatch, HTTMock
 
 from copr_rpmbuild.providers.spec import UrlProvider
 from . import TestCase
+
+@urlmatch(netloc=r'(.*\.)?example\.com$')
+def example_com_match(url, request):
+    return 'some-content'
+
 
 try:
      from unittest import mock
@@ -79,9 +72,6 @@ class TestUrlProviderQueryString(TestCase):
     def auto_test_cleanup(self):
         self.cleanup_basic_dirs()
 
-    @pytest.mark.skipif(distro.id() in ['rhel', 'centos'] and
-                            distro.major_version() == '6',
-                        reason='on httmock on rhel6')
     def test_srpm_query_string(self):
         with HTTMock(example_com_match):
             provider = UrlProvider(self.json_1, self.config)
@@ -93,9 +83,6 @@ class TestUrlProviderQueryString(TestCase):
             with open(file, 'r') as f:
                 assert f.read() == 'some-content'
 
-    @pytest.mark.skipif(distro.id() in ['rhel', 'centos'] and
-                            distro.major_version() == '6',
-                        reason='on httmock on rhel6')
     def test_spec_query_string(self):
         with HTTMock(example_com_match):
             provider = UrlProvider(self.json_2, self.config)
