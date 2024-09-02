@@ -91,7 +91,7 @@ Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
 Requires: dist-git-client
 
-%if 0%{?fedora}
+%if 0%{?fedora} && 0%{?fedora} < 41
 # replacement for yum/yum-utils, to be able to work with el* chroots
 # bootstrap_container.
 Requires: dnf-yum
