@@ -164,6 +164,16 @@ class PulpClient:
             return requests.post(
                 url, data=data, files=files, **self.request_params)
 
+    def delete_content(self, repository, artifacts):
+        """
+        Delete a list of artifacts from a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        path = os.path.join(repository, "modify/")
+        url = self.config["base_url"] + path
+        data = {"remove_content_units": artifacts}
+        return requests.post(url, json=data, **self.request_params)
+
     def delete_repository(self, repository):
         """
         Delete an RPM repository
@@ -190,7 +200,16 @@ class PulpClient:
             response = self.get_task(task)
             if not response.ok:
                 break
-            if response.json()["state"] != "waiting":
+            if response.json()["state"] not in ["waiting", "running"]:
                 break
             time.sleep(5)
         return response
+
+    def list_distributions(self, prefix):
+        """
+        Get a list of distributions whose names match a given prefix
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_list
+        """
+        url = self.url("api/v3/distributions/rpm/rpm/?")
+        url += urlencode({"name__startswith": prefix})
+        return requests.get(url, **self.request_params)

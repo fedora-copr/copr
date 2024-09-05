@@ -145,6 +145,7 @@ class ActionsLogic(object):
         data_dict = {
             "ownername": copr.owner_name,
             "project_dirnames": [copr_dir.name for copr_dir in copr.dirs],
+            "storage": copr.storage,
         }
         action = models.Action(action_type=ActionTypeEnum("delete"),
                                object_type="copr",
@@ -190,6 +191,8 @@ class ActionsLogic(object):
                 build.copr_dirname if build.copr_dir else build.copr_name,
             "chroot_builddirs": cls.get_chroot_builddirs(build),
             "appstream": build.appstream,
+            "devel": build.copr.devel_mode,
+            "storage": build.copr.storage,
         }
 
     @classmethod
@@ -216,7 +219,12 @@ class ActionsLogic(object):
         :type build: list of models.Build
         """
         project_dirnames = {}
-        data = {'project_dirnames': project_dirnames}
+        data = {
+            "project_dirnames": project_dirnames,
+            # We can pick any random build because the assumption is, they are
+            # all from the same project
+            "storage": builds[0].copr.storage if builds else None,
+        }
 
         build_ids = []
         for build in builds:
