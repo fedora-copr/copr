@@ -201,6 +201,10 @@ class Config(object):
     ROLLING_CHROOTS_INACTIVITY_WARNING = 180
     ROLLING_CHROOTS_INACTIVITY_REMOVAL = 180
 
+    # What storage should be set for new projects.
+    # Possible options are "backend" and "pulp"
+    DEFAULT_STORAGE = "backend"
+
 
 class ProductionConfig(Config):
     DEBUG = False

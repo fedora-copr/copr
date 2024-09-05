@@ -17,7 +17,12 @@ from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum, ActionPriorityEnum
+from copr_common.enums import (
+    ActionTypeEnum,
+    BackendResultEnum,
+    ActionPriorityEnum,
+    StorageEnum,
+)
 from coprs import app, db
 from coprs import exceptions
 from coprs import helpers
@@ -310,6 +315,7 @@ class CoprsLogic(object):
                            isolation=isolation,
                            follow_fedora_branching=follow_fedora_branching,
                            appstream=appstream,
+                           storage=StorageEnum(app.config["DEFAULT_STORAGE"]),
                            **kwargs)
 
 
