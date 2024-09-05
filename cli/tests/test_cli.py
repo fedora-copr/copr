@@ -480,6 +480,7 @@ def test_create_project(config_from_file, project_proxy_add, capsys):
         "runtime_dependencies": None,
         "packit_forge_projects_allowed": None,
         "repo_priority": None,
+        "storage": None,
     }
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
@@ -577,6 +578,7 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
         "runtime_dependencies": None,
         "packit_forge_projects_allowed": None,
         "repo_priority": None,
+        "storage": None,
     }
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 

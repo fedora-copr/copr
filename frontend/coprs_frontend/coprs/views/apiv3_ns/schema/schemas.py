@@ -477,6 +477,13 @@ class _ProjectGetAddFields:
         description="Build and project is immune against deletion",
     )
     additional_repos: List = fields.additional_repos
+    storage: String = String(
+        description=(
+            "Admin only - what storage should be used for this project. "
+            "Possible values are 'backend' or 'pulp'."
+        ),
+    )
+
 
 
 @dataclass
