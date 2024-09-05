@@ -29,7 +29,7 @@ class CustomProvider(Provider):
         self.inner_resultdir = source_json.get('resultdir')
         self.builddeps = source_json.get('builddeps')
         self.repos = self.task.get('repos')
-        self.timeout = source_json.get("timeout", 3600)
+        self.timeout = source_json.get("timeout", 60 * 90)
 
         if 'hook_data' in source_json:
             self.hook_payload_url = "{server}/tmp/{tmp}/hook_payload".format(
