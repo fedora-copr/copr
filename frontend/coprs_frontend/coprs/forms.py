@@ -676,6 +676,12 @@ class CoprForm(BaseForm):
         default=None,
     )
 
+    storage = wtforms.SelectField(
+        "Admin only - what storage should be used for this project",
+        choices=[(x, x) for x in ["backend", "pulp"]],
+        validators=[wtforms.validators.Optional()],
+    )
+
     @property
     def errors(self):
         """

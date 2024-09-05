@@ -262,6 +262,7 @@ class ProjectAdd(Resource):
                     form.packit_forge_projects_allowed
                 ),
                 repo_priority=form.repo_priority.data,
+                storage=form.storage.data,
             )
             db.session.commit()
         except (

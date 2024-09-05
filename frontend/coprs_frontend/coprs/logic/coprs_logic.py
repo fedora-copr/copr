@@ -287,7 +287,7 @@ class CoprsLogic(object):
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
             auto_prune=True, bootstrap=None, follow_fedora_branching=False, isolation=None,
-            appstream=False, **kwargs):
+            appstream=False, storage=None, **kwargs):
 
         if not flask.g.user.admin and flask.g.user != user:
             msg = ("You were authorized as '{0}' user without permissions to access "
@@ -299,6 +299,10 @@ class CoprsLogic(object):
 
         if not flask.g.user.admin and not auto_prune:
             raise exceptions.NonAdminCannotDisableAutoPrunning()
+
+        if not flask.g.user.admin and storage:
+            raise exceptions.AccessRestricted("Non-admin cannot set storage")
+        storage = StorageEnum(storage or app.config["DEFAULT_STORAGE"])
 
         # form validation checks for duplicates
         cls.new(user, name, group, check_for_duplicates=check_for_duplicates)
@@ -315,7 +319,7 @@ class CoprsLogic(object):
                            isolation=isolation,
                            follow_fedora_branching=follow_fedora_branching,
                            appstream=appstream,
-                           storage=StorageEnum(app.config["DEFAULT_STORAGE"]),
+                           storage=storage,
                            **kwargs)
 
 

@@ -72,7 +72,7 @@ class ProjectProxy(BaseProxy):
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=True,
             fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None,
-            repo_priority=None, exist_ok=False):
+            repo_priority=None, exist_ok=False, storage=None):
         """
         Create a project
 
@@ -110,6 +110,7 @@ class ProjectProxy(BaseProxy):
             enabled together with this project repository.
         :param list packit_forge_projects_allowed: List of forge projects that
             will be allowed to build in the project via Packit
+        :param str storage: Admin only - What storage should be used for this project
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -142,6 +143,7 @@ class ProjectProxy(BaseProxy):
             "runtime_dependencies": runtime_dependencies,
             "packit_forge_projects_allowed": packit_forge_projects_allowed,
             "repo_priority": repo_priority,
+            "storage": storage,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

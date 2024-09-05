@@ -485,6 +485,7 @@ class Commands(object):
             runtime_dependencies=args.runtime_dependencies,
             packit_forge_projects_allowed=args.packit_forge_projects_allowed,
             repo_priority=args.repo_priority,
+            storage=args.storage,
         )
 
         owner_part = username.replace('@', "g/")
@@ -1191,6 +1192,13 @@ def setup_parser():
         "--repo-priority", default=None,
         help=("Use the priority=<INT> config option for repositories in this "
               "project, see man dnf.conf(5) for more info."))
+
+    parser_create.add_argument(
+        "--storage",
+        choices=["backend", "pulp"],
+        help=("What storage should be used for this project. "
+              "This option can only be specified by a COPR admin.")
+    )
 
     create_and_modify_common_opts(parser_create)
 
