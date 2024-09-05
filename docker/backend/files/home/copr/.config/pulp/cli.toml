@@ -1,0 +1,13 @@
+[cli]
+base_url = "http://pulp:80"
+api_root = "/pulp/"
+domain = "default"
+username = "admin"
+password = "admin"
+cert = ""
+key = ""
+verify_ssl = true
+format = "json"
+dry_run = false
+timeout = 0
+verbose = 0

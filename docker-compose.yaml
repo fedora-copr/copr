@@ -182,6 +182,22 @@ services:
       - .:/opt/copr:z
       - copr-keygen:/var/lib/copr-keygen:z
 
+  pulp:
+    image: ghcr.io/pulp/pulp:latest
+    hostname: pulp
+    stdin_open: true
+    tty: true
+    environment:
+      - PULP_DEFAULT_ADMIN_PASSWORD=admin
+    ports:
+      - 5006:80
+    volumes:
+      - pulp-storage:/var/lib/pulp:Z
+      - pulp-database:/var/lib/pgsql
+    devices:
+      - /dev/fuse:/dev/fuse
+
+
 volumes:
   results:
   copr-keygen:
@@ -189,3 +205,5 @@ volumes:
   database:
   redis:
   resalloc:
+  pulp-storage:
+  pulp-database:
