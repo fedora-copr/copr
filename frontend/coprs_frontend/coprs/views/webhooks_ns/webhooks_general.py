@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+import time
 import shutil
 from typing import Optional
 
@@ -91,7 +92,8 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
         log.debug("No build initiated. Webhook not logged to db.")
         return
 
-    webhookRecord = models.WebhookHistory(webhook_uuid=webhook_uuid,
+    webhookRecord = models.WebhookHistory(created_on=int(time.time()),
+                                          webhook_uuid=webhook_uuid,
                                           user_agent=user_agent)
     db.session.add(webhookRecord)
     db.session.commit()

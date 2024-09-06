@@ -32,6 +32,7 @@ from coprs.exceptions import ObjectNotFound, BadRequest, CoprHttpException
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
+from coprs.logic.webhooks_logic import WebhooksLogic
 from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
 
 from coprs.logic.complex_logic import ComplexLogic, ReposLogic
@@ -470,10 +471,12 @@ def render_copr_integrations(copr, pagure_form):
           copr.webhook_secret,
     ) + "<PACKAGE_NAME>/"
 
+    webhook_history = WebhooksLogic.get_all_webhooks(copr)
+
     return flask.render_template(
         "coprs/detail/settings/integrations.html",
         copr=copr, bitbucket_url=bitbucket_url, github_url=github_url,
-        gitlab_url=gitlab_url, custom_url=custom_url,
+        gitlab_url=gitlab_url, custom_url=custom_url, webhook_history=webhook_history,
         custom_dir_url=custom_dir_url, pagure_form=pagure_form)
 
 

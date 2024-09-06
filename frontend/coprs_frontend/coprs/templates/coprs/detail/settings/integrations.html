@@ -1,6 +1,6 @@
 {% extends "coprs/detail/settings.html" %}
 
-{% from "_helpers.html" import render_field, render_form_errors, copr_url %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, initialize_datatables %}
 
 {% set selected_monitor_tab = "integrations" %}
 {%block settings_breadcrumb %}Integrations{% endblock %}
@@ -66,6 +66,31 @@
         </div>
         <div class="well well-sm">
             {{ custom_dir_url }}
+        </div>
+
+        <h3>Webhook History</h3>
+        <div>
+            {% if webhook_history %}
+            <table class="datatable dataTable table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Timstamp</th>
+                    <th>Webhook ID</th>
+                    <th>User Agent</th>
+                  </tr>
+                </thead>
+                {% for webhook in webhook_history %}
+                <tr>
+                    <td  class="webhook_timestamp" data-toggle="tooltip" title="{{webhook.created_on|localized_time(g.user.timezone)}}">{{webhook.created_on|localized_time(g.user.timezone)}} ({{webhook.created_on|time_ago()}})</td>
+                    <td>{{webhook.webhook_uuid}} </td>
+                    <td>{{webhook.user_agent}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+                <p>No webhook received recently.</p>
+            {% endif %}
+            {{initialize_datatables(order="desc")}}
         </div>
     </div>
 </div>
