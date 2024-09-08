@@ -3,6 +3,7 @@ Pulp doesn't provide an API client, we are implementing it for ourselves
 """
 
 import os
+import time
 import tomllib
 from urllib.parse import urlencode
 import requests
@@ -178,3 +179,18 @@ class PulpClient:
         """
         url = self.config["base_url"] + distribution
         return requests.delete(url, **self.request_params)
+
+    def wait_for_finished_task(self, task):
+        """
+        Pulp task (e.g. creating a publication) can be running for an
+        unpredictably long time. We need to wait until it is finished to know
+        what it actually did.
+        """
+        while True:
+            response = self.get_task(task)
+            if not response.ok:
+                break
+            if response.json()["state"] != "waiting":
+                break
+            time.sleep(5)
+        return response

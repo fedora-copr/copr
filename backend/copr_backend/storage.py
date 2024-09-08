@@ -180,7 +180,7 @@ class PulpStorage(Storage):
             return False
 
         task = response.json()["task"]
-        response = self.client.get_task(task)
+        response = self.client.wait_for_finished_task(task)
         if not response.ok:
             self.log.error("Failed to get Pulp task %s because of %s",
                            task, response.text)
