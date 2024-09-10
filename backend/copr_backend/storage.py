@@ -8,6 +8,7 @@ import shutil
 from copr_common.enums import StorageEnum
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name
 from copr_backend.pulp import PulpClient
+from copr_backend.exceptions import CoprBackendError
 
 
 def storage_for_job(job, opts, log):
@@ -231,7 +232,10 @@ class PulpStorage(Storage):
                 # creating the `pulp.json` file
                 task = response.json()["task"]
                 response = self.client.wait_for_finished_task(task)
-                created = response.json()["created_resources"]
+                created = response.json().get("created_resources")
+                if not created:
+                    raise CoprBackendError(
+                        "Pulp task {0} didn't create any resources".format(task))
                 resources.extend(created)
 
                 self.log.info("Uploaded to Pulp: %s", path)
@@ -257,7 +261,12 @@ class PulpStorage(Storage):
                            task, response.text)
             return False
 
-        publication = response.json()["created_resources"][0]
+        resources = response.json()["created_resources"]
+        if not resources:
+            raise CoprBackendError(
+                "Pulp task {0} didn't create any resources".format(task))
+
+        publication = resources[0]
         distribution_name = self._distribution_name(chroot)
         distribution = self._get_distribution(chroot)
 
