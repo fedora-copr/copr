@@ -190,17 +190,20 @@ class PulpClient:
         url = self.config["base_url"] + distribution
         return requests.delete(url, **self.request_params)
 
-    def wait_for_finished_task(self, task):
+    def wait_for_finished_task(self, task, timeout=86400):
         """
         Pulp task (e.g. creating a publication) can be running for an
         unpredictably long time. We need to wait until it is finished to know
         what it actually did.
         """
+        start = time.time()
         while True:
             response = self.get_task(task)
             if not response.ok:
                 break
             if response.json()["state"] not in ["waiting", "running"]:
+                break
+            if time.time() > start + timeout:
                 break
             time.sleep(5)
         return response
