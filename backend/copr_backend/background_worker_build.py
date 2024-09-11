@@ -696,12 +696,6 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         :param pkg: path to the source package
 
         """
-
-        # Ideally, we would like to have this decision in our storage classes
-        if self.job.storage == StorageEnum.pulp:
-            self.log.info("Not going to sign pkgs, Pulp will take care of that")
-            return
-
         self.log.info("Going to sign pkgs from source: %s in chroot: %s",
                       self.job.task_id, self.job.chroot_dir)
 
@@ -1019,12 +1013,12 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         # raise error if build failed
         try:
-            self._upload_results_to_storage()
             self._check_build_success()
             # Build _succeeded_.  Do the tasks for successful run.
             failed = False
             if self.opts.do_sign:
                 self._sign_built_packages()
+            self._upload_results_to_storage()
             self._do_createrepo()
             self._parse_results()
             build_details = self._get_build_details(self.job)
