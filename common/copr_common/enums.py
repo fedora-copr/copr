@@ -1,8 +1,6 @@
 import random
 import string
 
-from six import with_metaclass
-
 # We don't know how to define the enums without `class`.
 # pylint: disable=too-few-public-methods
 
@@ -22,7 +20,7 @@ class EnumType(type):
         return cls._wrap(attr)
 
 
-class ActionTypeEnum(with_metaclass(EnumType, object)):
+class ActionTypeEnum(metaclass=EnumType):
     vals = {
         "delete": 0,
         "rename": 1,
@@ -39,7 +37,7 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
     }
 
 
-class ActionResult(with_metaclass(EnumType, object)):
+class ActionResult(metaclass=EnumType):
     vals = {
         'WAITING': 0,
         'SUCCESS': 1,
@@ -47,7 +45,7 @@ class ActionResult(with_metaclass(EnumType, object)):
     }
 
 
-class DefaultActionPriorityEnum(with_metaclass(EnumType, object)):
+class DefaultActionPriorityEnum(metaclass=EnumType):
     """
     The higher the 'priority' is, the later the task is taken.
     Keep actions priority in range -100 to 100
@@ -64,7 +62,7 @@ class DefaultActionPriorityEnum(with_metaclass(EnumType, object)):
     }
 
 
-class ActionPriorityEnum(with_metaclass(EnumType, object)):
+class ActionPriorityEnum(metaclass=EnumType):
     """
     Naming/assigning the values is a little bit tricky because
     how the current implementation works (i.e. it is inverted).
@@ -74,15 +72,15 @@ class ActionPriorityEnum(with_metaclass(EnumType, object)):
     vals = {"highest": -99, "lowest": 99}
 
 
-class BackendResultEnum(with_metaclass(EnumType, object)):
+class BackendResultEnum(metaclass=EnumType):
     vals = {"waiting": 0, "success": 1, "failure": 2}
 
 
-class RoleEnum(with_metaclass(EnumType, object)):
+class RoleEnum(metaclass=EnumType):
     vals = {"user": 0, "admin": 1}
 
 
-class StatusEnum(with_metaclass(EnumType, object)):
+class StatusEnum(metaclass=EnumType):
     vals = {
         "failed": 0,     # build failed
         "succeeded": 1,  # build succeeded
@@ -111,7 +109,7 @@ class ModuleStatusEnum(StatusEnum):
                                   "failed", "succeeded", "waiting", "unknown"])
 
 
-class BuildSourceEnum(with_metaclass(EnumType, object)):
+class BuildSourceEnum(metaclass=EnumType):
     vals = {"unset": 0,
             "link": 1,  # url
             "upload": 2,  # pkg, tmp, url
@@ -123,7 +121,7 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
            }
 
 
-class FailTypeEnum(with_metaclass(EnumType, object)):
+class FailTypeEnum(metaclass=EnumType):
     vals = {"unset": 0,
             # General errors mixed with errors for SRPM URL/upload:
             "unknown_error": 1,
@@ -139,7 +137,7 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
            }
 
 
-class StorageEnum(with_metaclass(EnumType, object)):
+class StorageEnum(metaclass=EnumType):
     """
     Supported storages
     """
