@@ -21,7 +21,9 @@ U1_DATA = {'dependencies': [],
            'fedora-21': {'arch': _ARCH },
            'fedora-22': {'arch': _ARCH },
            'fedora-23': {'arch': _ARCH }},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': ('http://copr-be-dev.cloud.fedoraproject.org/results/'
+                'user1/foocopr/pubkey.gpg')}
 
 
 U2_DATA = {'delete_after_days': 179,
@@ -40,14 +42,18 @@ U2_DATA = {'delete_after_days': 179,
  'repos': {'fedora-18': {'arch': {'x86_64': {'delete_after_days': 9,
                                              'opts': {}}}},
            'fedora-rawhide': {'arch': {'i386': {'opts': {}}}}},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': ('http://copr-be-dev.cloud.fedoraproject.org/results/'
+                'user2/barcopr/pubkey.gpg')}
 
 
 DIRS = {'dependencies': [],
  'directories': {'test': {}, 'test:pr:1123': {'delete_after_days': 39}},
  'repos': {'fedora-17': {'arch': {'i386': {'opts': {}},
                                   'x86_64': {'opts': {}}}}},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': ('http://copr-be-dev.cloud.fedoraproject.org/results/'
+                'user1/test/pubkey.gpg')}
 
 
 class TestApiRPMRepo(CoprsTestCase):

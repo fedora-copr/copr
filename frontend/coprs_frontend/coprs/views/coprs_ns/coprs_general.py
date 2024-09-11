@@ -21,6 +21,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+from copr_common.enums import StorageEnum
 from coprs import app
 from coprs import cache
 from coprs import db
@@ -864,14 +865,15 @@ def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_de
         copr_dir.copr, copr_dir.name, multilib=arch,
         dep_idx=runtime_dep, dependent=dependent)
 
+    pulp = copr_dir.copr.storage == StorageEnum.pulp
     url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url, arch)
-    pubkey_url = urljoin(url, "pubkey.gpg")
-
+    pubkey_url = copr_dir.copr.pubkey_url
     return flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir,
                                  url=repo_url, pubkey_url=pubkey_url,
                                  repo_id=repo_id, arch=arch, cost=cost,
-                                 name=name, repo_priority=copr_dir.copr.repo_priority)
+                                 name=name, pulp=pulp,
+                                 repo_priority=copr_dir.copr.repo_priority)
 
 
 def _render_external_repo_template(dep, copr_dir, mock_chroot, dep_idx):

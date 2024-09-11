@@ -662,13 +662,35 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def repo_url(self):
-        return "/".join([app.config["BACKEND_BASE_URL"],
-                         u"results",
-                         self.full_name])
+        """
+        URL for a project repository
+        """
+        return "/".join([self.results_url, self.full_name])
 
     @property
     def repo_id(self):
         return "-".join([self.owner_name.replace("@", "group_"), self.name])
+
+    @property
+    def pubkey_url(self):
+        """
+        URL for the project public GPG key
+        """
+        return "/".join([
+            app.config["BACKEND_BASE_URL"],
+            "results",
+            self.full_name,
+            "pubkey.gpg",
+        ])
+
+    @property
+    def results_url(self):
+        """
+        URL for the project results directory
+        """
+        if self.storage == StorageEnum.pulp:
+            return app.config["PULP_CONTENT_URL"]
+        return "/".join([app.config["BACKEND_BASE_URL"], "results"])
 
     @property
     def modules_url(self):
@@ -848,8 +870,10 @@ class CoprDir(db.Model):
 
     @property
     def repo_url(self):
-        return "/".join([app.config["BACKEND_BASE_URL"],
-                         u"results", self.full_name])
+        """
+        URL for a CoprDir repository
+        """
+        return "/".join([self.copr.results_url, self.full_name])
 
     @property
     def repo_id(self):
