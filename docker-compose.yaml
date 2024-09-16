@@ -14,6 +14,17 @@
 #   5009:5432 -- PostgreSQL database
 
 version: '3'
+
+# this should be dolved by python3-daemon >= 3.0.0
+# https://bugzilla.redhat.com/show_bug.cgi?id=2307635
+x-ulimits: &ulimits_settings
+  ulimits:
+    nproc: 65535
+    nofile:
+      soft: 32767
+      hard: 65535
+
+
 services:
 
   # @TODO Probably not all backend services should use the same Dockerfile
@@ -30,6 +41,7 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+    <<: *ulimits_settings
 
   backend-build:
     build:
@@ -43,6 +55,7 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+    <<: *ulimits_settings
 
   backend-action:
     build:
@@ -56,6 +69,7 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+    <<: *ulimits_settings
 
   resalloc:
     build:
@@ -147,6 +161,7 @@ services:
     volumes:
       - .:/opt/copr:z
       - dist-git:/var/lib/dist-git:z
+    <<: *ulimits_settings
 
   distgit-httpd:
     build:
@@ -160,6 +175,7 @@ services:
       - .:/opt/copr:z
       - dist-git:/var/lib/dist-git:z
     command: /usr/sbin/httpd -DFOREGROUND
+    <<: *ulimits_settings
 
   keygen-signd:
     build:
