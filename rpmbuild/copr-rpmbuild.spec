@@ -40,6 +40,7 @@ BuildRequires: %{python}-requests
 BuildRequires: %{python_pfx}-jinja2
 BuildRequires: %{python_pfx}-specfile >= 0.21.0
 BuildRequires: python3-backoff >= 1.9.0
+BuildRequires: python3-pyyaml
 
 BuildRequires: /usr/bin/argparse-manpage
 BuildRequires: python-rpm-macros
@@ -57,6 +58,7 @@ Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-specfile >= 0.21.0
 Requires: python3-backoff >= 1.9.0
+Requires: python3-pyyaml
 
 Requires: mock >= 5.0
 Requires: git
@@ -213,6 +215,7 @@ install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 install -m 644 mock-source-build.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/
 install -m 644 mock-custom-build.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/
+install -m 644 copr-rpmbuild.yml %{buildroot}%{_sysconfdir}/copr-rpmbuild/copr-rpmbuild.yml
 
 cat <<EOF > %buildroot%mock_config_overrides/README
 Contents of this directory is used by %_bindir/copr-update-builder script.
@@ -264,6 +267,7 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock-source-build.cfg.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock-custom-build.cfg.j2
+%config(noreplace) %{_sysconfdir}/copr-rpmbuild/copr-rpmbuild.yml
 
 %files -n copr-builder
 %license LICENSE

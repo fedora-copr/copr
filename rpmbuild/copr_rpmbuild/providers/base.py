@@ -8,7 +8,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from copr_common.request import SafeRequest
 from copr_rpmbuild.helpers import CONF_DIRS
-from copr_rpmbuild.helpers import run_cmd
+from copr_rpmbuild.helpers import run_cmd, mock_snippet_for_tags
+from copr_rpmbuild.config import Config
 
 
 log = logging.getLogger("__main__")
@@ -50,6 +51,16 @@ class Provider(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+
+        self.copr_rpmbuild_config = Config()
+        self.copr_rpmbuild_config.load_config()
+
+        # Mock snippets to render in the mock config
+        self.mock_snippet = ""
+        if self.task is not None:
+            self.mock_snippet = mock_snippet_for_tags(
+                self.copr_rpmbuild_config.tags_to_mock_snippet, self.task.get("tags")
+            )
 
         # Change home directory to workdir and create .rpmmacros there
         os.environ["HOME"] = self.workdir
@@ -130,7 +141,7 @@ class Provider(object):
         """
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template(template_name)
-        return template.render(macros=self.macros)
+        return template.render(macros=self.macros, mock_snippet=self.mock_snippet)
 
     def produce_srpm(self):
         """
