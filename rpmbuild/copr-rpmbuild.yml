@@ -1,0 +1,14 @@
+---
+# Configure special mock configuration snippets per given set of tags.
+# tags_to_mock_snippet:
+#   - tagset:
+#       - on_demand_powerful
+#       - arch_x86_64
+#     snippet: config_opts['plugin_conf']['tmpfs_opts']['max_fs_size'] = '280g'
+#   - tagset:
+#       - on_demand_powerful
+#       - something
+#     snippet: |
+#       cute
+#       multiline
+#       snippet

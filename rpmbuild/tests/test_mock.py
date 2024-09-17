@@ -147,6 +147,9 @@ config_opts.setdefault('plugin_conf', {})
 config_opts['plugin_conf'].setdefault('tmpfs_opts', {})
 config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
 
+# Custom mock snippets configured in copr-crpmbuild config file - can be empty
+
+
 
 config_opts['chroot_additional_packages'] = 'pkg1 pkg2 pkg3'
 
@@ -163,6 +166,30 @@ config_opts['macros']['%dist'] = '%nil'
 config_opts['macros']['%_disable_source_fetch'] = '0'
 
 """  # TODO: make the output nicer
+
+    @mock.patch("copr_rpmbuild.builders.mock.subprocess.call")
+    # pylint: disable-next=unused-argument, redefined-outer-name
+    def test_mock_config_hp_fs_size(self, call, f_mock_calls):
+        """ test that fs_size for performance builders is correctly set """
+        self.task["tags"] = ["blabla_tag", "on_demand_powerful", "aarch64"]
+        builder = MockBuilder(
+            self.task, self.sourcedir, self.resultdir, self.config
+        )
+        mock_snippet = "config_opts['plugin_conf']['tmpfs_opts']['max_fs_size'] = '280g'"
+        builder.copr_rpmbuild_config.tags_to_mock_snippet = [
+            {
+                'tagset': ['on_demand_powerful', "aarch64"],
+                'snippet': mock_snippet,
+            },
+        ]
+        builder.run()
+
+        with open(self.child_config, "r", encoding="utf-8") as f:
+            config = f.readlines()
+
+        config = ''.join(config)
+        assert mock_snippet in config
+
 
     @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.prepare_configs")
     @mock.patch("copr_rpmbuild.builders.mock.MockBuilder.archive_configs")

@@ -6,12 +6,14 @@ import shutil
 import subprocess
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import (
+from copr_rpmbuild.config import Config
+from copr_rpmbuild.helpers import (
     locate_spec,
     CONF_DIRS,
     get_mock_uniqueext,
     GentlyTimeoutedPopen,
     macros_for_task,
+    mock_snippet_for_tags,
 )
 
 log = logging.getLogger("__main__")
@@ -42,6 +44,10 @@ class MockBuilder(object):
         self.macros = macros_for_task(task, config)
         self.uniqueext = get_mock_uniqueext()
         self.allow_user_ssh = task.get("allow_user_ssh")
+        self.tags = task.get("tags", [])
+
+        self.copr_rpmbuild_config = Config()
+        self.copr_rpmbuild_config.load_config()
 
     def run(self):
         open(self.logfile, 'w').close() # truncate logfile
@@ -82,6 +88,9 @@ class MockBuilder(object):
             copr_build_id=self.build_id,
             isolation=self.isolation,
             macros=self.macros,
+            mock_snippet=mock_snippet_for_tags(
+                self.copr_rpmbuild_config.tags_to_mock_snippet, self.tags
+            ),
         )
 
     def produce_srpm(self, spec, sources, resultdir):

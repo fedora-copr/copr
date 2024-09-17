@@ -469,3 +469,20 @@ def package_version(name):
             return pkg_resources.require(name)[0].version
         except pkg_resources.DistributionNotFound:
             return "git"
+
+
+def mock_snippet_for_tags(tags_to_mock_snippet, tags):
+    """
+    Return mock snippets as string separated by newlines for a given
+    list of tags.
+    """
+    if not tags or not tags_to_mock_snippet:
+        return ""
+
+    tags_set = set(tags)
+    snippets = []
+    for item in tags_to_mock_snippet:
+        if set(item["tagset"]).issubset(tags_set):
+            snippets.append(item["snippet"])
+
+    return "\n".join(snippets)

@@ -16,6 +16,9 @@ config_opts["root"] = "copr-custom-" + config_opts["root"]
 # /bin/mock calls (when tmpfs_enable is on).
 config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True
 
+# Custom mock snippets configured in copr-crpmbuild config file - can be empty
+{{ mock_snippet }}
+
 {%- for key, value in macros.items() %}
 config_opts['macros']['{{ key }}'] = '{{ value }}'
 {%- endfor %}

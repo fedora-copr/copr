@@ -51,6 +51,7 @@ class CustomProvider(Provider):
             chroot=self.chroot,
             repos=self.repos,
             macros=self.macros,
+            mock_snippet=self.mock_snippet,
         )
 
     def produce_srpm(self):
