@@ -3,14 +3,15 @@
 mkfile_path:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 CONTAINER_NAME ?= test-env
+CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
 
 build:
-	docker build -t test-env-image .
+	$(CONTAINER_ENGINE) build -t test-env-image .
 
 bld: build
 
 run:
-	docker run \
+	$(CONTAINER_ENGINE) run \
 		-dit \
 		-v $(mkfile_path)/../..:/root/copr \
 		--name="$(CONTAINER_NAME)" \
@@ -19,14 +20,14 @@ run:
 		test-env-image
 
 sh:
-	docker exec $(CONTAINER_NAME) rm -f /run/nologin
-	docker exec -u root -it $(CONTAINER_NAME) script -qc 'bash' /dev/null
+	$(CONTAINER_ENGINE) exec $(CONTAINER_NAME) rm -f /run/nologin
+	$(CONTAINER_ENGINE) exec -u root -it $(CONTAINER_NAME) script -qc 'bash' /dev/null
 
 start:
-	docker start $(CONTAINER_NAME)
+	$(CONTAINER_ENGINE) start $(CONTAINER_NAME)
 
 stop:
-	docker stop $(CONTAINER_NAME)
+	$(CONTAINER_ENGINE) stop $(CONTAINER_NAME)
 
 del:
-	docker rm -f $(CONTAINER_NAME)
+	$(CONTAINER_ENGINE) rm -f $(CONTAINER_NAME)
