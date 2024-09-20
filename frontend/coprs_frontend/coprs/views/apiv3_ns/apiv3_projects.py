@@ -5,6 +5,7 @@ from http import HTTPStatus
 import flask
 
 from flask_restx import Namespace, Resource
+from sqlalchemy.exc import IntegrityError
 
 from coprs.views.apiv3_ns import (
     get_copr,
@@ -15,7 +16,7 @@ from coprs.views.apiv3_ns import (
     editable_copr,
 )
 from coprs.views.apiv3_ns.json2form import get_form_compatible_data, get_input_dict
-from coprs import db, models, forms, db_session_scope
+from coprs import app, db, models, forms, db_session_scope
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import rename_fields_helper, api, query_to_parameters
 from coprs.views.apiv3_ns.schema.schemas import (
@@ -228,13 +229,14 @@ class ProjectAdd(Resource):
         if form.bootstrap.data is not None:
             bootstrap = form.bootstrap.data
 
+        projectname = form.name.data.strip()
         try:
 
             def _form_field_repos(form_field):
                 return " ".join(form_field.data.split())
 
             copr = CoprsLogic.add(
-                name=form.name.data.strip(),
+                name=projectname,
                 repos=_form_field_repos(form.repos),
                 user=user,
                 selected_chroots=form.selected_chroots,
@@ -265,6 +267,16 @@ class ProjectAdd(Resource):
                 storage=form.storage.data,
             )
             db.session.commit()
+        except IntegrityError as ierr:
+            app.log.debug("Racy attempt to create %s/%s", ownername, projectname)
+            db.session.rollback()
+            if exist_ok:
+                copr = get_copr(ownername, projectname)
+                return to_dict(copr)
+            raise DuplicateException(
+                f"Copr '{ownername}/{projectname}' has not been created "
+                "(race condition)"
+            ) from ierr
         except (
             DuplicateException,
             NonAdminCannotCreatePersistentProject,
