@@ -63,7 +63,9 @@ Requires: git
 Requires: git-svn
 # for the /bin/unbuffer binary
 Requires: expect
-%if !0%{?openEuler}
+%if 0%{?openEuler} > 0 || 0%{?rhel} > 0
+# qemu-user-static is not supported
+%else
 Requires: qemu-user-static
 %endif
 Requires: sed
