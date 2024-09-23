@@ -106,7 +106,9 @@ Requires: nosync
 %endif
 Requires: openssh-clients
 Requires: podman
-%if !0%{?openEuler}
+%if 0%{?openEuler} > 0 || 0%{?rhel} > 0
+# not supported
+%else
 Requires: pyp2rpm
 Requires: pyp2spec
 Requires: rubygem-gem2rpm
