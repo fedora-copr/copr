@@ -22,7 +22,8 @@ from copr_common.helpers import script_requires_user
 
 def used_ids():
     """
-    Return a set of ticket_ids that can be found in the "ps aux" output.
+    Return a `set()` of ticket IDs currently in use by
+    `copr-backend-process-build`, based on the output of the `ps aux` command.
     """
     cmd = (
         "ps aux | "
@@ -33,7 +34,9 @@ def used_ids():
     output = output.strip()
     tickets = set()
     for ticket_id in output.split("\n"):
-        assert all(c.isdigit() for c in ticket_id)
+        if ticket_id:  # ignore empty lines
+            continue
+        assert ticket_id.isdigit()
         tickets.add(int(ticket_id))
     return tickets
 
@@ -61,11 +64,13 @@ def print_once(message):
         print(message)
         storage[message] = True
 
-
-if __name__ == "__main__":
+def _main():
     script_requires_user("resalloc")
 
     used = used_ids()
+    if not used:
+        print("no tickets used")
+        return
 
     # This is the oldest ticket that Copr Backend currently uses.
     min_used = min(used)
@@ -80,3 +85,7 @@ if __name__ == "__main__":
         else:
             print_once("These tickets are relatively new for closing blindly, double check!")
             print(f"resalloc ticket-check {unknown_id}")
+
+
+if __name__ == "__main__":
+    _main()
