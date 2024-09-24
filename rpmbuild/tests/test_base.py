@@ -18,7 +18,7 @@ class TestProvider(TestCase):
         super(TestProvider, self).setUp()
         self.source_json = {}
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_create_rpmmacros(self, mock_mkdir, mock_open):
         task = {

@@ -227,7 +227,7 @@ config_opts['macros']['%_disable_source_fetch'] = '0'
              '--scrub', 'root-cache', '--quiet'])
         assert get_mock_uniqueext_mock.call_count == 1
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         builder.touch_success_file()
