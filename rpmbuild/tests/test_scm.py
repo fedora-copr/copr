@@ -34,7 +34,7 @@ class TestScmProvider(TestCase):
             "srpm_build_method": "rpkg",
         }
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_init(self, mock_mkdir, mock_open):
         source_json = self.source_json.copy()
@@ -90,7 +90,7 @@ class TestScmProvider(TestCase):
 
         shutil.rmtree(tmpdir)
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_get_rpkg_command(self, mock_mkdir, mock_open):
         provider = ScmProvider(self.source_json, self.config)
@@ -100,7 +100,7 @@ class TestScmProvider(TestCase):
                       "--spec", provider.spec_path]
         self.assertEqual(provider.get_rpkg_command(), assert_cmd)
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_get_tito_command(self, mock_mkdir, mock_open):
         provider = ScmProvider(self.source_json, self.config)
@@ -110,7 +110,7 @@ class TestScmProvider(TestCase):
 
 
     @mock.patch("copr_rpmbuild.helpers.run_cmd")
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_get_tito_test_command(self, mock_mkdir, mock_open, run_cmd_mock):
         provider = ScmProvider(self.source_json, self.config)

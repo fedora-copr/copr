@@ -18,14 +18,14 @@ class TestRubyGemsProvider(TestCase):
         super(TestRubyGemsProvider, self).setUp()
         self.source_json = {"gem_name": "A_123"}
 
-    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_init(self, mock_mkdir, mock_open):
         provider = RubyGemsProvider(self.source_json, self.config)
         self.assertEqual(provider.gem_name, "A_123")
 
     @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
-    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd):
         provider = RubyGemsProvider(self.source_json, self.config)
@@ -35,7 +35,7 @@ class TestRubyGemsProvider(TestCase):
         run_cmd.assert_called_with(assert_cmd)
 
     @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
-    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_empty_license(self, mock_mkdir, mock_open, run_cmd):
         stderr = ("error: line 8: Empty tag: License:"

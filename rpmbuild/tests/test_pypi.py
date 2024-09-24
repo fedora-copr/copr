@@ -19,7 +19,7 @@ class TestPyPIProvider(TestCase):
                             "python_versions": [2, 3]}
         self.resultdir = "/path/to/resultdir"
 
-    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_init(self, mock_mkdir, mock_open):
        provider = PyPIProvider(self.source_json, self.config)
@@ -29,7 +29,7 @@ class TestPyPIProvider(TestCase):
        self.assertEqual(provider.python_versions, [2, 3])
 
     @mock.patch("copr_rpmbuild.providers.pypi.run_cmd")
-    @mock.patch("{0}.open".format(builtins))
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd):
         provider = PyPIProvider(self.source_json, self.config)

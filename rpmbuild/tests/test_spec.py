@@ -24,7 +24,7 @@ class TestUrlProvider(TestCase):
     def auto_test_setup(self):
         self.source_json = {"url": u"http://foo.ex/somepackage.spec"}
 
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_init(self, mock_mkdir, mock_open):
         provider = UrlProvider(self.source_json, self.config)
@@ -32,7 +32,7 @@ class TestUrlProvider(TestCase):
 
     @mock.patch('copr_common.request.SafeRequest.get')
     @mock.patch("copr_rpmbuild.providers.base.run_cmd")
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.create_rpmmacros")
     @mock.patch("copr_rpmbuild.providers.spec.UrlProvider.generate_mock_config")
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
@@ -52,7 +52,7 @@ class TestUrlProvider(TestCase):
         run_cmd.assert_called_with(args, cwd=provider.workdir)
 
     @mock.patch('copr_common.request.SafeRequest.get')
-    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
     def test_save_spec(self, mock_mkdir, mock_open, mock_get):
         provider = UrlProvider(self.source_json, self.config)
