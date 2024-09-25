@@ -416,7 +416,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         Did the resalloc ticket fail?
         """
         self.host.ticket.collect()
-        self.log.info("Failed resalloc ticket: %s", self.host.ticket.failed)
+        self.log.info("Periodic builder liveness probe: %s",
+                      "dead" if self.host.ticket.failed else "alive")
         return self.host.ticket.failed
 
     def _build_timeouted(self):
