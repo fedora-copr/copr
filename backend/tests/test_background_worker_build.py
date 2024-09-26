@@ -695,13 +695,13 @@ def test_ssh_connection_error(f_build_rpm_case, caplog):
         def __call__(self):
             self.counter += 1
             if self.counter == 1:
-                return (1, "err stdout", "err stderr")
-            return (0, "", "")
+                return (1, b"err stdout", "err stderr")
+            return (0, b"", "")
 
     config = f_build_rpm_case
     ssh = config.ssh
-    ssh.set_command("/usr/bin/test -f /etc/mock/fedora-30-x86_64.cfg",
-                    0, "", "", return_action=_SideEffect())
+    ssh.set_command("copr-builder-ready fedora-30-x86_64",
+                    0, b"", "", return_action=_SideEffect())
     worker = config.bw
     worker.process()
     assert_logs_exist([
@@ -859,8 +859,8 @@ def test_failed_build_retry(f_build_rpm_case, caplog):
         hosts[index].hostname = "1.2.3." + str(index)
     rhf.return_value.get_host.side_effect = hosts
     ssh = config.ssh
-    ssh.set_command("/usr/bin/test -f /etc/mock/fedora-30-x86_64.cfg",
-                    1, "", "not found")
+    ssh.set_command("copr-builder-ready fedora-30-x86_64",
+                    1, b"", "not found")
 
     config.bw.process()
     assert_logs_exist([
