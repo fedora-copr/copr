@@ -790,8 +790,10 @@ class BuildsLogic(object):
 
         if "timeout" in build_options:
             build.timeout = build_options["timeout"]
+        elif package and package.timeout:
+            build.timeout = package.timeout
         else:
-            build.timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
+            build.timeout = app.config["DEFAULT_BUILD_TIMEOUT"]
 
         return build
 
