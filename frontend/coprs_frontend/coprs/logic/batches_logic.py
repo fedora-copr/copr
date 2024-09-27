@@ -31,7 +31,7 @@ def _lock_table(table):
     with db.engine.connect() as connection:
         connection.execute(text("LOCK TABLE {} IN EXCLUSIVE MODE;".format(
             # https://docs.sqlalchemy.org/en/13/core/internals.html#sqlalchemy.sql.compiler.IdentifierPreparer.quote
-            db.engine.identifier_preparer.quote(table)
+            db.engine.dialect.identifier_preparer.quote(table)
         )))
 
 
