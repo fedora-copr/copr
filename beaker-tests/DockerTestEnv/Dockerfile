@@ -1,6 +1,6 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 ARG COPR_PACKAGES=devel
-MAINTAINER copr-devel@lists.fedorahosted.org
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
 ENV container docker
 
 RUN dnf -y update \
