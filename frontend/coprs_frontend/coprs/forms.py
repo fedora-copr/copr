@@ -227,10 +227,16 @@ class UrlRepoListValidator(UrlListValidator):
         #  copr://username/projectname
         #  ^^ schema ^^ netlock  ^^ path
         if parsed.scheme == "copr":
+            ownername = parsed.netloc
             # check if projectname missed
             path_split = parsed.path.split("/")
             if len(path_split) < 2 or path_split[1] == "":
                 return False
+            coprname = path_split[1]
+            try:
+                CoprsLogic.get_by_ownername_and_dirname(ownername, coprname)
+            except exceptions.ObjectNotFound as exc:
+                raise wtforms.ValidationError("{0} does not exist.".format(url)) from exc
 
         return True
 
