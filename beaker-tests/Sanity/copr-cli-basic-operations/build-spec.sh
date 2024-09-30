@@ -41,24 +41,24 @@ rlJournalStart
 
     rlPhaseStartTest
         rlRun "copr-cli create ${NAME_PREFIX}BuildSpec --enable-net on --chroot $CHROOT" 0
-        rlRun "copr-cli build ${NAME_PREFIX}BuildSpec $HERE/files/vera.spec" 0
+        rlRun "copr-cli build ${NAME_PREFIX}BuildSpec $HERE/files/enum.spec" 0
 
         # Make sure we don't upload SRPM/Spec if user tries to build into
         # a non-existing project (or project he doesn't have permissions to)
         OUTPUT=`mktemp`
-        rlRun "copr-cli build --nowait ${NAME_PREFIX}NonExisting $HERE/files/vera.spec &> $OUTPUT" 1
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}NonExisting $HERE/files/enum.spec &> $OUTPUT" 1
         rlAssertEquals "" `grep -r 'does not exist' $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
 
         # Or a non-existing and invalid CoprDir
         OUTPUT=`mktemp`
-        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec:foo $HERE/files/vera.spec &> $OUTPUT" 1
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec:foo $HERE/files/enum.spec &> $OUTPUT" 1
         rlAssertEquals "" `grep -r "Please use directory format" $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
 
         # Or a non-existing chroot
         OUTPUT=`mktemp`
-        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec --chroot foo $HERE/files/vera.spec &> $OUTPUT" 1
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}BuildSpec --chroot foo $HERE/files/enum.spec &> $OUTPUT" 1
         rlAssertEquals "" `grep -r 'not a valid choice' $OUTPUT |wc -l` 1
         rlAssertEquals "" `grep -r 'Uploading package' $OUTPUT |wc -l` 0
 
