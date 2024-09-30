@@ -41,7 +41,7 @@ rlJournalStart
 
     rlPhaseStartTest
         rlRun "copr-cli create ${NAME_PREFIX}BuildSpecNetworking --chroot $CHROOT" 0
-        rlRun -s "copr-cli build ${NAME_PREFIX}BuildSpecNetworking --enable-net on $HERE/files/vera.spec --nowait" 0
+        rlRun -s "copr-cli build ${NAME_PREFIX}BuildSpecNetworking --enable-net on $HERE/files/enum.spec --nowait" 0
         rlRun "parse_build_id"
         rlRun "copr watch-build $BUILD_ID"
         rlRun "curl $FRONTEND_URL/backend/get-build-task/$BUILD_ID-$CHROOT | jq .enable_net"
