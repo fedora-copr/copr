@@ -1,0 +1,44 @@
+#! /bin/bash
+
+# Try to run subscription-manager register repeatedly (till it succeeds),
+# without polluting environment variables or command-line options with
+# passwords/keys.
+
+if test $# -ne 2; then
+cat <<EOHELP >&2
+Usage: $0 ORG_ID SYSTEM_NAME <<<"\$password"
+
+Provide the activation_key on stdin!
+EOHELP
+exit 1
+fi
+
+opt_org_id=$1
+opt_system=$2
+
+try_indefinitely()
+{
+    cmd=( "$@" )
+    while :; do
+        if "${cmd[@]}"; then
+            break
+        fi
+        sleep 5
+    done
+}
+
+test "$(id -u)" = 0 || {
+    echo >&2 "run as root"
+    exit 1
+}
+
+test -t 0 && echo -n "RH Activation Key: "
+read -r -s opt_pass
+
+register()
+{
+    copr-builder-rhsm-subscribe --org-id "$opt_org_id" --system-name "$opt_system" <<<"$opt_pass"
+}
+
+try_indefinitely register
+touch /run/copr-builder/rhsm-subscribed
