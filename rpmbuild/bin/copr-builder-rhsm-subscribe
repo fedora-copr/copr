@@ -1,0 +1,48 @@
+#! /usr/bin/python3
+
+"""
+Run `subscription-manager register` without having the --activation key in
+/proc/self/environ or /proc/self/comm.
+"""
+
+import argparse
+import getpass
+import sys
+
+from subscription_manager.scripts.subscription_manager import main as rhsm
+
+
+def read_key():
+    """
+    Read key from stdin if not a tty.  Never export as env-var.
+    """
+    if sys.stdin.isatty():
+        key = getpass.getpass("rhsm key: ")
+    else:
+        key = sys.stdin.read()
+    return key.strip()
+
+
+def _arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--org-id", required=True)
+    parser.add_argument("--system-name", required=True)
+    return parser
+
+
+def _main():
+    opts = _arg_parser().parse_args()
+    a_key = read_key()
+    sys.argv = [
+        "subscription-manager", "register", "--force",
+        "--org", opts.org_id,
+        "--name", opts.system_name,
+        "--activationkey", a_key,
+    ]
+    # Call subscription-manager's internal method to avoid polluting the
+    # /proc/self/cmdline with the key credential!
+    rhsm()
+
+
+if __name__ == "__main__":
+    _main()
