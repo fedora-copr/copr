@@ -67,17 +67,19 @@ def print_once(message):
 def _main():
     script_requires_user("resalloc")
 
-    used = used_ids()
-    if not used:
-        print("no tickets used")
+    all_known = all_ids()
+    if not all_known:
+        print("no tickets taken")
         return
 
+    used = used_ids()
+    if not used:
+        print("no tickets used by copr-backend")
+
     # This is the oldest ticket that Copr Backend currently uses.
-    min_used = min(used)
+    min_used = min(used) if used else 0
 
-    all_known = all_ids()
     unknown = all_known - used
-
     for unknown_id in sorted(unknown):
         if unknown_id < min_used:
             print_once("These are old tickets, Copr only uses newer tickets, close them:")
