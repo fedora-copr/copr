@@ -48,7 +48,7 @@ def _tail_log(config):
 
     for fname in [pidfile, live_log]:
         if not os.path.exists(fname):
-            LOG.warning("File %s doesn't exist, yet", fname)
+            print("File {0} doesn't exist, yet".format(fname))
             return
 
     with open(pidfile, "r") as pidfd:
