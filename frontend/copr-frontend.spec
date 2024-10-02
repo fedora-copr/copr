@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.206
+Version:    2.0
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -383,6 +383,13 @@ usermod -L copr-fe
 
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
+- Show Webhook History table under Settings -> Integrations
+- Fix the 500 for racy creation attempts
+- Implement project, build, chroot deletion and creation in Pulp
+- Provide statistics on how many users submitted at least one build in past month
+- Use the same repofile for all CentOS Stream versions
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.206-1
 - Center the outage warning banner text
 - Fix unexpected output schema for deleting builds
