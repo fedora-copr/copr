@@ -9,7 +9,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    1.177
+Version:    2.0
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -238,6 +238,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
+- Implement project, build, chroot deletion and creation in Pulp
+- Fix timeout fail-safe in case copr-rpmbuild hangs up
+- Remove fake jobs and pass specific arguments to storage calls
+- Add support for Pulp
+- Improve logging for expiring user SSH builders
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.177-1
 - Multiple attempts to create repository before giving up
 - Run rawhide-to-release for all CoprDirs
