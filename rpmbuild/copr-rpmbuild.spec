@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 0.73
+Version: 1.0
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -284,6 +284,13 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
+- Specify snippets to mock config via copr-rpmbuild config file
+- Increase the custom method timeout to 90 minutes
+- Use new dist-git-client instead of copr one
+- Add diff.txt file for fedora review
+- When `copr-builder release` set timestamp 0
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.73-1
 - Remove static methods from tests
 
