@@ -9,7 +9,7 @@
 %global min_python_copr_version 1.128.1
 
 Name:       copr-cli
-Version:    1.112
+Version:    2.0
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -124,6 +124,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
+- Allow admins to set storage for new projects
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.112-1
 - Add per package timeout option
 - Remove dependency on simplejson
