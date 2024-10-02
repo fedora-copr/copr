@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    0.25.1.dev0
+Version:    1.0
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -63,6 +63,9 @@ version=%version %py3_install
 
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
+- Drop support for rhel7 and rhel6
+
 * Thu Aug 01 2024 Miroslav Suchý <msuchy@redhat.com> 0.25-1
 - frontend, backend, common: don't limit the storage to pulp only
 
