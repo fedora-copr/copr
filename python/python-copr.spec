@@ -7,7 +7,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.132
+Version:    2.0
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -229,6 +229,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
+- Allow admins to set storage for new projects
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 1.132-1
 - Discourage from deleting objects while paginating over them
 - Suggest pagination only when a GET request timeouts
