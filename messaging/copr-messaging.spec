@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    0.11
+Version:    1.0
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -86,6 +86,10 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
+- Set chroot message severity to DEBUG
+- One-line descriptions should be the summary
+
 * Fri Mar 01 2024 Pavel Raiskup <praiskup@redhat.com> 0.11-1
 - handle namespaced usernames
 - set the agent_name and usernames properties
