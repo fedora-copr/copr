@@ -268,7 +268,7 @@ class ProjectAdd(Resource):
             )
             db.session.commit()
         except IntegrityError as ierr:
-            app.log.debug("Racy attempt to create %s/%s", ownername, projectname)
+            app.logger.debug("Racy attempt to create %s/%s", ownername, projectname)
             db.session.rollback()
             if exist_ok:
                 copr = get_copr(ownername, projectname)
