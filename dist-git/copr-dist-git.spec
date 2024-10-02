@@ -1,7 +1,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-dist-git
-Version:    0.70
+Version:    1.0
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -137,6 +137,9 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 
 %changelog
+* Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
+- Don't check that specfile matches the repository name
+
 * Tue May 21 2024 Jakub Kadlcik <frostyx@email.cz> 0.70-1
 - Don't expect remove_unused_sources is in /usr/bin
 - Drop unused lookaside-cache cleanup scripts
