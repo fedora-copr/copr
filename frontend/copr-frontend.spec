@@ -46,7 +46,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.0
+Version:    2.1
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -383,6 +383,9 @@ usermod -L copr-fe
 
 
 %changelog
+* Thu Oct 03 2024 Pavel Raiskup <praiskup@redhat.com> 2.1-1
+- bugfix Packit 500, attempt no. 2
+
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
 - Show Webhook History table under Settings -> Integrations
 - Fix the 500 for racy creation attempts
