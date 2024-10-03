@@ -34,7 +34,7 @@ Requires: /usr/bin/crudini
 Requires: dist-git >= 1.12
 Requires: python3-copr-common >= %copr_common_version
 Requires: python3-requests
-Requires: python3-rpkg >= 1.66-6
+Requires: python3-rpkg >= 1.67-4
 Requires: python3-munch
 Requires: python3-setproctitle
 Requires: python3-daemon
