@@ -1,0 +1,56 @@
+.. _release_notes_2024_10_03:
+
+Highlights from 2024-10-03 release
+==================================
+
+Enhancements
+------------
+
+- Dist git client moved from Copr to DistGit `PR#3299`_.
+- Jakub started to adding support for Pulp in Copr. We are slowly adding more
+  features to it. Tracking epic issue is `Issue#2533`_.
+- Copr has a nice view of webhook history for each project. You can see what
+  webhooks were sent and from where. You can find those data under
+  `Settings` -> `Integrations`. This feature was implemented as response to
+  Jakub's `blogpost`_ about contriobuting to Copr project. `PR#3342`_ and `PR#3407`_
+- New statistics page was added to see how many users submitted at least one
+  build in the last 30 days. It is available at
+  https://copr.fedorainfracloud.org/status/stats/. `PR#3401`_.
+- Copr rpmbuild has newly a configuration file `/etc/copr/copr-rpmbuild.yml`
+  where you can set snippets for mock configuration. `PR#3408`_.
+
+
+Bugfixes
+--------
+
+- Add missing diff.txt file for fedora-review tool `PR#3304`_
+- Fixing the 500 error - race condition when creating a new project multiple
+  times `PR#3415`_.
+- Do not depend on `yum` for Fedora 41 and later inside copr-rpmbuild `PR#3395`_.
+- Support python 3.14 version `PR#3363`_.
+- Fail-safe source build timeout added in case copr-rpmbuild is stuck `PR#3361`_.
+- Fix URL redirect for centos-stream `PR#3341`_.
+
+
+Warnings/Future changes
+-----------------------
+
+- Custom method timeout was increased from 60 minutes to 90 minutes `PR#3404`_.
+- Drop support for rhel-6 and rhel-7 `PR#3350`_.
+
+
+.. _PR#3299: https://github.com/fedora-copr/copr/pull/3299
+.. _PR#3304: https://github.com/fedora-copr/copr/pull/3304
+.. _Issue#2533: https://github.com/fedora-copr/copr/issues/2533
+.. _PR#3342: https://github.com/fedora-copr/copr/pull/3342
+.. _PR#3407: https://github.com/fedora-copr/copr/pull/3407
+.. _PR#3401: https://github.com/fedora-copr/copr/pull/3401
+.. _PR#3404: https://github.com/fedora-copr/copr/pull/3404
+.. _PR#3408: https://github.com/fedora-copr/copr/pull/3408
+.. _PR#3415: https://github.com/fedora-copr/copr/pull/3415
+.. _PR#3395: https://github.com/fedora-copr/copr/pull/3395
+.. _PR#3363: https://github.com/fedora-copr/copr/pull/3363
+.. _PR#3350: https://github.com/fedora-copr/copr/pull/3350
+.. _PR#3361: https://github.com/fedora-copr/copr/pull/3361
+.. _PR#3341: https://github.com/fedora-copr/copr/pull/3341
+.. _blogpost: https://frostyx.cz/posts/do-you-want-to-contribute-to-copr
