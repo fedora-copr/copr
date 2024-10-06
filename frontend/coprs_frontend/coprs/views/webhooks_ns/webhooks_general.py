@@ -82,7 +82,7 @@ def package_name_required(route):
     return decorated_function
 
 
-def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
+def add_webhook_history_record(webhook_uuid, user_agent=None,
                                builds_initiated_via_hook=None):
     """
     This methods adds info of an intercepted webhook to webhook_history db
@@ -92,14 +92,16 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
         log.debug("No build initiated. Webhook not logged to db.")
         return
 
-    webhookRecord = models.WebhookHistory(created_on=int(time.time()),
+    webhook_record = models.WebhookHistory(created_on=int(time.time()),
                                           webhook_uuid=webhook_uuid,
                                           user_agent=user_agent)
-    db.session.add(webhookRecord)
-    db.session.commit()
+    db.session.add(webhook_record)
+
+    if not isinstance(builds_initiated_via_hook, list):
+        builds_initiated_via_hook = [builds_initiated_via_hook]
 
     for build in builds_initiated_via_hook:
-        build.webhook_history_id = webhookRecord.id
+        build.webhook_history = webhook_record
 
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
@@ -346,6 +348,9 @@ def custom_build_submit(copr, package, copr_dir=None):
         log.exception('can not submit build from webhook')
         storage.delete()
         return "BUILD_REQUEST_ERROR\n", 500
+
+    user_agent = flask.request.headers.get('User-Agent')
+    add_webhook_history_record(None, user_agent, build)
 
     # Return the build ID, so (e.g.) the CI process (e.g. Travis job) knows
     # what build results to wait for.
