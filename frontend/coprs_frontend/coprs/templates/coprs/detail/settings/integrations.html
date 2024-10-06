@@ -75,15 +75,21 @@
                 <thead>
                   <tr>
                     <th>Timstamp</th>
-                    <th>Webhook ID</th>
+                    <th>Forge-generated Webhook UUID</th>
                     <th>User Agent</th>
                   </tr>
                 </thead>
                 {% for webhook in webhook_history %}
                 <tr>
-                    <td  class="webhook_timestamp" data-toggle="tooltip" title="{{webhook.created_on|localized_time(g.user.timezone)}}">{{webhook.created_on|localized_time(g.user.timezone)}} ({{webhook.created_on|time_ago()}})</td>
-                    <td>{{webhook.webhook_uuid}} </td>
-                    <td>{{webhook.user_agent}}</td>
+                    <td  class="webhook_timestamp" data-toggle="tooltip" title="{{webhook.created_on|localized_time(g.user.timezone)}}">{{webhook.created_on|localized_time(g.user.timezone)}} ({{webhook.created_on|time_ago()}} ago)</td>
+                    <td>{% if webhook.webhook_uuid is none %} No UUID received
+                        {% else %}{{ webhook.webhook_uuid }}
+                        {% endif %}
+                   </td>
+                    <td>{% if webhook.user_agent is none %} Not Set 
+                        {% else %} {{webhook.user_agent}}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
