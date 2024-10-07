@@ -13,7 +13,7 @@ bld: build
 run:
 	$(CONTAINER_ENGINE) run \
 		-dit \
-		-v $(mkfile_path)/../..:/root/copr \
+		-v $(mkfile_path)/../..:/root/copr:z \
 		--name="$(CONTAINER_NAME)" \
 		-h $(CONTAINER_NAME) \
 		-w /root/ \
