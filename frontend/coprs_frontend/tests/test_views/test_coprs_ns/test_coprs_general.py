@@ -13,7 +13,7 @@ from sqlalchemy import desc, and_
 from copr_common.enums import ActionTypeEnum, ActionPriorityEnum, StorageEnum
 from coprs import app, cache, models
 
-from coprs.helpers import generate_repo_name
+from coprs.repos import generate_repo_name
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
