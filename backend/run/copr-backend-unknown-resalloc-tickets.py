@@ -20,6 +20,7 @@ from resallocserver.logic import QTickets
 
 from copr_common.helpers import script_requires_user
 
+
 def used_ids():
     """
     Return a `set()` of ticket IDs currently in use by
@@ -34,7 +35,8 @@ def used_ids():
     output = output.strip()
     tickets = set()
     for ticket_id in output.split("\n"):
-        if ticket_id:  # ignore empty lines
+        ticket_id = ticket_id.strip()
+        if not ticket_id:  # ignore empty lines
             continue
         assert ticket_id.isdigit()
         tickets.add(int(ticket_id))
@@ -63,6 +65,7 @@ def print_once(message):
     if message not in storage:
         print(message)
         storage[message] = True
+
 
 def _main():
     script_requires_user("resalloc")

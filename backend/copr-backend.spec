@@ -59,6 +59,7 @@ BuildRequires: python3-zstandard
 BuildRequires: python3-cachetools
 BuildRequires: modulemd-tools >= 0.6
 BuildRequires: prunerepo >= %prunerepo_version
+BuildRequires: resalloc-server
 BuildRequires: dnf
 
 Requires:   (copr-selinux if selinux-policy-targeted)
