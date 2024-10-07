@@ -5,7 +5,7 @@ Library for testing copr-backend
 import json
 import os
 import shutil
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from copr_backend.background_worker_build import COMMANDS
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError, DEFAULT_SUBPROCESS_TIMEOUT
@@ -262,3 +262,37 @@ class AsyncCreaterepoRequestFactory:
         self.redis.hset(key, "task", task_json)
         if done:
             self.redis.hset(key, "status", "success")
+
+
+def patch_path(method, directory):
+    directory = os.path.realpath(directory)
+
+    def _wrapper(*args, **kwargs):
+        with patch.dict(os.environ, {'PATH': directory + ":" + os.environ['PATH']}):
+            method(*args, **kwargs)
+
+    return _wrapper
+
+
+def patch_path_run(method):
+    """ Add the /backend/run/ directory on PATH """
+    runpath = os.path.join(__file__, "..", "..", "..", "run")
+    return patch_path(method, runpath)
+
+
+def patch_path_fake_executables(fake_subdir):
+    runpath = os.path.join(__file__, "..", "..", "fake_executables", fake_subdir)
+
+    def _decorator(func):
+        return patch_path(func, runpath)
+
+    return _decorator
+
+
+def patch_getpwuid(username):
+    def _decorator(func):
+        def _wrapper(*args, **kwargs):
+            with patch('copr_common.helpers.pwd.getpwuid', return_value=(username,)):
+                return func(*args, **kwargs)
+        return _wrapper
+    return _decorator
