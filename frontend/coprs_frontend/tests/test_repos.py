@@ -1,5 +1,6 @@
 from copy import deepcopy
 from unittest import mock
+import pytest
 from coprs import app
 from coprs.repos import (
     generate_repo_url,
@@ -7,6 +8,7 @@ from coprs.repos import (
     parse_repo_params,
 )
 from tests.coprs_test_case import CoprsTestCase
+from copr_common.enums import StorageEnum
 
 
 class TestRepos(CoprsTestCase):
@@ -83,6 +85,26 @@ class TestRepos(CoprsTestCase):
         with app.app_context():
             for url, exp in test_cases:
                 assert pre_process_repo_url("fedora-rawhide-x86_64", url) == exp
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_pr_dir", "f_db")
+    def test_pre_process_repo_url_coprdir(self):
+        """
+        Test that we generate correct URLs for CoprDirs. We use Pulp storage to
+        easily test this but this but that it only an implementation detail.
+        """
+        app.config["BACKEND_BASE_URL"] = "http://backend"
+        app.config["PULP_CONTENT_URL"] = "http://pulp"
+
+        # We set the storage to Pulp, therefore the fallback for constructing
+        # the repository URL won't be accurate anymore.
+        self.c1.storage = StorageEnum.pulp
+        self.db.session.add_all([self.c1, self.c4_dir])
+        self.db.session.commit()
+
+        assert self.c1.dirs[1].full_name == "user1/foocopr:PR"
+        url = "copr://user1/foocopr:PR"
+        expected = "http://pulp/user1/foocopr:PR/fedora-rawhide-x86_64/"
+        assert pre_process_repo_url("fedora-rawhide-x86_64", url) == expected
 
     def test_parse_repo_params(self):
         test_cases = [
