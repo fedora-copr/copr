@@ -8,6 +8,8 @@ import posixpath
 from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 import flask
 from coprs import app
+from coprs.logic.coprs_logic import CoprsLogic
+from coprs.exceptions import ObjectNotFound
 
 
 def generate_repo_url(mock_chroot, url, arch=None):
@@ -71,10 +73,14 @@ def pre_process_repo_url(chroot, repo_url):
     if parsed_url.scheme == "copr":
         user = parsed_url.netloc
         prj = parsed_url.path.split("/")[1]
-        repo_url = "/".join([
-            flask.current_app.config["BACKEND_BASE_URL"],
-            "results", user, prj, chroot
-        ]) + "/"
+        try:
+            copr = CoprsLogic.get_by_ownername_coprname(user, prj)
+            repo_url = "{0}/{1}/".format(copr.repo_url, chroot)
+        except ObjectNotFound:
+            repo_url = "/".join([
+                flask.current_app.config["BACKEND_BASE_URL"],
+                "results", user, prj, chroot
+            ]) + "/"
 
     elif "priority" in query:
         query.pop("priority")
