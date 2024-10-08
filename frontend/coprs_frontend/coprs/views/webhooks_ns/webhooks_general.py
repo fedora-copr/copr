@@ -3,6 +3,7 @@ import os
 import tempfile
 import time
 import shutil
+import json
 from typing import Optional
 
 import flask
@@ -83,7 +84,7 @@ def package_name_required(route):
 
 
 def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
-                               builds_initiated_via_hook=None):
+                               builds_initiated_via_hook=None, payload=None):
     """
     This methods adds info of an intercepted webhook to webhook_history db
     along with the initiated build number(s).
@@ -94,7 +95,7 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
 
     webhookRecord = models.WebhookHistory(created_on=int(time.time()),
                                           webhook_uuid=webhook_uuid,
-                                          user_agent=user_agent)
+                                          user_agent=user_agent, payload=payload)
     db.session.add(webhookRecord)
     db.session.commit()
 
@@ -198,7 +199,7 @@ def webhooks_git_push(copr_id: int, uuid, pkg_name: Optional[str] = None):
         builds_initiated_via_webhook.append(build)
 
     add_webhook_history_record(webhook_uuid, user_agent,
-                               builds_initiated_via_webhook)
+                               builds_initiated_via_webhook, json.dumps(payload))
     db.session.commit()
 
     return "OK", 200
