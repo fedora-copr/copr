@@ -82,7 +82,15 @@
                 {% for webhook in webhook_history %}
                 <tr>
                     <td  class="webhook_timestamp" data-toggle="tooltip" title="{{webhook.created_on|localized_time(g.user.timezone)}}">{{webhook.created_on|localized_time(g.user.timezone)}} ({{webhook.created_on|time_ago()}})</td>
-                    <td>{{webhook.webhook_uuid}} </td>
+                    <td data-toggle="tooltip" title="Show JSON payload">
+                        {% if webhook.payload is not none %} 
+                            <a href="#" onclick="showJson(this);" data-json="{{webhook.payload}}">
+                            {{webhook.webhook_uuid}}
+                            </a>
+                        {% else %}
+                            {{webhook.webhook_uuid}}
+                        {% endif %}
+                    </td>
                     <td>{{webhook.user_agent}}</td>
                 </tr>
                 {% endfor %}
@@ -94,5 +102,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    function showJson(element) {
+        const jsonData = element.getAttribute('data-json');
+        if(jsonData === "null") return;
+        const newTab = window.open();
+        newTab.document.write('<pre>' + JSON.stringify(JSON.parse(jsonData), null, 2) + '</pre>');
+        newTab.document.close();
+    }
+</script>
 
 {% endblock %}
