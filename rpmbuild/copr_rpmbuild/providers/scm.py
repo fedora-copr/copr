@@ -16,8 +16,9 @@ log = logging.getLogger("__main__")
 
 MAKE_SRPM_TEPMLATE = (
     "set -x && "
+    'echo {4} && '
     'cd {0} && '
-    'echo -e "[safe]\ndirectory = {4}" > ~/.gitconfig && '
+    'echo -e "[safe]\ndirectory = {0}" > ~/.gitconfig && '
     'make -f {1} srpm outdir="{2}" spec="{3}"'
 )
 
