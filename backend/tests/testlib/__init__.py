@@ -5,6 +5,7 @@ Library for testing copr-backend
 import json
 import os
 import shutil
+from subprocess import PIPE
 from unittest.mock import MagicMock
 
 from copr_backend.background_worker_build import COMMANDS
@@ -130,8 +131,8 @@ class FakeSSHConnection(SSHConnection):
         self.commands = {}
         self.set_command(COMMANDS["rpm_q_builder"],
                          0, "666\n", "")
-        self.set_command("/usr/bin/test -f /etc/mock/fedora-30-x86_64.cfg",
-                         0, "", "")
+        self.set_command("copr-builder-ready fedora-30-x86_64", 0, b"", "")
+        self.set_command("copr-builder-ready srpm-builds", 0, b"", "")
         self.set_command("copr-rpmbuild-log",
                          0, "build log stdout\n", "build log stderr\n")
         self.resultdir = "fedora-30-x86_64/00848963-example"
@@ -157,6 +158,10 @@ class FakeSSHConnection(SSHConnection):
     def run(self, user_command, stdout=None, stderr=None, max_retries=0,
             subprocess_timeout=DEFAULT_SUBPROCESS_TIMEOUT):
         """ fake SSHConnection.run() """
+        if stdout == PIPE:
+            stdout = None
+        if stderr == PIPE:
+            stderr = None
         with open(os.devnull, "w") as devnull:
             out = stdout or devnull
             err = stderr or devnull

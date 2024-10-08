@@ -232,6 +232,7 @@ install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 755 bin/copr-builder %buildroot%_bindir
 install -p -m 755 bin/copr-builder-cleanup %buildroot%_bindir
+install -p -m 755 bin/copr-builder-ready %buildroot%_bindir
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-log %buildroot%_bindir
@@ -278,6 +279,7 @@ install -p -m 755 copr-update-builder %buildroot%_bindir
 %_bindir/copr-builder
 %_bindir/copr-update-builder
 %_bindir/copr-builder-cleanup
+%_bindir/copr-builder-ready
 %_sysconfdir/copr-builder
 %dir %mock_config_overrides
 %doc %mock_config_overrides/README

@@ -12,6 +12,8 @@ import time
 import json
 import shlex
 
+from subprocess import PIPE
+from tempfile import NamedTemporaryFile
 from datetime import datetime
 from packaging import version
 from cachetools.func import ttl_cache
@@ -242,21 +244,31 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             raise BuildRetry("Minimum version for builder is {}"
                              .format(MIN_BUILDER_VERSION))
 
-    def _check_mock_config(self):
-        config = "/etc/mock/{}.cfg".format(self.job.chroot)
-        command = "/usr/bin/test -f " + config
-        if self.job.chroot == "srpm-builds":
-            return
-        if self.ssh.run(command):
-            raise BuildRetry("Chroot config {} not found".format(config))
-
     def _check_vm(self):
         """
         Check that the VM is OK to start the build
         """
         self.log.info("Checking that builder machine is OK")
         self._check_copr_builder()
-        self._check_mock_config()
+
+        # We could open `self.job.backend_log` for appending and use it for
+        # stdout but I don't want to open the file for so long. This command
+        # can take 10 minutes to finish so I am afraid of data loss in case
+        # someone writes to the log in the meantime.
+        #
+        # Either way, the output won't be live and will appear only after this
+        # command finishes. Making it live is nontrivial but we have a good
+        # code for doing so in `resallocserver.manager.run_command`. Praiskup
+        # plans to generalize it into a separate package that we could
+        # eventually use here.
+        with NamedTemporaryFile(prefix="copr-builder-ready-") as tmp:
+            cmd = "copr-builder-ready " + self.job.chroot
+            rc = self.ssh.run(cmd, stdout=tmp, stderr=PIPE)
+            tmp.seek(0)
+            out = tmp.read().decode("utf-8")
+        self.log.info(out)
+        if rc:
+            raise BuildRetry("Builder wasn't ready, trying a new one")
 
     def _fill_build_info_file(self):
         """
