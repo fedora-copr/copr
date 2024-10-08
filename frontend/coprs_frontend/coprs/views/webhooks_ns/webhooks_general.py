@@ -88,6 +88,9 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
     This methods adds info of an intercepted webhook to webhook_history db
     along with the initiated build number(s).
     """
+    if user_agent is None:
+        user_agent = 'Not Set'
+
     if builds_initiated_via_hook is None:
         log.debug("No build initiated. Webhook not logged to db.")
         return
