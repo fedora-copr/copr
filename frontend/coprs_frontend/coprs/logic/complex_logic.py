@@ -17,6 +17,12 @@ from coprs import exceptions
 from coprs import cache
 from coprs.constants import DEFAULT_COPR_REPO_PRIORITY
 from coprs.exceptions import ObjectNotFound
+from coprs.repos import (
+    copr_repo_fullname,
+    parse_repo_params,
+    generate_repo_name,
+    pre_process_repo_url,
+)
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.batches_logic import BatchesLogic
 from coprs.logic.packages_logic import PackagesLogic
@@ -247,7 +253,7 @@ class ComplexLogic(object):
             ObjectNotFound to the API if no such Copr (group) result was found
              in database.
         """
-        copr_repo = helpers.copr_repo_fullname(repo_url)
+        copr_repo = copr_repo_fullname(repo_url)
         if not copr_repo:
             return None
         try:
@@ -667,11 +673,11 @@ class BuildConfigLogic(object):
     def get_additional_repo_views(cls, repos_list, chroot_id):
         repos = []
         for repo in repos_list:
-            params = helpers.parse_repo_params(repo)
+            params = parse_repo_params(repo)
             repo_view = {
-                "id": helpers.generate_repo_name(repo),
-                "baseurl": helpers.pre_process_repo_url(chroot_id, repo),
-                "name": "Additional repo " + helpers.generate_repo_name(repo),
+                "id": generate_repo_name(repo),
+                "baseurl": pre_process_repo_url(chroot_id, repo),
+                "name": "Additional repo " + generate_repo_name(repo),
             }
 
             # We ask get_copr_by_repo() here only to resolve the

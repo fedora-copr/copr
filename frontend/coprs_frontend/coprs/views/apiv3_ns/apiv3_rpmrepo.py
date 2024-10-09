@@ -21,10 +21,12 @@ from coprs import cache
 from coprs.logic.complex_logic import ReposLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.helpers import (
-    generate_repo_id_and_name,
-    generate_repo_id_and_name_ext,
     get_stat_name,
     CounterStatType,
+)
+from coprs.repos import (
+    generate_repo_id_and_name,
+    generate_repo_id_and_name_ext,
 )
 
 

@@ -38,6 +38,12 @@ from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, Pe
 
 from coprs.logic.complex_logic import ComplexLogic, ReposLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
+from coprs.repos import (
+    pre_process_repo_url,
+    generate_repo_id_and_name,
+    generate_repo_id_and_name_ext,
+    generate_repo_url,
+)
 
 from coprs.views.misc import (
     login_required,
@@ -49,8 +55,7 @@ from coprs.views.misc import (
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic, packages_logic
-from coprs.helpers import generate_repo_url, \
-    url_for_copr_view, CounterStatType
+from coprs.helpers import url_for_copr_view, CounterStatType
 
 
 def url_for_copr_details(copr):
@@ -861,7 +866,7 @@ def generate_repo_file(copr_dir, name_release, repofile):
 
 def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_dep=None, dependent=None):
 
-    repo_id, name = helpers.generate_repo_id_and_name(
+    repo_id, name = generate_repo_id_and_name(
         copr_dir.copr, copr_dir.name, multilib=arch,
         dep_idx=runtime_dep, dependent=dependent)
 
@@ -877,8 +882,8 @@ def render_repo_template(copr_dir, mock_chroot, arch=None, cost=None, runtime_de
 
 
 def _render_external_repo_template(dep, copr_dir, mock_chroot, dep_idx):
-    baseurl = helpers.pre_process_repo_url(mock_chroot.name, dep)
-    repo_id, repo_name = helpers.generate_repo_id_and_name_ext(
+    baseurl = pre_process_repo_url(mock_chroot.name, dep)
+    repo_id, repo_name = generate_repo_id_and_name_ext(
         copr_dir.copr, dep, dep_idx)
     return flask.render_template("coprs/external_dependency.repo",
                                  repo_id=repo_id, name=repo_name,
