@@ -79,7 +79,7 @@ Recommends: dist-git-client
 Suggests: tito
 Suggests: rubygem-gem2rpm
 Suggests: pyp2rpm
-Suggests: pyp2spec
+Suggests: pyp2spec >= 0.10.0
 %endif
 
 %description
@@ -112,7 +112,7 @@ Requires: podman
 # not supported
 %else
 Requires: pyp2rpm
-Requires: pyp2spec
+Requires: pyp2spec >= 0.10.0
 Requires: rubygem-gem2rpm
 Requires: scl-utils-build
 Requires: fedora-review >= 0.8
