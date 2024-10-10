@@ -95,18 +95,16 @@ def add_webhook_history_record(webhook_uuid, user_agent='Not Set',
         log.debug("No build initiated. Webhook not logged to db.")
         return
 
-    webhookRecord = models.WebhookHistory(created_on=int(time.time()),
+    webhook_record = models.WebhookHistory(created_on=int(time.time()),
                                           webhook_uuid=webhook_uuid,
                                           user_agent=user_agent)
-    db.session.add(webhookRecord)
-    db.session.commit()
+    db.session.add(webhook_record)
 
     if not isinstance(builds_initiated_via_hook, list):
         builds_initiated_via_hook = [builds_initiated_via_hook]
 
     for build in builds_initiated_via_hook:
-        build.webhook_history_id = webhookRecord.id
-        db.session.commit()
+        build.webhook_history = webhook_record
 
 
 @webhooks_ns.route("/bitbucket/<int:copr_id>/<uuid>/", methods=["POST"])
