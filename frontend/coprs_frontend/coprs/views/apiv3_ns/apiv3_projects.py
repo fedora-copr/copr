@@ -242,7 +242,6 @@ class ProjectAdd(Resource):
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
                 instructions=form.instructions.data,
-                check_for_duplicates=True,
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 build_enable_net=form.enable_net.data,
                 group=group,
@@ -278,7 +277,7 @@ class ProjectAdd(Resource):
                 "(race condition)"
             ) from ierr
         except (
-            DuplicateException,
+            DuplicateException,  # TODO: can this happen? and exist_ok?
             NonAdminCannotCreatePersistentProject,
             NonAdminCannotDisableAutoPrunning,
         ) as err:
