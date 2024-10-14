@@ -16,7 +16,6 @@ import rpm
 import munch
 from specfile import Specfile
 
-from six.moves.urllib.parse import urlparse
 from copr_common.enums import BuildSourceEnum
 
 log = logging.getLogger("__main__")
