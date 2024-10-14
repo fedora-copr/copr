@@ -6,7 +6,11 @@ from munch import Munch
 
 from copr_cli import main
 
-from cli_tests_lib import mock, f_test_config, fixture
+from cli_tests_lib import (
+    mock,
+    f_test_config,  # pylint: disable=unused-variable
+    fixture,
+)
 
 
 class TestMockConfig():

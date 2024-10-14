@@ -1,15 +1,15 @@
 import os
 import re
 import logging
-import re
-
-from copr_rpmbuild import helpers
-
-from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, CONF_DIRS, get_mock_uniqueext
-from .base import Provider
 
 from urllib.parse import urlparse
+
+from jinja2 import Environment, FileSystemLoader
+
+from copr_rpmbuild import helpers
+from copr_rpmbuild.helpers import run_cmd, CONF_DIRS, get_mock_uniqueext
+from copr_rpmbuild.providers.base import Provider
+
 
 
 log = logging.getLogger("__main__")
