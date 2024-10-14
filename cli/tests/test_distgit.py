@@ -10,7 +10,7 @@ import pytest
 import copr
 # pylint: disable=unused-import
 from cli_tests_lib import (
-    f_test_config,
+    f_test_config,  # pylint: disable=unused-variable
     mock,
     config as mock_config,
     fixture,

@@ -12,7 +12,7 @@ import shutil
 import pprint
 import shlex
 
-from urllib.parse import urlparse, urljoin, urlencode
+from urllib.parse import urljoin, urlencode
 
 from copr_common.request import SafeRequest, RequestError
 from copr_rpmbuild import providers
