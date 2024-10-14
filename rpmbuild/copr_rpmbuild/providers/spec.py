@@ -1,7 +1,7 @@
 import os
 import logging
 
-from six.moves.urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote
 
 from copr_rpmbuild.providers.base import Provider
 

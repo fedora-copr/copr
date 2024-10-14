@@ -12,6 +12,8 @@ import shutil
 import pprint
 import shlex
 
+from urllib.parse import urlparse, urljoin, urlencode
+
 from copr_common.request import SafeRequest, RequestError
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
@@ -25,7 +27,6 @@ from copr_rpmbuild.helpers import (
     locate_srpm,
     package_version,
 )
-from six.moves.urllib.parse import urlparse, urljoin, urlencode
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
