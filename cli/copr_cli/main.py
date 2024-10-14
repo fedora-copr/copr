@@ -13,7 +13,6 @@ import time
 import warnings
 from collections import defaultdict
 
-import six
 import requests
 
 try:
@@ -39,10 +38,10 @@ from copr_cli.util import get_progress_callback, serializable, package_version
 from .build_config import MockProfile
 
 
-if six.PY2:
-    from urlparse import urljoin, urlparse
-else:
+try:
     from urllib.parse import urljoin, urlparse
+except ImportError:
+    from urlparse import urljoin, urlparse
 
 log = logging.getLogger(__name__)
 

@@ -18,7 +18,6 @@ requires = [
     'requests',
     'requests-toolbelt',
     'setuptools',
-    'six',
     'munch',
 ]
 
