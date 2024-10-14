@@ -1,11 +1,9 @@
-import six
-
 # pylint: disable=ungrouped-imports
-if six.PY3:
+try:
     from unittest import mock
     from unittest.mock import MagicMock
     from pytest import fixture
-else:
+except ImportError:
     import mock
     from mock import MagicMock
     from pytest import yield_fixture as fixture
@@ -17,6 +15,7 @@ config = {
     "login": "xyz",
     "token": "abc",
 }
+
 
 @fixture
 def f_test_config():

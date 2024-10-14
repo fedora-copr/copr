@@ -6,8 +6,6 @@ from munch import Munch
 
 from copr_cli import main
 
-import six
-
 from cli_tests_lib import mock, f_test_config, fixture
 
 

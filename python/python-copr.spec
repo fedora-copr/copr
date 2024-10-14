@@ -29,7 +29,6 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-requests-toolbelt
-BuildRequires: python-six >= 1.9.0
 BuildRequires: python-mock
 BuildRequires: python-munch
 BuildRequires: python-filelock
@@ -44,7 +43,6 @@ BuildRequires: python-docutils
 BuildRequires: python2-setuptools
 BuildRequires: python2-requests
 BuildRequires: python2-requests-toolbelt
-BuildRequires: python2-six >= 1.9.0
 BuildRequires: python2-pytest
 BuildRequires: python2-devel
 BuildRequires: python-munch
@@ -81,7 +79,6 @@ Requires: python-requests
 Requires: python-requests-toolbelt
 Requires: python-requests-gssapi
 Requires: python-setuptools
-Requires: python-six >= 1.9.0
 %else
 Requires: python2-configparser
 Requires: python2-munch
@@ -90,7 +87,6 @@ Requires: python2-requests
 Requires: python2-requests-toolbelt
 Requires: python2-setuptools
 Requires: python2-requests-gssapi
-Requires: python2-six >= 1.9.0
 %endif
 
 %{?python_provide:%python_provide python2-copr}
@@ -114,7 +110,6 @@ BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
 BuildRequires: python3-requests-toolbelt
-BuildRequires: python3-six
 BuildRequires: python3-sphinx
 BuildRequires: python3-requests-gssapi
 
@@ -123,7 +118,6 @@ Requires: python3-filelock
 Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-setuptools
-Requires: python3-six
 Requires: python3-requests-gssapi
 
 %{?python_provide:%python_provide python3-copr}
