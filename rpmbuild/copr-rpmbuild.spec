@@ -41,6 +41,9 @@ BuildRequires: %{python_pfx}-jinja2
 BuildRequires: %{python_pfx}-specfile >= 0.21.0
 BuildRequires: python3-backoff >= 1.9.0
 BuildRequires: python3-pyyaml
+%if 0%{?fedora} || 0%{?rhel} >= 9
+BuildRequires: subscription-manager
+%endif
 
 BuildRequires: /usr/bin/argparse-manpage
 BuildRequires: python-rpm-macros
