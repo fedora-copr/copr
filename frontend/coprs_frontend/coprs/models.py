@@ -1603,6 +1603,7 @@ class WebhookHistory(db.Model):
     # Null values are possible via custom webhook implementation that do not pass a UUID or User Agent.
     user_agent = db.Column(db.Text,nullable=True)
     webhook_uuid = db.Column(db.Text, nullable=True)
+    payload = db.Column (db.Text, nullable=True)
 
 
 class DistGitBranch(db.Model, helpers.Serializer):
