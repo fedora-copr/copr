@@ -12,8 +12,10 @@ class Config:
     """
     Configuration class for copr-rpmbuild
     """
+
     def __init__(self):
         self.tags_to_mock_snippet = []
+        self.rhsm = []
 
     def load_config(self):
         """
@@ -27,3 +29,4 @@ class Config:
             pass
 
         self.tags_to_mock_snippet = config_data.get("tags_to_mock_snippet", [])
+        self.rhsm = config_data.get("rhsm", [])

@@ -242,21 +242,25 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             raise BuildRetry("Minimum version for builder is {}"
                              .format(MIN_BUILDER_VERSION))
 
-    def _check_mock_config(self):
-        config = "/etc/mock/{}.cfg".format(self.job.chroot)
-        command = "/usr/bin/test -f " + config
-        if self.job.chroot == "srpm-builds":
-            return
-        if self.ssh.run(command):
-            raise BuildRetry("Chroot config {} not found".format(config))
-
     def _check_vm(self):
         """
         Check that the VM is OK to start the build
         """
         self.log.info("Checking that builder machine is OK")
         self._check_copr_builder()
-        self._check_mock_config()
+
+        # The output won't be live and will appear only after this command
+        # finishes. Making it live is nontrivial but we have a good code for
+        # doing so in `resallocserver.manager.run_command`. Praiskup plans to
+        # generalize it into a separate package that we could eventually use
+        # here.
+        cmd = "copr-builder-ready " + self.job.chroot
+        rc, stdout, stderr = self.ssh.run_expensive(
+            cmd, subprocess_timeout=660)
+        self.log.info(stdout)
+        if rc:
+            self.log.info(stderr)
+            raise BuildRetry("Builder wasn't ready, trying a new one")
 
     def _fill_build_info_file(self):
         """
