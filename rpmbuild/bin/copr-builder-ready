@@ -1,0 +1,94 @@
+#! /usr/bin/python3
+
+"""
+Final checks that the builder machine is ready to be used
+
+Everything printed to STDOUT will be redirected to the copr-backend logs,
+STDERR will be ignored.
+"""
+
+import os
+import sys
+import time
+from fnmatch import fnmatch
+from copr_rpmbuild.config import Config
+
+
+def check_mock_config(chroot):
+    """
+    Does the mock config for this chroot exist?
+    """
+    if chroot == "srpm-builds":
+        return
+
+    config = "/etc/mock/{}.cfg".format(chroot)
+    if os.path.isfile(config):
+        return
+
+    print("Chroot config {} not found".format(config))
+    sys.exit(1)
+
+
+def subscription_required(chroot):
+    """
+    Is subscription required for this task?
+    """
+    config = Config()
+    config.load_config()
+
+    for pattern in config.rhsm:
+        if fnmatch(chroot, pattern):
+            return True
+    return False
+
+
+def active_subscription():
+    """
+    Is subscription active on this system?
+    """
+    # There are standard-ish ways for checking whether the subscription is
+    # active. No silver bullet, all of them have trade-offs.
+    #   - Checking the existence of `/etc/pki/consumer/cert.pem` file
+    #   - Checking the existence of `/etc/pki/entitlement/*.pem` files
+    #   - Exit code from `subscription-manager status`
+    #   - Exit code from `subscription-manager identity`
+    # We don't want to rely on any of them. We use a custom daemon for
+    # registering the system on the background. Once it is done,
+    # it creates a file.
+    return os.path.exists("/run/copr-builder/rhsm-subscribed")
+
+
+def wait_for_subscription(timeout=600):
+    """
+    Wait until this system has an active subscription
+
+    Activating Red Hat subscription may take a lot of time and historically, the
+    subscription service used to be unreliable, so we should wait for the
+    subscription only when necessary.
+    """
+    start = time.time()
+    attempt = 1
+    while True:
+        print("Checking Red Hat subscription (attempt #{0})".format(attempt))
+        if active_subscription():
+            print("Red Hat subscription active")
+            return
+        if time.time() > start + timeout:
+            print("Waiting for Red Hat subscription timeouted!")
+            sys.exit(1)
+        time.sleep(30)
+        attempt += 1
+
+
+def main():
+    """
+    The entrypoint for this script
+    """
+    chroot = sys.argv[1]
+    check_mock_config(chroot)
+    if subscription_required(chroot):
+        wait_for_subscription()
+
+
+if __name__ == "__main__":
+    main()

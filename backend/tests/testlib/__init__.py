@@ -130,8 +130,8 @@ class FakeSSHConnection(SSHConnection):
         self.commands = {}
         self.set_command(COMMANDS["rpm_q_builder"],
                          0, "666\n", "")
-        self.set_command("/usr/bin/test -f /etc/mock/fedora-30-x86_64.cfg",
-                         0, "", "")
+        self.set_command("copr-builder-ready fedora-30-x86_64", 0, "", "")
+        self.set_command("copr-builder-ready srpm-builds", 0, "", "")
         self.set_command("copr-rpmbuild-log",
                          0, "build log stdout\n", "build log stderr\n")
         self.resultdir = "fedora-30-x86_64/00848963-example"

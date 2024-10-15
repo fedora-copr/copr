@@ -286,6 +286,7 @@ EOF
 %_bindir/copr-builder-cleanup
 %_bindir/copr-builder-rhsm-subscribe
 %_bindir/copr-builder-rhsm-subscribe-daemon
+%_bindir/copr-builder-ready
 %_sysconfdir/copr-builder
 %dir %mock_config_overrides
 %doc %mock_config_overrides/README
