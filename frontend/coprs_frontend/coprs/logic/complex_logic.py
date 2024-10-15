@@ -582,8 +582,9 @@ class ProjectForking(object):
 
 class BuildConfigLogic(object):
     @classmethod
-    def generate_build_config(cls, copr, chroot_id):
+    def generate_build_config(cls, coprdir, chroot_id):
         """ Return dict with proper build config contents """
+        copr = coprdir.copr
         chroot = None
         for i in copr.active_copr_chroots:
             if i.mock_chroot.name == chroot_id:
@@ -608,6 +609,13 @@ class BuildConfigLogic(object):
                 "id": "copr_base_devel",
                 "baseurl": copr.repo_url + "/{}/devel/".format(chroot_id),
                 "name": "Copr buildroot",
+            })
+
+        if not coprdir.main:
+            repos.append({
+                "id": "copr_coprdir",
+                "baseurl": coprdir.repo_url + "/{}/".format(chroot_id),
+                "name": "Coprdir repository",
             })
 
         # None value of the priority won't show in API
