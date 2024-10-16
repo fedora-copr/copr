@@ -56,7 +56,7 @@ class PyPIProvider(Provider):
             "pyp2spec",
             self.pypi_package_name,
             "--fedora-compliant",
-            "--top-level",
+            "--automode",
         ]
         if self.pypi_package_version:
             cmd += ["-v", self.pypi_package_version]
