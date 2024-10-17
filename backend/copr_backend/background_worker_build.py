@@ -257,9 +257,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         cmd = "copr-builder-ready " + self.job.chroot
         rc, stdout, stderr = self.ssh.run_expensive(
             cmd, subprocess_timeout=660)
-        self.log.info(stdout)
+        self.log.info("stdout:\n%s", stdout if stdout else '(empty)')
+        self.log.info("stderr:\n%s", stderr if stderr else '(empty)')
         if rc:
-            self.log.info(stderr)
             raise BuildRetry("Builder wasn't ready, trying a new one")
 
     def _fill_build_info_file(self):
