@@ -255,6 +255,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         # generalize it into a separate package that we could eventually use
         # here.
         cmd = "copr-builder-ready " + self.job.chroot
+        self.log.info("Running remote command: %s", cmd)
         rc, stdout, stderr = self.ssh.run_expensive(
             cmd, subprocess_timeout=660)
         self.log.info(stdout)
