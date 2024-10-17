@@ -88,6 +88,9 @@ def main():
     check_mock_config(chroot)
     if subscription_required(chroot):
         wait_for_subscription()
+    else:
+        print("Red Hat subscription not needed for {0}".format(chroot))
+    print("Builder is ready to be used")
 
 
 if __name__ == "__main__":
