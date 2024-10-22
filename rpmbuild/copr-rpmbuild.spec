@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.0
+Version: 1.1
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -298,6 +298,12 @@ EOF
 
 
 %changelog
+* Tue Oct 22 2024 Jakub Kadlcik <frostyx@email.cz> 1.1-1
+- Make_srpmbuild, set recursive safe.directory
+- Activate Red Hat subscription on demand
+- Drop six usage (this is a Python 3 only package)
+- Add tooling for "safer" RH subscription
+
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
 - Specify snippets to mock config via copr-rpmbuild config file
 - Increase the custom method timeout to 90 minutes
