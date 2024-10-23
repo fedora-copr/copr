@@ -5,10 +5,17 @@ Magazine articles. See https://fedoramagazine.org/series/copr/
 """
 
 import os
-import subprocess
 import argparse
+import asyncio
+import resource
 from datetime import date, timedelta
+from copr.v3.proxies import project
+from tqdm import tqdm
 from copr.v3 import Client
+
+
+ulimit_n = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+semaphore = asyncio.Semaphore(ulimit_n // 3)
 
 
 # @TODO Check for package review RHBZ and print warnings.
@@ -27,45 +34,54 @@ def get_new_projects(client, limit=1000):
     return projects
 
 
-def pick_project_candidates(client, projects, since):
+async def pick_project_candidates(client, projects, since):
     """
     Filter only projects that might be worth investigating (e.g. for the Fedora
     Magazine article). By such projects we consider those with at least one
     succeeded build and at least some project information filled.
     """
     picked = []
-    for project in projects:
+    for project in tqdm(projects):
         if project.unlisted_on_hp:
-            print("Skipping {}, it is unlisted on Copr homepage".format(project.full_name))
+            tqdm.write("Skipping {}, it is unlisted on Copr homepage".format(project.full_name))
             continue
 
         if not any([project.description, project.instructions,
                     project.homepage, project.contact]):
-            print("Skipping {}, it has no information filled in".format(project.full_name))
+            tqdm.write("Skipping {}, it has no information filled in".format(project.full_name))
             continue
 
         builds = client.build_proxy.get_list(project.ownername, project.name)
         if not builds:
-            print("Skipping {}, no builds".format(project.full_name))
+            tqdm.write("Skipping {}, no builds".format(project.full_name))
             continue
 
         builds = [b for b in builds if b.state == "succeeded"]
         if not builds:
-            print("Skipping {}, no succeeded builds".format(project.full_name))
+            tqdm.write("Skipping {}, no succeeded builds".format(project.full_name))
             continue
 
         builds = filter_unique_package_builds(builds)
-        builds = [b for b in builds if not is_in_fedora(b.source_package["name"])]
+        # too much packages to post to magazine, skip to avoid spending gazillion years
+        # waiting for this
+        if len(builds) > 500:
+            tqdm.write("Skipping {}, too much packages".format(project.full_name))
+            continue
+
+        tasks = [is_in_fedora(b.source_package["name"]) for b in builds]
+        in_fedora_results = await asyncio.gather(*tasks)
+        builds = [b for b, in_fedora in zip(builds, in_fedora_results) if not in_fedora]
         if not builds:
-            print("Skipping {}, all packages already in Fedora".format(project.full_name))
+            tqdm.write("Skipping {}, all packages already in Fedora".format(project.full_name))
             continue
 
         started_on = date.fromtimestamp(builds[-1].started_on)
         if started_on < since:
-            print("Reached older project than {}, ending with {}".format(since, project.full_name))
-            break
+            tqdm.write("Reached older project than {}, ending with {}".format(since, project.full_name))
+            continue
 
         picked.append((project, builds))
+
     return picked
 
 
@@ -81,13 +97,17 @@ def filter_unique_package_builds(builds):
     return unique.values()
 
 
-def is_in_fedora(packagename):
+async def is_in_fedora(packagename):
     """
     Check if a given package is already provided by Fedora official repositories
     """
-    cmd = ["koji", "search", "package", packagename]
-    return bool(subprocess.check_output(cmd))
-
+    # the scheduler schedules thousands of these at the end so PIPEs need to be limited
+    async with semaphore:
+        proc = await asyncio.create_subprocess_shell(
+            f"koji search package {packagename}", stdout=asyncio.subprocess.PIPE
+        )
+        stdout, _ = await proc.communicate()
+        return bool(stdout)
 
 def get_parser():
     description = ("This tool lists new packages in Copr, that are not yet "
@@ -102,19 +122,26 @@ def get_parser():
         type=date.fromisoformat,
         help="Search for new projects since YYYY-MM-DD",
     )
+    parser.add_argument(
+        "--limit",
+        required=False,
+        default=1000,
+        type=int,
+        help="Limit the number of projects to fetch",
+    )
     return parser
 
 
-def main():
+async def main():
     parser = get_parser()
     args = parser.parse_args()
 
     client = Client.create_from_config_file()
-    projects = get_new_projects(client)
+    projects = get_new_projects(client, args.limit)
 
     print("Going to filter interesting projects since {}".format(args.since))
     print("This may take a while, ...")
-    candidates = pick_project_candidates(client, projects, args.since)
+    candidates = await pick_project_candidates(client, projects, args.since)
     print("--------------------------")
 
     if not candidates:
@@ -128,4 +155,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
