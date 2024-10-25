@@ -50,6 +50,14 @@ class PulpClient:
         """
         return (self.config["username"], self.config["password"])
 
+    @property
+    def cert(self):
+        """
+        See Client Side Certificates
+        https://docs.python-requests.org/en/latest/user/advanced/
+        """
+        return (self.config["cert"], self.config["key"])
+
     def url(self, endpoint):
         """
         A fully qualified URL for a given API endpoint
@@ -74,7 +82,12 @@ class PulpClient:
         """
         Default parameters for our requests
         """
-        return {"auth": self.auth, "timeout": self.timeout}
+        params = {"timeout": self.timeout}
+        if all(self.cert):
+            params["cert"] = self.cert
+        else:
+            params["auth"] = self.auth
+        return params
 
     def create_repository(self, name):
         """
