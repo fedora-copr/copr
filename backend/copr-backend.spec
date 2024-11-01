@@ -24,6 +24,7 @@ Source1:    https://github.com/fedora-copr/%{tests_tar}/archive/v%{tests_version
 
 BuildArch:  noarch
 BuildRequires: asciidoc
+BuildRequires: argparse-manpage
 BuildRequires: createrepo_c >= 0.16.1
 BuildRequires: libappstream-glib-builder
 BuildRequires: libxslt
@@ -131,7 +132,8 @@ only.
 %build
 make -C docs %{?_smp_mflags} html
 %py3_build
-
+PYTHONPATH=`pwd` argparse-manpage --pyfile run/copr-backend-resultdir-cleaner \
+    --function _get_arg_parser > copr-backend-resultdir-cleaner.1
 
 %install
 %py3_install
@@ -179,6 +181,9 @@ install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
 cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d/copr_backend.conf
 
 cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
+
+install -d %{buildroot}%{_mandir}/man1
+install -p -m 644 copr-backend-resultdir-cleaner.1 %{buildroot}/%{_mandir}/man1/
 
 
 %check
@@ -229,12 +234,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %{_sysconfdir}/cron.weekly/copr-backend
 %{_datadir}/logstash/patterns/lighttpd.pattern
 
-
 %config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
+
+%{_mandir}/man1/copr-backend*.1*
 
 %files doc
 %license LICENSE
-%doc
 %{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
 
