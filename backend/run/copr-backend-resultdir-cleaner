@@ -73,6 +73,10 @@ def clean_in(resultdir, dry_run=True):
             # to the [backend] prune_days=N config.
             continue
 
+        if os.path.basename(chroot_dir) == "modules":
+            todo_directory(chroot_dir, "MODULES")
+            continue
+
         for subdir in chroot_subdirs:
             chroot_subdir_path = os.path.join(chroot_dir, subdir)
 
