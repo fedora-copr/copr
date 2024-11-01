@@ -22,7 +22,8 @@ Pros & Cons of *high-performance builders*
 Once you get them, the *high-performance builders* will handle your builds much
 faster.  According to the specification as of October 2023, they are
 approximately 8 times faster than the *normal builders*, but the actual speedup
-is very task-dependent.
+is very task-dependent. They also provide twice as much disk space (280G vs
+regular 140G).
 
 The downside is that they are in limited supply. If other users request them at
 the same time as you, you'll compete with others, and you may spend a bit longer
@@ -51,3 +52,9 @@ is basically a Python regexp in a format ``owner/project/chroot/package``, e.g.
 
 .. _Blink: https://en.wikipedia.org/wiki/Blink_(browser_engine)
 .. _issue: https://github.com/fedora-copr/copr/issues
+
+Admin SOP
+---------
+
+Copr maintainers can configure high performance builders through the
+``EXTRA_BUILDCHROOT_TAGS`` variable in ``/etc/copr/copr.conf``.
