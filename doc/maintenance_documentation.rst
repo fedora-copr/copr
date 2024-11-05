@@ -17,6 +17,7 @@ This section contains information about maintenance topics. You may also be inte
    Fedora Copr hypervisors <maintenance/hypervisors>
    Fedora Copr outage announcements <maintenance/announce_outage>
    Fedora Copr credentials <maintenance/credentials>
+   Check that backups are OK <maintenance/backup_check>
 
 
 .. toctree::
