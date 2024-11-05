@@ -171,14 +171,13 @@ def clean_in(resultdir, dry_run=True):
 
 def _main():
     logging.basicConfig(level=logging.DEBUG)
-    setup_script_logger(LOG, "/var/log/copr-backend/resultdir-cleaner.log")
+    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
+    opts = BackendConfigReader(config_file).read()
+    setup_script_logger(LOG, os.path.join(opts["log_dir"], "resultdir-cleaner.log"))
     args = _get_arg_parser().parse_args()
     dry_run = not args.real_run
     if dry_run:
         LOG.warning("Just doing dry run, run with --real-run")
-
-    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
-    opts = BackendConfigReader(config_file).read()
 
     clean_in(opts.destdir, dry_run=dry_run)
 
