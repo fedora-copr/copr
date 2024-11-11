@@ -33,6 +33,12 @@ def pick_project_candidates(client, projects, since):
     Magazine article). By such projects we consider those with at least one
     succeeded build and at least some project information filled.
     """
+    rawhide_pks_resp = subprocess.run(
+        ["dnf", "repoquery", "rawhide", "--queryformat", "%{name}", "*"],
+        stdout=subprocess.PIPE,
+    )
+    fedora_rawhide_pkgs = {x for x in rawhide_pks_resp.stdout.decode().split("\n")}
+
     picked = []
     for project in projects:
         if project.unlisted_on_hp:
@@ -55,7 +61,9 @@ def pick_project_candidates(client, projects, since):
             continue
 
         builds = filter_unique_package_builds(builds)
-        builds = [b for b in builds if not is_in_fedora(b.source_package["name"])]
+        builds = [
+            b for b in builds if b.source_package["name"] not in fedora_rawhide_pkgs
+        ]
         if not builds:
             print("Skipping {}, all packages already in Fedora".format(project.full_name))
             continue
@@ -79,14 +87,6 @@ def filter_unique_package_builds(builds):
         packagename = build.source_package["name"]
         unique[packagename] = build
     return unique.values()
-
-
-def is_in_fedora(packagename):
-    """
-    Check if a given package is already provided by Fedora official repositories
-    """
-    cmd = ["koji", "search", "package", packagename]
-    return bool(subprocess.check_output(cmd))
 
 
 def get_parser():
