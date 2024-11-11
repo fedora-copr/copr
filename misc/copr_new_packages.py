@@ -9,6 +9,7 @@ import subprocess
 import argparse
 from datetime import date, timedelta
 from copr.v3 import Client
+from tqdm import tqdm
 
 
 # @TODO Check for package review RHBZ and print warnings.
@@ -34,30 +35,30 @@ def pick_project_candidates(client, projects, since):
     succeeded build and at least some project information filled.
     """
     rawhide_pks_resp = subprocess.run(
-        ["dnf", "repoquery", "rawhide", "--queryformat", "%{name}", "*"],
+        ["dnf", "--quiet", "--repo=fedora", "repoquery", "--queryformat", "%{name}\n", "*"],
         stdout=subprocess.PIPE,
     )
-    fedora_rawhide_pkgs = {x for x in rawhide_pks_resp.stdout.decode().split("\n")}
+    fedora_rawhide_pkgs = {x for x in rawhide_pks_resp.stdout.decode().split()}
 
     picked = []
-    for project in projects:
+    for project in tqdm(projects):
         if project.unlisted_on_hp:
-            print("Skipping {}, it is unlisted on Copr homepage".format(project.full_name))
+            tqdm.write("Skipping {}, it is unlisted on Copr homepage".format(project.full_name))
             continue
 
         if not any([project.description, project.instructions,
                     project.homepage, project.contact]):
-            print("Skipping {}, it has no information filled in".format(project.full_name))
+            tqdm.write("Skipping {}, it has no information filled in".format(project.full_name))
             continue
 
         builds = client.build_proxy.get_list(project.ownername, project.name)
         if not builds:
-            print("Skipping {}, no builds".format(project.full_name))
+            tqdm.write("Skipping {}, no builds".format(project.full_name))
             continue
 
         builds = [b for b in builds if b.state == "succeeded"]
         if not builds:
-            print("Skipping {}, no succeeded builds".format(project.full_name))
+            tqdm.write("Skipping {}, no succeeded builds".format(project.full_name))
             continue
 
         builds = filter_unique_package_builds(builds)
@@ -65,12 +66,12 @@ def pick_project_candidates(client, projects, since):
             b for b in builds if b.source_package["name"] not in fedora_rawhide_pkgs
         ]
         if not builds:
-            print("Skipping {}, all packages already in Fedora".format(project.full_name))
+            tqdm.write("Skipping {}, all packages already in Fedora".format(project.full_name))
             continue
 
         started_on = date.fromtimestamp(builds[-1].started_on)
         if started_on < since:
-            print("Reached older project than {}, ending with {}".format(since, project.full_name))
+            tqdm.write("Reached older project than {}, ending with {}".format(since, project.full_name))
             break
 
         picked.append((project, builds))
@@ -102,6 +103,13 @@ def get_parser():
         type=date.fromisoformat,
         help="Search for new projects since YYYY-MM-DD",
     )
+    parser.add_argument(
+        "--limit",
+        required=False,
+        default=1000,
+        type=int,
+        help="Limit the number of projects to be checked",
+    )
     return parser
 
 
@@ -110,7 +118,7 @@ def main():
     args = parser.parse_args()
 
     client = Client.create_from_config_file()
-    projects = get_new_projects(client)
+    projects = get_new_projects(client, args.limit)
 
     print("Going to filter interesting projects since {}".format(args.since))
     print("This may take a while, ...")
