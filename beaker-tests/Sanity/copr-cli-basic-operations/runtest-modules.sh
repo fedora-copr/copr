@@ -85,7 +85,7 @@ function test_successful_packages()
 rlJournalStart
     rlPhaseStartSetup
         setup_checks
-        yum -y install dnf dnf-plugins-core
+        yum -y install dnf dnf4 dnf-plugins-core
         # use the dev instance
         sed -i "s+http://copr.fedoraproject.org+$FRONTEND_URL+g" \
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
@@ -215,13 +215,13 @@ rlJournalStart
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
         rlRun "curl $FRONTEND_URL/coprs/$USER/module-testmodule-beakertest-$DATE/module_repo/fedora-$FEDORA_VERSION/testmodule-beakertest-$DATE.repo > /etc/yum.repos.d/testmodule.repo"
 
-        rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep -v "Copr modules repo" |wc -l` 1
-        rlAssertEquals "Module should be available in the correct version" `dnf module info testmodule:beakertest |grep Version |grep $DATE |wc -l` 1
-        rlRun "dnf -y module enable testmodule:beakertest"
-        rlRun "dnf -y module install testmodule/default"
+        rlAssertEquals "Module should be visible in the system" `dnf-3 module list |grep testmodule |grep beakertest |grep -v "Copr modules repo" |wc -l` 1
+        rlAssertEquals "Module should be available in the correct version" `dnf-3 module info testmodule:beakertest |grep Version |grep $DATE |wc -l` 1
+        rlRun "dnf-3 -y module enable testmodule:beakertest"
+        rlRun "dnf-3 -y module install testmodule/default"
         rlRun "rpm -q mksh"
-        rlRun "dnf -y module remove testmodule:beakertest/default"
-        rlRun "dnf -y module disable testmodule"
+        rlRun "dnf-3 -y module remove testmodule:beakertest/default"
+        rlRun "dnf-3 -y module disable testmodule"
         rlRun "rm /etc/yum.repos.d/testmodule.repo"
 
         # @TODO Test that enabled module info is correct
