@@ -428,14 +428,24 @@ class Spec:
         """
         Evaluated %{exclusivearch} as a list
         """
-        return self.safe_attr("exclusivearch").split()
+        values = self.safe_attr("exclusivearch").split()
+        unknown = " ".join([x for x in values if x.startswith("%")])
+        if unknown:
+            log.warning("Unknown macros in ExclusiveArch: %s", unknown)
+            return []
+        return values
 
     @property
     def excludearch(self):
         """
         Evaluated %{excludearch} as a list
         """
-        return self.safe_attr("excludearch").split()
+        values = self.safe_attr("excludearch").split()
+        unknown = " ".join([x for x in values if x.startswith("%")])
+        if unknown:
+            log.warning("Unknown macros in ExcludeArch: %s", unknown)
+            return []
+        return values
 
     def safe_attr(self, name):
         """
