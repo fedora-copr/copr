@@ -655,3 +655,43 @@ class TestBuildsLogic(CoprsTestCase):
         build = models.Build.query.get(1)
         assert build.source_state == "succeeded"
         assert not os.path.exists(storage)
+
+    @pytest.mark.parametrize(
+        "exclusivearch,states", [
+            (["x86_64", "i386"], ["waiting", "waiting"]),
+            (["x86_64"], ["waiting", "skipped"]),
+            ([], ["waiting", "waiting"]),
+        ]
+    )
+    @pytest.mark.usefixtures(
+        "f_users", "f_coprs", "f_builds", "f_mock_chroots", "f_db")
+    def test_skipping_chroots(self, exclusivearch, states):
+        build = BuildsLogic.add(self.u2, "foo", self.c2)
+        self.db.session.commit()
+        assert len(build.chroots) == 0
+        data = {
+            "builds": [{
+                "id": 5,
+                "task_id": 5,
+                "srpm_url": "http://foo",
+                "status": 1,
+                "pkg_name": "foo",
+                "pkg_version": 1,
+                "chroot": "srpm-builds",
+                "results": {
+                    "epoch": None,
+                    "excludearch": [],
+                    "exclusivearch": exclusivearch,
+                    "name": "biosdevname",
+                    "release": "17",
+                    "version": "0.7.3"
+                },
+            }]
+        }
+        response = self.tc.post(
+            "/backend/update/",
+            headers=self.auth_header,
+            json=data,
+        )
+        assert response.status_code == 200
+        assert [x.state for x in build.build_chroots] == states
