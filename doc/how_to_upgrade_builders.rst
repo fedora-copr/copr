@@ -3,17 +3,19 @@
 How to upgrade builders
 =======================
 
-This article explains how to upgrade the Copr builders images in
+This article explains how to upgrade generate the Copr builder images (so called
+"golden images") and how to migrate the Fedora Copr to them.  Namely for
 
 - :ref:`AWS <prepare_aws_source_images>` (x86_64 and aarch64),
-- :ref:`LibVirt/OpenStack <prepare_libvirt_source_images>` (x86_64 and ppc64le),
-- :ref:`IBM Cloud <prepare_ibmcloud_source_images>` (s390x),
+- :ref:`LibVirt/OpenStack <prepare_libvirt_source_images>` (x86_64 and ppc64le), and
+- :ref:`IBM Cloud <prepare_ibmcloud_source_images>` (s390x).
 
-This HOWTO is useful for upgrading images to a newer Fedora release, or for just
-updating all the packages contained within the builder images.  This image
-"refreshing" also significantly speeds up the following VM startup times, and
-fixes bugs (when a builder virtual machine is started the image, only a limited
-subset of packages is always automatically updated).
+This HOWTO page is useful for upgrading images to a newer Fedora release or
+simply updating the packages contained within the builder images to the latest
+versions.  This process of image "refreshing" significantly improves subsequent
+VM startup times and resolves bugs.  Because when a builder machine starts from
+a relatively up-to-date image, only a minimal set of tasks is required at
+startup.
 
 Keep amending this page if you find something not matching reality or
 expectations.
@@ -42,8 +44,7 @@ architectures. Click the *List AWS EC2 region* button.
 
 Do not launch any instance, only find an AMI ID
 (e.g. ``ami-0c830793775595d4b``) for our region - we are using
-N.Virginia option, aka ``us-east-1``, but we should move to
-``us-west-*`` soon.
+N.Virginia option, aka ``us-east-1``.
 
 Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - resalloc``,
 and execute for ``x86_64`` arch::
@@ -76,7 +77,9 @@ Repeat the previous steps.
 
 The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
 options in `Ansible git repo`_, in file ``inventory/group_vars/copr_dev_aws``
-and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.
+and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.  Document the
+previous ``ami-*`` variants as ``n-1``, and remove the previous ``n-2`` images
+in `EC2 console <AWS login link>`_.
 
 
 .. _prepare_libvirt_source_images:
@@ -88,51 +91,58 @@ We prepare the LibVirt images directly on our hypervisors.  We start with the
 official Fedora images as the "base images", and just modify them (this is
 easier for us compared to generating images from scratch).
 
-The Power9 architecture (note: Power9+ is required by Enterprise Linux 9+) is
-currently hosted in the `OSU Open Source Lab`_.  That is an OpenStack-based
-cloud, but no special actions are needed — we are able to share the same
-``.qcow2`` image generate for our other ``ppc64le`` hypervisors.  When
-uploading the image (see below), the image is as well automatically uploaded to
-the OSUOSL OpenStack.
+.. note::
+   While the Power9 architecture family is required for ppc64le builds
+   for Enterprise Linux 9 (or newer), we and while we only have Power8 machines
+   in-house (Fedora lab) - this is none issue.  The generated images on Power8
+   machines are compatible with Power9 (currently hosted in the `OSU Open Source
+   Lab`_).  When uploading the image (see below), the image is as well as as
+   onto LibVirt hypervisors automatically uploaded into the OSUOSL OpenStack.
 
 Find source images
 ^^^^^^^^^^^^^^^^^^
 
-The first thing you need to figure out is what image should you use and where to
-get it.
+The first thing you need to figure out is what image should you use for
+particular architecture, and where to get it. The Cloud Base images can be
+obtained on `Fedora Cloud page`_.  Pick the variants with ``.qcow2`` extension,
+without the ``UKI`` mark.  Some images might be found on the `Alternate
+Architectures page`_.
 
-The Cloud Base image for x86_64 can be obtained on `Fedora Cloud page`_.  Pick
-the one with ``.qcow2`` extension.  The ppc64le and aarch64 images can be found
-on the `Alternate Architectures page`_.  Don't confuse PPC64LE with PPC64.
+.. warning::
+    Don't confuse PPC64LE with PPC64!
 
-If neither that url provides the expected cloud image version (yet), there
-should exist at least a "compose" version in `Koji compose directory listing`_,
-look for ``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images``
-directory.
+If neither of those URLs above provide the expected cloud image for the desired
+Fedora version (yet), there should exist at least a "compose" version in `Koji
+compose directory listing`_, look for the
+``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images`` directory.
 
 Image preparation
 ^^^^^^^^^^^^^^^^^
 
-We can not prepare the images cross-arch, and we need to prepare one image for
+We can not prepare the images cross-arch, yet we need to prepare one image for
 every supported architecture (on an appropriate hypervisor).  So in turn we need
 to repeat the instructions for each architecture we have hypervisors for
 (currently x86_64 and ppc64le).
 
-All the hypervisors in Copr build system are appropriately configured, so it
-doesn't matter which of the hypervisors is chosen (only the architecture must
-match).
+All the hypervisors in the Fedora Copr build system are appropriately configured
+for this task, so it doesn't matter which of the hypervisors is chosen (only the
+architecture must match).
+
+.. note::
+
+    You still might need to re-run `hypervisor playbooks <hypervisors>`_ first
+    to sync the "provision" configuration.
 
 Our hypervisors have overcommitted RAM and disk space a lot (otherwise it
 wouldn't be possible to start so many builders on each hypervisor in parallel).
-The good thing about that is that we can anytime temporarily spawn one or more
-VMs for the purpose of generating the builder image.
+The good thing is that we still can anytime temporarily spawn one or more VMs
+for the purpose of generating the next golden image.
 
 So let's try to generate the image from the given official Fedora Cloud image on
 one of the x86_64 hypervisors::
 
     $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
-
-    [copr@vmhost-x86-copr02 ~][PROD]$ copr-image https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2
+    [copr@vmhost-x86-copr02 ~][PROD]$ copr-image https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2
     ... SNIP ...
     ++ date -I
     + qemu-img convert -f qcow2 /tmp/wip-image-hi1jK.qcow2 -c -O qcow2 -o compat=0.10 /tmp/copr-eimg-G6yZpG/eimg-fixed-2021-05-24.qcow2
@@ -226,6 +236,12 @@ start with::
     + qemu-img convert -f qcow2 /tmp/wip-image-HkgkS.qcow2 -c -O qcow2 -o compat=0.10 /tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
     ...
 
+If you feel you need to update the s390x VM, feel free to do it (the system is
+disposable)::
+
+    dnf update -y
+    reboot
+
 From the output you see the generated image ``eimg-fixed-2022-01-19.qcow2`` —
 that needs to be uploaded to IBM Cloud now, under our community account.
 Unfortunately, we can not _easily_ do this from Fedora machine directly as
@@ -244,8 +260,8 @@ uploading`_, pushed to **quay.io** service  as
     ("copr-builder-image-s390x-20220119-142944")
 
 Note the image ID somewhere, will be used in Ansible inventory, as
-``copr_builder_images.ibm_cloud.s390x`` value.  You can test that the new image
-starts well on ``copr-be-dev``,  by::
+``copr_builder_images.ibm_cloud.s390x.us_east`` value.  You can test that the
+new image starts well on ``copr-be-dev``,  by::
 
     # su - resalloc
     $ RESALLOC_NAME=copr_ic_s390x_us_east_dev \
@@ -269,9 +285,12 @@ If the images for all supported architectures are updated (according to previous
 sections), the `staging copr instance`_ is basically ready for testing.  Update
 the `Ansible git repo`_ for all the changes in playbooks above, and also update
 the ``copr_builder_images`` option in ``inventory/group_vars/copr_dev_aws`` so
-it points to correct image names. and increment the
-``copr_builder_fedora_version`` number.  Once the changes are pushed upstream,
-you should re-provision the backend configuration from batcave::
+it points to correct image names.
+
+Increment the ``copr_builder_fedora_version`` number.
+
+Once the changes are pushed upstream, you should re-provision the backend
+configuration from batcave::
 
     $ ssh batcave01.iad2.fedoraproject.org
     $ sudo rbac-playbook \
