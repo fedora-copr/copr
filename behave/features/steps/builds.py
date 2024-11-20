@@ -36,7 +36,7 @@ def step_impl(context):
         (out, _) = run_check([
             "sudo", "dnf", "repoquery", "--disablerepo=*",
             "--enablerepo=*{}*".format(project), "--available",
-            "--qf", "%{NAME}-%{VERSION}", "--noplugins",
+            "--qf", "%{NAME}-%{VERSION}\n", "--noplugins",
         ])
         packages_found = set(out.strip().splitlines())
         assert_is_subset(packages, packages_found)
@@ -68,7 +68,7 @@ def step_impl(context, package_name, chroot, string):
         "--repofrompath", "{},{}".format(repo_id, repo_url)
     ]
 
-    out, _ = run_check(repoquery + ["--changelog", package_name])
+    out, _ = run_check(repoquery + ["--changelogs", package_name])
     assert_that(out, contains_string(string))
 
 

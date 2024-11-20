@@ -46,24 +46,26 @@ rlJournalStart
         OUTPUT=`mktemp`
 
         # Test `dnf copr search' command
+        # https://github.com/fedora-copr/copr/issues/3531
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}DnfCopr"
-        rlRun "dnf copr --hub tested-copr search ${NAME_PREFIX}DnfCopr > $OUTPUT"
+        rlRun "dnf-3 copr --hub tested-copr search ${NAME_PREFIX}DnfCopr > $OUTPUT"
         rlRun "cat $OUTPUT |grep '${NAME_PREFIX}DnfCopr' |grep 'No description given'"
 
         # Test `dnf copr list' command
         rlRun "dnf copr list > $OUTPUT"
-        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/group_copr/copr'"
-        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/group_copr/copr-dev'"
+        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/@copr/copr'"
+        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/@copr/copr-dev'"
 
         # Test `dnf copr enable' command
         rlRun "copr-cli build ${NAME_PREFIX}DnfCopr ${HELLO}"
         rlRun "dnf -y copr enable --hub tested-copr ${NAME_PREFIX}DnfCopr"
         rlRun "dnf -y install hello"
         rlRun "hello"
-        rlRun "dnf -y erase hello"
+        rlRun "dnf -y remove hello"
 
-        # Test `dnf copr list --available-by-user' command
-        rlRun "dnf copr --hub tested-copr list --available-by-user $OWNER > $OUTPUT"
+        # Test `dnf copr list --available-by-user' command. The feature is only
+        # implemented in the DN4 plugin and there is no plan to port it to DNF5.
+        rlRun "dnf-3 copr --hub tested-copr list --available-by-user $OWNER > $OUTPUT"
         rlRun "cat $OUTPUT |grep '${NAME_PREFIX}DnfCopr' |grep 'No description given'"
 
         # Test `dnf copr disable' command
