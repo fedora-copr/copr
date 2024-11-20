@@ -312,6 +312,7 @@ class TestBuildsLogic(CoprsTestCase):
             },
             'build_ids': [1, 2, 5],
             'storage': StorageEnum.backend,
+            'devel': False,
         }
 
         with pytest.raises(NoResultFound):

@@ -224,6 +224,7 @@ class ActionsLogic(object):
             # We can pick any random build because the assumption is, they are
             # all from the same project
             "storage": builds[0].copr.storage if builds else None,
+            "devel": builds[0].copr.devel_mode,
         }
 
         build_ids = []
