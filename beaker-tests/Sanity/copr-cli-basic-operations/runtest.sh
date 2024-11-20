@@ -237,36 +237,6 @@ rlJournalStart
         # create special repo for our test
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project4"
 
-        # PyPI package creation
-        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
-        rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3"]'` 0 "package.source_dict.python_versions == [\"3\"]"
-        rlAssertEquals "package.source_dict.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"pyp2rpm"'
-        rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.5"'
-
-        # PyPI package editing
-        rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 3"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
-        rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3"]'` 0 "package.source_dict.python_versions == [\"3\"]"
-        rlAssertEquals "package.source_dict.pypi_package_name == \"motionpaint\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"motionpaint"'
-        rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.4"'
-        rlAssertEquals "package.source_dict.spec_template == \"\"" `cat $SOURCE_DICT | jq '.spec_template'` '""'
-
-        # PyPI package templates
-        rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --template fedora"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
-        rlAssertEquals "package.source_dict.spec_template == \"fedora\"" `cat $SOURCE_DICT | jq '.spec_template'` '"fedora"'
-
-        ## Package listing
-        rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
-
         # RubyGems package creation
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem yyy"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
@@ -284,7 +254,7 @@ rlJournalStart
         rlAssertEquals "package.source_dict.gem_name == \"zzz\"" `cat $SOURCE_DICT | jq '.gem_name'` '"zzz"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
+        rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
 
         ## Package reseting
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url $COPR_HELLO_GIT --method tito"
@@ -305,20 +275,20 @@ rlJournalStart
         rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '{}'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
+        rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
 
         ## Package deletion
         rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url $COPR_HELLO_GIT --method tito"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete > /dev/null"
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
+        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
         rlRun "copr-cli delete-package ${NAME_PREFIX}Project4 --name test_package_delete"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete" 1 # package cannot be fetched now (cause it is deleted)
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
+        rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
 
         # Packages having all sort of symbols in name, these succeed ..
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name gcc-c++ --gem yyy"
@@ -329,7 +299,7 @@ rlJournalStart
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name x:x --gem yyy" 1
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name x@x --gem yyy" 1
 
-        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 6
+        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
 
         ## test package building
         # create special repo for our test
@@ -340,12 +310,6 @@ rlJournalStart
 
         # build the package
         rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
-
-        # create pyp2spec (default) package
-        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename copr-cli --pythonversions 3"
-
-        # build the package
-        rlRun "copr-cli build-package --name test_package_pypi ${NAME_PREFIX}Project6 -r $CHROOT"
 
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot $CHROOT ${NAME_PREFIX}Project7"
