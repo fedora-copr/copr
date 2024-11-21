@@ -348,10 +348,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             # we don't need copr_base repodata for srpm builds
             return
 
-        repodata = os.path.join(self.job.chroot_dir, "repodata/repomd.xml")
         waiting_since = time.time()
         while time.time() - waiting_since < 60:
-            if os.path.exists(repodata):
+            exists = self.storage.repository_exists(
+                self.job.project_dirname, self.job.chroot)
+            if exists:
                 return
 
             # Either (a) the very first copr-repo run in this chroot dir

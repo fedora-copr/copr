@@ -5,6 +5,8 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 import os
 import json
 import shutil
+from urllib.parse import urlparse
+import requests
 from copr_common.enums import StorageEnum
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name
 from copr_backend.pulp import PulpClient
@@ -82,6 +84,12 @@ class Storage:
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
         """
         Delete multiple builds from the storage
+        """
+        raise NotImplementedError
+
+    def repository_exists(self, dirname, chroot):
+        """
+        Does a repository exist?
         """
         raise NotImplementedError
 
@@ -171,6 +179,11 @@ class BackendStorage(Storage):
                     except OSError:
                         self.log.debug("can't remove %s", log_path)
         return result
+
+    def repository_exists(self, dirname, chroot):
+        repodata = os.path.join(self.opts.destdir, self.owner, dirname,
+                                chroot, "repodata", "repomd.xml")
+        return os.path.exists(repodata)
 
 
 class PulpStorage(Storage):
@@ -342,6 +355,29 @@ class PulpStorage(Storage):
 
         return result
 
+    def repository_exists(self, dirname, chroot):
+        name = self._distribution_name(chroot, dirname)
+        response = self.client.get_distribution(name)
+        if not response.ok:
+            return False
+
+        data = response.json()
+        if data["count"] == 0:
+            return False
+
+        distribution = response.json()["results"][0]
+
+        # For some instances (local container) the distribution base_url
+        # contains only path, for some instances (hosted STG) it returns fully
+        # qualified URL. The problem is that there is a lot of magic in the
+        # hosted deployment in order to provide the data publicly without
+        # a Red Hat login. And we cannot use the returned URL, only its path.
+        path = urlparse(distribution["base_url"]).path.lstrip("/")
+        host = self.client.config["base_url"].rstrip("/")
+        repodata = "{0}/{1}/repodata/repomd.xml".format(host, path)
+        response = requests.head(repodata)
+        return response.ok
+
     def _repository_name(self, chroot, dirname=None):
         return "/".join([
             self.owner,
@@ -349,8 +385,8 @@ class PulpStorage(Storage):
             chroot,
         ])
 
-    def _distribution_name(self, chroot):
-        repository = self._repository_name(chroot)
+    def _distribution_name(self, chroot, dirname=None):
+        repository = self._repository_name(chroot, dirname)
         if self.devel:
             return "{0}-devel".format(repository)
         return repository
