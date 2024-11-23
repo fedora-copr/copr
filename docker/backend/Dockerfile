@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
@@ -22,14 +22,12 @@ RUN set -ex ; \
                    net-tools \
                    iputils \
                    vim \
-                   mlocate \
                    git \
                    sudo \
                    openssh-server \
                    resalloc \
                    psmisc \
                    nginx \
-                   python3-ipdb \
                    findutils \
                    tini \
 # to get more entropy for generation of gpg keys

@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
@@ -16,7 +16,6 @@ RUN set -ex ; \
                    which \
                    wget \
                    vim \
-                   python3-ipdb \
 # builder packages
                    openssh-server \
                    fedora-packager \

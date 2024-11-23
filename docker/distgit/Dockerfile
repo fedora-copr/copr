@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
@@ -19,7 +19,6 @@ RUN set -ex ; \
                    vim \
                    cgit \
                    python3-rpkg \
-                   python3-ipdb \
                    tini \
                    && \
     dnf -y install copr-dist-git && \

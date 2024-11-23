@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 MAINTAINER copr-devel@lists.fedorahosted.org
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
@@ -22,7 +22,6 @@ RUN set -ex ; \
                    yum \
                    sudo \
                    python3-alembic \
-                   python3-ipdb \
                    python3-anytree \
                    postgresql-server \
                    redis \
