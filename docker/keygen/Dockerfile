@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39
+FROM registry.fedoraproject.org/fedora:41
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
