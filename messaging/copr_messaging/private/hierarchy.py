@@ -33,6 +33,7 @@ class _CoprMessage(message.Message):
     """
     Base class that all Copr messages should inherit from.
     """
+    @property
     def summary(self):
         """A one-line, human-readable representation of this message."""
         return "Unspecified Copr message"
