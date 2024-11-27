@@ -16,6 +16,8 @@ Requirements
 * Since we do not modify the public IPs (neither v4 nor v6), no DNS
   modifications should be required.  However, familiarize yourself with the `DNS
   SOP`_ in case of any issues.
+* Make sure you have `/usr/bin/aws` installed and that you have `fedora-copr`
+  section in  `~/.aws/credentials`
 
 Pre-upgrade
 ===========
@@ -40,8 +42,8 @@ Ensure you have the `helper playbook repository`_ cloned locally and navigate to
 the clone directory.
 
 Review the ``dev.yml``, ``prod.yml``, and ``all.yml`` configurations in the
-``./group_vars`` directory.  Pay particular attention to the ``old_instance_id``,
-``old_network_id``, and data volume IDs as **these MUST match the EC2 reality**.
+``./group_vars`` directory.  Pay particular attention to the data volume IDs as
+**these MUST match the EC2 reality**.
 
 In the following moments, you will run several playbooks on your machine.
 During execution, explicitly specify two Ansible variables, ``copr_instance``
@@ -54,10 +56,10 @@ During execution, explicitly specify two Ansible variables, ``copr_instance``
 Identify the AMI (golden images) you want to use for the new VM instances.
 Typically, upgrade to ``Fedora N+2`` (e.g., migrating infrastructure from Fedora
 37 to Fedora 39).  Visit the `Cloud Base Images`_ download page, locate the
-**Intel and AMD x86_64 systems** section, and click the button next to
-**Fedora Cloud 39 AWS** (ensure JavaScript is enabled for this page!).
-Note the ``ami-*`` ID in the **US East (N. Virginia)** region (for example
-``ami-0746fc234df9c1ee0``).  Specify this ``ami-*`` ID in
+**Launch on public cloud platforms** section for **x86_64-based instances**, and
+click the button next to **Fedora Cloud 41 AWS** (ensure JavaScript is enabled
+for this page!).  Note the ``ami-*`` ID in the **US East (N. Virginia)** region
+(for example ``ami-0746fc234df9c1ee0``).  Specify this ``ami-*`` ID in
 ``group_vars/all.yml``, and ensure both ``group_vars/{dev,prod}.yml`` correctly
 reference it.
 
@@ -65,8 +67,14 @@ Double-check other machine parameters such as instance types, names, tags, IP
 addresses, root volume sizes, etc.  Usually, the pre-filled defaults suffice,
 but verification is recommended.
 
-Use the `ec2instances.info`_ comparator to find the cheapest available instance
-type that meets our needs whenever more power is required.
+.. note::
+   Use the `ec2instances.info`_ comparator to find the cheapest available
+   instance type that meets our needs whenever more power is required.
+
+.. note::
+
+   Don't worry about ``old_instance_id`` and ``new_instance_id`` for now. We
+   will change them after running the first set of playbooks
 
 .. warning::
 
@@ -97,6 +105,7 @@ Launch new instances
 
 As simple as::
 
+    $ opts=( -e copr_instance=dev -e server_id=keygen )
     $ ansible-playbook play-vm-migration-01-new-box.yml "${opts[@]}"
 
 You'll see an output like::
@@ -112,7 +121,8 @@ You'll see an output like::
     }
 
 Now fix the corresponding ``new_instance_id`` and ``new_network_id`` options in
-``group_vars/{dev,prod}.yml`` according to the output.
+``group_vars/{dev,prod}.yml`` according to the output. Also update
+``old_instance_id`` and ``old_network_id`` options.
 
 Note the Private IP addresses
 -----------------------------
