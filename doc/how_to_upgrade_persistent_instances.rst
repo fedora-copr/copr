@@ -130,6 +130,7 @@ Launch new instances
 
 As simple as::
 
+    $ opts=( -e copr_instance=dev -e server_id=keygen )
     $ ansible-playbook play-vm-migration-01-new-box.yml "${opts[@]}"
 
 You'll see an output like::
