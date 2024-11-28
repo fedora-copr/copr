@@ -38,7 +38,11 @@ Check the hot-fixes
 
 The old set of instances has been running for quite some time, likely
 accumulating several hotfixes over that period.  Research the applied hotfixes
-and determine which of them need to be manually implemented on the N+2 boxes::
+and determine which of them need to be manually implemented on the N+2 boxes (if
+any, note them).
+
+First, check the `hot-fixed issues and PRs <https://github.com/fedora-copr/copr/issues?q=label%3Ahot-fixed+is%3Aclosed>`_.
+Then, check the file-system modifications::
 
     # over ssh on the _old_ box, search for weird things (ignore config changes
     # and /boot)
@@ -47,8 +51,8 @@ and determine which of them need to be manually implemented on the N+2 boxes::
     S.5....T.    /var/www/cgi-resalloc
     ...
 
-Nothing serious here, e.g., the ``/var/www/cgi-resalloc`` file is weird, but it
-is covered `in playbooks <https://pagure.io/fedora-infra/ansible/c/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
+Nothing serious on this particular host, e.g., the ``/var/www/cgi-resalloc``
+file is weird, but it is covered `in playbooks <https://pagure.io/fedora-infra/ansible/c/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
 
 Preparation
 -----------
