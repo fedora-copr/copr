@@ -248,6 +248,10 @@ It's possible that the playbook fails, but it typically isn't crucial now.  If
 provisioning at least reaches the end of the ``base`` role, revert the
 ``birthday=yes`` commit and proceed with the next steps.
 
+The playbooks above have not automatically updated the systems.  If you prefer
+to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
+(manual step over ssh).
+
 Get it working
 --------------
 
