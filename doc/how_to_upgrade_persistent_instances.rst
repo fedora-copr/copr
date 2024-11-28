@@ -35,6 +35,33 @@ Announce the outage
 See a specific document :ref:`announcing_fedora_copr_outage`, namely the
 "planned" outage state.
 
+Check the hot-fixes
+-------------------
+
+The old set of instances (especially prod) has been running for quite some time,
+likely accumulating several hotfixes over that period.  Research the applied
+hotfixes and determine which of them need to be manually implemented on the N+2
+boxes (if any, note them).
+
+First, check the `hot-fixed issues and PRs <https://github.com/fedora-copr/copr/issues?q=label%3Ahot-fixed+is%3Aclosed>`_.
+Then, check the file-system modifications::
+
+    # over ssh on the _old_ box, search for weird things (ignore config changes
+    # and /boot)
+    [root@copr-be-dev ~][STG]# rpm -Va | grep -v -e /etc/ -e /boot/
+    ...
+    S.5....T.    /var/www/cgi-resalloc
+    ...
+    S.5....T.    /usr/lib/python3.12/site-packages/copr_backend/pulp.py
+    ...
+
+E.g., the ``/var/www/cgi-resalloc`` file is a weird change, but that in
+particular is covered `in playbooks <https://pagure.io/fedora-infra/ansible/c/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
+The ``pulp.py`` change is important to note though!  You may consult the
+``dnf diff copr-backend`` output, find the corresponding upstream PR on GitHub,
+and tag the PR with ``hot-fixed`` label (if not already done).
+
+
 Preparation
 -----------
 
@@ -251,6 +278,10 @@ It's possible that the playbook fails, but it typically isn't crucial now.  If
 provisioning at least reaches the end of the ``base`` role, revert the
 ``birthday=yes`` commit and proceed with the next steps.
 
+The playbooks above have not automatically updated the systems.  If you prefer
+to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
+(manual step over ssh).
+
 Get it working
 --------------
 
@@ -272,6 +303,10 @@ Post-upgrade
 ============
 
 By this point, every Copr service should be operational.
+
+It's a good idea to test ``/usr/sbin/reboot`` now to debug potential boot issues
+during the outage window, as future reboots are likely to occur at the most
+inconvenient times.
 
 Rename the instance names
 -------------------------
