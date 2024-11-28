@@ -94,9 +94,7 @@ def clean_in(resultdir, dry_run=True):
                 continue
 
             if subdir in ["tmp", "cache", "appdata"]:
-                # tmp => 95k * 7 inodes
-                # cache => 95k * 2 inodes
-                todo_directory(chroot_subdir_path, "APPSTREAMFAIL")
+                remove_old_dir(chroot_subdir_path, dry_run)
                 continue
 
             parts = subdir.split("-")
