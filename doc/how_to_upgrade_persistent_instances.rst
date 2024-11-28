@@ -274,6 +274,10 @@ Post-upgrade
 
 By this point, every Copr service should be operational.
 
+It's a good idea to test ``/usr/sbin/reboot`` now to debug potential boot issues
+during the outage window, as future reboots are likely to occur at the most
+inconvenient times.
+
 Rename the instance names
 -------------------------
 
