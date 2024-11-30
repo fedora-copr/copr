@@ -19,6 +19,10 @@ CHROOTS+=" --chroot openmandriva-rolling-x86_64"
 rlJournalStart
     rlPhaseStartSetup
         setup_checks
+        # https://github.com/fedora-copr/copr/issues/3433
+        # https://github.com/rpm-software-management/mock/issues/1066
+        echo "OpenMandriva are known to be broken. Skipping."
+        exit 0
     rlPhaseEnd
 
     rlPhaseStartTest
