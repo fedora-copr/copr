@@ -313,9 +313,9 @@ rlJournalStart
 
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot $CHROOT ${NAME_PREFIX}Project7"
-        rlRun "curl $FRONTEND_URL --silent | grep Project7" 1 # project won't be present on hp
+        rlRun "curl $FRONTEND_URL --silent | grep ${NAME_PREFIX}Project7" 1 # project won't be present on hp
         rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
-        rlRun "curl $FRONTEND_URL --silent | grep Project7" 0 # project should be visible on hp now
+        rlRun "curl $FRONTEND_URL --silent | grep ${NAME_PREFIX}Project7" 0 # project should be visible on hp now
 
         # FIXME It is now not possible to update whoosh index on demand
         # Instead, it is periodically recreated via cron
