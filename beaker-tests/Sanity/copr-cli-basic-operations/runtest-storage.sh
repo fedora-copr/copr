@@ -47,12 +47,11 @@ rlJournalStart
             rlAssertRpm "hello"
             rlRun "dnf remove hello -y"
             rlRun "yes | dnf copr remove $DNF_COPR_ID/$project"
-
-            rlRun "copr-cli delete $project"
         done
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        cleanProject "$project"
         workdirCleanup
     rlPhaseEnd
 rlJournalPrintText

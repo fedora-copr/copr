@@ -34,7 +34,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}Createrepo"
+        cleanProject "${NAME_PREFIX}Createrepo"
         rlRun "dnf -y copr remove ${URL}/${NAME_PREFIX}Createrepo"
     rlPhaseEnd
 rlJournalPrintText
