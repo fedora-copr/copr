@@ -13,8 +13,6 @@
 # Other ports:
 #   5009:5432 -- PostgreSQL database
 
-version: '3'
-
 # this should be dolved by python3-daemon >= 3.0.0
 # https://bugzilla.redhat.com/show_bug.cgi?id=2307635
 x-ulimits: &ulimits_settings
@@ -128,8 +126,6 @@ services:
     depends_on:
       - database
       - redis
-    links:
-      - database
     stdin_open: true
     tty: true
     ports:
