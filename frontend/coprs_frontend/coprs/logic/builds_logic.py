@@ -1458,9 +1458,9 @@ class BuildsLogic(object):
         builds that have non-finished source status, or any non-finished
         existing build chroot.
         """
-        build_ids_with_bch = db.session.query(BuildChroot.build_id).filter(
+        build_ids_with_bch = [x[0] for x in db.session.query(BuildChroot.build_id).filter(
             BuildChroot.status.in_(PROCESSING_STATES),
-        )
+        ).all()]
         # skip waiting state, we need to fix issue #1539
         source_states = set(PROCESSING_STATES)-{StatusEnum("waiting")}
         return models.Build.query.filter(and_(
