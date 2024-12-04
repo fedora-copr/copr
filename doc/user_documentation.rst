@@ -646,10 +646,8 @@ submit one build directly into the project, one build to the
 subproject.
 
 The subproject builds are isolated from each other but they can all
-see builds from the main ``test`` project repository. For the time
-being, the builds in the ``test:custom:foo`` subproject don't see
-other builds from the same subproject. This is not a design choice but
-rather a missing feature.
+see builds from their own repository and from the main ``test`` project
+repository.
 
 The subproject name has to start with the project name. It is followed
 by either ``:custom:`` or ``:pr:`` and a suffix. The suffix can be
