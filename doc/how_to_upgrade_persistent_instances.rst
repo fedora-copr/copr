@@ -280,6 +280,13 @@ The playbooks above have not automatically updated the systems.  If you prefer
 to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
 (manual step over ssh).
 
+
+Check that you actually migrated
+--------------------------------
+
+SSH onto each box, and check ``/etc/os-release`` - check you are on Fedora N+2.
+
+
 Get it working
 --------------
 
