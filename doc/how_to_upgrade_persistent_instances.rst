@@ -284,7 +284,7 @@ to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
 Check that you actually migrated
 --------------------------------
 
-SSH onto each box, and check ``/etc/os-release`` - check you are on Fedora N+2.
+Check ``/etc/os-release`` on each box to confirm you are on N+2.
 
 
 Get it working
