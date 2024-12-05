@@ -9,6 +9,8 @@ import re
 import munch
 import subprocess
 
+from sqlalchemy.sql import text
+
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
@@ -58,7 +60,7 @@ class ScmPackage(object):
               scm_object_type, scm_object_id, scm_object_url, agent_url):
 
         if db.engine.url.drivername != 'sqlite':
-            db.session.execute('LOCK TABLE build IN EXCLUSIVE MODE')
+            db.session.execute(text('LOCK TABLE build IN EXCLUSIVE MODE'))
 
         return BuildsLogic.rebuild_package(
             self.package, source_dict_update, copr_dir, update_callback,
