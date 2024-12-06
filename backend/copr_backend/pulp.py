@@ -294,6 +294,26 @@ class PulpClient:
         self.log.info("Pulp: create_distribution: %s %s", uri, data)
         return requests.post(self.url(uri), json=data, **self.request_params)
 
+    def update_distribution(self, distribution, publication=None, repository=None):
+        """
+        Update an RPM distribution
+        https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
+
+        This allows us to point a distribution to either a publication or
+        a repository. Not both, that doesn't make sense and Pulp would raise
+        "Only one of the attributes 'repository' and 'publication' may be used simultaneously."
+        """
+        if publication and repository:
+            raise RuntimeError("Specify either publication or repository")
+
+        url = self.config["base_url"] + distribution
+        data = {
+            "publication": publication,
+            "repository": repository,
+        }
+        self.log.info("Pulp: updating distribution %s", distribution)
+        return requests.patch(url, json=data, **self.request_params)
+
     def create_publication(self, repository):
         """
         Create an RPM publication
@@ -303,6 +323,17 @@ class PulpClient:
         data = {"repository": repository}
         self.log.info("Pulp: publishing %s %s", uri, repository)
         return requests.post(self.url(uri), json=data, **self.request_params)
+
+    def get_publication(self, repository):
+        """
+        Get a single RPM publication
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Publications:-Rpm/operation/publications_rpm_rpm_list
+        """
+        # There is no endpoint for querying a single publication
+        uri = "/api/v3/publications/rpm/rpm/?"
+        uri += urlencode({"repository": repository, "offset": 0, "limit": 1})
+        self.log.info("Pulp: get_publicatoin: %s", uri)
+        return requests.get(self.url(uri), **self.request_params)
 
     def create_content(self, path, labels):
         """
