@@ -30,6 +30,7 @@ RUN set -ex ; \
                    nginx \
                    findutils \
                    tini \
+                   pulp-cli \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package
