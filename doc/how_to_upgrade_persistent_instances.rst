@@ -16,6 +16,8 @@ Requirements
 * Since we do not modify the public IPs (neither v4 nor v6), no DNS
   modifications should be required.  However, familiarize yourself with the `DNS
   SOP`_ in case of any issues.
+* Make sure you have `/usr/bin/aws` installed and that you have `fedora-copr`
+  section in  `~/.aws/credentials`
 
 Pre-upgrade
 ===========
@@ -33,6 +35,33 @@ Announce the outage
 See a specific document :ref:`announcing_fedora_copr_outage`, namely the
 "planned" outage state.
 
+Check the hot-fixes
+-------------------
+
+The old set of instances (especially prod) has been running for quite some time,
+likely accumulating several hotfixes over that period.  Research the applied
+hotfixes and determine which of them need to be manually implemented on the N+2
+boxes (if any, note them).
+
+First, check the `hot-fixed issues and PRs <https://github.com/fedora-copr/copr/issues?q=label%3Ahot-fixed+is%3Aclosed>`_.
+Then, check the file-system modifications::
+
+    # over ssh on the _old_ box, search for weird things (ignore config changes
+    # and /boot)
+    [root@copr-be-dev ~][STG]# rpm -Va | grep -v -e /etc/ -e /boot/
+    ...
+    S.5....T.    /var/www/cgi-resalloc
+    ...
+    S.5....T.    /usr/lib/python3.12/site-packages/copr_backend/pulp.py
+    ...
+
+E.g., the ``/var/www/cgi-resalloc`` file is a weird change, but that in
+particular is covered `in playbooks <https://pagure.io/fedora-infra/ansible/c/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
+The ``pulp.py`` change is important to note though!  You may consult the
+``dnf diff copr-backend`` output, find the corresponding upstream PR on GitHub,
+and tag the PR with ``hot-fixed`` label (if not already done).
+
+
 Preparation
 -----------
 
@@ -40,8 +69,8 @@ Ensure you have the `helper playbook repository`_ cloned locally and navigate to
 the clone directory.
 
 Review the ``dev.yml``, ``prod.yml``, and ``all.yml`` configurations in the
-``./group_vars`` directory.  Pay particular attention to the ``old_instance_id``,
-``old_network_id``, and data volume IDs as **these MUST match the EC2 reality**.
+``./group_vars`` directory.  Pay particular attention to the data volume IDs as
+**these MUST match the EC2 reality**.
 
 In the following moments, you will run several playbooks on your machine.
 During execution, explicitly specify two Ansible variables, ``copr_instance``
@@ -54,10 +83,10 @@ During execution, explicitly specify two Ansible variables, ``copr_instance``
 Identify the AMI (golden images) you want to use for the new VM instances.
 Typically, upgrade to ``Fedora N+2`` (e.g., migrating infrastructure from Fedora
 37 to Fedora 39).  Visit the `Cloud Base Images`_ download page, locate the
-**Intel and AMD x86_64 systems** section, and click the button next to
-**Fedora Cloud 39 AWS** (ensure JavaScript is enabled for this page!).
-Note the ``ami-*`` ID in the **US East (N. Virginia)** region (for example
-``ami-0746fc234df9c1ee0``).  Specify this ``ami-*`` ID in
+**Launch on public cloud platforms** section for **x86_64-based instances**, and
+click the button next to **Fedora Cloud 41 AWS** (ensure JavaScript is enabled
+for this page!).  Note the ``ami-*`` ID in the **US East (N. Virginia)** region
+(for example ``ami-0746fc234df9c1ee0``).  Specify this ``ami-*`` ID in
 ``group_vars/all.yml``, and ensure both ``group_vars/{dev,prod}.yml`` correctly
 reference it.
 
@@ -65,8 +94,14 @@ Double-check other machine parameters such as instance types, names, tags, IP
 addresses, root volume sizes, etc.  Usually, the pre-filled defaults suffice,
 but verification is recommended.
 
-Use the `ec2instances.info`_ comparator to find the cheapest available instance
-type that meets our needs whenever more power is required.
+.. note::
+   Use the `ec2instances.info`_ comparator to find the cheapest available
+   instance type that meets our needs whenever more power is required.
+
+.. note::
+
+   Don't worry about ``old_instance_id`` and ``new_instance_id`` for now. We
+   will change them after running the first set of playbooks
 
 .. warning::
 
@@ -97,6 +132,7 @@ Launch new instances
 
 As simple as::
 
+    $ opts=( -e copr_instance=dev -e server_id=keygen )
     $ ansible-playbook play-vm-migration-01-new-box.yml "${opts[@]}"
 
 You'll see an output like::
@@ -112,7 +148,8 @@ You'll see an output like::
     }
 
 Now fix the corresponding ``new_instance_id`` and ``new_network_id`` options in
-``group_vars/{dev,prod}.yml`` according to the output.
+``group_vars/{dev,prod}.yml`` according to the output. Also update
+``old_instance_id`` and ``old_network_id`` options.
 
 Note the Private IP addresses
 -----------------------------
@@ -241,6 +278,10 @@ It's possible that the playbook fails, but it typically isn't crucial now.  If
 provisioning at least reaches the end of the ``base`` role, revert the
 ``birthday=yes`` commit and proceed with the next steps.
 
+The playbooks above have not automatically updated the systems.  If you prefer
+to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
+(manual step over ssh).
+
 Get it working
 --------------
 
@@ -262,6 +303,10 @@ Post-upgrade
 ============
 
 By this point, every Copr service should be operational.
+
+It's a good idea to test ``/usr/sbin/reboot`` now to debug potential boot issues
+during the outage window, as future reboots are likely to occur at the most
+inconvenient times.
 
 Rename the instance names
 -------------------------
