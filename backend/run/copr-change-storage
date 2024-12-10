@@ -1,0 +1,158 @@
+#! /usr/bin/python3
+
+"""
+Migrate existing build results for a given project and all of its CoprDirs
+from one storage (Copr backend) to another (Pulp).
+"""
+
+import os
+import sys
+import argparse
+import logging
+from copr_common.log import setup_script_logger
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.storage import PulpStorage
+
+
+STORAGES = ["backend", "pulp"]
+
+log = logging.getLogger(__name__)
+setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
+
+
+def get_arg_parser():
+    """
+    CLI argument parser
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--src",
+        required=True,
+        choices=STORAGES,
+        help="The source storage",
+    )
+    parser.add_argument(
+        "--dst",
+        required=True,
+        choices=STORAGES,
+        help="The destination storage",
+    )
+    parser.add_argument(
+        "--project",
+        required=True,
+        help="Full name of the project that is to be migrated",
+    )
+    parser.add_argument(
+        "--delete",
+        action="store_true",
+        default=False,
+        help="After migrating the data, remove it from the old storage",
+    )
+    return parser
+
+
+def is_valid_build_directory(name):
+    """
+    See the `copr-backend-resultdir-cleaner`. We may want to share the code
+    between them.
+    """
+    if name in ["repodata", "devel"]:
+        return False
+
+    if name.startswith("repodata.old") or name.startswith(".repodata."):
+        return False
+
+    if name in ["tmp", "cache", "appdata"]:
+        return False
+
+    parts = name.split("-")
+    if len(parts) <= 1:
+        return False
+
+    number = parts[0]
+    if len(number) != 8 or any(not c.isdigit() for c in number):
+        return False
+
+    return True
+
+
+def main():
+    """
+    The main function
+    """
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    if args.src == args.dst:
+        log.info("The source and destination storage is the same, nothing to do.")
+        return
+
+    if args.src == "pulp":
+        log.error("Migration from pulp to somewhere else is not supported")
+        sys.exit(1)
+
+    if args.delete:
+        log.error("Data removal is not supported yet")
+        sys.exit(1)
+
+    config_file = "/etc/copr/copr-be.conf"
+    config = BackendConfigReader(config_file).read()
+    owner, project = args.project.split("/")
+    ownerdir = os.path.join(config.destdir, owner)
+
+    for subproject in os.listdir(ownerdir):
+        if not (subproject == project or subproject.startswith(project + ":")):
+            continue
+
+        coprdir = os.path.join(ownerdir, subproject)
+        for chroot in os.listdir(coprdir):
+            if chroot == "srpm-builds":
+                continue
+
+            chrootdir = os.path.join(coprdir, chroot)
+            if not os.path.isdir(chrootdir):
+                continue
+
+            appstream = None
+            devel = None
+            storage = PulpStorage(
+                owner, subproject, appstream, devel, config, log)
+
+            for builddir in os.listdir(chrootdir):
+                resultdir = os.path.join(chrootdir, builddir)
+                if not os.path.isdir(resultdir):
+                    continue
+
+                if not is_valid_build_directory(builddir):
+                    log.info("Skipping: %s", resultdir)
+                    continue
+
+                # TODO Fault-tolerance and data consistency
+                # Errors when creating things in Pulp will likely happen
+                # (networking issues, unforseen Pulp validation, etc). We
+                # should figure out how to ensure that all RPMs were
+                # successfully uploaded, and if not, we know about it.
+                #
+                # We also need to make sure that no builds, actions, or cron,
+                # are currently writing into the results directory. Otherwise
+                # we can end up with incosystent data in Pulp.
+
+                full_name = "{0}/{1}".format(owner, subproject)
+                result = storage.init_project(full_name, chroot)
+                if not result:
+                    log.error("Failed to initialize project: %s", resultdir)
+                    break
+
+                # We cannot check return code here
+                storage.upload_build_results(chroot, resultdir, None)
+
+                result = storage.publish_repository(chroot)
+                if not result:
+                    log.error("Failed to publish a repository: %s", resultdir)
+                    break
+
+                log.info("OK: %s", resultdir)
+
+
+if __name__ == "__main__":
+    main()

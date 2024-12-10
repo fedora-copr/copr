@@ -6,8 +6,8 @@ packages (e.g. results directory on copr-backend or Pulp). This script allows to
 configure the storage type for a given project and while doing so, it makes sure
 DNF repositories for the project are created.
 
-Existing builds are not migrated from one storage to another. This may be an
-useful feature but it is not implemented yet.
+To migrate existing build results for a given project and all of its CoprDirs,
+run also `copr-change-storage` script on backend.
 """
 
 import sys
@@ -44,4 +44,9 @@ def change_storage(fullname, storage):
     db.session.commit()
     print("Configured storage for {0} to {1}".format(copr.full_name, storage))
     print("Submitted action to create repositories: {0}".format(action.id))
-    print("Existing builds not migrated (not implemented yet).")
+    print("To migrate existing build results for this project and all of its "
+          "CoprDirs, run also this command on backend:")
+
+    cmd = "sudo -u copr copr-change-storage --src backend --dst pulp "
+    cmd += "--project {0}".format(fullname)
+    print("    {0}".format(cmd))
