@@ -32,7 +32,7 @@ BuildRequires: %{python}-httmock
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
 BuildRequires: dist-git-client
-BuildRequires: git
+BuildRequires: git-core
 BuildRequires: %{python}-setuptools
 BuildRequires: %{python}-pytest
 BuildRequires: %{python_pfx}-munch
@@ -66,7 +66,7 @@ Requires: python3-pyyaml
 
 Requires: mock >= 5.0
 Requires(pre): mock-filesystem
-Requires: git
+Requires: git-core
 Requires: git-svn
 # for the /bin/unbuffer binary
 Requires: expect
