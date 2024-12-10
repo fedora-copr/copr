@@ -51,7 +51,8 @@ def to_dict(project_chroot):
 
 
 def to_build_config_dict(project_chroot):
-    config = BuildConfigLogic.generate_build_config(project_chroot.copr, project_chroot.name)
+    config = BuildConfigLogic.generate_build_config(
+        project_chroot.copr.main_dir, project_chroot.name)
     config_dict = {
         "chroot": project_chroot.name,
         "repos": config["repos"],
