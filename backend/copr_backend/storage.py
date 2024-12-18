@@ -200,8 +200,54 @@ class PulpStorage(Storage):
                            distribution, response.text)
             return False
 
+        # It is weird to do this in an `init_project` method, pointing to the
+        # fact that our abstractions are probably wrong. We have a
+        # `publish_repository` method which is called after a build is
+        # finished. We don't want to copy the packages there. This
+        # `init_project` method is called when a project is created (for which
+        # the copying does nothing) but also when a "Regenerate" button is
+        # clicked (for which we copy the data). We should probably separate
+        # these two concepts.
+        response = self._copy_packages_from_devel(repository, dirname, chroot)
+        if response and not response.ok:
+            self.log.error("Failed to copy devel packages for %s/%s",
+                           dirname, chroot)
+            return False
+
         response = self.client.create_publication(repository)
-        return response.ok
+        if not response.ok:
+            self.log.error(
+                "Failed to create a Pulp publication for %s because of %s",
+                repository, response.text,
+            )
+            return False
+        return True
+
+    def _copy_packages_from_devel(self, repository, dirname, chroot):
+        if self.devel:
+            return
+
+        devel_repository_name = "/".join([
+            self.owner,
+            dirname or self.project,
+            chroot + "_devel",
+        ])
+        response = self.client.get_repository(devel_repository_name)
+        results = response.json()["results"]
+        if not results:
+            return
+
+        devel_repository = results[0]
+        devel_repository_version = devel_repository["latest_version_href"]
+        response = self.client.list_packages(devel_repository_version)
+        hrefs = [x["pulp_href"] for x in response.json()["results"]]
+        response = self.client.copy_content(repository, hrefs)
+        if not response.ok:
+            self.log.error(
+                "Failed to copy packages into the %s repository: %s",
+                repository, hrefs,
+            )
+        return response
 
     def upload_build_results(self, chroot, results_dir, target_dir_name):
         resources = []
@@ -343,16 +389,16 @@ class PulpStorage(Storage):
         return result
 
     def _repository_name(self, chroot, dirname=None):
+        # On backend we use /devel but Pulp has a problem with that
+        suffix = "_devel" if self.devel else ""
         return "/".join([
             self.owner,
             dirname or self.project,
-            chroot,
+            chroot + suffix,
         ])
 
     def _distribution_name(self, chroot):
         repository = self._repository_name(chroot)
-        if self.devel:
-            return "{0}-devel".format(repository)
         return repository
 
     def _get_repository(self, chroot):
