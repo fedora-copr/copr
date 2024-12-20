@@ -44,7 +44,7 @@ sleeptime=30
 
 # Maximum number of concurrent build workers per architecture and owner.  For
 # example, give at most 15 ppc64le and 10 s390x machines to one copr owner:
-#build_max_workers_arch_per_owner=ppc64le=15,s390x=10
+#builds_max_workers_arch_per_owner=ppc64le=15,s390x=10
 
 # Maximum number of concurrently running tasks per project owner.
 #builds_max_workers_owner=20
