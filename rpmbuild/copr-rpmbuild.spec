@@ -24,6 +24,11 @@ License: GPL-2.0-or-later
 # git clone %%url && cd copr
 # tito build --tgz --tag %%name-%%version-%%release
 Source0:    %name-%version.tar.gz
+ 	
+
+%if 0%{?fedora} > 41
+ExcludeArch:   %{ix86}
+%endif
 
 BuildRequires: %{python}-copr-common >= %copr_common_version
 BuildRequires: %{python}-devel
