@@ -23,7 +23,7 @@ from coprs.exceptions import BadRequest
 logging.basicConfig(
     filename="{0}/check_for_anitya_version_updates.log".format(app.config.get("LOG_DIR")),
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
-    level=logging.DEBUG)
+    level=logging.INFO)
 log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
