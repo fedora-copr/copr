@@ -694,6 +694,36 @@ A subproject can be enabled on a user system with::
   dnf copr enable frostyx/test:custom:foo
 
 
+Custom chroots
+--------------
+
+Copr builds RPM packages for many distributions and their versions. It is up
+to the project owners to enable the desired chroots for their projects.
+
+In some advanced cases, it can happen that an appropriate chroot isn't
+available. The distribution might be too niche, the chroot config might enable
+some undesirable repositories, etc. For this purpose, Copr provides
+so-called "Custom chroots". They have only minimal configuration, requiring the
+project owner to fill in the gaps.
+
+In a hypothetical scenario where ``fedora-rawhide-x86_64`` chroot doesn't exist,
+here is how to re-create it through a custom chroot. First, go to your project
+settings and enable ``custom-1-x86_64`` chroot. Then go to the project settings
+again, find the chroot and click the ``Edit`` button next to it. Then specify
+the list of repositories that should be enabled, in this case::
+
+  https://kojipkgs.fedoraproject.org/repos/rawhide/latest/x86_64/
+
+And lastly, specify the list of packages that should be installed to the minimal
+buildroot before an RPM package is attempted to be built. Group names are
+supported as well. In this case::
+
+  @build
+
+You won't need this for Fedora Rawhide, but you can use this exact approach for
+any distribution that is not officially supported.
+
+
 Modularity
 ----------
 
