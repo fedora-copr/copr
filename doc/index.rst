@@ -61,4 +61,5 @@ Want to File a Bug/RFE?
 
 * `Search for bugs here <https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=2091774&product=Copr&query_format=advanced>`_: If it has, feel free to add yourself to Cc list of that bugzilla and add comments with more details, logs, etc.
 * `Report a new bug <https://bugzilla.redhat.com/enter_bug.cgi?product=Copr>`_: If it has not, then please report it here with all the detail you can muster.
+* `Report a security issue <https://github.com/fedora-copr/copr/security>`_: It is better to report privately, and make it public after the exploit is patched.
 * `Get a Bugzilla account <https://bugzilla.redhat.com/createaccount.cgi>`_: You will need an account in bugzilla to add comments or file new bugzillas.
