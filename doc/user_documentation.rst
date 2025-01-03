@@ -389,6 +389,40 @@ Links
 
 * `Jenkins plugin <https://wiki.jenkins-ci.org/display/JENKINS/Copr+Plugin>`_ (`blog post <http://michal-srb.blogspot.cz/2014/04/jenkins-plugin-for-building-rpms-in-copr.html>`__)
 
+
+Webhooks after builds
+---------------------
+
+The previous webhook-related chapters explain how some events (GitHub
+pull-request, custom webhook, etc) can trigger a Copr build.
+
+In reverse, can Copr trigger a webhook after successfully finishing a build? No,
+not per se. Within the Fedora infrastructure, a different approach is preferred
+in favor of webhooks and that is
+`Fedora Messaging <https://fedora-messaging.readthedocs.io/en/stable/>`_,
+which is supported by Copr. After every finished build/chroot, Copr sends a
+message, and anyone can listen. Here is a minimal example::
+
+  def consume(message):
+      if message.topic != "org.fedoraproject.prod.copr.build.end":
+          return
+
+      body = message.body
+      print("Chroot {0} for build #{1} finished with status {2}"
+            .format(body["chroot"], body["build"], body["status"]))
+
+Save it as ``consumer.py`` and then download a `config file
+<https://github.com/fedora-infra/fedora-messaging/blob/develop/configs/fedora.toml>`_
+for the appropriate messaging hub. Now you can listen to the messages using the
+following command::
+
+  FEDORA_MESSAGING_CONF=fedora.toml fedora-messaging consume \
+    --callback-file consumer.py:consume
+
+See more `Copr examples <https://copr-messaging.readthedocs.io/en/latest/consuming.html>`_
+or read more about `Fedora Messaging <https://fedora-messaging.readthedocs.io/en/stable/>`_.
+
+
 Multilib
 --------
 
