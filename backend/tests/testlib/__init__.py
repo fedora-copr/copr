@@ -80,6 +80,50 @@ VALID_RPM_JOB = {
 }
 
 
+VALID_SUBPROJECT_PRM_JOB = {
+    'allow_user_ssh': False,
+    'appstream': False,
+    'background': True,
+    'build_id': 8466805,
+    'buildroot_pkgs': [],
+    'chroot': 'fedora-40-x86_64',
+    'enable_net': False,
+    'fedora_review': False,
+    'git_hash': 'e66537b2058cba5eb4f034aa3b7486bb7dd41c46',
+    'git_repo': 'https://copr-dist-git.fedorainfracloud.org/git'
+                 '/@copr/copr-pull-requests:pr:3568/copr-frontend',
+    'isolation': 'default',
+    'memory_reqs': 2048,
+    'package_name': 'copr-frontend',
+    'package_version': '2.1-1.git.57.186407c',
+    'project_dirname': 'copr-pull-requests:pr:3568',
+    'project_name': 'copr-pull-requests',
+    'project_owner': '@copr',
+    'repo_priority': None,
+    'repos': [{'baseurl': 'https://download.copr.fedorainfracloud.org/results/'
+                          '@copr/copr-pull-requests/fedora-40-x86_64/',
+               'id': 'copr_base',
+               'name': 'Copr repository',
+               'priority': None},
+              {'baseurl': 'https://download.copr.fedorainfracloud.org'
+                          '/results/@copr/copr-dev/fedora-40-x86_64/',
+               'id': 'copr_copr_copr_dev',
+               'name': 'Additional repo copr_copr_copr_dev'}],
+    'sandbox': '@copr/copr-pull-requests--ddf1880c-45a5-4627-a025-43ae696008f2',
+    'source_json': {},
+    'source_type': None,
+    'ssh_public_keys': None,
+    'storage': None,
+    'submitter': None,
+    'tags': [],
+    'task_id': '8466805-fedora-40-x86_64',
+    'timeout': 18000,
+    'uses_devel_repo': False,
+    'with_opts': [],
+    'without_opts': [],
+}
+
+
 VALID_SRPM_JOB = {
     "build_id": 855954,
     "chroot": None,
