@@ -884,3 +884,10 @@ def test_task_url(f_build_rpm_case):
     worker.job = _get_rpm_job_object(worker.opts)
     assert worker.job.task_url == \
         "http://copr-fe/backend/get-build-task/848963-fedora-30-x86_64"
+
+def test_buildjob_chroot_dir(f_build_rpm_case):
+    config = f_build_rpm_case
+    worker = config.bw
+    job_dict = copy.deepcopy(testlib.VALID_SUBPROJECT_PRM_JOB)
+    job = BuildJob(job_dict, worker.opts)
+    assert job.chroot_dir.endswith("copr-pull-requests:pr:3568/fedora-40-x86_64")
