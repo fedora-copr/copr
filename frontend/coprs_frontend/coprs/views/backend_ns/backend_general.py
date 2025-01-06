@@ -181,7 +181,8 @@ def get_build_record(task, for_backend=False):
     if modules:
         build_record["modules"] = {'toggle': modules}
 
-    build_config = BuildConfigLogic.generate_build_config(task.build.copr, task.mock_chroot.name)
+    build_config = BuildConfigLogic.generate_build_config(
+        task.build.copr_dir, task.mock_chroot.name)
     build_record["repos"] = build_config.get("repos")
     build_record["buildroot_pkgs"] = build_config.get("additional_packages")
     build_record["with_opts"] = build_config.get("with_opts")
