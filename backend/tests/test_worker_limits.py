@@ -40,6 +40,12 @@ TASKS = [{
     "project_owner": "bedrich",
     "sandbox": "sb2",
     "tags": ["special_requirement"],
+}, {
+    "build_id": 4,
+    "task_id": "7-fedora-31-aarch64",
+    "chroot": "fedora-31-aarch64",
+    "project_owner": "bedrich",
+    "sandbox": "sb2",
 }]
 
 class _QT(BackendQueueTask):
@@ -128,14 +134,15 @@ def test_worker_limit_info():
             limit.worker_added("w:" + str(task.id), task)
     assert ["limit info: " + limit.info() for limit in limits] == [
         "limit info: Unnamed 'PredicateWorkerLimit' limit, matching: w:7, "
-        'w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64',
+        'w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64, '
+        'w:7-fedora-31-aarch64',
         "limit info: 'allmatch', matching: w:7, w:7-fedora-rawhide-x86_64, "
-        'w:7-fedora-32-x86_64, w:7-fedora-31-x86_64',
-        "limit info: Unnamed 'HashWorkerLimit' limit, counter: cecil=2, bedrich=2",
-        "limit info: 'sandbox', counter: sb1=1, sb2=2",
+        'w:7-fedora-32-x86_64, w:7-fedora-31-x86_64, w:7-fedora-31-aarch64',
+        "limit info: Unnamed 'HashWorkerLimit' limit, counter: cecil=2, bedrich=3",
+        "limit info: 'sandbox', counter: sb1=1, sb2=3",
         "limit info: 'arch_x86_64', matching: w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64",
-        "limit info: 'arch_aarch64'",
-        "limit info: 'arch_aarch64_owner', counter: None_cecil=1, x86_64_cecil=1, x86_64_bedrich=2",
+        "limit info: 'arch_aarch64', matching: w:7-fedora-31-aarch64",
+        "limit info: 'arch_aarch64_owner', counter: aarch64_bedrich=1",
         "limit info: 'tag_special_requirement', matching: w:7-fedora-31-x86_64",
     ]
 

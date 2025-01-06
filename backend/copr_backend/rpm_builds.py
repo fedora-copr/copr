@@ -143,8 +143,15 @@ class ArchitectureUserWorkerLimit(HashWorkerLimit):
     Copr owner (user or group).
     """
     def __init__(self, architecture, limit):
+        def _hasher(job):
+            if job.requested_arch != architecture:
+                # When _hasher(job) returns None, no limit applies, see
+                # HashWorkerLimit._groups.add() for more info.
+                return None
+            return f"{job.requested_arch}_{job.owner}"
+
         super().__init__(
-            lambda x: f"{x.requested_arch}_{x.owner}",
+            _hasher,
             limit,
             name=f"arch_{architecture}_owner",
         )
