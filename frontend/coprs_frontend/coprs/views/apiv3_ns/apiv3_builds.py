@@ -186,7 +186,7 @@ class ListBuild(Resource):
         return {"items": builds, "meta": paginator.meta}
 
 
-@apiv3_builds_ns.route("/source-log/<int:build_id>")
+@apiv3_builds_ns.route("/source-chroot/<int:build_id>")
 class SourceChroot(Resource):
     @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(source_chroot_model)
