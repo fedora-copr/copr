@@ -195,7 +195,7 @@ class PulpStorage(Storage):
         self.client = PulpClient.create_from_config_file()
 
     def init_project(self, dirname, chroot):
-        repository = self._repository_name(chroot)
+        repository = self._repository_name(chroot, dirname)
         response = self.client.create_repository(repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp repository %s because of %s",
@@ -206,7 +206,7 @@ class PulpStorage(Storage):
         # mentioned by its href, not name
         repository = self._get_repository(chroot)
 
-        distribution = self._distribution_name(chroot)
+        distribution = self._distribution_name(chroot, dirname)
         response = self.client.create_distribution(distribution, repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp distribution %s because of %s",
