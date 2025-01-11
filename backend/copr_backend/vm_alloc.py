@@ -18,9 +18,6 @@ class RemoteHost:
     hostname = None
 
     _is_ready = False
-    _sleeptime = 5
-    _sleeptime_history = {}
-    _factory = None
 
     def check_ready(self):
         """
