@@ -28,7 +28,6 @@ class BuildChrootProxy(BaseProxy):
         Return a list of build chroots
 
         :param int build_id:
-        :param str chrootname:
         :param pagination:
         :return: Munch
         """
