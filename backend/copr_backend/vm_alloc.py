@@ -88,9 +88,8 @@ class ResallocHost(RemoteHost):
     https://github.com/praiskup/resalloc
     """
     ticket = None
-
-    """ RESALLOC_NAME """
     name = None
+    requested_tags = None
 
     def parse_ticket_data(self):
         """
@@ -139,6 +138,8 @@ class ResallocHost(RemoteHost):
             message += ", hostname={}".format(self.hostname)
         if self.name:
             message += ", name={}".format(self.name)
+        if self.requested_tags:
+            message += f", requested_tags={self.requested_tags}"
         return message
 
 
@@ -168,4 +169,5 @@ class ResallocHostFactory(HostFactory):
 
         host = ResallocHost()
         host.ticket = self.conn.newTicket(request_tags, sandbox)
+        host.requested_tags = request_tags
         return host

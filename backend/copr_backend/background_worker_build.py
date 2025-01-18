@@ -467,11 +467,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         Set self.host with ready RemoteHost, and return True.  Keep re-trying
         upon allocation failure.  Return False if the request was canceled.
         """
-        self.log.info("Trying to allocate VM")
 
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
         while True:
             self.host = vm_factory.get_host(self.job.tags, self.job.sandbox)
+            self.log.info("Trying to allocate VM: %s", self.host.info)
             self._proctitle("Waiting for VM, info: {}".format(self.host.info))
             success = CancellableThreadTask(
                 self.host.wait_ready,
