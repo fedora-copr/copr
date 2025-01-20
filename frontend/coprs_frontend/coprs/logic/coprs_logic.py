@@ -13,6 +13,7 @@ from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.event import listens_for
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
@@ -1267,7 +1268,9 @@ class CoprChrootsLogic(object):
 
         See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
         """
-        return (query.filter(models.CoprChroot.delete_after
+        return (query
+                .options(joinedload(models.CoprChroot.mock_chroot))
+                .filter(models.CoprChroot.delete_after
                              >= datetime.datetime.now())
                      # Filter out chroots that are manually disabled by user
                      # (deleted, aka "unclicked", we never send e-mails there)
