@@ -630,6 +630,59 @@ only in Copr and ignored by Koji. It is easy to do::
 
 .. _creating_repositories_manually:
 
+
+Custom RPM Macros
+-----------------
+
+You may want to define your custom RPM macros. This is typically done within a
+specfile (please do that if you can) but some advanced situations may require
+defining the macros outside.
+
+Mock and ``rpmbuild`` have ``--define`` parameter which allows defining custom
+macros, but Copr doesn't provide any interface to do this. Instead, you can
+create a simple RPM package with your custom macros and add it to the buildroot.
+
+You can take this template and adjust the value of ``_custom_macros`` according
+to your needs.
+
+.. code-block:: spec
+
+  %define _custom_macros \
+  %%java_arches   aarch64 ppc64le s390x x86_64
+
+  Name:           custom-macros
+  Version:        1.0
+  Release:        1%{?dist}
+  Summary:        Custom user-defined macros
+
+  License:        MIT
+  URL:            https://github.com/fedora-copr
+
+  %description
+  This package installs custom user-defined RPM macros to the buildroot
+
+  %prep
+
+  %build
+
+  %install
+  mkdir -p %{buildroot}%{rpmmacrodir}
+  echo "%_custom_macros" > %{buildroot}%{rpmmacrodir}/macros.custom
+
+  %files
+  %{rpmmacrodir}/macros.custom
+
+  %changelog
+  * Wed Jan 22 2025 Jakub Kadlcik <frostyx@email.cz>
+  - Initial package
+
+
+Build this package in your Copr project. Then go to your project settings,
+find a chroot where you want the macros to be available, click the "Edit" button
+and put ``custom-macros`` into the "Packages" field. Then submit your package
+which requires these macros. It should build successfully.
+
+
 Creating repositories manually
 ------------------------------
 
