@@ -80,6 +80,11 @@ class OutdatedChrootsLogic:
         i.e. its data should be deleted ASAP
         """
         delete_after_days = app.config["EOL_CHROOTS_EXPIRE_PERIOD"]
+
+        # User manually clicked the "Expire now" button, we can assume he has
+        # been notified by this action
+        copr_chroot.delete_notify = datetime.now()
+
         cls._update_copr_chroot(copr_chroot, delete_after_days)
 
     @classmethod
