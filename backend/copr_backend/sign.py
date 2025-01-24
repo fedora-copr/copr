@@ -155,9 +155,9 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
     """
 
     rpm_list = [
-        os.path.join(path, filename)
-        for filename in os.listdir(path)
-        if filename.endswith(".rpm")
+        os.path.join(path, filename.name)
+        for filename in os.scandir(path)
+        if filename.name.endswith(".rpm")
     ]
 
     if not rpm_list:
@@ -245,9 +245,9 @@ def unsign_rpms_in_dir(path, opts, log):
     :raises: :py:class:`backend.exceptions.CoprSignError` failed to sign at least one package
     """
     rpm_list = [
-        os.path.join(path, filename)
-        for filename in os.listdir(path)
-        if filename.endswith(".rpm")
+        os.path.join(path, filename.name)
+        for filename in os.scandir(path)
+        if filename.name.endswith(".rpm")
         ]
 
     if not rpm_list:

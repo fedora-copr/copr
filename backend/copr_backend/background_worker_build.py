@@ -187,7 +187,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         except FileExistsError:
             pass
 
-        if not os.listdir(job.results_dir):
+        results_dir_entries = list(os.scandir(job.results_dir))
+        if not results_dir_entries:
             return
 
         backup_dir_name = "prev_build_backup"
@@ -198,7 +199,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
 
-        files = (x for x in os.listdir(job.results_dir) if x != backup_dir_name)
+        files = (x.name for x in results_dir_entries if x.name != backup_dir_name)
         for filename in files:
             file_path = os.path.join(job.results_dir, filename)
             if os.path.isfile(file_path):
@@ -975,7 +976,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         if self.job.storage == StorageEnum.pulp:
             path = os.path.join(self.job.chroot_dir, self.job.target_dir_name)
-            for filename in os.listdir(path):
+            for filename_entry in os.scandir(path):
+                filename = filename_entry.name
                 if not filename.endswith(".rpm"):
                     continue
                 rpm = os.path.join(path, filename)

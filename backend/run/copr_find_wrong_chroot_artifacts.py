@@ -74,7 +74,8 @@ def check_rpm_results(path, known_dists):
     """
 
     releases = []
-    for artifact in os.listdir(path):
+    for artifact_entry in os.scandir(path):
+        artifact = artifact_entry.name
         if not artifact.endswith(".rpm"):
             continue
         (_, _, release, _, _) = splitFilename(artifact)
@@ -94,28 +95,30 @@ def main():
     """
     chroot_map = get_chroot_map()
     destdir_path = config["destdir"]
-    for owner in os.listdir(destdir_path):
-        owner_path = os.path.join(destdir_path, owner)
-        if not os.path.isdir(owner_path):
+    for owner_entry in os.scandir(destdir_path):
+        if not owner_entry.is_dir():
             continue
+        owner = owner_entry.name
+        owner_path = os.path.join(destdir_path, owner)
 
-        for project in os.listdir(owner_path):
-            project_path = os.path.join(owner_path, project)
-            if not os.path.isdir(project_path):
+        for project_entry in os.scandir(owner_path):
+            if not project_entry.is_dir():
                 continue
+            project_path = os.path.join(owner_path, project_entry.name)
 
-            for chroot in os.listdir(project_path):
-                chroot_path = os.path.join(project_path, chroot)
-                if not os.path.isdir(chroot_path):
+            for chroot_entry in os.scandir(project_path):
+                if not chroot_entry.is_dir():
                     continue
+                chroot = chroot_entry.name
+                chroot_path = os.path.join(project_path, chroot)
 
                 if chroot not in chroot_map:
                     continue
 
-                for build in os.listdir(chroot_path):
-                    build_path = os.path.join(chroot_path, build)
-                    if not os.path.isdir(build_path):
+                for build_entry in os.scandir(chroot_path):
+                    if not build_entry.is_dir():
                         continue
+                    build_path = os.path.join(chroot_path, build_entry.name)
 
                     check_rpm_results(build_path, chroot_map.values())
 

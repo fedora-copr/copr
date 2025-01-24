@@ -45,21 +45,23 @@ def check_signed_rpms(project_dir, user, project, opts, devel):
     Ensure that all rpm files are signed
     """
     success = True
-    for chroot in os.listdir(project_dir):
+    for chroot_entry in os.scandir(project_dir):
+        chroot = chroot_entry.name
         if not (chroot.startswith("fedora") or chroot.startswith("epel")):
             continue
 
         chroot_path = os.path.join(project_dir, chroot)
-        if not os.path.isdir(chroot_path):
+        if not chroot_entry.is_dir():
             continue
 
         log.debug("> Checking chroot `%s` in dir `%s`", chroot, project_dir)
 
-        for mb_pkg in os.listdir(chroot_path):
+        for mb_pkg_entry in os.scandir(chroot_path):
+            mb_pkg = mb_pkg_entry.name
             if mb_pkg in ["repodata", "devel"]:
                 continue
             mb_pkg_path = os.path.join(chroot_path, mb_pkg)
-            if not os.path.isdir(mb_pkg_path):
+            if not mb_pkg_entry.is_dir():
                 continue
 
             log.debug(">> Stepping into package: %s", mb_pkg_path)
@@ -102,8 +104,9 @@ def main():
     opts = BackendConfigReader().read()
     log.info("Starting pubkey fill, destdir: %s", opts.destdir)
 
-    log.debug("list dir: %s", os.listdir(opts.destdir))
-    for user_name in os.listdir(opts.destdir):
+    log.debug("list dir: %s", (d.name for d in os.scandir(opts.destdir)))
+    for user_name_entry in os.scandir(opts.destdir):
+        user_name = user_name_entry.name
         if user_name in users_done_old:
             log.info("skipping user: %s", user_name)
             continue
@@ -112,7 +115,8 @@ def main():
         log.info("Started processing user dir: %s", user_name)
         user_dir = os.path.join(opts.destdir, user_name)
 
-        for project_name in os.listdir(user_dir):
+        for project_name_entry in os.scandir(user_dir):
+            project_name = project_name_entry.name
             log.info("Checking project dir: %s", project_name)
 
             try:

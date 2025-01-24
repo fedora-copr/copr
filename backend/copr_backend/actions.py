@@ -442,13 +442,14 @@ class BuildModule(Action):
                     # into the module destdir, not the whole chroot
                     os.makedirs(destdir)
                     prefixes = ["{:08d}-".format(x) for x in data["builds"]]
-                    dirs = [d for d in os.listdir(srcdir) if d.startswith(tuple(prefixes))]
+                    dirs = [d.name for d in os.scandir(srcdir) if d.name.startswith(tuple(prefixes))]
                     for folder in dirs:
                         shutil.copytree(os.path.join(srcdir, folder), os.path.join(destdir, folder))
                         self.log.info("Copy directory: %s as %s",
                                       os.path.join(srcdir, folder), os.path.join(destdir, folder))
 
-                        for f in os.listdir(os.path.join(destdir, folder)):
+                        for folder_entry in os.scandir(os.path.join(destdir, folder)):
+                            f = folder_entry.name
                             if not f.endswith(".rpm") or f.endswith(".src.rpm"):
                                 continue
                             artifact = format_filename(zero_epoch=True, *splitFilename(f))

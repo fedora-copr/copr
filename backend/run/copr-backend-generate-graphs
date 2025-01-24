@@ -272,7 +272,7 @@ def get_topmost_dataset(all_data, stats_type, keep_from_each_set=15,
 def _main(_args):
     download_js_files()
     sampledir = os.path.join(config.statsdir, "samples")
-    files = os.listdir(sampledir)
+    files = list(entry.name for entry in os.scandir(sampledir))
     json_files = sorted([sample for sample in files
                          if sample.endswith('json.zst')])
 

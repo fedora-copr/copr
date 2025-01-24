@@ -15,11 +15,13 @@ def main():
     config = BackendConfigReader(config_file).read()
     client = Client({"copr_url": config.frontend_base_url})
 
-    for ownername in os.listdir(config.destdir):
+    for ownername_entry in os.scandir(config.destdir):
+        ownername = ownername_entry.name
         ownerpath = os.path.join(config.destdir, ownername)
 
         try:
-            for projectname in os.listdir(ownerpath):
+            for projectname_entry in os.scandir(ownerpath):
+                projectname = projectname_entry.name
                 projectpath = os.path.join(ownerpath, projectname)
 
                 # I don't know how to determine whether a PR dir can be deleted or not
@@ -39,7 +41,8 @@ def main():
                     continue
 
                 # If a chroot is not enabled in the project, it should be removed
-                for chroot in os.listdir(projectpath):
+                for chroot_entry in os.scandir(projectpath):
+                    chroot = chroot_entry.name
                     if chroot in ["srpm-builds", "modules", "repodata", "pubkey.gpg"]:
                         continue
                     if not is_outdated_to_be_deleted(get_chroot_safe(client, ownername, projectname, chroot)):

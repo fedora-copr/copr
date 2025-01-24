@@ -50,7 +50,7 @@ parser.add_argument(
         help="Don't use multiprocessing. This is useful for debugging with ipdb")
 
 def list_subdir(path):
-    dir_names = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+    dir_names = [d.name for d in os.scandir(path) if d.is_dir()]
     return dir_names, map(lambda x: os.path.join(path, x), dir_names)
 
 def runcmd(cmd):
@@ -247,14 +247,15 @@ class Pruner(object):
                       username, projectdir, exception)
             return
 
-        for sub_dir_name in os.listdir(project_path):
-            chroot_path = os.path.join(project_path, sub_dir_name)
+        for sub_dir_name_entry in os.scandir(project_path):
+            if not sub_dir_name_entry.is_dir():
+                continue
 
+            sub_dir_name = sub_dir_name_entry.name
             if sub_dir_name == 'modules':
                 continue
 
-            if not os.path.isdir(chroot_path):
-                continue
+            chroot_path = os.path.join(project_path, sub_dir_name)
 
             if not self.should_run_in_chroot(username, projectdir, sub_dir_name):
                 continue
@@ -264,7 +265,7 @@ class Pruner(object):
                 # 'self.prune_days' ago.  And because we run prunerepo _daily_
                 # we know that the candidates for removal (if there are such)
                 # are removed about a day after "build_time + self.prune_days".
-                touched_before = time.time()-os.stat(chroot_path).st_mtime
+                touched_before = time.time()-sub_dir_name_entry.stat().st_mtime
                 touched_before = touched_before/3600/24 # seconds -> days
 
                 # Because it might happen that prunerepo has some problems to
@@ -296,11 +297,10 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
     Remove whole copr build dirs if they no longer contain a RPM file
     """
     LOG.info("Cleaning COPR repository %s", path)
-    for dir_name in os.listdir(path):
-        dir_path = os.path.abspath(os.path.join(path, dir_name))
-
-        if not os.path.isdir(dir_path):
+    for dir_name_entry in os.scandir(path):
+        if not dir_name_entry.is_dir():
             continue
+        dir_path = os.path.abspath(os.path.join(path, dir_name_entry.name))
         if not os.path.isfile(os.path.join(dir_path, 'build.info')):
             continue
         if is_rpm_in_dir(dir_path):
@@ -310,7 +310,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
         # run_prunerepo() actually bumps the st_mtime of the directory.  So we
         # keep the directory here at least one another period after the last RPM
         # removal.
-        if time.time() - os.stat(dir_path).st_mtime <= days * 24 * 3600:
+        if time.time() - dir_name_entry.stat().st_mtime <= days * 24 * 3600:
             continue
 
         if verbose:
@@ -335,9 +335,9 @@ def rm_file(path, verbose=True):
 
 
 def is_rpm_in_dir(path):
-    files = os.listdir(path)
+    files = os.scandir(path)
     srpm_ex = (".src.rpm", ".nosrc.rpm")
-    return any([f for f in files if f.endswith(".rpm") and not f.endswith(srpm_ex)])
+    return any(f.name for f in files if f.name.endswith(".rpm") and not f.name.endswith(srpm_ex))
 
 
 def redirect_logging(opts):
