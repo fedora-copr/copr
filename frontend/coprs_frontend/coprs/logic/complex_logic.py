@@ -837,7 +837,8 @@ class ReposLogic:
         """
         logoset = set()
         logodir = app.static_folder + "/chroot_logodir"
-        for logo in os.listdir(logodir):
+        for entry in os.scandir(logodir):
+            logo = entry.name
             # glob.glob() uses listdir() and fnmatch anyways
             if fnmatch.fnmatch(logo, "*.png"):
                 logoset.add(logo[:-4])
