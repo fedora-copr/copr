@@ -119,9 +119,9 @@ class TestAction(object):
             # this tarball, start distributing that tarball as separate
             # file/project and use it as Source1: in the spec file.
             testresults = os.path.join(self.test_project_dir, 'testresults')
-            for subdir in os.listdir(testresults):
-                shutil.move(os.path.join(testresults, subdir),
-                            os.path.join(self.tmp_dir_name, subdir))
+            for subdir in os.scandir(testresults):
+                shutil.move(os.path.join(testresults, subdir.name),
+                            os.path.join(self.tmp_dir_name, subdir.name))
             self.test_project_dir = os.path.join(self.tmp_dir_name, '@copr', 'prunerepo')
 
     def test_action_run_legal_flag(self, mc_time):

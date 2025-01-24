@@ -100,28 +100,32 @@ def main():
     owner, project = args.project.split("/")
     ownerdir = os.path.join(config.destdir, owner)
 
-    for subproject in os.listdir(ownerdir):
+    for subproject_entry in os.scandir(ownerdir):
+        subproject = subproject_entry.name
         if not (subproject == project or subproject.startswith(project + ":")):
             continue
 
         coprdir = os.path.join(ownerdir, subproject)
-        for chroot in os.listdir(coprdir):
+        for chroot_entry in os.scandir(coprdir):
+            chroot = chroot_entry.name
             if chroot == "srpm-builds":
                 continue
 
-            chrootdir = os.path.join(coprdir, chroot)
-            if not os.path.isdir(chrootdir):
+            if not chroot_entry.is_dir():
                 continue
 
+            chrootdir = os.path.join(coprdir, chroot)
             appstream = None
             devel = None
             storage = PulpStorage(
                 owner, subproject, appstream, devel, config, log)
 
-            for builddir in os.listdir(chrootdir):
-                resultdir = os.path.join(chrootdir, builddir)
-                if not os.path.isdir(resultdir):
+            for builddir_entry in os.scandir(chrootdir):
+                if not builddir_entry.is_dir():
                     continue
+                builddir = builddir_entry.name
+                resultdir = os.path.join(chrootdir, builddir)
+
 
                 if not is_valid_build_directory(builddir):
                     log.info("Skipping: %s", resultdir)
