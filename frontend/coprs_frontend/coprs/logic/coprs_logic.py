@@ -1267,7 +1267,9 @@ class CoprChrootsLogic(object):
 
         See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
         """
-        return (query.filter(models.CoprChroot.delete_after
+        return (query
+                .join(models.CoprChroot.mock_chroot)
+                .filter(models.CoprChroot.delete_after
                              >= datetime.datetime.now())
                      # Filter out chroots that are manually disabled by user
                      # (deleted, aka "unclicked", we never send e-mails there)
