@@ -81,9 +81,10 @@ def fix_copr(args, opts, copr_full_name):
 
     log.info("Re-sign rpms and call createrepo in copr's chroots")
 
-    for chroot in os.listdir(copr_path):
+    for chroot_entry in os.scandir(copr_path):
+        chroot = chroot_entry.name
         dir_path = os.path.join(copr_path, chroot)
-        if not os.path.isdir(dir_path):
+        if not chroot_entry.is_dir():
             log.debug("Ignoring %s, not a directory", dir_path)
             continue
 
@@ -101,9 +102,10 @@ def fix_copr(args, opts, copr_full_name):
                 continue
 
         log.info("Signing in %s chroot", chroot)
-        for builddir_name in os.listdir(dir_path):
+        for builddir_name_entry in os.scandir(dir_path):
+            builddir_name = builddir_name_entry.name
             builddir_path = os.path.join(dir_path, builddir_name)
-            if not os.path.isdir(builddir_path):
+            if not builddir_name_entry.is_dir():
                 continue
             if not builddir_matcher.match(builddir_name):
                 log.debug("Skipping %s, not a build dir", builddir_name)

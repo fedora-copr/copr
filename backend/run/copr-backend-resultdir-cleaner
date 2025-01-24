@@ -156,7 +156,7 @@ def clean_in(resultdir, dry_run=True):
 
                     # detect a fedora-review failure dirs, like:
                     # https://download.copr.fedorainfracloud.org/results/throup/VisualVM/fedora-35-x86_64/04899225-VisualVM/VisualVM/
-                    items = os.listdir(subdir_path)
+                    items = list(entry.name for entry in os.scandir(subdir_path))
                     if "srpm-unpacked" in items and "upstream-unpacked" in items:
                         # Fedora review failure
                         todo_directory(subdir_path, "FEDORA_REVIEW_FAIL")
