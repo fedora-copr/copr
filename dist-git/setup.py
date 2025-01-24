@@ -25,7 +25,7 @@ setup(
     url=__url__,
     license='GPLv2+',
     packages=find_packages(exclude=('tests*',)),
-    scripts=[os.path.join("run", p) for p in os.listdir("run")],
+    scripts=[os.path.join("run", p.name) for p in os.scandir("run")],
     include_package_data=True,
     zip_safe=False,
 )

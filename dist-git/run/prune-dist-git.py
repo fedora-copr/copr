@@ -83,20 +83,22 @@ def main():
     if not os.path.isdir(args.repos):
         print("{0} is not a directory.".format(args.repos), file=sys.stderr)
 
-    for username in os.listdir(args.repos):
+    for username_entry in os.scandir(args.repos):
+        username = username_entry.name
         repos_user_path = os.path.join(args.repos, username)
 
         if not os.path.isdir(repos_user_path):
             continue
 
-        for project_dirname in os.listdir(repos_user_path):
+        for project_dirname_entry in os.scandir(repos_user_path):
+            project_dirname = project_dirname_entry.name
             repos_project_path = os.path.join(repos_user_path, project_dirname)
 
             # this is only an optimization, if the modified time of the package
             # directory has not changed in the last 90 days, then we perform an API check
             modified_time = 0
-            for package in os.listdir(repos_project_path):
-                mt = os.path.getmtime(os.path.join(repos_project_path, package))
+            for package in os.scandir(repos_project_path):
+                mt = package.stat().st_mtime
                 modified_time = max(modified_time, mt)
 
             if (datetime.datetime.today() - datetime.datetime.fromtimestamp(modified_time)).days < 90:
