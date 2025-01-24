@@ -223,7 +223,7 @@ def build_srpm(args, config):
 
     resultdir = config.get("main", "resultdir")
     log.info("Output: {0}".format(
-        os.listdir(resultdir)))
+        list(entry.name for entry in os.scandir(resultdir))))
 
     # extract spec file from SRPM
     cmd = f"rpm2archive -n < {locate_srpm(resultdir)} | tar xf - '*.spec'"

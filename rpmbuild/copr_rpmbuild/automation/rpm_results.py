@@ -39,7 +39,8 @@ class RPMResults(AutomationTool):
         as `dicts`
         """
         nevras = []
-        for result in os.listdir(self.resultdir):
+        for entry in os.scandir(self.resultdir):
+            result = entry.name
             if not result.endswith(".rpm"):
                 continue
             package = os.path.join(self.resultdir, result)
