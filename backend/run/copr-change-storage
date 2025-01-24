@@ -95,8 +95,7 @@ def main():
         log.error("Data removal is not supported yet")
         sys.exit(1)
 
-    config_file = "/etc/copr/copr-be.conf"
-    config = BackendConfigReader(config_file).read()
+    config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     owner, project = args.project.split("/")
     ownerdir = os.path.join(config.destdir, owner)
 
