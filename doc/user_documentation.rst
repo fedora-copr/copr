@@ -946,6 +946,7 @@ Yes. Just do ``dnf install copr-cli`` and learn more by ``man copr-cli``.
 .. rubric:: Do you have an API? :ref:`¶ <Do you have an API?>`
 
 Yes. See the link in the footer of every Copr page or jump directly to the `API page <https://copr.fedorainfracloud.org/api/>`_.
+The API is also documented with the `Swagger UI <https://copr.fedorainfracloud.org/api_3/docs/>`_.
 
 .. _`How long do you keep the builds?`:
 
