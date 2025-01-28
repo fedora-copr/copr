@@ -295,25 +295,3 @@
   });
   </script>
 {% endmacro %}
-
-{% macro copr_build_feed_log_detective(build, class="") %}
-  {% set url = "https://log-detective.com/contribute/copr/%s/%s" %}
-  {% set chroots = build.build_chroots|selectattr("state", "equalto", "failed") %}
-  <div class="dropdown {{ class }}">
-    <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown"
-            title="Annotate the failure in Log Detective to train AI to recognize this issue">
-      <span class="fa fa-external-link"></span>
-      Log Detective
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      {% if build.source_state == "failed" %}
-        <li><a href="{{ url |format(build.id, 'srpm-builds') }}">Report SRPM build</a></li>
-      {% else %}
-        {% for chroot in chroots %}
-          <li><a href="{{ url |format(build.id, chroot.name) }}">Report {{ chroot.name }}</a></li>
-        {% endfor %}
-      {% endif %}
-    </ul>
-  </div>
-{% endmacro %}

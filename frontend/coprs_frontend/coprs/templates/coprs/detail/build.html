@@ -3,12 +3,17 @@
    copr_build_cancel_form,
    copr_build_repeat_form,
    copr_resubmit_allow_user_ssh_form,
-   copr_build_delete_form,
-   copr_build_feed_log_detective
+   copr_build_delete_form
 %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_describe_failure.html" import describe_failure %}
-{% from "_helpers.html" import chroot_to_os_logo, build_state_text, build_state, copr_name %}
+{% from "_helpers.html" import
+    chroot_to_os_logo,
+    build_state_text,
+    build_state,
+    copr_name,
+    log_detective_ai_link
+%}
 {% block title %}Build {{ build.id }} in {{ copr_name(build.copr) }}{% endblock %}
 
 {% set selected_tab = "builds" %}
@@ -33,10 +38,6 @@
 {% if g.user.can_edit(copr) or build.user == g.user %}
     {{ copr_build_delete_form(build, page, class="pull-right button-build-action") }}
 {% endif %}
-{% endif %}
-
-{% if config.LOG_DETECTIVE_BUTTON and build.state == "failed" %}
-    {{ copr_build_feed_log_detective(build, class="pull-right button-build-action") }}
 {% endif %}
 
 {% if g.user and g.user.can_build_in(copr) and build.cancelable %}
@@ -201,7 +202,18 @@
         <dl class="dl-horizontal">
         {{ describe_failure(build) }}
         <dt>Source state:</dt>
-            <dd>{{ build_state_text(build.source_state) }} </dd>
+        <dd>
+          {{ build_state_text(build.source_state) }}
+          {% if config.LOG_DETECTIVE_BUTTON and build.source_state == "failed" %}
+            {% set link_shown = namespace(value=False) %}
+              {% for url in build.get_source_log_urls %}
+                {% if not link_shown.value %}
+                  &nbsp&nbsp {{ log_detective_ai_link(url, build.id, "srpm-builds") }}
+                  {% set link_shown.value = true %}
+                {% endif %}
+              {% endfor %}
+          {% endif %}
+        </dd>
         <dt>Source build logs:</dt>
         <dd>
         {% if build.resubmitted_from_id and build.source_is_uploaded %}
@@ -244,6 +256,9 @@
               <th>Build Time</th>
               <th>Logs</th>
               <th>State</th>
+              {% if config.LOG_DETECTIVE_BUTTON and build.state == "failed" and build.source_state == "succeeded" %}
+              <th>Log Detective AI</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>
@@ -283,8 +298,17 @@
                 {% endfor %}
               </td>
               <td>
-                {{ build_state_text(chroot.state, chroot.status_reason) }}
+                {{ build_state_text(chroot.state, chroot.status_reason, chroot.rpm_live_log_url) }}
               </td>
+              {% if config.LOG_DETECTIVE_BUTTON and build.state == "failed" and build.source_state == "succeeded" %}
+              <td>
+                {% if chroot.state == "failed" %}
+                  {{ log_detective_ai_link(chroot.rpm_live_log_url, build.id, chroot.name) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              {% endif %}
             </tr>
           {% endfor %}
           </tbody>
