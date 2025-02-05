@@ -78,6 +78,7 @@ jobs:
         uses: redhat-plumbers-in-action/pull-request-validator@v2
         with:
           pr-metadata: ${{ steps.metadata.outputs.metadata }}
+          required-approvals: '2'
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Merge the PR if all checks passed
