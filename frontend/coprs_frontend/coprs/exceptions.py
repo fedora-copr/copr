@@ -118,8 +118,13 @@ class UnknownSourceTypeException(Exception):
     pass
 
 
-class NoPackageSourceException(Exception):
-    pass
+class NoPackageSourceException(CoprHttpException):
+    def __init__(self, package_name):
+        super().__init__(message=(
+            "Package '{}' doesn't have the default source method set, but it "
+            "is required for the rebuild request.  Please configure some "
+            "source  method first".format(package_name)
+        ))
 
 
 class UnrepeatableBuildException(Exception):
