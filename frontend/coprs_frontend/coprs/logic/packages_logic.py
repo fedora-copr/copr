@@ -358,8 +358,7 @@ class PackagesLogic(object):
                 source_build = package.last_build(successful=True)
 
                 if not source_build or not source_build.build_chroots[0].git_hash:
-                    raise exceptions.NoPackageSourceException(
-                        "Could not get latest git hash for {}".format(package.name))
+                    raise exceptions.NoPackageSourceException(package.name)
 
                 for chroot_name in chroot_names:
                     git_hashes[chroot_name] = source_build.build_chroots[0].git_hash
