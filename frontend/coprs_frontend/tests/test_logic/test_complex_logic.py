@@ -111,7 +111,7 @@ class TestComplexLogic(CoprsTestCase):
         # some builds are not finished, nothing deleted yet
         assert len([c for c in query.all() if c.deleted]) == 0
 
-        b = self.db.session.query(models.Build).get(3)
+        b = self.db.session.get(models.Build, 3)
         b.canceled = True
 
         ComplexLogic.delete_expired_projects()
@@ -120,7 +120,7 @@ class TestComplexLogic(CoprsTestCase):
         assert len([c for c in query.all() if c.deleted]) == 1
 
         # test that build is deleted as well
-        assert not self.db.session.query(models.Build).get(3)
+        assert not self.db.session.get(models.Build, 3)
 
 
 class TestProjectForking(CoprsTestCase):

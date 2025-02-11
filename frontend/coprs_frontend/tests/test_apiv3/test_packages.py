@@ -60,7 +60,7 @@ class TestAPIv3Packages(CoprsTestCase):
             "package_name": form_data["package_name"],
         }
         self.post_api3_with_auth(endpoint, rebuild_data, user)
-        build = self.models.Build.query.get(1)
+        build = self.db.session.get(self.models.Build, 1)
         assert json.loads(build.source_json) == expected_source_dict
         assert build.source_type == BuildSourceEnum(source_type_text)
 
@@ -75,7 +75,7 @@ class TestAPIv3Packages(CoprsTestCase):
         _assert_default_chroots(build)
         rebuild_data["chroots"] = chroots
         self.post_api3_with_auth(endpoint, rebuild_data, user)
-        build = self.models.Build.query.get(2)
+        build = self.db.session.get(self.models.Build, 2)
         assert json.loads(build.source_json) == expected_source_dict
         if "fedora-18-x86_64" in chroots or chroots == []:
             _assert_default_chroots(build)

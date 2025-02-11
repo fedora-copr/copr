@@ -170,14 +170,13 @@ class TestBuildsLogic(CoprsTestCase):
         data = BuildsLogic.get_pending_build_tasks().all()
         assert len(data) == 0
 
-    @staticmethod
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds",
                              "f_db")
-    def test_build_queue_7():
+    def test_build_queue_7(self):
         assert len(BuildsLogic.get_pending_srpm_build_tasks().all()) == 0
-        models.Build.query.get(1).source_status = StatusEnum("pending")
-        models.Build.query.get(2).source_status = StatusEnum("starting")
-        models.Build.query.get(3).source_status = StatusEnum("running")
+        self.db.session.get(models.Build, 1).source_status = StatusEnum("pending")
+        self.db.session.get(models.Build, 2).source_status = StatusEnum("starting")
+        self.db.session.get(models.Build, 3).source_status = StatusEnum("running")
         assert len(BuildsLogic.get_pending_srpm_build_tasks().all()) == 1
         assert len(BuildsLogic.get_pending_srpm_build_tasks(data_type="for_backend").all()) == 3
 
@@ -470,7 +469,7 @@ class TestBuildsLogic(CoprsTestCase):
                                 bootstrap="on")
         self.web_ui.create_distgit_package("test", "tar")
         self.api3.rebuild_package("test", "tar")
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert build.package.name == "tar"
 
     @TransactionDecorator("u1")
@@ -480,7 +479,7 @@ class TestBuildsLogic(CoprsTestCase):
                                 bootstrap="on")
         self.web_ui.create_distgit_package("test", "tar")
         self.web_ui.create_distgit_package("test", "cpio")
-        copr = models.Copr.query.get(1)
+        copr = self.db.session.get(models.Copr, 1)
         self.web_ui.rebuild_all_packages(copr.id)
 
         builds = models.Build.query.all()
@@ -506,7 +505,7 @@ class TestBuildsLogic(CoprsTestCase):
         self.web_ui.create_distgit_package("test", "copr-cli")
         self.api3.rebuild_package("test", "copr-cli")
 
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert build.status == StatusEnum("pending")
 
         form_data = {
@@ -526,7 +525,7 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(importing) == 1
         assert importing[0]['pkg_name'] == "copr-cli"
 
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert build.status == StatusEnum("importing")
         assert build.package.name == "copr-cli"
 
@@ -536,7 +535,7 @@ class TestBuildsLogic(CoprsTestCase):
         self.web_ui.new_project("test", ["fedora-rawhide-i386"])
         self.web_ui.submit_url_build("test")
 
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert len(build.build_chroots) == 0
         assert build.source_status == StatusEnum("pending")
         assert build.package is None
@@ -554,7 +553,7 @@ class TestBuildsLogic(CoprsTestCase):
         }
 
         self.backend.update(form_data)
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert len(build.build_chroots) == 1
         assert build.source_status == StatusEnum("importing")
         assert build.package.name == "foo"
@@ -602,7 +601,7 @@ class TestBuildsLogic(CoprsTestCase):
             with open(file_path, "w", encoding="utf-8") as fd:
                 fd.write(content)
 
-        user = models.User.query.get(1)
+        user = self.db.session.get(models.User, 1)
         copr = models.Copr.query.first()
 
         with mock.patch("coprs.logic.builds_logic.save_form_file_field_to",
@@ -631,7 +630,7 @@ class TestBuildsLogic(CoprsTestCase):
         }
 
         self.backend.update(form_data)
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert build.source_state == "failed" if fail else "importing"
 
         # Removed upon failure, otherwise exists!
@@ -653,7 +652,7 @@ class TestBuildsLogic(CoprsTestCase):
                             "reponame": "test/foo"
                         }))
         assert r.status_code == 200
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         assert build.source_state == "succeeded"
         assert not os.path.exists(storage)
 

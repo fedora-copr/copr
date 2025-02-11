@@ -63,7 +63,7 @@ class BatchesLogic:
         # We don't want to create a new batch if one already exists, but there's
         # the concurrency problem so we need to lock the build instance for
         # writing.
-        build = db.session.query(Build).get(build_id)
+        build = db.session.get(Build, build_id)
         if not build:
             raise BadRequest("Build {} doesn't exist".format(build_id))
 

@@ -33,7 +33,7 @@ class TestCoprDirsLogic(CoprsTestCase):
     def test_coprdir_cleanup_no_build(self):
         self.api3.new_project("test-pr-dirs", ["fedora-17-i386"])
         self.pr_trigger.build_package("test-pr-dirs", "testpkg", 1)
-        build = models.Build.query.get(1)
+        build = db.session.get(models.Build, 1)
         db.session.delete(build)
         models.Action.query.delete()
         db.session.commit()

@@ -8,7 +8,7 @@ import json
 from bs4 import BeautifulSoup
 from werkzeug.datastructures import FileStorage
 
-from coprs import models
+from coprs import models, db
 
 
 # pylint: disable=consider-using-with
@@ -191,7 +191,7 @@ class WebUIRequests(_RequestsInterface):
 
     def rebuild_all_packages(self, project_id, package_names=None):
         """ There's a button "rebuild-all" in web-UI, hit that button """
-        copr = models.Copr.query.get(project_id)
+        copr = db.session.get(models.Copr, project_id)
         if not package_names:
             packages = copr.packages
             package_names = [p.name for p in packages]
@@ -207,7 +207,7 @@ class WebUIRequests(_RequestsInterface):
         return resp
 
     def resubmit_build_id(self, build_id):
-        build = models.Build.query.get(build_id)
+        build = db.session.get(models.Build, build_id)
         path = f"/coprs/{build.copr.full_name}/new_build_rebuild/{build_id}"
         response = self.client.post(
             path,
@@ -439,7 +439,7 @@ class BackendRequests:
         Given the build_id, finish the source build, import it, and move the
         corresponding BuildChroot instances to /pending-jobs/.
         """
-        build = models.Build.query.get(build_id)
+        build = db.session.get(models.Build, build_id)
         if not package_name:
             package_name = build.package.name
 
@@ -456,7 +456,7 @@ class BackendRequests:
         }).status_code == 200
 
         # import srpm to appropriate branches
-        build = models.Build.query.get(build_id)
+        build = db.session.get(models.Build, build_id)
         branch_commits = {}
         for bch in build.build_chroots:
             branch_commits[bch.mock_chroot.distgit_branch.name] = "4dc328232"
