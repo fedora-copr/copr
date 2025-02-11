@@ -336,7 +336,7 @@ class TestCoprDetail(CoprsTestCase):
 
         # And now cancel the build.
         self.web_ui.cancel_build(self.c2.name, build_id)
-        build = models.Build.query.get(build_id)
+        build = self.db.session.get(models.Build, build_id)
         assert build.state == "canceled"
 
 
@@ -1147,7 +1147,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             follow_redirects=False,
         )
         assert "user1/test-fedora-review/add_build" in resp.headers["Location"]
-        copr = self.models.Copr.query.get(1)
+        copr = self.db.session.get(self.models.Copr, 1)
         assert copr.full_name == "user1/test-fedora-review"
         assert len(copr.active_chroots) == 1
         assert copr.active_chroots[0].name == "fedora-rawhide-x86_64"

@@ -23,7 +23,7 @@ class TestComps(CoprsTestCase):
             bootstrap_image="image",
         )
 
-        chroot = models.CoprChroot.query.get(chroot_id)
+        chroot = self.db.session.get(models.CoprChroot, chroot_id)
         data = "<some><xml></xml></some>\n"
         assert chroot.comps == data
         assert chroot.bootstrap_image == "image"

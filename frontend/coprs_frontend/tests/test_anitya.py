@@ -54,7 +54,7 @@ class TestAnitya(CoprsTestCase):
         # Submit another build (not finished).  This one though has the
         # pypi_package_version field specified (could be submitted by anitya).
         resp = self.api3.rebuild_package("inprogress-match", "python-umap-pytorch")
-        build = models.Build.query.get(int(resp.json["id"]))
+        build = self.db.session.get(models.Build, int(resp.json["id"]))
         build.source_json = json.dumps({"pypi_package_version": "0.0.5"})
         db.session.commit()
 
@@ -62,7 +62,7 @@ class TestAnitya(CoprsTestCase):
         # pypi_package_version field specified, and is older so we want to
         # re-build).
         resp = self.api3.rebuild_package("inprogress-older", "python-umap-pytorch")
-        build = models.Build.query.get(int(resp.json["id"]))
+        build = self.db.session.get(models.Build, int(resp.json["id"]))
         build.source_json = json.dumps({"pypi_package_version": "0.0.4"})
         db.session.commit()
 

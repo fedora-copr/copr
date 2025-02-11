@@ -152,9 +152,9 @@ class TestHelpers(CoprsTestCase):
         in Copr database.
         """
         # "fedora-17-x86_64" from "user2/foocopr"
-        original = self.models.CoprChroot.query.get(2)
+        original = self.db.session.get(self.models.CoprChroot, 2)
         # "user1/foocopr"
-        target_copr = self.models.Copr.query.get(1)
+        target_copr = self.db.session.get(self.models.Copr, 1)
 
         assert "fedora-17-x86_64" not in \
                 [m.name for m in target_copr.mock_chroots]
@@ -175,7 +175,7 @@ class TestHelpers(CoprsTestCase):
         self.db.session.add(copy)
         self.db.session.commit()
 
-        target_copr = self.models.Copr.query.get(1)
+        target_copr = self.db.session.get(self.models.Copr, 1)
         assert "fedora-17-x86_64" in \
                 [m.name for m in target_copr.mock_chroots]
 

@@ -59,7 +59,8 @@ class TestApiv3Projects(CoprsTestCase):
         assert Copr.query.one().isolation == read
 
     def _get_copr_id_data(self, copr_id):
-        data = copy.deepcopy(self.models.Copr.query.get(copr_id).__dict__)
+        copr = self.db.session.get(self.models.Copr, copr_id)
+        data = copy.deepcopy(copr.__dict__)
         data.pop("_sa_instance_state")
         data.pop("latest_indexed_data_update")
         return data
@@ -186,16 +187,16 @@ class TestApiv3Projects(CoprsTestCase):
         project without specifying it.
         """
         self.db.session.add(self.c1)
-        copr = Copr.query.get(self.c1.id)
+        copr = self.db.session.get(Copr, self.c1.id)
         assert not copr.fedora_review
         assert not copr.delete_after_days
 
         route = "/api_3/project/edit/{}".format(self.c1.full_name)
         self.api3.post(route, {"fedora_review": True})
-        assert Copr.query.get(self.c1.id).fedora_review
+        assert self.db.session.get(Copr, self.c1.id).fedora_review
 
         self.api3.post(route, {"delete_after_days": 5})
-        copr = Copr.query.get(self.c1.id)
+        copr = self.db.session.get(Copr, self.c1.id)
         assert copr.fedora_review
         assert copr.delete_after_days == 5
 

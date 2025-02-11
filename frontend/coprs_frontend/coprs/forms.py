@@ -15,6 +15,7 @@ try: # get rid of deprecation warning with newer flask_wtf
 except ImportError:
     from flask_wtf import Form as FlaskForm
 
+from coprs import db
 from coprs import app
 from coprs import exceptions
 from coprs import helpers
@@ -1387,7 +1388,7 @@ def _get_build_form(active_chroots, form, package=None):
             return
 
         build_id = int(build_id)
-        build = models.Build.query.get(build_id)
+        build = db.session.get(models.Build, build_id)
         if not build:
             raise wtforms.ValidationError(
                 "Build {} not found".format(build_id))

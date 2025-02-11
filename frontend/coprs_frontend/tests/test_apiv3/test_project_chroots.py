@@ -49,7 +49,7 @@ class TestApiv3ProjectChroots(CoprsTestCase):
         response = self.api3.post(route, data)
         assert response.status_code == 200
 
-        chroot = models.CoprChroot.query.get(chroot.id)
+        chroot = self.db.session.get(models.CoprChroot, chroot.id)
         assert chroot.isolation == "nspawn"
         assert chroot.bootstrap == "off"
         assert chroot.buildroot_pkgs == "foo bar"

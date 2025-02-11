@@ -101,7 +101,7 @@ class TestBatchesLogic(CoprsTestCase):
         assert "Not a valid integer" in error
 
         # drop the finished build from batch
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         build.batch = None
         self.db.session.commit()
         error = self._submit({"with_build_id": 1})
@@ -117,7 +117,8 @@ class TestBatchesLogic(CoprsTestCase):
         # existing build
         BatchesLogic.get_batch_or_create(2, self.transaction_user)
         # permission problem
-        user = models.User.query.get(2)
+        user = self.db.session.get(models.User, 2)
+
         with pytest.raises(BadRequest) as error:
             BatchesLogic.get_batch_or_create(2, user, modify=True)
         assert "The batch 2 belongs to project user1/test" in str(error)
@@ -126,11 +127,11 @@ class TestBatchesLogic(CoprsTestCase):
     def test_cant_group_others_build(self):
         self._prepare_project_with_batches()
         # de-assign the build from batch
-        build = models.Build.query.get(1)
+        build = self.db.session.get(models.Build, 1)
         build.batch = None
         self.db.session.commit()
 
-        user = models.User.query.get(2)
+        user = self.db.session.get(models.User, 2)
         with pytest.raises(BadRequest) as error:
             BatchesLogic.get_batch_or_create(1, user, modify=True)
         assert "Build 1 is not yet in any batch" in str(error)
@@ -217,7 +218,7 @@ class TestBatchesLogic(CoprsTestCase):
 
         self.db.session.commit()
 
-        build = models.Build.query.get(batch_build_id)
+        build = self.db.session.get(models.Build, batch_build_id)
         batch = build.batch
         mock_chroot = build.build_chroots[0].mock_chroot
 

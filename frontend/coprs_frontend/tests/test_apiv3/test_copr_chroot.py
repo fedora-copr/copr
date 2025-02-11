@@ -71,7 +71,7 @@ class TestCoprChroots(CoprsTestCase):
         )
 
         # Make sure all the chroot attributes are configured
-        chroot = self.models.CoprChroot.query.get(1)
+        chroot = self.db.session.get(self.models.CoprChroot, 1)
         assert chroot.isolation == "nspawn"
         assert chroot.buildroot_pkgs == "pkg1 pkg2 pkg3"
 
@@ -82,7 +82,7 @@ class TestCoprChroots(CoprsTestCase):
             reset_fields=["additional_packages"]
         )
         assert response.status_code == 200
-        chroot = self.models.CoprChroot.query.get(1)
+        chroot = self.db.session.get(self.models.CoprChroot, 1)
         assert chroot.isolation == "nspawn"
         assert chroot.buildroot_pkgs is None
 
@@ -92,7 +92,7 @@ class TestCoprChroots(CoprsTestCase):
             chrootname,
             reset_fields=["additional_packages", "isolation"]
         )
-        chroot = self.models.CoprChroot.query.get(1)
+        chroot = self.db.session.get(self.models.CoprChroot, 1)
         assert chroot.isolation == "unchanged"
         assert chroot.buildroot_pkgs is None
 
