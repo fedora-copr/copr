@@ -12,6 +12,8 @@ import logging
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
 from copr_backend.storage import PulpStorage
+from copr_backend.frontend import FrontendClient
+from copr_backend.exceptions import FrontendClientException
 
 
 STORAGES = ["backend", "pulp"]
@@ -76,10 +78,34 @@ def is_valid_build_directory(name):
     return True
 
 
+def change_on_frontend(client, owner, project, storage):
+    """
+    Request copr-frontend to change storage for this project in database
+    """
+    data = {
+        "owner": owner,
+        "project": project,
+        "storage": storage,
+    }
+    client.post("change-storage", data)
+
+
+def add_redirect(fullname):
+    """
+    Create a HTTP redirect for this project
+    See https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
+    """
+    path = "/var/lib/copr/pulp-redirect.txt"
+    with open(path, "a", encoding="utf-8") as fp:
+        print(fullname, file=fp)
+
+
 def main():
     """
     The main function
     """
+    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-statements
     parser = get_arg_parser()
     args = parser.parse_args()
 
@@ -98,6 +124,7 @@ def main():
     config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     owner, project = args.project.split("/")
     ownerdir = os.path.join(config.destdir, owner)
+    ok = True
 
     for subproject_entry in os.scandir(ownerdir):
         subproject = subproject_entry.name
@@ -144,6 +171,7 @@ def main():
                 result = storage.init_project(full_name, chroot)
                 if not result:
                     log.error("Failed to initialize project: %s", resultdir)
+                    ok = False
                     break
 
                 # We cannot check return code here
@@ -152,9 +180,37 @@ def main():
                 result = storage.publish_repository(chroot)
                 if not result:
                     log.error("Failed to publish a repository: %s", resultdir)
+                    ok = False
                     break
 
                 log.info("OK: %s", resultdir)
+
+    # Not everything was migrated successfully. Play it safe and fail.
+    if not ok:
+        log.error(
+            "Failure during '%s' migration, not switching on frontend",
+            args.project,
+        )
+        sys.exit(1)
+
+    # Change storage in the frontend database
+    frontend_client = FrontendClient(config, try_indefinitely=False, logger=log)
+    try:
+        change_on_frontend(frontend_client, owner, project, args.dst)
+    except FrontendClientException as ex:
+        log.error("Failed to change storage on frontend for %s because: %s",
+                  args.project, str(ex))
+        sys.exit(1)
+
+    # At this point all data is successfully migrated and frontend thinks the
+    # project is in Pulp, so we can safely add the HTTP redirect
+    try:
+        add_redirect(args.project)
+    except OSError as ex:
+        log.error("Failed to add a redirect for %s because: %s",
+                  args.project, str(ex))
+
+    log.info("Project %s successfully migrated", args.project)
 
 
 if __name__ == "__main__":
