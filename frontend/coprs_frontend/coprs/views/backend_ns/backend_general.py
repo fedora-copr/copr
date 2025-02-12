@@ -1,11 +1,15 @@
 import flask
-from copr_common.enums import StatusEnum, ActionTypeEnum
+from copr_common.enums import StatusEnum, ActionTypeEnum, StorageEnum
 from coprs import db, app
 from coprs import models
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic, BuildConfigLogic
-from coprs.logic.coprs_logic import CoprChrootsLogic, MockChrootsLogic
+from coprs.logic.coprs_logic import (
+    CoprsLogic,
+    CoprChrootsLogic,
+    MockChrootsLogic,
+)
 from coprs.exceptions import CoprHttpException, ObjectNotFound
 from coprs.helpers import streamed_json
 
@@ -500,3 +504,28 @@ def chroots_prunerepo_status():
 def final_prunerepo_done():
     chroots_pruned = flask.request.get_json()
     return flask.jsonify(MockChrootsLogic.prunerepo_finished(chroots_pruned))
+
+
+@backend_ns.route("/change-storage/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def change_storage():
+    """
+    Change a storage for a project
+    Backend calls this method when successfully migrating all the project data
+    to the new storage.
+    """
+    data = flask.request.json
+    try:
+        copr = CoprsLogic.get_by_ownername_coprname(
+            data["owner"], data["project"])
+        copr.storage = StorageEnum(data["storage"])
+        db.session.add(copr)
+        db.session.commit()
+        return flask.jsonify({"result": "done"})
+    except CoprHttpException as ex:
+        msg = str(ex)
+        app.logger.error("Failed to change storage: %s", msg)
+        response = flask.jsonify({"msg": msg})
+        response.status_code = ex.code
+        return response
+    return flask.jsonify(response)
