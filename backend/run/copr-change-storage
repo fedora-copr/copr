@@ -167,8 +167,7 @@ def main():
                 # are currently writing into the results directory. Otherwise
                 # we can end up with incosystent data in Pulp.
 
-                full_name = "{0}/{1}".format(owner, subproject)
-                result = storage.init_project(full_name, chroot)
+                result = storage.init_project(subproject, chroot)
                 if not result:
                     log.error("Failed to initialize project: %s", resultdir)
                     ok = False
