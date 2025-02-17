@@ -9,6 +9,10 @@ on:
 jobs:
   python-lint-job:
     runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+
     steps:
       - name: Repository checkout
         uses: actions/checkout@v4
