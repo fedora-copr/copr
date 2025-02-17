@@ -3,7 +3,7 @@ import json
 from unittest import mock, skip
 import pytest
 
-from flask_sqlalchemy import get_debug_queries
+from flask_sqlalchemy.record_queries import get_recorded_queries
 
 from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
 from tests.coprs_test_case import CoprsTestCase
@@ -116,7 +116,7 @@ class TestWaitingBuilds(CoprsTestCase):
         with app.app_context():
             r = self.tc.get("/backend/pending-jobs/")
             data = json.loads(r.data.decode("utf-8"))
-            dq = get_debug_queries()
+            dq = get_recorded_queries()
 
         # Only two queries should occur.  If you happen to see higher number
         # here, please check the get_pending_srpm_build_tasks and

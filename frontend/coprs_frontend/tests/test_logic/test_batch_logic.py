@@ -5,7 +5,7 @@ Tests for working with Batches
 import json
 import time
 import pytest
-from flask_sqlalchemy import get_debug_queries
+from flask_sqlalchemy.record_queries import get_recorded_queries
 from copr_common.enums import StatusEnum
 from coprs import app, models
 from coprs.exceptions import BadRequest
@@ -145,7 +145,7 @@ class TestBatchesLogic(CoprsTestCase):
         with app.app_context():
             r = self.tc.get("/backend/pending-jobs/")
             data = json.loads(r.data.decode("utf-8"))
-            dq = get_debug_queries()
+            dq = get_recorded_queries()
 
         # Be very careful if you have to bump the number here.  Any O(N)
         # slowdown means huge penalty on /bakcend/pending-jobs/ route.
@@ -280,7 +280,7 @@ class TestBatchesLogic(CoprsTestCase):
         with app.app_context():
             r = self.tc.get("/backend/pending-jobs/")
             data = json.loads(r.data.decode("utf-8"))
-            dq = get_debug_queries()
+            dq = get_recorded_queries()
 
         t3 = time.time()
 
