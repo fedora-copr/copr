@@ -342,12 +342,13 @@ class PackagesLogic(object):
 
     @classmethod
     def batch_build(cls, user, copr, packages, chroot_names=None,
-                    only_package_chroots=None, **build_options):
+                    only_package_chroots=None, with_build_id=None,
+                    after_build_id=None, **build_options):
+
         new_builds = []
-
-        batch = models.Batch()
-        db.session.add(batch)
-
+        batch = builds_logic.BuildsLogic.setup_batch(after_build_id,
+                                                     with_build_id, user,
+                                                     always_create=True)
         for package in packages:
             git_hashes = {}
             skip_import = False
