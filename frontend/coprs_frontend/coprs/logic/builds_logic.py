@@ -798,11 +798,19 @@ class BuildsLogic(object):
         return build
 
     @classmethod
-    def _setup_batch(cls, batch, after_build_id, with_build_id, user):
-        # those three are exclusive!
-        if sum([bool(x) for x in
-                [batch, with_build_id, after_build_id]]) > 1:
-            raise BadRequest("Multiple build batch specifiers")
+    def setup_batch(cls, after_build_id, with_build_id, user,
+                    always_create=False):
+        """
+        According to "after_build_id" and "with_build_id" arguments (they are
+        mutually exclusive), get a pre-existing (or create a new) batch and
+        return it.  If neither of those args is specified, None is returned,
+        unless always_create=True - then a completely separate batch is crated
+        and returned.
+        """
+        batch = None
+        if with_build_id and after_build_id:
+            raise BadRequest("You may either build after build ID, or with "
+                             "build id, not both.")
 
         if with_build_id:
             batch = BatchesLogic.get_batch_or_create(with_build_id, user, True)
@@ -811,6 +819,10 @@ class BuildsLogic(object):
             old_batch = BatchesLogic.get_batch_or_create(after_build_id, user)
             batch = models.Batch()
             batch.blocked_by = old_batch
+            db.session.add(batch)
+
+        if always_create and batch is None:
+            batch = models.Batch()
             db.session.add(batch)
 
         return batch
@@ -898,7 +910,8 @@ class BuildsLogic(object):
             user, copr,
             "You don't have permissions to build in this copr.")
 
-        batch = cls._setup_batch(batch, after_build_id, with_build_id, user)
+        if not batch:
+            batch = cls.setup_batch(after_build_id, with_build_id, user)
 
         if not repos:
             repos = copr.repos

@@ -107,6 +107,8 @@ def copr_rebuild_all_packages(copr):
                 form.selected_chroots,
                 enable_net=form.enable_net.data,
                 only_package_chroots=form.only_package_chroots.data,
+                with_build_id=form.with_build_id.data,
+                after_build_id=form.after_build_id.data,
             )
 
         except (ObjectNotFound, ActionInProgressException, NoPackageSourceException, \
