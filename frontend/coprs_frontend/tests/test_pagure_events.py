@@ -240,3 +240,29 @@ class TestPagureEvents(CoprsTestCase):
         # Make sure a build was created
         assert len(builds) == 1
         assert builds[0].scm_object_type == 'pull-request'
+
+    @mock.patch('pagure_events.helpers.raw_commit_changes')
+    @mock.patch('pagure_events.get_repeatedly', mock.Mock())
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots")
+    def test_coprdir_isolation(self, f_raw_commit_changes):
+        """
+        A single Copr project can integrate multiple packages from s.f.o. being
+        developed by multiple package maintainers. Make sure they cannot affect
+        each others builds.
+        """
+        f_raw_commit_changes.return_value = {
+            'tests/integration/conftest.py @@ -28,6 +28,16 @@ def test_env(): return env',
+            'tests/integration/conftest.py b/tests/integration/conftest.py index '
+            '1747874..a2b81f6 100644 --- a/tests/integration/conftest.py +++'}
+        p1 = self.models.Package(
+            copr=self.c1, name="hello-world", source_type=8, webhook_rebuild=True,
+            source_json='{"clone_url": "https://pagure.io/test/copr/copr"}'
+        )
+        self.db.session.add(p1)
+        build = build_on_fedmsg_loop()
+        message = Message(
+            'io.pagure.prod.pagure.pull-request.updated',
+            self.data['msg']
+        )
+        build.the_call(message)
+        assert self.c1.dirs[-1].name == "foocopr:pr:test-copr-copr-1"

@@ -1,6 +1,7 @@
 import locale
 import json
 import os
+import re
 import time
 import datetime
 from functools import cmp_to_key
@@ -674,7 +675,8 @@ class CoprDirsLogic(object):
         parts = dirname.split(":")
         if len(parts) != 3:
             return False
-        return all([c.isnumeric() for c in parts[2]])
+        suffix = parts[2].split("-")[-1]
+        return suffix.isnumeric()
 
     @classmethod
     def validate(cls, copr, dirname):
@@ -692,8 +694,7 @@ class CoprDirsLogic(object):
                 f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE> "
                 f"or {copr.name}:pr:<ID> (for automatically removed directories)"
             )
-
-        if not all(x.isalnum() for x in dirname.split(":")[1:]):
+        if not all(x.isalnum() for x in re.split(r"[:-]+", dirname)[1:]):
             raise exceptions.BadRequest(
                 f"Wrong directory '{dirname}' specified.  Directory name can "
                 "consist of alpha-numeric strings separated by colons.")
