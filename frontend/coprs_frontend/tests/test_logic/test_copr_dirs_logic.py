@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import json
 import pytest
 from coprs import db, models
+from coprs.logic.coprs_logic import CoprDirsLogic
+from coprs.exceptions import CoprHttpException
 from tests.coprs_test_case import (
     CoprsTestCase,
     TransactionDecorator,
@@ -45,7 +47,7 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert models.CoprDir.query.count() == 1
         action = models.Action.query.one()
         assert action.action_type == 11
-        assert json.loads(action.data) == ["user1/test-pr-dirs:pr:1"]
+        assert json.loads(action.data) == ["user1/test-pr-dirs:pr:test-copr-copr-1"]
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
@@ -64,7 +66,7 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert models.CoprDir.query.count() == 1
         action = models.Action.query.one()
         assert action.action_type == 11
-        assert json.loads(action.data) == ["user1/test-pr-dirs:pr:1"]
+        assert json.loads(action.data) == ["user1/test-pr-dirs:pr:test-copr-copr-1"]
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
@@ -89,8 +91,8 @@ class TestCoprDirsLogic(CoprsTestCase):
         assert models.CoprDir.query.count() == 2
         action = models.Action.query.one()
         assert action.action_type == 11
-        assert set(json.loads(action.data)) == set(["user1/test-pr-dirs:pr:2",
-                                                    "user1/test-pr-dirs:pr:3"])
+        assert set(json.loads(action.data)) == set(["user1/test-pr-dirs:pr:test-copr-copr-2",
+                                                    "user1/test-pr-dirs:pr:test-copr-copr-3"])
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_users_api", "f_db")
@@ -116,4 +118,28 @@ class TestCoprDirsLogic(CoprsTestCase):
         response = self.test_client.get(url)
         assert response.status_code == 200
         result_dict = json.loads(response.data)
-        assert result_dict["git_repo"] == repo_url.format("test-pr-dirs:pr:1")
+        assert result_dict["git_repo"] == repo_url.format("test-pr-dirs:pr:test-copr-copr-1")
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_coprdir_suffix_validation(self):
+        valid = [
+            "foocopr:custom:foo",
+            "foocopr:pr:123",
+            "foocopr:pr:frostyx-foo-123",
+        ]
+        invalid = [
+            "foo:pr:123",
+            "foocopr:bar:baz",
+            "foocopr:custom:",
+            "foocopr:custom:foo-",
+            "foocopr:pr:foo",
+            "foocopr:pr:frostyx-foo-123-bar",
+            "foocopr:pr:frostyx:123",
+        ]
+
+        for dirname in valid:
+            assert CoprDirsLogic.validate(self.c1, dirname) is None
+
+        for dirname in invalid:
+            with pytest.raises(CoprHttpException):
+                CoprDirsLogic.validate(self.c1, dirname)
