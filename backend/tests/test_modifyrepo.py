@@ -431,7 +431,8 @@ class TestModifyRepo(object):
              "--workers", "8", "--general-compress-type=gz", "--update"] + additional_args
 
     @pytest.mark.skipif(
-        distro.id() == 'fedora' and int(distro.version()) >= 36,
+        (distro.id() == 'fedora' and int(distro.version()) >= 36) or
+        (distro.id() == 'openeuler' and float(distro.version()) >= 24.03),
         reason="createrepo_c dropped md5 checksum support"
     )
     def test_copr_repo_el5(self, f_third_build):
