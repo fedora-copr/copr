@@ -110,6 +110,5 @@ if __name__ == "__main__":
         workdir=shlex.quote(workdir),
         env=" ".join(env)
     )
-    cmd = shlex.quote(cmd)
 
-    run_cmd(mock + ['--chroot', 'su - {0} -c {1}'.format(user, cmd)])
+    run_cmd(mock + ['--unpriv', '--chroot', cmd])
