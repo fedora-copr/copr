@@ -56,6 +56,12 @@ def login_menu():
                 'desc': 'log in',
             })
 
+        if oidc_enabled(config):
+            menu.append({
+                'link': flask.url_for("misc.oidc_login"),
+                'desc': '{} login'.format(app.config['OIDC_PROVIDER_NAME']),
+            })
+
         if config['KRB5_LOGIN']:
             menu.append({
                 # url_for takes the namespace + class method converted from camelCase to snake_case
@@ -67,12 +73,6 @@ def login_menu():
             menu.append({
                 'link': config["FAS_SIGNUP_URL"],
                 'desc': 'sign up',
-            })
-
-        if oidc_enabled(config):
-            menu.append({
-                'link': flask.url_for("misc.oidc_login"),
-                'desc': '{} login'.format(app.config['OIDC_PROVIDER_NAME']),
             })
 
     return dict(login_menu=menu)
