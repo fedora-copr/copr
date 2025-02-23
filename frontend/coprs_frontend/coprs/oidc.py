@@ -31,7 +31,7 @@ def oidc_enabled(config):
             return False
 
     if not config.get("OIDC_TOKEN_AUTH_METHOD"):
-        app.logger.warning("OIDC_SCOPES is empty, using default method: client_secret_basic")
+        app.logger.warning("OIDC_TOKEN_AUTH_METHOD is empty, using default method: client_secret_basic")
         config["OIDC_TOKEN_AUTH_METHOD"] = "client_secret_basic"
 
     username_claim = config.get("OIDC_USERNAME_CLAIM")
