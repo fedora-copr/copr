@@ -65,8 +65,8 @@ def run_cmd(cmd, cwd=".", preexec_fn=None, env=None):
 
     result = munch.Munch(
         cmd=cmd,
-        stdout=stdout.decode('utf-8').strip(),
-        stderr=stderr.decode('utf-8').strip(),
+        stdout=stdout.decode('utf-8', errors="ignore").strip(),
+        stderr=stderr.decode('utf-8', errors="ignore").strip(),
         returncode=process.returncode,
         cwd=cwd
     )
