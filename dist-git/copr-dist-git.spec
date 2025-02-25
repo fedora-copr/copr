@@ -97,9 +97,6 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 # for ghost files
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
-%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/dist_git
-
-
 %check
 ./run_tests.sh -vv --no-cov
 
