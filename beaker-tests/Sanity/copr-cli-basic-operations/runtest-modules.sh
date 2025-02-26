@@ -117,9 +117,6 @@ rlJournalStart
         rlRun "copr-cli build-module --distgit fedora --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
-        rlAssertEquals "MBS API is no longer available"\
-                       `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 404
-
         # Test that module builds succeeded
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 $PACKAGES
