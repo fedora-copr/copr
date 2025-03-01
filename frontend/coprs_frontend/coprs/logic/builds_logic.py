@@ -13,7 +13,7 @@ from sqlalchemy import func, desc, or_, and_
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import bindparam, Integer, String
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import DataError, IntegrityError, NoResultFound
 
 from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
@@ -460,11 +460,13 @@ class BuildsLogic(object):
         except ValueError:
             raise MalformedArgumentException("Invalid task_id {}".format(task_id))
 
-        build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
         try:
+            build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
             return build_chroot.join(models.Build).one()
         except NoResultFound as ex:
             raise ObjectNotFound("Specified task ID not found") from ex
+        except DataError as ex:
+            raise MalformedArgumentException("Invalid task_id {}".format(task_id)) from ex
 
     @classmethod
     def get_srpm_build_task(cls, build_id):
