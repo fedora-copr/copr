@@ -73,7 +73,7 @@ class InsufficientStorage(CoprHttpException):
     _code = 500
 
 
-class MalformedArgumentException(CoprHttpException, ValueError):
+class MalformedArgumentException(BadRequest, ValueError):
     pass
 
 
