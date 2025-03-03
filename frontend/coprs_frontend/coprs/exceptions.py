@@ -4,7 +4,10 @@ class CoprHttpException(Exception):
     _code = 500
 
     def __init__(self, message=None, code=None, headers=None, **kwargs):
-        self.message = str(message) if message else None
+        if isinstance(message, str):
+            message = message.encode("utf-8", errors="ignore")
+
+        self.message = message.decode("utf-8", errors="ignore") if message else self._default
         self.code = code or self._code
         self.headers = headers
         self.kwargs = kwargs
