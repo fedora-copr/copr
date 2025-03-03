@@ -77,13 +77,25 @@ Since this all is in user's hands, it is not technically incorrect to have empty
 hook payload, e.g. it is valid to call `curl -X POST <THE_CUSTOM_HOOK_URL>` to
 trigger the custom source build method.
 
-Src.RPM
--------
 
-Copr expects that `script` creates SPEC file, tar ball, and patches in the working
-directory. We cannot process SRC.RPM. Because some chroots can use technology
-which our server cannot recognize. E.g., in the past `rpm` changed compression and
-checksum algorithm and rpm from RHEL was unable to process packages from Fedora.
+Source RPMs
+-----------
+
+Copr expects that when the provided `script` is executed, it provides a working
+SPEC file, source archive(s) referenced by Source statements (typically a
+tarball), and optionally patches referenced by Patch statements.  These files
+should be placed in the script’s `resultdir` directory (which defaults to the
+current working directory).
+
+The script's output in this method cannot be an SRPM.  If you already have an
+existing tool that generates one, you can use it in the script, but you must
+extract its contents within the script itself.  For example::
+
+    #! /bin/sh -xe
+    git clone example.com/foo.git && cd foo
+    make srpm
+    bsdtar xf *.src.rpm -C "$COPR_RESULTDIR"
+
 
 Environment variables
 ---------------------
