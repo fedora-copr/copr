@@ -138,7 +138,26 @@
   {% endif %}
 {% endmacro %}
 
-{% macro build_state_text(state, reason=None) %}
+{% macro log_detective_ai_link(failed_log_url, build_id, chroot_name) %}
+  {% if config.LOG_DETECTIVE_BUTTON %}
+    {% if failed_log_url %}
+      {% set url = "https://log-detective.com/explain?url=%s" %}
+      <a href="{{ url | format(failed_log_url | urlencode) }}"
+        class="pficon pficon-info"
+        title="See what AI can tell you about the build failure">
+        Ask AI
+      </a> &nbsp / &nbsp
+    {% endif %}
+    {% set url = "https://log-detective.com/contribute/copr/%s/%s" %}
+    <a href="{{ url | format(build_id, chroot_name) }}"
+      class="pficon pficon-info"
+      title="Help us build a new AI tool to analyze build logs for you. We are creating new RPM build specific AI model, but we need more data to feed it with. Please, report and describe current logs in the redirected page.">
+      Teach AI
+    </a>
+  {% endif %}
+{% endmacro %}
+
+{% macro build_state_text(state, reason=None, builder_live_log=None) %}
   <span class="build-{{ state }}"
         title="{{ reason or state | build_state_description }}">
   {% if state == "importing" %}
