@@ -116,6 +116,8 @@ class TestLoggingCoprPermissionsLogic(CoprsTestCase):
             copr_builder=helpers.PermissionEnum("request"),
             copr_admin=helpers.PermissionEnum("request"))
 
+        self.db.session.add(perm)
+
         CoprPermissionsLogic.update_permissions(
             self.u2, self.c2, perm,
             new_builder=helpers.PermissionEnum("approved"),

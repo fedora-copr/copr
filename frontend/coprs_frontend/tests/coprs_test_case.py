@@ -24,6 +24,7 @@ from coprs.logic.dist_git_logic import DistGitLogic
 from tests.request_test_api import WebUIRequests, API3Requests, BackendRequests
 from tests.lib.pagure_pull_requests import PullRequestTrigger
 
+
 class CoprsTestCase(object):
 
     # These are made available by TransactionDecorator() decorator
