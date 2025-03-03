@@ -59,9 +59,12 @@ class TestMail(CoprsTestCase):
             mc = models.MockChroot(os_release="fedora", os_version=i,
                                    arch="x86_64", is_active=True)
             mc.distgit_branch = models.DistGitBranch.query.first()
+            self.db.session.add(mc)
+
             cc = models.CoprChroot()
             cc.mock_chroot = mc
             cc.copr = self.c2
+            self.db.session.add(cc)
             chroots.append(cc)
 
         now = datetime.datetime.now()

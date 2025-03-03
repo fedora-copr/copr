@@ -958,13 +958,13 @@ class BuildsLogic(object):
             isolation=isolation,
             ssh_public_keys=ssh_public_keys,
         )
+        db.session.add(build)
 
         if timeout:
             build.timeout = timeout
         else:
             build.timeout = package.timeout if package else app.config["DEFAULT_BUILD_TIMEOUT"]
 
-        db.session.add(build)
         cls.assign_buildchroots(
             build,
             chroots,
