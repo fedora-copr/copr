@@ -1124,7 +1124,8 @@ expands ``%autorelease`` and ``%autochangelog`` from the cloned dist-git
 repository.
 
 If you need to fine tune the process and alter it somehow you can -
-Set the source type to "Custom", and use the following script::
+Set the source type to :ref:`custom_source_method`, and use the following
+script::
 
     #! /bin/sh -x
     package=<package>
