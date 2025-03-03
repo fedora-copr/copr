@@ -346,22 +346,38 @@ class TestCoprsLogicAdminFeatures(CoprsTestCase):
         assert isinstance(copr, models.Copr)
 
     @pytest.mark.usefixtures("f_users", "f_groups", "f_fas_groups", "f_db")
-    def test_add_group_project(self):
+    def test_add_group_project(self, f_db):
         flask.g.user = self.u1
 
-        # User can create project in a group that he belongs to
-        self.u1.admin = False
-        CoprsLogic.add(name="p1", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
+        with f_db.session.no_autoflush:
+            # User can create project in a group that he belongs to
+            self.u1.admin = False
+            CoprsLogic.add(
+                name="p1", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"]
+            )
 
-        # User cannot create a project in a group that he doesn't belong to
-        self.u1.openid_groups = None
-        with pytest.raises(AccessRestricted) as ex:
-            CoprsLogic.add(name="p2", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
-        assert "User 'user1' doesn't have access to the copr group 'group1' (fas_name='fas_1')" in ex.value.message
+            # User cannot create a project in a group that he doesn't belong to
+            self.u1.openid_groups = None
+            with pytest.raises(AccessRestricted) as ex:
+                CoprsLogic.add(
+                    name="p2",
+                    group=self.g1,
+                    user=self.u1,
+                    selected_chroots=["fedora-rawhide-x86_64"]
+                )
+            assert (
+                "User 'user1' doesn't have access to the copr group 'group1' (fas_name='fas_1')"
+                in ex.value.message
+            )
 
-        # Admin can create a whatever group project
-        self.u1.admin = True
-        CoprsLogic.add(name="p3", group=self.g1, user=self.u1, selected_chroots=["fedora-rawhide-x86_64"])
+            # Admin can create a whatever group project
+            self.u1.admin = True
+            CoprsLogic.add(
+                name="p3",
+                group=self.g1,
+                user=self.u1,
+                selected_chroots=["fedora-rawhide-x86_64"]
+            )
 
 
 class TestChrootFormLogic(CoprsTestCase):
