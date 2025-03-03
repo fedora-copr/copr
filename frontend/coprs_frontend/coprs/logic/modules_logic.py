@@ -213,14 +213,14 @@ class ModuleBuildFacade(object):
         blocked_by_id = None
         for group in self.get_build_batches(rpms):
             batch = models.Batch()
-            batch.blocked_by_id = blocked_by_id
             db.session.add(batch)
+            batch.blocked_by_id = blocked_by_id
             for pkgname, rpm in group.items():
                 build = self.get_build(rpm, pkgname)
+                db.session.add(build)
                 build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
-                db.session.add(build)
 
             # Every batch needs to by blocked by the previous one
             blocked_by_id = batch.id

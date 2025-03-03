@@ -520,6 +520,7 @@ class ProjectForking(object):
                                        exclude=["id", "group_id", "created_on",
                                                 "scm_repo_url", "scm_api_type", "scm_api_auth_json",
                                                 "persistent", "auto_prune", "contact", "webhook_secret"])
+            db.session.add(fcopr)
 
             fcopr.forked_from_id = copr.id
             fcopr.user = self.user
@@ -531,14 +532,12 @@ class ProjectForking(object):
                 fcopr.group_id = self.group.id
 
             fcopr_dir = models.CoprDir(name=fcopr.name, copr=fcopr, main=True)
+            db.session.add(fcopr_dir)
 
             for chroot in list(copr.active_copr_chroots):
                 CoprChrootsLogic.create_chroot_from(chroot,
                                                     mock_chroot=chroot.mock_chroot,
                                                     copr=fcopr)
-
-            db.session.add(fcopr)
-            db.session.add(fcopr_dir)
 
         return fcopr
 
