@@ -205,11 +205,6 @@ class Config(object):
     # Possible options are "backend" and "pulp"
     DEFAULT_STORAGE = "backend"
 
-    # If build results for (some) projects are stored in Pulp, what is the
-    # shared part of the URL for all repositories, e.g.
-    # https://pulp.stage.devshift.net/api/pulp-content/copr
-    PULP_CONTENT_URL = None
-
 
 class ProductionConfig(Config):
     DEBUG = False

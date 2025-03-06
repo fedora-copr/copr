@@ -6,6 +6,7 @@
 
 from flask_restx import Resource, Namespace
 
+from coprs import app
 from coprs.logic.coprs_logic import (
     CoprsLogic,
     CoprDirsLogic,
@@ -49,8 +50,7 @@ def get_project_rpmrepo_metadata(copr):
     repos_info = ReposLogic.repos_for_copr(copr, repo_dl_stat)
 
     data = {
-        "results_url": copr.results_url,
-        "pubkey_url": copr.pubkey_url,
+        "results_url": "/".join([app.config["BACKEND_BASE_URL"], "results"]),
     }
 
     repos = data['repos'] = {}
