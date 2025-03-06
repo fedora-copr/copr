@@ -95,15 +95,15 @@ class TestRepos(CoprsTestCase):
         app.config["BACKEND_BASE_URL"] = "http://backend"
         app.config["PULP_CONTENT_URL"] = "http://pulp"
 
-        # We set the storage to Pulp, therefore the fallback for constructing
-        # the repository URL won't be accurate anymore.
         self.c1.storage = StorageEnum.pulp
         self.db.session.add_all([self.c1, self.c4_dir])
         self.db.session.commit()
-
         assert self.c1.dirs[1].full_name == "user1/foocopr:PR"
+
+        # Even though this is a Pulp project, we still use the same backend URL
+        # and let the HTTPD service redirect where needed
         url = "copr://user1/foocopr:PR"
-        expected = "http://pulp/user1/foocopr:PR/fedora-rawhide-x86_64/"
+        expected = "http://backend/results/user1/foocopr:PR/fedora-rawhide-x86_64/"
         assert pre_process_repo_url("fedora-rawhide-x86_64", url) == expected
 
     def test_parse_repo_params(self):
