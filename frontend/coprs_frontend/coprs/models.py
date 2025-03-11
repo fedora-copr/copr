@@ -662,8 +662,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def repo_url(self):
-        return "/".join([app.config["BACKEND_BASE_URL"],
-                         u"results",
+        """
+        URL for a project repository
+        """
+        return "/".join([app.config["BACKEND_BASE_URL"], "results",
                          self.full_name])
 
     @property
@@ -848,8 +850,11 @@ class CoprDir(db.Model):
 
     @property
     def repo_url(self):
-        return "/".join([app.config["BACKEND_BASE_URL"],
-                         u"results", self.full_name])
+        """
+        URL for a CoprDir repository
+        """
+        return "/".join([app.config["BACKEND_BASE_URL"], "results",
+                         self.full_name])
 
     @property
     def repo_id(self):

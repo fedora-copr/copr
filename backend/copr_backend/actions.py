@@ -147,8 +147,8 @@ class Createrepo(Action):
 
     def add_http_redirect(self):
         """
-        Create a HTTP redirect for this project
-        See https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
+        Create a HTTP redirect for this project.  See:
+        https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
         """
         path = "/var/lib/copr/pulp-redirect.txt"
         fullname = "{0}/{1}".format(self.storage.owner, self.storage.project)
