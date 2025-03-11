@@ -18,6 +18,11 @@ def lock(path, lockdir, timeout, log):
     We want to pass a simple `path` parameter specifying what file or directory
     should be locked. This however isn't where the lockfile is going to be
     created. It will be created in the `lockdir`.
+
+    From FileLock docs:
+    Using a timeout < 0 makes the lock block until it can be acquired while
+    timeout == 0 results in only one attempt to acquire the lock before raising
+    a Timeout exception (-> non-blocking).
     """
     filename = path.replace("/", "_@_") + ".lock"
     lockfile = os.path.join(lockdir, filename)

@@ -18,6 +18,7 @@ import modulemd_tools.yaml
 from copr_common.rpm import splitFilename
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, StorageEnum
 from copr_common.worker_manager import WorkerManager
+from copr_common.lock import lock
 
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
@@ -158,8 +159,10 @@ class Createrepo(Action):
             if fullname in projects:
                 return
 
-            with open(path, "a", encoding="utf-8") as fp:
-                print(fullname, file=fp)
+            lockdir = "/var/lock/copr-backend"
+            with lock(path, lockdir=lockdir, timeout=-1, log=self.log):
+                with open(path, "a", encoding="utf-8") as fp:
+                    print(fullname, file=fp)
 
         except FileNotFoundError:
             # Ignoring because this Copr instance doesn't need redirects
