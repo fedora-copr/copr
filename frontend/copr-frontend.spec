@@ -296,16 +296,12 @@ EOF
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/coprs
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/alembic
 
+install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/copr-frontend.conf
+
 %check
 %if %{with check}
 ./run_tests.sh -vv --no-cov
 %endif
-
-%pre
-getent group copr-fe >/dev/null || groupadd -r copr-fe
-getent passwd copr-fe >/dev/null || \
-useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
-usermod -L copr-fe
 
 
 %post
@@ -360,7 +356,7 @@ usermod -L copr-fe
 %{_libexecdir}/copr_dump_db.sh
 %exclude_files flavor
 %exclude_files devel
-
+%{_sysusersdir}/copr-frontend.conf
 
 %files fedora
 %license LICENSE
