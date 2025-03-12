@@ -123,9 +123,8 @@ install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 %dir %{_sysconfdir}/logrotate.d
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-dist-git
-%attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
-%attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
-%ghost %{_var}/log/copr-dist-git/*.log
+%dir %attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
+%ghost %attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
 %{_sysusersdir}/copr-dist-git.conf
 
