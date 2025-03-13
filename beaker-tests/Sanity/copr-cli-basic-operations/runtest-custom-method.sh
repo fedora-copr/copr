@@ -41,10 +41,10 @@ check_resultdir ()
 
 check_http_status ()
 {
-   grep "HTTP/1.1 $1" "$rlRun_LOG" || {
-       echo "failed"
-       grep "HTTP/1.1 " "$rlRun_LOG"
-       false
+    grep -E "HTTP/(1.1|2) $1" "$rlRun_LOG" || {
+        echo "failed"
+        grep -E "HTTP/(1.1|2) " "$rlRun_LOG"
+        false
    }
 }
 
