@@ -668,7 +668,10 @@ class Commands(object):
                     "-A", "review.json",
                     "-A", "rpmlint.txt",
                 ])
-                cmd.append(chroot.result_url + "fedora-review")
+                # fedora-review url redirects to the fedora-review/ and wget2 with -A option
+                # doesn't follow redirects in this case
+                # upstream issue: https://bugzilla.redhat.com/show_bug.cgi?id=2348400
+                cmd.append(chroot.result_url + "fedora-review/")
 
             cmd.append(chroot.result_url)
             subprocess.call(cmd)
