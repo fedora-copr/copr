@@ -48,6 +48,9 @@ Recommends: python3-copr
 
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
+%if 0%{?fedora} && 0%{?fedora} > 41
+%{?fedora:Requires(pre): group(apache)}
+%endif
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI
@@ -64,6 +67,7 @@ This package contains Copr services for Dist Git server.
 %py3_build
 
 
+%if 0%{?fedora} && 0%{?fedora} <= 41
 %pre
 getent group packager >/dev/null || groupadd -r packager
 getent group copr-dist-git >/dev/null || groupadd -r copr-dist-git
@@ -71,6 +75,7 @@ getent group apache >/dev/null || groupadd -r apache
 getent passwd copr-dist-git >/dev/null || \
 useradd -r -m -g copr-dist-git -G packager,apache -c "copr-dist-git user" copr-dist-git
 /usr/bin/passwd -l copr-dist-git >/dev/null
+%endif
 
 %install
 %py3_install
@@ -96,6 +101,10 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
+
+%if 0%{?fedora} && 0%{?fedora} > 41
+install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/copr-dist-git.conf
+%endif
 
 %check
 ./run_tests.sh -vv --no-cov
@@ -128,10 +137,13 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %dir %{_sysconfdir}/logrotate.d
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-dist-git
-%attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
-%attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
-%ghost %{_var}/log/copr-dist-git/*.log
+%dir %attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
+%ghost %attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
 %{_tmpfilesdir}/copr-dist-git.conf
+%if 0%{?fedora} && 0%{?fedora} > 41
+%{_sysusersdir}/copr-dist-git.conf
+%endif
+
 
 %changelog
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
