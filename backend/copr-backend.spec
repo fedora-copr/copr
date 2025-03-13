@@ -108,6 +108,8 @@ Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
 
+%{?fedora:Requires(pre): group(lighttpd)}
+
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
@@ -184,15 +186,10 @@ cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 copr-backend-resultdir-cleaner.1 %{buildroot}/%{_mandir}/man1/
 
+install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/copr-backend.conf
 
 %check
 ./run_tests.sh -vv --no-cov
-
-%pre
-getent group copr >/dev/null || groupadd -r copr
-getent passwd copr >/dev/null || \
-useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
-/usr/bin/passwd -l copr >/dev/null
 
 %post
 %systemd_post copr-backend.target
@@ -236,6 +233,8 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
 
 %{_mandir}/man1/copr-backend*.1*
+
+%{_sysusersdir}/copr-backend.conf
 
 %files doc
 %license LICENSE
