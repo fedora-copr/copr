@@ -13,7 +13,7 @@ from sqlalchemy import func, desc, or_, and_
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import bindparam, Integer, String
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import DataError, IntegrityError, NoResultFound
 
 from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
@@ -460,8 +460,8 @@ class BuildsLogic(object):
         except ValueError:
             raise MalformedArgumentException("Invalid task_id {}".format(task_id))
 
-        build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
         try:
+            build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
             return build_chroot.join(models.Build).one()
         except NoResultFound as ex:
             raise ObjectNotFound("Specified task ID not found") from ex
@@ -1511,13 +1511,18 @@ class BuildChrootsLogic(object):
 
     @classmethod
     def get_by_build_id_and_name(cls, build_id, name):
-        mc = MockChrootsLogic.get_from_name(name).one()
+        try:
+            mc = MockChrootsLogic.get_from_name(name).one()
 
-        return (
-            BuildChroot.query
-            .filter(BuildChroot.build_id == build_id)
-            .filter(BuildChroot.mock_chroot_id == mc.id)
-        )
+            return (
+                BuildChroot.query
+                .filter(BuildChroot.build_id == build_id)
+                .filter(BuildChroot.mock_chroot_id == mc.id)
+            )
+        except DataError as ex:
+            raise MalformedArgumentException(
+                f"Invalid build_id: {build_id} or name: {name}"
+            ) from ex
 
     @classmethod
     def get_multiply(cls):
