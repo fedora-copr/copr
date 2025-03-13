@@ -65,9 +65,9 @@ done
 install -d %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}
 install -p -m 644 %{modulename}.if \
   %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-install -d %{buildroot}%{_sbindir}
-install -p -m 755 %{name}-enable %{buildroot}%{_sbindir}/%{name}-enable
-install -p -m 755 %{name}-relabel %{buildroot}%{_sbindir}/%{name}-relabel
+install -d %{buildroot}%{_bindir}
+install -p -m 755 %{name}-enable %{buildroot}%{_bindir}/%{name}-enable
+install -p -m 755 %{name}-relabel %{buildroot}%{_bindir}/%{name}-relabel
 install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-relabel.8 %{buildroot}/%{_mandir}/man8/
@@ -104,8 +104,8 @@ done
 %{_datadir}/selinux/*/%{modulename}.pp.bz2
 # empty, do not distribute it for now
 %exclude %{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-%{_sbindir}/%{name}-enable
-%{_sbindir}/%{name}-relabel
+%{_bindir}/%{name}-enable
+%{_bindir}/%{name}-relabel
 %{_mandir}/man8/%{name}-enable.8*
 %{_mandir}/man8/%{name}-relabel.8*
 
