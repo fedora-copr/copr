@@ -204,7 +204,7 @@ class ComplexLogic(object):
             raise ObjectNotFound(
                 message="Project @{}/{} does not exist.".format(
                     group_name, copr_name
-                ).encode()
+                )
             ) from exc
 
     @staticmethod
@@ -219,7 +219,7 @@ class ComplexLogic(object):
             raise ObjectNotFound(
                 message="Project {}/{} does not exist.".format(
                     user_name, copr_name
-                ).encode()
+                )
             ) from exc
 
     @staticmethod
