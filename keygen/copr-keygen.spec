@@ -127,16 +127,21 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
 %endif
 
+%if 0%{?fedora} > 41 && 0%{?fedora}
+install -m0644 -D configs/copr-keygen.sysusers.conf %{buildroot}%{_sysusersdir}/copr-keygen.conf
+%endif
+
 %check
 ./run_tests.sh -vv --no-cov
 
 
+%if 0%{?fedora} < 42 && 0%{?fedora}
 %pre
 getent group copr-signer >/dev/null || groupadd -r copr-signer
 getent passwd copr-signer >/dev/null || \
   useradd -r -g copr-signer -G copr-signer -d %{_datadir}/copr-keygen -s /bin/bash -c "Copr rpm signer" copr-signer
 /usr/bin/passwd -l copr-signer >/dev/null
-
+%endif
 
 %post
 systemctl condrestart httpd &>/dev/null || :
@@ -166,6 +171,9 @@ systemctl condrestart httpd &>/dev/null || :
 %config(noreplace) %{_sysconfdir}/copr-keygen
 %dir %{_localstatedir}/log/copr-keygen
 %ghost %{_localstatedir}/log/copr-keygen/main.log
+%if 0%{?fedora} > 41 && 0%{?fedora}
+%{_sysusersdir}/copr-keygen.conf
+%endif
 
 %if 0%{?fedora}
 %files -n copr-keygen-doc
