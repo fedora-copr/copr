@@ -1,7 +1,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-dist-git
-Version:    1.0
+Version:    1.1
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -130,6 +130,12 @@ install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.1-1
+- add sysusers.d config file to allow rpm to create users/groups automatically
+- remove redundant byte compile lines, these dirs are empty already
+- migrate os.listdir() to os.scandir() to increase performance
+- depend on python3-rpkg >= 1.67-4
+
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
 - Don't check that specfile matches the repository name
 
