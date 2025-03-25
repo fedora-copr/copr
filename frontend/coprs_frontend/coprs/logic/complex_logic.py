@@ -4,7 +4,6 @@ import os
 import datetime
 import time
 import fnmatch
-from itertools import batched
 import flask
 import sqlalchemy
 
@@ -33,6 +32,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr, AutomationUser
 from coprs.logic.coprs_logic import (CoprsLogic, CoprDirsLogic, CoprChrootsLogic,
                                      PinnedCoprsLogic, MockChrootsLogic)
+from coprs.helpers import batched
 
 
 @sqlalchemy.event.listens_for(models.Copr.deleted, "set")
