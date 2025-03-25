@@ -7,7 +7,7 @@
 %endif
 
 Name:       python-copr
-Version:    2.0
+Version:    2.1
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -223,6 +223,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 2.1-1
+- doc: remove a non existent parameter from docstring
+- drop six dependency
+
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.0-1
 - Allow admins to set storage for new projects
 
