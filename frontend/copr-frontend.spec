@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.1
+Version:    2.2
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -379,6 +379,38 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 2.2-1
+- fix FTBFS when using python below 3.12
+- Add sysusers.d config file to allow rpm to create users/groups automatically
+- fix code formatting test causing FTBFS on F43+
+- Revert "convert eror message to binary text before emitting"
+- fix a few pylint and sqlalchemy warnings
+- we use the standard results URL also for Pulp projects
+- feat: provide log-detective explain integration for failed builds
+- bugfix: use after/with-build-id fields when "rebuilding all"
+- make coprdirs have their repo available in the buildroot
+- isolate PR builds from different packages within one project
+- remove redundant byte compile lines, these dirs are empty already
+- change order of login menu, sign up should be the latest
+- create HTTP redirects for projects migrated to PULP
+- stop using deprecated Query.get method
+- unify error message for rebuild and rebuild all
+- add sponsors of copr project to page footer
+- add API documentation to the copr project useful links
+- migrate os.listdir() to os.scandir() to increase performance
+- assume user has been notified by clicking "Expire now" button
+- fix /build/source-chroot/ endpoint
+- document how to report security issues
+- change default logging level to INFO for check_for_anitya_version_updates
+- add script to migrate existing build results to Pulp
+- pagure events: use text() wrapper around raw queries
+- regenerate devel repository when multiple builds are deleted
+- support build-time dependencies from other storages
+- move repo functions to a separate file
+- builds_initiated_via_hook always passed as a list & doc string update
+- custom webhook handler now adds webhook history record
+- doc: link dnf.conf(5)
+
 * Thu Oct 03 2024 Pavel Raiskup <praiskup@redhat.com> 2.1-1
 - bugfix Packit 500, attempt no. 2
 
