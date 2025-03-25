@@ -1,9 +1,10 @@
-from itertools import groupby, batched
+from itertools import groupby
 import flask
 import platform
 from smtplib import SMTP
 from email.mime.text import MIMEText
 from coprs import app, helpers
+from coprs.helpers import batched
 
 
 class Message(object):

@@ -10,6 +10,20 @@ import re
 from os.path import normpath
 from urllib.parse import urlparse, urlencode
 
+from itertools import islice
+try:
+    # pylint: disable=unused-import
+    from itertools import batched
+except ImportError:
+    def batched(iterable, n):
+        "Batch data into lists of length n. The last batch may be shorter."
+        # batched('ABCDEFG', 3) --> ABC DEF G
+        if n < 1:
+            raise ValueError('n must be >= 1')
+        it = iter(iterable)
+        while (batch := list(islice(it, n))):
+            yield batch
+
 import html5_parser
 
 import flask
