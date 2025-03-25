@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.0
+Version:    1.1
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -63,6 +63,9 @@ version=%version %py3_install
 
 
 %changelog
+* Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.1-1
+- lock the pulp-redirect.txt file
+
 * Wed Oct 02 2024 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.0-1
 - Drop support for rhel7 and rhel6
 

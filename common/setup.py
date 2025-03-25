@@ -26,7 +26,7 @@ requires = [
 
 setup(
     name='copr-common',
-    version="1.0.post1",
+    version="1.1",
     description=__description__,
     long_description=long_description,
     author=__author__,
