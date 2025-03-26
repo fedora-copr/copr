@@ -1,0 +1,68 @@
+.. _release_notes_2025_03_26:
+
+Highlights from 2025-03-26 release
+==================================
+
+Enhancements
+------------
+
+- Jakub continues on adding support for Pulp in Copr. We are slowly adding more 
+  features to it. Most notable additions are:
+
+  - Regenerate devel repositories `PR#3524`_.
+  - Implement CDN baseurl `PR#3657`_.
+  - Implement backward compatibility for old repofiles `PR#3504`_.
+  - And more: `PR#3509`_, `PR#3461`_.
+
+- Copr has integrated `log_detective`_ service for failed builds directly to the UI.
+  Try it out by clicking the Ask AI link about failure explanation. If you want to help us
+  with creating better model, you can click Tech AI and provide a feedback about your failed
+  build. The AI service is still in beta, so some bugs might occur. `PR#3608`_.
+- Custom Webhook now adds a record in Webhook History table. `PR#3456`_.
+- Add footer note thanking and mentioning who sponsors the Fedora Copr project `PR#3600`_.
+- Introduce OIDC authentication for Copr. `PR#3642`_.
+
+
+Bugfixes
+--------
+
+- Fix safe.directory error for make_srpm method. `PR#3464`_.
+- Fix unexpected 400 errors `PR#3472`_.
+- Fix "Expire now" button in the chroot page. `PR#3599`_.
+- Fix "dnf4 copr enable" traceback on non-existing projects. `PR#3594`_.
+- /build/source-chroot endpoint dissapeared for a while, but it is back now. `PR#3578`_.
+- Limit for builds per architecture was mistakenly applied to all architectures `PR#3575`_.
+- Fix log subject in emails informing about builds. `PR#3530`_.
+- Skip only if all macros in ExclusiveArch and ExcludeArch evaluated. `PR#3513`_.
+- Fix bad formating when non-existing project was requested. `PR#3651`_.
+- Problems with Fedora 42 custom method fixed - builders no longer assume /bin/su
+  works in minimal Mock chroot `Issue#3631`_.
+
+
+Warnings/Future changes
+-----------------------
+
+- Dropping support for i686 architecture. `PR#3563`_.
+
+
+.. _PR#3456: https://github.com/fedora-copr/copr/pull/3456
+.. _PR#3464: https://github.com/fedora-copr/copr/pull/3464
+.. _PR#3509: https://github.com/fedora-copr/copr/pull/3509
+.. _PR#3461: https://github.com/fedora-copr/copr/pull/3461
+.. _PR#3472: https://github.com/fedora-copr/copr/pull/3472
+.. _PR#3608: https://github.com/fedora-copr/copr/pull/3608
+.. _PR#3600: https://github.com/fedora-copr/copr/pull/3600
+.. _PR#3599: https://github.com/fedora-copr/copr/pull/3599
+.. _PR#3594: https://github.com/fedora-copr/copr/pull/3594
+.. _PR#3578: https://github.com/fedora-copr/copr/pull/3578
+.. _PR#3575: https://github.com/fedora-copr/copr/pull/3575
+.. _PR#3563: https://github.com/fedora-copr/copr/pull/3563
+.. _PR#3530: https://github.com/fedora-copr/copr/pull/3530
+.. _PR#3524: https://github.com/fedora-copr/copr/pull/3524
+.. _PR#3513: https://github.com/fedora-copr/copr/pull/3513
+.. _PR#3657: https://github.com/fedora-copr/copr/pull/3657
+.. _PR#3651: https://github.com/fedora-copr/copr/pull/3651
+.. _PR#3642: https://github.com/fedora-copr/copr/pull/3642
+.. _PR#3504: https://github.com/fedora-copr/copr/issues/3504
+.. _Issue#3631: https://github.com/fedora-copr/copr/issues/3631
+.. _log_detective: https://log-detective.com/
