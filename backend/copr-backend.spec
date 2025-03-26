@@ -9,7 +9,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    2.1
+Version:    2.2
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,28 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Wed Mar 26 2025 Pavel Raiskup <praiskup@redhat.com> 2.2-1
+- Add sysusers.d config file to allow rpm to create users/groups automatically
+- unify bindir and sbindir
+- lock the pulp-redirect.txt file
+- add HTTP redirect for new Pulp projects
+- fix FTBFS in openEuler 24.03 LTS
+- create HTTP redirects for migrated projects
+- fix pylint - Too many local variables
+- migrate os.listdir() to os.scandir() to increase performance
+- add resalloc ticket info to backend.log
+- drop unused attributes in RemoteHost class
+- per-arch/per-owner limit fixed
+- fix createrepo action for Pulp CoprDirs
+- add test-case for CoprDir's BuildJob.chroot_dir
+- add script to migrate existing build results to Pulp
+- typo in the per arch+owner limit option documentation
+- resultdir-cleaner: remove old appstream failures
+- copr-backend-resultdir-cleaner logs into config["log_dir"]
+- copr-backend-resultdir-cleaner to skip module dirs
+- manpage for copr-backend-resultdir-cleaner && logger fix
+- allow using crt+key pair for Pulp authentication
+
 * Tue Oct 22 2024 Jakub Kadlcik <frostyx@email.cz> 2.1-1
 - Activate Red Hat subscription on demand
 - Fix copr-backend-unknown-resalloc-tickets
