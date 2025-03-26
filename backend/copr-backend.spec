@@ -108,7 +108,7 @@ Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
 
-%{?fedora:Requires(pre): group(lighttpd)}
+%{?fedora:Requires(pre): lighttpd-filesystem}
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
