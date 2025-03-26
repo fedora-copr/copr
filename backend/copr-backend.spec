@@ -9,7 +9,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    2.2
+Version:    2.3
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Wed Mar 26 2025 Pavel Raiskup <praiskup@redhat.com> 2.3-1
+- lighttpd-filesystem provides group(lighttpd) on F42+ only
+
 * Wed Mar 26 2025 Pavel Raiskup <praiskup@redhat.com> 2.2-1
 - Add sysusers.d config file to allow rpm to create users/groups automatically
 - unify bindir and sbindir
