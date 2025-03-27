@@ -392,6 +392,8 @@ class CoprsLogic(object):
         CoprDirsLogic.delete_all_by_copr(copr)
 
         copr.deleted = True
+        app.logger.info("User '%s' removed project '%s'", user.name,
+                        copr.full_name)
         return copr
 
     @classmethod
