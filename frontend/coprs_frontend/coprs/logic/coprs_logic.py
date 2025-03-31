@@ -1,7 +1,6 @@
 import locale
 import json
 import os
-import re
 import time
 import datetime
 from functools import cmp_to_key
@@ -696,9 +695,11 @@ class CoprDirsLogic(object):
                 f"Please use directory format {copr.name}:custom:<SUFFIX_OF_CHOICE> "
                 f"or {copr.name}:pr:<ID> (for automatically removed directories)"
             )
-        if not all(x.isalnum() for x in re.split(r"[:-]+", dirname)[1:]):
-            raise exceptions.BadRequest(
-                f"Wrong directory '{dirname}' specified.  Directory name can "
+
+        for dir_part in dirname.split(':')[1:]:
+            if not all(x.isalnum() for x in dir_part.split("-")):
+                raise exceptions.BadRequest(
+                    f"Wrong directory '{dirname}' specified.  Directory name can "
                 "consist of alpha-numeric strings separated by colons.")
 
     @classmethod
