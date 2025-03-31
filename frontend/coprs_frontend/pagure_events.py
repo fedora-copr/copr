@@ -266,7 +266,7 @@ class build_on_fedmsg_loop():
                     pkg.package.name,
                     pkg.package.id
             )
-            log.info('Considering pkg package: {}, source_json: {}'
+            log.info('Considering package: {}, source_json: {}'
                         .format(package, pkg.source_json_dict))
 
             if not pkg.copr.active_copr_chroots:
