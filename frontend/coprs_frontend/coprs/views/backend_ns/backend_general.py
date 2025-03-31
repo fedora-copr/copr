@@ -365,10 +365,11 @@ def pending_jobs():
     return streamed_json(_stream())
 
 
-@backend_ns.route("/get-build-task/<task_id>/")
-@backend_ns.route("/get-build-task/<task_id>")
-def get_build_task(task_id):
+@backend_ns.route("/get-build-task/<int:build_id>-<chroot>/")
+@backend_ns.route("/get-build-task/<int:build_id>-<chroot>")
+def get_build_task(build_id, chroot):
     try:
+        task_id = f"{build_id}-{chroot}"
         task = BuildsLogic.get_build_task(task_id)
         build_record = get_build_record(task)
         return flask.jsonify(build_record)

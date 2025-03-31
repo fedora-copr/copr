@@ -460,8 +460,8 @@ class BuildsLogic(object):
         except ValueError:
             raise MalformedArgumentException("Invalid task_id {}".format(task_id))
 
-        build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
         try:
+            build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
             return build_chroot.join(models.Build).one()
         except NoResultFound as ex:
             raise ObjectNotFound("Specified task ID not found") from ex
