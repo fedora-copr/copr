@@ -143,3 +143,8 @@ class TestCoprDirsLogic(CoprsTestCase):
         for dirname in invalid:
             with pytest.raises(CoprHttpException):
                 CoprDirsLogic.validate(self.c1, dirname)
+
+        self.c1.name = "pytest-8.1.1"
+        for dirname in valid:
+            dirname = dirname.replace("foocopr", self.c1.name)
+            assert CoprDirsLogic.validate(self.c1, dirname) is None
