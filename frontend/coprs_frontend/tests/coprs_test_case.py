@@ -837,14 +837,12 @@ def foo():
             yield
 
     @pytest.fixture
-    def f_u1_ts_client(self, f_users, f_users_api, f_db):
+    def f_u1_ts_client(self, f_users, f_users_api):
         """
         This is alternative for the per-test @TransactionDecorator("u1")
-        decorator.  And can be used also on a per-class level.  Note that
-        we need to commit the session, otherwise the user is unknown to
-        the client.
+        decorator.  And can be used also on a per-class level.
         """
-        _just_fixtures = f_users, f_users_api, f_db
+        _just_fixtures = f_users, f_users_api
         with self.setup_user_session(self.u1):
             yield
 
