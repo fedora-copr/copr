@@ -101,7 +101,6 @@ build build-id 12345 for chroot epel-7-x86_64.
 %package -n copr-builder
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
-Requires: dist-git-client
 
 %if 0%{?fedora} && 0%{?fedora} < 41
 # replacement for yum/yum-utils, to be able to work with el* chroots
@@ -148,6 +147,7 @@ Requires: yum-utils
 %endif
 
 %latest_requires python3-dnf
+%latest_requires dist-git-client
 %latest_requires dnf-plugins-core
 %latest_requires libdnf
 %latest_requires librepo
