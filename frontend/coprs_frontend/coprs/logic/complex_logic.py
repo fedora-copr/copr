@@ -551,12 +551,11 @@ class ProjectForking(object):
 
     def fork_build(self, build, fcopr, fpackage, build_chroots):
         fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "copr_dir_id", "package_id", "result_dir"])
+        db.session.add(fbuild)
         fbuild.copr = fcopr
         fbuild.package = fpackage
         fbuild.copr_dir = fcopr.main_dir
         fbuild.source_status = StatusEnum("forked")
-        db.session.add(fbuild)
-        db.session.flush()
 
         fbuild.result_dir = '{:08}'.format(fbuild.id)
         fbuild.build_chroots = [
