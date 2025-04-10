@@ -87,7 +87,6 @@ Requires:   python3-humanize
 Requires:   python3-jinja2
 Requires:   python3-munch
 Requires:   python3-netaddr
-Requires:   python3-novaclient
 Requires:   python3-packaging
 Requires:   python3-pytz
 Requires:   python3-requests
