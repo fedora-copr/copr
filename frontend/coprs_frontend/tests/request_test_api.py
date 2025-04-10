@@ -23,7 +23,7 @@ def parse_web_form_error(html_text, variant="a"):
     elif variant == "b":
         classes = "alert alert-danger alert-dismissable"
 
-    alerts = soup.findAll('div', class_=classes)
+    alerts = soup.find_all('div', class_=classes)
     assert len(alerts) == 1
     div = alerts[0]
     if variant == "a":
