@@ -195,10 +195,12 @@ def foo():
         self.db.session.add_all(self.basic_coprs_list)
 
         self.c1_dir = models.CoprDir(name=u"foocopr", copr=self.c1, main=True)
+        self.db.session.add(self.c1_dir)
         self.c2_dir = models.CoprDir(name=u"foocopr", copr=self.c2, main=True)
+        self.db.session.add(self.c2_dir)
         self.c3_dir = models.CoprDir(name=u"barcopr", copr=self.c3, main=True)
+        self.db.session.add(self.c3_dir)
         self.basic_copr_dir_list = [self.c1_dir, self.c2_dir, self.c3_dir]
-        self.db.session.add_all(self.basic_copr_dir_list)
 
     @pytest.fixture
     def f_mock_chroots(self):
@@ -357,6 +359,7 @@ def foo():
                         'fedora/{0}'.format(os_version),
                         session=self.db.session)
                 self.mc_list.append(mc)
+                self.db.session.add(mc)
 
             for os_version in [5, 6, 7]:
                 mc = models.MockChroot(
@@ -366,6 +369,7 @@ def foo():
                         'el{0}'.format(os_version),
                         session=self.db.session)
                 self.mc_list.append(mc)
+                self.db.session.add(mc)
 
         self.mc_list[-1].is_active = False
 
@@ -376,8 +380,7 @@ def foo():
                 cc.mock_chroot = mc
                 # TODO: why 'self.c1.copr_chroots.append(cc)' doesn't work here?
                 cc.copr = self.c1
-
-        self.db.session.add_all(self.mc_list)
+                self.db.session.add(cc)
 
     @pytest.fixture
     def f_builds(self):
@@ -404,6 +407,8 @@ def foo():
             copr=self.c2, copr_dir=self.c2_dir, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"), result_dir='bar')
 
         self.basic_builds = [self.b1, self.b2, self.b3, self.b4]
+        self.db.session.add_all(self.basic_builds)
+
         self.b1_bc = []
         self.b2_bc = []
         self.b3_bc = []
@@ -433,7 +438,6 @@ def foo():
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
 
-        self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
 
     @pytest.fixture
     def f_fork_prepare(self, f_coprs, f_mock_chroots, f_builds):
@@ -739,6 +743,7 @@ def foo():
     def f_pr_dir(self):
         self.c4_dir = models.CoprDir(name=u"foocopr:PR", copr=self.c1,
                 main=False)
+        self.db.session.add(self.c4_dir)
 
     @pytest.fixture
     def f_pr_build(self, f_mock_chroots, f_builds, f_pr_dir):

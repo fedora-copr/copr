@@ -323,6 +323,7 @@ class CoprsLogic(object):
                            storage=storage,
                            **kwargs)
 
+        db.session.add(copr)
 
         if group is not None:
             users_logic.UsersLogic.raise_if_not_in_group(user, group)
@@ -334,12 +335,10 @@ class CoprsLogic(object):
             copr=copr)
 
         db.session.add(copr_dir)
-        db.session.add(copr)
 
         CoprChrootsLogic.new_from_names(
             copr, selected_chroots)
 
-        db.session.flush()
         ActionsLogic.send_create_gpg_key(copr)
 
         return copr
