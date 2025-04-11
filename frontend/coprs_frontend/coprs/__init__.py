@@ -6,6 +6,7 @@ import flask
 
 from werkzeug.routing import RequestRedirect
 from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy.track_modifications import models_committed
 from contextlib import contextmanager
 try:
     from flask_caching import Cache
@@ -234,7 +235,6 @@ app.jinja_env.lstrip_blocks = True
 
 setup_profiler(app, profiler_enabled)
 
-from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
 
 # Serve static files from system-wide RPM files
