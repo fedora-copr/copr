@@ -26,7 +26,7 @@ class TestLoggingRequestUser(CoprsTestCase, TestCase):
             app.logger.info("FOO")
             assert cm.records[0].user == "SERVER"
 
-    @pytest.mark.usefixtures("f_u1_ts_client", "f_users", "f_coprs", "f_db")
+    @pytest.mark.usefixtures("f_u1_ts_client", "f_coprs", "f_db")
     def test_user(self):
         with self.assertLogs(app.logger) as cm:
             self.api3.modify_project(self.c2.name, self.c2.owner_name)
@@ -227,7 +227,7 @@ class TestLoggingUsingAdminPermissions(CoprsTestCase):
             "user1", "user2/foocopr/fedora-17-x86_64")
 
     @patch("coprs.app.logger", return_value=MagicMock())
-    @pytest.mark.usefixtures("f_users", "f_u1_ts_client", "f_coprs", "f_builds", "f_db")
+    @pytest.mark.usefixtures("f_u1_ts_client", "f_coprs", "f_builds", "f_db")
     def test_update_package_webui(self, log):
         url = "/coprs/{0}/package/{1}/edit/scm".format(
             self.c2.full_name, self.p2.name)
@@ -244,7 +244,7 @@ class TestLoggingUsingAdminPermissions(CoprsTestCase):
             "user1", "whatsupthere-world", "user2/foocopr")
 
     @patch("coprs.app.logger", return_value=MagicMock())
-    @pytest.mark.usefixtures("f_users", "f_u1_ts_client", "f_coprs", "f_builds", "f_db")
+    @pytest.mark.usefixtures("f_u1_ts_client", "f_coprs", "f_builds", "f_db")
     def test_update_package_apiv3(self, log):
         url = "/api_3/package/edit/{0}/{1}/scm".format(
             self.c2.full_name, self.p2.name)
