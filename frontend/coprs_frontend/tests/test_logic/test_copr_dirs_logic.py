@@ -135,6 +135,7 @@ class TestCoprDirsLogic(CoprsTestCase):
             "foocopr:pr:foo",
             "foocopr:pr:frostyx-foo-123-bar",
             "foocopr:pr:frostyx:123",
+            "foocopr:pr:fork-thrnciar-rpms-python3.13-145",
         ]
 
         for dirname in valid:

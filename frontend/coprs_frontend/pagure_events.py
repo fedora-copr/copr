@@ -15,7 +15,10 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
 
+# pylint: disable=wrong-import-position
+
 from coprs import db, app, models
+from coprs.exceptions import BadRequest
 from coprs.logic.coprs_logic import CoprDirsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -285,7 +288,12 @@ class build_on_fedmsg_loop():
                         event_info.project_url_path.replace("/", "-"),
                         event_info.object_id,
                     )
-                    copr_dir = CoprDirsLogic.get_or_create(pkg.copr, dirname)
+                    try:
+                        copr_dir = CoprDirsLogic.get_or_create(pkg.copr, dirname)
+                    except BadRequest:
+                        log.error("Invalid dirname format: {dirname}\n")
+                        continue
+
                     update_callback = 'pagure_flag_pull_request'
                     scm_object_url = os.path.join(base_url, event_info.project_url_path,
                                                   'c', str(event_info.end_commit))
