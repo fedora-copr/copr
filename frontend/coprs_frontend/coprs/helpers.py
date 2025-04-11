@@ -9,6 +9,7 @@ import json
 import re
 from os.path import normpath
 from urllib.parse import urlparse, urlencode
+from functools import wraps
 
 from itertools import islice
 try:
@@ -37,7 +38,19 @@ from copr_common.enums import EnumType, StatusEnum
 # TODO: don't import BuildSourceEnum from helpers, use copr_common.enum instead
 from copr_common.enums import BuildSourceEnum # pylint: disable=unused-import
 from copr_common.rpm import splitFilename
-from coprs import app
+from coprs import app, db as copr_db
+
+
+def no_autoflush(func):
+    """
+    Decorator to disable sqlalchemy's autoflush for a whole function.
+    See https://docs.sqlalchemy.org/en/20/orm/session_api.html#sqlalchemy.orm.Session.no_autoflush
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with copr_db.session.no_autoflush:
+            return func(*args, **kwargs)
+    return wrapper
 
 
 def generate_api_token(size=30):

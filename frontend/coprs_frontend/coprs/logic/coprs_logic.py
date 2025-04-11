@@ -32,7 +32,7 @@ from coprs import logic
 from coprs.exceptions import MalformedArgumentException, BadRequest
 from coprs.logic import users_logic
 from coprs.whoosheers import CoprWhoosheer
-from coprs.helpers import fix_protocol_for_backend, clone_sqlalchemy_instance
+from coprs.helpers import fix_protocol_for_backend, clone_sqlalchemy_instance, no_autoflush
 
 from coprs.logic.actions_logic import ActionsLogic
 
@@ -285,6 +285,7 @@ class CoprsLogic(object):
         return query
 
     @classmethod
+    @no_autoflush
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
             auto_prune=True, bootstrap=None, follow_fedora_branching=False, isolation=None,
