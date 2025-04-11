@@ -20,7 +20,6 @@ from coprs.exceptions import (
         AccessRestricted,
         BadRequest,
         ObjectNotFound,
-        MalformedArgumentException,
 )
 
 from coprs.views.webhooks_ns import webhooks_ns
@@ -318,8 +317,6 @@ def webhooks_coprdir_custom(ownername, dirname, uuid, package_name):
         copr_dir = CoprDirsLogic.get_or_create(copr, dirname)
     except BadRequest:
         return "CANT_CREATE_DIRECTORY\n", 400
-    except MalformedArgumentException:
-        return "MALFORMED_COPR_DIRNAME\n", 400
 
     return custom_build_submit(copr, package, copr_dir)
 
