@@ -685,7 +685,7 @@ class CoprDirsLogic(object):
         Raise exception if dirname is invalid for copr.
         """
         if not dirname.startswith(copr.name+':'):
-            raise MalformedArgumentException(
+            raise exceptions.BadRequest(
                 "Copr dirname must start with '{}:' prefix".format(
                 copr.name,
             ))
