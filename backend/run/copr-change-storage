@@ -174,7 +174,7 @@ def main():
                     break
 
                 # We cannot check return code here
-                storage.upload_build_results(chroot, resultdir, None)
+                storage.upload_build_results(chroot, resultdir, None, max_workers=80)
 
                 result = storage.publish_repository(chroot)
                 if not result:
