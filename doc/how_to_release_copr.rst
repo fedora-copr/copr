@@ -86,10 +86,6 @@ Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.
                        manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
 
-    sudo rbac-playbook -l copr-pulp-dev.aws.fedoraproject.org \
-                       manual/copr/copr-pulp-upgrade.yml
-    sudo rbac-playbook -l copr-pulp-dev.aws.fedoraproject.org groups/copr-pulp.yml
-
 .. note::
 
     If there is a new version of copr-rpmbuild, follow the
@@ -298,10 +294,6 @@ Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mi
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org groups/copr-dist-git.yml
-
-    sudo rbac-playbook -l copr-pulp.aws.fedoraproject.org \
-                       manual/copr/copr-pulp-upgrade.yml
-    sudo rbac-playbook -l copr-pulp.aws.fedoraproject.org groups/copr-pulp.yml
 
 .. note::
 
