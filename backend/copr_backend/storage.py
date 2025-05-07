@@ -2,6 +2,7 @@
 Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import json
 import shutil
@@ -58,7 +59,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name):
+    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1):
         """
         Add results for a new build to the storage
         """
@@ -216,42 +217,65 @@ class PulpStorage(Storage):
         response = self.client.create_publication(repository)
         return response.ok
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name):
+    def upload_rpm(self, repository, path):
+        """
+        Add an RPM to the storage
+        """
+        response = self.client.create_content(repository, path)
+
+        if not response.ok:
+            self.log.error("Failed to create Pulp content for: %s, %s",
+                           path, response.text)
+            return response
+
+        # This involves a lot of unnecessary waiting until every
+        # RPM content is created. Once we can reliably label Pulp
+        # content with Copr build ID, we should drop this code and stop
+        # creating the `pulp.json` file
+        task = response.json()["task"]
+        response = self.client.wait_for_finished_task(task)
+        return response
+
+    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1):
         resources = []
-        for root, _, files in os.walk(results_dir):
-            for name in files:
-                if os.path.basename(root) == "prev_build_backup":
-                    continue
+        futures = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            for root, _, files in os.walk(results_dir):
+                for name in files:
+                    if os.path.basename(root) == "prev_build_backup":
+                        continue
 
-                # TODO Should all results (logs, configs, fedora-review results)
-                # be added to Pulp, or only RPM packages?
-                # `pulp rpm content create ...` cannot be executed on text files
-                # and fails with `RPM file cannot be parsed for metadata`
-                if not name.endswith(".rpm"):
-                    continue
+                    # TODO Should all results (logs, configs, fedora-review results)
+                    # be added to Pulp, or only RPM packages?
+                    # `pulp rpm content create ...` cannot be executed on text files
+                    # and fails with `RPM file cannot be parsed for metadata`
+                    if not name.endswith(".rpm"):
+                        continue
 
-                path = os.path.join(root, name)
-                repository = self._get_repository(chroot)
-                response = self.client.create_content(repository, path)
+                    path = os.path.join(root, name)
+                    repository = self._get_repository(chroot)
+                    futures[executor.submit(self.upload_rpm, repository, path)] = name
 
-                if not response.ok:
-                    self.log.error("Failed to create Pulp content for: %s, %s",
-                                   path, response.text)
-                    continue
+            failed_tasks = []
+            exceptions = []
+            for future in as_completed(futures):
+                filepath = futures[future]
+                try:
+                    response = future.result()
+                    created = response.json().get("created_resources")
+                    if created:
+                        resources.extend(created)
+                        self.log.info("Uploaded to Pulp: %s", filepath)
+                    else:
+                        failed_tasks.append(response.json().get("pulp_href"))
+                except RuntimeError as exc:
+                    exceptions.append(f"{filepath} generated an exception: {exc}")
 
-                # This involves a lot of unnecessary waiting until every
-                # RPM content is created. Once we can reliably label Pulp
-                # content with Copr build ID, we should drop this code and stop
-                # creating the `pulp.json` file
-                task = response.json()["task"]
-                response = self.client.wait_for_finished_task(task)
-                created = response.json().get("created_resources")
-                if not created:
-                    raise CoprBackendError(
-                        "Pulp task {0} didn't create any resources".format(task))
-                resources.extend(created)
-
-                self.log.info("Uploaded to Pulp: %s", path)
+            if failed_tasks:
+                raise CoprBackendError(
+                    "Pulp tasks {0} didn't create any resources".format(failed_tasks))
+            if exceptions:
+                raise CoprBackendError(f"Exceptions encountered: {exceptions}")
 
         data = {"resources": resources}
         path = os.path.join(results_dir, "pulp.json")
