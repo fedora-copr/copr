@@ -423,29 +423,27 @@ class Spec:
             return None
         return int(value)
 
+    def _arch_macro(self, name):
+        values = self.safe_attr(name.lower()).split()
+        unknown = " ".join([x for x in values if x.startswith("%")])
+        if unknown:
+            log.warning("Unknown macros in %s: %s", name, unknown)
+            return []
+        return values
+
     @property
     def exclusivearch(self):
         """
         Evaluated %{exclusivearch} as a list
         """
-        values = self.safe_attr("exclusivearch").split()
-        unknown = " ".join([x for x in values if x.startswith("%")])
-        if unknown:
-            log.warning("Unknown macros in ExclusiveArch: %s", unknown)
-            return []
-        return values
+        return self._arch_macro("ExclusiveArch")
 
     @property
     def excludearch(self):
         """
         Evaluated %{excludearch} as a list
         """
-        values = self.safe_attr("excludearch").split()
-        unknown = " ".join([x for x in values if x.startswith("%")])
-        if unknown:
-            log.warning("Unknown macros in ExcludeArch: %s", unknown)
-            return []
-        return values
+        return self._arch_macro("ExcludeArch")
 
     def safe_attr(self, name):
         """
