@@ -4,7 +4,6 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-import json
 import shutil
 from urllib.parse import urlparse
 import requests
@@ -237,7 +236,6 @@ class PulpStorage(Storage):
         return response
 
     def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
-        resources = []
         futures = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for root, _, files in os.walk(results_dir):
@@ -265,7 +263,6 @@ class PulpStorage(Storage):
                     response = future.result()
                     created = response.json().get("created_resources")
                     if created:
-                        resources.extend(created)
                         self.log.info("Uploaded to Pulp: %s", filepath)
                     else:
                         failed_tasks.append(response.json().get("pulp_href"))
@@ -277,12 +274,6 @@ class PulpStorage(Storage):
                     "Pulp tasks {0} didn't create any resources".format(failed_tasks))
             if exceptions:
                 raise CoprBackendError(f"Exceptions encountered: {exceptions}")
-
-        data = {"resources": resources}
-        path = os.path.join(results_dir, "pulp.json")
-        with open(path, "w+", encoding="utf8") as fp:
-            json.dump(data, fp)
-        self.log.info("Pulp resources: %s", resources)
 
     def publish_repository(self, chroot, **kwargs):
         repository = self._get_repository(chroot)
@@ -336,7 +327,7 @@ class PulpStorage(Storage):
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
         # pylint: disable=too-many-locals
         result = True
-        for chroot, subdirs in chroot_builddirs.items():
+        for chroot in chroot_builddirs.keys():
             # We don't upload results of source builds to Pulp
             if chroot == "srpm-builds":
                 continue
@@ -347,32 +338,17 @@ class PulpStorage(Storage):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
                 result = False
                 continue
-
             repository = self._get_repository(chroot)
-            for subdir in subdirs:
-                # It is currently not possible to set labels for Pulp content.
-                # https://github.com/pulp/pulpcore/issues/3338
-                # Until it is implemented, we need read all Pulp resources that
-                # a copr build created from our `pulp.json` in the resultdir.
-                path = os.path.join(chroot_path, subdir, "pulp.json")
-                with open(path, "r", encoding="utf8") as fp:
-                    pulp = json.load(fp)
+            # Find the RPMs by list of build ids
+            content_response = self.client.get_content(build_ids)
+            list_of_prns = [package["prn"] for package in content_response.json()["results"] ]
 
-                for resource in pulp["resources"]:
-                    is_package = resource.split("/api/v3/")[1].startswith(
-                        "content/rpm/packages")
-                    if not is_package:
-                        self.log.info("Not deleting %s", resource)
-                        continue
-
-                    # TODO We can make performance improvements here by deleting
-                    # all content at once
-                    response = self.client.delete_content(repository, [resource])
-                    if response.ok:
-                        self.log.info("Successfully deleted Pulp content %s", resource)
-                    else:
-                        result = False
-                        self.log.info("Failed to delete Pulp content %s", resource)
+            response = self.client.delete_content(repository, list_of_prns)
+            if response.ok:
+                self.log.info("Successfully deleted Pulp content %s", list_of_prns)
+            else:
+                result = False
+                self.log.info("Failed to delete Pulp content %s", list_of_prns)
 
             published = self.publish_repository(chroot)
             if not published:

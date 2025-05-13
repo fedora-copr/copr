@@ -188,6 +188,21 @@ class PulpClient:
         data = {"remove_content_units": artifacts}
         return requests.post(url, json=data, **self.request_params)
 
+    def get_content(self, build_ids):
+        """
+        Get a list of PRNs for RPMs with provided build ids
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_list
+        """
+        query = ""
+        for build_id in build_ids:
+            if query:
+                query += " OR "
+            query += f"pulp_label_select=\"build_id={build_id}\""
+        url = self.url("api/v3/content/rpm/packages/?")
+        # Setting the limit to 1000, but in the future we should use pagination
+        url += urlencode({"q": query, "fields": "prn", "offset": 0, "limit": 1000})
+        return requests.get(url, **self.request_params)
+
     def delete_repository(self, repository):
         """
         Delete an RPM repository
