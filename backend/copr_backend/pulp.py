@@ -2,6 +2,7 @@
 Pulp doesn't provide an API client, we are implementing it for ourselves
 """
 
+import json
 import os
 import time
 import tomllib
@@ -165,14 +166,14 @@ class PulpClient:
         }
         return requests.patch(url, json=data, **self.request_params)
 
-    def create_content(self, repository, path):
+    def create_content(self, repository, path, labels):
         """
         Create content for a given artifact
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Content:-Packages/operation/content_rpm_packages_create
         """
         url = self.url("api/v3/content/rpm/packages/")
         with open(path, "rb") as fp:
-            data = {"repository": repository}
+            data = {"repository": repository, "pulp_labels": json.dumps(labels)}
             files = {"file": fp}
             return requests.post(
                 url, data=data, files=files, **self.request_params)
