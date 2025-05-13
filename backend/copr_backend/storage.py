@@ -59,7 +59,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1):
+    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
         """
         Add results for a new build to the storage
         """
@@ -217,11 +217,11 @@ class PulpStorage(Storage):
         response = self.client.create_publication(repository)
         return response.ok
 
-    def upload_rpm(self, repository, path):
+    def upload_rpm(self, repository, path, labels):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(repository, path)
+        response = self.client.create_content(repository, path, labels)
 
         if not response.ok:
             self.log.error("Failed to create Pulp content for: %s, %s",
@@ -236,7 +236,7 @@ class PulpStorage(Storage):
         response = self.client.wait_for_finished_task(task)
         return response
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1):
+    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
         resources = []
         futures = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -254,7 +254,8 @@ class PulpStorage(Storage):
 
                     path = os.path.join(root, name)
                     repository = self._get_repository(chroot)
-                    futures[executor.submit(self.upload_rpm, repository, path)] = name
+                    labels = {"build_id": build_id}
+                    futures[executor.submit(self.upload_rpm, repository, path, labels)] = name
 
             failed_tasks = []
             exceptions = []

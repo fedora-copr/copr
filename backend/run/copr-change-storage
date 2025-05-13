@@ -150,6 +150,7 @@ def main():
                 if not builddir_entry.is_dir():
                     continue
                 builddir = builddir_entry.name
+                build_id = builddir.split('-')[0]
                 resultdir = os.path.join(chrootdir, builddir)
 
 
@@ -174,7 +175,7 @@ def main():
                     break
 
                 # We cannot check return code here
-                storage.upload_build_results(chroot, resultdir, None, max_workers=80)
+                storage.upload_build_results(chroot, resultdir, None, max_workers=80, build_id=build_id)
 
                 result = storage.publish_repository(chroot)
                 if not result:
