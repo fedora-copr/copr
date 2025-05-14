@@ -188,6 +188,19 @@ class PulpClient:
         data = {"remove_content_units": artifacts}
         return requests.post(url, json=data, **self.request_params)
 
+    def copy_content(self, repository, units):
+        """
+        Copy a list of content units (RPM packages) into this repository
+        The "copy" isn't the right word because the actual data isn't touched
+        at all. Only a new database entry pointing to the data is created.
+        So regardless of the number of units, this operation should be fast.
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        path = os.path.join(repository, "modify/")
+        url = self.config["base_url"] + path
+        data = {"add_content_units": units}
+        return requests.post(url, json=data, **self.request_params)
+
     def delete_repository(self, repository):
         """
         Delete an RPM repository
@@ -229,4 +242,13 @@ class PulpClient:
         """
         url = self.url("api/v3/distributions/rpm/rpm/?")
         url += urlencode({"name__startswith": prefix})
+        return requests.get(url, **self.request_params)
+
+    def list_packages(self, repository_version):
+        """
+        Get a list of RPM packages provided by a given repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Advisories/operation/content_rpm_advisories_list
+        """
+        url = self.url("api/v3/content/rpm/packages/?")
+        url += urlencode({"repository_version": repository_version})
         return requests.get(url, **self.request_params)
