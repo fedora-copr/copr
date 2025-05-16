@@ -444,6 +444,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         Was the build canceled by the user?
         """
+        self.log.info("Checking for cancel request")
         self.canceled = bool(self.redis_get_worker_flag("cancel_request"))
         return self.canceled
 
@@ -469,6 +470,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         upon allocation failure.  Return False if the request was canceled.
         """
 
+        self.log.info("VM allocation process starts")
         vm_factory = ResallocHostFactory(server=self.opts.resalloc_connection)
         while True:
             self.host = vm_factory.get_host(self.job.tags, self.job.sandbox)
