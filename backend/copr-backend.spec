@@ -242,7 +242,7 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 
 %changelog
 * Fri May 16 2025 Pavel Raiskup <praiskup@redhat.com> 2.4-1
-- pulp - speed-up the rpm upload to PULP by David Kliban
+- pulp - speed-up the rpm upload to PULP by Dennis Kliban
 
 * Wed Mar 26 2025 Pavel Raiskup <praiskup@redhat.com> 2.3-1
 - lighttpd-filesystem provides group(lighttpd) on F42+ only
