@@ -9,7 +9,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    2.3
+Version:    2.4
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Fri May 16 2025 Pavel Raiskup <praiskup@redhat.com> 2.4-1
+- pulp - speed-up the rpm upload to PULP by David Kliban
+
 * Wed Mar 26 2025 Pavel Raiskup <praiskup@redhat.com> 2.3-1
 - lighttpd-filesystem provides group(lighttpd) on F42+ only
 
