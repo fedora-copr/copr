@@ -683,6 +683,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self.job.chroot,
             self.job.results_dir,
             self.job.target_dir_name,
+            build_id=self.job.build_id,
         )
 
     def _check_build_success(self):
