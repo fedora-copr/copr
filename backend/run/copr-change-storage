@@ -149,14 +149,15 @@ def main():
             for builddir_entry in os.scandir(chrootdir):
                 if not builddir_entry.is_dir():
                     continue
-                builddir = builddir_entry.name
-                build_id = builddir.split('-')[0]
-                resultdir = os.path.join(chrootdir, builddir)
 
+                builddir = builddir_entry.name
+                resultdir = os.path.join(chrootdir, builddir)
 
                 if not is_valid_build_directory(builddir):
                     log.info("Skipping: %s", resultdir)
                     continue
+
+                build_id = str(int(builddir.split("-")[0]))
 
                 # TODO Fault-tolerance and data consistency
                 # Errors when creating things in Pulp will likely happen
