@@ -205,6 +205,11 @@ class Config(object):
     # Possible options are "backend" and "pulp"
     DEFAULT_STORAGE = "backend"
 
+    # Where Pulp results are served. When `None`, the standard Copr backend
+    # URLs are used, expecting the Copr instance to have some redirects
+    # configured in Lighttpd
+    PULP_CONTENT_URL = None
+
 
 class ProductionConfig(Config):
     DEBUG = False

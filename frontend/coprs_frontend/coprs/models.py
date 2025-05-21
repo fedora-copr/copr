@@ -665,6 +665,11 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         URL for a project repository
         """
+        if self.storage == StorageEnum.pulp and app.config["PULP_CONTENT_URL"]:
+            return "/".join([
+                app.config["PULP_CONTENT_URL"].rstrip("/"),
+                self.full_name,
+            ])
         return "/".join([app.config["BACKEND_BASE_URL"], "results",
                          self.full_name])
 
@@ -853,6 +858,12 @@ class CoprDir(db.Model):
         """
         URL for a CoprDir repository
         """
+        if self.copr.storage == StorageEnum.pulp and app.config["PULP_CONTENT_URL"]:
+            return "/".join([
+                app.config["PULP_CONTENT_URL"].rstrip("/"),
+                self.full_name,
+            ])
+
         return "/".join([app.config["BACKEND_BASE_URL"], "results",
                          self.full_name])
 
