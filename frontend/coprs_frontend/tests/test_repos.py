@@ -93,7 +93,6 @@ class TestRepos(CoprsTestCase):
         easily test this but this but that it only an implementation detail.
         """
         app.config["BACKEND_BASE_URL"] = "http://backend"
-        app.config["PULP_CONTENT_URL"] = "http://pulp"
 
         self.c1.storage = StorageEnum.pulp
         self.db.session.add_all([self.c1, self.c4_dir])
@@ -104,6 +103,11 @@ class TestRepos(CoprsTestCase):
         # and let the HTTPD service redirect where needed
         url = "copr://user1/foocopr:PR"
         expected = "http://backend/results/user1/foocopr:PR/fedora-rawhide-x86_64/"
+        assert pre_process_repo_url("fedora-rawhide-x86_64", url) == expected
+
+        # Only when PULP_CONTENT_URL is set, we use that URL directly
+        app.config["PULP_CONTENT_URL"] = "http://pulp"
+        expected = "http://pulp/user1/foocopr:PR/fedora-rawhide-x86_64/"
         assert pre_process_repo_url("fedora-rawhide-x86_64", url) == expected
 
     def test_parse_repo_params(self):
