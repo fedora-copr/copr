@@ -125,7 +125,13 @@ class PulpClient:
         """
         Get a detailed information about a task
         """
-        url = self.config["base_url"] + task
+        return self.get_by_href(task)
+
+    def get_by_href(self, href):
+        """
+        Get a detailed information about an object
+        """
+        url = self.config["base_url"] + href
         return requests.get(url, **self.request_params)
 
     def create_distribution(self, name, repository, basepath=None):
@@ -245,3 +251,12 @@ class PulpClient:
         url = self.url("api/v3/distributions/rpm/rpm/?")
         url += urlencode({"name__startswith": prefix})
         return requests.get(url, **self.request_params)
+
+    def set_label(self, href, name, value):
+        """
+        Set a label on a given object
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_set_label
+        """
+        url = self.config["base_url"] + href + "set_label/"
+        data = {"key": name, "value": value}
+        return requests.post(url, json=data, **self.request_params)
