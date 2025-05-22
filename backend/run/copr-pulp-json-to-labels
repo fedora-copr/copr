@@ -1,0 +1,91 @@
+#! /usr/bin/python3
+
+"""
+In the past, it was not possible to add custom labels for Pulp content (RPM
+packages). For our purposes, we needed to label every package with a Copr build
+ID that produced it. As a temporary measure, we invented a `pulp.json`
+containing all Pulp hrefs associated with the build. When deleting a build from
+our storage, we know what objects to remove in Pulp.
+
+Pulp labels were implemented, and this script labels all existing results with
+appropriate build IDs.
+"""
+
+import os
+import json
+import logging
+import argparse
+from copr_common.tree import walk_limited
+from copr_common.log import setup_script_logger
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.pulp import PulpClient
+
+
+log = logging.getLogger(__name__)
+setup_script_logger(log, "/var/log/copr-backend/pulp-json-to-labels.log")
+
+
+def get_arg_parser():
+    """
+    CLI argument parser
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--projects",
+        required=True,
+        help="Path to a file with a list of Pulp projects",
+    )
+    return parser
+
+
+def main():
+    """
+    The main function
+    """
+    # pylint: disable=too-many-locals
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    config = BackendConfigReader("/etc/copr/copr-be.conf").read()
+    pulp = PulpClient.create_from_config_file()
+
+    with open(args.projects, "r", encoding="utf-8") as fp:
+        projects = fp.read().split()
+
+    remove = []
+    for fullname in projects:
+        owner, project = fullname.split("/", 1)
+        for coprdir in os.listdir(os.path.join(config.destdir, owner)):
+            if not (coprdir == project or coprdir.startswith(project + ":")):
+                continue
+
+            projectdir = os.path.join(config.destdir, owner, coprdir)
+            for builddir, _, files in walk_limited(projectdir, mindepth=2, maxdepth=2):
+                if "pulp.json" not in files:
+                    continue
+
+                pulp_json_path = os.path.join(builddir, "pulp.json")
+                with open(pulp_json_path, "r", encoding="utf-8") as fp:
+                    pulp_json = json.load(fp)
+
+                ok = True
+                for resource in pulp_json["resources"]:
+                    if not resource.startswith("/pulp/api/v3/content/rpm"):
+                        continue
+
+                    build_id = str(int(os.path.basename(builddir).split("-")[0]))
+                    log.info("Setting label build_id=%s on %s", build_id, resource)
+                    response = pulp.set_label(resource, "build_id", build_id)
+                    if not response.ok:
+                        ok = False
+
+                if ok:
+                    remove.append(pulp_json_path)
+
+    if remove:
+        log.info("You can safely remove the following files:")
+        for path in remove:
+            log.info(path)
+
+
+if __name__ == "__main__":
+    main()
