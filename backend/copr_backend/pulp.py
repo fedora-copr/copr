@@ -251,3 +251,12 @@ class PulpClient:
         url = self.url("api/v3/distributions/rpm/rpm/?")
         url += urlencode({"name__startswith": prefix})
         return requests.get(url, **self.request_params)
+
+    def set_label(self, href, name, value):
+        """
+        Set a label on a given object
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_set_label
+        """
+        url = self.config["base_url"] + href + "set_label/"
+        data = {"key": name, "value": value}
+        return requests.post(url, json=data, **self.request_params)
