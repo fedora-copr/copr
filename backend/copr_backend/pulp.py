@@ -125,7 +125,13 @@ class PulpClient:
         """
         Get a detailed information about a task
         """
-        url = self.config["base_url"] + task
+        return self.get_by_href(task)
+
+    def get_by_href(self, href):
+        """
+        Get a detailed information about an object
+        """
+        url = self.config["base_url"] + href
         return requests.get(url, **self.request_params)
 
     def create_distribution(self, name, repository, basepath=None):
