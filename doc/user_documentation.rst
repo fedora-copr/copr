@@ -352,7 +352,7 @@ With custom webhook(s), you can upload data like::
 
 If the ``PACKAGE_NAME`` package configured in your project uses the script-like
 "Custom" build method, the POST data will be available as a ``$(CWD)/hook_data``
-file while generating RPM sources.  You can handle this fila according to your
+file while generating RPM sources.  You can handle this file according to your
 needs in the custom script.
 
 There's an advanced possibility to call the custom webhook like::
