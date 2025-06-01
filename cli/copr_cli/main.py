@@ -1082,7 +1082,7 @@ def setup_parser():
 
     parser_new_webhook_secret = subparsers.add_parser(
         "new-webhook-secret",
-        help="Regenerate webhoook secret for a copr.")
+        help="Regenerate webhook secret for a copr.")
     parser_new_webhook_secret.add_argument("name", help="copr to generate a new webhook secret for.")
     parser_new_webhook_secret.set_defaults(func="action_new_webhook_secret")
 
