@@ -69,7 +69,12 @@ def main():
 
                 ok = True
                 for resource in pulp_json["resources"]:
-                    if not resource.startswith("/pulp/api/v3/content/rpm"):
+                    resource_prefix = (
+                        "/pulp/api/v3/content/rpm",  # Docker
+                        "/api/pulp/copr/api/v3/content/rpm",  # Devel
+                        "/api/pulp/public-copr/api/v3/content/rpm",  # Production
+                    )
+                    if not resource.startswith(resource_prefix):
                         continue
 
                     build_id = str(int(os.path.basename(builddir).split("-")[0]))
