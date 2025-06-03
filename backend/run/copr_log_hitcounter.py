@@ -31,24 +31,24 @@ def parse_access_file(path):
     Take a raw access file and return its contents as a list of dicts.
     """
     with open(path, 'r') as logfile:
-        content = logfile.readlines()
-    assert content[0].startswith("=== start:")
+        firstline = logfile.readline()
+        assert firstline.startswith("=== start:")
 
-    accesses = []
-    for line in content[1:]:
-        m = logline_regex.match(line)
-        if not m:
-            continue
-        # Rename dict keys to match `copr-aws-s3-hitcounter`
-        access = m.groupdict()
-        access["cs-uri-stem"] = access.pop("url")
-        access["sc-status"] = access.pop("code")
-        access["cs(User-Agent)"] = access.pop("agent")
-        timestamp = datetime.strptime(access.pop("timestamp"),
-                                      "%d/%b/%Y:%H:%M:%S %z")
-        access["time"] = timestamp.strftime("%H:%M:%S")
-        access["date"] = timestamp.strftime("%Y-%m-%d")
-        accesses.append(access)
+        accesses = []
+        for line in logfile:
+            m = logline_regex.match(line)
+            if not m:
+                continue
+            # Rename dict keys to match `copr-aws-s3-hitcounter`
+            access = m.groupdict()
+            access["cs-uri-stem"] = access.pop("url")
+            access["sc-status"] = access.pop("code")
+            access["cs(User-Agent)"] = access.pop("agent")
+            timestamp = datetime.strptime(access.pop("timestamp"),
+                                          "%d/%b/%Y:%H:%M:%S %z")
+            access["time"] = timestamp.strftime("%H:%M:%S")
+            access["date"] = timestamp.strftime("%Y-%m-%d")
+            accesses.append(access)
     return accesses
 
 
