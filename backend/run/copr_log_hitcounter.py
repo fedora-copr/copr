@@ -32,7 +32,8 @@ def parse_access_file(path):
     """
     with open(path, 'r') as logfile:
         firstline = logfile.readline()
-        assert firstline.startswith("=== start:")
+        if not firstline.startswith("=== start:"):
+            raise ValueError(f"Invalid header: expected '=== start:' at the beginning, got: {firstline!r}")
 
         for line in logfile:
             m = logline_regex.match(line)
