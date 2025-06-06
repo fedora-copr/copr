@@ -31,25 +31,24 @@ def parse_access_file(path):
     Take a raw access file and return its contents as a list of dicts.
     """
     with open(path, 'r') as logfile:
-        content = logfile.readlines()
-    assert content[0].startswith("=== start:")
+        firstline = logfile.readline()
+        if not firstline.startswith("=== start:"):
+            raise ValueError(f"Invalid header: expected '=== start:' at the beginning, got: {firstline!r}")
 
-    accesses = []
-    for line in content[1:]:
-        m = logline_regex.match(line)
-        if not m:
-            continue
-        # Rename dict keys to match `copr-aws-s3-hitcounter`
-        access = m.groupdict()
-        access["cs-uri-stem"] = access.pop("url")
-        access["sc-status"] = access.pop("code")
-        access["cs(User-Agent)"] = access.pop("agent")
-        timestamp = datetime.strptime(access.pop("timestamp"),
-                                      "%d/%b/%Y:%H:%M:%S %z")
-        access["time"] = timestamp.strftime("%H:%M:%S")
-        access["date"] = timestamp.strftime("%Y-%m-%d")
-        accesses.append(access)
-    return accesses
+        for line in logfile:
+            m = logline_regex.match(line)
+            if not m:
+                continue
+            # Rename dict keys to match `copr-aws-s3-hitcounter`
+            access = m.groupdict()
+            access["cs-uri-stem"] = access.pop("url")
+            access["sc-status"] = access.pop("code")
+            access["cs(User-Agent)"] = access.pop("agent")
+            timestamp = datetime.strptime(access.pop("timestamp"),
+                                          "%d/%b/%Y:%H:%M:%S %z")
+            access["time"] = timestamp.strftime("%H:%M:%S")
+            access["date"] = timestamp.strftime("%Y-%m-%d")
+            yield access
 
 
 def get_arg_parser():
@@ -89,11 +88,18 @@ def main():
     # chunks may succeed, some fail and never be counted. But we try to send
     # each request repeatedly and losing some access hits from time to time
     # isn't a mission critical issue and I would just roll with it.
-    accesses = parse_access_file(args.logfile)
     size = 1000
-    chunks = [accesses[x:x+size] for x in range(0, len(accesses), size)]
-    for chunk in chunks:
-        update_frontend(chunk, log=log, dry_run=args.dry_run)
+    chunks = []
+    len_chunks = 0
+    for chunk in parse_access_file(args.logfile):
+        chunks.append(chunk)
+        len_chunks += 1
+        if len_chunks >= size:
+            update_frontend(chunks, log=log, dry_run=args.dry_run)
+            chunks = []
+            len_chunks = 0
+    if len_chunks >= size:
+        update_frontend(chunks, log=log, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
