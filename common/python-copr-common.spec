@@ -15,8 +15,12 @@ Source0:    %name-%version.tar.gz
 
 BuildArch: noarch
 
+%if 0%{?rhel} > 10 || 0%{?fedora} > 42
+BuildRequires: python3-devel
+%else
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
+%endif
 BuildRequires: python3-pytest
 BuildRequires: python3-requests
 BuildRequires: python3-filelock
@@ -39,18 +43,30 @@ Summary: %{summary}
 %description -n python3-%{srcname} %_description
 
 
+%if 0%{?rhel} > 10 || 0%{?fedora} > 42
+%generate_buildrequires
+%pyproject_buildrequires
+%endif
+
+
 %prep
 %setup -q
-# Check that setup.py version matches our version
-grep '"%version"' setup.py
 
 
 %build
+%if 0%{?rhel} > 10 || 0%{?fedora} > 42
+version="%version" %pyproject_wheel
+%else
 version="%version" %py3_build
+%endif
 
 
 %install
+%if 0%{?rhel} > 10 || 0%{?fedora} > 42
+version=%version %pyproject_install
+%else
 version=%version %py3_install
+%endif
 
 %check
 %{_bindir}/python3 -m pytest -vv tests
