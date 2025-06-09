@@ -33,9 +33,6 @@ setup(
     author_email=__author_email__,
     url=__url__,
     license='GPLv2+',
-    classifiers=[
-        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
-    ],
     install_requires=requires,
     packages=['copr_common'],
     include_package_data=True,
