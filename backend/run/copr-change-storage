@@ -146,6 +146,24 @@ def main():
             storage = PulpStorage(
                 owner, subproject, appstream, devel, config, log)
 
+            # TODO Fault-tolerance and data consistency
+            # Errors when creating things in Pulp will likely happen
+            # (networking issues, unforseen Pulp validation, etc). We
+            # should figure out how to ensure that all RPMs were
+            # successfully uploaded, and if not, we know about it.
+            #
+            # We also need to make sure that no builds, actions, or cron,
+            # are currently writing into the results directory. Otherwise
+            # we can end up with incosystent data in Pulp.
+
+            result = storage.init_project(subproject, chroot)
+            if not result:
+                log.error("Failed to initialize project: %s", chroot)
+                ok = False
+                break
+
+            all_package_hrefs = []
+
             for builddir_entry in os.scandir(chrootdir):
                 if not builddir_entry.is_dir():
                     continue
@@ -159,32 +177,24 @@ def main():
 
                 build_id = str(int(builddir.split("-")[0]))
 
-                # TODO Fault-tolerance and data consistency
-                # Errors when creating things in Pulp will likely happen
-                # (networking issues, unforseen Pulp validation, etc). We
-                # should figure out how to ensure that all RPMs were
-                # successfully uploaded, and if not, we know about it.
-                #
-                # We also need to make sure that no builds, actions, or cron,
-                # are currently writing into the results directory. Otherwise
-                # we can end up with incosystent data in Pulp.
-
-                result = storage.init_project(subproject, chroot)
-                if not result:
-                    log.error("Failed to initialize project: %s", resultdir)
-                    ok = False
-                    break
-
                 # We cannot check return code here
-                storage.upload_build_results(chroot, resultdir, None, max_workers=80, build_id=build_id)
+                package_hrefs = storage.upload_build_results(chroot, resultdir, None, max_workers=80, build_id=build_id)
+                all_package_hrefs.extend(package_hrefs)
 
-                result = storage.publish_repository(chroot)
-                if not result:
-                    log.error("Failed to publish a repository: %s", resultdir)
-                    ok = False
-                    break
+            # Add build results to the repository
+            result = storage.create_repository_version(chroot, all_package_hrefs)
+            if not result:
+                log.error("Failed to create a new repository version: %s", chroot)
+                ok = False
+                break
 
-                log.info("OK: %s", resultdir)
+            result = storage.publish_repository(chroot)
+            if not result:
+                log.error("Failed to publish a repository: %s", resultdir)
+                ok = False
+                break
+
+            log.info("OK: %s", chroot)
 
     # Not everything was migrated successfully. Play it safe and fail.
     if not ok:
