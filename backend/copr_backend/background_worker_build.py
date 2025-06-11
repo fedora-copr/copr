@@ -679,12 +679,15 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         this method could upload the results and remove the temporary files
         at the same time.
         """
-        self.storage.upload_build_results(
+        result = self.storage.upload_build_results(
             self.job.chroot,
             self.job.results_dir,
             self.job.target_dir_name,
             build_id=self.job.build_id,
         )
+        if result:
+            # Only PulpStorage returns package HREFs
+            self.storage.create_repository_version(self.job.chroot, result)
 
     def _check_build_success(self):
         """
