@@ -172,17 +172,27 @@ class PulpClient:
         }
         return requests.patch(url, json=data, **self.request_params)
 
-    def create_content(self, repository, path, labels):
+    def create_content(self, path, labels):
         """
         Create content for a given artifact
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Content:-Packages/operation/content_rpm_packages_create
         """
         url = self.url("api/v3/content/rpm/packages/")
         with open(path, "rb") as fp:
-            data = {"repository": repository, "pulp_labels": json.dumps(labels)}
+            data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
             return requests.post(
                 url, data=data, files=files, **self.request_params)
+
+    def add_content(self, repository, artifacts):
+        """
+        Add a list of artifacts to a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        path = os.path.join(repository, "modify/")
+        url = self.config["base_url"] + path
+        data = {"add_content_units": artifacts}
+        return requests.post(url, json=data, **self.request_params)
 
     def delete_content(self, repository, artifacts):
         """

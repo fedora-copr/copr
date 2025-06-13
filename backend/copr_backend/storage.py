@@ -216,11 +216,11 @@ class PulpStorage(Storage):
         response = self.client.create_publication(repository)
         return response.ok
 
-    def upload_rpm(self, repository, path, labels):
+    def upload_rpm(self, path, labels):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(repository, path, labels)
+        response = self.client.create_content(path, labels)
 
         if not response.ok:
             self.log.error("Failed to create Pulp content for: %s, %s",
@@ -251,12 +251,12 @@ class PulpStorage(Storage):
                         continue
 
                     path = os.path.join(root, name)
-                    repository = self._get_repository(chroot)
                     labels = {"build_id": build_id}
-                    futures[executor.submit(self.upload_rpm, repository, path, labels)] = name
+                    futures[executor.submit(self.upload_rpm, path, labels)] = name
 
             failed_tasks = []
             exceptions = []
+            package_hrefs = []
             for future in as_completed(futures):
                 filepath = futures[future]
                 try:
@@ -264,6 +264,7 @@ class PulpStorage(Storage):
                     created = response.json().get("created_resources")
                     if created:
                         self.log.info("Uploaded to Pulp: %s", filepath)
+                        package_hrefs.append(created[0])
                     else:
                         failed_tasks.append(response.json().get("pulp_href"))
                 except RuntimeError as exc:
@@ -274,6 +275,24 @@ class PulpStorage(Storage):
                     "Pulp tasks {0} didn't create any resources".format(failed_tasks))
             if exceptions:
                 raise CoprBackendError(f"Exceptions encountered: {exceptions}")
+
+            return package_hrefs
+
+    def create_repository_version(self, chroot, package_hrefs):
+        """
+        Create a new repository version by adding a list of RPMs to the latest repository version.
+        """
+        repository = self._get_repository(chroot)
+        response = self.client.add_content(repository, package_hrefs)
+
+        if not response.ok:
+            self.log.error("Failed to create a new repository version for: %s, %s",
+                           chroot, response.text)
+            return response
+
+        task = response.json()["task"]
+        response = self.client.wait_for_finished_task(task)
+        return response
 
     def publish_repository(self, chroot, **kwargs):
         repository = self._get_repository(chroot)
