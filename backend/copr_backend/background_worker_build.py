@@ -352,7 +352,10 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         waiting_since = time.time()
         while time.time() - waiting_since < 60:
             exists = self.storage.repository_exists(
-                self.job.project_dirname, self.job.chroot)
+                self.job.project_dirname,
+                self.job.chroot,
+                self.job.repos[0]["baseurl"]
+            )
             if exists:
                 return
 
