@@ -5,7 +5,6 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import shutil
-from urllib.parse import urlparse
 import requests
 from copr_common.enums import StorageEnum
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name
@@ -87,7 +86,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def repository_exists(self, dirname, chroot):
+    def repository_exists(self, dirname, chroot, baseurl):
         """
         Does a repository exist?
         """
@@ -180,7 +179,7 @@ class BackendStorage(Storage):
                         self.log.debug("can't remove %s", log_path)
         return result
 
-    def repository_exists(self, dirname, chroot):
+    def repository_exists(self, dirname, chroot, baseurl):
         repodata = os.path.join(self.opts.destdir, self.owner, dirname,
                                 chroot, "repodata", "repomd.xml")
         return os.path.exists(repodata)
@@ -356,26 +355,8 @@ class PulpStorage(Storage):
 
         return result
 
-    def repository_exists(self, dirname, chroot):
-        name = self._distribution_name(chroot, dirname)
-        response = self.client.get_distribution(name)
-        if not response.ok:
-            return False
-
-        data = response.json()
-        if data["count"] == 0:
-            return False
-
-        distribution = response.json()["results"][0]
-
-        # For some instances (local container) the distribution base_url
-        # contains only path, for some instances (hosted STG) it returns fully
-        # qualified URL. The problem is that there is a lot of magic in the
-        # hosted deployment in order to provide the data publicly without
-        # a Red Hat login. And we cannot use the returned URL, only its path.
-        path = urlparse(distribution["base_url"]).path.lstrip("/")
-        host = self.client.config["base_url"].rstrip("/")
-        repodata = "{0}/{1}/repodata/repomd.xml".format(host, path)
+    def repository_exists(self, dirname, chroot, baseurl):
+        repodata = "{0}/repodata/repomd.xml".format(baseurl)
         response = requests.head(repodata)
         return response.ok
 
