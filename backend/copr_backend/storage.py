@@ -226,12 +226,6 @@ class PulpStorage(Storage):
                            path, response.text)
             return response
 
-        # This involves a lot of unnecessary waiting until every
-        # RPM content is created. Once we can reliably label Pulp
-        # content with Copr build ID, we should drop this code and stop
-        # creating the `pulp.json` file
-        task = response.json()["task"]
-        response = self.client.wait_for_finished_task(task)
         return response
 
     def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
@@ -253,25 +247,25 @@ class PulpStorage(Storage):
                     labels = {"build_id": build_id}
                     futures[executor.submit(self.upload_rpm, path, labels)] = name
 
-            failed_tasks = []
+            failed_uploads = []
             exceptions = []
             package_hrefs = []
             for future in as_completed(futures):
                 filepath = futures[future]
                 try:
                     response = future.result()
-                    created = response.json().get("created_resources")
-                    if created:
+                    if response.ok:
+                        created = response.json().get("pulp_href")
+                        package_hrefs.append(created)
                         self.log.info("Uploaded to Pulp: %s", filepath)
-                        package_hrefs.append(created[0])
                     else:
-                        failed_tasks.append(response.json().get("pulp_href"))
+                        failed_uploads.append(filepath)
                 except RuntimeError as exc:
                     exceptions.append(f"{filepath} generated an exception: {exc}")
 
-            if failed_tasks:
+            if failed_uploads:
                 raise CoprBackendError(
-                    "Pulp tasks {0} didn't create any resources".format(failed_tasks))
+                    "Pulp uploads of  {0} failed.".format(failed_uploads))
             if exceptions:
                 raise CoprBackendError(f"Exceptions encountered: {exceptions}")
 
