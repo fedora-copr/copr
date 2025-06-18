@@ -57,6 +57,10 @@ h3 a {
 table.datatable thead .sorting_asc, table.datatable thead .sorting_desc {
     color: @base !important;
 }
+
+.text-primary {
+    color: @base;
+}
 EOF
 
 lighten_base ()
