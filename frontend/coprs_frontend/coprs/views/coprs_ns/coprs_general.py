@@ -226,6 +226,7 @@ def copr_add_fedora_review(username):  # pylint: disable=unused-argument
                 delete_after_days=delete_after_days,
                 follow_fedora_branching=False,
                 fedora_review=True,
+                enable_net=False,
             )
             db.session.commit()
             flask.flash(
