@@ -3,6 +3,7 @@ Pulp doesn't provide an API client, we are implementing it for ourselves
 """
 
 import json
+import logging
 import os
 import time
 import tomllib
@@ -30,7 +31,7 @@ class PulpClient:
     """
 
     @classmethod
-    def create_from_config_file(cls, path=None):
+    def create_from_config_file(cls, path=None, log=None):
         """
         Create a Pulp client from a standard configuration file that is
         used by the `pulp` CLI tool
@@ -38,11 +39,12 @@ class PulpClient:
         path = os.path.expanduser(path or "~/.config/pulp/cli.toml")
         with open(path, "rb") as fp:
             config = tomllib.load(fp)
-        return cls(config["cli"])
+        return cls(config["cli"], log)
 
-    def __init__(self, config):
+    def __init__(self, config, log=None):
         self.config = config
         self.timeout = 60
+        self.log = log or logging.getLogger(__name__)
 
     @property
     def auth(self):
@@ -154,6 +156,7 @@ class PulpClient:
         """
         url = self.url("api/v3/publications/rpm/rpm/")
         data = {"repository": repository}
+        self.log.info("Pulp: publishing %s", repository)
         return requests.post(url, json=data, **self.request_params)
 
     def update_distribution(self, distribution, publication):
@@ -161,6 +164,7 @@ class PulpClient:
         Update an RPM distribution
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
         """
+        self.log.info("Pulp: updating distribution %s", distribution)
         url = self.config["base_url"] + distribution
         data = {
             "publication": publication,
@@ -217,6 +221,7 @@ class PulpClient:
         url = self.url("api/v3/content/rpm/packages/?")
         # Setting the limit to 1000, but in the future we should use pagination
         url += urlencode({"q": query, "fields": "prn", "offset": 0, "limit": 1000})
+        self.log.info("Pulp: get_content: %s", url)
         return requests.get(url, **self.request_params)
 
     def delete_repository(self, repository):
@@ -243,6 +248,7 @@ class PulpClient:
         """
         start = time.time()
         while True:
+            self.log.info("Pulp: polling task status: %s", task)
             response = self.get_task(task)
             if not response.ok:
                 break
