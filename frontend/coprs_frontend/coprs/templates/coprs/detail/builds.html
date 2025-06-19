@@ -45,8 +45,10 @@
 {% endmacro %}
 
 
+{% set has_coprdirs = copr.dirs|length > 1 %}
+
 <h2 class="page-title">Project Builds</h2>
-  {% if copr.dirs|length > 1 %}
+  {% if has_coprdirs %}
   <div class="panel panel-default">
     <div class="panel-body">
       <div class="btn-group" role="group">
@@ -75,9 +77,9 @@
 
   {% if builds.items %}
   {{ serverside_pagination_warning() }}
-  {{ builds_table(builds.items, serverside_pagination=builds) }}
+  {{ builds_table(builds.items, serverside_pagination=builds, show_coprdirs=has_coprdirs) }}
   {% else %}
-  {{ builds_table(builds) }}
+  {{ builds_table(builds, show_coprdirs=has_coprdirs) }}
   {% endif %}
 
 {% endblock %}

@@ -4,7 +4,7 @@
 {% from "_helpers.html" import pagination_form with context %}
 
 
-{% macro builds_table(builds, print_possible_states=True, serverside_pagination=None) %}
+{% macro builds_table(builds, print_possible_states=True, serverside_pagination=None, show_coprdirs=False) %}
   {% for build in builds %}
     {% if loop.first %}
     {% if not serverside_pagination %}
@@ -16,6 +16,9 @@
           <th>Build ID</th>
           <th>Package Name</th>
           <th>Package Version</th>
+          {% if show_coprdirs %}
+          <th>Subproject</th>
+          {% endif %}
           <th>Submitted</th>
           <th>Build Time</th>
           <th>Status</th>
@@ -49,6 +52,15 @@
                    -
               {% endif %}
           </td>
+          {% if show_coprdirs %}
+          <td>
+              {% if build.copr_dir.suffix %}
+                  {{ build.copr_dir.suffix }}
+              {% else %}
+                   -
+              {% endif %}
+          </td>
+          {% endif %}
           <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
           <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
           <td>
