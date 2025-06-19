@@ -1,7 +1,7 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "_helpers.html" import build_href_from_sql, build_state, initialize_datatables %}
 
-{% macro package_table(builds) %}
+{% macro package_table(builds, show_coprdirs=False) %}
 <noscript><p>WARNING!! This page is using JavaScript to filter and sort the table.</p></noscript>
 {% if builds %}
  <table class="datatable table table-striped table-bordered">
@@ -9,6 +9,9 @@
       <tr>
         <th>Build ID</th>
         <th>Package Version</th>
+        {% if show_coprdirs %}
+        <th>Subproject</th>
+        {% endif %}
         <th>Submitted</th>
         <th>Build Time</th>
         <th>Status</th>
@@ -30,6 +33,15 @@
                  -
             {% endif %}
         </td>
+        {% if show_coprdirs %}
+        <td>
+            {% if build.copr_dir.suffix %}
+                {{ build.copr_dir.suffix }}
+            {% else %}
+                 -
+            {% endif %}
+        </td>
+        {% endif %}
         <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
         <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
         <td>
