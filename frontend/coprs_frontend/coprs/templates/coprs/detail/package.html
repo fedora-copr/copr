@@ -99,7 +99,8 @@
       </div>
     </div>
 
-    {{package_table(package.builds)}}
+    {% set has_coprdirs = copr.dirs|length > 1 %}
+    {{package_table(package.builds, show_coprdirs=has_coprdirs)}}
 
     <div class="panel panel-default">
       <div class="panel-heading">
