@@ -356,7 +356,10 @@ class PulpStorage(Storage):
             list_of_prns = [package["prn"] for package in content_response.json()["results"] ]
 
             response = self.client.delete_content(repository, list_of_prns)
-            if response.ok:
+            task = response.json()["task"]
+            response = self.client.wait_for_finished_task(task)
+            resources = response.json()["created_resources"]
+            if resources:
                 self.log.info("Successfully deleted Pulp content %s", list_of_prns)
             else:
                 result = False
