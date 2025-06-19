@@ -191,7 +191,7 @@ class PulpStorage(Storage):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.client = PulpClient.create_from_config_file()
+        self.client = PulpClient.create_from_config_file(log=self.log)
 
     def init_project(self, dirname, chroot):
         repository = self._repository_name(chroot, dirname)
