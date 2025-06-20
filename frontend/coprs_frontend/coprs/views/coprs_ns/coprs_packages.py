@@ -246,7 +246,7 @@ def copr_edit_package_post(copr, package_name, source_type_text):
     UsersLogic.raise_if_cant_build_in_copr(
         flask.g.user, copr, "You don't have permissions to edit this package.")
 
-    url_on_success = helpers.copr_url("coprs_ns.copr_packages", copr)
+    url_on_success = helpers.copr_url("coprs_ns.copr_package", copr, package_name=package_name)
     return process_save_package(copr, source_type_text, package_name, view="coprs_ns.copr_edit_package",
                                 view_method=copr_edit_package, url_on_success=url_on_success)
 
