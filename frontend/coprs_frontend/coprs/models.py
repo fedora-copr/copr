@@ -854,6 +854,16 @@ class CoprDir(db.Model):
         return "{}-{}".format(self.copr.owner_name, self.name)
 
     @property
+    def suffix(self):
+        """
+        Return only the name suffix.
+        When a CoprDir name is `test:custom:foo` then the suffix is `custom:foo`.
+        """
+        if ":" in self.name:
+            return self.name.split(":", 1)[1]
+        return None
+
+    @property
     def repo_url(self):
         """
         URL for a CoprDir repository
