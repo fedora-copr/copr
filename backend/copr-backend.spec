@@ -9,7 +9,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    2.5
+Version:    2.6
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,15 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Mon Jun 23 2025 Jakub Kadlcik <frostyx@email.cz> 2.6-1
+- Set pulp_labels at RPM upload time.
+- Wait on add_and_remove task to finish
+- Switches PulpStorage to using the synchronous RPM upload API
+- Specify charset in lighttpd mimetypes
+- Fix waiting for Pulp copr_base repository
+- Create one repository version and publication per chroot
+- Optimize copr_log_hitcounter for memory
+
 * Fri Jun 06 2025 Jakub Kadlcik <frostyx@email.cz> 2.5-1
 - backend: add script to migrate pulp.json to Pulp labels
 - backend: add function to get pulp object based on its href
