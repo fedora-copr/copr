@@ -2,6 +2,7 @@
 Pulp doesn't provide an API client, we are implementing it for ourselves
 """
 
+import json
 import logging
 import os
 import time
@@ -182,13 +183,10 @@ class PulpClient:
         """
         url = self.url("api/v3/content/rpm/rpmpackages/")
         with open(path, "rb") as fp:
+            data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
             package =  requests.post(
-                url, files=files, **self.request_params)
-        if package.ok:
-            package_href = package.json()["pulp_href"]
-            for key, val in labels.items():
-                self.set_label(package_href, key, val)
+                url, data=data, files=files, **self.request_params)
         return package
 
     def add_content(self, repository, artifacts):
