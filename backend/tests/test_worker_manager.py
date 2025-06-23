@@ -1,8 +1,6 @@
 " test worker_manager.py "
 
 import os
-import sys
-import copy
 import time
 import logging
 from unittest.mock import MagicMock, patch
@@ -452,9 +450,9 @@ class TestActionWorkerManager(BaseTestWorkerManager):
         # at least 'toy:0' should be reeady
         self.worker_manager.run(timeout=0.0001)
 
-        queue = copy.deepcopy(self.worker_manager.tasks)
+        queue_len = len(self.worker_manager.tasks.prio_queue)
         self.worker_manager.add_task(ToyQueueTask(0))
-        assert len(queue.prio_queue) == len(self.worker_manager.tasks.prio_queue)
+        assert len(self.worker_manager.tasks.prio_queue) == queue_len
         assert ('root', logging.DEBUG,
                 "Task 0 already has a worker process") in caplog.record_tuples
 
