@@ -358,12 +358,15 @@ class PulpStorage(Storage):
             response = self.client.delete_content(repository, list_of_prns)
             task = response.json()["task"]
             response = self.client.wait_for_finished_task(task)
-            resources = response.json()["created_resources"]
-            if resources:
+            data = response.json()
+            if response.ok and data["state"] == "completed":
                 self.log.info("Successfully deleted Pulp content %s", list_of_prns)
             else:
                 result = False
                 self.log.info("Failed to delete Pulp content %s", list_of_prns)
+
+            resources = data["created_resources"]
+            self.log.info("Deleted resources: %s", resources)
 
             published = self.publish_repository(chroot)
             if not published:
