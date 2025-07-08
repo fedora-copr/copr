@@ -32,248 +32,160 @@ Requirements
 * IBM Cloud API token assigned to the Fedora Copr team (see team's Bitwaarden)
 
 
-.. _prepare_aws_source_images:
 
-Prepare AWS source images
+Building an image locally
 -------------------------
 
-You need to find proper (official) ``ami-*`` Fedora image IDs, bound to
-your desired VM location.  You can e.g. go to `Fedora Cloud Page`_ and search
-for ``AWS`` images. There are different buttons for x86_64 and aarch64
-architectures. Click the *List AWS EC2 region* button.
+This is useful for development or debugging but the produced image will not be
+used production.
 
-Do not launch any instance, only find an AMI ID
-(e.g. ``ami-0c830793775595d4b``) for our region - we are using
-N.Virginia option, aka ``us-east-1``.
+::
 
-Then ssh to ``root@copr-be-dev.cloud.fedoraproject.org``, and ``su - resalloc``,
-and execute for ``x86_64`` arch::
+   $ git clone https://github.com/fedora-copr/copr-image-builder.git
+   $ cd copr-image-builder
+   $ IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
 
-    $ copr-resalloc-aws-new-x86_64 \
-        --initial-preparation --create-snapshot-image --debug \
-        --name copr-builder-image-x86_64 \
-        --instance-type=c7i.xlarge \
-        --ami <ami_ID>
-    ...
-     * Image ID: ami-0ebce709a474af685
-    ...
-
-And then also for ``aarch64``.  Note that we need an additional volume that will
-be later inherited by all machines instatiated from the snapshot *ami* image (so
-we don't need yet another additional volume when starting builders)::
-
-    $ copr-resalloc-aws-new-aarch64 \
-        --initial-preparation --create-snapshot-image --debug \
-        --additional-volume-size 160 \
-        --name copr-builder-image-aarch64 \
-        --instance-type=c7g.xlarge \
-        --ami <ami_ID>
-    ...
-     * Image ID: ami-0942a35ec3999e00d
-    ...
-
-Continue fixing the scripts/playbooks/fedora till you succeed like that ^^.
-Repeat the previous steps.
-
-The remaining step is to configure ``copr_builder_images.aws.{aarch64,x86_64}``
-options in `Ansible git repo`_, in file ``inventory/group_vars/copr_dev_aws``
-and reprovision the ``copr-be-dev`` instance, see :ref:`Testing`.  Document the
-previous ``ami-*`` variants as ``n-1``, and remove the previous ``n-2`` images
-in `EC2 console <AWS login link>`_.
+Run ``virt-manager`` and boot the image.
 
 
 .. _prepare_libvirt_source_images:
 
-Prepare libvirt source images
------------------------------
+x86_64 qcow2
+------------
 
-We prepare the LibVirt images directly on our hypervisors.  We start with the
-official Fedora images as the "base images", and just modify them (this is
-easier for us compared to generating images from scratch).
+::
 
-.. note::
-   While the Power9 architecture family is required for ppc64le builds
-   for Enterprise Linux 9 (or newer), we and while we only have Power8 machines
-   in-house (Fedora lab) - this is none issue.  The generated images on Power8
-   machines are compatible with Power9 (currently hosted in the `OSU Open Source
-   Lab`_).  When uploading the image (see below), the image is as well as as
-   onto LibVirt hypervisors automatically uploaded into the OSUOSL OpenStack.
+   $ ssh root@copr-be-dev.aws.fedoraproject.org
+   # su - resalloc
+   $ resalloc ticket --tag hypervisor_x86_64
+   $ resalloc ticket-wait 751
+   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
+   $ ssh root@$IP
+   # git clone https://github.com/fedora-copr/copr-image-builder.git
+   # cd copr-image-builder
+   # ./prepare-worker
+   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # exit
+   $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.x86_64.qcow2
+   $ resalloc ticket-close 751
 
-Find source images
-^^^^^^^^^^^^^^^^^^
+   $ scp /var/lib/copr/public_html/images/disk.x86_64.qcow2 copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org:/tmp/disk.qcow2
+   $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
+   $ /home/copr/provision/upload-qcow2-images /tmp/disk.qcow2
+   $ rm /tmp/disk.qcow2
+   $ exit
 
-The first thing you need to figure out is what image should you use for
-particular architecture, and where to get it. The Cloud Base images can be
-obtained on `Fedora Cloud page`_.  Pick the variants with ``.qcow2`` extension,
-without the ``UKI`` mark.  Some images might be found on the `Alternate
-Architectures page`_.
 
-.. warning::
-    Don't confuse PPC64LE with PPC64!
+.. _prepare_aws_source_images:
 
-If neither of those URLs above provide the expected cloud image for the desired
-Fedora version (yet), there should exist at least a "compose" version in `Koji
-compose directory listing`_, look for the
-``latest-Fedora-Cloud-<VERSION>/compose/Cloud/<ARCH>/images`` directory.
+x86_64 AMI
+----------
 
-Image preparation
-^^^^^^^^^^^^^^^^^
+::
 
-We can not prepare the images cross-arch, yet we need to prepare one image for
-every supported architecture (on an appropriate hypervisor).  So in turn we need
-to repeat the instructions for each architecture we have hypervisors for
-(currently x86_64 and ppc64le).
+   $ ssh root@copr-be-dev.aws.fedoraproject.org
+   # su - resalloc
+   $ resalloc ticket --tag hypervisor_x86_64
+   $ resalloc ticket-wait 751
+   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
+   $ ssh root@$IP
+   # git clone https://github.com/fedora-copr/copr-image-builder.git
+   # cd copr-image-builder
+   # ./prepare-worker
+   # IMAGE_TYPE=ami BUILD_OCI=true ./copr-build-image-bootc.sh
+   # exit
+   $ scp -6 root@[$IP]:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.x86_64.raw
+   $ resalloc ticket-close 751
 
-All the hypervisors in the Fedora Copr build system are appropriately configured
-for this task, so it doesn't matter which of the hypervisors is chosen (only the
-architecture must match).
+   $ image-builder upload \
+       /var/lib/copr/public_html/images/disk.x86_64.raw \
+       --to aws \
+       --aws-ami-name copr-builder-image-bootc-$(date +"%Y%m%d-%H%M%S")-x86_64 \
+       --aws-region us-east-1 \
+       --aws-bucket copr-images
 
-.. note::
 
-    You still might need to re-run `hypervisor playbooks <hypervisors>`_ first
-    to sync the "provision" configuration.
+aarch64
+-------
 
-Our hypervisors have overcommitted RAM and disk space a lot (otherwise it
-wouldn't be possible to start so many builders on each hypervisor in parallel).
-The good thing is that we still can anytime temporarily spawn one or more VMs
-for the purpose of generating the next golden image.
+::
 
-So let's try to generate the image from the given official Fedora Cloud image on
-one of the x86_64 hypervisors::
+   $ ssh root@copr-be-dev.aws.fedoraproject.org
+   # su - resalloc
+   $ resalloc ticket --tag arch_aarch64_native
+   $ resalloc ticket-wait 751
+   $ IP=100.26.46.8
+   $ ssh root@$IP
+   # git clone https://github.com/fedora-copr/copr-image-builder.git
+   # cd copr-image-builder
+   # ./prepare-worker
+   # IMAGE_TYPE=ami BUILD_OCI=true ./copr-build-image-bootc.sh
+   # exit
+   $ scp root@$IP:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.aarch64.raw
+   $ resalloc ticket-close 751
 
-    $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
-    [copr@vmhost-x86-copr02 ~][PROD]$ copr-image https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2
-    ... SNIP ...
-    ++ date -I
-    + qemu-img convert -f qcow2 /tmp/wip-image-hi1jK.qcow2 -c -O qcow2 -o compat=0.10 /tmp/copr-eimg-G6yZpG/eimg-fixed-2021-05-24.qcow2
-    + cleanup
-    + rm -rf /tmp/wip-image-hi1jK.qcow2
+   $ image-builder upload \
+       /var/lib/copr/public_html/images/disk.aarch64.raw \
+       --arch aarch64 \
+       --to aws \
+       --aws-ami-name copr-builder-image-bootc-$(date +"%Y%m%d-%H%M%S")-aarch64 \
+       --aws-region us-east-1 \
+       --aws-bucket copr-images
 
-This long running task (several minutes) can fail.  If so, please fix the
-script, and re-run.  Once the script finishes correctly (see above the output,
-and final `eimg-fixed*.qcow` file), upload the image to all hypervisors::
 
-    [copr@vmhost-x86-copr02 ~][PROD]$ /home/copr/provision/upload-qcow2-images /tmp/copr-eimg-G6yZpG/eimg-fixed-2021-05-24.qcow2
-    ... SNIP ...
-    uploaded images copr-builder-20210524_085845
+ppc64le
+-------
 
-Test that the image spawns correctly::
+::
 
-    $ ssh root@copr-be-dev.cloud.fedoraproject.org
-    Last login: Fri Jun 14 12:16:48 2019 from 77.92.220.242
+   $ ssh root@copr-be-dev.aws.fedoraproject.org
+   # su - resalloc
+   $ resalloc ticket --tag hypervisor --tag arch_ppc64le
+   $ resalloc ticket-wait 751
+   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
+   $ ssh root@$IP
+   # git clone https://github.com/fedora-copr/copr-image-builder.git
+   # cd copr-image-builder
+   # ./prepare-worker
+   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # exit
+   $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.ppc64le.qcow2
+   $ resalloc ticket-close 751
 
-    # use a different spawning image for hypervisors, set the "VOLUMES.x86_64"
-    # to 'copr-builder-20210524_085845'".
-    [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/provision/libvirt-new
-
-    # use a different image for the OSUOSL OpenStack.  Set the
-    # `resalloc-openstack-new --image` argument to
-    # 'copr-builder-20210524_085845'.
-    [root@copr-be-dev ~][STG]# vim /var/lib/resallocserver/resalloc_provision/osuosl-vm
-
-    # delete current VMs to start spawning new ones
-    [root@copr-be-dev ~][STG]# su - resalloc
-    Last login: Fri Jun 14 12:43:16 UTC 2019 on pts/0
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-delete --all
-
-    # wait a minute or so for the new VMs
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list |grep copr_hv_ |grep STARTING
-    30784 - copr_hv_x86_64_02_dev_00030784_20210524_090406 pool=copr_hv_x86_64_02_dev tags= status=STARTING releases=0 ticket=NULL
-
-    [resalloc@copr-be-dev ~][STG]$ tail -f /var/log/resallocserver/hooks/030784_alloc
-    ... SNIP ...
-    DEBUG:root:Cleaning up ...
-    2620:52:3:1:dead:beef:cafe:c141
-    DEBUG:root:cleanup 50_shut_down_vm_destroy
-    ... SNIP ...
-
-If the log doesn't look good, you'll have to start over again (perhaps fix
-spawner playbooks, or the ``copr-image`` script).  But if you see the VM IP
-address (can be an IPv6 one), you are mostly done::
-
-    [resalloc@copr-be-dev ~][STG]$ resalloc-maint resource-list | grep 00145
-    145 - aarch64_01_dev_00000145_20190614_124441 pool=aarch64_01_dev tags=aarch64 status=UP
-
-For ``copr_builder_images.osuosl.ppc64le`` we will use the same buidler image as
-for hypervisor ppc64le.
+   $ scp /var/lib/copr/public_html/images/disk.ppc64le.qcow2 copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org:/tmp/disk.qcow2
+   $ ssh copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org
+   $ /home/copr/provision/upload-qcow2-images /tmp/disk.qcow2
+   $ rm /tmp/disk.qcow2
+   $ exit
 
 
 .. _prepare_ibmcloud_source_images:
 
-Prepare the IBM Cloud images
-----------------------------
+s390x
+-----
 
-For IBM Cloud we prepare a ``qcow2``, ``s390x`` image.  This is very similar to
-the :ref:`LibVirt <prepare_libvirt_source_images>` case above — notable
-difference is that we don't have a native hypervisor to run the scripts on.
+::
 
-Fortunately, the `Z Architecture`_ virtual machines we start in IBM Cloud give
-us a possibility to run the scripting directly on the VMs (nested virt support).
-So we use Copr Backend machine as a hop-box — to work on one of our builder
-machines::
+   $ ssh root@copr-be-dev.aws.fedoraproject.org
+   # su - resalloc
+   $ resalloc ticket --tag arch_s390x_native
+   $ resalloc ticket-wait 751
+   $ IP=13.116.88.91
+   $ ssh root@$IP
+   # git clone https://github.com/fedora-copr/copr-image-builder.git
+   # cd copr-image-builder
+   # ./prepare-worker
+   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # exit
+   $ scp root@$IP:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.s390x.qcow2
+   $ resalloc ticket-close 751
 
-    $ ssh root@copr-be-dev.cloud.fedoraproject.org
-    # su - resalloc
-    $ copr-prepare-s390x-image-builder
-    ... takes one s390x builder ...
-    ... installs additional packages ...
-    ... does some preparation, and says ...
-    Now you can start the work on the machine:
-    $ ssh root@165.192.137.98
-    ...
+   $ exit
+   # qcow_image=/var/lib/copr/public_html/images/disk.s390x.qcow2
+   # podman_image=quay.io/praiskup/ibmcloud-cli
+   # export IBMCLOUD_API_KEY=....  # find in Bitwarden
+   # podman run -e IBMCLOUD_API_KEY --rm -ti --network=slirp4netns -v $qcow_image:/image.qcow2:z $podman_image upload-image
 
-So we can switch to the builder machine::
-
-    $ ssh root@165.192.137.98
-
-Now, find a ``qcow2`` image we'll be updating, take a look at the
-`Alternate Architectures page`_.  At this moment you want the **s390x
-Architecture** category, and **Fedora Cloud qcow2**.  Being on the remote VM,
-start with::
-
-    $ copr-image https://download.fedoraproject.org/pub/fedora-secondary/releases/35/Cloud/s390x/images/Fedora-Cloud-Base-35-1.2.s390x.qcow2
-    ...
-    + qemu-img convert -f qcow2 /tmp/wip-image-HkgkS.qcow2 -c -O qcow2 -o compat=0.10 /tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
-    ...
-
-If you feel you need to update the s390x VM, feel free to do it (the system is
-disposable)::
-
-    dnf update -y
-    reboot
-
-From the output you see the generated image ``eimg-fixed-2022-01-19.qcow2`` —
-that needs to be uploaded to IBM Cloud now, under our community account.
-Unfortunately, we can not _easily_ do this from Fedora machine directly as
-`ibmcloud tool is not FLOSS`_.  That's why we have prepared `container image for
-uploading`_, pushed to **quay.io** service  as
-``quay.io/praiskup/ibmcloud-cli``::
-
-    $ qcow_image=/tmp/root-eimg-BlS5FJ/eimg-fixed-2022-01-19.qcow2
-    $ podman_image=quay.io/praiskup/ibmcloud-cli
-    $ export IBMCLOUD_API_KEY=....  # find in Bitwarden
-    $ podman run -e IBMCLOUD_API_KEY --rm -ti -v $qcow_image:/image.qcow2:z $podman_image upload-image
-    ....
-    + ibmcloud login -r jp-tok
-    ....
-    Uploaded image "r022-8509865b-0347-4a00-bbfe-bb6df1c5a384"
-    ("copr-builder-image-s390x-20220119-142944")
-
-Note the image ID somewhere, will be used in Ansible inventory, as
-``copr_builder_images.ibm_cloud.s390x.us_east`` value.  You can test that the
-new image starts well on ``copr-be-dev``,  by::
-
-    # su - resalloc
-    $ RESALLOC_NAME=copr_ic_s390x_us_east_dev \
-        /var/lib/resallocserver/resalloc_provision/ibm-cloud-vm \
-        create test-machine
-
-... but note that the first start takes some time, till the image is properly
-populated!  So if the script timeouts on ssh, please re-try.
-
-When prepared, don't forget to drop the VM we used for the image preparation::
-
-    $ resalloc ticket-close <your_id>
 
 
 .. _testing:
