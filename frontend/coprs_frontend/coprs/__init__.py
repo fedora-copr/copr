@@ -13,9 +13,7 @@ try:
 except ImportError:
     from flask_cache import Cache
 from flask_session import Session
-from flask_openid import OpenID
 from flask_whooshee import Whooshee
-from openid_teams.teams import TeamsResponse
 
 from coprs.redis_session import RedisSessionInterface
 from coprs.request import get_request_class
@@ -33,12 +31,6 @@ else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-
-oid = OpenID(
-    app, app.config["OPENID_STORE"],
-    safe_roots=[],
-    extension_responses=[TeamsResponse]
-)
 
 session = Session(app)
 

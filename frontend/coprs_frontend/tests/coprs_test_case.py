@@ -832,7 +832,7 @@ def foo():
             # create one fake request that will setup the session value,
             # and keep the value in the next requests ...
             with self.test_client.session_transaction() as session:
-                session["openid"] = user.username
+                session["oidc"] = user.username
             # ... as long as the self.test_client variable lives
             yield
 
