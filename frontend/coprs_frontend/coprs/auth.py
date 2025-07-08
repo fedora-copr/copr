@@ -3,11 +3,8 @@ Authentication-related code for communication with FAS, Kerberos, LDAP, etc.
 """
 
 import time
-from urllib.parse import urlparse
 import flask
 import ldap
-from openid_teams.teams import TeamsRequest
-from coprs import oid
 from coprs import app
 from coprs.exceptions import CoprHttpException, AccessRestricted
 from coprs.logic.users_logic import UsersLogic
@@ -22,38 +19,59 @@ class UserAuth:
     encapsulated within this class.
     """
 
+    @classmethod
+    def next_url(cls):
+        """
+        Where should user be redirected after a successful login?
+
+        We used to get the next URL through `oid.get_next_url()` but there is
+        no such equivalent for our current OIDC client. We need to set and get
+        it manually. It's a good idea to stay consistent with its logic.
+        https://github.com/pallets-eco/flask-openid/blob/1eccf8a/flask_openid.py#L413
+        """
+        if url := flask.request.values.get("next"):
+            if cls._is_safe_next_url(url):
+                return flask.request.values.get("next")
+
+        if url := flask.request.referrer:
+            if cls._is_safe_next_url(url):
+                return flask.request.referrer
+
+        if cls.current_username():
+            return flask.url_for(
+                "coprs_ns.coprs_by_user", username=cls.current_username())
+        return "/"
+
     @staticmethod
-    def logout():
+    def _is_safe_next_url(url):
+        return url.startswith(flask.request.url_root) or url.startswith("/")
+
+    @classmethod
+    def logout(cls):
         """
         Log out the current user
         """
         if flask.g.user:
             app.logger.info("User '%s' logging out", flask.g.user.name)
 
-        FedoraAccounts.logout()
         Kerberos.logout()
         OpenIDConnect.logout()
 
         flask.flash("You were signed out")
-        return flask.redirect(oid.get_next_url())
+        return flask.redirect(cls.next_url())
 
     @staticmethod
     def current_username():
         """
         Is a user logged-in? Return their username
         """
-        return FedoraAccounts.username() or Kerberos.username() \
-                or OpenIDConnect.username()
+        return Kerberos.username() or OpenIDConnect.username()
 
     @staticmethod
-    def user_object(oid_resp=None, username=None):
+    def user_object(username=None):
         """
         Get or Create a `models.User` object based on the input parameters
         """
-        if oid_resp:
-            # All metadata for the user craation are in oid_resp.
-            return FedoraAccounts.user_from_response(oid_resp)
-
         if app.config["FAS_LOGIN"] and app.config["KRB5_LOGIN"]:
             user = Kerberos.user_from_username(username)
             if not user.mail:
@@ -114,78 +132,6 @@ class GroupAuth:
         _do_update(user, groups)
         return
 
-class FedoraAccounts:
-    """
-    Authentication via user accounts from
-    https://accounts.fedoraproject.org
-    """
-
-    @classmethod
-    def username(cls):
-        """
-        Is a user logged-in? Return their username
-        """
-        if "openid" in flask.session:
-            return cls.fed_raw_name(flask.session["openid"])
-        return None
-
-    @staticmethod
-    def login():
-        """
-        If not already logged-in, perform a log-in request
-        """
-        if flask.g.user is not None:
-            return flask.redirect(oid.get_next_url())
-
-        # If the login is successful, we are redirected to function decorated
-        # with the `@oid.after_login`
-        team_req = TeamsRequest(["_FAS_ALL_GROUPS_"])
-        return oid.try_login(app.config["OPENID_PROVIDER_URL"],
-                            ask_for=["email", "timezone"],
-                            extensions=[team_req])
-
-    @staticmethod
-    def logout():
-        """
-        Log out the current user
-        """
-        flask.session.pop("openid", None)
-
-    @staticmethod
-    def is_user_allowed(username):
-        """
-        Is this user allowed to log in?
-        """
-        if not username:
-            return False
-        if not app.config["USE_ALLOWED_USERS"]:
-            return True
-        return username in app.config["ALLOWED_USERS"]
-
-    @staticmethod
-    def fed_raw_name(oidname):
-        """
-        Convert the full `oidname` to username
-        """
-        oidname_parse = urlparse(oidname)
-        if not oidname_parse.netloc:
-            return oidname
-        config_parse = urlparse(app.config["OPENID_PROVIDER_URL"])
-        return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
-
-    @classmethod
-    def user_from_response(cls, oid_resp):
-        """
-        Create a `models.User` object from FAS response
-        """
-        username = cls.fed_raw_name(oid_resp.identity_url)
-        user = UserAuth.get_or_create_user(username)
-        # Update user attributes from FAS
-        user.mail = oid_resp.email
-        user.timezone = oid_resp.timezone
-        GroupAuth.update_user_groups(user, OpenIDGroups.group_names(oid_resp))
-        return user
-
 
 class Kerberos:
     """
@@ -206,7 +152,7 @@ class Kerberos:
         """
         If not already logged-in, perform a log-in request
         """
-        return cls._krb5_login_redirect(next_url=oid.get_next_url())
+        return cls._krb5_login_redirect(next_url=UserAuth.next_url())
 
     @staticmethod
     def logout():
