@@ -50,12 +50,6 @@ def login_menu():
         })
 
     else:
-        if config['FAS_LOGIN']:
-            menu.append({
-                'link': flask.url_for('misc.oid_login'),
-                'desc': 'log in',
-            })
-
         if oidc_enabled(config):
             menu.append({
                 'link': flask.url_for("misc.oidc_login"),

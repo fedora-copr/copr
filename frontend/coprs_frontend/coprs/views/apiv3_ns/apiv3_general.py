@@ -9,7 +9,7 @@ from fnmatch import fnmatch
 import flask
 from flask_restx import Namespace, Resource
 
-from coprs import app, oid, db
+from coprs import app, db
 from coprs.views.apiv3_ns import api
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
@@ -30,7 +30,7 @@ def gssapi_login_action():
     """
     if "web-ui" in flask.request.full_path:
         flask.flash("Welcome, {0}".format(flask.g.user.name), "success")
-        return flask.redirect(oid.get_next_url())
+        return flask.redirect(UserAuth.next_url())
     return auth_check_response()
 
 

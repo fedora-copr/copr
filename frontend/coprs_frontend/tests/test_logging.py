@@ -5,10 +5,9 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 import pytest
 import flask
-from munch import Munch
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 from coprs import app, db, models, helpers
-from coprs.views.misc import create_or_login, logout
+from coprs.views.misc import logout, do_create_or_login
 
 from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.coprs_logic import (
@@ -166,19 +165,19 @@ class TestLoggingAuth(CoprsTestCase):
     @patch("coprs.app.logger", return_value=MagicMock())
     @pytest.mark.usefixtures("f_users", "f_db")
     def test_create_or_login(self, log):
-        resp = Munch({
-            "identity_url": 'http://somebody.id.fedoraproject.org/',
-            "email": "somebody@example.com",
-            "timezone": "UTC",
-            "extensions": {},
-        })
+        user = models.User(
+            username="somebody",
+            mail="somebody@example.com"
+        )
 
         # Log in as user
         with app.test_request_context():
-            create_or_login(resp)
+            flask.session["oidc"] = "somebody"
+            do_create_or_login(user)
 
-        log.info.assert_any_call("Login for user '%s', creating "
-                                 "a database record", "somebody")
+        # FIXME this is being logged in `oidc_auth` not `do_create_or_login`
+        # log.info.assert_any_call("Login for user '%s', creating "
+        #                          "a database record", "somebody")
         log.info.assert_called_with("%s '%s' logged in", "User", "somebody")
 
         # Modify user to be an admin
@@ -188,7 +187,8 @@ class TestLoggingAuth(CoprsTestCase):
 
         # Log in as admin
         with app.test_request_context():
-            create_or_login(resp)
+            flask.session["oidc"] = "somebody"
+            do_create_or_login(user)
 
         log.info.assert_called_with("%s '%s' logged in", "Admin", "somebody")
 
@@ -197,6 +197,7 @@ class TestLoggingAuth(CoprsTestCase):
     def test_logout(self, log):
         with app.test_request_context():
             flask.g.user = self.u2
+            flask.session["oidc"] = self.u2.username
             logout()
         log.info.assert_called_with("User '%s' logging out", "user2")
 
