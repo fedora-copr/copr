@@ -96,7 +96,12 @@ developers only.
 
 
 %build
+%if 0%{?rhel} && 0%{?rhel} <= 8
 version=%version %py3_build
+%else
+version=%version %pyproject_wheel
+%endif
+
 
 mv copr/README.rst ./
 
@@ -105,7 +110,11 @@ make -C docs %{?_smp_mflags} html %{?sphinxbuild}
 
 
 %install
+%if 0%{?rhel} && 0%{?rhel} <= 8
 version=%version %py3_install
+%else
+version=%version %pyproject_install
+%endif
 
 find %{buildroot} -name '*.exe' -delete
 
