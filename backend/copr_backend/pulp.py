@@ -181,7 +181,7 @@ class PulpClient:
         Create content for a given artifact
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Content:-Packages/operation/content_rpm_packages_create
         """
-        url = self.url("api/v3/content/rpm/rpmpackages/")
+        url = self.url("api/v3/content/rpm/packages/upload/")
         with open(path, "rb") as fp:
             data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
