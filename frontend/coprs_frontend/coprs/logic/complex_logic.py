@@ -609,7 +609,8 @@ class BuildConfigLogic(object):
             repos[0]["module_hotfixes"] = True
 
         if not copr.auto_createrepo:
-            suffix = "_devel" if copr.storage == StorageEnum.pulp else "/devel"
+            # On backend we use /devel but in Pulp we cannot create subdirectories
+            suffix = "-devel" if copr.storage == StorageEnum.pulp else "/devel"
             baseurl = copr.repo_url + "/{0}{1}/".format(chroot_id, suffix)
             repos.append({
                 "id": "copr_base_devel",
