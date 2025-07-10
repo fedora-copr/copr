@@ -33,7 +33,7 @@ def get_arg_parser():
 
 def stamp2js(stamp):
     """ JS works with miliseconds, and we know we work with UTC """
-    return dp.parse(stamp + "Z").timestamp()*1000
+    return dp.parse(stamp).timestamp()*1000
 
 
 def download_js_files():
