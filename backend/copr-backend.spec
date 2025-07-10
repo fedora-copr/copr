@@ -31,7 +31,6 @@ BuildRequires: systemd
 BuildRequires: util-linux
 
 BuildRequires: python3-devel
-BuildRequires: python3-setuptools
 
 BuildRequires: python3-copr
 BuildRequires: python3-copr-common >= %copr_common_version
@@ -105,6 +104,9 @@ Requires(postun): systemd
 
 %{?fedora:Requires(pre): lighttpd-filesystem}
 
+%generate_buildrequires
+%pyproject_buildrequires
+
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
@@ -128,13 +130,13 @@ only.
 
 %build
 make -C docs %{?_smp_mflags} html
-%py3_build
+%pyproject_wheel
+
 PYTHONPATH=`pwd` argparse-manpage --pyfile run/copr-backend-resultdir-cleaner \
     --function _get_arg_parser > copr-backend-resultdir-cleaner.1
 
 %install
-%py3_install
-
+%pyproject_install
 
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
@@ -200,7 +202,8 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %files
 %license LICENSE
 %python3_sitelib/copr_backend
-%python3_sitelib/copr_backend*egg-info
+%{python3_sitelib}/copr_backend-*.dist-info/
+
 
 %dir %{_sharedstatedir}/copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
