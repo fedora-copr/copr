@@ -1,7 +1,3 @@
-%if 0%{?rhel} <= 7 && 0%{?rhel} > 0
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%endif
-
 %global prunerepo_version 1.20
 %global tests_version 5
 %global tests_tar test-data-copr-backend
