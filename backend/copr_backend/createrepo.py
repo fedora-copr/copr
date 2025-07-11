@@ -110,6 +110,10 @@ class BatchedCreaterepo:
         finally:
             # This is atomic operation, other processes may not re-start doing this
             # task again.  https://github.com/redis/redis/issues/9531
+            #
+            # The 'delete_if_not = True' is not a TOCTOU case.  Our caller holds
+            # the lock, hence no other machine may take our task (would require
+            # lock) and re-process it.
             if status or delete_if_not:
                 self.redis.delete(self.key)
 
@@ -147,17 +151,25 @@ class BatchedCreaterepo:
             assert key != self.key
 
             task_dict = self.redis.hgetall(key)
+            if not task_dict:
+                # TOCTOU: The key might no longer exist in DB, even though
+                # _our process_ holds the lock!  See the
+                # 'self.redis.delete(self.key)' above in check_processed(); the
+                # _original process_ removes key without locking, if _third_
+                # process commit()ted the status=succeeded.
+                # Prior fixing #3770/#3777 we tried to process these deleted
+                # tasks and ended up with KeyError on task_dict["task"] below.
+                self.log.info("Key %s already processed (by other process), "
+                              "removed by the original process (without lock) "
+                              "since we listed it.", key)
+                continue
+
             if task_dict.get("status") is not None:
                 # skip processed tasks
                 self.log.info("Key %s already processed, skip", key)
                 continue
 
-            try:
-                task_opts = json.loads(task_dict["task"])
-            except KeyError:
-                self.log.info("KeyError exception. Task dictionary for key %s: %s",
-                              key, task_dict)
-                raise
+            task_opts = json.loads(task_dict["task"])
 
             skip = False
             for attr in ["devel", "appstream"]:
