@@ -358,9 +358,6 @@ def main_locked(opts, batch, log):
     # possible we should move those two things before 'delete_builds' call.
     add_appdata(opts)
 
-    # while we still hold the lock, notify others we processed their task
-    batch.commit()
-
     log.info("%s run successful", sys.argv[0])
 
 
@@ -395,10 +392,13 @@ def main_try_lock(opts, batch):
                 "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
             with lock(opts.directory, lockdir=lockdir, timeout=5, log=opts.log):
                 main_locked(opts, batch, opts.log)
-                # skip commit if main_locked() raises exception
+
+                # While we still hold the lock, notify others we processed their
+                # task.  Note that we do not commit in case of random exceptions
+                # above.
                 batch.commit()
-                # Unless there's an exception, the bash.commit() is done and we are
-                # done.
+
+                # If no exception happened, we are done (break).
                 opts.log.debug("Metadata built by this process")
                 break
         except LockTimeout:
