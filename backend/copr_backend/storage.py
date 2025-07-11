@@ -205,15 +205,46 @@ class PulpStorage(Storage):
         # mentioned by its href, not name
         repository = self._get_repository(chroot)
 
-        distribution = self._distribution_name(chroot, dirname)
-        response = self.client.create_distribution(distribution, repository)
+        public_distribution_name = self._distribution_name(chroot, dirname, devel=False)
+        devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
+
+        response = self.client.create_distribution(public_distribution_name, repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp distribution %s because of %s",
-                           distribution, response.text)
+                           public_distribution_name, response.text)
             return False
 
-        response = self.client.create_publication(repository)
-        return response.ok
+        if self.devel:
+            response = self.client.create_distribution(devel_distribution_name, repository)
+            if not response.ok and "This field must be unique" not in response.text:
+                self.log.error("Failed to create a Pulp distribution %s because of %s",
+                               devel_distribution_name, response.text)
+                return False
+
+        # Copy packages from the devel repo to the main repo.
+        # It is weird to do this in the `init_project` method, pointing to the
+        # fact that our abstractions are probably wrong and should be fixed.
+        # We have the `publish_repository` method which is called after a build
+        # is finished. We don't want to copy the packages there. This
+        # `init_project` method is called when a project is created (for which
+        # the copying does nothing) but also when a "Regenerate" button is
+        # clicked (for which we copy the data). We should probably separate
+        # these two concepts.
+        if not self.devel:
+            response = self.client.get_distribution(devel_distribution_name)
+            if not response.ok:
+                self.log.error("ERRR")
+                return False
+
+            publication = response.json()["results"][0]["publication"]
+            public_distribution = self._get_distribution(chroot)
+            response = self.client.update_distribution(public_distribution, publication)
+            if not response.ok:
+                self.log.error("Failed to update Pulp distribution %s for because %s",
+                               public_distribution_name, response.text)
+                return False
+
+        return self.publish_repository(chroot)
 
     def upload_rpm(self, path, labels):
         """
@@ -308,8 +339,8 @@ class PulpStorage(Storage):
                 "Pulp task {0} didn't create any resources".format(task))
 
         publication = resources[0]
-        distribution_name = self._distribution_name(chroot)
-        distribution = self._get_distribution(chroot)
+        distribution_name = self._distribution_name(chroot, devel=self.devel)
+        distribution = self._get_distribution(chroot, devel=self.devel)
 
         # Do we want to update the distribution to point to a specific
         # publication? When not doing so, the distribution should probably
@@ -386,9 +417,10 @@ class PulpStorage(Storage):
             chroot,
         ])
 
-    def _distribution_name(self, chroot, dirname=None):
+    def _distribution_name(self, chroot, dirname=None, devel=False):
+        # On backend we use /devel but in Pulp we cannot create subdirectories
         repository = self._repository_name(chroot, dirname)
-        if self.devel:
+        if devel:
             return "{0}-devel".format(repository)
         return repository
 
@@ -397,7 +429,7 @@ class PulpStorage(Storage):
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, chroot):
-        name = self._distribution_name(chroot)
+    def _get_distribution(self, chroot, devel=False):
+        name = self._distribution_name(chroot, devel=devel)
         response = self.client.get_distribution(name)
         return response.json()["results"][0]["pulp_href"]
