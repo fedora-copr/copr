@@ -286,3 +286,10 @@ def being_server_admin(user, copr):
     Is Copr maintainer using their special permissions to edit the project?
     """
     return helpers.being_server_admin(user, copr)
+
+
+@app.template_filter("is_older_than_days")
+def is_older_than_days(timestamp, days):
+    """Check if a timestamp is older than the specified number of days"""
+    now = time.time()
+    return (now - timestamp) > (days * 24 * 3600)
