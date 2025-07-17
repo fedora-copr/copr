@@ -1,7 +1,3 @@
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%endif
-
 %global moduletype apps
 %global modulename copr
 %global selinuxbooleans httpd_enable_cgi=1 httpd_can_network_connect=1 httpd_can_sendmail=1 nis_enabled=1

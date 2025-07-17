@@ -1,11 +1,4 @@
-%if 0%{?rhel} && 0%{?rhel} <= 7
-%global __python %_bindir/python2
-%global with_python2 1
-%else
 %global __python %_bindir/python3
-%global with_python3 1
-%endif
-
 %global min_python_copr_version 1.128.1
 
 Name:       copr-cli
@@ -29,7 +22,6 @@ BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
 
-%if %{with python3}
 Requires:      python3-copr >= %min_python_copr_version
 Requires:      python3-jinja2
 Requires:      python3-humanize
@@ -46,34 +38,9 @@ BuildRequires: python3-pytest
 BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-munch
-%else
-Requires:      python-copr >= %min_python_copr_version
-Requires:      python-jinja2
-Requires:      python-humanize
-
-BuildRequires: pytest
-BuildRequires: python-copr >= %min_python_copr_version
-BuildRequires: python-devel
-BuildRequires: python-jinja2
-BuildRequires: python-humanize
-BuildRequires: python-mock
-BuildRequires: python2-responses
-BuildRequires: python-setuptools
-BuildRequires: python-munch
-%endif
 
 # We historically shipped empty doc package, uninstall it.
 Obsoletes:     copr-cli-doc < 1.72
-
-%if 0%{?rhel} == 6
-Requires:      python-argparse
-
-BuildRequires: python-argparse
-%endif
-
-%if 0%{?rhel} == 7
-Requires:      python-progress
-%endif
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -105,11 +72,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %check
-%{__python} -m pytest -vv tests
+%{__python3} -m pytest -vv tests
 
 
 %files
-%{!?_licensedir:%global license %doc}
 %license LICENSE
 %doc README.rst
 %{_bindir}/copr
@@ -119,7 +85,7 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 %dir %{_datadir}/cheat
 %{_datadir}/cheat/copr-cli
 %{_datadir}/cheat/copr
-%{python_sitelib}/*
+%{python3_sitelib}/*
 %{_bindir}/package-build-order
 
 
