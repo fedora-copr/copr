@@ -32,7 +32,9 @@ BuildRequires: python3-copr-common
 BuildRequires: python3-devel
 BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pytest
+%if 0%{?rhel} == 8
 BuildRequires: python3-setuptools
+%endif
 BuildRequires: python3-sphinx
 
 %description %_description
@@ -41,7 +43,6 @@ BuildRequires: python3-sphinx
 %package -n python3-%name
 Summary: %summary
 Provides: %name = %version
-%{?python_provide:%python_provide python3-%{name}}
 
 Requires: python3-copr-common
 Requires: python3-fedora-messaging
@@ -59,26 +60,46 @@ This package contains documentation for copr-messaging.
 %prep
 %setup -q
 
+%if 0%{?rhel} != 8
+%generate_buildrequires
+%pyproject_buildrequires
+%endif
 
 %build
+%if 0%{?rhel} == 8
 %py3_build
+%else
+%pyproject_wheel
+%endif
 PYTHONPATH=${PWD} sphinx-build-3 docs html
 rm -rf html/.{doctrees,buildinfo}
 
 
 %install
+%if 0%{?rhel} == 8
 %py3_install
+%else
+%pyproject_install
+%pyproject_save_files -l copr_messaging
+%endif
 
 
 %check
 ./run_tests.sh -vv
 
 
+%if 0%{?rhel} == 8
 %files -n python3-%name
+%else
+%files -n python3-%name -f %{pyproject_files}
+%endif
+%doc README.md
+%if 0%{?rhel} == 8
 %license LICENSE
 %doc README.md
 %python3_sitelib/copr_messaging
 %python3_sitelib/copr_messaging*egg-info
+%endif
 
 %files -n python3-%name-doc
 %license LICENSE
