@@ -98,7 +98,7 @@ class PulpClient:
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create
         """
         url = self.url("api/v3/repositories/rpm/rpm/")
-        data = {"name": name}
+        data = {"name": name, "retain_repo_versions": 1, "retain_package_versions": 5}
         return requests.post(url, json=data, **self.request_params)
 
     def get_repository(self, name):
