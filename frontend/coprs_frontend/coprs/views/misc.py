@@ -12,12 +12,11 @@ from coprs import app
 from coprs import db
 from coprs import helpers
 from coprs import models
-from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.measure import checkpoint_start
-from coprs.auth import FedoraAccounts, UserAuth, OpenIDConnect
+from coprs.auth import UserAuth, OpenIDConnect
 from coprs.oidc import oidc_enabled, oidc_username_from_userinfo
 from coprs import oidc
 
@@ -79,18 +78,6 @@ def workaround_ipsilon_email_login_bug_handler(f):
     return _the_handler
 
 
-@misc.route("/login/", methods=["GET", "POST"])
-@workaround_ipsilon_email_login_bug_handler
-@oid.loginhandler
-def oid_login():
-    """
-    Entry-point for OpenID login
-    """
-    # After a successful FAS login, we are redirected to the `@oid.after_login`
-    # function
-    return FedoraAccounts.login()
-
-
 @misc.route("/oidc_login/")
 def oidc_login():
     """
@@ -120,19 +107,6 @@ def oidc_auth():
     return do_create_or_login(user)
 
 
-@oid.after_login
-def create_or_login(resp):
-    flask.session["openid"] = resp.identity_url
-    fasusername = FedoraAccounts.fed_raw_name(resp.identity_url)
-
-    if not FedoraAccounts.is_user_allowed(fasusername):
-        flask.flash("User '{0}' is not allowed".format(fasusername))
-        return flask.redirect(oid.get_next_url())
-
-    user = UserAuth.user_object(oid_resp=resp)
-    return do_create_or_login(user)
-
-
 def do_create_or_login(user):
     """
     A helper to make a user create and login via third party login method
@@ -146,10 +120,11 @@ def do_create_or_login(user):
                     "Admin" if user.admin else "User",
                     user.name)
 
-    if flask.request.url_root == oid.get_next_url():
+    next_url = UserAuth.next_url()
+    if flask.request.url_root == next_url:
         return flask.redirect(flask.url_for("coprs_ns.coprs_by_user",
                                             username=user.name))
-    return flask.redirect(oid.get_next_url())
+    return flask.redirect(next_url)
 
 
 @misc.route("/logout/")
@@ -162,7 +137,7 @@ def login_required(role=RoleEnum("user")):
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             if flask.g.user is None:
-                return flask.redirect(flask.url_for("misc.oid_login",
+                return flask.redirect(flask.url_for("misc.oidc_login",
                                                     next=flask.request.url))
 
             if role == RoleEnum("admin") and not flask.g.user.admin:
