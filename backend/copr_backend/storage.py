@@ -237,13 +237,14 @@ class PulpStorage(Storage):
                                devel_distribution_name, response.text)
                 return False
 
-            publication = response.json()["results"][0]["publication"]
-            public_distribution = self._get_distribution(chroot)
-            response = self.client.update_distribution(public_distribution, publication)
-            if not response.ok:
-                self.log.error("Failed to update Pulp distribution %s for because %s",
-                               public_distribution_name, response.text)
-                return False
+            if results := response.json()["results"]:
+                publication = results[0]["publication"]
+                public_distribution = self._get_distribution(chroot)
+                response = self.client.update_distribution(public_distribution, publication)
+                if not response.ok:
+                    self.log.error("Failed to update Pulp distribution %s for because %s",
+                                   public_distribution_name, response.text)
+                    return False
 
         return self.publish_repository(chroot)
 
