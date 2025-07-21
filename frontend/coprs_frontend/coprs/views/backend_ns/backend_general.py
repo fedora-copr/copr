@@ -373,6 +373,10 @@ def get_build_task(build_id, chroot):
         task_id = f"{build_id}-{chroot}"
         task = BuildsLogic.get_build_task(task_id)
         build_record = get_build_record(task)
+        if build_record is None:
+            raise ObjectNotFound(
+                f"Chroot {chroot} not found in the project for build {build_id} (yet?)"
+            )
         return flask.jsonify(build_record)
     except CoprHttpException as ex:
         jsonout = flask.jsonify({"msg": str(ex)})
