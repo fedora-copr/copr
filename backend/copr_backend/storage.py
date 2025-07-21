@@ -233,7 +233,8 @@ class PulpStorage(Storage):
         if not self.devel:
             response = self.client.get_distribution(devel_distribution_name)
             if not response.ok:
-                self.log.error("ERRR")
+                self.log.error("Failed to get devel repository %s because of %s",
+                               devel_distribution_name, response.text)
                 return False
 
             publication = response.json()["results"][0]["publication"]
