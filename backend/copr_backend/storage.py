@@ -340,8 +340,8 @@ class PulpStorage(Storage):
                 "Pulp task {0} didn't create any resources".format(task))
 
         publication = resources[0]
-        distribution_name = self._distribution_name(chroot, devel=self.devel)
-        distribution = self._get_distribution(chroot, devel=self.devel)
+        distribution_name = self._distribution_name(chroot)
+        distribution = self._get_distribution(chroot)
 
         # Do we want to update the distribution to point to a specific
         # publication? When not doing so, the distribution should probably
@@ -418,9 +418,11 @@ class PulpStorage(Storage):
             chroot,
         ])
 
-    def _distribution_name(self, chroot, dirname=None, devel=False):
+    def _distribution_name(self, chroot, dirname=None, devel=None):
         # On backend we use /devel but in Pulp we cannot create subdirectories
         repository = self._repository_name(chroot, dirname)
+        if devel is None:
+            devel = self.devel
         if devel:
             return "{0}-devel".format(repository)
         return repository
@@ -430,7 +432,9 @@ class PulpStorage(Storage):
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, chroot, devel=False):
+    def _get_distribution(self, chroot, devel=None):
+        if devel is None:
+            devel = self.devel
         name = self._distribution_name(chroot, devel=devel)
         response = self.client.get_distribution(name)
         return response.json()["results"][0]["pulp_href"]
