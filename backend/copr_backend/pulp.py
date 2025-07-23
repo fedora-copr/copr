@@ -97,9 +97,10 @@ class PulpClient:
         Create an RPM repository
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create
         """
-        url = self.url("api/v3/repositories/rpm/rpm/")
+        uri = "/api/v3/repositories/rpm/rpm/"
         data = {"name": name, "retain_repo_versions": 1, "retain_package_versions": 5}
-        return requests.post(url, json=data, **self.request_params)
+        self.log.info("Pulp: create_repository: %s %s", uri, name)
+        return requests.post(self.url(uri), json=data, **self.request_params)
 
     def get_repository(self, name):
         """
@@ -108,9 +109,10 @@ class PulpClient:
         """
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
-        url = self.url("api/v3/repositories/rpm/rpm/?")
-        url += urlencode({"name": name, "offset": 0, "limit": 1})
-        return requests.get(url, **self.request_params)
+        uri = "/api/v3/repositories/rpm/rpm/?"
+        uri += urlencode({"name": name, "offset": 0, "limit": 1})
+        self.log.info("Pulp: get_repository: %s", uri)
+        return requests.get(self.url(uri), **self.request_params)
 
     def get_distribution(self, name):
         """
@@ -119,9 +121,10 @@ class PulpClient:
         """
         # There is no endpoint for querying a single repository by its name,
         # even Pulp CLI does this workaround
-        url = self.url("api/v3/distributions/rpm/rpm/?")
-        url += urlencode({"name": name, "offset": 0, "limit": 1})
-        return requests.get(url, **self.request_params)
+        uri = "/api/v3/distributions/rpm/rpm/?"
+        uri += urlencode({"name": name, "offset": 0, "limit": 1})
+        self.log.info("Pulp: get_distribution: %s", uri)
+        return requests.get(self.url(uri), **self.request_params)
 
     def get_task(self, task):
         """
@@ -134,6 +137,7 @@ class PulpClient:
         Get a detailed information about an object
         """
         url = self.config["base_url"] + href
+        self.log.info("Pulp: get_by_href: %s", href)
         return requests.get(url, **self.request_params)
 
     def create_distribution(self, name, repository, basepath=None):
@@ -141,23 +145,24 @@ class PulpClient:
         Create an RPM distribution
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_create
         """
-        url = self.url("api/v3/distributions/rpm/rpm/")
+        uri = "/api/v3/distributions/rpm/rpm/"
         data = {
             "name": name,
             "repository": repository,
             "base_path": basepath or name,
         }
-        return requests.post(url, json=data, **self.request_params)
+        self.log.info("Pulp: create_distribution: %s %s %s", uri, data)
+        return requests.post(self.url(uri), json=data, **self.request_params)
 
     def create_publication(self, repository):
         """
         Create an RPM publication
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Publications:-Rpm/operation/publications_rpm_rpm_create
         """
-        url = self.url("api/v3/publications/rpm/rpm/")
+        uri = "/api/v3/publications/rpm/rpm/"
         data = {"repository": repository}
-        self.log.info("Pulp: publishing %s", repository)
-        return requests.post(url, json=data, **self.request_params)
+        self.log.info("Pulp: publishing %s %s", uri, repository)
+        return requests.post(self.url(uri), json=data, **self.request_params)
 
     def update_distribution(self, distribution, publication):
         """
@@ -181,12 +186,13 @@ class PulpClient:
         Create content for a given artifact
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Content:-Packages/operation/content_rpm_packages_create
         """
-        url = self.url("api/v3/content/rpm/packages/upload/")
+        uri = "/api/v3/content/rpm/packages/upload/"
         with open(path, "rb") as fp:
             data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
-            package =  requests.post(
-                url, data=data, files=files, **self.request_params)
+            self.log.info("Pulp: create_content: %s %s", uri, path)
+            package = requests.post(
+                self.url(uri), data=data, files=files, **self.request_params)
         return package
 
     def add_content(self, repository, artifacts):
@@ -197,6 +203,7 @@ class PulpClient:
         path = os.path.join(repository, "modify/")
         url = self.config["base_url"] + path
         data = {"add_content_units": artifacts}
+        self.log.info("Pulp: add_content: %s %s", path, artifacts)
         return requests.post(url, json=data, **self.request_params)
 
     def delete_content(self, repository, artifacts):
@@ -207,6 +214,7 @@ class PulpClient:
         path = os.path.join(repository, "modify/")
         url = self.config["base_url"] + path
         data = {"remove_content_units": artifacts}
+        self.log.info("Pulp: delete_content: %s (%s)", path, artifacts)
         return requests.post(url, json=data, **self.request_params)
 
     def get_content(self, build_ids):
@@ -219,11 +227,11 @@ class PulpClient:
             if query:
                 query += " OR "
             query += f"pulp_label_select=\"build_id={build_id}\""
-        url = self.url("api/v3/content/rpm/packages/?")
+        uri = "api/v3/content/rpm/packages/?"
         # Setting the limit to 1000, but in the future we should use pagination
-        url += urlencode({"q": query, "fields": "prn", "offset": 0, "limit": 1000})
-        self.log.info("Pulp: get_content: %s", url)
-        return requests.get(url, **self.request_params)
+        uri += urlencode({"q": query, "fields": "prn", "offset": 0, "limit": 1000})
+        self.log.info("Pulp: get_content: %s, query = %s", uri, query)
+        return requests.get(self.url(uri), **self.request_params)
 
     def delete_repository(self, repository):
         """
@@ -231,6 +239,7 @@ class PulpClient:
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_delete
         """
         url = self.config["base_url"] + repository
+        self.log.info("Pulp: delete_repository: %s", repository)
         return requests.delete(url, **self.request_params)
 
     def delete_distribution(self, distribution):
@@ -239,6 +248,7 @@ class PulpClient:
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_delete
         """
         url = self.config["base_url"] + distribution
+        self.log.info("Pulp: delete_distribution: %s", distribution)
         return requests.delete(url, **self.request_params)
 
     def wait_for_finished_task(self, task, timeout=86400):
@@ -265,15 +275,17 @@ class PulpClient:
         Get a list of distributions whose names match a given prefix
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_list
         """
-        url = self.url("api/v3/distributions/rpm/rpm/?")
-        url += urlencode({"name__startswith": prefix})
-        return requests.get(url, **self.request_params)
+        uri = "api/v3/distributions/rpm/rpm/?"
+        uri += urlencode({"name__startswith": prefix})
+        self.log.info("Pulp: list_distributions: %s", uri)
+        return requests.get(self.url(uri), **self.request_params)
 
     def set_label(self, href, name, value):
         """
         Set a label on a given object
         https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_set_label
         """
-        url = self.config["base_url"] + href + "set_label/"
+        uri = href + "set_label/"
         data = {"key": name, "value": value}
-        return requests.post(url, json=data, **self.request_params)
+        self.log.info("Pulp: set_label: %s", uri)
+        return requests.post(self.url(uri), json=data, **self.request_params)
