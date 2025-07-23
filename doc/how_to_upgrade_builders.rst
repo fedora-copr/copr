@@ -48,6 +48,14 @@ used production.
 Run ``virt-manager`` and boot the image.
 
 
+Build OCI images in Konflux
+---------------------------
+
+Go to this `Konflux component`_ and click ``Actions > Start a new build``.
+It will build OCI images for all architectures. Wait until it is finished and
+then continue and build bootables images.
+
+
 .. _prepare_libvirt_source_images:
 
 x86_64 qcow2
@@ -64,7 +72,7 @@ x86_64 qcow2
    # git clone https://github.com/fedora-copr/copr-image-builder.git
    # cd copr-image-builder
    # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
    # exit
    $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.x86_64.qcow2
    $ resalloc ticket-close 751
@@ -92,7 +100,7 @@ x86_64 AMI
    # git clone https://github.com/fedora-copr/copr-image-builder.git
    # cd copr-image-builder
    # ./prepare-worker
-   # IMAGE_TYPE=ami BUILD_OCI=true ./copr-build-image-bootc.sh
+   # IMAGE_TYPE=ami BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
    # exit
    $ scp -6 root@[$IP]:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.x86_64.raw
    $ resalloc ticket-close 751
@@ -119,7 +127,7 @@ aarch64
    # git clone https://github.com/fedora-copr/copr-image-builder.git
    # cd copr-image-builder
    # ./prepare-worker
-   # IMAGE_TYPE=ami BUILD_OCI=true ./copr-build-image-bootc.sh
+   # IMAGE_TYPE=ami BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
    # exit
    $ scp root@$IP:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.aarch64.raw
    $ resalloc ticket-close 751
@@ -147,7 +155,7 @@ ppc64le
    # git clone https://github.com/fedora-copr/copr-image-builder.git
    # cd copr-image-builder
    # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
    # exit
    $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.ppc64le.qcow2
    $ resalloc ticket-close 751
@@ -175,7 +183,7 @@ s390x
    # git clone https://github.com/fedora-copr/copr-image-builder.git
    # cd copr-image-builder
    # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=true ./copr-build-image-bootc.sh
+   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
    # exit
    $ scp root@$IP:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.s390x.qcow2
    $ resalloc ticket-close 751
@@ -255,3 +263,4 @@ old AMIs and associated snapshots from AWS.
 .. _`container image for uploading`: https://github.com/praiskup/ibmcloud-cli-fedora-container
 .. _`Z Architecture`: https://www.ibm.com/it-infrastructure/z
 .. _`OSU Open Source Lab`: https://osuosl.org/
+.. _`Konflux component`: https://konflux-ui.apps.kflux-prd-rh02.0fk9.p1.openshiftapps.com/ns/fedora-copr-tenant/applications/fedora-copr-builder/components/copr-image-builder
