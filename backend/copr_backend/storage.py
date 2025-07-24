@@ -54,6 +54,14 @@ class Storage:
     def init_project(self, dirname, chroot):
         """
         Make sure users can enable a DNF repository for this project/chroot
+
+        This function is called in various situations.
+        Some of them you might not expect:
+
+        1. A new project is created
+        2. User clicks the "Regenerate" button in project overview
+        3. The "manual createrepo" feature is toggled for the project
+        4. A chroot is enabled for the project
         """
         raise NotImplementedError
 
@@ -65,6 +73,9 @@ class Storage:
     def publish_repository(self, chroot, **kwargs):
         """
         Publish new build results in the repository
+
+        See when we run createrepo
+        https://docs.pagure.org/copr.copr/createrepo.html
         """
         raise NotImplementedError
 
@@ -205,15 +216,74 @@ class PulpStorage(Storage):
         # mentioned by its href, not name
         repository = self._get_repository(chroot)
 
-        distribution = self._distribution_name(chroot, dirname)
-        response = self.client.create_distribution(distribution, repository)
+        public_distribution_name = self._distribution_name(chroot, dirname, devel=False)
+        devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
+
+        # In any case, we need a distribution to be publicly consumed by users
+        response = self.client.create_distribution(public_distribution_name, repository)
         if not response.ok and "This field must be unique" not in response.text:
             self.log.error("Failed to create a Pulp distribution %s because of %s",
-                           distribution, response.text)
+                           public_distribution_name, response.text)
             return False
 
-        response = self.client.create_publication(repository)
-        return response.ok
+        # If a project enabled the manual createrepo mode, we need to create a
+        # devel distribution to be consumed by other builds within the project
+        if self.devel:
+            response = self.client.create_distribution(devel_distribution_name, repository)
+            if not response.ok and "This field must be unique" not in response.text:
+                self.log.error("Failed to create a Pulp distribution %s because of %s",
+                               devel_distribution_name, response.text)
+                return False
+
+        # The following is True in multiple situations:
+        # 1. A normal project is created, then we do nothing.
+        # 2. The "Regenerate" button was clicked for a manual createrepo
+        #    project. Then we want to copy packages from the devel repo to the
+        #    public repo. Or more precisely, point the public distribution to
+        #    the same publication as the devel distribution points to.
+        # 3. A project disabled the manual createrepo feature. Then we want to
+        #    do the same as the "Regenerate" button above.
+        #
+        # A note regarding implementation:
+        # It is weird to do this in the `init_project` method, pointing to the
+        # fact that our abstractions are probably wrong and should be fixed.
+        # We have the `publish_repository` method which is called after a build
+        # is finished. We don't want to copy the packages there. This
+        # `init_project` method is called when a project is created (for which
+        # the copying does nothing) but also when a "Regenerate" button is
+        # clicked (for which we copy the data). We should probably separate
+        # these two concepts.
+        if not self.devel:
+            # The response is not `ok` only if there is an unexpected failure.
+            # If the distribution doesn't exist, we get a successful response
+            # with empty results. That would be the case when creating a new
+            # normal project.
+            response = self.client.get_distribution(devel_distribution_name)
+            if not response.ok:
+                self.log.error("Failed to get devel repository %s because of %s",
+                               devel_distribution_name, response.text)
+                return False
+
+            # A devel distribution has been found. This is a "Regenerate"
+            # button or similar situation.
+            if results := response.json()["results"]:
+                publication = results[0]["publication"]
+                self.log.info(
+                    "Pointing %s to the same publication as %s which is %s",
+                    public_distribution_name,
+                    devel_distribution_name,
+                    publication,
+                )
+                public_distribution = self._get_distribution(chroot)
+                response = self.client.update_distribution(public_distribution, publication)
+                if not response.ok:
+                    self.log.error("Failed to update Pulp distribution %s for because %s",
+                                   public_distribution_name, response.text)
+                    return False
+
+        # And finally, run the actual createrepo for either the devel or
+        # the public repository
+        return self.publish_repository(chroot)
 
     def upload_rpm(self, path, labels):
         """
@@ -386,9 +456,12 @@ class PulpStorage(Storage):
             chroot,
         ])
 
-    def _distribution_name(self, chroot, dirname=None):
+    def _distribution_name(self, chroot, dirname=None, devel=None):
+        # On backend we use /devel but in Pulp we cannot create subdirectories
         repository = self._repository_name(chroot, dirname)
-        if self.devel:
+        if devel is None:
+            devel = self.devel
+        if devel:
             return "{0}-devel".format(repository)
         return repository
 
@@ -397,7 +470,9 @@ class PulpStorage(Storage):
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, chroot):
-        name = self._distribution_name(chroot)
+    def _get_distribution(self, chroot, devel=None):
+        if devel is None:
+            devel = self.devel
+        name = self._distribution_name(chroot, devel=devel)
         response = self.client.get_distribution(name)
         return response.json()["results"][0]["pulp_href"]
