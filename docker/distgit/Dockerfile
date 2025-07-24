@@ -34,6 +34,9 @@ RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
 
+RUN mkdir /home/copr-dist-git
+RUN chown copr-dist-git:packager /home/copr-dist-git
+
 RUN mkdir /var/lock/copr-dist-git/
 RUN chown copr-dist-git:copr-dist-git /var/lock/copr-dist-git/
 
