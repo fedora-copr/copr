@@ -138,14 +138,16 @@ class TestAction(object):
         self.dummy = str(test_action)
 
     @mock.patch("copr_backend.actions.os.makedirs")
-    @mock.patch("copr_backend.actions.copy_tree")
+    @mock.patch("copr_backend.storage.copy_tree")
     @mock.patch("copr_backend.actions.os.path.exists")
-    @mock.patch("copr_backend.actions.unsign_rpms_in_dir")
+    @mock.patch("copr_backend.storage.resign_rpms_in_dir")
     @mock.patch("copr_backend.helpers.subprocess.Popen")
     def test_action_handle_forks(self, mc_popen, mc_unsign_rpms_in_dir,
                                  mc_exists, mc_copy_tree, _mc_os_makedirs,
                                  mc_time):
         mc_popen.return_value.communicate.return_value = ("", "")
+        mc_popen.return_value.returncode = 0   # Why?
+
         mc_time.time.return_value = self.test_time
         mc_exists = True
         test_action = Action.create_from(
@@ -195,8 +197,7 @@ class TestAction(object):
             "/var/lib/copr/public_html/results/thrnciar/source-copr/fedora-17-i386/00000005-pkg2",
             "/var/lib/copr/public_html/results/thrnciar/destination-copr/fedora-17-i386/00000010-pkg2")
 
-        # TODO: calling createrepo for srpm-builds is useless
-        assert len(mc_popen.call_args_list) == 3
+        assert len(mc_popen.call_args_list) == 2
 
         dirs = set()
         for call in mc_popen.call_args_list:
@@ -204,7 +205,7 @@ class TestAction(object):
             assert args[0] == 'copr-repo'
             dirs.add(args[2])
 
-        for chroot in ['srpm-builds', 'fedora-17-i386', 'fedora-17-x86_64']:
+        for chroot in ['fedora-17-i386', 'fedora-17-x86_64']:
             dir = '/var/lib/copr/public_html/results/thrnciar/destination-copr/' + chroot
             assert dir in dirs
 
