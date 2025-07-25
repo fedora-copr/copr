@@ -79,8 +79,10 @@ RUN chown copr:root /etc/sign.conf && \
     chmod 0660 /etc/sign.conf
 
 # Not sure why the directory wasn't created automatically
-RUN mkdir /var/lock/copr-backend
-RUN chown copr:copr /var/lock/copr-backend
+RUN mkdir -p /var/lock/copr-backend /var/lib/copr/public_html/results
+RUN chown -R copr:copr \
+    /var/lock/copr-backend \
+    /var/lib/copr/public_html/results
 
 # using /dev/urandom is a hack just for devel, /dev/hwrandom or /dev/hwrng should be used in production
 RUN rngd -r /dev/urandom
