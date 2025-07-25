@@ -21,6 +21,12 @@ RUN dnf install -y ansible \
 # copy filesystem setup
 COPY files/ /
 
+# Make sure resalloc can create a sqlite database here
+RUN mkdir /persistent
+RUN chown -R resalloc:resalloc /persistent
+
+USER resalloc
+
 CMD cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) \
     && alembic-3 upgrade head \
     && /usr/bin/resalloc-server

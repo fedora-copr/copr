@@ -78,7 +78,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - resalloc:/persistent
+      - resalloc:/persistent:z
 
   resalloc-webui:
     build:
@@ -92,7 +92,7 @@ services:
     ports:
       - "5005:5000"
     volumes:
-      - resalloc:/persistent
+      - resalloc:/persistent:z
 
   redis:
     image: centos/redis-32-centos7
