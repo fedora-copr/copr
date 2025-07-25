@@ -515,6 +515,11 @@ class ProjectForking(object):
 
     def fork_copr(self, copr, name):
         fcopr = self.get(copr, name)
+
+        if fcopr and copr.storage != fcopr.storage:
+            raise exceptions.CoprHttpException(
+                "Cannot fork a project from one storage to another")
+
         if not fcopr:
             fcopr = self.create_object(models.Copr, copr,
                                        exclude=["id", "group_id", "created_on",

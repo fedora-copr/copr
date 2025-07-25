@@ -2,14 +2,23 @@
 Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+from tempfile import TemporaryDirectory
+from concurrent.futures import ThreadPoolExecutor, as_completed
+# We need to stop using the deprecated distutils module.
+# See https://peps.python.org/pep-0632/
+# As of Python 3.12, it doesn't even exist now, we just use an alias provided
+# by python3-setutpools, see
+# https://fedoraproject.org/wiki/Changes/Python3.12#The_Python_standard_library_distutils_module_will_be_removed
+from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
+from distutils.errors import DistutilsFileError # pylint: disable=deprecated-module
 import shutil
 import requests
 from copr_common.enums import StorageEnum
-from copr_backend.helpers import call_copr_repo, build_chroot_log_name
+from copr_backend.helpers import call_copr_repo, build_chroot_log_name, ensure_dir_exists
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
+from .sign import resign_rpms_in_dir
 
 
 def storage_for_job(job, opts, log):
@@ -91,6 +100,11 @@ class Storage:
         Does a repository exist?
         """
         raise NotImplementedError
+
+    def fork_project(self, src_fullname, dst_fullname, builds_map):
+        """
+        Fork build results from one project to another
+        """
 
 
 class BackendStorage(Storage):
@@ -184,6 +198,64 @@ class BackendStorage(Storage):
                                 chroot, "repodata", "repomd.xml")
         return os.path.exists(repodata)
 
+    def fork_project(self, src_fullname, dst_fullname, builds_map):
+        dst_owner, dst_project = dst_fullname.split("/")
+        old_path = os.path.join(self.opts.destdir, src_fullname)
+        new_path = os.path.join(self.opts.destdir, dst_fullname)
+
+        if not os.path.exists(old_path):
+            self.log.info("Source copr directory doesn't exist: %s", old_path)
+            return False
+
+        chroot_paths = set()
+        for chroot, src_dst_dir in builds_map.items():
+            if not chroot or not src_dst_dir:
+                continue
+
+            for old_dir_name, new_dir_name in src_dst_dir.items():
+                src_dir, dst_dir = old_dir_name, new_dir_name
+
+                if not src_dir or not dst_dir:
+                    continue
+
+                new_chroot_path = self._fork_build(
+                    chroot,
+                    old_path,
+                    new_path,
+                    src_dir,
+                    dst_dir,
+                    dst_owner,
+                    dst_project,
+                )
+                if new_chroot_path and chroot != "srpm-builds":
+                    chroot_paths.add(new_chroot_path)
+
+        for chroot_path in chroot_paths:
+            if not call_copr_repo(chroot_path, logger=self.log):
+                return False
+        return True
+
+    def _fork_build(self, chroot, old_path, new_path, src_dir, dst_dir, dst_owner, dst_project):
+        # pylint: disable=too-many-positional-arguments
+        old_chroot_path = os.path.join(old_path, chroot)
+        new_chroot_path = os.path.join(new_path, chroot)
+
+        src_path = os.path.join(old_chroot_path, src_dir)
+        dst_path = os.path.join(new_chroot_path, dst_dir)
+
+        ensure_dir_exists(dst_path, self.log)
+
+        try:
+            copy_tree(src_path, dst_path)
+        except DistutilsFileError as e:
+            self.log.error(str(e))
+            return None
+
+        resign_rpms_in_dir(dst_owner, dst_project, dst_path, chroot, self.opts, self.log)
+
+        self.log.info("Forked build %s as %s", src_path, dst_path)
+        return new_chroot_path
+
 
 class PulpStorage(Storage):
     """
@@ -244,7 +316,7 @@ class PulpStorage(Storage):
                         continue
 
                     path = os.path.join(root, name)
-                    labels = {"build_id": build_id}
+                    labels = {"build_id": build_id, "chroot": chroot}
                     futures[executor.submit(self.upload_rpm, path, labels)] = name
 
             failed_uploads = []
@@ -324,6 +396,108 @@ class PulpStorage(Storage):
         repodata = "{0}/repodata/repomd.xml".format(baseurl)
         response = requests.head(repodata)
         return response.ok
+
+    def fork_project(self, src_fullname, dst_fullname, builds_map):
+        _dst_owner, dst_project = dst_fullname.split("/")
+        for chroot, src_dst_dir in builds_map.items():
+            if not chroot or not src_dst_dir:
+                continue
+
+            # It should be a dirname here but since forking CoprDirs is not
+            # supported yet, we pass the project name
+            # See https://github.com/fedora-copr/copr/issues/3820
+            if not self.init_project(dst_project, chroot):
+                self.log.error("Failed to init the dst project")
+                return False
+
+            for old_dir_name, new_dir_name in src_dst_dir.items():
+                src_dir, dst_dir = old_dir_name, new_dir_name
+                if not src_dir or not dst_dir:
+                    continue
+
+                src_build_id = int(src_dir.split("-")[0])
+                dst_build_id = int(dst_dir.split("-")[0])
+
+                # Forking doesn't support CoprDirs yet. For now, let's assume
+                # all builds are in the main CoprDir.
+                # See https://github.com/fedora-copr/copr/issues/3820
+                dst_dirname = dst_fullname.split("/")[1]
+
+                self._fork_build(
+                    src_build_id,
+                    dst_build_id,
+                    src_fullname.split("/")[0],
+                    src_fullname.split("/")[1],
+                    dst_fullname.split("/")[0],
+                    dst_fullname.split("/")[1],
+                    dst_dirname,
+                    chroot,
+                )
+
+            repository = self._get_repository(chroot)
+            if not self.client.create_publication(repository):
+                self.log.error("Failed to publish a repository")
+                return False
+
+        return True
+
+    def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
+                    dst_owner, dst_project, dst_dirname, chroot):
+        # pylint: disable=too-many-positional-arguments
+        src_fullname = "{0}/{1}".format(src_owner, src_project)
+        with TemporaryDirectory(prefix="copr-fork-") as tmp:
+            response = self.client.get_content([src_build_id], chroot)
+            rpms = response.json()["results"]
+            for rpm in rpms:
+                filename = rpm["location_href"]
+                url = "{0}/{1}/{2}/Packages/{3}/{4}".format(
+                    self.opts.pulp_content_url,
+                    src_fullname,
+                    chroot,
+                    filename[0],
+                    filename,
+                )
+
+                self.log.info("Downloading %s", url)
+                response = requests.get(url, timeout=60)
+
+                # The package was likely in a CoprDir and forking supports only
+                # main CoprDirs now. This check could be improved though.
+                if response.status_code == 404:
+                    self.log.error("Not found %s", url)
+                    continue
+
+                if not response.ok:
+                    self.log.error("Failed to download %s because %s",
+                                   url, response.reason)
+                    return False
+
+                path = os.path.join(tmp, os.path.basename(url))
+                with open(path, "wb") as fp:
+                    fp.write(response.content)
+
+            # It is possible we didn't download any RPMs. That would be the case
+            # for builds in CoprDirs.
+            if not os.listdir(tmp):
+                return None
+
+            resign_rpms_in_dir(
+                dst_owner,
+                dst_project,
+                tmp,
+                chroot,
+                self.opts,
+                self.log,
+            )
+            result = self.upload_build_results(
+                chroot,
+                tmp,
+                None,  # This atribute is only relevant for the backend storage
+                build_id=dst_build_id,
+            )
+
+        self.log.info("Forked Pulp build %s as %s", src_build_id, dst_build_id)
+        return self.create_repository_version(dst_dirname, chroot, result)
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([
