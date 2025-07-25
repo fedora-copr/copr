@@ -690,7 +690,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         )
         if result:
             # Only PulpStorage returns package HREFs
-            self.storage.create_repository_version(self.job.chroot, result)
+            if not self.storage.create_repository_version(self.job.chroot, result):
+                raise BackendError("Pulp: Failed to create repository version.")
 
     def _check_build_success(self):
         """
