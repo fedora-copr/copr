@@ -34,8 +34,12 @@ RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
 
-RUN mkdir /var/lock/copr-dist-git/
-RUN chown copr-dist-git:copr-dist-git /var/lock/copr-dist-git/
+# These should be created by the RPM package and tmpfiles.d but for some reason
+# it doesn't work. Workarounding it here.
+RUN mkdir /var/lock/copr-dist-git/ /home/copr-dist-git
+RUN chown copr-dist-git:copr-dist-git \
+    /var/lock/copr-dist-git/ \
+    /var/lib/copr-dist-git
 
 # copy filesystem setup and setup ownership and permissions
 COPY files/ /
