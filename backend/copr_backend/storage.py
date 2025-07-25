@@ -191,7 +191,7 @@ class PulpStorage(Storage):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.client = PulpClient.create_from_config_file(log=self.log)
+        self.client = PulpClient.create_from_config_file(log=self.log, opts=self.opts)
 
     def init_project(self, dirname, chroot):
         repository = self._repository_name(chroot, dirname)
@@ -276,49 +276,10 @@ class PulpStorage(Storage):
         Create a new repository version by adding a list of RPMs to the latest repository version.
         """
         repository = self._get_repository(chroot)
-        response = self.client.add_content(repository, package_hrefs)
-
-        if not response.ok:
-            self.log.error("Failed to create a new repository version for: %s, %s",
-                           chroot, response.text)
-            return response
-
-        task = response.json()["task"]
-        response = self.client.wait_for_finished_task(task)
-        return response
+        return self.client.add_content(repository, package_hrefs)
 
     def publish_repository(self, chroot, **kwargs):
-        repository = self._get_repository(chroot)
-        response = self.client.create_publication(repository)
-        if not response.ok:
-            self.log.error("Failed to create Pulp publication for because %s",
-                           repository, response.text)
-            return False
-
-        task = response.json()["task"]
-        response = self.client.wait_for_finished_task(task)
-        if not response.ok:
-            self.log.error("Failed to get Pulp task %s because of %s",
-                           task, response.text)
-            return False
-
-        resources = response.json()["created_resources"]
-        if not resources:
-            raise CoprBackendError(
-                "Pulp task {0} didn't create any resources".format(task))
-
-        publication = resources[0]
-        distribution_name = self._distribution_name(chroot)
-        distribution = self._get_distribution(chroot)
-
-        # Do we want to update the distribution to point to a specific
-        # publication? When not doing so, the distribution should probably
-        # automatically point to the latest publication
-        response = self.client.update_distribution(distribution, publication)
-        if not response.ok:
-            self.log.error("Failed to update Pulp distribution %s for because %s",
-                           distribution_name, response.text)
-            return False
+        # Publishing occurs after each repository version is created.
         return True
 
     def delete_repository(self, chroot):
@@ -354,23 +315,8 @@ class PulpStorage(Storage):
             # Find the RPMs by list of build ids
             content_response = self.client.get_content(build_ids)
             list_of_prns = [package["prn"] for package in content_response.json()["results"] ]
-
-            response = self.client.delete_content(repository, list_of_prns)
-            task = response.json()["task"]
-            response = self.client.wait_for_finished_task(task)
-            data = response.json()
-            if response.ok and data["state"] == "completed":
-                self.log.info("Successfully deleted Pulp content %s", list_of_prns)
-            else:
-                result = False
-                self.log.info("Failed to delete Pulp content %s", list_of_prns)
-
-            resources = data["created_resources"]
-            self.log.info("Deleted resources: %s", resources)
-
-            published = self.publish_repository(chroot)
-            if not published:
-                result = False
+            self.client.delete_content(repository, list_of_prns)
+            self.log.info("Deleted resources: %s", list_of_prns)
 
         return result
 
