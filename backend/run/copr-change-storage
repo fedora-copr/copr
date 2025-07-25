@@ -182,17 +182,9 @@ def main():
                 all_package_hrefs.extend(package_hrefs)
 
             # Add build results to the repository
-            result = storage.create_repository_version(chroot, all_package_hrefs)
-            if not result:
-                log.error("Failed to create a new repository version: %s", chroot)
-                ok = False
-                break
-
-            result = storage.publish_repository(chroot)
-            if not result:
-                log.error("Failed to publish a repository: %s", resultdir)
-                ok = False
-                break
+            if not storage.create_repository_version(chroot, all_package_hrefs):
+                log.error("Failed to create repository version: %s", chroot)
+                sys.exit(1)
 
             log.info("OK: %s", chroot)
 

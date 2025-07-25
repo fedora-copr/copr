@@ -10,6 +10,145 @@ import tomllib
 from urllib.parse import urlencode
 import requests
 
+from copr_common.lock import lock, LockTimeout
+from copr_common.redis_helpers import get_redis_connection
+
+
+class BatchedAddRemoveContent:
+    """
+    Group a set of `add_and_remove` tasks for a single Pulp repository.
+    """
+    def __init__(self, repo_href, rpms_to_add, rpms_to_remove, backend_opts=None, log=None, noop=False):
+        self.repo_href = repo_href
+        self.rpms_to_add = rpms_to_add or []
+        self.rpms_to_remove = rpms_to_remove or []
+        self.log = log
+        self.noop = noop
+
+        if not backend_opts:
+            self.log.error("can't get access to redis, batch disabled")
+            self.noop = True
+            return
+
+        self._pid = os.getpid()
+        self._json_redis_task = json.dumps({
+            "add_content_units": self.rpms_to_add,
+            "remove_content_units": self.rpms_to_remove,
+        })
+
+        self.notify_keys = []
+        self.redis = get_redis_connection(backend_opts)
+
+    @property
+    def key(self):
+        """ Our instance ID (key in Redis DB) """
+        return "add_remove_batched::{}::{}".format(
+            self.repo_href, self._pid)
+
+    @property
+    def key_pattern(self):
+        """ Redis key pattern for potential tasks we can batch-process """
+        return "add_remove_batched::{}::*".format(self.repo_href)
+
+    def make_request(self):
+        """ Request the task into Redis DB.  Run _before_ lock! """
+        if self.noop:
+            return None
+        self.redis.hset(self.key, "task", self._json_redis_task)
+        return self.key
+
+    def check_processed(self, delete_if_not=True):
+        """
+        Drop our entry from Redis DB (if any), and return True if the task is
+        already processed.  When 'delete_if_not=True, we delete the self.key
+        from Redis even if the task is not yet processed (meaning that caller
+        plans to finish the task right away).
+        """
+        if self.noop:
+            return False
+
+        status = self.redis.hget(self.key, "status") == "success"
+        self.log.debug("Has already a status? %s", status)
+
+        try:
+            if not status:
+                # not yet processed
+                return False
+        finally:
+            # This is atomic operation, other processes may not re-start doing this
+            # task again.  https://github.com/redis/redis/issues/9531
+            #
+            # The 'delete_if_not = True' is not a TOCTOU case.  Our caller holds
+            # the lock, hence no other machine may take our task (would require
+            # lock) and re-process it.
+            if status or delete_if_not:
+                self.redis.delete(self.key)
+
+        return status
+
+    def options(self):
+        """
+        Get the options from other _compatible_ (see below) Redis tasks, and
+        plan the list of tasks in self.notify_keys[] that we will notify in
+        commit().
+        """
+        rpms_to_add = set(self.rpms_to_add)
+        rpms_to_remove = set(self.rpms_to_remove)
+
+        if self.noop:
+            return {"add_content_units": rpms_to_add, "remove_content_units": rpms_to_remove}
+
+        for key in self.redis.keys(self.key_pattern):
+            assert key != self.key
+
+            task_dict = self.redis.hgetall(key)
+            if not task_dict:
+                # TOCTOU: The key might no longer exist in DB, even though
+                # _our process_ holds the lock!  See the
+                # 'self.redis.delete(self.key)' above in check_processed(); the
+                # _original process_ removes key without locking, if _third_
+                # process commit()ted the status=succeeded.
+                # Prior fixing #3770/#3777 we tried to process these deleted
+                # tasks and ended up with KeyError on task_dict["task"] below.
+                self.log.info("Key %s already processed (by other process), "
+                              "removed by the original process (without lock) "
+                              "since we listed it.", key)
+                continue
+
+            if task_dict.get("status") is not None:
+                # skip processed tasks
+                self.log.info("Key %s already processed, skip", key)
+                continue
+
+            task_opts = json.loads(task_dict["task"])
+
+            # we can process this task!
+            self.notify_keys.append(key)
+
+            # append "add" tasks, if that makes sense
+            rpms_to_add.update(task_opts["add_content_units"])
+            rpms_to_remove.update(task_opts["remove_content_units"])
+
+        # Make sure we are not adding and removing the same packages
+        common = rpms_to_add & rpms_to_remove
+        rpms_to_add -= common
+        rpms_to_remove -= common
+
+        return {"add_content_units": list(rpms_to_add), "remove_content_units": list(rpms_to_remove)}
+
+    def commit(self):
+        """
+        Report that we processed other createrepo requests.  We don't report
+        about failures, we rather kindly let the responsible processes to re-try
+        the createrepo tasks.  Requires lock!
+        """
+        if self.noop:
+            return
+
+        for key in self.notify_keys:
+            self.log.info("Notifying %s that we succeeded", key)
+            self.redis.hset(key, "status", "success")
+
 
 class PulpClient:
     """
@@ -31,7 +170,7 @@ class PulpClient:
     """
 
     @classmethod
-    def create_from_config_file(cls, path=None, log=None):
+    def create_from_config_file(cls, path=None, log=None, opts=None):
         """
         Create a Pulp client from a standard configuration file that is
         used by the `pulp` CLI tool
@@ -39,12 +178,13 @@ class PulpClient:
         path = os.path.expanduser(path or "~/.config/pulp/cli.toml")
         with open(path, "rb") as fp:
             config = tomllib.load(fp)
-        return cls(config["cli"], log)
+        return cls(config["cli"], log, opts)
 
-    def __init__(self, config, log=None):
+    def __init__(self, config, log=None, opts=None):
         self.config = config
         self.timeout = 60
         self.log = log or logging.getLogger(__name__)
+        self.opts = opts
 
     @property
     def auth(self):
@@ -164,23 +304,6 @@ class PulpClient:
         self.log.info("Pulp: publishing %s %s", uri, repository)
         return requests.post(self.url(uri), json=data, **self.request_params)
 
-    def update_distribution(self, distribution, publication):
-        """
-        Update an RPM distribution
-        https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
-        """
-        self.log.info("Pulp: updating distribution %s", distribution)
-        url = self.config["base_url"] + distribution
-        data = {
-            "publication": publication,
-            # When we create a distribution, we point it to a repository. Now we
-            # want to point it to a publication, so we need to reset the,
-            # repository. Otherwise we will get "Only one of the attributes
-            # 'repository' and 'publication' may be used simultaneously."
-            "repository": None,
-        }
-        return requests.patch(url, json=data, **self.request_params)
-
     def create_content(self, path, labels):
         """
         Create content for a given artifact
@@ -195,27 +318,113 @@ class PulpClient:
                 self.url(uri), data=data, files=files, **self.request_params)
         return package
 
+    def modify_repository_content_locked(self, repository, batch):
+        """
+        Creates a new repository version and a new publication. Executed under lock.
+        """
+        if batch.check_processed():
+            self.log.info("Task processed by other process")
+            return True
+
+        # Merge others' tasks with ours (if any).
+        data = batch.options()
+        if not data["add_content_units"] and not data["remove_content_units"]:
+            # No RPMs to add or remove
+            return True
+        # Make the request to create a new repository version
+        response = self.modify_repository_content(repository, **data)
+        if not response.ok:
+            self.log.error("Failed to create a new repository version for: %s, %s",
+                           repository, response.text)
+            return False
+        task = response.json()["task"]
+        response = self.wait_for_finished_task(task)
+        data = response.json()
+        if response.ok and data["state"] == "completed":
+            self.log.info("Successfully modified Pulp repository content %s", repository)
+        else:
+            self.log.info("Failed to modify Pulp repository content %s", repository)
+            return False
+
+        # Make a request to create a new publication
+        response = self.create_publication(repository)
+        task = response.json()["task"]
+        response = self.wait_for_finished_task(task)
+        data = response.json()
+        if response.ok and data["state"] == "completed":
+            self.log.info("Successfully created Pulp publication of repository %s", repository)
+            return True
+        self.log.info("Failed to create Pulp publication of repository %s", repository)
+        return False
+
+    def try_lock(self, repository, batch):
+        """
+        Periodically try to acquire the lock, and execute the modify_repository_content_locked() method.
+        """
+
+        while True:
+
+            # We don't have fair locking (locks-first => processes-first).  So to
+            # avoid potential indefinite waiting (see issue #1423) we check if the
+            # task isn't already processed _without_ having the lock.
+
+            if batch.check_processed(delete_if_not=False):
+                self.log.info("Task processed by other process (no-lock)")
+                return
+
+            try:
+                lockdir = os.environ.get(
+                    "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
+                with lock(repository, lockdir=lockdir, timeout=5, log=self.log):
+                    if self.modify_repository_content_locked(repository, batch):
+                        # While we still hold the lock, notify others we processed their
+                        # task.  Note that we do not commit in case of random exceptions
+                        # above.
+                        batch.commit()
+                        self.log.debug("Repository version and Publication created by this process")
+                        break
+
+            except LockTimeout:
+                continue  # Try again...
+
+            # we never loop, only upon timeout
+            assert False
+
+    def modify_repository_content(self, repository, add_content_units, remove_content_units):
+        """
+        Add and/or remove a list of artifacts to/from a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        path = os.path.join(repository, "modify/")
+        url = self.config["base_url"] + path
+        data = {"add_content_units": add_content_units or [], "remove_content_units": remove_content_units or []}
+        return requests.post(url, json=data, **self.request_params)
+
     def add_content(self, repository, artifacts):
         """
         Add a list of artifacts to a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        path = os.path.join(repository, "modify/")
-        url = self.config["base_url"] + path
-        data = {"add_content_units": artifacts}
-        self.log.info("Pulp: add_content: %s %s", path, artifacts)
-        return requests.post(url, json=data, **self.request_params)
+        batch = BatchedAddRemoveContent(repository, artifacts, None, self.opts, self.log)
+        # Put our task to Redis DB and allow _others_ to process our
+        # own task.  This needs to be run _before_ the lock() call.
+        batch.make_request()
+        self.try_lock(repository, batch)
+        self.log.info("Pulp: add_content: %s (%s)", repository, artifacts)
+        return True
 
     def delete_content(self, repository, artifacts):
         """
         Delete a list of artifacts from a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        path = os.path.join(repository, "modify/")
-        url = self.config["base_url"] + path
-        data = {"remove_content_units": artifacts}
-        self.log.info("Pulp: delete_content: %s (%s)", path, artifacts)
-        return requests.post(url, json=data, **self.request_params)
+        batch = BatchedAddRemoveContent(repository, None, artifacts, self.opts, self.log)
+        # Put our task to Redis DB and allow _others_ to process our
+        # own task.  This needs to be run _before_ the lock() call.
+        batch.make_request()
+        self.try_lock(repository, batch)
+        self.log.info("Pulp: delete_content: %s (%s)", repository, artifacts)
+        return True
 
     def get_content(self, build_ids):
         """
