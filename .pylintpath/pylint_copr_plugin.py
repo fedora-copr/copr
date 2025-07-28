@@ -39,19 +39,18 @@ class Cache:
     }
 
     @classmethod
-    @property
     def gitroot(cls):
         """ Obtain the git-root of the current directory, and cache """
         if cls._gitroot:
             return cls._gitroot
         cls._gitroot = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode("utf-8").strip()
-        return cls.gitroot
+        return cls.gitroot()
 
     @classmethod
     def _slow_is_test_file(cls, test_file):
-        if not test_file.startswith(cls.gitroot + os.sep):
+        if not test_file.startswith(cls.gitroot() + os.sep):
             return False
-        relpath = os.path.relpath(test_file, cls.gitroot)
+        relpath = os.path.relpath(test_file, cls.gitroot())
         for test_path in cls.test_paths:
             if relpath.startswith(test_path):
                 return True
