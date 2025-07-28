@@ -24,13 +24,9 @@ Requirements
 ------------
 
 * ssh access to `staging backend box`_
-* ssh access to one of our x86_64 and ppc64le hypervisors, e.g.
-  ``copr@vmhost-x86-copr01.rdu-cc.fedoraproject.org`` and
-  ``copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org``
 * ssh access to ``batcave01.iad2.fedoraproject.org``, and sudo access there
+* access to `Konflux tenant`_ where we build images
 * be in FAS group ``aws-copr``, so you can access `AWS login link`_ properly
-* IBM Cloud API token assigned to the Fedora Copr team (see team's Bitwaarden)
-
 
 
 Building an image locally
@@ -58,143 +54,52 @@ then continue and build bootables images.
 
 .. _prepare_libvirt_source_images:
 
-x86_64 qcow2
-------------
-
-::
-
-   $ ssh root@copr-be-dev.aws.fedoraproject.org
-   # su - resalloc
-   $ resalloc ticket --tag hypervisor_x86_64
-   $ resalloc ticket-wait 751
-   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
-   $ ssh root@$IP
-   # git clone https://github.com/fedora-copr/copr-image-builder.git
-   # cd copr-image-builder
-   # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
-   # exit
-   $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.x86_64.qcow2
-   $ resalloc ticket-close 751
-
-   $ scp /var/lib/copr/public_html/images/disk.x86_64.qcow2 copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org:/tmp/disk.qcow2
-   $ ssh copr@vmhost-x86-copr02.rdu-cc.fedoraproject.org
-   $ /home/copr/provision/upload-qcow2-images /tmp/disk.qcow2
-   $ rm /tmp/disk.qcow2
-   $ exit
-
-
 .. _prepare_aws_source_images:
-
-x86_64 AMI
-----------
-
-::
-
-   $ ssh root@copr-be-dev.aws.fedoraproject.org
-   # su - resalloc
-   $ resalloc ticket --tag hypervisor_x86_64
-   $ resalloc ticket-wait 751
-   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
-   $ ssh root@$IP
-   # git clone https://github.com/fedora-copr/copr-image-builder.git
-   # cd copr-image-builder
-   # ./prepare-worker
-   # IMAGE_TYPE=ami BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
-   # exit
-   $ scp -6 root@[$IP]:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.x86_64.raw
-   $ resalloc ticket-close 751
-
-   $ image-builder upload \
-       /var/lib/copr/public_html/images/disk.x86_64.raw \
-       --to aws \
-       --aws-ami-name copr-builder-image-bootc-$(date +"%Y%m%d-%H%M%S")-x86_64 \
-       --aws-region us-east-1 \
-       --aws-bucket copr-images
-
-
-aarch64
--------
-
-::
-
-   $ ssh root@copr-be-dev.aws.fedoraproject.org
-   # su - resalloc
-   $ resalloc ticket --tag arch_aarch64_native
-   $ resalloc ticket-wait 751
-   $ IP=100.26.46.8
-   $ ssh root@$IP
-   # git clone https://github.com/fedora-copr/copr-image-builder.git
-   # cd copr-image-builder
-   # ./prepare-worker
-   # IMAGE_TYPE=ami BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
-   # exit
-   $ scp root@$IP:/root/copr-image-builder/output/image/disk.raw /var/lib/copr/public_html/images/disk.aarch64.raw
-   $ resalloc ticket-close 751
-
-   $ image-builder upload \
-       /var/lib/copr/public_html/images/disk.aarch64.raw \
-       --arch aarch64 \
-       --to aws \
-       --aws-ami-name copr-builder-image-bootc-$(date +"%Y%m%d-%H%M%S")-aarch64 \
-       --aws-region us-east-1 \
-       --aws-bucket copr-images
-
-
-ppc64le
--------
-
-::
-
-   $ ssh root@copr-be-dev.aws.fedoraproject.org
-   # su - resalloc
-   $ resalloc ticket --tag hypervisor --tag arch_ppc64le
-   $ resalloc ticket-wait 751
-   $ IP=2620:52:3:1:dead:beef:cafe:c1c1
-   $ ssh root@$IP
-   # git clone https://github.com/fedora-copr/copr-image-builder.git
-   # cd copr-image-builder
-   # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
-   # exit
-   $ scp -6 root@[$IP]:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.ppc64le.qcow2
-   $ resalloc ticket-close 751
-
-   $ scp /var/lib/copr/public_html/images/disk.ppc64le.qcow2 copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org:/tmp/disk.qcow2
-   $ ssh copr@vmhost-p08-copr01.rdu-cc.fedoraproject.org
-   $ /home/copr/provision/upload-qcow2-images /tmp/disk.qcow2
-   $ rm /tmp/disk.qcow2
-   $ exit
-
 
 .. _prepare_ibmcloud_source_images:
 
-s390x
------
 
-::
+Localize the OCI image ID
+----------
+
+Go to the Konflux UI, locate the last "push" Pipelinerun, and check the
+"Details" tab. You should find an "IMAGE_URL" field that you want to copy. If
+the pipeline failed, but the "build-image-index" task at least succeeded, you
+can check the "Details" tab on that task and copy the "IMAGE_URL" from there.
+
+
+Prepare the images on staging backend machine
+----------
+
+This steps allocates arch-specific VMs, creates qcow2/raw/ami images on them,
+and downloads them back to a directory looking like
+``/var/lib/copr/public_html/images/2025-07-28/``.
+
+This step allocates arch-specific VMs, creates qcow2/raw/ami images on them, and
+downloads them back to a directory structured as ``/var/lib/copr/public_html/images/2025-07-28/``::
 
    $ ssh root@copr-be-dev.aws.fedoraproject.org
    # su - resalloc
-   $ resalloc ticket --tag arch_s390x_native
-   $ resalloc ticket-wait 751
-   $ IP=13.116.88.91
-   $ ssh root@$IP
-   # git clone https://github.com/fedora-copr/copr-image-builder.git
-   # cd copr-image-builder
-   # ./prepare-worker
-   # IMAGE_TYPE=qcow2 BUILD_OCI=false IMAGE=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder ./copr-build-image-bootc.sh
-   # exit
-   $ scp root@$IP:/root/copr-image-builder/output/qcow2/disk.qcow2 /var/lib/copr/public_html/images/disk.s390x.qcow2
-   $ resalloc ticket-close 751
-
-   $ exit
-   # qcow_image=/var/lib/copr/public_html/images/disk.s390x.qcow2
-   # podman_image=quay.io/praiskup/ibmcloud-cli
-   # export IBMCLOUD_API_KEY=....  # find in Bitwarden
-   # podman run -e IBMCLOUD_API_KEY --rm -ti --network=slirp4netns -v $qcow_image:/image.qcow2:z $podman_image upload-image
+   $ test -d copr-image-builder || git clone https://github.com/fedora-copr/copr-image-builder
+   $ cd copr-image-builder && git pull
+   $ make IMAGE=<the IMAGE from previous step>
+   ... takes ~1h ...
 
 
+Upload the images
+-----------------
+
+Now it's time to upload the built images to appropriate places::
+
+    stamp=`date -I` /var/lib/resallocserver/provision/upload-qcow2-images-be /var/lib/copr/public_html/images/2025-07-25
+
+Check the stdout/stderr of the upload script, and recall image IDs.
+
+Make sure you tag the images in EC2::
+
+    for image in ami-09a868e2b78e77457 ami-01e3532773eff119c ami-01e3532773eff119c ; do
+    aws ec2 create-tags --resources "$image" --tags Key=FedoraGroup,Value=copr --region us-east-1
+    done
 
 .. _testing:
 
@@ -264,3 +169,4 @@ old AMIs and associated snapshots from AWS.
 .. _`Z Architecture`: https://www.ibm.com/it-infrastructure/z
 .. _`OSU Open Source Lab`: https://osuosl.org/
 .. _`Konflux component`: https://konflux-ui.apps.kflux-prd-rh02.0fk9.p1.openshiftapps.com/ns/fedora-copr-tenant/applications/fedora-copr-builder/components/copr-image-builder
+.. _`Konflux tenant`: https://konflux-ui.apps.kflux-prd-rh02.0fk9.p1.openshiftapps.com/ns/fedora-copr-tenant/applications/fedora-copr-builder
