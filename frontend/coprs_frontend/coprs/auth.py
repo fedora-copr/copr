@@ -31,11 +31,16 @@ class UserAuth:
         """
         if url := flask.request.values.get("next"):
             if cls._is_safe_next_url(url):
-                return flask.request.values.get("next")
+                return url
+
+        # When reading the URL from a session, pop it so it's usable only once
+        if url := flask.session.pop("next", None):
+            if cls._is_safe_next_url(url):
+                return url
 
         if url := flask.request.referrer:
             if cls._is_safe_next_url(url):
-                return flask.request.referrer
+                return url
 
         if cls.current_username():
             return flask.url_for(
