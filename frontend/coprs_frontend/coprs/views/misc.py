@@ -86,6 +86,8 @@ def oidc_login():
     if not oidc_enabled(app.config):
         flask.flash("OpenID Connect is disabled")
         return flask.redirect("/")
+
+    flask.session["next"] = UserAuth.next_url()
     redirect_uri = flask.url_for('misc.oidc_auth', _external=True)
     return oidc.copr.authorize_redirect(redirect_uri)
 
