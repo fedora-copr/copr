@@ -151,7 +151,7 @@ class PulpClient:
             "repository": repository,
             "base_path": basepath or name,
         }
-        self.log.info("Pulp: create_distribution: %s %s %s", uri, data)
+        self.log.info("Pulp: create_distribution: %s %s", uri, data)
         return requests.post(self.url(uri), json=data, **self.request_params)
 
     def create_publication(self, repository):
