@@ -44,8 +44,7 @@ two hours on *normal builders*.
 How to request *high-performance builders*
 ------------------------------------------
 
-As of October 2023, we only support *high-performance builders* for ``x86``,
-``aarch64`` and ``s390x``.  Please think carefully (ensure you understand the
+Please think carefully (ensure you understand the
 previous section) and submit an issue_.  The pattern we have to configure for you
 is basically a Python regexp in a format ``owner/project/chroot/package``, e.g.
 ``@asahi/kernel/.(x86_64|aarch64)/kernel.*``.
