@@ -203,7 +203,7 @@ class PulpStorage(Storage):
 
         # When a repository is mentioned in other endpoints, it needs to be
         # mentioned by its href, not name
-        repository = self._get_repository(chroot)
+        repository = self._get_repository(chroot, dirname)
 
         distribution = self._distribution_name(chroot, dirname)
         response = self.client.create_distribution(distribution, repository)
@@ -271,11 +271,11 @@ class PulpStorage(Storage):
 
             return package_hrefs
 
-    def create_repository_version(self, chroot, package_hrefs):
+    def create_repository_version(self, dirname, chroot, package_hrefs):
         """
         Create a new repository version by adding a list of RPMs to the latest repository version.
         """
-        repository = self._get_repository(chroot)
+        repository = self._get_repository(chroot, dirname)
         return self.client.add_content(repository, package_hrefs)
 
     def publish_repository(self, chroot, **kwargs):
@@ -338,12 +338,12 @@ class PulpStorage(Storage):
             return "{0}-devel".format(repository)
         return repository
 
-    def _get_repository(self, chroot):
-        name = self._repository_name(chroot)
+    def _get_repository(self, chroot, dirname=None):
+        name = self._repository_name(chroot, dirname)
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, chroot):
-        name = self._distribution_name(chroot)
+    def _get_distribution(self, chroot, dirname=None):
+        name = self._distribution_name(chroot, dirname)
         response = self.client.get_distribution(name)
         return response.json()["results"][0]["pulp_href"]
