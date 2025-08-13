@@ -266,3 +266,13 @@ def unsign_rpms_in_dir(path, opts, log):
     if errors:
         raise CoprSignError("Rpm unsign failed, affected rpms: {}"
                             .format([err[0] for err in errors]))
+
+
+def resign_rpms_in_dir(username, projectname, path, chroot, opts, log):
+    """
+    Drop old signatures coming from original repo and re-sign.
+    """
+    # pylint: disable=too-many-positional-arguments
+    unsign_rpms_in_dir(path, opts=opts, log=log)
+    if opts.do_sign:
+        sign_rpms_in_dir(username, projectname, path, chroot, opts=opts, log=log)

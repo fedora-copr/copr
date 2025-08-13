@@ -347,13 +347,19 @@ class ActionsLogic(object):
         :type dst: models.Copr
         :type builds_map: dict where keys are forked builds IDs and values are IDs from the original builds.
         """
+        data_dict = {
+            "user": dst.owner_name,
+            "copr": dst.name,
+            "builds_map": builds_map,
+            "storage": src.storage,
+        }
 
         action = models.Action(
             action_type=ActionTypeEnum("fork"),
             object_type="copr",
             old_value="{0}".format(src.full_name),
             new_value="{0}".format(dst.full_name),
-            data=json.dumps({"user": dst.owner_name, "copr": dst.name, "builds_map": builds_map}),
+            data=json.dumps(data_dict),
             created_on=int(time.time()),
             copr_id=dst.id,
         )

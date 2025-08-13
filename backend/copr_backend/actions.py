@@ -6,8 +6,6 @@ import time
 import traceback
 import base64
 
-from distutils.dir_util import copy_tree
-from distutils.errors import DistutilsFileError
 from urllib.request import urlretrieve
 from copr.exceptions import CoprRequestException
 from requests import RequestException
@@ -28,7 +26,7 @@ from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       get_chroot_arch, format_filename,
                       call_copr_repo, copy2_but_hardlink_rpms)
-from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
+from .sign import get_pubkey
 
 
 class Action(object):
@@ -183,67 +181,57 @@ class GPGMixin(object):
 
 
 class Fork(Action, GPGMixin):
+    """
+    Fork build results from one project to another.
+
+    Please note that CoprDir support is not yet implemented. On a positive note,
+    It doesn't polute the main CoprDir with builds from other CoprDirs. The
+    results are just not copied.
+
+    See https://github.com/fedora-copr/copr/issues/3820
+    """
+
     def run(self):
-        sign = self.opts.do_sign
         self.log.info("Action fork %s", self.data["object_type"])
+        result = BackendResultEnum("success")
         data = json.loads(self.data["data"])
-        old_path = os.path.join(self.destdir, self.data["old_value"])
-        new_path = os.path.join(self.destdir, self.data["new_value"])
         builds_map = json.loads(self.data["data"])["builds_map"]
 
-        if not os.path.exists(old_path):
-            self.log.info("Source copr directory doesn't exist: %s", old_path)
-            result = BackendResultEnum("failure")
-            return result
+        if isinstance(self.storage, PulpStorage):
+            # For other actions, we do this in `Action` constructor. But forking
+            # actions doesn't have just one owner and project but a source owner
+            # and project, and destination owner and project. So we need this
+            # workaround to specify which one to work with
+            self.storage.owner = self.data["new_value"].split("/")[0]
+            self.storage.project = self.data["new_value"].split("/")[1]
 
         try:
-            ensure_dir_exists(new_path, self.log)
-            pubkey_path = os.path.join(new_path, "pubkey.gpg")
+            if self.opts.do_sign:
+                pubkey_path = os.path.join(
+                    self.destdir,
+                    self.data["new_value"],
+                    "pubkey.gpg"
+                )
+                ensure_dir_exists(os.path.dirname(pubkey_path), self.log)
 
-            if sign:
                 # Generate brand new gpg key.
                 self.generate_gpg_key(data["user"], data["copr"])
                 # Put the new public key into forked build directory.
                 get_pubkey(data["user"], data["copr"], self.log, self.opts.sign_domain, pubkey_path)
 
-            chroot_paths = set()
-            for chroot, src_dst_dir in builds_map.items():
+            kwargs = {
+                "src_fullname": self.data["old_value"],
+                "dst_fullname": self.data["new_value"],
+                "builds_map": builds_map,
+            }
 
-                if not chroot or not src_dst_dir:
-                    continue
+            # It doesn't matter what storage is used, we need to fork on
+            # backend anyway, so that logfiles, etc are copied
+            if not self.backend_storage.fork_project(**kwargs):
+                result = BackendResultEnum("failure")
 
-                for old_dir_name, new_dir_name in src_dst_dir.items():
-                    src_dir, dst_dir = old_dir_name, new_dir_name
-
-                    if not src_dir or not dst_dir:
-                        continue
-
-                    old_chroot_path = os.path.join(old_path, chroot)
-                    new_chroot_path = os.path.join(new_path, chroot)
-                    chroot_paths.add(new_chroot_path)
-
-                    src_path = os.path.join(old_chroot_path, src_dir)
-                    dst_path = os.path.join(new_chroot_path, dst_dir)
-
-                    ensure_dir_exists(dst_path, self.log)
-
-                    try:
-                        copy_tree(src_path, dst_path)
-                    except DistutilsFileError as e:
-                        self.log.error(str(e))
-                        continue
-
-                    # Drop old signatures coming from original repo and re-sign.
-                    unsign_rpms_in_dir(dst_path, opts=self.opts, log=self.log)
-                    if sign:
-                        sign_rpms_in_dir(data["user"], data["copr"], dst_path,
-                                         chroot, opts=self.opts, log=self.log)
-
-                    self.log.info("Forked build %s as %s", src_path, dst_path)
-
-            result = BackendResultEnum("success")
-            for chroot_path in chroot_paths:
-                if not call_copr_repo(chroot_path, logger=self.log):
+            if isinstance(self.storage, PulpStorage):
+                if not self.storage.fork_project(**kwargs):
                     result = BackendResultEnum("failure")
 
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:

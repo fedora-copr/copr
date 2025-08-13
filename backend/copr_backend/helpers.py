@@ -414,6 +414,9 @@ class BackendConfigReader(object):
         opts.aws_cloudfront_distribution = _get_conf(
             cp, "backend", "aws_cloudfront_distribution", None)
 
+        opts.pulp_content_url = _get_conf(
+            cp, "backend", "pulp_content_url", None)
+
         # ssh options
         opts.ssh = Munch()
         opts.ssh.builder_config = _get_conf(
