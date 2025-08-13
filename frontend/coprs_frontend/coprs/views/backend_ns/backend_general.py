@@ -175,7 +175,7 @@ def get_build_record(task, for_backend=False):
         "storage": task.build.copr.storage,
     })
 
-    copr_chroot = CoprChrootsLogic.get_by_name_or_none(task.build.copr, task.mock_chroot.name)
+    copr_chroot = ComplexLogic.get_copr_chroot(task.build.copr, task.mock_chroot.name)
 
     # When the chroot is temporarily disabled or EOL
     if not copr_chroot:
