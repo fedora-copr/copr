@@ -367,7 +367,7 @@ class DeleteBuild(Action):
         ]
         success = self.storage.delete_builds(*args)
         if not isinstance(self.storage, BackendStorage):
-            success = self.backend_storage.delete_builds(*args) and success
+            success = self.backend_storage.delete_builds(*args, createrepo=False) and success
         return BackendResultEnum("success" if success else "failure")
 
 
