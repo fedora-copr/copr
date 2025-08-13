@@ -80,7 +80,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+    def delete_builds(self, dirname, chroot_builddirs, build_ids, createrepo=True):
         """
         Delete multiple builds from the storage
         """
@@ -143,7 +143,7 @@ class BackendStorage(Storage):
             self.log.info("Removing copr dir %s", path)
             shutil.rmtree(path)
 
-    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+    def delete_builds(self, dirname, chroot_builddirs, build_ids, createrepo=True):
         result = True
         for chroot, subdirs in chroot_builddirs.items():
             chroot_path = os.path.join(
@@ -159,7 +159,7 @@ class BackendStorage(Storage):
             # Run createrepo first and then remove the files (to avoid old
             # repodata temporarily pointing at non-existing files)!
             # In srpm-builds we don't create repodata at all
-            if chroot != "srpm-builds":
+            if createrepo and chroot != "srpm-builds":
                 repo = call_copr_repo(
                     chroot_path, delete=subdirs, devel=self.devel,
                     appstream=self.appstream, logger=self.log)
@@ -297,8 +297,11 @@ class PulpStorage(Storage):
             if distribution["repository"]:
                 self.client.delete_repository(distribution["repository"])
 
-    def delete_builds(self, dirname, chroot_builddirs, build_ids):
+    def delete_builds(self, dirname, chroot_builddirs, build_ids, createrepo=True):
         # pylint: disable=too-many-locals
+        if not createrepo:
+            raise NotImplementedError
+
         result = True
         for chroot in chroot_builddirs.keys():
             # We don't upload results of source builds to Pulp
