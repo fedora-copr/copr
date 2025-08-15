@@ -758,6 +758,7 @@ class TestAction(object):
             "project_dirnames": ["bar"],
             "devel": devel,
             "storage": StorageEnum.backend,
+            "reason": None,
         })
         self.opts.destdir = tmp_dir
 
@@ -794,6 +795,7 @@ class TestAction(object):
             "project_dirnames": ["bar"],
             "devel": False,
             "storage": StorageEnum.backend,
+            "reason": None,
         })
         self.opts.destdir = tmp_dir
         test_action = Action.create_from(

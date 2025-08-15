@@ -7,6 +7,7 @@ import flask
 from flask_restx import Namespace, Resource
 from sqlalchemy.exc import IntegrityError
 
+from copr_common.enums import CreaterepoReason
 from coprs.views.apiv3_ns import (
     get_copr,
     pagination,
@@ -495,8 +496,11 @@ class RegenerateRepos(Resource):
     @staticmethod
     def _common(copr):
         with db_session_scope():
-            ActionsLogic.send_createrepo(copr, devel=False)
-
+            ActionsLogic.send_createrepo(
+                copr,
+                devel=False,
+                reason=CreaterepoReason.manual_createrepo_event,
+            )
         return to_dict(copr)
 
     @api_login_required

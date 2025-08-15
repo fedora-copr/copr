@@ -9,7 +9,7 @@ from copr_common.request import SafeRequest, RequestError
 from copr_backend.exceptions import FrontendClientException
 
 # The frontend counterpart is in `backend_general:send_frontend_version`
-MIN_FE_BE_API = 6
+MIN_FE_BE_API = 7
 
 class FrontendClient:
     """

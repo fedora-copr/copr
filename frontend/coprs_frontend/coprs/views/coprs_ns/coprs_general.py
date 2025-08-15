@@ -21,6 +21,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+from copr_common.enums import CreaterepoReason
 from coprs import app
 from coprs import cache
 from coprs import db
@@ -785,7 +786,11 @@ def copr_createrepo(copr_id):
             "You are not allowed to recreate repository metadata of copr with id {}.".format(copr_id), "error")
         return flask.redirect(url_for_copr_details(copr))
 
-    actions_logic.ActionsLogic.send_createrepo(copr, devel=False)
+    actions_logic.ActionsLogic.send_createrepo(
+        copr,
+        devel=False,
+        reason=CreaterepoReason.manual_createrepo_event,
+    )
     db.session.commit()
 
     flask.flash("Repository metadata in all directories will be regenerated...", "success")
