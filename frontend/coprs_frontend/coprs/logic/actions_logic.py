@@ -78,7 +78,7 @@ class ActionsLogic(object):
 
     @classmethod
     def send_createrepo(cls, copr, dirnames=None, chroots=None, devel=None,
-                        priority=None):
+                        priority=None, reason=None):
         """
         Create a new createrepo Action in queue for given copr.
 
@@ -115,6 +115,7 @@ class ActionsLogic(object):
             "chroots": chroots,
             "appstream": copr.appstream,
             "storage": copr.storage,
+            "reason": reason,
         }
 
         run_in = set()
