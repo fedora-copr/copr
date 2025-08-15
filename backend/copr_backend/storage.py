@@ -14,7 +14,7 @@ from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from distutils.errors import DistutilsFileError # pylint: disable=deprecated-module
 import shutil
 import requests
-from copr_common.enums import StorageEnum
+from copr_common.enums import StorageEnum, CreaterepoReason
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name, ensure_dir_exists
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
@@ -60,7 +60,7 @@ class Storage:
         self.opts = opts
         self.log = log
 
-    def init_project(self, dirname, chroot):
+    def init_project(self, dirname, chroot, reason=None):
         """
         Make sure users can enable a DNF repository for this project/chroot
 
@@ -123,7 +123,7 @@ class BackendStorage(Storage):
     Store build results in `/var/lib/copr/public_html/results/`
     """
 
-    def init_project(self, dirname, chroot):
+    def init_project(self, dirname, chroot, reason=None):
         self.log.info("Creating repo for: %s/%s/%s",
                       self.owner, dirname, chroot)
         repo = os.path.join(self.opts.destdir, self.owner,
@@ -276,7 +276,7 @@ class PulpStorage(Storage):
         super().__init__(*args, **kwargs)
         self.client = PulpClient.create_from_config_file(log=self.log, opts=self.opts)
 
-    def init_project(self, dirname, chroot):
+    def init_project(self, dirname, chroot, reason=None):
         repository_name = self._repository_name(chroot, dirname)
         response = self.client.create_repository(repository_name)
         if not response.ok and "This field must be unique" not in response.text:
@@ -315,17 +315,22 @@ class PulpStorage(Storage):
                 self.log.error("Failed to update Pulp distribution %s for because %s",
                                public_distribution, response.text)
 
-        # This means a project is being created. We do nothing.
-        elif repository["latest_version_href"].endswith("/versions/0/"):
-            pass
+        # We want to disable the manual createrepo feature on a project
+        elif reason == CreaterepoReason.manual_createrepo_toggle:
+            public_distribution = self._get_distribution(chroot)
+            response = self.client.update_distribution(
+                public_distribution,
+                repository=repository_href,
+            )
+            if not response.ok:
+                self.log.error("Failed to update Pulp distribution %s for because %s",
+                               public_distribution_name, response.text)
+                return False
 
-        # The following happens in multiple situations:
-        # 1. The "Regenerate" button was clicked for a manual createrepo
-        #    project. Then we want to copy packages from the devel repo to the
-        #    public repo. Or more precisely, point the public distribution to
-        #    the same publication as the devel distribution points to.
-        # 2. A project disabled the manual createrepo feature. Then we want to
-        #    do the same as the "Regenerate" button above.
+        # The "Regenerate" button was clicked for a manual createrepo project.
+        # We want to copy packages from the devel repo to the public repo.
+        # Or more precisely, point the public distribution to
+        # the same publication as the devel distribution points to.
         #
         # A note regarding implementation:
         # It is weird to do this in the `init_project` method, pointing to the
@@ -336,7 +341,7 @@ class PulpStorage(Storage):
         # the copying does nothing) but also when a "Regenerate" button is
         # clicked (for which we copy the data). We should probably separate
         # these two concepts.
-        else:
+        elif reason == CreaterepoReason.manual_createrepo_event:
             response = self.client.get_publication(repository_href)
             publication = response.json()["results"][0]["pulp_href"]
 

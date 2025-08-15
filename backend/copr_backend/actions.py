@@ -130,11 +130,16 @@ class Createrepo(Action):
         self.log.info("Action createrepo")
         project_dirnames = self.ext_data["project_dirnames"]
         chroots = self.ext_data["chroots"]
+        reason = self.ext_data["reason"]
         result = BackendResultEnum("success")
 
         for project_dirname in project_dirnames:
             for chroot in chroots:
-                success = self.storage.init_project(project_dirname, chroot)
+                success = self.storage.init_project(
+                    project_dirname,
+                    chroot,
+                    reason=reason,
+                )
                 if not success:
                     result = BackendResultEnum("failure")
 

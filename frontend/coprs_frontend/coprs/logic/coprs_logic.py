@@ -23,6 +23,7 @@ from copr_common.enums import (
     BackendResultEnum,
     ActionPriorityEnum,
     StorageEnum,
+    CreaterepoReason,
 )
 from coprs import app, db
 from coprs import exceptions
@@ -734,7 +735,11 @@ class CoprDirsLogic(object):
         except IntegrityError:
             copr_dir = cls.get_by_copr(copr, dirname)
             return copr_dir
-        ActionsLogic.send_createrepo(copr, dirnames=[dirname])
+        ActionsLogic.send_createrepo(
+            copr,
+            dirnames=[dirname],
+            reason=CreaterepoReason.new_coprdir,
+        )
         return copr_dir
 
 
@@ -932,7 +937,11 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
         # no change
         return
 
-    ActionsLogic.send_createrepo(target_copr, devel=not value_acr)
+    ActionsLogic.send_createrepo(
+        target_copr,
+        devel=not value_acr,
+        reason=CreaterepoReason.manual_createrepo_toggle,
+    )
 
 
 class BranchesLogic(object):
@@ -1017,7 +1026,11 @@ class CoprChrootsLogic(object):
             db.session.add(
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
-        ActionsLogic.send_createrepo(copr, priority=ActionPriorityEnum("highest"))
+        ActionsLogic.send_createrepo(
+            copr,
+            priority=ActionPriorityEnum("highest"),
+            reason=CreaterepoReason.new_chroot,
+        )
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot, buildroot_pkgs=None, repos=None, comps=None, comps_name=None,
@@ -1191,7 +1204,11 @@ class CoprChrootsLogic(object):
             copr_chroot.delete_after = None
 
         if run_createrepo_in:
-            ActionsLogic.send_createrepo(copr, chroots=list(run_createrepo_in))
+            ActionsLogic.send_createrepo(
+                copr,
+                chroots=list(run_createrepo_in),
+                reason=CreaterepoReason.new_chroot,
+            )
 
         to_remove = []
         for mock_chroot in chroot_map:
