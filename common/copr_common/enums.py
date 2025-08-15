@@ -142,3 +142,23 @@ class StorageEnum(metaclass=EnumType):
     Supported storages
     """
     vals = {"backend": 0, "pulp": 1}
+
+
+class CreaterepoReason(metaclass=EnumType):
+    """
+    There are many different scenarios when we run createrepo. And in some cases
+    we run it differently.
+
+    See when do we run createrepo:
+    https://docs.pagure.org/copr.copr/createrepo.html#when-do-we-run-createrepo
+    """
+    vals = {
+        "new_project": 0,
+        "new_chroot": 1,
+        "new_coprdir": 2,
+        "manual_createrepo_toggle": 3,
+        "manual_createrepo_event": 4,
+        "post_build": 5,
+        "delete_build": 6,
+        "prunerepo": 7,
+    }
