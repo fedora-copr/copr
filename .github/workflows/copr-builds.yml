@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Check out proper version of sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # reasonable number of commits in one push?
           fetch-depth: 50
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Check out proper version of sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copr build ${{ matrix.package }}
         env:
