@@ -313,12 +313,11 @@ class DeleteMultipleBuilds(Action):
 
         result = BackendResultEnum("success")
         for project_dirname, chroot_builddirs in project_dirnames.items():
-            args = [project_dirname, chroot_builddirs, build_ids]
-            success = self.storage.delete_builds(*args)
-
-            if not isinstance(self.storage, BackendStorage):
-                success = self.backend_storage.delete_builds(*args) and success
-
+            success = self.storage.delete_builds(
+                project_dirname,
+                chroot_builddirs,
+                build_ids,
+            )
             if not success:
                 result = BackendResultEnum("failure")
         return result
@@ -348,14 +347,11 @@ class DeleteBuild(Action):
             self.log.exception("Invalid action data")
             return BackendResultEnum("failure")
 
-        args = [
+        success = self.storage.delete_builds(
             self.ext_data["project_dirname"],
             self.ext_data["chroot_builddirs"],
             [self.data['object_id']],
-        ]
-        success = self.storage.delete_builds(*args)
-        if not isinstance(self.storage, BackendStorage):
-            success = self.backend_storage.delete_builds(*args) and success
+        )
         return BackendResultEnum("success" if success else "failure")
 
 
