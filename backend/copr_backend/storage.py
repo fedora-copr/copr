@@ -372,7 +372,7 @@ class PulpStorage(Storage):
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
         # pylint: disable=too-many-locals
         result = True
-        for chroot in chroot_builddirs.keys():
+        for chroot, subdirs in chroot_builddirs.items():
             # We don't upload results of source builds to Pulp
             if chroot == "srpm-builds":
                 continue
@@ -383,6 +383,7 @@ class PulpStorage(Storage):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
                 result = False
                 continue
+
             repository = self._get_repository(chroot)
             # Find the RPMs by list of build ids
             content_response = self.client.get_content(build_ids)
@@ -390,6 +391,10 @@ class PulpStorage(Storage):
             self.client.delete_content(repository, list_of_prns)
             self.log.info("Deleted resources: %s", list_of_prns)
 
+            # Delete results from the backend (logs, info files, etc)
+            for subdir in subdirs:
+                path = os.path.join(chroot_path, subdir)
+                shutil.rmtree(path)
         return result
 
     def repository_exists(self, dirname, chroot, baseurl):
