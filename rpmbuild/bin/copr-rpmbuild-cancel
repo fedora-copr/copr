@@ -82,7 +82,4 @@ def _main():
     print("success" if found else "PID {} not found".format(pid))
 
 if __name__ == "__main__":
-    try:
-        _main()
-    except Exception:  # pylint: disable=broad-except
-        LOG.exception("Unexpected exception")
+    _main()

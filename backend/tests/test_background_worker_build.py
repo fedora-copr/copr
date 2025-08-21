@@ -798,24 +798,22 @@ def test_tail_f_nonzero_exit(f_build_rpm_case, caplog):
         "Finished build: id=848963 failed=False ",  # still success!
     ], caplog)
 
-def test_wrong_copr_rpmbuild_daemon_output(f_build_srpm, caplog):
+def test_ignored_copr_rpmbuild_daemon_output(f_build_srpm, caplog):
     config = f_build_srpm
     config.ssh.set_command(
         "copr-rpmbuild --verbose --drop-resultdir --srpm --task-url "
         "http://copr-fe/backend/get-srpm-build-task/855954 "
         "--detached",
-        0, "6a66", "",
+        0, "unused stdout", "unused stderr",
     )
     config.bw.process()
     assert_logs_exist([
-        "Backend process error: copr-rpmbuild returned invalid"
-        " PID on stdout: 6a66",
-        "Worker failed build, took ",
-        "builder-live.log: No such file or directory",
+        "The copr-rpmbuild seems started, per:\n"
+        "stdout: unused stdout\n"
+        "stderr: unused stderr\n"
     ], caplog)
     assert_logs_dont_exist([
         "Retry",
-        "Finished build",
     ], caplog)
 
 def test_unable_to_start_builder(f_build_srpm, caplog):

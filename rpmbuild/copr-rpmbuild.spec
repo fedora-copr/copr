@@ -4,7 +4,7 @@
 %global rpm_python      python3-rpm
 %global sitelib         %python3_sitelib
 
-%global copr_common_version 0.21.1.dev
+%global copr_common_version 1.1.1dev
 
 # do not build debuginfo sub-packages
 %define debug_package %nil
@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.3
+Version: 1.3.1
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -31,6 +31,7 @@ ExcludeArch:   %{ix86}
 %endif
 
 BuildRequires: %{python}-copr-common >= %copr_common_version
+BuildRequires: %{python}-daemon
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
 BuildRequires: %{python}-httmock
@@ -67,6 +68,7 @@ Requires: %{python_pfx}-munch
 Requires: %{python}-requests
 Requires: %{python_pfx}-specfile >= 0.21.0
 Requires: python3-backoff >= 1.9.0
+Requires: python3-daemon
 Requires: python3-pyyaml
 
 Requires: mock >= 5.0

@@ -44,7 +44,7 @@ from copr_backend.storage import storage_for_job
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "0.68.dev"
+MIN_BUILDER_VERSION = "1.3.1"
 CANCEL_CHECK_PERIOD = 5
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
@@ -147,7 +147,6 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
     def __init__(self):
         super().__init__()
         self.sender = None
-        self.builder_pid = None
         self.builder_dir = "/var/lib/copr-rpmbuild"
         self.builder_livelog = os.path.join(self.builder_dir, "main.log")
         self.builder_results = os.path.join(self.builder_dir, "results")
@@ -484,6 +483,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 self._cancel_task_check_request,
                 self._cancel_vm_allocation,
                 check_period=CANCEL_CHECK_PERIOD,
+                log=self.log,
             ).run()
             if self.canceled:
                 raise BuildCanceled
@@ -538,11 +538,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if rc:
             raise BackendError("Can't start copr-rpmbuild,\nout:\n{}err:\n{}"
                                .format(stdout, stderr))
-        try:
-            self.builder_pid = int(stdout.strip())
-        except ValueError:
-            raise BackendError("copr-rpmbuild returned invalid PID "
-                               "on stdout: {}".format(stdout))
+        self.log.info("The copr-rpmbuild seems started, per:\nstdout: %s\n"
+                      "stderr: %s\n", stdout, stderr)
 
     def _tail_log_file(self):
         """ Return None if OK, or failure reason as str """
@@ -975,6 +972,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self._cancel_task_check_request,
             self._discard_running_worker,
             check_period=CANCEL_CHECK_PERIOD,
+            log=self.log,
         ).run()
         if self.canceled:
             raise BuildCanceled
@@ -1026,6 +1024,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self._check_build_interrupted,
             self._discard_running_worker,
             check_period=CANCEL_CHECK_PERIOD,
+            log=self.log,
         ).run()
         if self.canceled:
             raise BuildCanceled

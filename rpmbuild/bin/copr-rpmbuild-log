@@ -66,10 +66,16 @@ def _main():
     config = read_config()
     start = time.time()
     while True:
+        # If startup succeeds, this calls execv(), which replaces the script and
+        # prevents any further commands from running.
         _tail_log(config)
+
+        # Couldn't start following the logfile, retrying.
         if time.time() - start > MAX_WAIT_FOR_RPMBUILD:
-            LOG.fatal("Unable to wait for copr-rpmbuild process")
+            print("Unable to wait for copr-rpmbuild process, exit.")
+            return 1
         time.sleep(5)
 
+
 if __name__ == "__main__":
-    _main()
+    sys.exit(_main())

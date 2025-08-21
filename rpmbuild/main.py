@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import re
 import os
 import fcntl
 import subprocess
@@ -14,14 +13,17 @@ import shlex
 
 from urllib.parse import urljoin, urlencode
 
+import daemon
+
 from copr_common.request import SafeRequest, RequestError
+from copr_common.helpers import nullcontext
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.automation import run_automation_tools
 from copr_rpmbuild.helpers import (
     read_config,
     parse_copr_name,
-    dump_live_log,
+    filter_our_output,
     copr_chroot_to_task_id,
     macros_for_task,
     locate_srpm,
@@ -33,27 +35,6 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 VERSION = package_version("copr-rpmbuild")
-
-def daemonize():
-    try:
-        pid = os.fork()
-    except OSError as e:
-        self.log.error("Unable to fork, errno: {0}".format(e.errno))
-        sys.exit(1)
-
-    if pid != 0:
-        log.info(pid)
-        os._exit(0)
-
-    process_id = os.setsid()
-    if process_id == -1:
-        sys.exit(1)
-
-    devnull_fd = os.open('/dev/null', os.O_RDWR)
-    os.dup2(devnull_fd, 0)
-    os.dup2(devnull_fd, 1)
-    os.dup2(devnull_fd, 2)
-    os.close(devnull_fd)
 
 
 def get_parser():
@@ -85,33 +66,24 @@ def get_parser():
     return base_parser
 
 
-def main():
-    parser = get_parser()
-    args = parser.parse_args()
-    config = read_config(args.config)
+def main_daemon(args, config):
+    """
+    Part of the copr-rpmbuild logic that is run as daemon, if --detached.
+    """
 
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-
-    if args.detached:
-        daemonize()
-
-    main_pid = os.getpid()
-
-    # Write pid, so 'copr-rpmbuild-cancel' knows where to send signals
-    with open(config.get("main", "pidfile"), "w") as pidfile:
-        pidfile.write(str(main_pid))
-
-    # Log also to a file
-    logging_pid = main_pid
+    # Filter out terminal control sequences from stdout/stderr and copy the
+    # output to a logfile.
     logfile = config.get("main", "logfile")
-    if logfile:
-        open(logfile, 'w').close() # truncate log
-        logging_pid = dump_live_log(logfile)
+    proc_loggify = filter_our_output("/usr/bin/copr-rpmbuild-loggify", logfile)
+
+    # Write PGID, so 'copr-rpmbuild-cancel' knows where to send signals
+    main_pid = os.getpgrp()
+    with open(config.get("main", "pidfile"), "w", encoding="utf-8") as pidfd:
+        pidfd.write(str(main_pid))
 
     # Write logger pid, so copr-rpmbuild-log can wait for us.
-    with open(config.get("main", "logger_pidfile"), "w") as pidfile:
-        pidfile.write(str(logging_pid))
+    with open(config.get("main", "logger_pidfile"), "w", encoding="utf-8") as pidfile:
+        pidfile.write(f"{proc_loggify.pid}\n")
 
     cmd = " ".join(map(shlex.quote, sys.argv))
     log.info('\nYou can reproduce this build on your computer by running:\n')
@@ -119,7 +91,7 @@ def main():
     log.info('  {0}\n\n'.format(cmd.replace(" --detached", "")))
     log.info('Version: {0}'.format(VERSION))
     log.info("PID: %s", main_pid)
-    log.info("Logging PID: %s", logging_pid)
+    log.info("Logging PID: %s", proc_loggify.pid)
 
     # Allow only one instance
     lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR | os.O_CREAT)
@@ -332,5 +304,17 @@ def read_task_from_file(path):
         raise RuntimeError("No valid build_config at {0}".format(path)) from ex
 
 
+def _main():
+    parser = get_parser()
+    args = parser.parse_args()
+    config = read_config(args.config)
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
+
+    context = daemon.DaemonContext() if args.detached else nullcontext()
+    with context:
+        main_daemon(args, config)
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(_main())

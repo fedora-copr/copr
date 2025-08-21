@@ -239,20 +239,28 @@ def parse_copr_name(name):
     return ownername, projectname
 
 
-def dump_live_log(logfile):
+def filter_our_output(filter_cmd, log_filename=None):
     """
-    Redirect our stdout and stderr to loggify stdin (it strips terminal
-    sequences), and pipe that through tee.
+    Redirect our current stdout and stderr to the filter_command.  If
+    log_filename is provided, also `tee` the final output there.
     """
-    filter_continuing_lines = "/usr/bin/copr-rpmbuild-loggify"
-    tee_output = "tee -a {0}".format(shlex.quote(logfile))
-    cmd = filter_continuing_lines + "2>&1 |" + tee_output
-    # We want to keep the process running, not wait for it's exit.
+
+    # backup stdout
+    outfd_copy = os.dup(1)
+    new_stdout = os.fdopen(outfd_copy, "w")
+
+    if log_filename:
+        filter_cmd += f" 2>&1 | tee -a {shlex.quote(log_filename)}"
+
+    # We want to continue running the filter in the background.
     # pylint: disable=consider-using-with
-    tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
-    os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
-    os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
-    return tee.pid
+    filter_process = subprocess.Popen(filter_cmd, stdin=subprocess.PIPE,
+                                      stdout=new_stdout, shell=True)
+
+    # our both outputs go to the filter
+    os.dup2(filter_process.stdin.fileno(), 1)
+    os.dup2(filter_process.stdin.fileno(), 2)
+    return filter_process
 
 
 class GentlyTimeoutedPopen(subprocess.Popen):

@@ -4,8 +4,7 @@ Library for testing copr-backend
 
 import json
 import os
-import shutil
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from copr_backend.background_worker_build import COMMANDS
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError, DEFAULT_SUBPROCESS_TIMEOUT
