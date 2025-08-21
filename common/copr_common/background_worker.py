@@ -5,22 +5,13 @@ Helper methods/classes for 'copr-backend-*' scripts.
 import os
 import sys
 import argparse
-import contextlib
 import logging
 import daemon
 
 import setproctitle
 
+from copr_common.helpers import nullcontext
 from copr_common.redis_helpers import get_redis_connection
-
-
-@contextlib.contextmanager
-def nullcontext():
-    """
-    contextlib.nullcontext is not available in Python 3.6, but we are still
-    Python 3.6+ compatible because of EL 8
-    """
-    yield None
 
 
 class BackgroundWorker:

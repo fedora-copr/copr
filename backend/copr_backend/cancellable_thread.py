@@ -52,7 +52,7 @@ class CancellableThreadTask:
                 break
 
             if self.check(*args, **kwargs):
-                self.log.debug("calling cancel callback, and waiting")
+                self.log.info("calling cancel callback, and waiting")
                 try:
                     self.cancel(*args, **kwargs)
                 except Exception:  # pylint: disable=broad-except

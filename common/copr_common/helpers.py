@@ -3,6 +3,7 @@ Helper methods that can be used by any part of the Copr stack.  Typically small
 things that don't need to have it's own file.
 """
 
+import contextlib
 import os
 import pwd
 import sys
@@ -67,3 +68,12 @@ def timedelta_to_dhms(delta):
     hours, remainder = divmod(remainder, 60 * 60)
     minutes, seconds = divmod(remainder, 60)
     return int(days), int(hours), int(minutes), int(seconds)
+
+
+@contextlib.contextmanager
+def nullcontext():
+    """
+    contextlib.nullcontext is not available in Python 3.6, but we are still
+    Python 3.6+ compatible because of EL 8
+    """
+    yield None
