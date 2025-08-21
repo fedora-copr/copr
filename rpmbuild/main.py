@@ -88,8 +88,8 @@ def main_daemon(args, config):
     cmd = " ".join(map(shlex.quote, sys.argv))
     log.info('\nYou can reproduce this build on your computer by running:\n')
     log.info('  sudo dnf install copr-rpmbuild')
-    log.info('  {0}\n\n'.format(cmd.replace(" --detached", "")))
-    log.info('Version: {0}'.format(VERSION))
+    log.info('  %s\n\n', cmd.replace(" --detached", ""))
+    log.info('Version: %s', VERSION)
     log.info("PID: %s", main_pid)
     log.info("Logging PID: %s", proc_loggify.pid)
 
@@ -118,7 +118,7 @@ def main_daemon(args, config):
         sys.exit(1)
     except: # Programmer's mistake
         log.exception("")
-        sys.exit(1)
+        raise
     finally:
         fcntl.lockf(lockfd, fcntl.LOCK_UN, 1)
         os.close(lockfd)
