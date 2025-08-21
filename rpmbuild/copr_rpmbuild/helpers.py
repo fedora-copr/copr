@@ -240,9 +240,15 @@ def parse_copr_name(name):
 
 
 def dump_live_log(logfile):
+    """
+    Redirect our stdout and stderr to loggify stdin (it strips terminal
+    sequences), and pipe that through tee.
+    """
     filter_continuing_lines = "/usr/bin/copr-rpmbuild-loggify"
     tee_output = "tee -a {0}".format(shlex.quote(logfile))
-    cmd = filter_continuing_lines + "|" + tee_output
+    cmd = filter_continuing_lines + "2>&1 |" + tee_output
+    # We want to keep the process running, not wait for it's exit.
+    # pylint: disable=consider-using-with
     tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
     os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
     os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
