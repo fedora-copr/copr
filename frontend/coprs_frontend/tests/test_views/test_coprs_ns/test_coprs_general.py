@@ -10,7 +10,12 @@ import flask
 from sqlalchemy import desc, and_
 
 
-from copr_common.enums import ActionTypeEnum, ActionPriorityEnum, StorageEnum
+from copr_common.enums import (
+    ActionTypeEnum,
+    ActionPriorityEnum,
+    CreaterepoReason,
+    StorageEnum,
+)
 from coprs import app, cache, models
 
 from coprs.repos import generate_repo_name
@@ -506,6 +511,7 @@ class TestCoprUpdate(CoprsTestCase):
             "chroots": ["fedora-18-x86_64"],
             "appstream": True,
             "devel": True,
+            "reason": CreaterepoReason.manual_createrepo_toggle,
             "storage": StorageEnum("backend"),
         }
 
@@ -526,9 +532,15 @@ class TestCoprUpdate(CoprsTestCase):
 
         expected_chroots = chroots
 
+        first = True
         for action in ActionsLogic.get_many():
             if action.id in handled_ids:
                 continue
+            if first:
+                first = False
+                expected_data["reason"] = CreaterepoReason.manual_createrepo_toggle
+            else:
+                expected_data["reason"] = CreaterepoReason.new_chroot
             expected_data["devel"] = False
             # TODO: the form re-sets appstream to False for None value
             expected_data["appstream"] = False
@@ -1133,6 +1145,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "project_dirnames": ["test"],
             "appstream": False,
             "devel": False,
+            "reason": CreaterepoReason.new_chroot,
             "storage": StorageEnum("backend"),
         }
         def _expected(action, chroots):
