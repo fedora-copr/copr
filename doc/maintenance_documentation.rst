@@ -18,7 +18,7 @@ This section contains information about maintenance topics. You may also be inte
    Fedora Copr outage announcements <maintenance/announce_outage>
    Fedora Copr credentials <maintenance/credentials>
    Check that backups are OK <maintenance/backup_check>
-
+   Maintaining development package versions <maintenance/development_versions>
 
 .. toctree::
    :caption: Amazon AWS
