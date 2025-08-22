@@ -36,7 +36,8 @@ such version::
 
     cat ./.tito/packages/* |grep ".dev"
 
-If a package has `.dev` suffix, manually increment its version::
+If a package has `.dev` suffix, or has three parts, manually increment its
+version to the subsequent ``Major.Minor`` version with::
 
     tito tag --use-version X.Y
 
