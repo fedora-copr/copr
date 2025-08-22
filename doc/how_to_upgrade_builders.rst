@@ -73,7 +73,7 @@ that Task and copy the ``IMAGE_URL`` from there.  Example of such URL::
 
 
 Prepare the images on staging backend machine
-----------
+---------------------------------------------
 
 This step allocates arch-specific VMs, creates qcow2/raw/ami images on them, and
 downloads them back to a directory structured as ``/var/lib/copr/public_html/images/2025-07-28/``::
