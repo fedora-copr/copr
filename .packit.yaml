@@ -193,50 +193,55 @@ jobs:
     manual_trigger: true  # needs to be triggered by the `/packit build` comment
 
   # Main commit builds:
-
-  - job: copr_build
-    packages:
-      - copr-backend
-      - copr-keygen
-      - copr-messaging
-      - copr-dist-git
-      - copr-frontend
-    trigger: commit
-    branch: main
-    targets:
-      - fedora-all-x86_64
-    owner: packit
-    project: copr
-    preserve_project: true
-
-  - job: copr_build
-    packages:
-      - copr-selinux
-      - python-copr
-      - python-copr-common
-      - copr-cli
-    trigger: commit
-    branch: main
-    targets:
-      - fedora-all-x86_64
-      - fedora-all-aarch64
-      - fedora-all-ppc64le
-      - epel-all-x86_64
-    owner: packit
-    project: copr
-    preserve_project: true
-
-  - job: copr_build
-    packages:
-      - copr-rpmbuild
-    trigger: commit
-    branch: main
-    targets:
-      - fedora-all-x86_64
-      - fedora-all-aarch64
-      - fedora-all-ppc64le
-      - epel-9-x86_64
-      - epel-8-x86_64
-    owner: packit
-    project: copr
-    preserve_project: true
+  #
+  # We needed to temporarily disable Packit triggers from the main branch
+  # because the monorepo support is still not 100% finished and we were
+  # constantly getting CI failures. Please enable the triggers again once this
+  # issue gets resolved - https://github.com/packit/packit/issues/1903
+  #
+  # - job: copr_build
+  #   packages:
+  #     - copr-backend
+  #     - copr-keygen
+  #     - copr-messaging
+  #     - copr-dist-git
+  #     - copr-frontend
+  #   trigger: commit
+  #   branch: main
+  #   targets:
+  #     - fedora-all-x86_64
+  #   owner: packit
+  #   project: copr
+  #   preserve_project: true
+  #
+  # - job: copr_build
+  #   packages:
+  #     - copr-selinux
+  #     - python-copr
+  #     - python-copr-common
+  #     - copr-cli
+  #   trigger: commit
+  #   branch: main
+  #   targets:
+  #     - fedora-all-x86_64
+  #     - fedora-all-aarch64
+  #     - fedora-all-ppc64le
+  #     - epel-all-x86_64
+  #   owner: packit
+  #   project: copr
+  #   preserve_project: true
+  #
+  # - job: copr_build
+  #   packages:
+  #     - copr-rpmbuild
+  #   trigger: commit
+  #   branch: main
+  #   targets:
+  #     - fedora-all-x86_64
+  #     - fedora-all-aarch64
+  #     - fedora-all-ppc64le
+  #     - epel-9-x86_64
+  #     - epel-8-x86_64
+  #   owner: packit
+  #   project: copr
+  #   preserve_project: true
