@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.3.1
+Version: 1.4
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -305,6 +305,11 @@ EOF
 
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.4-1
+- Improve robustness and cooperation with backend
+- Pipe errors/warning out to builder-live.log
+- Make sure we use the latest dist-git-client
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.3-1
 - ignore unicode errors some commands' output
 - custom method - do not rely on working `/bin/su` in chroot
