@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.1.2
+Version:    1.2
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -79,6 +79,12 @@ version=%version %py3_install
 
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.2-1
+- Specify reason for running createrepo
+- Improve robustness and cooperation between backend and rpmbuild
+- Remove license classifier
+- Modernize specfile using pyproject macro
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.1-1
 - lock the pulp-redirect.txt file
 
