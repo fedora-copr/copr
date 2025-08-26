@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    1.1
+Version:    1.2
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -107,6 +107,9 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.2-1
+- Stop using deprecated %%py3_build/%%py3_install macros
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.1-1
 - fix FTBFS caused by sphinx config
 - add missing @propery decorators
