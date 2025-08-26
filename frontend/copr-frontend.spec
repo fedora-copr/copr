@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.2
+Version:    2.3
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,29 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.3-1
+- Specify reason for running createrepo
+- Implement support for Pulp manual createrepo
+- Show coprdirs in the builds table
+- Implement Pulp forking
+- Redirect to the current URL after OIDC login
+- Drop support for OID auth
+- Add symlink to alma family logo from almalinux
+- Fix AI button visibility
+- After edit, redirect to the package
+- Disable network when crearing a new fedora review project
+- Hide excessive CoprDirs under a details tag
+- Fix local builds in Pulp projects
+- Add AlmaLinux logo
+- Update centos logo
+- Fix one pagure-events' traceback
+- Use the new BeautifulSoup find_all() method
+- Drop the duplicit session.commit() call
+- Fix SAWarnings about autoflush
+- pagure-events fail for "dots" in copr.name
+- Treat malformed task_id in backend_general
+- Log the user who removes a project
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 2.2-1
 - fix FTBFS when using python below 3.12
 - Add sysusers.d config file to allow rpm to create users/groups automatically
