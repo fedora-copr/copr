@@ -6,7 +6,7 @@
 %global selinuxvariants targeted
 
 Name:       copr-selinux
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -106,6 +106,9 @@ done
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.57-1
+- Modernize spec file and drop old stuff
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.56-1
 - unify bindir and sbindir
 
