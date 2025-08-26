@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.1
+Version:    2.2
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.2-1
+- Stop using deprecated %%py3_build/%%py3_install macros
+- Remove rhel7 conditions and remove python2 support
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 2.1-1
 - doc: remove a non existent parameter from docstring
 - drop six dependency
