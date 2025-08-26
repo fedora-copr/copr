@@ -155,11 +155,12 @@ For each package do::
     `Bodhi override for those dependencies <https://fedoraproject.org/wiki/Bodhi/BuildRootOverrides>`_
     for example you can use this snippet::
 
+        sudo dnf install python3-fedora-distro-aliases
         cd your/checkout/directory/copr-cli
-        for i in f38 f39 f40 epel7 epel8 epel9; do
+        for i in $(/usr/bin/resolve-fedora-aliases fedora-branched epel-all -o branch); do
             git checkout $i
             git pull
-            fedpkg override create --duration 1 --notes "Copr 2024 March Release"
+            fedpkg override create --duration 1 --notes "Copr Release"
         done
 
     It takes up to 30 minutes to for the override to be available in the buildroot::
