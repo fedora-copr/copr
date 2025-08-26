@@ -5,7 +5,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-backend
-Version:    2.6
+Version:    2.7
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,25 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.7-1
+- Specify reason for running createrepo
+- Implement support for Pulp manual createrepo
+- Improve robustness and cooperation with rpmbuild
+- Don't run createrepo_c for migrated projects
+- Implement Pulp forking
+- Fix Pulp builds for CoprDirs
+- Adds batching to add_content() and delete_content() in Pulp client.
+- Explicitly set home directory and shell for the user
+- Make sure every PULP api call is logged
+- Set retain_package_versions and retain_repo_versions on repositories
+- Fix race condition in BatchedCreaterepo
+- Stop using deprecated %%py3_build/%%py3_install macros
+- Remove el7 condition
+- Drop the 'Z' suffix from timestamp
+- Switch RPM upload to the synchronous API from pulp_rpm
+- Fix false-positive failures for build deletion
+- Fix ftbfs for deepcopy not able to handle itertools.count
+
 * Mon Jun 23 2025 Jakub Kadlcik <frostyx@email.cz> 2.6-1
 - Set pulp_labels at RPM upload time.
 - Wait on add_and_remove task to finish
