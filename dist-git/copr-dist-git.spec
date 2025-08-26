@@ -1,7 +1,7 @@
 %global copr_common_version 0.25.1~~dev0
 
 Name:       copr-dist-git
-Version:    1.1
+Version:    1.2
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -130,6 +130,9 @@ install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.2-1
+- Explicitly set home directory and shell for the user
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 1.1-1
 - add sysusers.d config file to allow rpm to create users/groups automatically
 - remove redundant byte compile lines, these dirs are empty already
