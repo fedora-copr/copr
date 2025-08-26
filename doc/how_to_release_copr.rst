@@ -31,12 +31,12 @@ Run::
     tito report --untagged-commits
 
 and walk the directories of packages listed, and tag them. During development,
-we sometimes put `.dev` suffix into our packages versions. See what packages has
+we sometimes put a `.PATCH` number into our packages versions. See what packages has
 such version::
 
-    cat ./.tito/packages/* |grep ".dev"
+    find -maxdepth 2 -name *.spec |xargs grep "Version:" |grep -E '[0-9]+\.[0-9]+\.[0-9]+'
 
-If a package has `.dev` suffix, or has three parts, manually increment its
+If a package has `.PATCH` number, manually increment its
 version to the subsequent ``Major.Minor`` version with::
 
     tito tag --use-version X.Y
