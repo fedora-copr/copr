@@ -138,7 +138,8 @@ class UsersLogic(object):
                 "api_login": "",
                 "api_token": "",
                 "api_token_expiration": datetime.date(1970, 1, 1),
-                "openid_groups": None}
+                "openid_groups": None,
+                "mail": ""}
         for k, v in null.items():
             setattr(user, k, v)
         app.logger.info("Deleting user '%s' data", user.name)
