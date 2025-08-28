@@ -103,6 +103,8 @@ class UserAuth:
         """
         user = UsersLogic.get(username).first()
         if user:
+            if email is not None:
+                user.mail = email
             return user
         app.logger.info("Login for user '%s', "
                         "creating a database record", username)
