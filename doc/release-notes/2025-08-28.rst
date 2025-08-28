@@ -1,0 +1,78 @@
+.. _release_notes_2025_08_28:
+
+Highlights from 2025-08-28 release
+==================================
+
+Pulp
+----
+
+In a collaboration with the Pulp team, we invest a lot of development time into
+`supporting Pulp as a storage for Copr results`_. The goal is to ultimately
+reduce the maintenance burden on us.
+
+This release implements support for several features, such as project forking and
+projects with manual createrepo. It brings bugfixes for building into CoprDirs,
+and build deletion, and smaller improvements in labeling the results. But
+most importantly, it brings huge performance improvements for the fundamental
+operations like creating new Copr projects and uploading build results.
+
+
+Enhancements
+------------
+
+- New AlmaLinux and CentOS logos
+- Redirect to the previous page after OIDC login
+- `#3511`_ - After editing a package, we redirect to the package details
+- `#3192`_ - Show CoprDirs names in the builds table
+- `#3622`_ - When creating a new project through the "+ Fedora Review" button,
+  networking is disabled for its builds
+- `#3721`_ - When a project has too many CoprDirs, we now show only the first 50
+  and hide the rest under a `details` tag
+- Huge ``copr_log_hitcounter`` script optimizations to reduce memory usage
+- Modernized ``python-copr-common``, ``python-copr``, ``copr-backend``,
+  ``copr-cli``, and ``copr-messaging`` specfiles to not use ``%py3_build`` and
+  ``%py3_install`` macros anymore.
+
+
+Bugfixes
+--------
+
+- `#3769`_ - Dropped support for OID login. Don't confuse with OIDC, which is
+  still available and the preferred method of authentication
+- `#3077`_ - Fixed broken encoding in logs
+- `#3707`_, `#3760`_ - Don't show AI buttons for running builds and deleted
+  builds
+- `#3826`_, `#2124`_ - Fixed a bug in communication between ``copr-backend`` and
+  builders that caused dying workers and missing logs
+- `#3683`_ - Fixed ``pagure-events`` traceback for Copr names containing a dot
+- `#3666`_ - Fixed ``pagure-events`` traceback for incorrect project names
+- `#3682`_ - Not using a deprecated ``get_html_theme_path`` function for our
+  documentation
+- `#3743`_ - Fixed generation of storage consumption charts
+- `#3662`_ - Fixed FTBFS for F43 because of ``copy.deepcopy``
+- `#3770`_, `#3777`_ - Fixed a race condition when running createrepo, causing
+  leftovers in our redis database and errors when deleting builds
+- Many fixes for `our docker-compose development environment`_
+
+
+
+.. _supporting Pulp as a storage for Copr results: https://github.com/fedora-copr/copr/issues/2533
+.. _our docker-compose development environment: https://frostyx.cz/posts/copr-docker-compose-without-supervisord
+.. _#3511: https://github.com/fedora-copr/copr/issues/3511
+.. _#3192: https://github.com/fedora-copr/copr/issues/3192
+.. _#3622: https://github.com/fedora-copr/copr/issues/3622
+.. _#3721: https://github.com/fedora-copr/copr/issues/3721
+.. _#3769: https://github.com/fedora-copr/copr/issues/3769
+.. _#3077: https://github.com/fedora-copr/copr/issues/3077
+.. _#3707: https://github.com/fedora-copr/copr/issues/3707
+.. _#3760: https://github.com/fedora-copr/copr/issues/3760
+.. _#3826: https://github.com/fedora-copr/copr/issues/3826
+.. _#2124: https://github.com/fedora-copr/copr/issues/2124
+.. _#3689: https://github.com/fedora-copr/copr/issues/3689
+.. _#3683: https://github.com/fedora-copr/copr/issues/3683
+.. _#3666: https://github.com/fedora-copr/copr/issues/3666
+.. _#3682: https://github.com/fedora-copr/copr/issues/3682
+.. _#3743: https://github.com/fedora-copr/copr/issues/3743
+.. _#3662: https://github.com/fedora-copr/copr/issues/3662
+.. _#3770: https://github.com/fedora-copr/copr/issues/3770
+.. _#3777: https://github.com/fedora-copr/copr/issues/3777
