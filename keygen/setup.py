@@ -1,6 +1,5 @@
 from setuptools import setup
 
-import shutil
 import sys
 
 requires = [
@@ -37,6 +36,3 @@ setup(
     include_package_data=True,
     zip_safe=False,
 )
-
-#TODO: fix dirty cleanup
-shutil.rmtree("src/copr_keygen.egg-info")
