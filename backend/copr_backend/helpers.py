@@ -408,9 +408,6 @@ class BackendConfigReader(object):
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 
-        opts.gently_gpg_sha256 = _get_conf(
-            cp, "backend", "gently_gpg_sha256", True, mode="bool")
-
         opts.aws_cloudfront_distribution = _get_conf(
             cp, "backend", "aws_cloudfront_distribution", None)
 

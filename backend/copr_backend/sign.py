@@ -97,6 +97,7 @@ def _sign_one(path, email, hashtype, log):
     return stdout, stderr
 
 
+# pylint: disable=unused-argument
 def gpg_hashtype_for_chroot(chroot, opts):
     """
     Given the chroot name (in "mock format", like "fedora-rawhide-x86_64")
@@ -109,18 +110,6 @@ def gpg_hashtype_for_chroot(chroot, opts):
     parts = chroot.split("-")
 
     version_part = parts[-2]
-
-    if opts.gently_gpg_sha256:
-        # For a few weeks we would use the sha256 hash type only for EL8+.
-        # This is a safety belt, in case of any failure we'll just re-sign
-        # epel-8+ and not _all_ the package data on backend.
-        if parts[0] in el_chroots:
-            el_version = version_part
-            if el_version in ["rawhide"]:
-                return "sha256"
-            if version.parse(el_version) > version.parse("7"):
-                return "sha256"
-        return "sha1"
 
     if parts[0] in el_chroots:
         chroot_version = version_part

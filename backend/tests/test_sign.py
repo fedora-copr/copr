@@ -31,7 +31,6 @@ class TestSign(object):
         self.tmp_dir_path = None
 
         self.opts = Munch(keygen_host="example.com")
-        self.opts.gently_gpg_sha256 = False
         self.opts.sign_domain = "fedorahosted.org"
 
     def teardown_method(self, method):
@@ -327,28 +326,6 @@ def test_chroot_gpg_hashes():
     ]
 
     opts = Munch()
-    opts.gently_gpg_sha256 = False
 
-    for chroot, exp_type in chroots:
-        assert (chroot, exp_type) == (chroot, gpg_hashtype_for_chroot(chroot, opts))
-
-    opts.gently_gpg_sha256 = True
-    chroots = [
-        ("fedora-26-x86_64", "sha1"),
-        ("fedora-27-s390x", "sha1"),
-        ("fedora-eln-x86_64", "sha1"),
-        ("fedora-rawhide-x86_64", "sha1"),
-        ("mageia-8-x86_64", "sha1"),
-        ("opensuse-tumbleweed-aarch64", "sha1"),
-        ("epel-7-ppc64", "sha1"),
-        ("centos-7.dev-aarch64", "sha1"),
-        ("epel-8-aarch64", "sha256"),
-        ("rhel-8.dev-ppc64le", "sha256"),
-        ("oraclelinux-9-s390x", "sha256"),
-        ("centos-stream-8-s390x", "sha256"),
-        ("centos-stream-9-s390x", "sha256"),
-        ("rhel-rawhide-s390x", "sha256"),
-        ("srpm-builds", "sha1"),
-    ]
     for chroot, exp_type in chroots:
         assert (chroot, exp_type) == (chroot, gpg_hashtype_for_chroot(chroot, opts))
