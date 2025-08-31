@@ -20,7 +20,6 @@ BuildRequires: systemd
 
 BuildRequires: python3-devel
 BuildRequires: python3-copr-common >= %copr_common_version
-BuildRequires: python3-setuptools
 BuildRequires: python3-flask
 
 # doc
@@ -60,7 +59,6 @@ Summary:    Code documentation for copr-keygen component of Copr buildsystem
 Obsoletes:  copr-doc < 1.38
 
 BuildRequires: python3-devel
-BuildRequires: python3-setuptools
 BuildRequires: python3-requests
 BuildRequires: python3-flask
 BuildRequires: python3-sphinx
@@ -80,8 +78,12 @@ This package contains document for copr-keygen service.
 %setup -q
 
 
+%generate_buildrequires
+%pyproject_buildrequires
+
+
 %build
-%py3_build
+%pyproject_wheel
 
 # We currently have FTBFS errors for F37/Rawhide, related issues:
 # https://bugzilla.redhat.com/show_bug.cgi?id=2113156
@@ -92,7 +94,7 @@ make -C docs %{?_smp_mflags} html
 %endif
 
 %install
-%py3_install
+%pyproject_install
 find %{buildroot} -name '*.exe' -delete
 
 install -d %{buildroot}%{_sysconfdir}/copr-keygen
