@@ -178,7 +178,7 @@ def main():
                 build_id = str(int(builddir.split("-")[0]))
 
                 # We cannot check return code here
-                package_hrefs = storage.upload_build_results(chroot, resultdir, None, max_workers=80, build_id=build_id)
+                package_hrefs = storage.upload_build_results(chroot, resultdir, None, max_workers=1, build_id=build_id)
                 all_package_hrefs.extend(package_hrefs)
 
             # Add build results to the repository
