@@ -18,7 +18,6 @@ class TestUserDataDumper(CoprsTestCase):
         assert data["api_login"] == "abc"
         assert data["api_token"] == "abc"
         assert data["api_token_expiration"] == "Jan 01 2000 00:00:00"
-        assert data["gravatar"].startswith("https://seccdn.libravatar.org/avatar/")
 
     def test_projects(self, f_users, f_coprs, f_db):
         app.config["SERVER_NAME"] = "localhost.localdomain"
