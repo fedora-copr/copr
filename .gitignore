@@ -20,6 +20,7 @@ _tmp/
 .mypy_cache/
 
 backend/docs/build
+backend/dump.rdb
 
 frontend/coprs_frontend/copr_frontend.log
 
