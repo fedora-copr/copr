@@ -193,7 +193,6 @@ class UserDataDumper(object):
             "api_login": self.user.api_login,
             "api_token": self.user.api_token,
             "api_token_expiration": self.user.api_token_expiration.strftime("%b %d %Y %H:%M:%S"),
-            "gravatar": self.user.gravatar_url,
         }
 
     @property
