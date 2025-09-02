@@ -66,7 +66,7 @@ class FrontendClient:
         # Repeat the request until it succeeds, or timeout is reached.
         # """
         url = "{}/{}/".format(self.frontend_url, url_path)
-        auth = self.frontend_auth if authenticate else None
+        auth = ("user", self.frontend_auth) if authenticate else None
         self.log.info("Sending %s request to frontend URL - %s",
                       method.upper(), url)
 
