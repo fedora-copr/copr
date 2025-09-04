@@ -90,9 +90,6 @@ Build package from its source definition
 mock-config::
 Get the mock profile (similar to koji mock-config)
 
-build-module::
-Build module via Copr MB
-
 
 PROJECT ACTIONS
 ---------------
@@ -668,28 +665,6 @@ EXAMPLES
   copr-cli delete-package myproject --name pkgname
 
   copr-cli mock-config myproject fedora-rawhide-x86_64
-
-
-MODULE ACTIONS
---------------
-
-`copr-cli build-module [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-usage: copr build-module [-h] [--url URL] [--token TOKEN] [copr]
-
-Build module via Copr MBS
-
---url URL:
-SCM with modulemd file in yaml format
-
---yaml YAML:
-Path to modulemd file in yaml format
-
-
-EXAMPLES
---------
-
- copr-cli build-module --url git://pkgs.stg.fedoraproject.org/modules/testmodule.git?#620ec77
 
 
 EXIT STATUS
