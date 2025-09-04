@@ -60,7 +60,6 @@
     {{ nav_element("overview", "Overview", "fa fa-home", copr_url('coprs_ns.copr_detail', copr)) }}
     {{ nav_element("packages", "Packages", "fa fa-archive", copr_url('coprs_ns.copr_packages', copr)) }}
     {{ nav_element("builds", "Builds", "fa fa-tasks", copr_url('coprs_ns.copr_builds', copr)) }}
-    {{ nav_element("modules", "Modules", "fa fa-rocket",  copr_url('coprs_ns.copr_modules', copr)) }}
     {{ nav_element("monitor", "Monitor", "fa fa-desktop", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
     {% if g.user %}
