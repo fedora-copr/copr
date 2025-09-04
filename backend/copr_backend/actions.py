@@ -4,16 +4,11 @@ import os.path
 import shutil
 import time
 import traceback
-import base64
 
 from urllib.request import urlretrieve
 from copr.exceptions import CoprRequestException
-from requests import RequestException
 from munch import Munch
 
-import modulemd_tools.yaml
-
-from copr_common.rpm import splitFilename
 from copr_common.enums import (
     ActionTypeEnum,
     BackendResultEnum,
@@ -29,7 +24,6 @@ from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
-                      get_chroot_arch, format_filename,
                       call_copr_repo, copy2_but_hardlink_rpms)
 from .sign import get_pubkey
 
@@ -66,7 +60,6 @@ class Action(object):
             ActionTypeEnum("gen_gpg_key"): GenerateGpgKey,
             ActionTypeEnum("rawhide_to_release"): RawhideToRelease,
             ActionTypeEnum("fork"): Fork,
-            ActionTypeEnum("build_module"): BuildModule,
             ActionTypeEnum("remove_dirs"): RemoveDirs,
         }.get(action_type, None)
 
@@ -455,69 +448,6 @@ class RawhideToRelease(Action):
             self.log.error("Createrepo failed, trying again #%s", i)
             time.sleep(10)
         return BackendResultEnum("failure")
-
-
-class BuildModule(Action):
-    def run(self):
-        result = BackendResultEnum("success")
-        try:
-            data = json.loads(self.data["data"])
-            ownername = data["ownername"]
-            projectname = data["projectname"]
-            chroots = data["chroots"]
-            project_path = os.path.join(self.opts.destdir, ownername, projectname)
-            appstream = data["appstream"]
-
-            mmd_yaml = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
-            mmd_yaml = modulemd_tools.yaml.upgrade(mmd_yaml, 2)
-            self.log.info("%s", mmd_yaml)
-
-            for chroot in chroots:
-                arch = get_chroot_arch(chroot)
-                mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, arch=arch)
-                artifacts = set()
-                srcdir = os.path.join(project_path, chroot)
-
-                # This should be dealt with in the `modulemd_tools` library
-                mmd = modulemd_tools.yaml._yaml2stream(mmd_yaml)
-                module_tag = "{}+{}-{}-{}".format(chroot, mmd.get_module_name(),
-                                                  (mmd.get_stream_name() or ''),
-                                                  (str(mmd.get_version()) or '1'))
-
-                module_relpath = os.path.join(module_tag, "latest", arch)
-                destdir = os.path.join(project_path, "modules", module_relpath)
-
-                if os.path.exists(destdir):
-                    self.log.warning("Module %s already exists. Omitting.", destdir)
-                else:
-                    # We want to copy just the particular module builds
-                    # into the module destdir, not the whole chroot
-                    os.makedirs(destdir)
-                    prefixes = ["{:08d}-".format(x) for x in data["builds"]]
-                    dirs = [d.name for d in os.scandir(srcdir) if d.name.startswith(tuple(prefixes))]
-                    for folder in dirs:
-                        shutil.copytree(os.path.join(srcdir, folder), os.path.join(destdir, folder))
-                        self.log.info("Copy directory: %s as %s",
-                                      os.path.join(srcdir, folder), os.path.join(destdir, folder))
-
-                        for folder_entry in os.scandir(os.path.join(destdir, folder)):
-                            f = folder_entry.name
-                            if not f.endswith(".rpm") or f.endswith(".src.rpm"):
-                                continue
-                            artifact = format_filename(zero_epoch=True, *splitFilename(f))
-                            artifacts.add(artifact)
-
-                    mmd_yaml = modulemd_tools.yaml.update(mmd_yaml, rpms_nevras=artifacts)
-                    self.log.info("Module artifacts: %s", artifacts)
-                    modulemd_tools.yaml.dump(mmd_yaml, destdir)
-                    if not call_copr_repo(destdir, appstream=appstream, logger=self.log):
-                        result = BackendResultEnum("failure")
-
-        except Exception:
-            self.log.exception("handle_build_module failed")
-            result = BackendResultEnum("failure")
-
-        return result
 
 
 class RemoveDirs(Action):

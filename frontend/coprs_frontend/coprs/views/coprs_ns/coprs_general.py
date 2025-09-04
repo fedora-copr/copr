@@ -17,10 +17,6 @@ import sqlalchemy
 from wtforms import ValidationError
 from markupsafe import Markup
 
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
-
 from copr_common.enums import CreaterepoReason
 from coprs import app
 from coprs import cache
@@ -29,10 +25,9 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.exceptions import ObjectNotFound, BadRequest, CoprHttpException
+from coprs.exceptions import ObjectNotFound, BadRequest
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
-from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.logic.webhooks_logic import WebhooksLogic
 from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
 
@@ -994,34 +989,6 @@ def render_generate_repo_file_cached(copr_dir, name_release, arch=None):
     return response
 
 
-#########################################################
-###                Module repo files                  ###
-#########################################################
-
-@coprs_ns.route("/<username>/<coprname>/module_repo/<name_release>/<module_nsv>.repo")
-@coprs_ns.route("/g/<group_name>/<coprname>/module_repo/<name_release>/<module_nsv>.repo")
-@req_with_copr
-def generate_module_repo_file(copr, name_release, module_nsv):
-    """ Generate module repo file for a given project. """
-    return render_generate_module_repo_file(copr, name_release, module_nsv)
-
-def render_generate_module_repo_file(copr, name_release, module_nsv):
-    module = ModulesLogic.get_by_nsv_str(copr, module_nsv).one()
-    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
-    url = os.path.join(copr.main_dir.repo_url, '') # adds trailing slash
-    repo_url = generate_repo_url(mock_chroot, copr.modules_url)
-    baseurl = "{}+{}/latest/$basearch".format(repo_url.rstrip("/"), module_nsv)
-    pubkey_url = urljoin(url, "pubkey.gpg")
-    response = flask.make_response(
-        flask.render_template("coprs/copr-modules.cfg", copr=copr, module=module,
-                              baseurl=baseurl, pubkey_url=pubkey_url))
-    response.mimetype = "text/plain"
-    response.headers["Content-Disposition"] = \
-        "filename={0}.cfg".format(copr.repo_name)
-    return response
-
-#########################################################
-
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 @coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
@@ -1111,141 +1078,3 @@ def copr_forks(copr):
 def copr_update_search_index():
     subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update-indexes-quick', '1'])
     return "OK"
-
-
-@coprs_ns.route("/<username>/<coprname>/modules/")
-@coprs_ns.route("/g/<group_name>/<coprname>/modules/")
-@req_with_copr
-def copr_modules(copr):
-    return render_copr_modules(copr)
-
-
-def render_copr_modules(copr):
-    modules = ModulesLogic.get_multiple_by_copr(copr=copr).all()
-    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=modules)
-
-
-@coprs_ns.route("/<username>/<coprname>/create_module/")
-@coprs_ns.route("/g/<group_name>/<coprname>/create_module/")
-@login_required
-@req_with_copr
-def copr_create_module(copr):
-    form = forms.CreateModuleForm()
-    return render_create_module(copr, form)
-
-
-def render_create_module(copr, form, profiles=2):
-    components_rpms = []
-    built_packages = []
-    for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
-        components_rpms.append((build.package.name, build))
-        for package in build.built_packages.split("\n"):
-            built_packages.append((package.split()[0], build))
-
-    return flask.render_template(
-        "coprs/create_module.html", copr=copr, form=form, profiles=profiles,
-        built_packages=built_packages, components_rpms=components_rpms)
-
-
-@coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
-@coprs_ns.route("/g/<group_name>/<coprname>/create_module/", methods=["POST"])
-@login_required
-@req_with_copr
-def copr_create_module_post(copr):
-    form = forms.CreateModuleForm(copr=copr, meta={'csrf': False})
-    args = [copr, form]
-    if "add_profile" in flask.request.values:
-        return add_profile(*args)
-    if "build_module" in flask.request.values:
-        return build_module(*args)
-    # @TODO Error
-
-
-def add_profile(copr, form):
-    n = len(form.profile_names) + 1
-    form.profile_names.append_entry()
-    for i in range(2, n):
-        form.profile_pkgs.append_entry()
-    return render_create_module(copr, form, profiles=n)
-
-
-def build_module(copr, form):
-    if not form.validate_on_submit():
-        # WORKAROUND append those which are not in min_entries
-        for i in range(2, len(form.profile_names)):
-            form.profile_pkgs.append_entry()
-        return render_create_module(copr, form, profiles=len(form.profile_names))
-
-    summary = "Module from Copr repository: {}".format(copr.full_name)
-    generator = ModulemdGenerator(str(copr.name), summary=summary, config=app.config)
-    generator.add_filter(form.filter.data)
-    generator.add_api(form.api.data)
-    generator.add_profiles(dict(zip(form.profile_names.data, form.profile_pkgs.data)))
-    generator.add_components(form.packages.data, form.components.data, form.builds.data)
-    yaml = generator.generate()
-
-    facade = None
-    try:
-        facade = ModuleBuildFacade(flask.g.user, copr, yaml)
-        module = facade.submit_build()
-        db.session.commit()
-
-        flask.flash("Modulemd yaml file successfully generated and submitted to be build as {}"
-                    .format(module.nsv), "success")
-        return flask.redirect(url_for_copr_details(copr))
-
-    except ValidationError as ex:
-        flask.flash(ex.message, "error")
-        return render_create_module(copr, form, len(form.profile_names))
-
-    except sqlalchemy.exc.IntegrityError:
-        flask.flash("Module {}-{}-{} already exists".format(
-            facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version), "error")
-        db.session.rollback()
-        return render_create_module(copr, form, len(form.profile_names))
-
-
-@coprs_ns.route("/<username>/<coprname>/module/<id>")
-@coprs_ns.route("/g/<group_name>/<coprname>/module/<id>")
-@req_with_copr
-def copr_module(copr, id):
-    module = ModulesLogic.get(id).first()
-    formatter = HtmlFormatter(style="autumn", linenos=False, noclasses=True)
-    pretty_yaml = highlight(module.yaml, get_lexer_by_name("YAML"), formatter)
-
-    # Get the list of chroots with unique name_release attribute
-    # Once we use jinja in 2.10 version, we can simply use
-    # {{ copr.active_chroots |unique(attribute='name_release') }}
-    unique_chroots = []
-    unique_name_releases = set()
-    for chroot in copr.active_chroots_sorted:
-        if chroot.name_release in unique_name_releases:
-            continue
-        unique_chroots.append(chroot)
-        unique_name_releases.add(chroot.name_release)
-
-    # There may be some modules with invalid modulemd YAML in the database. The
-    # validation was rather benevolent in the initial implementations. Let's
-    # make sure, we can parse the stored YAML.
-    try:
-        module.modulemd
-    except ValueError as ex:
-        msg = ("Unable to parse module YAML. The most probable reason is that "
-               "the module YAML is in an old modulemd version and/or has some "
-               "mistake in it. Hint: {}".format(ex))
-        raise CoprHttpException(msg, code=422) from ex
-
-    return flask.render_template("coprs/detail/module.html", copr=copr, module=module,
-                                 yaml=pretty_yaml, unique_chroots=unique_chroots)
-
-
-@coprs_ns.route("/<username>/<coprname>/module/<id>/raw")
-@coprs_ns.route("/g/<group_name>/<coprname>/module/<id>/raw")
-@req_with_copr
-def copr_module_raw(copr, id):
-    module = ModulesLogic.get(id).first()
-    response = flask.make_response(module.yaml)
-    response.mimetype = "text/plain"
-    response.headers["Content-Disposition"] = \
-        "filename={}.yaml".format("-".join([str(module.id), module.name, module.stream, str(module.version)]))
-    return response
