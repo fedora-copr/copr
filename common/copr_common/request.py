@@ -4,7 +4,7 @@ Common Copr code for dealing with HTTP requests
 
 import json
 import time
-from requests import get, post, put, RequestException
+import requests
 from copr_common.compat import package_version
 
 
@@ -26,8 +26,11 @@ class SafeRequest:
         'version': package_version(package_name),
     }
 
-    def __init__(self, auth=None, log=None, try_indefinitely=False, timeout=2 * 60):
+    def __init__(self, auth=None, cert=None, log=None,
+                 try_indefinitely=False, timeout=2 * 60):
+        # pylint: disable=too-many-positional-arguments
         self.auth = auth
+        self.cert = cert
         self.log = log
         self.try_indefinitely = try_indefinitely
         self.timeout = timeout
@@ -58,26 +61,26 @@ class SafeRequest:
                                              **kwargs)
 
     def _send_request(self, url, method, data=None, **kwargs):
+        files = kwargs.get("files", None)
+
         headers = {
-            "content-type": "application/json",
             "User-Agent": "{name}/{version}".format(**SafeRequest.user_agent),
         }
-        auth = ("user", self.auth) if self.auth else None
+        if not files:
+            headers["content-type"] = "application/json"
 
         try:
             req_args = {}
             req_args.update(kwargs)
-            req_args["auth"] = auth
+            if self.cert:
+                req_args["cert"] = self.cert
+            elif self.auth:
+                req_args["auth"] = self.auth
             req_args["headers"] = headers
             req_args["timeout"] = self.timeout / 5
-            method = method.lower()
-            if method in ['post', 'put']:
-                req_args['data'] = json.dumps(data)
-                method = post if method == 'post' else put
-            else:
-                method = get
-            response = method(url, **req_args)
-        except RequestException as ex:
+            req_args['data'] = data if files else json.dumps(data)
+            response = requests.request(method, url, **req_args)
+        except requests.RequestException as ex:
             raise RequestRetryError(
                 "Requests error on {}: {}".format(url, str(ex)))
 
@@ -91,9 +94,9 @@ class SafeRequest:
         if response.status_code >= 400:
             # Client error.  The mistake is on our side, it doesn't make sense
             # to continue with retries.
-            raise RequestError(
-                "Request client error on {}: {} {}".format(
-                    url, response.status_code, response.reason))
+            msg = "Request client error on {}: {} {}".format(
+                    url, response.status_code, response.reason)
+            raise RequestError(msg, response)
 
         # TODO: Success, but tighten the redirects etc.
         return response
@@ -134,3 +137,7 @@ class RequestError(Exception):
     """
     Request to server failed
     """
+
+    def __init__(self, message, response=None):
+        super().__init__(message)
+        self.response = response

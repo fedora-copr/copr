@@ -15,7 +15,7 @@ class TestStringMethods(TestCase):
         }
         self.log = logging.getLogger("testlog")
 
-    @mock.patch("copr_common.request.post")
+    @mock.patch("copr_common.request.requests.request")
     def test_send_request_not_200(self, post_req):
         post_req.return_value.status_code = 501
         with self.assertRaises(RequestRetryError):
@@ -23,7 +23,7 @@ class TestStringMethods(TestCase):
             request._send_request(self.url, "post", self.data)
         self.assertTrue(post_req.called)
 
-    @mock.patch("copr_common.request.post")
+    @mock.patch("copr_common.request.requests.request")
     def test_send_request_post_error(self, post_req):
         post_req.side_effect = RequestException()
         with self.assertRaises(RequestRetryError):

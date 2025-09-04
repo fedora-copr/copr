@@ -15,6 +15,7 @@ from distutils.errors import DistutilsFileError # pylint: disable=deprecated-mod
 import shutil
 import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
+from copr_common.request import RequestError
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name, ensure_dir_exists
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
@@ -278,11 +279,16 @@ class PulpStorage(Storage):
 
     def init_project(self, dirname, chroot, reason=None):
         repository_name = self._repository_name(chroot, dirname)
-        response = self.client.create_repository(repository_name)
-        if not response.ok and "This field must be unique" not in response.text:
-            self.log.error("Failed to create a Pulp repository %s because of %s",
-                           repository_name, response.text)
-            return False
+        try:
+            response = self.client.create_repository(repository_name)
+        except RequestError as ex:
+            if "This field must be unique" not in ex.response.text:
+                self.log.error(
+                    "Failed to create a Pulp repository %s because of %s",
+                    repository_name,
+                    ex.response.text,
+                )
+                return False
 
         # When a repository is mentioned in other endpoints, it needs to be
         # mentioned by its href, not name
@@ -294,11 +300,19 @@ class PulpStorage(Storage):
         public_distribution_name = self._distribution_name(chroot, dirname, devel=False)
         devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
 
-        response = self.client.create_distribution(distribution_name, repository_href)
-        if not response.ok and "This field must be unique" not in response.text:
-            self.log.error("Failed to create a Pulp distribution %s because of %s",
-                           public_distribution_name, response.text)
-            return False
+        try:
+            response = self.client.create_distribution(
+                distribution_name,
+                repository_href,
+            )
+        except RequestError as ex:
+            if "This field must be unique" not in ex.response.text:
+                self.log.error(
+                    "Failed to create a Pulp distribution %s because of %s",
+                    public_distribution_name,
+                    ex.response.text,
+                )
+                return False
 
         # If a project enabled the manual createrepo mode, we need to create a
         # devel distribution to be consumed by other builds within the project

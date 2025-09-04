@@ -8,8 +8,8 @@ import os
 import time
 import tomllib
 from urllib.parse import urlencode
-import requests
 
+from copr_common.request import SafeRequest
 from copr_common.lock import lock, LockTimeout
 from copr_common.redis_helpers import get_redis_connection
 
@@ -220,17 +220,32 @@ class PulpClient:
             relative += "/"
         return self.config["base_url"] + relative
 
-    @property
-    def request_params(self):
+    def send(self, method, url, data=None, files=None):
         """
-        Default parameters for our requests
+        Performs a "safe request", meaning that if a request fails, we wait
+        and try again, and again, until it succeeds.
         """
-        params = {"timeout": self.timeout}
+        request = SafeRequest(
+            log=self.log,
+            try_indefinitely=True,
+            timeout=self.timeout,
+        )
         if all(self.cert):
-            params["cert"] = self.cert
+            request.cert = self.cert
         else:
-            params["auth"] = self.auth
-        return params
+            request.auth = self.auth
+
+        # If only URI was passed, make it a fully qualified URL
+        if not url.startswith(("http://", "https://")):
+            url = self.url(url)
+
+        response = request.send(
+            url=url,
+            method=method,
+            data=data,
+            files=files,
+        )
+        return response
 
     def create_repository(self, name):
         """
@@ -240,7 +255,7 @@ class PulpClient:
         uri = "/api/v3/repositories/rpm/rpm/"
         data = {"name": name, "retain_repo_versions": 1, "retain_package_versions": 5}
         self.log.info("Pulp: create_repository: %s %s", uri, name)
-        return requests.post(self.url(uri), json=data, **self.request_params)
+        return self.send("POST", uri, data)
 
     def get_repository(self, name):
         """
@@ -252,7 +267,7 @@ class PulpClient:
         uri = "/api/v3/repositories/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_repository: %s", uri)
-        return requests.get(self.url(uri), **self.request_params)
+        return self.send("GET", uri)
 
     def get_distribution(self, name):
         """
@@ -264,7 +279,7 @@ class PulpClient:
         uri = "/api/v3/distributions/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_distribution: %s", uri)
-        return requests.get(self.url(uri), **self.request_params)
+        return self.send("GET", uri)
 
     def get_task(self, task):
         """
@@ -278,7 +293,7 @@ class PulpClient:
         """
         url = self.config["base_url"] + href
         self.log.info("Pulp: get_by_href: %s", href)
-        return requests.get(url, **self.request_params)
+        return self.send("GET", url)
 
     def create_distribution(self, name, repository, basepath=None):
         """
@@ -292,7 +307,7 @@ class PulpClient:
             "base_path": basepath or name,
         }
         self.log.info("Pulp: create_distribution: %s %s", uri, data)
-        return requests.post(self.url(uri), json=data, **self.request_params)
+        return self.send("POST", uri, data)
 
     def update_distribution(self, distribution, publication=None, repository=None):
         """
@@ -312,7 +327,7 @@ class PulpClient:
             "repository": repository,
         }
         self.log.info("Pulp: updating distribution %s", distribution)
-        return requests.patch(url, json=data, **self.request_params)
+        return self.send("PATCH", url, data)
 
     def create_publication(self, repository):
         """
@@ -322,7 +337,7 @@ class PulpClient:
         uri = "/api/v3/publications/rpm/rpm/"
         data = {"repository": repository}
         self.log.info("Pulp: publishing %s %s", uri, repository)
-        return requests.post(self.url(uri), json=data, **self.request_params)
+        return self.send("POST", uri, data)
 
     def get_publication(self, repository):
         """
@@ -333,7 +348,7 @@ class PulpClient:
         uri = "/api/v3/publications/rpm/rpm/?"
         uri += urlencode({"repository": repository, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_publicatoin: %s", uri)
-        return requests.get(self.url(uri), **self.request_params)
+        return self.send("GET", uri)
 
     def create_content(self, path, labels):
         """
@@ -345,8 +360,7 @@ class PulpClient:
             data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
             self.log.info("Pulp: create_content: %s %s", uri, path)
-            package = requests.post(
-                self.url(uri), data=data, files=files, **self.request_params)
+            package = self.send("POST", uri, data=data, files=files)
         return package
 
     def modify_repository_content_locked(self, repository, batch):
@@ -429,7 +443,7 @@ class PulpClient:
         path = os.path.join(repository, "modify/")
         url = self.config["base_url"] + path
         data = {"add_content_units": add_content_units or [], "remove_content_units": remove_content_units or []}
-        return requests.post(url, json=data, **self.request_params)
+        return self.send("POST", url, data)
 
     def add_content(self, repository, artifacts):
         """
@@ -476,7 +490,7 @@ class PulpClient:
         # Setting the limit to 1000, but in the future we should use pagination
         uri += urlencode({"q": query, "fields": "prn,location_href", "offset": 0, "limit": 1000})
         self.log.info("Pulp: get_content: %s, query = %s", uri, query)
-        return requests.get(self.url(uri), **self.request_params)
+        return self.send("GET", uri)
 
     def delete_repository(self, repository):
         """
@@ -485,7 +499,7 @@ class PulpClient:
         """
         url = self.config["base_url"] + repository
         self.log.info("Pulp: delete_repository: %s", repository)
-        return requests.delete(url, **self.request_params)
+        return self.send("DELETE", url)
 
     def delete_distribution(self, distribution):
         """
@@ -494,7 +508,7 @@ class PulpClient:
         """
         url = self.config["base_url"] + distribution
         self.log.info("Pulp: delete_distribution: %s", distribution)
-        return requests.delete(url, **self.request_params)
+        return self.send("DELETE", url)
 
     def wait_for_finished_task(self, task, timeout=86400):
         """
@@ -523,7 +537,7 @@ class PulpClient:
         uri = "api/v3/distributions/rpm/rpm/?"
         uri += urlencode({"name__startswith": prefix})
         self.log.info("Pulp: list_distributions: %s", uri)
-        return requests.get(self.url(uri), **self.request_params)
+        return self.send("GET", uri)
 
     def set_label(self, href, name, value):
         """
@@ -533,4 +547,4 @@ class PulpClient:
         uri = href + "set_label/"
         data = {"key": name, "value": value}
         self.log.info("Pulp: set_label: %s", uri)
-        return requests.post(self.url(uri), json=data, **self.request_params)
+        return self.send("POST", uri, data)
