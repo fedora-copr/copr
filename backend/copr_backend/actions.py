@@ -406,9 +406,8 @@ class RawhideToRelease(Action):
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["ownername"],
                                       data["copr_dir"], data["rawhide_chroot"], build)
-                if os.path.exists(srcdir):
-                    destdir = os.path.join(chrootdir, build)
-
+                destdir = os.path.join(chrootdir, build)
+                if os.path.exists(srcdir) and not os.path.exists(destdir):
                     # We can afford doing hardlinks in this case because the
                     # RPMs are not modified at all (contrary to "project
                     # forking", where we have to re-sign the files).
