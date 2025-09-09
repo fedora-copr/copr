@@ -14,7 +14,12 @@ from munch import Munch
 import modulemd_tools.yaml
 
 from copr_common.rpm import splitFilename
-from copr_common.enums import ActionTypeEnum, BackendResultEnum, StorageEnum
+from copr_common.enums import (
+    ActionTypeEnum,
+    BackendResultEnum,
+    StorageEnum,
+    CreaterepoReason,
+)
 from copr_common.worker_manager import WorkerManager
 from copr_common.lock import lock
 
@@ -391,6 +396,13 @@ class RawhideToRelease(Action):
                 self.log.info("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
 
+            if isinstance(self.storage, PulpStorage):
+                self.storage.init_project(
+                    data["copr_dir"],
+                    data["dest_chroot"],
+                    reason=CreaterepoReason.new_chroot,
+                )
+
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["ownername"],
                                       data["copr_dir"], data["rawhide_chroot"], build)
@@ -406,6 +418,24 @@ class RawhideToRelease(Action):
                                     copy_function=copy2_but_hardlink_rpms)
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
+
+                if isinstance(self.storage, PulpStorage):
+                    build_id = int(build.split("-")[0])
+                    response =self.storage.client.get_content(
+                        [build_id],
+                        data["rawhide_chroot"],
+                        fields=["prn"],
+                    )
+                    rpms = response.json()["results"]
+                    prns = [rpm["prn"] for rpm in rpms]
+                    success = self.storage.create_repository_version(
+                        data["copr_dir"],
+                        data["dest_chroot"],
+                        prns,
+                    )
+                    if not success:
+                        return BackendResultEnum("failure")
+
             return self._createrepo_repeatedly(chrootdir, appstream)
 
         # pylint: disable=broad-except
@@ -414,6 +444,12 @@ class RawhideToRelease(Action):
             return BackendResultEnum("failure")
 
     def _createrepo_repeatedly(self, chrootdir, appstream):
+        # If this project stores RPMs in Pulp, there is no need to run the
+        # createrepo on backend, because there are no pacakges there. And we
+        # don't need to manually do publish in Pulp either because it does it
+        # implicitly.
+        if isinstance(self.storage, PulpStorage):
+            return BackendResultEnum("success")
         for i in range(5):
             if call_copr_repo(chrootdir, appstream=appstream, logger=self.log):
                 return BackendResultEnum("success")
