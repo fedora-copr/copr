@@ -78,6 +78,7 @@ def rawhide_to_release_function(rawhide_chroot, dest_chroot, retry_forked):
                     "rawhide_chroot": rawhide_chroot,
                     "appstream": copr.appstream,
                     "dest_chroot": dest_chroot,
+                    "storage": copr.storage,
                     "builds": []}
 
             fork_builds = builds_to_fork(copr_dir, mock_rawhide_chroot)
