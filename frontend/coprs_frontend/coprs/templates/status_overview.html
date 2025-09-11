@@ -40,7 +40,7 @@ This page is cached for <strong>{{ cache_seconds }} seconds</strong>.
   </td>
   <td>{{ full_count }}</td>
 </tr>
-{% for stattype in ["chroots", "projects", "background"] %}
+{% for stattype in ["chroots", "projects", "background", "architecture"] %}
 <tr id="owner_name_{{ owner_name }}_{{ stattype }}"
   data-parent="#owner_name_{{ owner_name }}"
   class="collapsed"
@@ -63,8 +63,8 @@ This page is cached for <strong>{{ cache_seconds }} seconds</strong>.
 </table>
 
 
-{% for stattype in ["projects", "chroots", "background"] %}
-<h2>Queue by {{ stattype }}</h2>
+{% for stattype in ["projects", "chroots", "background", "architecture"] %}
+<h2> Queue by {{ stattype.capitalize() }}</h2>
 <table class="table table-bordered table-hover">
 <thead>
   <th></th>
