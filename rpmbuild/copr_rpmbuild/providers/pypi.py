@@ -1,5 +1,7 @@
 import os
 import logging
+
+from copr_rpmbuild.helpers import locate_spec
 from ..helpers import run_cmd
 from .base import Provider
 
@@ -68,6 +70,5 @@ class PyPIProvider(Provider):
                       self.pypi_package_name)
             raise err
 
-        spec = "python-{0}.spec".format(self.pypi_package_name)
-        spec = os.path.join(self.resultdir, spec)
+        spec = locate_spec(self.resultdir)
         self.build_srpm_from_spec(spec)
