@@ -1,0 +1,119 @@
+#!/usr/bin/python3
+
+"""
+Sometimes we need to query information from Pulp. That can of course be done
+using the `pulp` CLI tool. For example:
+
+    pulp rpm repository show --name @copr/copr/fedora-rawhide-x86_64
+    pulp rpm distribution show --name @copr/copr/fedora-rawhide-x86_64
+
+But in certain scenarios we use custom queries that are not easily writeable on
+the command line, and even if so, we would like to see what results we query
+by our actual code, not its CLI alternative.
+
+An example of a custom query would be querying RPM results based on a build ID
+"""
+
+import sys
+import argparse
+from pprint import pprint
+from copr_backend.pulp import PulpClient
+
+
+def query_build(client, args):
+    """
+    Query RPMs based on build ID
+    """
+    fields = [
+        "prn",
+        "pulp_href",
+        "pulp_labels",
+        "pulp_created",
+        "pulp_last_updated",
+        "location_href",
+        "name",
+        "version",
+        "release",
+        "arch",
+    ]
+    response = client.get_content(
+        [args.build_id],
+        chroot=args.chroot,
+        fields=fields,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data["results"]
+
+
+def query_project(client, args):
+    """
+    Query repository and distribution based on a project name and chroot
+    """
+    if not args.chroot:
+        print("Please specify --chroot")
+        sys.exit(1)
+
+    name = "{0}/{1}".format(args.project, args.chroot)
+    response = client.get_repository(name)
+    response.raise_for_status()
+    data = response.json()
+    repositories = data["results"]
+
+    response = client.get_distribution(name)
+    response.raise_for_status()
+    data = response.json()
+    distributions = data["results"]
+    return repositories + distributions
+
+
+def query_href(client, args):
+    """
+    Query any Pulp object based on its `pulp_href` value
+    """
+    response = client.get_by_href(args.href)
+    response.raise_for_status()
+    data = response.json()
+    return [data]
+
+
+def get_arg_parser():
+    """
+    CLI argument parser
+    """
+    parser = argparse.ArgumentParser()
+    exclusive = parser.add_mutually_exclusive_group(required=True)
+    exclusive.add_argument("--build", type=int, dest="build_id")
+    exclusive.add_argument("--project")
+    exclusive.add_argument("--href")
+    parser.add_argument("--chroot")
+    return parser
+
+
+def main():
+    """
+    The main function
+    """
+    client = PulpClient.create_from_config_file()
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    if args.build_id:
+        results = query_build(client, args)
+
+    elif args.project:
+        results = query_project(client, args)
+
+    elif args.href:
+        results = query_href(client, args)
+
+    else:
+        print("Error: Don't know what to query.")
+        sys.exit(1)
+
+    for result in results:
+        pprint(result)
+
+
+if __name__ == "__main__":
+    main()
