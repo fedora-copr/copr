@@ -476,7 +476,7 @@ class PulpStorage(Storage):
 
             repository = self._get_repository(chroot)
             # Find the RPMs by list of build ids
-            content_response = self.client.get_content(build_ids)
+            content_response = self.client.get_content(build_ids, fields=["prn"])
             list_of_prns = [package["prn"] for package in content_response.json()["results"] ]
             self.client.delete_content(repository, list_of_prns)
             self.log.info("Deleted resources: %s", list_of_prns)
@@ -541,7 +541,11 @@ class PulpStorage(Storage):
         # pylint: disable=too-many-positional-arguments
         src_fullname = "{0}/{1}".format(src_owner, src_project)
         with TemporaryDirectory(prefix="copr-fork-") as tmp:
-            response = self.client.get_content([src_build_id], chroot)
+            response = self.client.get_content(
+                [src_build_id],
+                chroot,
+                fields=["location_href"],
+            )
             rpms = response.json()["results"]
             for rpm in rpms:
                 filename = rpm["location_href"]

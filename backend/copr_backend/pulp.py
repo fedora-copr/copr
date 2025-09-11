@@ -471,7 +471,7 @@ class PulpClient:
         self.log.info("Pulp: delete_content: %s (%s)", repository, artifacts)
         return True
 
-    def get_content(self, build_ids, chroot=None):
+    def get_content(self, build_ids, chroot=None, fields=None):
         """
         Get a list of PRNs for RPMs with provided build ids
         https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_list
@@ -486,9 +486,13 @@ class PulpClient:
         if chroot:
             query += f" AND pulp_label_select=\"chroot={chroot}\""
 
-        uri = "api/v3/content/rpm/packages/?"
         # Setting the limit to 1000, but in the future we should use pagination
-        uri += urlencode({"q": query, "fields": "prn,location_href", "offset": 0, "limit": 1000})
+        params = {"q": query, "offset": 0, "limit": 1000}
+        if fields:
+            params["fields"] = ",".join(fields)
+
+        uri = "api/v3/content/rpm/packages/?"
+        uri += urlencode(params)
         self.log.info("Pulp: get_content: %s, query = %s", uri, query)
         return self.send("GET", uri)
 
