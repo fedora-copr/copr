@@ -78,7 +78,9 @@ class SafeRequest:
                 req_args["auth"] = self.auth
             req_args["headers"] = headers
             req_args["timeout"] = self.timeout / 5
-            req_args['data'] = data if files else json.dumps(data)
+            method = method.lower()
+            if method in ["post", "put"]:
+                req_args["data"] = data if files else json.dumps(data)
             response = requests.request(method, url, **req_args)
         except requests.RequestException as ex:
             raise RequestRetryError(
