@@ -13,6 +13,7 @@ from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeout
 GET = "GET"
 POST = "POST"
 PUT = "PUT"
+DELETE = "DELETE"
 
 
 class Request(object):
