@@ -13,13 +13,13 @@ import pytest
 
 @pytest.fixture
 def post_req():
-    with mock.patch("copr_common.request.post") as obj:
+    with mock.patch("copr_common.request.requests.request") as obj:
         yield obj
 
 @pytest.fixture(scope='function', params=['get', 'post', 'put'])
 def f_request_method(request):
     'mock the requests.{get,post,put} method'
-    with mock.patch("copr_common.request.{}".format(request.param)) as ctx:
+    with mock.patch("copr_common.request.requests.request") as ctx:
         ctx.return_value.headers = {
             "Copr-FE-BE-API-Version": "666",
         }
