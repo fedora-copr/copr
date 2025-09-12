@@ -969,23 +969,6 @@ class Commands(object):
                                                 project_dirname=project_dirname)
         self.print_build_info_and_wait([build], args)
 
-    def action_build_module(self, args):
-        """
-        Build module via Copr MBS
-        """
-        ownername, projectname = self.parse_name(args.copr)
-
-        if args.yaml:
-            try:
-                module = self.client.module_proxy.build_from_file(
-                        ownername, projectname, args.yaml, distgit=args.distgit)
-            except FileNotFoundError as e:
-                raise CoprRequestException("File '{filename}' not found".format(filename=e.filename))
-        else:
-            module = self.client.module_proxy.build_from_url(
-                    ownername, projectname, args.url, distgit=args.distgit)
-        print("Created module {0}".format(module.nsv))
-
     def action_permissions_edit(self, args):
         ownername, projectname = self.parse_name(args.project)
         if not args.permissions:
@@ -1806,19 +1789,6 @@ def setup_parser():
                                       help="Name of a package to be built",
                                       metavar="PKGNAME", required=True)
     parser_build_package.set_defaults(func="action_build_package")
-
-    # module building
-    parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
-    parser_build_module.add_argument("copr", help="The copr repo to build module in. Can be just name of project "
-                                                  "or even in format owner/project.")
-    parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group(required=True)
-    parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
-    parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
-    parser_build_module.set_defaults(func="action_build_module")
-    parser_build_module.add_argument(
-        "--distgit",
-        help="Dist-git instance to build against, e.g. 'fedora'"
-    )
 
 
     #########################################################
