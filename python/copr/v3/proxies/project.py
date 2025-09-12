@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import warnings
 
 from . import BaseProxy
-from ..requests import munchify, POST, GET, PUT
+from ..requests import munchify, DELETE, POST, PUT
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -236,7 +236,7 @@ class ProjectProxy(BaseProxy):
 
         response = self.request.send(
             endpoint=endpoint,
-            method=POST,
+            method=PUT,
             params=params,
             data=data,
             auth=self.auth,
@@ -261,7 +261,7 @@ class ProjectProxy(BaseProxy):
         }
         response = self.request.send(
             endpoint=endpoint,
-            method=POST,
+            method=DELETE,
             params=params,
             data=data,
             auth=self.auth,

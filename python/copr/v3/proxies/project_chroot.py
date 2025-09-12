@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import FileRequest, munchify, POST
+from ..requests import FileRequest, munchify, PUT
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -110,7 +110,7 @@ class ProjectChrootProxy(BaseProxy):
         )
         response = request.send(
             endpoint=endpoint,
-            method=POST,
+            method=PUT,
             params=params,
             data=data,
             auth=self.auth,
