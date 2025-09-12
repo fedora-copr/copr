@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import FileRequest, munchify, POST
+from ..requests import FileRequest, munchify, DELETE, POST, PUT
 from ..exceptions import CoprValidationException
 from ..helpers import for_all_methods, bind_proxy
 
@@ -85,7 +85,7 @@ class BuildProxy(BaseProxy):
         """
         endpoint = "/build/cancel/{0}".format(build_id)
         response = self.request.send(
-            endpoint=endpoint, method=POST, auth=self.auth)
+            endpoint=endpoint, method=PUT, auth=self.auth)
         return munchify(response)
 
     def create_from_urls(self, ownername, projectname, urls, buildopts=None, project_dirname=None):
@@ -356,7 +356,7 @@ class BuildProxy(BaseProxy):
         """
         endpoint = "/build/delete/{0}".format(build_id)
         response = self.request.send(
-            endpoint=endpoint, method=POST, auth=self.auth)
+            endpoint=endpoint, method=DELETE, auth=self.auth)
         return munchify(response)
 
     def delete_list(self, build_ids):
@@ -370,5 +370,5 @@ class BuildProxy(BaseProxy):
         endpoint = "/build/delete/list"
         data = {"builds": build_ids}
         response = self.request.send(
-            endpoint=endpoint, data=data, method=POST, auth=self.auth)
+            endpoint=endpoint, data=data, method=DELETE, auth=self.auth)
         return munchify(response)

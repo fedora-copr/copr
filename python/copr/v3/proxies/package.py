@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from . import BaseProxy
 from .build import BuildProxy
-from ..requests import munchify, POST
+from ..requests import munchify, DELETE, POST, PUT
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -141,7 +141,7 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         response = self.request.send(
-            endpoint=endpoint, data=data, method=POST, auth=self.auth)
+            endpoint=endpoint, data=data, method=PUT, auth=self.auth)
         return munchify(response)
 
     def build(self, ownername, projectname, packagename, buildopts=None, project_dirname=None):
@@ -181,5 +181,5 @@ class PackageProxy(BaseProxy):
             "package_name": packagename,
         }
         response = self.request.send(
-            endpoint=endpoint, data=data, method=POST, auth=self.auth)
+            endpoint=endpoint, data=data, method=DELETE, auth=self.auth)
         return munchify(response)
