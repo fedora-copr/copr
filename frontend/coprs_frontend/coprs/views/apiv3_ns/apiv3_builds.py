@@ -465,6 +465,24 @@ class CreateCustom(Resource):
 
 @apiv3_builds_ns.route("/delete/<int:build_id>")
 class DeleteBuild(Resource):
+    def _common(self, build_id):
+        build = ComplexLogic.get_build(build_id)
+        build_dict = to_dict(build)
+        BuildsLogic.delete_build(flask.g.user, build)
+        db.session.commit()
+        return build_dict
+
+    @api_login_required
+    @apiv3_builds_ns.doc(params=get_build_docs)
+    @apiv3_builds_ns.marshal_with(build_model)
+    @deprecated_route_method_type(apiv3_builds_ns, "POST", "DELETE")
+    def post(self, build_id):
+        """
+        Delete a build
+        Delete a build by its id.
+        """
+        return self._common(build_id)
+
     @api_login_required
     @apiv3_builds_ns.doc(params=get_build_docs)
     @apiv3_builds_ns.marshal_with(build_model)
@@ -473,11 +491,7 @@ class DeleteBuild(Resource):
         Delete a build
         Delete a build by its id.
         """
-        build = ComplexLogic.get_build(build_id)
-        build_dict = to_dict(build)
-        BuildsLogic.delete_build(flask.g.user, build)
-        db.session.commit()
-        return build_dict
+        return self._common(build_id)
 
 
 @apiv3_builds_ns.route("/delete/list")
