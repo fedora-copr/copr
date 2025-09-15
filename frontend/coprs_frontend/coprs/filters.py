@@ -291,5 +291,9 @@ def being_server_admin(user, copr):
 @app.template_filter("is_older_than_days")
 def is_older_than_days(timestamp, days):
     """Check if a timestamp is older than the specified number of days"""
+    if timestamp is None:
+        # For builds with no timestamp, we don't know their age
+        # so we assume they are not older than the specified days
+        return False
     now = time.time()
     return (now - timestamp) > (days * 24 * 3600)
