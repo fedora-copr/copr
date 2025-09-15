@@ -93,6 +93,12 @@ class SafeRequest:
                 "Request server error on {}: {} {}".format(
                     url, response.status_code, response.reason))
 
+        if response.status_code == 408:
+            # 408 Request Timeout - We couldn't send the request within
+            # a reasonable time-frame, so let's retry.
+            raise RequestRetryError(
+                f"Request Timeout {response.status_code}: {response.reason}: {url}")
+
         if response.status_code >= 400:
             # Client error.  The mistake is on our side, it doesn't make sense
             # to continue with retries.
