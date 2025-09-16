@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.7
+Version:    2.8
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,13 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.8-1
+- Don't traceback when trying to run branch action for second time
+- Implement branch-fedora support for Pulp projects
+- Add a helper script to query Pulp results
+- Handle unsuccessful Pulp requests
+- Don't upload results to Pulp in parallel
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.7-1
 - Specify reason for running createrepo
 - Implement support for Pulp manual createrepo
