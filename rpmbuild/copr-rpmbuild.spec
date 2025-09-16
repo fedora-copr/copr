@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.4
+Version: 1.5
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -305,6 +305,9 @@ EOF
 
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 1.5-1
+- Read the specfile that is produced by specfile generator
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.4-1
 - Improve robustness and cooperation with backend
 - Pipe errors/warning out to builder-live.log
