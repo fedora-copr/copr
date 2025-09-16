@@ -2,7 +2,7 @@
 %global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
-Version:    2.1
+Version:    2.2
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -171,6 +171,9 @@ systemctl condrestart httpd &>/dev/null || :
 %endif
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.2-1
+- Stop using deprecated %%py3_build/%%py3_install macros
+
 * Tue Mar 25 2025 Pavel Raiskup <praiskup@redhat.com> 2.1-1
 - add sysusers.d config file to allow rpm to create users/groups automatically
 
