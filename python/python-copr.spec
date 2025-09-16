@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.2
+Version:    2.3
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.3-1
+- Use correct used HTTP methods for delete and update requests
+- Introduce v3.requests.DELETE method
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.2-1
 - Stop using deprecated %%py3_build/%%py3_install macros
 - Remove rhel7 conditions and remove python2 support
