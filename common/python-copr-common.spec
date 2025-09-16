@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.2.1
+Version:    1.3
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -79,6 +79,10 @@ version=%version %py3_install
 
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 1.3-1
+- SafeRequest to retry upon error 408
+- Handle unsuccessful Pulp requests
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.2-1
 - Specify reason for running createrepo
 - Improve robustness and cooperation between backend and rpmbuild
