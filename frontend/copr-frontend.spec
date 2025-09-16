@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.3
+Version:    2.4
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,16 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.4-1
+- Use beginning of the build as reference for timestamp
+- Support both POST and DELETE for deleting a build
+- Print architecture statistics on status page
+- Implement branch-fedora support for Pulp projects
+- Update e-mail on login
+- Drop libravatar url from data dump (GDPR)
+- Delete data signs-out and redirects to homepage (GDPR)
+- Delete also e-mail entry (GDPR)
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.3-1
 - Specify reason for running createrepo
 - Implement support for Pulp manual createrepo
