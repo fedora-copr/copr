@@ -158,7 +158,7 @@ def main():
 
             result = storage.init_project(subproject, chroot)
             if not result:
-                log.error("Failed to initialize project: %s", chroot)
+                log.error("Failed to initialize chroot: %s", chroot)
                 ok = False
                 break
 
@@ -182,8 +182,8 @@ def main():
                 all_package_hrefs.extend(package_hrefs)
 
             # Add build results to the repository
-            if not storage.create_repository_version(project, chroot, all_package_hrefs):
-                log.error("Failed to create repository version: %s", chroot)
+            if not storage.create_repository_version(subproject, chroot, all_package_hrefs):
+                log.error("Failed to create repository version for chroot: %s", chroot)
                 sys.exit(1)
 
             log.info("OK: %s", chroot)
