@@ -148,7 +148,19 @@ def cmd_prolong(args, config):
     Prolong the VM expiration time
     """
     cmdshow = CMDShow(config)
-    requested = cmdshow.expiration + timedelta(hours=args.hours)
+    expiration = cmdshow.expiration
+    if not expiration:
+        print(
+            "Cannot find the builder expiration.\n"
+            "The file {0} probably doesn't exist.\n"
+            "If you are a Copr user, please report this issue.\n"
+            "If you are a Copr admin, be aware that this command "
+            "only works on builders with user SSH access."
+            .format(USER_SSH_EXPIRATION_PATH)
+        )
+        sys.exit(1)
+
+    requested = expiration + timedelta(hours=args.hours)
     maxlimit = cmdshow.maxlimit
 
     if requested > maxlimit:
