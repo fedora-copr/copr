@@ -15,7 +15,7 @@ USER_SSH_DEFAULT_EXPIRATION = 60 * 60
 
 # When build is resubmitted with user SSH,
 # how long the builder can be prolonged to be kept alive (in seconds).
-USER_SSH_MAX_EXPIRATION = 60 * 60 * 24 * 2
+USER_SSH_MAX_EXPIRATION = 60 * 60 * 24 * 3
 
 # When build is resubmitted with user SSH,
 # in what file the expiration timestamp should be stored
