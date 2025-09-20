@@ -388,7 +388,8 @@ class PulpClient:
         if response.ok and data["state"] == "completed":
             self.log.info("Successfully modified Pulp repository content %s", repository)
         else:
-            self.log.info("Failed to modify Pulp repository content %s", repository)
+            self.log.error("Failed to modify Pulp repository content %s", repository)
+            self.log.error("Response %s: %s", response, response.json())
             return False
 
         # Make a request to create a new publication
