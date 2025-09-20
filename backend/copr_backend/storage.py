@@ -75,7 +75,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
+    def upload_build_results(self, rpm_paths, chroot, max_workers=1, build_id=None):
         """
         Add results for a new build to the storage
         """
@@ -117,6 +117,24 @@ class Storage:
         """
         Fork build results from one project to another
         """
+
+    def find_build_results(self, results_dir):
+        """
+        Return a list of absolute paths of all RPMs within this directory.
+        The results are returned in an undetermined order.
+        """
+        results = []
+        for root, _, files in os.walk(results_dir):
+            for name in files:
+                if os.path.basename(root) == "prev_build_backup":
+                    continue
+
+                if not name.endswith(".rpm"):
+                    continue
+
+                path = os.path.join(root, name)
+                results.append(path)
+        return results
 
 
 class BackendStorage(Storage):
@@ -390,35 +408,27 @@ class PulpStorage(Storage):
 
         return response
 
-    def upload_build_results(self, chroot, results_dir, target_dir_name, max_workers=1, build_id=None):
+    def upload_build_results(self, rpm_paths, chroot, max_workers=1, build_id=None):
         futures = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            for root, _, files in os.walk(results_dir):
-                for name in files:
-                    if os.path.basename(root) == "prev_build_backup":
-                        continue
-
-                    # TODO Should all results (logs, configs, fedora-review results)
-                    # be added to Pulp, or only RPM packages?
-                    # `pulp rpm content create ...` cannot be executed on text files
-                    # and fails with `RPM file cannot be parsed for metadata`
-                    if not name.endswith(".rpm"):
-                        continue
-
-                    path = os.path.join(root, name)
-                    labels = {"build_id": build_id, "chroot": chroot}
-                    futures[executor.submit(self.upload_rpm, path, labels)] = name
+            for path in rpm_paths:
+                labels = {"build_id": build_id, "chroot": chroot}
+                futures[executor.submit(self.upload_rpm, path, labels)] = path
 
             failed_uploads = []
             exceptions = []
-            package_hrefs = []
+            uploaded = {}
             for future in as_completed(futures):
                 filepath = futures[future]
                 try:
                     response = future.result()
                     if response.ok:
                         created = response.json().get("pulp_href")
-                        package_hrefs.append(created)
+                        uploaded[os.path.basename(filepath)] = {
+                            "build_id": build_id,
+                            "path": filepath,
+                            "pulp_href": created,
+                        }
                         self.log.info("Uploaded to Pulp: %s", filepath)
                     else:
                         failed_uploads.append(filepath)
@@ -431,7 +441,7 @@ class PulpStorage(Storage):
             if exceptions:
                 raise CoprBackendError(f"Exceptions encountered: {exceptions}")
 
-            return package_hrefs
+            return uploaded
 
     def create_repository_version(self, dirname, chroot, package_hrefs):
         """
@@ -588,15 +598,16 @@ class PulpStorage(Storage):
                 self.opts,
                 self.log,
             )
+            rpms = self.find_build_results(tmp)
             result = self.upload_build_results(
+                rpms,
                 chroot,
-                tmp,
-                None,  # This atribute is only relevant for the backend storage
                 build_id=dst_build_id,
             )
+            hrefs = [x["pulp_href"] for x in result.values()]
 
         self.log.info("Forked Pulp build %s as %s", src_build_id, dst_build_id)
-        return self.create_repository_version(dst_dirname, chroot, result)
+        return self.create_repository_version(dst_dirname, chroot, hrefs)
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([

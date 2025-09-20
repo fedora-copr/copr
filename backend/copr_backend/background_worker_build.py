@@ -679,10 +679,10 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         this method could upload the results and remove the temporary files
         at the same time.
         """
+        rpms = self.storage.find_build_results(self.job.results_dir)
         result = self.storage.upload_build_results(
+            rpms,
             self.job.chroot,
-            self.job.results_dir,
-            self.job.target_dir_name,
             build_id=self.job.build_id,
         )
 
@@ -690,10 +690,11 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if not result:
             return
 
+        hrefs = [x["pulp_href"] for x in result.values()]
         success = self.storage.create_repository_version(
             self.job.project_dirname,
             self.job.chroot,
-            result,
+            hrefs,
         )
         if not success:
             raise BackendError(
