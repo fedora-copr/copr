@@ -19,7 +19,6 @@ from copr_backend.exceptions import FrontendClientException
 STORAGES = ["backend", "pulp"]
 
 log = logging.getLogger(__name__)
-setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
 
 
 def get_arg_parser():
@@ -106,6 +105,9 @@ def main():
     """
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
+    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-nested-blocks
+    setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
     parser = get_arg_parser()
     args = parser.parse_args()
 
@@ -162,8 +164,7 @@ def main():
                 ok = False
                 break
 
-            all_package_hrefs = []
-
+            uploaded = {}
             for builddir_entry in os.scandir(chrootdir):
                 if not builddir_entry.is_dir():
                     continue
@@ -175,13 +176,40 @@ def main():
                     log.info("Skipping: %s", resultdir)
                     continue
 
-                build_id = str(int(builddir.split("-")[0]))
+                build_id = int(builddir.split("-")[0])
+
+                to_upload = []
+                rpms = storage.find_build_results(resultdir)
+                for rpm in rpms:
+                    # Was a package with this NEVRA already uploaded?
+                    # We cannot simply uploaded.get(rpm) because the keys are
+                    # full paths and we need to compare only basenames
+                    # uploaded_rpm = None
+                    basename = os.path.basename(rpm)
+                    if basename in uploaded:
+                        # If the already uploaded package comes from a newer
+                        # build we don't need to bother with uploading this
+                        # package
+                        if build_id < uploaded[basename]["build_id"]:
+                            continue
+                    to_upload.append(rpm)
 
                 # We cannot check return code here
-                package_hrefs = storage.upload_build_results(chroot, resultdir, None, max_workers=1, build_id=build_id)
-                all_package_hrefs.extend(package_hrefs)
+                results = storage.upload_build_results(
+                    to_upload,
+                    chroot,
+                    build_id=build_id,
+                )
+
+                # It is possible that we already uploaded a package with the
+                # same NEVRA. In such case we will replace it here, and the
+                # previously uploaded package won't get into the repository.
+                # That doesn't bother us because Pulp will garbage collect and
+                # remove it.
+                uploaded.update(results)
 
             # Add build results to the repository
+            all_package_hrefs = [x["pulp_href"] for x in uploaded.values()]
             if not storage.create_repository_version(subproject, chroot, all_package_hrefs):
                 log.error("Failed to create repository version for chroot: %s", chroot)
                 sys.exit(1)
