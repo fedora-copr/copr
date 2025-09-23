@@ -10,13 +10,13 @@ Enhancements
 - `#3497`_ - Support for branching new Fedora versions from Rawhide for projects
   stored in Pulp
 - `#3843`_ Stop using deprecated ``%py3_build`` and ``%py3_install`` macros in
+  copr-keygen and copr-dist-git specfiles
 - Small helper script to query Pulp results more easily (e.g. what RPM
   packages do we have for this particular build ID and chroot name)
 - Show architecture statistics on the status page
 - Start using ``PUT`` and ``DELETE`` methods in the ``copr.v3`` client for
   appropriate endpoints. Don't worry, no breaking changes in the API
   itself, ``POST`` methods are supported as well.
-  copr-keygen and copr-dist-git specfiles
 
 
 Bugfixes
