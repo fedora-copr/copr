@@ -191,6 +191,9 @@ def main():
                         # build we don't need to bother with uploading this
                         # package
                         if build_id < uploaded[basename]["build_id"]:
+                            log.info("Skipping duplicate %s from build %s, "
+                                     "a newer build already uploaded",
+                                     basename, build_id)
                             continue
                     to_upload.append(rpm)
 
