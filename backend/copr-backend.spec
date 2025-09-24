@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.8
+Version:    2.9
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,11 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Wed Sep 24 2025 Jakub Kadlcik <frostyx@email.cz> 2.9-1
+- Log the error message that we got from Pulp
+- Fix duplicate NEVRA error when migrating projects to Pulp
+- Fix sub-project handling in the copr-change-storage script
+
 * Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.8-1
 - Don't traceback when trying to run branch action for second time
 - Implement branch-fedora support for Pulp projects
