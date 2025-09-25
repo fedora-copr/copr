@@ -311,7 +311,7 @@ def _main():
     if args.verbose:
         log.setLevel(logging.DEBUG)
 
-    context = daemon.DaemonContext() if args.detached else nullcontext()
+    context = daemon.DaemonContext(umask=0o22) if args.detached else nullcontext()
     with context:
         main_daemon(args, config)
 
