@@ -310,6 +310,7 @@ def pending_actions():
         data.append({
             'id': action.id,
             'priority': action.priority or action.default_priority,
+            "project_owner": action.copr.owner_name,
         })
 
     return flask.json.dumps(data)

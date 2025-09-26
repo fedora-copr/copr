@@ -489,6 +489,13 @@ class ActionQueueTask(BackendQueueTask):
     def frontend_priority(self):
         return self.task.data.get("priority", 0)
 
+    @property
+    def owner(self):
+        """
+        Owner of the project this action belongs to
+        """
+        return self.task.data["project_owner"]
+
 
 class ActionWorkerManager(WorkerManager):
     worker_prefix = 'action_worker'

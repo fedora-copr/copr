@@ -137,6 +137,16 @@ class ArchitectureWorkerLimit(PredicateWorkerLimit):
         super().__init__(predicate, limit, name="arch_{}".format(architecture))
 
 
+class BlockedOwnersLimit(PredicateWorkerLimit):
+    """
+    Limit tasks from blocked owners to zero
+    """
+    def __init__(self, blocked_owners):
+        def predicate(x):
+            return x.owner in blocked_owners
+        super().__init__(predicate, limit=0, name="blocked_users")
+
+
 class ArchitectureUserWorkerLimit(HashWorkerLimit):
     """
     Limit number of machines of specific architecture we give to a single

@@ -9,6 +9,7 @@ from copr_backend.rpm_builds import (
     ArchitectureUserWorkerLimit,
     BuildTagLimit,
     UserSSHLimit,
+    BlockedOwnersLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
 )
@@ -105,6 +106,10 @@ class BuildDispatcher(BackendDispatcher):
                 max_builders,
                 name=limit_type,
             ))
+
+        blocked_owners = backend_opts.builds_limits["blocked_owners"]
+        self.limits.append(BlockedOwnersLimit(blocked_owners))
+        self.log.info("setting limit for blocked owners: %s", blocked_owners)
 
         limit = backend_opts.builds_limits["userssh"]
         userssh = UserSSHLimit(limit)

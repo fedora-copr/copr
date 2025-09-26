@@ -39,7 +39,7 @@ class TestBackendConfigReader:
         assert opts.destdir == "/tmp"
         assert opts.builds_limits == {'arch': {}, 'tag': {}, 'owner': 20,
                                       'sandbox': 10, 'arch_per_owner': {},
-                                      'userssh': 2}
+                                      'userssh': 2, 'blocked_owners': []}
 
     def test_correct_build_limits(self):
         opts = BackendConfigReader(
@@ -68,6 +68,7 @@ class TestBackendConfigReader:
                 's390x': 5,
             },
             'userssh': 7,
+            'blocked_owners': [],
         }
 
     @pytest.mark.parametrize("broken_config", [

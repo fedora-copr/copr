@@ -187,6 +187,7 @@ def _get_conf(cp, section, option, default, mode=None):
       - "int"
       - "float"
     """
+    # pylint: disable=too-many-return-statements
 
     if cp.has_section(section) and cp.has_option(section, option):
         if mode is None:
@@ -197,6 +198,8 @@ def _get_conf(cp, section, option, default, mode=None):
             return cp.getint(section, option)
         elif mode == "float":
             return cp.getfloat(section, option)
+        elif mode == "list":
+            return [x.strip() for x in cp.get(section, option).split(",")]
         elif mode == "path":
             path = cp.get(section, option)
             if path.startswith("~"):
@@ -240,6 +243,8 @@ def _get_limits_conf(parser):
         parser, "backend", "builds_max_workers_owner", 20, mode="int")
     limits['userssh'] = _get_conf(
         parser, "backend", "builds_max_userssh", 2, mode="int")
+    limits['blocked_owners'] = _get_conf(
+        parser, "backend", "blocked_owners", [], mode="list")
     return limits
 
 
