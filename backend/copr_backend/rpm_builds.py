@@ -137,6 +137,18 @@ class ArchitectureWorkerLimit(PredicateWorkerLimit):
         super().__init__(predicate, limit, name="arch_{}".format(architecture))
 
 
+class PulpMigrationLimit(PredicateWorkerLimit):
+    """
+    Limit the currently migrated projects to zero.
+    """
+    def __init__(self):
+        def predicate(x):
+            # TODO Read the list of currently migrated owners/projects from
+            # somewhere (probably a file?)
+            return x.owner in ["frostyx"]
+        super().__init__(predicate, limit=0, name="pulp_migration")
+
+
 class ArchitectureUserWorkerLimit(HashWorkerLimit):
     """
     Limit number of machines of specific architecture we give to a single

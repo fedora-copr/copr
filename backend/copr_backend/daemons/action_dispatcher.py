@@ -4,6 +4,7 @@ ActionDispatcher related classes.
 
 from copr_backend.exceptions import FrontendClientException
 from copr_backend.dispatcher import BackendDispatcher
+from copr_backend.rpm_builds import PulpMigrationLimit
 
 from ..actions import ActionWorkerManager, ActionQueueTask, Action
 
@@ -17,6 +18,12 @@ class ActionDispatcher(BackendDispatcher):
     def __init__(self, backend_opts):
         super().__init__(backend_opts)
         self.max_workers = backend_opts.actions_max_workers
+
+        # Don't process actions in any projects that are currently being
+        # migrated to Pulp
+        # FIXME This doesn't work because the `ActionQueueTask` only knows the
+        # action ID and priority, not the project name or owner
+        self.limits.append(PulpMigrationLimit())
 
     def get_frontend_tasks(self):
         try:
