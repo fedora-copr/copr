@@ -9,6 +9,7 @@ from copr_backend.rpm_builds import (
     ArchitectureUserWorkerLimit,
     BuildTagLimit,
     UserSSHLimit,
+    PulpMigrationLimit,
     RPMBuildWorkerManager,
     BuildQueueTask,
 )
@@ -105,6 +106,10 @@ class BuildDispatcher(BackendDispatcher):
                 max_builders,
                 name=limit_type,
             ))
+
+        # Don't start builds in any projects that are currently being migrated
+        # to Pulp
+        self.limits.append(PulpMigrationLimit())
 
         limit = backend_opts.builds_limits["userssh"]
         userssh = UserSSHLimit(limit)
