@@ -59,6 +59,11 @@ sleeptime=30
 # actions.
 #actions_max_workers=10
 
+# Don't run any builds or actions for these owners
+#blocked_owners =
+#    frostyx,
+#    praiskup
+
 # publish fedmsg notifications from workers if true
 #fedmsg_enabled=false
 

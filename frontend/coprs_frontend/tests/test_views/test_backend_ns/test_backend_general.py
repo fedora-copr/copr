@@ -406,7 +406,11 @@ class TestWaitingActions(CoprsTestCase):
     def test_pending_actions_list(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
-        assert actions == [{'id': 1, 'priority': DefaultActionPriorityEnum("delete")}]
+        assert actions == [{
+            'id': 1,
+            'priority': DefaultActionPriorityEnum("delete"),
+            'project_owner': 'user1',
+        }]
 
         self.delete_action.result = BackendResultEnum("success")
         self.db.session.add(self.delete_action)
@@ -415,14 +419,22 @@ class TestWaitingActions(CoprsTestCase):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
         assert len(actions) == 1
-        assert actions == [{'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")}]
+        assert actions == [{
+            'id': 2,
+            'priority': DefaultActionPriorityEnum("cancel_build"),
+            'project_owner': 'user1',
+        }]
 
     def test_dont_send_pending_actions_whe_delete(
             self, f_users, f_coprs, f_actions_delete_and_create, f_db
     ):
         r = self.tc.get("/backend/pending-actions/", headers=self.auth_header)
         actions = json.loads(r.data.decode("utf-8"))
-        assert actions == [{'id': 1, 'priority': DefaultActionPriorityEnum("delete")}]
+        assert actions == [{
+            'id': 1,
+            'priority': DefaultActionPriorityEnum("delete"),
+            'project_owner': 'user1',
+        }]
 
         self.delete_action.result = BackendResultEnum("success")
         self.db.session.add(self.delete_action)
@@ -433,8 +445,16 @@ class TestWaitingActions(CoprsTestCase):
         actions = json.loads(r.data.decode("utf-8"))
         assert len(actions) == 2
         assert sorted(actions, key=lambda d: d["id"]) == [
-            {'id': 2, 'priority': DefaultActionPriorityEnum("cancel_build")},
-            {'id': 3, 'priority': DefaultActionPriorityEnum("createrepo")},
+            {
+                'id': 2,
+                'priority': DefaultActionPriorityEnum("cancel_build"),
+                'project_owner': 'user1',
+            },
+            {
+                'id': 3,
+                'priority': DefaultActionPriorityEnum("createrepo"),
+                'project_owner': 'user1',
+            },
         ]
 
     def test_get_action_succeeded(self, f_users, f_coprs, f_actions, f_db):
