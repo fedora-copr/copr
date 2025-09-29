@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.3
+Version:    2.4
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.4-1
+- Drop support for building modules
+
 * Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.3-1
 - Use correct used HTTP methods for delete and update requests
 - Introduce v3.requests.DELETE method
