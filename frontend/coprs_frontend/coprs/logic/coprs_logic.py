@@ -1,3 +1,4 @@
+import fnmatch
 import locale
 import json
 import os
@@ -479,10 +480,22 @@ class CoprsLogic(object):
         """
         Raise InsufficientRightsException if given forge project can't build
         in given copr via Packit. Return None otherwise.
+        
+        Supports wildcard patterns for allowed forge projects:
+        - github.com/theproject/* would match all repositories in the theproject organization
+        - github.com/* would match all GitHub repositories
         """
-        if packit_forge_project and packit_forge_project not in copr.packit_forge_projects_allowed_list:
-            raise exceptions.InsufficientRightsException(
-                f"Forge project {packit_forge_project} can't build in this Copr via Packit.")
+
+        if not packit_forge_project:
+            return
+
+        for pattern in copr.packit_forge_projects_allowed_list:
+            if fnmatch.fnmatch(packit_forge_project, pattern):
+                return
+
+        raise exceptions.InsufficientRightsException(
+            f"Forge project {packit_forge_project} can't build in this Copr via Packit."
+        )
 
 
 class CoprPermissionsLogic(object):

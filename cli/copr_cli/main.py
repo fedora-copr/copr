@@ -1028,6 +1028,8 @@ def create_and_modify_common_opts(parser):
         metavar="FORGE_PROJECT", action="append", help=(
             "Forge project that will be allowed to build in this project "
             "via Packit in format github.com/packit/ogr. "
+            "Supports wildcard patterns (e.g., github.com/theproject/* will allow "
+            "all repositories in the theproject organization). "
             "Can be specified multiple times."
     ))
 

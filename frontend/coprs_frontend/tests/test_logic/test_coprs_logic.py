@@ -123,6 +123,43 @@ class TestCoprsLogic(CoprsTestCase):
             CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(self.c3, "github.com/packit/packit")
 
     @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
+    def test_raise_if_packit_forge_project_cant_build_in_copr_wildcards(self):
+        name = u"wildcard_test_project"
+        selected_chroots = [self.mc1.name]
+
+        flask.g.user = self.u1
+        copr = CoprsLogic.add(self.u1, name, selected_chroots)
+        copr.packit_forge_projects_allowed = "github.com/theforeman/* gitlab.com/group/project"
+        self.db.session.commit()
+
+        # Should match the wildcard pattern
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/theforeman/foreman")
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/theforeman/hammer-cli")
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/theforeman/any-repo")
+
+        # Should match the exact pattern
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "gitlab.com/group/project")
+
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/other-org/repo")
+
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "gitlab.com/group/other-project")
+
+        copr.packit_forge_projects_allowed = "*.com/theforeman/* github.com/*/common-lib"
+        self.db.session.commit()
+
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/theforeman/foreman")
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "gitlab.com/theforeman/hammer-cli")
+
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/org1/common-lib")
+        CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "github.com/org2/common-lib")
+
+
+        with pytest.raises(InsufficientRightsException):
+            CoprsLogic.raise_if_packit_forge_project_cant_build_in_copr(copr, "example.org/theforeman/repo")
+
+    @pytest.mark.usefixtures("f_users", "f_mock_chroots", "f_db")
     def test_copr_logic_add_sends_create_gpg_key_action(self):
         name = u"project_1"
         selected_chroots = [self.mc1.name]
