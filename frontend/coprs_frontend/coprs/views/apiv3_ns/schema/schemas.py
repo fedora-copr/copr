@@ -454,9 +454,11 @@ class _ProjectFields:
     packit_forge_projects_allowed: String = String(
         description=(
             "Whitespace separated list of forge projects that will be "
-            "allowed to build in the project via Packit"
+            "allowed to build in the project via Packit. "
+            "Supports wildcard patterns (e.g., github.com/theproject/* will allow "
+            "all repositories in the theproject organization)."
         ),
-        example="github.com/fedora-copr/copr github.com/another/project",
+        example="github.com/fedora-copr/copr github.com/another/project github.com/theproject/*",
     )
     follow_fedora_branching: Boolean = Boolean(
         description=(
