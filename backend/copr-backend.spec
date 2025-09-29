@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.9
+Version:    2.10
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,11 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.10-1
+- Don't run builds or actions in projects that are migrated to Pulp
+- Log conflicting NEVRAs when uploading
+- Drop support for building modules
+
 * Wed Sep 24 2025 Jakub Kadlcik <frostyx@email.cz> 2.9-1
 - Log the error message that we got from Pulp
 - Fix duplicate NEVRA error when migrating projects to Pulp
