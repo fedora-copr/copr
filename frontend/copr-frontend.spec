@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.4
+Version:    2.5
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,10 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.5-1
+- Don't run builds or actions in projects that are migrated to Pulp
+- Drop support for building modules
+
 * Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.4-1
 - Use beginning of the build as reference for timestamp
 - Support both POST and DELETE for deleting a build
