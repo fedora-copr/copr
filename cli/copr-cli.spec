@@ -2,7 +2,7 @@
 %global min_python_copr_version 1.128.1
 
 Name:       copr-cli
-Version:    2.2
+Version:    2.3
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -90,6 +90,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.3-1
+- Drop support for building modules
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 2.2-1
 - Modernize spec file and drop old stuff
 
