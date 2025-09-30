@@ -1,0 +1,42 @@
+.. _release_notes_2025_09_30:
+
+Highlights from 2025-09-30 release
+==================================
+
+Fedora Modularity
+-----------------
+
+As of October 2024, all Modularity features in Copr, except for module
+hotfixes and installing modules to buildroot, have been deprecated. More
+information and the schedule were published here
+https://frostyx.cz/posts/copr-modularity-the-end-of-an-era
+
+This release removes all WebUI and API endpoints for interacting with modules.
+
+
+Enhancements
+------------
+
+- The maximum expiration time for `builders with user SSH access`_ has increased from 2
+  days to 3 days.
+- `#3907`_, `#3681`_ - Add an option to temporarily pause all builds and
+  actions for owners whose projects are in the process of being migrated to Pulp
+
+
+Bugfixes
+--------
+
+- `#3888`_ - Fixed a problem with incorrect SRPM files permissions
+- Fixed a problem with migrating subprojects through the
+  ``copr-change-storage`` script
+- Fixed a problem with migrating projects that have multiple packages with the
+  same NEVRA
+- `#3894`_ - Handled traceback from ``copr-builder prolong``
+
+
+
+.. _#3907: https://github.com/fedora-copr/copr/issues/3907
+.. _#3681: https://github.com/fedora-copr/copr/issues/3681
+.. _#3888: https://github.com/fedora-copr/copr/issues/3888
+.. _#3894: https://github.com/fedora-copr/copr/issues/3894
+.. _builders with user SSH access: https://frostyx.cz/posts/ssh-access-to-copr-builders
