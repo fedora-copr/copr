@@ -7,7 +7,7 @@ import flask
 from flask_restx import Namespace, Resource
 from sqlalchemy.exc import IntegrityError
 
-from copr_common.enums import CreaterepoReason
+from copr_common.enums import CreaterepoReason, StorageEnum
 from coprs.views.apiv3_ns import (
     get_copr,
     pagination,
@@ -81,6 +81,7 @@ def to_dict(copr):
         #  HTML with argument names the same as they are defined in methods
         #  but we have this inconsistency between name - projectname
         "projectname": copr.name,
+        "storage": StorageEnum(copr.storage),
     }
 
 

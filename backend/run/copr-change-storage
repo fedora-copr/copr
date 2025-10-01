@@ -9,6 +9,7 @@ import os
 import sys
 import argparse
 import logging
+from copr.v3 import Client
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
 from copr_backend.storage import PulpStorage
@@ -38,10 +39,14 @@ def get_arg_parser():
         choices=STORAGES,
         help="The destination storage",
     )
-    parser.add_argument(
+    target = parser.add_mutually_exclusive_group(required=True)
+    target.add_argument(
         "--project",
-        required=True,
         help="Full name of the project that is to be migrated",
+    )
+    target.add_argument(
+        "--owner",
+        help="Migrate all projects for this owner",
     )
     parser.add_argument(
         "--delete",
@@ -99,32 +104,15 @@ def add_redirect(fullname):
         print(fullname, file=fp)
 
 
-def main():
+def change_storage_for_project(fullname, dst, config):
     """
-    The main function
+    Migrate one project
     """
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-nested-blocks
-    setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
-    parser = get_arg_parser()
-    args = parser.parse_args()
-
-    if args.src == args.dst:
-        log.info("The source and destination storage is the same, nothing to do.")
-        return
-
-    if args.src == "pulp":
-        log.error("Migration from pulp to somewhere else is not supported")
-        sys.exit(1)
-
-    if args.delete:
-        log.error("Data removal is not supported yet")
-        sys.exit(1)
-
-    config = BackendConfigReader("/etc/copr/copr-be.conf").read()
-    owner, project = args.project.split("/")
+    owner, project = fullname.split("/")
     ownerdir = os.path.join(config.destdir, owner)
     ok = True
 
@@ -223,28 +211,83 @@ def main():
     if not ok:
         log.error(
             "Failure during '%s' migration, not switching on frontend",
-            args.project,
+            fullname,
         )
         sys.exit(1)
 
     # Change storage in the frontend database
     frontend_client = FrontendClient(config, try_indefinitely=False, logger=log)
     try:
-        change_on_frontend(frontend_client, owner, project, args.dst)
+        change_on_frontend(frontend_client, owner, project, dst)
     except FrontendClientException as ex:
         log.error("Failed to change storage on frontend for %s because: %s",
-                  args.project, str(ex))
-        sys.exit(1)
+                  fullname, str(ex))
+        # If the project was deleted on frontend, we don't mind
+        if "404 NOT FOUND" not in str(ex):
+            sys.exit(1)
 
     # At this point all data is successfully migrated and frontend thinks the
     # project is in Pulp, so we can safely add the HTTP redirect
     try:
-        add_redirect(args.project)
+        add_redirect(fullname)
     except OSError as ex:
         log.error("Failed to add a redirect for %s because: %s",
-                  args.project, str(ex))
+                  fullname, str(ex))
 
-    log.info("Project %s successfully migrated", args.project)
+    log.info("Project %s successfully migrated", fullname)
+
+
+def all_projects_for_owner(owner, config):
+    """
+    Return full names of all projects for a given owner
+    We cannot simply list all directories in
+    `os.path.join(config.destdir, owner)` because we need to filter out
+    projects that were already migrated to Pulp.
+    """
+    fullnames = []
+    client = Client({"copr_url": config.frontend_base_url})
+    projects = client.project_proxy.get_list(owner)
+    for project in projects:
+        if project.storage == "pulp":
+            continue
+        fullnames.append(project.full_name)
+    return fullnames
+
+
+def main():
+    """
+    The main function
+    """
+    setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    if args.src == args.dst:
+        log.info("The source and destination storage is the same, nothing to do.")
+        return
+
+    if args.src == "pulp":
+        log.error("Migration from pulp to somewhere else is not supported")
+        sys.exit(1)
+
+    if args.delete:
+        log.error("Data removal is not supported yet")
+        sys.exit(1)
+
+    config = BackendConfigReader("/etc/copr/copr-be.conf").read()
+    if args.project:
+        change_storage_for_project(args.project, args.dst, config)
+    elif args.owner:
+        projects = all_projects_for_owner(args.owner, config)
+        for i, fullname in enumerate(projects, start=1):
+            print(
+                "[{0}/{1}] Migrating {2} to {3}"
+                .format(i, len(projects), fullname, args.dst)
+            )
+            change_storage_for_project(fullname, args.dst, config)
+    else:
+        log.error("Unexpected choice. This should never happen")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
