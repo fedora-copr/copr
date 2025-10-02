@@ -91,7 +91,7 @@ Upload the images
 
 Now it's time to upload the built images to appropriate places::
 
-    stamp=`date -I` /var/lib/resallocserver/provision/upload-qcow2-images-be /var/lib/copr/public_html/images/2025-07-25
+    STAMP=$(date -I) copr-upload-builder-images /var/lib/copr/public_html/images/2025-07-25
 
 Check the stdout/stderr of the upload script, and recall image IDs.
 
@@ -151,11 +151,28 @@ the old but currently unused builders by::
     $ su - resalloc
     $ resalloc-maint resource-delete --unused
 
+
+Fixing just one architecture/cloud
+----------------------------------
+
+Sometimes you want to fix just one architecture or cloud, e.g., ``aarch64`` in
+EC2.  Please never regenerate the OCI image in such a situation; otherwise, the
+freshly created images would diverge too much from the old.  Conversely, if you
+really need to regenerate the OCI base image, please regenerate **all the cloud
+images**.  But back to our example, this is how to do it::
+
+    IMAGE=$IMAGE_URL make download.aarch64
+    STAMP=$(date -I) ARCHES=aarch64 TARGETS=ec2 copr-upload-builder-images /var/lib/copr/public_html/images/2025-10-02/
+
 Cleanup
 -------
 
 When everything is up and running the new version, do not forget to delete the
 old AMIs and associated snapshots from AWS.
+
+Run ``make clean`` in the ``copr-image-builder`` directory.
+
+Remove the new subdirectory in ``/var/lib/copr/public_html/images/`` (>= 40GB).
 
 .. _`staging backend box`: https://copr-be-dev.cloud.fedoraproject.org
 .. _`Fedora Cloud page`: https://fedoraproject.org/cloud/download
