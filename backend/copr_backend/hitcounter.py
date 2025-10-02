@@ -88,7 +88,7 @@ def update_frontend(accesses, log, dry_run=False, try_indefinitely=False):
     )
     if not dry_run:
         request = SafeRequest(
-            auth=opts.frontend_auth,
+            auth=("user", opts.frontend_auth),
             log=log,
             try_indefinitely=try_indefinitely,
         )
