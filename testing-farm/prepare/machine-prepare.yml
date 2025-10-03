@@ -1,0 +1,15 @@
+---
+- name: Prepare the testing machine for running Copr tests
+  hosts: all
+  user: "root"
+
+  tasks:
+    - name: pre-release copr packages
+      community.general.copr:
+        name: '@copr/copr-dev'
+
+    - name: install mock and other needed packages
+      package:
+        name:
+          - python-copr
+        state: latest

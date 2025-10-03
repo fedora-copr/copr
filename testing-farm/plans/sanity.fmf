@@ -1,0 +1,11 @@
+---
+summary: run the behave tests in Fedora Testing Farm
+discover:
+  - how: fmf
+
+prepare:
+  - how: ansible
+    playbook: testing-farm/prepare/machine-prepare.yml
+
+execute:
+  - how: tmt
