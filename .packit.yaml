@@ -192,6 +192,15 @@ jobs:
       - epel-8-x86_64
     manual_trigger: true  # needs to be triggered by the `/packit build` comment
 
+  - job: tests
+    trigger: pull_request
+    targets:
+      - fedora-latest-x86_64
+    packages:
+      - copr-frontend
+    skip_build: true
+    manual_trigger: true
+
   # Main commit builds:
   #
   # We needed to temporarily disable Packit triggers from the main branch
