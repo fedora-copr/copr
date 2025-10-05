@@ -3,8 +3,8 @@ import datetime
 import functools
 from functools import wraps
 
+from authlib.integrations.base_client.errors import OAuthError
 import flask
-
 from flask import send_file
 
 from copr_common.enums import RoleEnum
@@ -102,7 +102,14 @@ def oidc_auth():
     if not oidc_enabled(app.config):
         flask.flash("OpenID Connect is disabled")
         return flask.redirect("/")
-    oidc.copr.authorize_access_token()
+    try:
+        oidc.copr.authorize_access_token()
+    except OAuthError as err:
+        # https://github.com/fedora-copr/copr/issues/3846
+        app.logger.error("%s", str(err))
+        flask.flash("OAuthError, contact Copr administrators")
+        return flask.redirect("/")
+
     userinfo = oidc.copr.userinfo()
     user = OpenIDConnect.user_from_userinfo(userinfo)
     flask.session["oidc"] = oidc_username_from_userinfo(app.config, userinfo)
