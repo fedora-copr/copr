@@ -399,7 +399,10 @@ class PulpStorage(Storage):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(path, labels)
+        if False:
+            response = self.client.create_content(path, labels)
+        else:
+            response = self.client.create_content_chunked(path, labels)
 
         if not response.ok:
             self.log.error("Failed to create Pulp content for: %s, %s",

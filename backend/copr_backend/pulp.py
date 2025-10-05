@@ -2,11 +2,13 @@
 Pulp doesn't provide an API client, we are implementing it for ourselves
 """
 
+import io
 import json
 import logging
 import os
 import time
 import tomllib
+import hashlib
 from urllib.parse import urlencode
 
 from copr_common.request import SafeRequest
@@ -220,7 +222,7 @@ class PulpClient:
             relative += "/"
         return self.config["base_url"] + relative
 
-    def send(self, method, url, data=None, files=None):
+    def send(self, method, url, data=None, files=None, headers=None):
         """
         Performs a "safe request", meaning that if a request fails, we wait
         and try again, and again, until it succeeds.
@@ -244,6 +246,7 @@ class PulpClient:
             method=method,
             data=data,
             files=files,
+            headers=headers,
         )
         return response
 
@@ -362,6 +365,59 @@ class PulpClient:
             self.log.info("Pulp: create_content: %s %s", uri, path)
             package = self.send("POST", uri, data=data, files=files)
         return package
+
+    def create_content_chunked(self, path, labels):
+        # TODO use labels
+
+        # TODO
+        uri = "/api/v3/uploads/"
+        data = {
+            "size": os.path.getsize(path),
+        }
+        response = self.send("POST", uri, data)
+
+        upload_href = response.json()["pulp_href"]
+        upload_url = self.config["base_url"] + upload_href
+
+        # TODO
+        size = 10000
+        sha256 = hashlib.sha256()
+        chunks = enumerate(self._read_chunks(path, size=size))
+        for i, chunk in chunks:
+            start = i * size
+            end = start + len(chunk) - 1
+            headers = {
+                "Content-Range": "bytes {0}-{1}/*".format(start, end),
+            }
+            files = {
+                "file": ("chunk{0}".format(i), io.BytesIO(chunk), "application/octet-stream"),
+            }
+            response = self.send("PUT", upload_url, files=files, headers=headers)
+            sha256.update(chunk)
+
+
+        # TODO
+        commit_url = self.config["base_url"] + upload_href + "commit/"
+        data = {
+            "sha256": sha256.hexdigest(),
+        }
+        response = self.send("POST", commit_url, data=data)
+
+        # TODO
+        task = response.json()["task"]
+        response = self.wait_for_finished_task(task)
+        if response.ok and response.json()["state"] == "completed":
+            self.log.info("Successfully uploaded chunked %s", path)
+            return response
+        else:
+            self.log.error("Failed to upload chunked %s", path)
+            self.log.error("Response %s: %s", response, response.json())
+            # TODO Raise an exception
+
+    def _read_chunks(self, path, size=10000):
+        with open(path, "rb") as fp:
+            while content := fp.read(size):
+                yield content
 
     def modify_repository_content_locked(self, repository, batch):
         """
