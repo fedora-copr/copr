@@ -23,6 +23,7 @@ backend/docs/build
 backend/dump.rdb
 
 frontend/coprs_frontend/copr_frontend.log
+frontend/coprs_frontend/tests/test_logic/test.src.rpm
 
 _redis.log
 
