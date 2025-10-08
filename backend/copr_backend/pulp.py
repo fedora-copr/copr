@@ -227,6 +227,7 @@ class PulpClient:
         Performs a "safe request", meaning that if a request fails, we wait
         and try again, and again, until it succeeds.
         """
+        # pylint: disable=too-many-positional-arguments
         request = SafeRequest(
             log=self.log,
             try_indefinitely=True,
@@ -367,54 +368,96 @@ class PulpClient:
         return package
 
     def create_content_chunked(self, path, labels):
+        """
+        Split a file into chunks, upload them and reassemble them on the Pulp
+        side.
+        https://pulpproject.org/pulpcore/docs/user/guides/upload-publish/?h=chunked#chunked-uploads
+        """
         # TODO use labels
 
-        # TODO
+        # Send an initial request, saying that we want to chunk-upload a file
+        # of a given size
         uri = "/api/v3/uploads/"
         data = {
             "size": os.path.getsize(path),
         }
         response = self.send("POST", uri, data)
-
         upload_href = response.json()["pulp_href"]
         upload_url = self.config["base_url"] + upload_href
 
-        # TODO
+        # Upload the chunks
+        # TODO figure out the chunk size
         size = 10000
         sha256 = hashlib.sha256()
-        chunks = enumerate(self._read_chunks(path, size=size))
-        for i, chunk in chunks:
+        for i, chunk in enumerate(self._read_chunks(path, size=size)):
+            # Figure out the start and end byte of the chunk within the whole
+            # file
             start = i * size
             end = start + len(chunk) - 1
             headers = {
                 "Content-Range": "bytes {0}-{1}/*".format(start, end),
             }
             files = {
-                "file": ("chunk{0}".format(i), io.BytesIO(chunk), "application/octet-stream"),
+                "file": (
+                    # Filename
+                    "chunk{0}".format(i),
+
+                    # Content from bytes that we already have in the memory
+                    io.BytesIO(chunk),
+
+                    # A generic MIME type for binary files
+                    "application/octet-stream",
+                ),
             }
-            response = self.send("PUT", upload_url, files=files, headers=headers)
+            response = self.send(
+                "PUT",
+                upload_url,
+                files=files,
+                headers=headers,
+            )
+            if not response.ok:
+                raise RuntimeError(
+                    "Failed to upload chunk {0} of {1}: {2}"
+                    .format(i, path, response.reason)
+                )
             sha256.update(chunk)
 
-
-        # TODO
+        # Send the file request that we want to reassemble the file
         commit_url = self.config["base_url"] + upload_href + "commit/"
         data = {
             "sha256": sha256.hexdigest(),
         }
         response = self.send("POST", commit_url, data=data)
 
-        # TODO
+        # We need to wait until the task finishes. This is the disadvantage
+        # compared to standard uploads
         task = response.json()["task"]
         response = self.wait_for_finished_task(task)
-        if response.ok and response.json()["state"] == "completed":
-            self.log.info("Successfully uploaded chunked %s", path)
-            return response
-        else:
+        data = response.json()
+        if not response.ok or data["state"] != "completed":
             self.log.error("Failed to upload chunked %s", path)
             self.log.error("Response %s: %s", response, response.json())
-            # TODO Raise an exception
+            raise RuntimeError("Failed to upload chunked {0}".format(path))
+        self.log.info("Successfully uploaded chunked %s", path)
+
+        resources = data["created_resources"]
+        if len(resources) != 1:
+            raise RuntimeError("Unexpected number of created files: %s".format(resources))
+
+        uri = "/api/v3/content/rpm/packages/upload/"
+        data = {
+            "artifact": resources[0],
+            "pulp_labels": json.dumps(labels),
+        }
+        self.log.info("Pulp: create_content: %s for artifact %s", uri, resources[0])
+        response = self.send("POST", uri, data=data)
+        self.log.info("Successfully created a content for chunked uploaded %s", path)
+        return response
 
     def _read_chunks(self, path, size=10000):
+        """
+        Generate chunks of a given file
+        """
         with open(path, "rb") as fp:
             while content := fp.read(size):
                 yield content

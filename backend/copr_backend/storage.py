@@ -399,6 +399,8 @@ class PulpStorage(Storage):
         """
         Add an RPM to the storage
         """
+        # TODO
+        # if os.path.getsize(path) < 80 * 1024 * 1024:
         if False:
             response = self.client.create_content(path, labels)
         else:
