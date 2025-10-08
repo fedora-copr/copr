@@ -16,6 +16,14 @@ From a build system perspective, this isn't a problem.  You can simply specify
 finish.  But if you want to expedite your builds, you do have the option to
 request *high-performance builders*.
 
+
+Supported architectures
+-----------------------
+
+Fedora Copr provides high-performance machines for ``ppc64le``, ``aarch64`` and
+``x86_64`` architectures.  ``s390x/Z`` is `not supported`_.
+
+
 Pros & Cons of *high-performance builders*
 ------------------------------------------
 
@@ -57,3 +65,5 @@ Admin SOP
 
 Copr maintainers can configure high performance builders through the
 ``EXTRA_BUILDCHROOT_TAGS`` variable in ``/etc/copr/copr.conf``.
+
+.. _`not supported`: https://github.com/fedora-copr/copr/issues/3856
