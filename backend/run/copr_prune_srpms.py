@@ -70,6 +70,17 @@ def print_remove_text(path, modified, stdout=False):
         LOG.info("Removing: %s  (%s)", path, date)
 
 
+def print_remove_error(error_message, stdout=False):
+    """
+    Helper function to log error messages and not repeat `if stdout`
+    condition everywhere
+    """
+    if stdout:
+        print(error_message)
+    else:
+        LOG.error(error_message)
+
+
 def prune(path, days, dry_run=False, stdout=False):
     """
     Recursively go through the results directory and remove all stored SRPM
@@ -92,7 +103,18 @@ def prune(path, days, dry_run=False, stdout=False):
 
             print_remove_text(subdir, modified, stdout)
             if not dry_run:
-                shutil.rmtree(subdir)
+                try:
+                    shutil.rmtree(subdir)
+                except PermissionError:
+                    # Handle Permission Denied error explicitly
+                    error_message = "No permission to delete path {}".format(subdir)
+                    print_remove_error(error_message, stdout)
+                    continue
+                except Exception as exception:
+                    # Catch and log any other exception
+                    error_message = "Exception when deleting path {}, {}".format(subdir, exception.__str__())
+                    print_remove_error(error_message, stdout)
+                    continue
 
         # We don't create such files anymore but it doesn't hurt to check
         for srpm_log_file in files:

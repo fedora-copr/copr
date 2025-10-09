@@ -315,7 +315,12 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
 
         if verbose:
             LOG.info('Removing: %s', dir_path)
-        shutil.rmtree(dir_path)
+        try:
+            shutil.rmtree(dir_path)
+        except PermissionError:
+            LOG.error("No permission to delete path %s", dir_path)
+        except Exception as exception:
+            LOG.error("Exception when deleting path %s, %s", dir_path, exception.__str__())
 
         # also remove the associated log in the main dir
         build_id = os.path.basename(dir_path).split('-')[0]
