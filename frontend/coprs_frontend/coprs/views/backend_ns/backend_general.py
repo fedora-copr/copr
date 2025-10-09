@@ -272,18 +272,18 @@ def pending_cancel_builds():
 def build_task_canceled(task_id):
     """ Report back to frontend that the task was canceled on backend """
     models.CancelRequest.query.filter_by(what=task_id).delete()
-    was_running = flask.request.json
-    if was_running:
-        if '-' in task_id:
-            try:
-                build_chroot = BuildsLogic.get_build_task(task_id)
+    skip_those = [StatusEnum("succeeded"), StatusEnum("failed"), StatusEnum("skipped"), StatusEnum("forked")]
+    if '-' in task_id:
+        try:
+            build_chroot = BuildsLogic.get_build_task(task_id)
+            if build_chroot.status not in skip_those:
                 build_chroot.status = StatusEnum("canceled")
-            except ObjectNotFound:
-                pass
-        else:
-            build = models.Build.query.filter_by(id=task_id).first()
-            if build:
-                build.source_status = StatusEnum("canceled")
+        except ObjectNotFound:
+            pass
+    else:
+        build = models.Build.query.filter_by(id=task_id).first()
+        if build and build.source_status not in skip_those:
+            build.source_status = StatusEnum("canceled")
     db.session.commit()
     return flask.jsonify("success")
 
