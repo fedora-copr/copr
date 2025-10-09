@@ -15,8 +15,8 @@ except ImportError:
 from flask_session import Session
 from flask_whooshee import Whooshee
 
-from coprs.redis_session import RedisSessionInterface
 from coprs.request import get_request_class
+from redis import StrictRedis
 
 app = flask.Flask(__name__)
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
@@ -31,6 +31,13 @@ else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+app.config["SESSION_TYPE"] = "redis"
+app.config["SESSION_REDIS"] = StrictRedis(
+    host=app.config["REDIS_HOST"],
+    port=app.config["REDIS_PORT"],
+    db=1,
+)
 
 session = Session(app)
 
@@ -83,15 +90,11 @@ import coprs.log
 from coprs.log import setup_log
 import coprs.whoosheers
 
-from coprs.helpers import RedisConnectionProvider
-rcp = RedisConnectionProvider(config=app.config)
-app.session_interface = RedisSessionInterface(rcp.get_connection())
-
-cache_rcp = RedisConnectionProvider(config=app.config, db=1)
 cache = Cache(app, config={
-    'CACHE_REDIS_HOST': cache_rcp.host,
-    'CACHE_REDIS_PORT': cache_rcp.port,
+    'CACHE_REDIS_HOST': app.config["REDIS_HOST"],
+    'CACHE_REDIS_PORT': app.config["REDIS_PORT"],
 })
+
 app.cache = cache
 
 # We don't want to manually define all the routes twice, once with a trailing

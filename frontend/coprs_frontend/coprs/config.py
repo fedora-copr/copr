@@ -139,6 +139,10 @@ class Config(object):
     # We remove pull-request directories after some time.
     KEEP_PR_DIRS_DAYS = 40
 
+    # Redis connection for sessions, cache, etc
+    REDIS_HOST = "localhost"
+    REDIS_PORT = "6379"
+
     # Caching templates
     # https://flask-caching.readthedocs.io/en/latest/
     # To enable caching set `CACHE_TYPE` to "redis". To disable it (e.g. for

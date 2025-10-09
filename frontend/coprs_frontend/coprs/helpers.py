@@ -28,7 +28,6 @@ import html5_parser
 
 import flask
 from flask import url_for
-from redis import StrictRedis
 from sqlalchemy.types import TypeDecorator, VARCHAR
 from sqlalchemy.engine.default import DefaultDialect
 from sqlalchemy.sql.sqltypes import String, DateTime, NullType
@@ -446,24 +445,6 @@ class Serializer(object):
     @property
     def serializable_attributes(self):
         return map(lambda x: x.name, self.__table__.columns)
-
-
-class RedisConnectionProvider(object):
-    def __init__(self, config, db=0):
-        self.host = config.get("REDIS_HOST", "127.0.0.1")
-        self.port = int(config.get("REDIS_PORT", "6379"))
-        self.db = db
-        self.password = config.get("REDIS_PASSWORD", None)
-
-    def get_connection(self):
-        return StrictRedis(host=self.host, port=self.port, db=self.db, password=self.password)
-
-
-def get_redis_connection():
-    """
-    Creates connection to redis, now we use default instance at localhost, no config needed
-    """
-    return StrictRedis()
 
 
 def str2bool(v):
