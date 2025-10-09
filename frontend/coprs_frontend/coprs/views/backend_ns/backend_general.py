@@ -273,7 +273,7 @@ def build_task_canceled(task_id):
     """ Report back to frontend that the task was canceled on backend """
     models.CancelRequest.query.filter_by(what=task_id).delete()
     was_running = flask.request.json
-    if not was_running:
+    if was_running:
         if '-' in task_id:
             try:
                 build_chroot = BuildsLogic.get_build_task(task_id)
