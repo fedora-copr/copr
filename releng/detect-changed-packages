@@ -1,0 +1,29 @@
+#! /bin/bash -e
+
+info() { echo "INFO: $*" >&2 ; }
+
+: "${PYTHON_PKG_SUFFIX=}"
+
+diff_against=origin/main
+if test -n "$1"; then
+    diff_against=$1
+else
+    info "Diffing against $diff_against"
+fi
+
+cd "$(git rev-parse --show-toplevel)"
+
+git diff --name-status -C "$diff_against" --numstat | cut -f2 | sed 's|/.*||' \
+| sort | uniq | while read -r line; do
+    case $line in
+        backend|frontend|cli|keygen|dist-git|messaging|rpmbuild|selinux)
+            echo "copr-$line"
+            ;;
+        python)
+            echo "python$PYTHON_PKG_SUFFIX-copr"
+            ;;
+        common)
+            echo "python$PYTHON_PKG_SUFFIX-copr-common"
+            ;;
+    esac
+done
