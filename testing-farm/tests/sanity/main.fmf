@@ -2,8 +2,3 @@
 summary: Execute Sanity tests
 test: ./test.sh
 duration: 2h
-
-# Bring files on the tested machine.
-#require:
-#  - type: file
-#    pattern: /testing-farm
