@@ -8,8 +8,16 @@
       community.general.copr:
         name: '@copr/copr-dev'
 
-    - name: install mock and other needed packages
+    - name: install packages needed when testing
       package:
         name:
-          - python-copr
+          - git
         state: latest
+
+    - name: print packit variable
+      ansible.builtin.debug:
+        msg: "$PACKIT_TARGET_SHA is '{{ lookup('ansible.builtin.env', 'PACKIT_TARGET_SHA') }}'"
+
+    - name: print packit variable
+      ansible.builtin.debug:
+        msg: "$PACKIT_PR_ID is '{{ lookup('ansible.builtin.env', 'PACKIT_PR_ID') }}'"
