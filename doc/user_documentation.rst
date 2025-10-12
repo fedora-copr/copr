@@ -958,6 +958,14 @@ even though that build might not be the newest one.  Also, if there are
 two builds of the same package version, it is undefined which one is going
 to be kept.
 
+.. note::
+   **For projects using the Pulp backend**, the retention policy is different, and the 14-day preservation period
+   is **not guaranteed**. Instead of a time limit, retention is count-based: Copr keeps the **5 most recent successful builds**
+   for each package. When a 6th successful build of the same package is added, the oldest one is automatically removed to
+   stay within the limit. Consequently, if you produce builds frequently (more than 5 versions of a package within 14 days),
+   the older builds will be removed much sooner. This behavior is controlled by Pulp's built-in
+   ``retain_package_versions`` `repository setting <https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create>`_.
+
 Projects that opted-in for :ref:`creating_repositories_manually`, are
 exempt from the old package removal because of technical limitations.
 
