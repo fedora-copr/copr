@@ -321,9 +321,9 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
             # Handle Permission Denied error explicitly
             LOG.error("No permission to delete path %s", dir_path)
             continue
-        except Exception as exception:
+        except Exception as exception:  # pylint: disable=broad-exception-caught
             # Catch and log any other exception
-            LOG.error("Exception when deleting path %s, %s", dir_path, exception.__str__())
+            LOG.error("Exception when deleting path %s, %s", dir_path, str(exception))
             continue
 
         # also remove the associated log in the main dir

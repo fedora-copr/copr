@@ -110,9 +110,9 @@ def prune(path, days, dry_run=False, stdout=False):
                     error_message = "No permission to delete path {}".format(subdir)
                     print_remove_error(error_message, stdout)
                     continue
-                except Exception as exception:
+                except Exception as exception:  # pylint: disable=broad-exception-caught
                     # Catch and log any other exception
-                    error_message = "Exception when deleting path {}, {}".format(subdir, exception.__str__())
+                    error_message = "Exception when deleting path {}, {}".format(subdir, str(exception))
                     print_remove_error(error_message, stdout)
                     continue
 
