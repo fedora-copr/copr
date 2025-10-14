@@ -399,14 +399,16 @@ class PulpStorage(Storage):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(path, labels)
-
-        if not response.ok:
-            self.log.error("Failed to create Pulp content for: %s, %s",
-                           path, response.text)
-            return response
-
-        return response
+        i = 1
+        while True:
+            try:
+                return self.client.create_content(path, labels)
+            except RequestError as ex:
+                self.log.error(
+                    "Failed to create Pulp content for: %s, %s %s (attempt #%s)",
+                    path, ex.response.reason, ex.response.text, i,
+                )
+            i += 1
 
     def upload_build_results(self, rpm_paths, chroot, max_workers=1, build_id=None):
         futures = {}
