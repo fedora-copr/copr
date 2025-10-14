@@ -1,3 +1,5 @@
+:orphan:
+
 .. _migration:
 
 Migration
@@ -96,4 +98,3 @@ so they split into multiple smaller functions.
 | ``build_module(...)``               | ``module_proxy.build_from_url``,                            |
 |                                     | ``module_proxy.build_from_file``                            |
 +-------------------------------------+-------------------------------------------------------------+
-
