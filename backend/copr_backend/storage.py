@@ -3,6 +3,7 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
 import os
+import gc
 from tempfile import TemporaryDirectory
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # We need to stop using the deprecated distutils module.
@@ -399,14 +400,31 @@ class PulpStorage(Storage):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(path, labels)
-
-        if not response.ok:
-            self.log.error("Failed to create Pulp content for: %s, %s",
-                           path, response.text)
-            return response
-
-        return response
+        i = 1
+        while True:
+            try:
+                response = self.client.create_content(path, labels)
+                if response.ok:
+                    return response
+                self.log.error(
+                    "Unsuccessful response when creating Pulp content for "
+                    "%s, %s %s (attempt #%s)",
+                    path, response.reason, response.text, i,
+                )
+            except RequestError as ex:
+                self.log.error(
+                    "Failed to create Pulp content for: %s, %s %s (attempt #%s)",
+                    path, ex.response.reason, ex.response.text, i,
+                )
+                # We need to explicitly the force garbage collector to run
+                # right now, otherwise we will leak a lot of memory by trying
+                # to upload the (large) file again and again. Which means
+                # reading it again and again. Not sure why the previous memory
+                # couldn't be re-used and not sure why the garbage collector
+                # doesn't free it automatically. It doesn't though, this fixes
+                # a real memory leak that led to the process being OOM-killed.
+                gc.collect()
+            i += 1
 
     def upload_build_results(self, rpm_paths, chroot, max_workers=1, build_id=None):
         futures = {}
