@@ -5,7 +5,36 @@
     to [de]serialize model instances for API views.
 """
 
+import datetime
+import base64
+import flask
 from copr_common.enums import StatusEnum
+from coprs import helpers, db
+
+
+class APILogic:
+    """
+    API related logic
+    """
+
+    @staticmethod
+    def generate_api_token(user):
+        """
+        Generate a new API token for a given user.
+        """
+        copr64 = base64.b64encode(b"copr") + b"##"
+        api_login = helpers.generate_api_token(
+            flask.current_app.config["API_TOKEN_LENGTH"] - len(copr64))
+        user.api_login = api_login
+        user.api_token = helpers.generate_api_token(
+            flask.current_app.config["API_TOKEN_LENGTH"])
+        user.api_token_expiration = datetime.date.today() + \
+            datetime.timedelta(
+                days=flask.current_app.config["API_TOKEN_EXPIRATION"])
+
+        db.session.add(user)
+        return user
+
 
 class BuildWrapper(object):
     def __init__(self, build):
