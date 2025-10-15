@@ -12,6 +12,7 @@ import sys
 import time
 import warnings
 from collections import defaultdict
+from configparser import ConfigParser
 
 import requests
 
@@ -24,6 +25,11 @@ try:
     import argcomplete
 except ImportError:
     argcomplete = None
+
+try:
+    from configupdater import ConfigUpdater
+except ImportError:
+    ConfigUpdater = None
 
 import copr.exceptions as copr_exceptions
 from copr.v3 import (
@@ -289,6 +295,37 @@ class Commands(object):
         except:
             log.error("Can't detect who are you.")
             raise
+
+    def action_new_api_token(self, args):
+        """
+        Simply print out the current user as defined in copr config.
+        """
+        result = self.client.base_proxy.new_api_token()
+        if not args.in_place:
+            print("New API token was successfully generated.")
+            print("login = {0}".format(result.api_login))
+            print("token = {0}".format(result.api_token))
+        else:
+            self._update_config(args.config, {
+                "login": result.api_login,
+                "token": result.api_token,
+            })
+
+    def _update_config(self, path, data):
+        if ConfigUpdater:
+            config = ConfigUpdater()
+            config.read(path)
+            for key, value in data.items():
+                config["copr-cli"][key].value = value
+            config.update_file()
+        else:
+            # This breaks the previous formatting, removes comments inside of
+            # the config file, etc. That's why we only use it as a fallback.
+            self.client.config.update(data)
+            config = ConfigParser()
+            config["copr-cli"] = self.client.config
+            with open(path, "w") as fp:
+                config.write(fp)
 
     def action_new_webhook_secret(self, args):
         """
@@ -1055,6 +1092,17 @@ def setup_parser():
                         version="%(prog)s version " + package_version("copr-cli"))
 
     subparsers = parser.add_subparsers(title="actions")
+
+    parser_new_api_token = subparsers.add_parser(
+        "new-api-token",
+        help="Generate a new API token. Be careful, this destroys the old one!")
+    parser_new_api_token.add_argument(
+        "--in-place",
+        "-i",
+        action="store_true",
+        help="Replace the login and token values in the Copr config",
+    )
+    parser_new_api_token.set_defaults(func="action_new_api_token")
 
     #########################################################
     ###                    Project options                ###

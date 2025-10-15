@@ -14,6 +14,7 @@ from coprs.views.apiv3_ns import api
 from coprs.exceptions import AccessRestricted
 from coprs.views.misc import api_login_required
 from coprs.auth import UserAuth
+from coprs.logic.api_logic import APILogic
 
 
 def auth_check_response():
@@ -70,6 +71,21 @@ class AuthCheck(Resource):
         Check if the user is authenticated
         """
         return auth_check_response()
+
+
+@apiv3_general_ns.route("/api-token")
+class APIToken(Resource):
+    @api_login_required
+    def post(self):
+        """
+        Generate a new API token
+        """
+        user = APILogic.generate_api_token(flask.g.user)
+        db.session.commit()
+        return {
+            "api_login": user.api_login,
+            "api_token": user.api_token,
+        }
 
 
 def auth_403(message):
