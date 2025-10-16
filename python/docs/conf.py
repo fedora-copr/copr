@@ -107,9 +107,9 @@ pygments_style = 'sphinx'
 # Ideally, we want to develop the documentation in the same theme
 # that will be used in the production
 try:
-    import sphinx_rtd_theme
+    import sphinx_rtd_theme  #noqa
     html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 except ImportError:
     print("Please install the readthedocs theme with:")
     print("dnf install python*-sphinx_rtd_theme")
