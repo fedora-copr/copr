@@ -27,7 +27,13 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.coverage',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.todo'
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -101,9 +107,8 @@ pygments_style = 'sphinx'
 # Ideally, we want to develop the documentation in the same theme
 # that will be used in the production
 try:
-    import sphinx_rtd_theme
+    import sphinx_rtd_theme  # noqa # pylint: disable=unused-import
     html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 except ImportError:
     print("Please install the readthedocs theme with:")
     print("dnf install python*-sphinx_rtd_theme")

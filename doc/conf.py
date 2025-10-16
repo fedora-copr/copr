@@ -99,7 +99,7 @@ pygments_style = 'sphinx'
 # directory, therefore if something doesn't look as expected, it will be broken
 # also in production
 try:
-    import sphinx_rtd_theme
+    import sphinx_rtd_theme  # noqa # pylint: disable=unused-import
     html_theme = "sphinx_rtd_theme"
 except ImportError:
     print("Please install the readthedocs theme with:")
