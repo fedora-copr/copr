@@ -1,7 +1,7 @@
 import os
 
 from copr.v3.auth import auth_from_config
-from copr.v3.requests import munchify, Request
+from copr.v3.requests import munchify, Request, POST
 from ..helpers import for_all_methods, bind_proxy, config_from_file
 
 
@@ -62,3 +62,17 @@ class BaseProxy(object):
         if not self.auth.username:
             self.auth.make()
         return self.auth.username
+
+    def new_api_token(self):
+        """
+        Generate a new API token
+
+        :return: Munch
+        """
+        endpoint = "/api-token"
+        response = self.request.send(
+            endpoint=endpoint,
+            method=POST,
+            auth=self.auth,
+        )
+        return munchify(response)

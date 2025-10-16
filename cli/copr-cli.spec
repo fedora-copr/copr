@@ -28,6 +28,7 @@ Requires:      python3-humanize
 Requires:      python3-koji
 
 Recommends:    python3-progress
+Recommends:    python3-ConfigUpdater
 Suggests:      python3-beautifulsoup4
 
 BuildRequires: python3-copr >= %min_python_copr_version
