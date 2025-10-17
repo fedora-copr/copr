@@ -403,6 +403,14 @@ class PulpStorage(Storage):
         while True:
             try:
                 return self.client.create_content(path, labels)
+                response = self.client.create_content(path, labels)
+                if response.ok:
+                    return response
+                self.log.error(
+                    "Unsuccessful response when creating Pulp content for "
+                    "%s, %s %s (attempt #%s)",
+                    path, response.reason, response.text, i,
+                )
             except RequestError as ex:
                 self.log.error(
                     "Failed to create Pulp content for: %s, %s %s (attempt #%s)",
