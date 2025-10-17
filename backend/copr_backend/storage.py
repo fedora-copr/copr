@@ -3,6 +3,7 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
 import os
+import gc
 from tempfile import TemporaryDirectory
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # We need to stop using the deprecated distutils module.
@@ -399,14 +400,28 @@ class PulpStorage(Storage):
         """
         Add an RPM to the storage
         """
-        response = self.client.create_content(path, labels)
+        i = 1
+        while True:
+            try:
+                import psutil
+                process = psutil.Process()
+                self.log.info("!!!!! %sB !!!!!", process.memory_info().rss)
 
-        if not response.ok:
-            self.log.error("Failed to create Pulp content for: %s, %s",
-                           path, response.text)
-            return response
-
-        return response
+                response = self.client.create_content(path, labels)
+                if response.ok:
+                    return response
+                self.log.error(
+                    "Unsuccessful response when creating Pulp content for "
+                    "%s, %s %s (attempt #%s)",
+                    path, response.reason, response.text, i,
+                )
+            except RequestError as ex:
+                self.log.error(
+                    "Failed to create Pulp content for: %s, %s %s (attempt #%s)",
+                    path, ex.response.reason, ex.response.text, i,
+                )
+                gc.collect()
+            i += 1
 
     def upload_build_results(self, rpm_paths, chroot, max_workers=1, build_id=None):
         futures = {}
