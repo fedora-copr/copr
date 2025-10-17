@@ -63,9 +63,8 @@ class SafeRequest:
     def _send_request(self, url, method, data=None, **kwargs):
         files = kwargs.get("files", None)
 
-        headers = {
-            "User-Agent": "{name}/{version}".format(**SafeRequest.user_agent),
-        }
+        headers = kwargs.get("headers", None) or {}
+        headers["User-Agent"] = "{name}/{version}".format(**SafeRequest.user_agent)
         if not files:
             headers["content-type"] = "application/json"
 
