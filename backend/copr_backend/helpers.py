@@ -37,7 +37,7 @@ from . import constants
 DOMAIN = "fedorahosted.org"
 
 LOG_COMPONENTS = [
-    "spawner", "terminator", "vmm", "build_dispatcher", "action_dispatcher",
+    "build_dispatcher", "action_dispatcher",
     "backend", "actions", "worker", "modifyrepo", "pruner", "analyze-results",
 ]
 
