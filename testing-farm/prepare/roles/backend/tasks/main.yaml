@@ -1,0 +1,83 @@
+---
+- name: Install package 'copr-backend'
+  ansible.builtin.package:
+    name:
+      - copr-backend
+    state: installed
+
+- name: Fetch the fe-be key from the credentials host
+  ansible.builtin.slurp:
+    src: /root/be-fe-token
+  delegate_to: "{{ host_with_secrets }}"
+  register: be_fe_token
+
+- name: Configure Copr Backend
+  ansible.builtin.template:
+    src: copr-be.conf.j2
+    dest: /etc/copr/copr-be.conf
+    owner: copr
+    group: copr
+    mode: '0600'
+  notify: restart copr-backend
+
+- name: Deploy Copr Backend HTTPD Configuration
+  ansible.builtin.template:
+    # Source template path (relative to the role's 'templates/' directory)
+    src: httpd-copr-be.conf.j2
+    # Destination path on the remote host (uses an absolute path)
+    dest: /etc/httpd/conf.d/copr-backend.conf
+    # Set standard ownership and read permissions
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
+
+- stat:
+    path: /home/copr
+  register: copr_homedir
+
+- name: create copr homedir
+  ansible.builtin.command: mkhomedir_helper copr
+  when: not copr_homedir.stat.exists
+
+- name: Ensure ~/.ssh directory exists for copr user
+  ansible.builtin.file:
+    path: /home/copr/.ssh
+    state: directory
+    owner: copr
+    group: copr
+    mode: '0700'
+
+- name: "install copr -> builder ssh config"
+  ansible.builtin.copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ServerAliveInterval 20
+        ServerAliveCountMax 5
+        ConnectTimeout 60
+    dest: "/home/copr/.ssh/config"
+    owner: copr
+    group: copr
+    mode: '0600'
+
+- name: Fetch the Backend->Builder SSH private key
+  ansible.builtin.slurp:
+    src: /root/backend_builder
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched SSH private key for copr
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "/home/copr/.ssh/id_ed25519"
+    owner: copr
+    group: copr
+    mode: '0600'
+
+- name: Start and enable copr-backend
+  ansible.builtin.systemd_service:
+    name: copr-backend.target
+    state: started
+    enabled: true

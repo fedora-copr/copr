@@ -1,0 +1,8 @@
+[dist-git]
+frontend_base_url=https://{{ ansible_host }}
+frontend_auth={{ be_fe_token["content"] | b64decode }}
+log_dir=/var/log/copr-dist-git
+per_task_log_dir=/data/distgit/web/logs
+
+# TODO: This doesn't work.
+#git_base_url=/data/distgit/git/%(module)s

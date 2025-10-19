@@ -1,0 +1,3 @@
+---
+httpd_ssl_cert_dir: /etc/pki/tls/certs/
+httpd_ssl_keys_dir: /etc/pki/tls/private/

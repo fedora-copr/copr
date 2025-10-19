@@ -1,0 +1,133 @@
+---
+- name: install needed packages
+  package:
+    name:
+      - copr-frontend
+    state: installed
+
+- name: Ensure /data/frontend directory exists and has correct ownership
+  ansible.builtin.file:
+    path: /data/frontend
+    state: directory
+    owner: copr-fe
+    group: copr-fe
+    mode: '0700'
+
+- name: Set persistent SELinux context for /data/frontend
+  community.general.sefcontext:
+    target: /data/frontend(/.*)?
+    setype: copr_data_t
+    state: present
+  register: fcontext_configured
+
+- name: . Apply SELinux context immediately
+  # This command applies the context change immediately.
+  ansible.builtin.command: restorecon -R -v /data/frontend
+  when: fcontext_configured.changed
+
+- name: Create PostgreSQL user 'copr-fe'
+  community.postgresql.postgresql_user:
+    login_db: postgres
+    name: copr-fe
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Create PostgreSQL database 'copr-fe' owned by 'copr-fe'
+  community.postgresql.postgresql_db:
+    name: copr-fe
+    owner: copr-fe
+    state: present
+  become: true
+  become_user: postgres
+  register: db_created
+  tags:
+    - frontend_init_database
+
+- name: Fetch the fe-be key from the credentials host
+  ansible.builtin.slurp:
+    src: /root/be-fe-token
+  delegate_to: "{{ host_with_secrets }}"
+  register: be_fe_token
+
+- name: Configure Copr Frontend
+  ansible.builtin.template:
+    src: copr-fe-conf.j2
+    dest: /etc/copr/copr.conf
+    owner: copr-fe
+    group: copr-fe
+    mode: '0600'
+  notify: restart httpd
+
+- name: Initialize the Copr database using Alembic
+  ansible.builtin.command: sudo -i -u copr-fe copr-frontend create-db --alembic alembic.ini
+  when: db_created.changed
+  tags:
+    - frontend_init_database
+
+- name: Initialize database object
+  ansible.builtin.command: "{{ item }}"
+  become_user: copr-fe
+  become: true
+  when: db_created.changed or 'frontend_init_database' in ansible_run_tags
+  loop:
+    - copr-frontend create-chroot fedora-rawhide-x86_64
+  tags:
+    - frontend_init_database
+
+- name: Start and enable Valkey service
+  ansible.builtin.systemd_service:
+    name: valkey
+    state: started
+    enabled: true
+
+- name: Configure HTTPD -  Instantiate /etc/httpd/conf.d/copr.conf from template
+  ansible.builtin.template:
+    src: coprs.conf.j2
+    dest: /etc/httpd/conf.d/coprs.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
+
+- name: Fetch the certificate file from the credentials host
+  ansible.builtin.slurp:
+    src: /root/self-signed.pem
+  register: cert_file
+  delegate_to: "{{ host_with_secrets }}"
+
+- name: Install the fetched certificate file on the target host
+  ansible.builtin.copy:
+    content: "{{ cert_file['content'] | b64decode }}"
+    dest: "{{ httpd_ssl_cert_dir }}/copr.pem"
+    owner: root
+    group: root
+    mode: '0644'  # Standard permissions for public cert
+  notify: restart httpd
+
+- name: Fetch the private key file from the credentials host
+  ansible.builtin.slurp:
+    src: /root/self-signed.key
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched private key file on the target host
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "{{ httpd_ssl_keys_dir }}/copr.key"
+    owner: root
+    group: root
+    mode: '0600'  # Strict permissions for private key (only root readable)
+  notify: restart httpd
+
+- name: Start and enable HTTPD
+  ansible.builtin.systemd_service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: create a script for dumping user tokens
+  copy:
+    src: create-token.py
+    dest: /usr/bin/copr-frontend-create-cli-token
+    mode: '0755'

@@ -1,0 +1,165 @@
+---
+- name: install resalloc server
+  package:
+    name:
+      - resalloc-server
+      - python3-psycopg2
+    state: installed
+
+- name: Create PostgreSQL user 'resalloc'
+  community.postgresql.postgresql_user:
+    login_db: postgres
+    name: resalloc
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Create PostgreSQL database 'resalloc' owned by 'resalloc'
+  community.postgresql.postgresql_db:
+    name: resalloc
+    owner: resalloc
+    state: present
+  become: true
+  become_user: postgres
+  register: db_created
+
+- name: Configure Resalloc Server
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/resallocserver/{{ item }}"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+  loop:
+    - server.yaml
+    - pools.yaml
+
+- name: Start and enable Resalloc service
+  ansible.builtin.systemd_service:
+    name: resalloc
+    state: started
+    enabled: true
+
+- name: create image builder directory
+  ansible.builtin.file:
+    path: "{{ resalloc_image_dir }}"
+    state: directory
+    owner: resalloc
+    group: resalloc
+    mode: '0700'
+
+- name: Enable user lingering for 'resalloc'
+  ansible.builtin.command: loginctl enable-linger resalloc
+  changed_when: false
+
+- name: render Containerfile
+  ansible.builtin.template:
+    src: Containerfile.j2
+    dest: "{{ resalloc_image_dir }}/Containerfile"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+  notify: build builder image
+
+- name: Fetch the certificate file from the credentials host
+  ansible.builtin.slurp:
+    src: /root/self-signed.pem
+  register: cert_file
+  delegate_to: "{{ host_with_secrets }}"
+  notify: build builder image
+
+- name: Install copr.pem as a file to copy to container
+  ansible.builtin.copy:
+    content: "{{ cert_file['content'] | b64decode }}"
+    dest: "{{ resalloc_image_dir }}/copr.pem"
+    owner: resalloc
+    group: resalloc
+    mode: '0644'
+  register: ca_trust
+  notify: build builder image
+
+- name: Ensure resalloc user has subordinate UIDs defined
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^resalloc:'
+    line: 'resalloc:100000:65536'
+    state: present
+    create: true
+  loop:
+    - /etc/subuid
+    - /etc/subgid
+
+- name: Ensure ~/.ssh directory exists for resalloc user
+  ansible.builtin.file:
+    path: /var/lib/resallocserver/.ssh
+    state: directory
+    owner: resalloc
+    group: resalloc
+    mode: '0700'
+
+- name: "install resalloc -> builder ssh config"
+  ansible.builtin.copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ServerAliveInterval 20
+        ServerAliveCountMax 5
+        ConnectTimeout 60
+    dest: "/var/lib/resallocserver/.ssh/config"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+
+- name: Fetch the Backend->Builder SSH private key
+  ansible.builtin.slurp:
+    src: /root/backend_builder
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched SSH private key
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "/var/lib/resallocserver/.ssh/id_ed25519"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+
+- name: Fetch the Backend->Builder SSH public key
+  ansible.builtin.slurp:
+    src: /root/backend_builder.pub
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched SSH public key
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "{{ resalloc_image_dir }}/key.pub"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+
+- name: install dist-git-client config
+  ansible.builtin.copy:
+    content: |
+      [fedora-copr]
+      clone_hostnames = {{ ansible_host }}
+      lookaside_location = https://{{ ansible_host }}
+      lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hashtype}/{hash}/{filename}
+      cloning_pattern_package_parts = owner_name project_name package_name
+      cloning_pattern=https://{{ ansible_host }}/git/{package}
+    dest: "{{ resalloc_image_dir }}/copr.ini"
+    owner: resalloc
+    group: resalloc
+
+- name: install resalloc hook scripts
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/usr/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    - podman-start-builder
+    - podman-stop-builder
+
+- name: flush handlers
+  meta: flush_handlers
