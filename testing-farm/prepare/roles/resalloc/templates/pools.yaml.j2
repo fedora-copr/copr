@@ -1,0 +1,8 @@
+---
+x86_64_on_demand:
+  max: 10
+  cmd_new: "echo >&2 before; env | grep RESALLOC_; echo >&2 after"
+  cmd_delete: "echo >&2 stderr; echo stdout"
+  tags_on_demand:
+    - arch_x86_64
+    - copr_builder
