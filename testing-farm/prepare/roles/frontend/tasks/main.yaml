@@ -46,10 +46,24 @@
   become: true
   become_user: postgres
   register: db_created
+  tags:
+    - frontend_init_database
 
 - name: Initialize the Copr database using Alembic
   ansible.builtin.command: copr-frontend create-db --alembic alembic.ini
   when: db_created.changed
+  tags:
+    - frontend_init_database
+
+- name: Initialize database object
+  ansible.builtin.command: "{{ item }}"
+  become_user: copr-fe
+  become: true
+  when: db_created.changed or 'frontend_init_database' in ansible_run_tags
+  loop:
+    - copr-frontend create-chroot fedora-rawhide-x86_64
+  tags:
+    - frontend_init_database
 
 - name: Start and enable Valkey service
   ansible.builtin.systemd_service:
@@ -109,3 +123,4 @@
     owner: copr-fe
     group: copr-fe
     mode: '0600'
+  notify: restart httpd
