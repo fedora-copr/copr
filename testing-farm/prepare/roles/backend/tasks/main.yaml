@@ -1,0 +1,27 @@
+---
+- name: Fetch the fe-be key from the credentials host
+  ansible.builtin.slurp:
+    src: /root/be-fe-token
+  delegate_to: "{{ host_with_secrets }}"
+  register: be_fe_token
+
+- name: Configure Copr Backend
+  ansible.builtin.template:
+    src: copr-be.conf.j2
+    dest: /etc/copr/copr-be.conf
+    owner: copr
+    group: copr
+    mode: '0600'
+  notify: restart copr-backend
+
+- name: Deploy Copr Backend HTTPD Configuration
+  ansible.builtin.template:
+    # Source template path (relative to the role's 'templates/' directory)
+    src: httpd-copr-be.conf.j2
+    # Destination path on the remote host (uses an absolute path)
+    dest: /etc/httpd/conf.d/copr-backend.conf
+    # Set standard ownership and read permissions
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
