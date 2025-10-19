@@ -1,0 +1,5 @@
+---
+- name: restart copr-backend
+  ansible.builtin.systemd_service:
+    name: copr-backend.target
+    state: restarted

@@ -3,7 +3,30 @@
   hosts: all
   user: "root"
 
-  tasks:
+  vars:
+    host_with_secrets: "{{ ansible_host }}"
+    ansible_python_interpreter: /usr/bin/python3
+    test_user: single-host-testing
+
+  roles:
+    - credentials
+    - ca-trust
+    - resalloc
+    - distgit
+    - backend
+    - frontend
+    - keygen
+    - role: client
+      vars:
+        copr_username: "{{ test_user }}"
+
+  handlers:
+    - name: restart httpd
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: restarted
+
+  pre_tasks:
     - name: pre-release copr packages
       community.general.copr:
         name: '@copr/copr-dev'
@@ -21,3 +44,9 @@
     - name: print packit variable
       ansible.builtin.debug:
         msg: "$PACKIT_PR_ID is '{{ lookup('ansible.builtin.env', 'PACKIT_PR_ID') }}'"
+
+  tasks:
+    - name: create a testing project
+      ansible.builtin.command: >
+        sudo -i -u "{{ test_user }}"
+        copr create foo --chroot fedora-rawhide-x86_64

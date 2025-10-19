@@ -1,0 +1,36 @@
+ENV="local"
+BACKEND_PASSWORD = '{{ be_fe_token["content"] | b64decode }}'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://copr-fe:coprpass@/copr-fe'
+DEBUG = True
+SQLALCHEMY_ECHO = True
+SEND_EMAILS = False
+PUBLIC_COPR_HOSTNAME = '{{ ansible_host }}'
+PUBLIC_COPR_BASE_URL = 'https://{{ ansible_host }}'
+
+BACKEND_BASE_URL = 'https://{{ ansible_host }}'
+DIST_GIT_CLONE_URL = 'https://{{ ansible_host }}/git/'
+DIST_GIT_URL = 'https://{{ ansible_host }}/cgit'
+COPR_DIST_GIT_LOGS_URL = 'https://{{ ansible_host }}/per-task-logs'
+
+DATA_DIR = '/data/frontend'
+OPENID_STORE = '/data/frontend/openid_store'
+WHOOSHEE_DIR = '/data/frontend/whooshee'
+STORAGE_DIR  = '/data/frontend/srpm_storage'
+
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+
+KRB5_LOGIN = {
+   'log_text':     "gssapi-login",
+   'email_domain': "fedoraproject.org",
+}
+
+NEWS_URL = "https://fedora-copr.github.io/"
+NEWS_FEED_URL = "https://fedora-copr.github.io/feed.xml"
+#OPENID_PROVIDER_URL = "https://id.fedoraproject.org"
+
+ENABLE_DISCUSSION = False
+ITEMS_PER_PAGE = 10
+PAGES_URLS_COUNT = 5
+
+SERVER_NAME = "{{ ansible_host }}"

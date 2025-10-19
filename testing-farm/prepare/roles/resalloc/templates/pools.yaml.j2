@@ -1,0 +1,9 @@
+---
+x86_64_on_demand:
+  max: 10
+  cmd_new: /usr/bin/podman-start-builder
+  cmd_delete: /usr/bin/podman-stop-builder
+  tags_on_demand:
+    - arch_x86_64
+    - arch_noarch
+    - copr_builder

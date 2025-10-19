@@ -1,0 +1,72 @@
+---
+- name: Install package 'copr-dist-git'
+  ansible.builtin.package:
+    name:
+      - copr-dist-git
+    state: installed
+
+- name: Ensure /data/distgit and subdirectories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: copr-dist-git
+    group: packager
+    mode: '0751'
+  loop:
+    - /data/distgit
+    - /data/distgit/git
+    - /data/distgit/web
+
+- name: Set recursive SELinux context for /data/distgit/git (git_user_content_t)
+  ansible.builtin.command: chcon -t "{{ item.type }}" "{{ item.path }}"
+  changed_when: false
+  loop:
+    - type: git_user_content_t
+      path: /data/distgit/git
+    - type: httpd_sys_content_t
+      path: /data/distgit/web
+
+- name: Fetch the fe-be key from the credentials host
+  ansible.builtin.slurp:
+    src: /root/be-fe-token
+  delegate_to: "{{ host_with_secrets }}"
+  register: be_fe_token
+
+- name: Configure Copr Dist Git
+  ansible.builtin.template:
+    src: copr-dist-git.conf.j2
+    dest: /etc/copr/copr-dist-git.conf
+    owner: copr-dist-git
+    group: copr-dist-git
+    mode: '0600'
+  notify: restart copr-dist-git
+
+- name: Ensure copr-dist-git service is started and enabled
+  ansible.builtin.service:
+    name: copr-dist-git
+    state: started
+    enabled: true
+
+- name: Deploy Copr DistGit HTTPD Configuration
+  ansible.builtin.template:
+    src: httpd-dist-git.conf.j2
+    dest: /etc/httpd/conf.d/copr-dist-git.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart httpd
+    - restart copr-dist-git
+
+- name: Install global gitconfig
+  copy:
+    content: |
+      [safe]
+      # Disable safe.directory security check for the whole system. This is not
+      # ideal but it is not possible to recursively mark our whole storage as
+      # safe and we cannot manually mark every repository as safe because we
+      # have too many of them. See
+      # https://github.com/fedora-copr/copr/issues/3266
+      directory = *
+    dest: /etc/gitconfig
+    mode: '0644'

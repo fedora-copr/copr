@@ -1,0 +1,41 @@
+---
+- name: install client packages
+  package:
+    name:
+      - copr-cli
+    state: installed
+
+- name: Create user '{{ copr_username }}'
+  ansible.builtin.user:
+    name: "{{ copr_username }}"
+    state: present
+    shell: /bin/bash
+  register: user_created
+
+- name: create user in copr database
+  ansible.builtin.command: >
+    sudo -i -u copr-fe copr-frontend add-user
+    {{ copr_username }} {{copr_username}}@example.com
+  when: user_created.changed
+
+- name: "generate the token file for {{ copr_username }}"
+  ansible.builtin.command: >
+    sudo -i -u copr-fe copr-frontend-create-cli-token "{{ copr_username }}"
+  when: user_created.changed
+
+- name: Ensure ~/.config directory exists for user '{{ copr_username }}'
+  ansible.builtin.file:
+    path: "/home/{{ copr_username }}/.config"
+    state: directory
+    owner: "{{ copr_username }}"
+    group: "{{ copr_username }}"
+    mode: '0700'
+
+- name: create the token file
+  copy:
+    src: "/var/lib/copr/data/manually-created-user-tokens/{{ copr_username }}"
+    dest: "/home/{{ copr_username }}/.config/copr"
+    remote_src: true
+    mode: '0600'
+    owner: "{{ copr_username }}"
+    group: "{{ copr_username }}"

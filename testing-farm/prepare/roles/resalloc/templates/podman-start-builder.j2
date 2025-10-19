@@ -1,0 +1,35 @@
+#! /bin/bash
+
+RANGE=60000
+PORT=$RANGE
+
+NAME=$RESALLOC_NAME
+
+info() { echo >&2 "$*" ; }
+
+case $RESALLOC_ID_IN_POOL in
+  [0-9]*)
+    PORT=$(( RANGE + RESALLOC_ID_IN_POOL ))
+    ;;
+  *)
+    RANGE=50000
+    info "not started by resalloc server, using port $RANGE"
+    NAME=local_testing_$RANGE
+    ;;
+esac
+
+test -z "$NAME" && echo "no NAME set" && exit 1
+
+count=0
+
+# start _rootless_ but --privileged container, so we can run Mock
+while ! podman run --privileged -p "$PORT:22" --name "$NAME" -d --rm builder_x86_64 >&2; do
+    sleep 5
+    count=$(( count + 1 ))
+    test "$count" -gt  10 && exit 1
+done
+
+echo "---"
+echo "name: $NAME"
+echo "host: localhost"
+echo "ssh_port: $PORT"

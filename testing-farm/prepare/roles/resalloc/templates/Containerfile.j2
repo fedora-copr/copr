@@ -1,0 +1,29 @@
+FROM registry.fedoraproject.org/fedora:42
+
+RUN set -ex ; \
+    dnf -y update && \
+    dnf -y install \
+        copr-builder \
+        openssh-server \
+    && dnf clean all
+
+RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
+
+# allow ssh to root@localhost without password
+RUN mkdir -p /root/.ssh && chmod 700 /root /root/.ssh
+COPY key.pub /root/.ssh/authorized_keys
+RUN chmod 600 /root/.ssh/authorized_keys
+
+COPY copr.pem /etc/pki/ca-trust/source/anchors/copr.crt
+RUN update-ca-trust
+
+# install mockbuilder user, and allow ssh to it
+RUN useradd mockbuilder && usermod -a -G mock mockbuilder
+RUN mkdir -p /home/mockbuilder/.ssh \
+    && chmod 700 /home/mockbuilder/.ssh \
+    && cp /root/.ssh/authorized_keys /home/mockbuilder/.ssh \
+    && chown -R mockbuilder:mockbuilder /home/mockbuilder/.ssh
+
+COPY copr.ini /etc/dist-git-client/copr.ini
+
+CMD ["/usr/sbin/sshd", "-D"]

@@ -1,0 +1,65 @@
+---
+- name: install copr-keygen
+  package:
+    name: copr-keygen
+
+- name: Create /etc/sign.conf file
+  ansible.builtin.copy:
+    content: |
+      # keygen side
+      allowuser: copr-signer
+      allow: 127.0.0.1
+      use-agent: false
+      phrases: /var/lib/copr-keygen/phrases
+      gpg: /bin/gpg_copr.sh
+
+      # backend side
+      server: 127.0.0.1
+      allowuser: copr
+    dest: /etc/sign.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart signd
+
+- name: enable signd
+  service:
+    name: signd
+    enabled: true
+    state: started
+
+- name: Add user 'copr' to the 'obsrun' group
+  ansible.builtin.user:
+    name: copr
+    groups: obsrun
+    append: true
+
+- name: Create Apache conf.d snippet for localhost:8080
+  ansible.builtin.copy:
+    content: |
+      # Ensure Apache listens on the loopback interface for port 8080
+      Listen 127.0.0.1:8080
+
+      <VirtualHost 127.0.0.1:8080>
+
+        ServerName localhost
+        WSGIPassAuthorization On
+        WSGIDaemonProcess keygen user=copr-signer group=copr-signer threads=5
+        WSGIScriptAlias / /usr/share/copr-keygen/application.py
+        WSGIProcessGroup keygen
+
+        ErrorLog logs/error_log
+        CustomLog logs/access_log common
+
+        TimeOut 300
+
+        <Directory /usr/share/copr-keygen>
+            WSGIApplicationGroup %{GLOBAL}
+            Require all granted
+        </Directory>
+      </VirtualHost>
+    dest: /etc/httpd/conf.d/copr-keygen.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
