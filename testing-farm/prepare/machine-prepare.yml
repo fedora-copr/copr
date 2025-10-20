@@ -8,12 +8,11 @@
     ansible_python_interpreter: /usr/bin/python3
 
   roles:
-    - ca-trust
     - credentials
+    - ca-trust
     - resalloc
     - distgit
     - backend
-    - credentials
     - frontend
 
   handlers:

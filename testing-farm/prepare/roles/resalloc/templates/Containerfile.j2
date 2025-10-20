@@ -14,11 +14,15 @@ RUN mkdir -p /root/.ssh && chmod 700 /root /root/.ssh
 COPY key.pub /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys
 
+COPY copr.pem /etc/pki/ca-trust/source/anchors/copr.crt
+RUN update-ca-trust
+
 # install mockbuilder user, and allow ssh to it
 RUN useradd mockbuilder && usermod -a -G mock mockbuilder
 RUN mkdir -p /home/mockbuilder/.ssh \
     && chmod 700 /home/mockbuilder/.ssh \
     && cp /root/.ssh/authorized_keys /home/mockbuilder/.ssh \
     && chown -R mockbuilder:mockbuilder /home/mockbuilder/.ssh
+
 
 CMD ["/usr/sbin/sshd", "-D"]

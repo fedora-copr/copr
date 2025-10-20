@@ -61,15 +61,24 @@
     group: resalloc
     mode: '0600'
   register: containerfile
+  notify: build builder image
 
-- name: build the image
-  ansible.builtin.command:
-    cmd: "podman build -t builder_x86_64 ."
-  args:
-    chdir: "{{ resalloc_image_dir }}"
-  when: containerfile.changed
-  become: true
-  become_user: resalloc
+- name: Fetch the certificate file from the credentials host
+  ansible.builtin.slurp:
+    src: /root/self-signed.pem
+  register: cert_file
+  delegate_to: "{{ host_with_secrets }}"
+  notify: build builder image
+
+- name: Install copr.pem as a file to copy to container
+  ansible.builtin.copy:
+    content: "{{ cert_file['content'] | b64decode }}"
+    dest: "{{ resalloc_image_dir }}/copr.pem"
+    owner: resalloc
+    group: resalloc
+    mode: '0644'
+  register: ca_trust
+  notify: build builder image
 
 - name: Ensure resalloc user has subordinate UIDs defined
   ansible.builtin.lineinfile:
