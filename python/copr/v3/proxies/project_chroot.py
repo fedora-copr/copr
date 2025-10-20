@@ -72,7 +72,7 @@ class ProjectChrootProxy(BaseProxy):
             Possible values are 'default', 'simple', 'nspawn'.
         :param list reset_fields: list of chroot attributes, that should be
             reseted to their respective defaults. Possible values are
-            `additional_packages`, `additional_modules`, `isolation`, etc. See
+            ``additional_packages``, ``additional_modules``, ``isolation``, etc. See
             the output of `ProjectProxy.get` for all the possible field names.
         :return: Munch
         """

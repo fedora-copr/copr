@@ -40,13 +40,6 @@ Package
    :members:
 
 
-Module
-------
-
-.. autoclass:: copr.v3.proxies.module.ModuleProxy
-   :members:
-
-
 Monitor
 -------
 
