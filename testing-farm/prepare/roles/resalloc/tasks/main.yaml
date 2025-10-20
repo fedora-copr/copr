@@ -159,5 +159,5 @@
     dest: "/usr/bin/{{ item }}"
     mode: '0755'
   loop:
-    podman-start-builder
-    podman-stop-builder
+    - podman-start-builder
+    - podman-stop-builder
