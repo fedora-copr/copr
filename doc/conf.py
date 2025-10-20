@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
+import importlib
 import sys
 
 # If extensions (or modules to document with autodoc) are in another
@@ -98,10 +98,7 @@ pygments_style = 'sphinx'
 # Otherwise fail, the production documentation is pushed from local _build
 # directory, therefore if something doesn't look as expected, it will be broken
 # also in production
-try:
-    import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
-except ImportError:
+if not importlib.util.find_spec("sphinx_rtd_theme"):
     print("Please install the readthedocs theme with:")
     print("dnf install python*-sphinx_rtd_theme")
     sys.exit(1)

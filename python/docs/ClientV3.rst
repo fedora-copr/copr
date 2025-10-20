@@ -38,6 +38,7 @@ Quick overview
     client_v3/data_structures.rst
     client_v3/error_handling.rst
     client_v3/pagination.rst
+    client_v3/utilities.rst
     client_v3/working_with_proxies_directly.rst
 
 

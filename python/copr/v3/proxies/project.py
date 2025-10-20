@@ -301,12 +301,12 @@ class ProjectProxy(BaseProxy):
 
     def can_build_in(self, who, ownername, projectname):
         """
-        Return `True` a user can submit builds for a ownername/projectname
+        Return ``True`` a user can submit builds for a ownername/projectname
 
         :param str who: name of the user checking their permissions
         :param str ownername: owner of the project
         :param str projectname: name of the project
-        :return Bool: `True` or raise
+        :return Bool: ``True`` or raise
         """
         endpoint = ("/project/permissions/can_build_in/"
                     "{who}/{ownername}/{projectname}/")
