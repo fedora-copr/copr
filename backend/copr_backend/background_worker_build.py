@@ -498,6 +498,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("Allocating ssh connection to builder")
         self.ssh = SSHConnection(
             user=self.opts.build_user,
+            port=self.host.ssh_port,
             host=self.host.hostname,
             config_file=self.opts.ssh.builder_config,
             log=self.log,
@@ -860,6 +861,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.root_ssh = SSHConnection(
             user="root",
             host=self.host.hostname,
+            port=self.host.ssh_port,
             config_file=self.opts.ssh.builder_config,
             log=self.log,
         )
