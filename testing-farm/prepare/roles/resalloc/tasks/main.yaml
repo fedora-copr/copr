@@ -55,7 +55,6 @@
 - name: render Containerfile
   ansible.builtin.template:
     src: Containerfile.j2
-    # Cílový soubor, který se bude používat pro podman build
     dest: "{{ resalloc_image_dir }}/Containerfile"
     owner: resalloc
     group: resalloc
@@ -140,3 +139,25 @@
     owner: resalloc
     group: resalloc
     mode: '0600'
+
+- name: install dist-git-client config
+  ansible.builtin.copy:
+    content: |
+      [fedora-copr]
+      clone_hostnames = {{ ansible_host }}
+      lookaside_location = https://{{ ansible_host }}
+      lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hashtype}/{hash}/{filename}
+      cloning_pattern_package_parts = owner_name project_name package_name
+      cloning_pattern=https://{{ ansible_host }}/git/{package}
+    dest: "{{ resalloc_image_dir }}/copr.ini"
+    owner: resalloc
+    group: resalloc
+
+- name: install resalloc hook scripts
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/usr/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    podman-start-builder
+    podman-stop-builder

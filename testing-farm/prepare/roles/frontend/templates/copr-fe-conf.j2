@@ -8,9 +8,9 @@ PUBLIC_COPR_HOSTNAME = '{{ ansible_host }}'
 PUBLIC_COPR_BASE_URL = 'https://{{ ansible_host }}'
 
 BACKEND_BASE_URL = 'https://{{ ansible_host }}'
-DIST_GIT_CLONE_URL = 'http://distgit-httpd:5001/git/'
-DIST_GIT_URL = 'http://localhost:5001/cgit'
-COPR_DIST_GIT_LOGS_URL = 'http://localhost:5001/per-task-logs'
+DIST_GIT_CLONE_URL = 'https://{{ ansible_host }}/git/'
+DIST_GIT_URL = 'https://{{ ansible_host }}/cgit'
+COPR_DIST_GIT_LOGS_URL = 'https://{{ ansible_host }}/per-task-logs'
 
 DATA_DIR = '/data/frontend'
 OPENID_STORE = '/data/frontend/openid_store'

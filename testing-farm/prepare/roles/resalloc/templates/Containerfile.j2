@@ -24,5 +24,6 @@ RUN mkdir -p /home/mockbuilder/.ssh \
     && cp /root/.ssh/authorized_keys /home/mockbuilder/.ssh \
     && chown -R mockbuilder:mockbuilder /home/mockbuilder/.ssh
 
+COPY copr.ini /etc/dist-git-client/copr.ini
 
 CMD ["/usr/sbin/sshd", "-D"]

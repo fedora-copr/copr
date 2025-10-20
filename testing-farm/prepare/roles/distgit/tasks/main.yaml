@@ -51,3 +51,16 @@
   notify:
     - restart httpd
     - restart copr-dist-git
+
+- name: Install global gitconfig
+  copy:
+    content: |
+      [safe]
+      # Disable safe.directory security check for the whole system. This is not
+      # ideal but it is not possible to recursively mark our whole storage as
+      # safe and we cannot manually mark every repository as safe because we
+      # have too many of them. See
+      # https://github.com/fedora-copr/copr/issues/3266
+      directory = *
+    dest: /etc/gitconfig
+    mode: '0644'

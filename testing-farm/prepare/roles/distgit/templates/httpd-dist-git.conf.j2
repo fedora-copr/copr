@@ -1,3 +1,6 @@
+AliasMatch "/repo(/.*)/md5(/.*)" "/var/lib/dist-git/cache/lookaside$1$2"
+Alias /repo/ /var/lib/dist-git/cache/lookaside/
+
 Alias /per-task-logs /data/distgit/web/logs
 <Directory "/data/distgit/web/logs">
     Options Indexes FollowSymLinks
