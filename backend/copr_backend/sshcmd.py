@@ -59,7 +59,7 @@ class SSHConnection:
         the default ssh configuration is used /etc/ssh_config and ~/.ssh/config.
     """
 
-    def __init__(self, user=None, host=None, config_file=None, log=None):
+    def __init__(self, user=None, host=None, config_file=None, port=None, log=None):
         # TODO: Some of the calling code places heavily re-try the ssh
         # connection..  There's a some small chance that the host goes down, and
         # some other host is started with the same hostname (or IP address).
@@ -68,6 +68,7 @@ class SSHConnection:
         self.config_file = config_file
         self.user = user or 'root'
         self.host = host or 'localhost'
+        self.port = port
         if log:
             self.log = log
         else:
@@ -77,6 +78,8 @@ class SSHConnection:
         cmd = ['ssh']
         if self.config_file:
             cmd = cmd + ['-F', self.config_file]
+        if self.port is not None:
+            cmd += ["-p", str(self.port)]
         cmd.append('{0}@{1}'.format(self.user, self.host))
         return cmd
 
@@ -262,6 +265,8 @@ class SSHConnection:
         ssh_opts = "ssh"
         if self.config_file:
             ssh_opts += " -F " + self.config_file
+        if self.port is not None:
+            ssh_opts += f" -p {self.port}"
 
         full_source_path = self._full_source_path(src)
 

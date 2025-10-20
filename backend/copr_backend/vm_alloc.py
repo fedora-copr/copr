@@ -16,6 +16,7 @@ class RemoteHost:
     Remote host allowing us to ssh.
     """
     hostname = None
+    ssh_port = None
 
     _is_ready = False
 
@@ -106,6 +107,8 @@ class ResallocHost(RemoteHost):
                 self.hostname = data["host"]
                 # RESALLOC_NAME
                 self.name = data["name"]
+                if 'ssh_port' in data:
+                    self.ssh_port = data["ssh_port"]
             except yaml.YAMLError as exc:
                 raise RemoteHostAllocationTerminated(
                     f"Can't parse YAML data from the resalloc ticket:\n{output}") from exc
@@ -140,6 +143,8 @@ class ResallocHost(RemoteHost):
             message += ", name={}".format(self.name)
         if self.requested_tags:
             message += f", requested_tags={self.requested_tags}"
+        if self.ssh_port is not None:
+            message += f", port={self.ssh_port}"
         return message
 
 
