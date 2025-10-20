@@ -90,6 +90,20 @@
     group: resalloc
     mode: '0700'
 
+- name: "install resalloc → builder ssh config"
+  ansible.builtin.copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ServerAliveInterval 20
+        ServerAliveCountMax 5
+        ConnectTimeout 60
+    dest: "/var/lib/resallocserver/.ssh/config"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+
 - name: Fetch the Backend->Builder SSH private key
   ansible.builtin.slurp:
     src: /root/backend_builder

@@ -25,3 +25,45 @@
     group: root
     mode: '0644'
   notify: restart httpd
+
+- name: "install copr → builder ssh config"
+  ansible.builtin.copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ServerAliveInterval 20
+        ServerAliveCountMax 5
+        ConnectTimeout 60
+    dest: "/copr-to-builder-ssh-config"
+    owner: copr
+    group: copr
+    mode: '0600'
+
+- name: Fetch the Backend->Builder SSH private key
+  ansible.builtin.slurp:
+    src: /root/backend_builder
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched SSH private key
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "/var/lib/resallocserver/.ssh/id_ed25519"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
+
+- name: Fetch the Backend->Builder SSH public key
+  ansible.builtin.slurp:
+    src: /root/backend_builder.pub
+  delegate_to: "{{ host_with_secrets }}"
+  register: key_file
+
+- name: Install the fetched SSH public key
+  ansible.builtin.copy:
+    content: "{{ key_file['content'] | b64decode }}"
+    dest: "{{ resalloc_image_dir }}/key.pub"
+    owner: resalloc
+    group: resalloc
+    mode: '0600'
