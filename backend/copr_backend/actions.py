@@ -262,7 +262,37 @@ class DeleteProject(Action):
             if not isinstance(self.storage, BackendStorage):
                 self.backend_storage.delete_project(dirname)
 
+            if isinstance(self.storage, PulpStorage):
+                self.remove_http_redirect(dirname)
+
         return BackendResultEnum("success")
+
+    def remove_http_redirect(self, dirname):
+        """
+        Remove a HTTP redirect for this project.
+        """
+        path = "/var/lib/copr/pulp-redirect.txt"
+        fullname = "{0}/{1}".format(self.storage.owner, dirname)
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                projects = fp.read().splitlines()
+
+            if fullname not in projects:
+                return
+
+            lockdir = "/var/lock/copr-backend"
+            with lock(path, lockdir=lockdir, timeout=-1, log=self.log):
+                with open(path, "r", encoding="utf-8") as fp:
+                    projects = fp.read().splitlines()
+
+                filtered_projects = [p for p in projects if p != fullname]
+                with open(path, "w", encoding="utf-8") as fp:
+                    for project in filtered_projects:
+                        print(project, file=fp)
+
+        except FileNotFoundError:
+            # Ignoring because this Copr instance doesn't need redirects
+            pass
 
 
 class CompsUpdate(Action):
