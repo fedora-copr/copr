@@ -7,7 +7,6 @@ flask-whooshee
 pytest
 pytest-cov
 blinker
-pytz
 markdown
 markupsafe
 pyLibravatar
