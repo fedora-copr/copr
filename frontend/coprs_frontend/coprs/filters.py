@@ -7,9 +7,9 @@ import os
 import re
 import time
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import commonmark
-import pytz
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
@@ -126,9 +126,9 @@ def localized_time(time_in, timezone):
     if not time_in:
         return "Not yet"
     format_tz = "%Y-%m-%d %H:%M %Z"
-    utc_tz = pytz.timezone('UTC')
+    utc_tz = ZoneInfo("UTC")
     if timezone:
-        user_tz = pytz.timezone(timezone)
+        user_tz = ZoneInfo(timezone)
     else:
         user_tz = utc_tz
     dt_aware = datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
