@@ -3,6 +3,24 @@
   hosts: all
   user: "root"
 
+  vars:
+    host_with_secrets: "{{ ansible_host }}"
+    ansible_python_interpreter: /usr/bin/python3
+
+  roles:
+    - credentials
+    - ca-trust
+    - resalloc
+    - distgit
+    - backend
+    - frontend
+
+  handlers:
+    - name: restart httpd
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: restarted
+
   tasks:
     - name: pre-release copr packages
       community.general.copr:

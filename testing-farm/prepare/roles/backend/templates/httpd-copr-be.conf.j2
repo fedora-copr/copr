@@ -1,0 +1,11 @@
+Alias /results /var/lib/copr/public_html/results/
+
+# Configuration block to secure and control access to the aliased directory
+<Directory /var/lib/copr/public_html/results/>
+    # Allow the directory to be served
+    Require all granted
+    # Enable directory browsing if the URL path doesn't point to an index file
+    Options Indexes FollowSymLinks
+    # Prevent .htaccess files from overriding this configuration
+    AllowOverride None
+</Directory>
