@@ -44,7 +44,6 @@ BuildRequires: python3-munch
 BuildRequires: python3-netaddr
 BuildRequires: python3-packaging
 BuildRequires: python3-pytest
-BuildRequires: python3-pytz
 BuildRequires: python3-requests
 BuildRequires: python3-resalloc
 BuildRequires: python3-retask
@@ -83,7 +82,6 @@ Requires:   python3-jinja2
 Requires:   python3-munch
 Requires:   python3-netaddr
 Requires:   python3-packaging
-Requires:   python3-pytz
 Requires:   python3-requests
 Requires:   python3-resalloc >= 3.0
 Requires:   python3-retask
