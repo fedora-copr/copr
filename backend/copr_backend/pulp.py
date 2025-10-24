@@ -16,6 +16,37 @@ from copr_common.lock import lock, LockTimeout
 from copr_common.redis_helpers import get_redis_connection
 
 
+class PaginatedResponse:
+    """
+    A response-like object that maintains backward compatibility with PULP API responses
+    while containing all paginated results.
+    """
+    def __init__(self, all_results, original_response):
+        self._all_results = all_results
+        self._original_response = original_response
+
+        self.status_code = original_response.status_code
+        self.ok = original_response.ok
+        self.text = original_response.text
+
+    def json(self):
+        """
+        Mimic Pulp paginated response, but with all results included
+        """
+        return {
+            "count": len(self._all_results),
+            "next": None,  # All results are included
+            "previous": None,
+            "results": self._all_results
+        }
+
+    def raise_for_status(self):
+        """
+        Mimic requests.Response.raise_for_status()
+        """
+        self._original_response.raise_for_status()
+
+
 class BatchedAddRemoveContent:
     """
     Group a set of `add_and_remove` tasks for a single Pulp repository.
@@ -585,15 +616,35 @@ class PulpClient:
         if chroot:
             query += f" AND pulp_label_select=\"chroot={chroot}\""
 
-        # Setting the limit to 1000, but in the future we should use pagination
-        params = {"q": query, "offset": 0, "limit": 1000}
-        if fields:
-            params["fields"] = ",".join(fields)
+        all_results = []
+        offset = 0
+        limit = 1000
 
-        uri = "api/v3/content/rpm/packages/?"
-        uri += urlencode(params)
-        self.log.info("Pulp: get_content: %s, query = %s", uri, query)
-        return self.send("GET", uri)
+        while True:
+            params = {"q": query, "offset": offset, "limit": limit}
+            if fields:
+                params["fields"] = ",".join(fields)
+
+            uri = "api/v3/content/rpm/packages/?" + urlencode(params)
+            self.log.debug("Pulp: get_content: fetching page (offset=%d)", offset)
+
+            response = self.send("GET", uri)
+            response.raise_for_status()
+            data = response.json()
+            results = data.get("results", [])
+
+            self.log.debug("Pulp: get_content: fetched %d items", len(results))
+
+            all_results.extend(results)
+
+            next_url = data.get("next")
+            if not next_url or len(results) == 0:
+                break
+
+            offset += limit
+
+        self.log.info("Pulp: get_content: fetched %d items", len(all_results))
+        return PaginatedResponse(all_results, response)
 
     def delete_repository(self, repository):
         """
