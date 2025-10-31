@@ -12,7 +12,9 @@ from copr_backend.helpers import BackendConfigReader
 base_regex = "/results/(?P<owner>[^/]*)/(?P<project>[^/]*)/(?P<chroot>[^/]*)/"
 repomd_url_regex = re.compile(base_regex + "repodata/repomd.xml", re.IGNORECASE)
 rpm_url_regex = re.compile(
-    base_regex + r"(?P<build_dir>[^/]*)/(?P<rpm>[^/]*\.rpm)", re.IGNORECASE)
+    base_regex + r"(?P<build_dir>[^/]*|Packages/[a-z])/(?P<rpm>[^/]*\.rpm)",
+    re.IGNORECASE,
+)
 
 spider_regex = re.compile(
     '.*(ahrefs|bot/[0-9]|bingbot|borg|google|googlebot|yahoo|slurp|msnbot'
