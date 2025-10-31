@@ -1,0 +1,5 @@
+---
+- name: restart signd
+  service:
+    name: signd
+    state: restarted

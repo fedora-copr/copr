@@ -1,0 +1,36 @@
+# ------------------------------------------------------------------
+# 1. Catch-all HTTP to HTTPS Redirection (Port 80)
+# This block handles all requests on port 80 and redirects them to 443.
+# ------------------------------------------------------------------
+<VirtualHost *:80>
+    # The ServerName directive is optional here since we are catching all traffic,
+    # but it's good practice to define it for the primary host.
+    ServerName {{ inventory_hostname }}
+    ServerAlias *
+
+    # Use RewriteEngine to capture the requested host and path, and redirect.
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^/(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+</VirtualHost>
+
+
+<VirtualHost 0.0.0.0:443>
+    ServerName {{ inventory_hostname }}
+    ServerAlias *
+
+    SSLEngine on
+    SSLProtocol +all -SSLv3 -TLSv1 -TLSv1.1
+
+    SSLCertificateFile      "{{ httpd_ssl_cert_dir }}/copr.pem"
+    SSLCertificateKeyFile   "{{ httpd_ssl_keys_dir }}/copr.key"
+
+    WSGIPassAuthorization On
+    WSGIDaemonProcess 127.0.0.1 user=copr-fe group=copr-fe threads=5
+    WSGIScriptAlias / /usr/share/copr/coprs_frontend/application
+    WSGIProcessGroup 127.0.0.1
+    <Directory /usr/share/copr>
+        WSGIApplicationGroup %{GLOBAL}
+        Require all granted
+    </Directory>
+</VirtualHost>
