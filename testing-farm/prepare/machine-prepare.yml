@@ -14,6 +14,7 @@
     - distgit
     - backend
     - frontend
+    - keygen
 
   handlers:
     - name: restart httpd

@@ -4,7 +4,8 @@ frontend_base_url=https://{{ ansible_host }}
 frontend_auth={{ be_fe_token["content"] }}
 destdir=/var/lib/copr/public_html/results
 statsdir=/var/lib/copr/public_html/stats
-do_sign=false
+do_sign=true
+keygen_host=localhost:8080
 
 [ssh]
 builder_config=/home/copr/.ssh/config

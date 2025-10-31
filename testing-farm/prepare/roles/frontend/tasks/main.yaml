@@ -124,3 +124,9 @@
     group: copr-fe
     mode: '0600'
   notify: restart httpd
+
+- name: Start and enable HTTPD
+  ansible.builtin.systemd_service:
+    name: httpd
+    state: started
+    enabled: true
