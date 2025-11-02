@@ -33,6 +33,7 @@ from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPacka
 @req_with_copr
 @req_with_pagination
 def copr_packages(copr, page=1):
+    _preload = copr.group, copr.forked_from
     flashes = flask.session.pop('_flashes', [])
 
     query_packages = PackagesLogic.get_all_ordered(copr.id)

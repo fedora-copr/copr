@@ -1000,6 +1000,7 @@ def copr_build_monitor(copr, detailed=False, page=1):
     The monitor page (overview of the build status in each chroot for all the
     packages built in given project).
     """
+    _preload = copr.group, copr.forked_from
     detailed = detailed == "detailed"
     pagination = builds_logic.BuildsMonitorLogic.get_monitor_data(
             copr, page=page)

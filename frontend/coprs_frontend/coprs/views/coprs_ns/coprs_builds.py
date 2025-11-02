@@ -64,7 +64,7 @@ def render_copr_build(build_id, copr):
 @req_with_copr
 @req_with_pagination
 def copr_builds(copr, page=1):
-
+    _preload = copr.group, copr.forked_from, copr.dirs
     flashes = flask.session.pop('_flashes', [])
     dirname = flask.request.args.get('dirname')
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr, dirname)
