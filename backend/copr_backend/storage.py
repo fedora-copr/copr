@@ -377,19 +377,31 @@ class PulpStorage(Storage):
         elif reason == CreaterepoReason.manual_createrepo_event:
             response = self.client.get_publication(repository_href)
             publication = response.json()["results"][0]["pulp_href"]
+            public_distribution = self._get_distribution(chroot, full=True)
 
-            self.log.info(
-                "Pointing %s to the same publication as %s which is %s",
-                public_distribution_name,
-                devel_distribution_name,
-                publication,
-            )
-            public_distribution = self._get_distribution(chroot)
-            response = self.client.update_distribution(public_distribution, publication=publication)
-            if not response.ok:
-                self.log.error("Failed to update Pulp distribution %s for because %s",
-                               public_distribution_name, response.text)
-                return False
+            # Only update the Pulp distribution if the project uses the manual
+            # createrepo feature. If not, do nothing.
+            # We cannot rely on the `self.devel` option because doesn't say
+            # anything about the project setting of the feature, it only says
+            # that the current action should affect the public repository. If
+            # the distribution points to a publication, than the project uses
+            # manual createrepo, if it points to a repository, it is a normal
+            # project.
+            if public_distribution["publication"]:
+                self.log.info(
+                    "Pointing %s to the same publication as %s which is %s",
+                    public_distribution_name,
+                    devel_distribution_name,
+                    publication,
+                )
+                response = self.client.update_distribution(
+                    public_distribution["pulp_href"],
+                    publication=publication,
+                )
+                if not response.ok:
+                    self.log.error("Failed to update Pulp distribution %s for because %s",
+                                   public_distribution_name, response.text)
+                    return False
 
         # And finally, run the actual createrepo for either the devel or
         # the public repository
@@ -648,9 +660,10 @@ class PulpStorage(Storage):
         response = self.client.get_repository(name)
         return response.json()["results"][0]["pulp_href"]
 
-    def _get_distribution(self, chroot, dirname=None, devel=None):
+    def _get_distribution(self, chroot, dirname=None, devel=None, full=False):
         if devel is None:
             devel = self.devel
         name = self._distribution_name(chroot, dirname, devel=devel)
         response = self.client.get_distribution(name)
-        return response.json()["results"][0]["pulp_href"]
+        result = response.json()["results"][0]
+        return result if full else result["pulp_href"]
