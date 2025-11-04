@@ -19,6 +19,10 @@ die() { echo >&2 "FATAL: $*" ; exit 1 ; }
 
 copr_dir=$1 ; shift
 commit=$1 ; shift
+
+# anything to install?
+test $# = 0 && exit 0
+
 copr_uri=https://download.copr.fedorainfracloud.org/results
 
 copr_chroot() (
