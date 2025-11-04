@@ -78,7 +78,7 @@ class SafeRequest:
             req_args["headers"] = headers
             req_args["timeout"] = self.timeout / 5
             method = method.lower()
-            if method in ["post", "put"]:
+            if method in ["post", "put", "patch"]:
                 req_args["data"] = data if files else json.dumps(data)
             response = requests.request(method, url, **req_args)
         except requests.RequestException as ex:
