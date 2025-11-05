@@ -20,6 +20,8 @@ This section contains information about maintenance topics. You may also be inte
    Fedora Copr credentials <maintenance/credentials>
    Check that backups are OK <maintenance/backup_check>
    Maintaining development package versions <maintenance/development_versions>
+   Pulp maintenance <maintenance/pulp>
+
 
 .. toctree::
    :caption: Amazon AWS
