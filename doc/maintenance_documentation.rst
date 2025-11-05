@@ -9,6 +9,7 @@ This section contains information about maintenance topics. You may also be inte
    :caption: Maintenance SOPs
    :maxdepth: 1
 
+   Fedora Infra Copr SOP <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/copr/>
    How to release copr RPM packages <how_to_release_copr>
    how_to_upgrade_builders
    how_to_upgrade_persistent_instances
