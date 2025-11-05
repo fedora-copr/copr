@@ -98,7 +98,9 @@ pygments_style = 'sphinx'
 # Otherwise fail, the production documentation is pushed from local _build
 # directory, therefore if something doesn't look as expected, it will be broken
 # also in production
-if not importlib.util.find_spec("sphinx_rtd_theme"):
+if importlib.util.find_spec("sphinx_rtd_theme"):
+    html_theme = "sphinx_rtd_theme"
+else:
     print("Please install the readthedocs theme with:")
     print("dnf install python*-sphinx_rtd_theme")
     sys.exit(1)
