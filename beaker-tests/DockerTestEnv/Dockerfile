@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:41
+FROM registry.fedoraproject.org/fedora:43
 ARG COPR_PACKAGES=devel
 LABEL maintainer="copr-devel@lists.fedorahosted.org"
 ENV container docker
@@ -11,7 +11,7 @@ RUN dnf -y update \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect python3-behave python3-hamcrest \
     && dnf -y install python3-copr rpm-build copr-cli jq \
-    && dnf -y install beakerlib \
+    && dnf -y install beakerlib util-linux-script \
     && dnf -y clean all
 
 RUN for repo in fedora updates updates-testing; do \
