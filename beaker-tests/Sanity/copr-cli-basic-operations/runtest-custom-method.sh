@@ -112,7 +112,7 @@ rlJournalStart
 
 
     rlLogInfo "Test that builddeps get propagated"
-    builddeps="automake autoconf spax"
+    builddeps="automake autoconf asciidoc"
     rlRun 'cleanup_resultdir'
     rlRun 'quick_package_script "BUILDDEPS=xxx generate_specfile"'
     rlRun 'copr edit-package-custom "$PROJECT" \
