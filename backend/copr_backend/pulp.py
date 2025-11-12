@@ -253,7 +253,7 @@ class PulpClient:
             relative += "/"
         return self.config["base_url"] + relative
 
-    def send(self, method, url, data=None, files=None, headers=None):
+    def send(self, method, url, data=None, files=None, headers=None, timeout=None):
         """
         Performs a "safe request", meaning that if a request fails, we wait
         and try again, and again, until it succeeds.
@@ -262,7 +262,7 @@ class PulpClient:
         request = SafeRequest(
             log=self.log,
             try_indefinitely=True,
-            timeout=self.timeout,
+            timeout=timeout or self.timeout,
         )
         if all(self.cert):
             request.cert = self.cert
@@ -385,7 +385,7 @@ class PulpClient:
         self.log.info("Pulp: get_publicatoin: %s", uri)
         return self.send("GET", uri)
 
-    def create_content(self, path, labels):
+    def create_content(self, path, labels, timeout=3600):
         """
         Create content for a given artifact
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Content:-Packages/operation/content_rpm_packages_create
@@ -395,7 +395,7 @@ class PulpClient:
             data = {"pulp_labels": json.dumps(labels)}
             files = {"file": fp}
             self.log.info("Pulp: create_content: %s %s", uri, path)
-            package = self.send("POST", uri, data=data, files=files)
+            package = self.send("POST", uri, data=data, files=files, timeout=timeout)
         return package
 
     def create_content_chunked(self, path, labels):
