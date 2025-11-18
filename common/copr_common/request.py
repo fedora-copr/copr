@@ -19,21 +19,21 @@ class SafeRequest:
     # Prolong the sleep time before asking frontend again
     SLEEP_INCREMENT_TIME = 5
 
-    # Use package name and version for the user agent
-    package_name = 'copr-common'
-    user_agent = {
-        'name': package_name,
-        'version': package_version(package_name),
-    }
-
     def __init__(self, auth=None, cert=None, log=None,
-                 try_indefinitely=False, timeout=2 * 60):
+                 try_indefinitely=False, timeout=2 * 60, user_agent=None):
         # pylint: disable=too-many-positional-arguments
         self.auth = auth
         self.cert = cert
         self.log = log
         self.try_indefinitely = try_indefinitely
         self.timeout = timeout
+
+        # Use package name and version for the user agent
+        self.package_name = 'copr-common'
+        self.user_agent = user_agent or "{name}/{version}".format(
+            name=self.package_name,
+            version=package_version(self.package_name),
+        )
 
     def get(self, url, **kwargs):
         """
@@ -64,7 +64,7 @@ class SafeRequest:
         files = kwargs.get("files", None)
 
         headers = kwargs.get("headers", None) or {}
-        headers["User-Agent"] = "{name}/{version}".format(**SafeRequest.user_agent)
+        headers["User-Agent"] = self.user_agent
         if not files:
             headers["content-type"] = "application/json"
 

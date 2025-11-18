@@ -263,6 +263,7 @@ class PulpClient:
             log=self.log,
             try_indefinitely=True,
             timeout=timeout or self.timeout,
+            user_agent="crc-pulp-client",
         )
         if all(self.cert):
             request.cert = self.cert
