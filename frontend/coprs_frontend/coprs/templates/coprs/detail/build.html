@@ -172,14 +172,6 @@
                  -
             {% endif %}
           </dd>
-          {% if build.module %}
-          <dt> Module:</dt>
-          <dd>
-            <a href="{{ copr_url('coprs_ns.copr_module', copr, id=build.module.id) }}">
-              {{ build.module.nsv }}
-            </a>
-          </dd>
-          {% endif %}
           <dt> Version:</dt>
           <dd>
             {% if build.pkg_version %}
