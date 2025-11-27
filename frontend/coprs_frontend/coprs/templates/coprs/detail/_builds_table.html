@@ -34,7 +34,7 @@
 
         <tr class="build-row" >
           <td data-order="{{ build.id }}">
-            <b><a href="{{ build_href_from_sql(build) }}">
+            <b><a href="{{ copr_url('coprs_ns.copr_build', copr, build_id=build.id) }}">
               {{ build.id }}
             </a></b>
           </td>
