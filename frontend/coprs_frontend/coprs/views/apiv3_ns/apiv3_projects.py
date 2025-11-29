@@ -81,7 +81,7 @@ def to_dict(copr):
         #  HTML with argument names the same as they are defined in methods
         #  but we have this inconsistency between name - projectname
         "projectname": copr.name,
-        "storage": StorageEnum(copr.storage),
+        "storage": StorageEnum(copr.storage or 0),
     }
 
 
