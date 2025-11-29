@@ -448,7 +448,7 @@ class PulpStorage(Storage):
             failed_uploads = []
             exceptions = []
             uploaded = {}
-            for future in as_completed(futures):
+            for i, future in enumerate(as_completed(futures), start=1):
                 filepath = futures[future]
                 try:
                     response = future.result()
@@ -459,7 +459,10 @@ class PulpStorage(Storage):
                             "path": filepath,
                             "pulp_href": created,
                         }
-                        self.log.info("Uploaded to Pulp: %s", filepath)
+                        self.log.info(
+                            "[%s/%s] Uploaded to Pulp: %s",
+                            i, len(futures), filepath,
+                        )
                     else:
                         failed_uploads.append(filepath)
                 except RuntimeError as exc:
