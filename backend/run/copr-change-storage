@@ -237,6 +237,15 @@ def change_storage_for_project(fullname, dst, config):
     log.info("Project %s successfully migrated", fullname)
 
 
+def query_project(owner, name, config):
+    """
+    Query project information via the public API
+    """
+    client = Client({"copr_url": config.frontend_base_url})
+    project = client.project_proxy.get(owner, name)
+    return project
+
+
 def all_projects_for_owner(owner, config):
     """
     Return full names of all projects for a given owner
@@ -276,6 +285,14 @@ def main():
 
     config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     if args.project:
+        ownername, projectname = args.project.split("/", 1)
+        project = query_project(ownername, projectname, config)
+        if project.storage == args.dst:
+            print(
+                "The project {0} has already been migrated to {1}"
+                .format(args.project, args.dst)
+            )
+            sys.exit(0)
         change_storage_for_project(args.project, args.dst, config)
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
