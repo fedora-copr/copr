@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import time
+import json
 import warnings
 from collections import defaultdict
 from configparser import ConfigParser
@@ -675,6 +676,10 @@ class Commands(object):
         build = self.client.build_proxy.get(args.build_id)
         base_len = len(os.path.split(build.repo_url))
         build_chroots = self.client.build_chroot_proxy.get_list(args.build_id)
+        project = self.client.project_proxy.get(
+            build.ownername,
+            build.projectname,
+        )
 
         for chroot in build_chroots:
             if args.chroots and chroot.name not in args.chroots:
@@ -684,12 +689,18 @@ class Commands(object):
                 sys.stderr.write("No data for build id: {} and chroot: {}.\n".format(args.build_id, chroot.name))
                 continue
 
+            dst = os.path.join(args.dest, chroot.name)
             cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off', '--no-verbose']
-            cmd.extend(['-P', os.path.join(args.dest, chroot.name)])
+            cmd.extend(['-P', dst])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
 
             if args.rpms:
                 cmd.extend(["-A", "*.rpm"])
+
+            # Unfortunately, when the project is in Pulp, we need also
+            # `results.json` so that we know what filenames to download from Pulp
+            if args.rpms and project.storage == "pulp":
+                cmd.extend(["-A", "results.json"])
 
             if args.spec:
                 cmd.extend(["-A", "*.spec"])
@@ -712,6 +723,43 @@ class Commands(object):
 
             cmd.append(chroot.result_url)
             subprocess.call(cmd)
+
+            if project.storage != "pulp":
+                continue
+
+            results_json = os.path.join(dst, "results.json")
+            try:
+                with open(results_json, "r", encoding="utf-8") as fp:
+                    results = json.load(fp)
+            except FileNotFoundError:
+                # The file doesn't exist when for example `--logs`, or `--spec`
+                # were specified, and in that case we can safely continue. When
+                # no filters were specified or `--rpms` was used, then the file
+                # exists.
+                continue
+
+            for nevra in results["packages"]:
+                filename = "{N}-{V}-{R}.{A}.rpm".format(
+                    N=nevra["name"],
+                    V=nevra["version"],
+                    R=nevra["release"],
+                    A=nevra["arch"],
+                )
+                url = "{baseurl}/{chroot}/Packages/{letter}/{filename}".format(
+                    baseurl=build.repo_url,
+                    chroot=chroot.name,
+                    letter=filename[0],
+                    filename=filename,
+                )
+                response = requests.get(url)
+                if not response.ok:
+                    sys.stderr.write("Failed to download: {0}\n".format(url))
+                    # Everything should be possible to download. But if not,
+                    # it is better for the user to download at least what we
+                    # can instead of immediately exiting.
+                    continue
+                with open(os.path.join(dst, filename), "wb") as fp:
+                    fp.write(response.content)
 
     @requires_api_auth
     def action_cancel(self, args):
