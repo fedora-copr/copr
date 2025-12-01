@@ -285,7 +285,8 @@ to start on Fedora N+2 with up-2-date set of packages, do the ``dnf update`` now
 Get it working
 --------------
 
-Rerun the playbook from the previous section again, with dropped configuration::
+If the old instances had hot-fixes, now is ideal time to apply them on the new instances.
+Then rerun the playbook from the previous section again, with dropped configuration::
 
     services_disabled: false
 
