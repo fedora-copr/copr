@@ -383,12 +383,13 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         try:
             resp = self.frontend_client.get(target)
-        except FrontendClientException as ex:
+            resp_json = resp.json()
+            resp_json.items() # if response is malformated, this raise AttributeError
+        except (FrontendClientException, AttributeError) as ex:
             self.log.error("Failed to download build info: %s", str(ex))
             msg = "Failed to get the build task {}".format(target)
             raise BackendError(msg) from ex
-
-        self.job = BuildJob(resp.json(), self.opts)
+        self.job = BuildJob(resp_json, self.opts)
         self.job.started_on = time.time()
         if not self.job.chroot:
             raise BackendError("Frontend job doesn't provide chroot")
