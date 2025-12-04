@@ -1,27 +1,8 @@
 #! /bin/bash -x
 
-diff_against=origin/main
-
-case $GITHUB_EVENT_NAME in
-push)
-    diff_against=$1
-    ;;
-pull_request)
-    diff_against=$2
-    # Pull request event from a remote fork
-    git config --global --add safe.directory '*'
-    git config --global advice.detachedHead false
-    ;;
-*)
-    echo >&2 "Unknown GITHUB_EVENT_NAME, diffing against $diff_against"
-    ;;
-esac
-
-# Some debugging info
-true "\$GITHUB_REF: $GITHUB_REF"
-true "\$GITHUB_SHA: $GITHUB_SHA"
-git rev-parse HEAD >&2
-git rev-parse "$diff_against" >&2
+# Call detect-changed-packages script, and generate the JSON needed by the
+# GitHub Action's "task output mechanism".
+# See .github/workflows/copr-builds.yml
 
 echo -n "{"
 echo -n '"package": ['
@@ -32,8 +13,10 @@ dump_package_name() {
     separator=", "
 }
 
-./releng/detect-changed-packages "$diff_against" | \
-while read package; do
+git fetch origin main
+
+./releng/detect-changed-packages | \
+while read -r package; do
     dump_package_name "$package"
 done
 echo "]}"

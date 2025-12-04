@@ -1,0 +1,25 @@
+#! /bin/bash
+
+set -ex
+
+{% for var in ["TMT_TREE", "PACKIT_PR_ID"] %}
+export {{ var }}={{ lookup('env', var ) }}
+{% endfor %}
+
+# TODO: git root dir, we need to ask TMT team to export a variable for this
+cd "$TMT_TREE/../discover/default-0/tests"
+
+cd "$(git rev-parse --show-toplevel)"
+
+pr_data=$(curl -s "https://api.github.com/repos/fedora-copr/copr/pulls/$PACKIT_PR_ID")
+
+# Note the built-in mechanism to install pre-built packages isn't good enough:
+# https://gitlab.com/testing-farm/tests/-/issues/2
+
+commits=$(echo "$pr_data" | jq .commits)
+packages=$(COMMIT_SHA="HEAD~$commits" PYTHON_PKG_SUFFIX=3 ./releng/detect-changed-packages)
+
+# In Copr we build from merge commit, see .github/workflows/copr-builds.yml;
+# search for NEVRA that contains appropriate git sha.
+merge_commit_sha=$(echo "$pr_data" | jq .merge_commit_sha)
+./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "$commit_sha" $packages

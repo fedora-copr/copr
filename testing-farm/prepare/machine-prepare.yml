@@ -9,6 +9,7 @@
     test_user: single-host-testing
 
   roles:
+    - pre-release-packages
     - credentials
     - ca-trust
     - resalloc
@@ -25,25 +26,6 @@
       ansible.builtin.systemd_service:
         name: httpd
         state: restarted
-
-  pre_tasks:
-    - name: pre-release copr packages
-      community.general.copr:
-        name: '@copr/copr-dev'
-
-    - name: install packages needed when testing
-      package:
-        name:
-          - git
-        state: latest
-
-    - name: print packit variable
-      ansible.builtin.debug:
-        msg: "$PACKIT_TARGET_SHA is '{{ lookup('ansible.builtin.env', 'PACKIT_TARGET_SHA') }}'"
-
-    - name: print packit variable
-      ansible.builtin.debug:
-        msg: "$PACKIT_PR_ID is '{{ lookup('ansible.builtin.env', 'PACKIT_PR_ID') }}'"
 
   tasks:
     - name: create a testing project
