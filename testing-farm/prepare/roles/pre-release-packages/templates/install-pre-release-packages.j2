@@ -1,0 +1,47 @@
+#! /bin/bash
+
+# Note the built-in mechanism to install pre-built packages isn't good enough:
+# https://gitlab.com/testing-farm/tests/-/issues/2
+
+set -ex
+
+{% for var in ["TMT_TREE", "PACKIT_PR_ID"] %}
+export {{ var }}={{ lookup('env', var ) }}
+{% endfor %}
+
+# Get us into the git root directory.
+# TODO: git root dir, we need to ask TMT team to export a variable for this
+cd "$TMT_TREE/../discover/default-0/tests"
+cd "$(git rev-parse --show-toplevel)"
+
+curl=(curl --location --connect-timeout 60 --retry 5 --retry-delay 20 --remote-time --show-error --fail)
+pr_data=$("${curl[@]}" "https://api.github.com/repos/fedora-copr/copr/pulls/$PACKIT_PR_ID")
+
+# We need to have the pull-request code fetched now to later correctly decide if
+# we need to use a fast-forward $commit_sha or not.
+depth=50
+remote=pull-requests
+git remote add "$remote" https://github.com/fedora-copr/copr.git
+git config --local "remote.$remote.fetch" "+refs/pull/$PACKIT_PR_ID/merge:refs/remotes/pull-requests/pr/$PACKIT_PR_ID/merge"
+git fetch "$remote" --depth "$depth"
+
+# We are in a monorepo.  Check package names that need to be installed.
+commits=$(echo "$pr_data" | jq .commits)
+packages=$(COMMIT_SHA="HEAD~$commits" PYTHON_PKG_SUFFIX=3 ./releng/detect-changed-packages)
+
+# In Copr, we build packages from a merge commit (see
+# .github/workflows/copr-builds.yml).  The problem is that 'tito --test' uses
+# a different SHA depending on whether the merge commit is fast-forwardable or
+# not.  We need to detect this here.
+
+base_sha=$(echo "$pr_data" | jq -r .base.sha)
+head_sha=$(echo "$pr_data" | jq -r .head.sha)
+if git merge-base --is-ancestor "$base_sha" "$head_sha"; then
+    commit_sha=$head_sha
+    : "fast-forward merge, Tito uses .head.sha commit: $commit_sha"
+else
+    commit_sha=$(echo "$pr_data" | jq -r .merge_commit_sha)
+    : "non-fast-forward merge, Tito uses .merge_commit_sha: $commit_sha"
+fi
+
+./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "$commit_sha" $packages

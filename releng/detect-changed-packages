@@ -4,12 +4,27 @@ info() { echo "INFO: $*" >&2 ; }
 
 : "${PYTHON_PKG_SUFFIX=}"
 
+# By default we check against `origin/main`.  This is the case also in GH Action
+# for pull-requests that submits builds and detects changed packages (we are
+# checked-out into the `merged` branch on top of main).
+#
+# If we want to diff against the BASE of a PR (without merge commit), we have to
+# export PULL_REQUEST_ID env var.  This is the testing-farm case.
+#
+# If we run this in GH Action for push event, we have the COMMIT_SHA to diff
+# against.
+
 diff_against=origin/main
-if test -n "$1"; then
-    diff_against=$1
-else
+if test -n "$COMMIT_SHA"; then
+    info "Diffing against given commit: $COMMIT_SHA"
+    diff_against=$COMMIT_SHA
+elif test -n "$PULL_REQUEST_ID"; then
+    info "Checking the base commit for PR $PULL_REQUEST_ID"
+    diff_against=$(curl -s "https://api.github.com/repos/fedora-copr/copr/pulls/$PULL_REQUEST_ID" | jq -r '.base.sha')
     info "Diffing against $diff_against"
 fi
+
+info "Diffing against $diff_against"
 
 cd "$(git rev-parse --show-toplevel)"
 
