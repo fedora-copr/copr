@@ -23,12 +23,23 @@ jobs:
         with:
           # reasonable number of commits in one push?
           fetch-depth: 50
+          # By default, the action checkouts the merge commit, but these
+          # checkouts are not stable across the PR lifecycle.  Even if the PR we
+          # are analyzing remains unchanged, the merge of a different pull
+          # request will cause the 'refs/pull/<analyzed-pr>/merge' reference to
+          # be updated.  So rather enforce .head.sha that remains stable.
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - id: check_packages
         name: Detecting changed sub-packages
         run: |
+          if test "$GITHUB_EVENT_NAME" == push; then
+            export COMMIT_SHA=${{ github.event.before }}
+          else
+            export COMMIT_SHA=HEAD~${{ github.event.pull_request.commits }}
+          fi
           echo "packages<<EOF" >> $GITHUB_OUTPUT
-          ./.github/copr-build-helpers/changed-packages "${{ github.event.before }}" "${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+          ./.github/copr-build-helpers/changed-packages >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
   build:

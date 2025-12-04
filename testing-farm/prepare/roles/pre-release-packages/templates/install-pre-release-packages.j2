@@ -1,0 +1,31 @@
+#! /bin/bash
+
+# Note the built-in mechanism to install pre-built packages isn't good enough:
+# https://gitlab.com/testing-farm/tests/-/issues/2
+
+set -ex
+
+{% for var in ["TMT_TREE", "PACKIT_PR_ID"] %}
+export {{ var }}={{ lookup('env', var ) }}
+{% endfor %}
+
+# Get us into the git root directory.
+# TODO: git root dir, we need to ask TMT team to export a variable for this
+cd "$TMT_TREE/../discover/default-0/tests"
+cd "$(git rev-parse --show-toplevel)"
+
+curl=(curl --location --connect-timeout 60 --retry 5 --retry-delay 20 --remote-time --show-error --fail)
+pr_data=$("${curl[@]}" "https://api.github.com/repos/fedora-copr/copr/pulls/$PACKIT_PR_ID")
+
+# We are diffing this revision against $commit_sha.  We are not sure where we
+# are, the checkout process is a TF's responsibility.
+git rev-parse HEAD >&2
+
+# We are in a monorepo.  Check package names that need to be installed.
+commits=$(echo "$pr_data" | jq .commits)
+packages=$(COMMIT_SHA="HEAD~$commits" PYTHON_PKG_SUFFIX=3 ./releng/detect-changed-packages)
+
+# In Copr, we build packages from the head commits (see
+# .github/workflows/copr-builds.yml).
+commit_sha=$(echo "$pr_data" | jq -r .head.sha)
+./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "$commit_sha" $packages

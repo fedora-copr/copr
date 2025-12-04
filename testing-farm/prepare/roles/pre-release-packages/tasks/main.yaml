@@ -1,0 +1,27 @@
+---
+- name: pre-release copr packages
+  community.general.copr:
+    name: '@copr/copr-dev'
+
+- name: install packages needed when testing
+  package:
+    name:
+      - git  # git is need to analyze which packages changed
+      - jq  # needed to detect the list of built packages
+    state: latest
+
+- name: Install the script for pre-release package installation
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: /usr/local/bin/{{ item }}
+    mode: '0755'
+  loop:
+    - install-pre-release-packages
+
+- name: Execute the script
+  ansible.builtin.command: install-pre-release-packages
+  register: packages_installed
+
+- name: Present stdout/stderr
+  debug:
+    var: packages_installed
