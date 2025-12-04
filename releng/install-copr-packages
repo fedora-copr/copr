@@ -71,7 +71,7 @@ find_nvr() {
         case $release in
             *$_commit*)
                 find_nvr_result=$name-$version-$release
-                $_found && error "second occurence of $name-$version-$release"
+                $_found && error "another occurence of $name-$version-$release"
                 _found=true
                 ;;
             *)
