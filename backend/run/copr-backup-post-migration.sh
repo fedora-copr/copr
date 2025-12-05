@@ -18,5 +18,5 @@ find "$BASE_DIR_NAME" "$BASE_DIR_NAME":* -type f -name "*.rpm" | while IFS= read
     # absolute TARGET directory, create it
     destdir=$DESTDIR/$reldir
     mkdir -p "$destdir"
-    cp -a "$source_file" "$destdir"
+    mv "$source_file" "$destdir"
 done
