@@ -154,7 +154,12 @@ def change_storage_for_project(fullname, dst, config):
                 break
 
             uploaded = {}
-            for builddir_entry in os.scandir(chrootdir):
+
+            # We need to sort them alphabetically so that we start uploading
+            # from the oldest builds and therefore we upload all RPMs, even
+            # if there are NVR duplicities.
+            builddirs = sorted(os.scandir(chrootdir), key=lambda x: x.name)
+            for builddir_entry in builddirs:
                 if not builddir_entry.is_dir():
                     continue
 
