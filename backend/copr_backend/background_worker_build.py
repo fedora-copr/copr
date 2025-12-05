@@ -50,11 +50,11 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
 MESSAGES = {
     "give_up_repo":
-        "Giving up waiting for copr_base repository, "
+        "Giving up waiting for {0} repository, "
         "please try to manually regenerate the DNF repository "
         "(e.g. by 'copr-cli regenerate-repos <project_name>')",
     "repo_waiting":
-        "Waiting for copr_base repository",
+        "Waiting for %s repository",
     "copr_rpmbuild_missing":
         "The copr-rpmbuild package was not found: {}",
 }
@@ -339,21 +339,17 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             results = json.load(f)
         self.job.results = results
 
-    def _wait_for_repo(self):
+    def _wait_for_repo(self, repo_id, baseurl):
         """
         Wait a while for initial createrepo, and eventually fail the build
         if the waiting is not successful.
         """
-        if self.job.chroot == 'srpm-builds':
-            # we don't need copr_base repodata for srpm builds
-            return
-
         waiting_since = time.time()
         while time.time() - waiting_since < 60:
             exists = self.storage.repository_exists(
                 self.job.project_dirname,
                 self.job.chroot,
-                self.job.repos[0]["baseurl"]
+                baseurl,
             )
             if exists:
                 return
@@ -363,13 +359,31 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             # hitting the race condition between
             # 'rm -rf repodata && mv .repodata repodata' sequence that
             # is done in createrepo_c.  Try again after some time.
-            self.log.info(MESSAGES["repo_waiting"])
+            self.log.info(MESSAGES["repo_waiting"], repo_id)
             time.sleep(2)
 
         # This should never happen, but if yes - we need to debug
         # properly.  Give up waiting, and fail the build.  That should
         # motivate people to report bugs.
-        raise BackendError(MESSAGES["give_up_repo"])
+        raise BackendError(MESSAGES["give_up_repo"].format(repo_id))
+
+    def _wait_for_repos(self):
+        """
+        Wait a while for initial createrepo of `copr_base` and `copr_coprdir`,
+        and eventually fail the build if the waiting is not successful.
+        """
+        if self.job.chroot == 'srpm-builds':
+            # we don't need copr_base repodata for srpm builds
+            return
+
+        for repo in self.job.repos:
+            # If these don't exist, it doesn't make sense to start the build.
+            # It is also our fault. If user-defined repos doesn't exist, we
+            # don't care here and we'd rather let the build fail while DNF
+            # trying to enable them.
+            if repo["id"] not in ["copr_base", "copr_coprdir"]:
+                continue
+            self._wait_for_repo(repo["id"], repo["baseurl"])
 
     def _get_build_job(self):
         """
@@ -1012,7 +1026,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         failed = True
 
-        self._wait_for_repo()
+        self._wait_for_repos()
         self._cancel_if_requested()
         self._alloc_host()
         self._alloc_ssh_connection()
