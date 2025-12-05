@@ -9,6 +9,8 @@ import os
 import sys
 import argparse
 import logging
+import shutil
+from pathlib import Path
 from copr.v3 import Client
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
@@ -48,6 +50,11 @@ def get_arg_parser():
     target.add_argument(
         "--owner",
         help="Migrate all projects for this owner",
+    )
+    parser.add_argument(
+        "--backup",
+        type=Path,
+        help="While uploading RPMs to Pulp, also make a local backup",
     )
     parser.add_argument(
         "--delete",
@@ -105,7 +112,7 @@ def add_redirect(fullname):
         print(fullname, file=fp)
 
 
-def change_storage_for_project(fullname, dst, config):
+def change_storage_for_project(fullname, args, config):
     """
     Migrate one project
     """
@@ -153,6 +160,7 @@ def change_storage_for_project(fullname, dst, config):
                 ok = False
                 break
 
+            found_rpms = []
             uploaded = {}
             for builddir_entry in os.scandir(chrootdir):
                 if not builddir_entry.is_dir():
@@ -170,6 +178,8 @@ def change_storage_for_project(fullname, dst, config):
                 to_upload = []
                 rpms = storage.find_build_results(resultdir)
                 for rpm in rpms:
+                    found_rpms.append(rpm)
+
                     # Was a package with this NEVRA already uploaded?
                     # We cannot simply uploaded.get(rpm) because the keys are
                     # full paths and we need to compare only basenames
@@ -206,6 +216,19 @@ def change_storage_for_project(fullname, dst, config):
                 log.error("Failed to create repository version for chroot: %s", chroot)
                 sys.exit(1)
 
+            if args.backup:
+                if not args.backup.exists():
+                    print("The backup top directory doesn't exist")
+                    sys.exit(1)
+                for rpm in found_rpms:
+                    backup = rpm.replace(config.destdir, str(args.backup), 1)
+                    os.makedirs(os.path.dirname(backup), exist_ok=True)
+                    shutil.copyfile(rpm, backup)
+
+            if args.delete:
+                for rpm in found_rpms:
+                    os.remove(rpm)
+
             log.info("OK: %s", chroot)
 
     # Not everything was migrated successfully. Play it safe and fail.
@@ -219,7 +242,7 @@ def change_storage_for_project(fullname, dst, config):
     # Change storage in the frontend database
     frontend_client = FrontendClient(config, try_indefinitely=False, logger=log)
     try:
-        change_on_frontend(frontend_client, owner, project, dst)
+        change_on_frontend(frontend_client, owner, project, args.dst)
     except FrontendClientException as ex:
         log.error("Failed to change storage on frontend for %s because: %s",
                   fullname, str(ex))
@@ -280,10 +303,6 @@ def main():
         log.error("Migration from pulp to somewhere else is not supported")
         sys.exit(1)
 
-    if args.delete:
-        log.error("Data removal is not supported yet")
-        sys.exit(1)
-
     config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     if args.project:
         ownername, projectname = args.project.split("/", 1)
@@ -294,7 +313,7 @@ def main():
                 .format(args.project, args.dst)
             )
             sys.exit(0)
-        change_storage_for_project(args.project, args.dst, config)
+        change_storage_for_project(args.project, args, config)
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
         for i, fullname in enumerate(projects, start=1):
@@ -302,7 +321,7 @@ def main():
                 "[{0}/{1}] Migrating {2} to {3}"
                 .format(i, len(projects), fullname, args.dst)
             )
-            change_storage_for_project(fullname, args.dst, config)
+            change_storage_for_project(fullname, args, config)
     else:
         log.error("Unexpected choice. This should never happen")
         sys.exit(1)
