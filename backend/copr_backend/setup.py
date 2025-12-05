@@ -12,3 +12,5 @@ config = app.opts
 
 # the default logger
 log = app.log
+
+# trigger rebuild of copr-backend
