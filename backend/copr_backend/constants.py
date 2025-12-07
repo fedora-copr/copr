@@ -17,6 +17,7 @@ DEF_BUILDROOT_PKGS = ""
 
 DEF_CONSECUTIVE_FAILURE_THRESHOLD = 10
 CONSECUTIVE_FAILURE_REDIS_KEY = "copr:sys:consecutive_build_fails"
+PULP_REDIRECT_FILE = "/var/lib/copr/public_html/pulp-redirect.txt"
 
 
 class BuildStatus(object):

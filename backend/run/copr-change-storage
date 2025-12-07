@@ -12,6 +12,7 @@ import logging
 from copr.v3 import Client
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
+from copr_backend.constants import PULP_REDIRECT_FILE
 from copr_backend.storage import PulpStorage
 from copr_backend.frontend import FrontendClient
 from copr_backend.exceptions import FrontendClientException
@@ -99,7 +100,7 @@ def add_redirect(fullname):
     Create a HTTP redirect for this project
     See https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
     """
-    path = "/var/lib/copr/pulp-redirect.txt"
+    path = PULP_REDIRECT_FILE
     with open(path, "a", encoding="utf-8") as fp:
         print(fullname, file=fp)
 

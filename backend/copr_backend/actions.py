@@ -22,6 +22,7 @@ from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
 
 from .sign import create_user_keys, CoprKeygenRequestError
+from .constants import PULP_REDIRECT_FILE
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       call_copr_repo, copy2_but_hardlink_rpms)
@@ -151,7 +152,7 @@ class Createrepo(Action):
         Create a HTTP redirect for this project.  See:
         https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
         """
-        path = "/var/lib/copr/pulp-redirect.txt"
+        path = PULP_REDIRECT_FILE
         fullname = "{0}/{1}".format(self.storage.owner, self.storage.project)
         try:
             with open(path, "r", encoding="utf-8") as fp:
@@ -271,7 +272,7 @@ class DeleteProject(Action):
         """
         Remove a HTTP redirect for this project.
         """
-        path = "/var/lib/copr/pulp-redirect.txt"
+        path = PULP_REDIRECT_FILE
         fullname = "{0}/{1}".format(self.storage.owner, dirname)
         try:
             with open(path, "r", encoding="utf-8") as fp:
