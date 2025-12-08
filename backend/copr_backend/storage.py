@@ -16,7 +16,7 @@ from distutils.errors import DistutilsFileError # pylint: disable=deprecated-mod
 import shutil
 import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
-from copr_common.request import RequestError
+from copr_common.request import RequestError, SafeRequest
 from copr_backend.helpers import call_copr_repo, build_chroot_log_name, ensure_dir_exists
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
@@ -534,8 +534,11 @@ class PulpStorage(Storage):
     def repository_exists(self, dirname, chroot, baseurl):
         repodata = "{0}/repodata/repomd.xml".format(baseurl)
         self.log.info("Checking that %s exists", repodata)
-        response = requests.head(repodata)
-        return response.ok
+        try:
+            SafeRequest().get(repodata)
+        except RequestError:
+            return False
+        return True
 
     def fork_project(self, src_fullname, dst_fullname, builds_map):
         _dst_owner, dst_project = dst_fullname.split("/")
