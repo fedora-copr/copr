@@ -227,6 +227,7 @@ class BackendStorage(Storage):
     def repository_exists(self, dirname, chroot, baseurl):
         repodata = os.path.join(self.opts.destdir, self.owner, dirname,
                                 chroot, "repodata", "repomd.xml")
+        self.log.info("Checking that %s exists", repodata)
         return os.path.exists(repodata)
 
     def fork_project(self, src_fullname, dst_fullname, builds_map):
@@ -532,6 +533,7 @@ class PulpStorage(Storage):
 
     def repository_exists(self, dirname, chroot, baseurl):
         repodata = "{0}/repodata/repomd.xml".format(baseurl)
+        self.log.info("Checking that %s exists", repodata)
         response = requests.head(repodata)
         return response.ok
 
