@@ -11,6 +11,7 @@ This section contains information about maintenance topics. You may also be inte
 
    Fedora Infra Copr SOP <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/copr/>
    How to release copr RPM packages <how_to_release_copr>
+   How to build a hotfix <how_to_build_hotfix>
    how_to_upgrade_builders
    how_to_upgrade_persistent_instances
    How to manage active chroots <how_to_manage_chroots>
