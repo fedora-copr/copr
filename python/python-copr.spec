@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.4
+Version:    2.5
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.5-1
+- Add API endpoint for generating a new token
+- Make copr.v3.helpers.wait official part of API
+
 * Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.4-1
 - Drop support for building modules
 
