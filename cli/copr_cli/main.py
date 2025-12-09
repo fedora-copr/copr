@@ -301,16 +301,30 @@ class Commands(object):
         """
         Simply print out the current user as defined in copr config.
         """
+
+        if not os.path.exists(args.config):
+            # We don't want to generate the file when user authenticates
+            # via gssapi, or?
+            raise CoprConfigException(f"File {args.config} not found.  Can't update.")
+
+        # We know there's a TOCTOU.  It is better to check that the file is
+        # writable *before* we regenerate the token, avoiding a situation where
+        # we have no way to write the new token.
+        if not os.access(args.config, os.W_OK):
+            raise CoprConfigException(f"File {args.config} is not writable.  Can't update.")
+
+        if not (self.config["login"] and self.config["token"]):
+            # users that use gssapi do not have token/login specified
+            raise CoprConfigException(f"Current {args.config} doesn't specify login/token.  Can't update.")
+
         result = self.client.base_proxy.new_api_token()
-        if not args.in_place:
-            print("New API token was successfully generated.")
-            print("login = {0}".format(result.api_login))
-            print("token = {0}".format(result.api_token))
-        else:
-            self._update_config(args.config, {
-                "login": result.api_login,
-                "token": result.api_token,
-            })
+
+        self._update_config(args.config, {
+            "login": result.api_login,
+            "token": result.api_token,
+        })
+        print(f"New API token was updated in {args.config}.")
+
 
     def _update_config(self, path, data):
         if ConfigUpdater:
@@ -1144,12 +1158,6 @@ def setup_parser():
     parser_new_api_token = subparsers.add_parser(
         "new-api-token",
         help="Generate a new API token. Be careful, this destroys the old one!")
-    parser_new_api_token.add_argument(
-        "--in-place",
-        "-i",
-        action="store_true",
-        help="Replace the login and token values in the Copr config",
-    )
     parser_new_api_token.set_defaults(func="action_new_api_token")
 
     #########################################################
