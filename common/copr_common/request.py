@@ -111,6 +111,8 @@ class SafeRequest:
     def _send_request_repeatedly(self, url, method, data=None, **kwargs):
         """
         Repeat the request until it succeeds, or timeout is reached.
+        After each failed upload attempt, the file pointers in
+        kwargs['files'] are reset to `0`.
         """
         sleep = self.SLEEP_INCREMENT_TIME
         start = time.time()
@@ -130,6 +132,11 @@ class SafeRequest:
             except RequestRetryError as ex:
                 self.log.warning("Retry request #%s on %s: %s", i, url,
                                  str(ex))
+                # For each file object in the dictionary we reset the pointer to start
+                # if anything happens, fail fast.
+                for file in kwargs.get("files", {}).values():
+                    file.seek(0)
+
                 time.sleep(sleep)
                 sleep += self.SLEEP_INCREMENT_TIME
 
