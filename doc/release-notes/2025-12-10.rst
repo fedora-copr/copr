@@ -1,0 +1,119 @@
+.. _release_notes_2025_12_10:
+
+Highlights from 2025-12-10 release
+==================================
+
+The majority of changes focus on stabilizing the system and migrating_ projects
+to the new PULP_-based repository management system.
+
+New Features
+------------
+
+- There is a new API endpoint, along with CLI support, for re-generating API
+  tokens (allowing the creation of a new token using an existing, but still
+  valid, one).  See `PR#3960`_.
+
+- The ``wait()`` helper has become an official part of the ``python-copr`` API.
+  See `#3653`_.
+
+- Copr now allows storing wildcard strings in the "Packit allowed forge
+  projects" field.
+
+- The `Fedora Copr Frontend`_ is now protected by Anubis to defend against
+  unreasonable bot load.  See `#4064`_.
+
+
+Changes related to the PULP Migration
+-------------------------------------
+
+- The Copr client utility was fixed to ensure that ``download-build`` correctly
+  downloads files from Pulp-migrated projects.
+
+- Set user agent for Pulp requests to ``crc-pulp-client``.
+
+- The storage migration script (Pulp/Backend) now includes logic for migrating
+  all of a user's projects at once, rather than just one project at a time.
+
+- The storage migration script uploads duplicate RPMs in alphabetical
+  order, ensuring that *all* RPMs (even those that duplicate NEVRAs) are
+  successfully uploaded to Pulp.
+
+- Implemented a more robust uploading mechanism to Pulp (including retries on
+  errors, a longer timeout, and safer method handling).
+
+- Chunked uploads to Pulp were implemented (currently unused, as we believed not
+  yet needed).
+
+- backend: The ``PulpClient.get_content`` method now automatically paginates
+  requests that could potentially return too many entries.
+
+- The script for uploads to Pulp now logs basic progress information and ignores
+  projects that have already been uploaded.
+
+- Automatically delete projects from the ``pulp-redirects.txt`` file when a
+  project is deleted.
+
+- The ``pulp-redirect.txt`` file has been moved to persistent storage
+  (preventing loss of the file during virtual machine moves).
+
+- The hit-counter (download calculator) now includes downloads from Pulp in its
+  statistics.
+
+- The "regenerate repos" feature is ignored for Pulp projects where automatic
+  createrepo is enabled.
+
+
+Other Changes and Bugfixes
+--------------------------
+
+- frontend: Correctly marks canceled builds as "canceled" (not failed), and vice
+  versa. `#3844`_.
+
+- backend: Implemented a bigger "open FDs limit" for the repository pruner cron
+  job.  This fixes previous tracebacks that led to unfinished pruning and
+  increased storage consumption. `#4048`_.
+
+- backend: The worker controlling the build now waits until the correct
+  repositories are fully created (regardless of whether they are on the backend
+  or in Pulp), `PR#4032`_.
+
+- backend: Allow builders to run the SSH daemon on a non-standard port (other
+  than 22).
+
+- copr-common: Fixed support for PATCH requests.
+
+- Fixed errors and warnings encountered when building documentation for
+  a few Copr packages.
+
+- backend: Stopped creating empty "spawner," "terminator," and "vmm" logs (as
+  they have not been receiving any log entries for some time).
+
+- backend/frontend: Dropped the requirement on `pytz` and now use `zoneinfo`.
+
+- frontend: No longer raises a traceback for unexplained OAuthError errors. (If
+  you observe these errors on the client side, please report/explain them!)
+
+- frontend: Added protection against tracebacks when `copr.storage` is None
+  (implemented a database update via an Alembic migration).
+
+- frontend: Removed the last remaining logic leftovers of modularity.
+
+- frontend: Dropped the custom `RedisSession` class in favor of the standard
+  `flask-session` (which now supports Redis).
+
+- frontend: Streamed pages (those serving many items, e.g., builds) now preload
+  additional fields from the database in advance to avoid server-side errors.
+
+.. _builders with user SSH access: https://frostyx.cz/posts/ssh-access-to-copr-builders
+
+.. _#3653: https://github.com/fedora-copr/copr/issues/3653
+.. _#3844: https://github.com/fedora-copr/copr/issues/3844
+.. _#4048: https://github.com/fedora-copr/copr/issues/4048
+.. _#4064: https://github.com/fedora-copr/copr/issues/4064
+
+.. _PR#3960: https://github.com/fedora-copr/copr/pull/3960
+.. _PR#4032: https://github.com/fedora-copr/copr/pull/4032
+
+.. _migrating: https://fedora-copr.github.io//posts/migrating-copr-results-to-pulp
+.. _PULP: https://pulpproject.org/
+.. _`Fedora Copr Frontend`: https://copr.fedorainfracloud.org/coprs/
