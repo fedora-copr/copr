@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.10
+Version:    2.11
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -238,6 +238,19 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.11-1
+- timeout= for requests was missing, use SafeRequest
+- copr_prune_results: bigger file limit
+- Move pulp-redirect.txt to persistent storage
+- Wait until both copr_base and copr_coprdir exist
+- Set user agent for Pulp requests to crc-pulp-client
+- Set longer timeout for Pulp file uploads
+- Fix deleting project from pulp
+- Drop requirement on pytz
+- Add Pagination for PulpClient.get_content
+- Implement chunked uploads to Pulp
+- Add option to migrate all projects for an owner
+
 * Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 2.10-1
 - Don't run builds or actions in projects that are migrated to Pulp
 - Log conflicting NEVRAs when uploading
