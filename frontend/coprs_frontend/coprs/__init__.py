@@ -41,8 +41,7 @@ app.config["SESSION_REDIS"] = StrictRedis(
 
 session = Session(app)
 
-# Set `future=True` to ensure compatibility between SQLAlchemy 1.x and 2.0
-db = SQLAlchemy(app, engine_options={"future": True})
+db = SQLAlchemy(app)
 
 @contextmanager
 def db_session_scope():
