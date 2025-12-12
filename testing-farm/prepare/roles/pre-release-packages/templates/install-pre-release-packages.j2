@@ -21,5 +21,5 @@ packages=$(COMMIT_SHA="HEAD~$commits" PYTHON_PKG_SUFFIX=3 ./releng/detect-change
 
 # In Copr we build from merge commit, see .github/workflows/copr-builds.yml;
 # search for NEVRA that contains appropriate git sha.
-merge_commit_sha=$(echo "$pr_data" | jq .merge_commit_sha)
+commit_sha=$(echo "$pr_data" | jq .merge_commit_sha)
 ./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "$commit_sha" $packages
