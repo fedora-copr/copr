@@ -33,3 +33,23 @@ def print_project_info(project):
         additional_repos_str = " ".join(project.additional_repos)
         print("  Additional repo: {0}".format(additional_repos_str))
     print("")
+
+
+def colorize_status(status):
+    """
+    Return colorized status in the Rich Markup
+    https://rich.readthedocs.io/en/latest/markup.html
+    """
+    color = {
+        "importing": "blue",
+        "pending": "blue",
+        "starting": "yellow",
+        "running": "yellow",
+        "forked": "green",
+        "skipped": "green",
+        "failed": "red",
+        "succeeded": "green",
+        "canceled": "default",
+        "waiting": "default",
+    }.get(status, "default")
+    return "[{0}]{1}[/{0}]".format(color, status)
