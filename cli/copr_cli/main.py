@@ -14,6 +14,8 @@ import json
 import warnings
 from collections import defaultdict
 from configparser import ConfigParser
+from rich.text import Text
+from rich.console import Console
 
 import requests
 
@@ -38,7 +40,11 @@ from copr.v3 import (
     CoprConfigException, CoprNoResultException, CoprAuthException,
 )
 from copr.v3.pagination import next_page
-from copr_cli.helpers import cli_use_output_format, print_project_info
+from copr_cli.helpers import (
+    cli_use_output_format,
+    print_project_info,
+    colorize_status,
+)
 from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
 from copr_cli.util import get_progress_callback, serializable, package_version
@@ -139,7 +145,7 @@ def requires_api_auth(func):
 
 
 class Commands(object):
-    def __init__(self, config_path):
+    def __init__(self, config_path, no_color=False):
         self.config = config_from_file(config_path)
 
         if self.config.get("gssapi") is None:
@@ -148,6 +154,7 @@ class Commands(object):
             self.config["gssapi"] = True
         self.config["connection_attempts"] = 3
         self.client = Client(self.config)
+        self.console = Console(no_color=no_color)
 
     @property
     def username(self):
@@ -252,9 +259,14 @@ class Commands(object):
                     now = datetime.datetime.now()
                     if prevstatus[build_id] != build_details.state:
                         prevstatus[build_id] = build_details.state
-                        print("  {0} Build {2}: {1}".format(
+
+                        status = colorize_status(build_details.state)
+                        text = Text.from_markup("  {0} Build {1}: {2}".format(
                             now.strftime("%H:%M:%S"),
-                            build_details.state, build_id))
+                            build_id,
+                            status,
+                        ))
+                        self.console.print(text)
                         sys.stdout.flush()
 
                     if build_details.state in ["failed"]:
@@ -684,7 +696,8 @@ class Commands(object):
 
     def action_status(self, args):
         build = self.client.build_proxy.get(args.build_id)
-        print(build.state)
+        text = Text.from_markup(colorize_status(build.state))
+        self.console.print(text)
 
     def action_download_build(self, args):
         build = self.client.build_proxy.get(args.build_id)
@@ -1152,6 +1165,12 @@ def setup_parser():
 
     parser.add_argument("--version", action="version",
                         version="%(prog)s version " + package_version("copr-cli"))
+
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        default=False,
+    )
 
     subparsers = parser.add_subparsers(title="actions")
 
@@ -2055,7 +2074,7 @@ def main(argv=sys.argv[1:]):
             parser.print_help()
             return
 
-        commands = Commands(arg.config)
+        commands = Commands(arg.config, no_color=arg.no_color)
         if isinstance(arg.func, str):
             # Call self method by its name
             getattr(commands, arg.func)(arg)
