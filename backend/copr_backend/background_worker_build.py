@@ -396,6 +396,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                                                    self.args.chroot)
 
         try:
+            self.log.info("Getting Task info from frontend: %s", target)
             resp = self.frontend_client.get(target)
         except FrontendClientException as ex:
             self.log.error("Failed to download build info: %s", str(ex))
