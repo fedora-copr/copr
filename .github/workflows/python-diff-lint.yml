@@ -40,7 +40,7 @@ jobs:
             ruff
 
       - name: Upload artifact with detected defects in SARIF format
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: VCS Diff Lint SARIF
           path: ${{ steps.VCS_Diff_Lint.outputs.sarif }}
