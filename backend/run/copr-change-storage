@@ -9,7 +9,8 @@ import os
 import sys
 import argparse
 import logging
-from copr.v3 import Client
+import time
+from copr.v3 import Client, CoprRequestException
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
 from copr_backend.constants import PULP_REDIRECT_FILE
@@ -252,6 +253,29 @@ def query_project(owner, name, config):
     return project
 
 
+def has_comps(project, config):
+    """
+    Check if any chroot in the project has comps configured
+    """
+    client = Client({"copr_url": config.frontend_base_url})
+    for chroot in project.chroot_repos:
+        while True:
+            try:
+                chroot_detail = client.project_chroot_proxy.get(
+                    project.ownername, project.name, chroot
+                )
+                break
+            except CoprRequestException as ex:
+                log.warning("Retrying to get chroot %s for %s/%s: %s",
+                            chroot, project.ownername, project.name, str(ex))
+                time.sleep(5)
+
+        if chroot_detail.get("comps_name"):
+            return True
+
+    return False
+
+
 def all_projects_for_owner(owner, config):
     """
     Return full names of all projects for a given owner
@@ -299,6 +323,11 @@ def main():
                 .format(args.project, args.dst)
             )
             sys.exit(0)
+
+        if has_comps(project, config):
+            print("Skipping {0} - comps.xml not supported in PULP".format(args.project))
+            sys.exit(0)
+
         change_storage_for_project(args.project, args.dst, config)
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
@@ -307,6 +336,13 @@ def main():
                 "[{0}/{1}] Migrating {2} to {3}"
                 .format(i, len(projects), fullname, args.dst)
             )
+
+            ownername, projectname = fullname.split("/", 1)
+            project = query_project(ownername, projectname, config)
+            if has_comps(project, config):
+                print("Skipping {0} - comps.xml not supported in PULP".format(fullname))
+                continue
+
             change_storage_for_project(fullname, args.dst, config)
     else:
         log.error("Unexpected choice. This should never happen")
