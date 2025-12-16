@@ -179,7 +179,7 @@
           </p>
           <p class="list-group-item-text">
             <small> Finished: </small>
-            {{latest_build.max_ended_on|time_ago()}} ago
+            <span title="{{latest_build.max_ended_on | localized_time(g.user.timezone if g.user else 'UTC')}}">{{latest_build.max_ended_on|time_ago()}} ago</span>
           </p>
         </a>
       </div>

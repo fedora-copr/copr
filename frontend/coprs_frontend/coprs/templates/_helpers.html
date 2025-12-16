@@ -398,7 +398,7 @@
           </p>
           <p class="list-group-item-text">
             <small>Finished:</small>
-            {{build.max_ended_on|time_ago()}} ago
+            <span title="{{build.max_ended_on | localized_time(g.user.timezone if g.user else 'UTC')}}">{{build.max_ended_on|time_ago()}} ago</span>
           </p>
         </a>
       {% endfor %}
@@ -764,7 +764,7 @@
         {% for task_type, time, task in tasks %}
           {% set build_chroot = task if type == 'importing' or task_type == 'srpm' else task.build %}
           <tr>
-            <td data-order="{{ time }}">{{ time | time_ago }}</td>
+            <td data-order="{{ time }}" title="{{time | localized_time(g.user.timezone if g.user else 'UTC')}}">{{ time | time_ago }}</td>
             <td data-order="{{ copr_name(build_chroot.copr) }}">
               <a href="{{ copr_details_href(build_chroot.copr) }}">
                 {{ copr_name(build_chroot.copr) }}

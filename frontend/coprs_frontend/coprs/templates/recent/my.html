@@ -36,7 +36,7 @@
       <td>
         {{ build.pkg_version}}
       </td>
-      <td>
+      <td title="{{build.max_ended_on | localized_time(g.user.timezone if g.user else 'UTC')}}">
         {{ build.max_ended_on|time_ago() }} ago
       </td>
       {% if build.canceled %}

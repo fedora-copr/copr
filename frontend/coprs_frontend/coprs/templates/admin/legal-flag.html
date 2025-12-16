@@ -20,7 +20,7 @@
       {% endif %}
 
       <small>
-        Submitted <b>{{ flag.raised_on | time_ago() }} ago </b> by <a href="{{ url_for('coprs_ns.coprs_by_user', username=flag.reporter.name) }}"> {{ flag.reporter.name }}</a>.
+        Submitted <b title="{{flag.raised_on | localized_time(g.user.timezone if g.user else 'UTC')}}">{{ flag.raised_on | time_ago() }} ago </b> by <a href="{{ url_for('coprs_ns.coprs_by_user', username=flag.reporter.name) }}"> {{ flag.reporter.name }}</a>.
       </small>
     </h3>
     <p>
