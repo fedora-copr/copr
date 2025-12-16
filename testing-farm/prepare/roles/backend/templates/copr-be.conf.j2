@@ -1,6 +1,6 @@
 [backend]
-results_baseurl=https://{{ ansible_host }}/results
-frontend_base_url=https://{{ ansible_host }}
+results_baseurl=https://{{ frontend_hostname }}/results
+frontend_base_url=https://{{ frontend_hostname }}
 frontend_auth={{ be_fe_token["content"] | b64decode }}
 destdir=/var/lib/copr/public_html/results
 statsdir=/var/lib/copr/public_html/stats

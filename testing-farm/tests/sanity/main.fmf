@@ -1,4 +1,4 @@
 ---
 summary: Execute Sanity tests
 test: ./test.sh
-duration: 2h
+duration: 4h

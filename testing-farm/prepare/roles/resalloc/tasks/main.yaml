@@ -52,14 +52,27 @@
   ansible.builtin.command: loginctl enable-linger resalloc
   changed_when: false
 
-- name: render Containerfile
+- name: render Containerfile and other files
   ansible.builtin.template:
-    src: Containerfile.j2
-    dest: "{{ resalloc_image_dir }}/Containerfile"
+    src: "{{ item }}.j2"
+    dest: "{{ resalloc_image_dir }}/{{ item }}"
     owner: resalloc
     group: resalloc
-    mode: '0600'
+    mode: '0644'
   notify: build builder image
+  loop:
+    - Containerfile
+    - main.ini
+
+- name: Ensure parent directory exists
+  ansible.builtin.file:
+    path: "{{ item }}/"
+    state: directory
+    mode: '0755'
+    owner: resalloc
+    group: resalloc
+  loop:
+    - "{{ resalloc_image_dir }}/mock"
 
 - name: Fetch the certificate file from the credentials host
   ansible.builtin.slurp:
@@ -143,11 +156,11 @@
   ansible.builtin.copy:
     content: |
       [fedora-copr]
-      clone_hostnames = {{ ansible_host }}
-      lookaside_location = https://{{ ansible_host }}
+      clone_hostnames = {{ frontend_hostname }}
+      lookaside_location = https://{{ distgit_hostname }}
       lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hashtype}/{hash}/{filename}
       cloning_pattern_package_parts = owner_name project_name package_name
-      cloning_pattern=https://{{ ansible_host }}/git/{package}
+      cloning_pattern=https://{{ distgit_hostname }}/git/{package}
     dest: "{{ resalloc_image_dir }}/copr.ini"
     owner: resalloc
     group: resalloc
