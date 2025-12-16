@@ -5,13 +5,16 @@
       - copr-frontend
     state: installed
 
-- name: Ensure /data/frontend directory exists and has correct ownership
+- name: Ensure /data/frontend directories exist
   ansible.builtin.file:
-    path: /data/frontend
+    path: "{{ item }}"
     state: directory
     owner: copr-fe
     group: copr-fe
     mode: '0700'
+  loop:
+    - /data/frontend
+    - /data/frontend/srpm_storage
 
 - name: Set persistent SELinux context for /data/frontend
   community.general.sefcontext:
@@ -66,12 +69,29 @@
     - frontend_init_database
 
 - name: Initialize database object
-  ansible.builtin.command: "{{ item }}"
+  ansible.builtin.command: "copr-frontend create-chroot {{ item[0] }}-{{ item[1] }}"
   become_user: copr-fe
   become: true
   when: db_created.changed or 'frontend_init_database' in ansible_run_tags
-  loop:
-    - copr-frontend create-chroot fedora-rawhide-x86_64
+  loop: "{{ distros | product(arches) | list }}"
+  loop_control:
+    label: "Creating {{ item[0] }}-{{ item[1] }}"
+  vars:
+    distros:
+      - fedora-rawhide
+      - fedora-43
+      - fedora-42
+      - epel-10
+      - epel-9
+      - epel-8
+      - epel-7
+      - epel-6
+    arches:
+      - aarch64
+      - i386
+      - s390x
+      - x86_64
+      - ppc64le
   tags:
     - frontend_init_database
 

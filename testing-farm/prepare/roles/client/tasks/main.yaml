@@ -39,3 +39,59 @@
     mode: '0600'
     owner: "{{ copr_username }}"
     group: "{{ copr_username }}"
+
+- name: install packages needed for tests
+  package:
+    name:
+      - beakerlib
+      - dnf5-plugins
+      - expect
+      - findutils
+      - git
+      - hostname
+      - htop
+      - iputils
+      - jq
+      - net-tools
+      - procps-ng
+      - python3-behave
+      - python3-hamcrest
+      - rpm-build
+      - sudo
+      - tmux
+      - util-linux-script
+      - vim
+      - wget
+
+- name: test environment hacks, inspired by DockerTestEnv/Dockerfile
+  shell: |
+    for repo in fedora updates updates-testing; do \
+    dnf -y config-manager setopt $repo.excludepkgs=hello ; done
+    echo 'set -g history-limit 40960' > /root/.tmux.conf
+    mkdir -p /root/.config
+    cp "/home/{{ copr_username }}/.config/copr" /root/.config/
+
+    cat <<EOF | sudo -u copr-fe psql
+    update "user" set "admin" = true, "openid_groups" = '{"fas_groups": ["gitcopr"]}' where username = 'single-host-testing';
+    insert into "group" (name, fas_name) values ('copr', 'gitcopr');
+    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority", "default_namespace")  values ('centos',        'https://git.centos.org', '{namespace}/rpms/{pkgname}.git', 80, '');
+    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority", "default_namespace")  values ('centos-stream', 'https://gitlab.com',     'redhat/centos-stream/rpms/{pkgname}.git', 90, '');
+    EOF
+
+- name: install dnf copr config for tested instance
+  copy:
+    content: |
+      [tested-copr]
+      hostname = {{ frontend_hostname }}
+      protocol = https
+      port = 443
+    mode: '0644'
+    dest: /etc/dnf/plugins/copr.d/tested-copr.conf
+
+- name: Add persistent local route for Public IP
+  community.general.nmcli:
+    conn_name: "lo"
+    type: loopback
+    ip4: "{{ frontend_hostname }}/32"
+    state: present
+  tags: hack_local_route

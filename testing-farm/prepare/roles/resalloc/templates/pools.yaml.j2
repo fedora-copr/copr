@@ -4,6 +4,11 @@ x86_64_on_demand:
   cmd_new: /usr/bin/podman-start-builder
   cmd_delete: /usr/bin/podman-stop-builder
   tags_on_demand:
-    - arch_x86_64
+    - arch_aarch64
+    - arch_i386
     - arch_noarch
+    - arch_ppc64le
+    - arch_riscv64
+    - arch_s390x
+    - arch_x86_64
     - copr_builder

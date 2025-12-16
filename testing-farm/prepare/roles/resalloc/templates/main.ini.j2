@@ -1,0 +1,10 @@
+[main]
+frontend_url = https://{{ frontend_hostname }}
+distgit_lookaside_url = https://${% raw %}{{git_props:remote_netloc}}{% endraw %}/repo/pkgs/%(repo_path)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
+distgit_clone_url = {scheme}://{netloc}/%(repo_path)s
+rpm_vendor_copr_name = Testing Copr
+
+[distgit0]
+distgit_hostname_pattern = src.fedoraproject.org
+distgit_lookaside_url = https://src.fedoraproject.org/repo/pkgs/%(ns1)s/%(name)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
+distgit_clone_url = https://src.fedoraproject.org/%(repo_path)s
