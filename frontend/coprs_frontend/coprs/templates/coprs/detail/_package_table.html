@@ -42,7 +42,7 @@
             {% endif %}
         </td>
         {% endif %}
-        <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
+        <td data-order="{{build.submitted_on}}" title="{{build.submitted_on | localized_time(g.user.timezone if g.user else 'UTC')}}"> {{ build.submitted_on|time_ago() }} ago </td>
         <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
         <td>
           {{ build_state(build) }}

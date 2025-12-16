@@ -38,7 +38,7 @@
 
         <td data-order="{{ submitted_on or 0 }}">
           {% if submitted_on %}
-            {{ submitted_on | time_ago() }} ago
+            <span title="{{submitted_on | localized_time(g.user.timezone if g.user else 'UTC')}}">{{ submitted_on | time_ago() }} ago</span>
           {% else %}
             -
           {% endif %}
