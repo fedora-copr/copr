@@ -26,9 +26,3 @@
       ansible.builtin.systemd_service:
         name: httpd
         state: restarted
-
-  tasks:
-    - name: create a testing project
-      ansible.builtin.command: >
-        sudo -i -u "{{ test_user }}"
-        copr create foo --chroot fedora-rawhide-x86_64

@@ -1,0 +1,98 @@
+#! /bin/bash
+
+our_dir=$(readlink -f "$(dirname "$0")")
+tests_dir=$our_dir/../beaker-tests/Sanity/copr-cli-basic-operations
+export PATH=$PATH:$tests_dir
+cd "$tests_dir"
+
+OWNER=$(copr-cli whoami)
+export OWNER
+export FRONTEND_HOST=127.0.0.1
+export FRONTEND_URL=https://$FRONTEND_HOST
+export BACKEND_URL=$FRONTEND_URL
+export VENDOR="?? - "
+
+SCRIPT_DIR="."
+LOG_DIR="./logs"
+
+PIDS=()
+# Global map to store the script name indexed by its PID
+declare -A PID_TO_NAME
+
+# Counter for tracking total jobs launched
+JOB_COUNT=0
+FAILURE_COUNT=0
+FINAL_EXIT_CODE=0
+
+mkdir -p "$LOG_DIR"
+echo "--- Starting Event-Driven Parallel Execution ---"
+
+for script in "$SCRIPT_DIR"/*.sh; do
+    case $script in
+    *all-in-tmux*|*runtest-production.sh|*upload_authentication.sh)
+        continue
+        ;;
+    esac
+
+    script_name=$(basename "$script")
+    LOG_FILE="$LOG_DIR/${script_name}.log"
+
+    echo "Launching: $script_name (Logs: $LOG_FILE)"
+
+    # Run in background and redirect output
+    bash "$script" > "$LOG_FILE" 2>&1 &
+
+    # Store PID and map the PID to the script name
+    PIDS+=($!)
+    PID_TO_NAME[$!]="$script_name"
+    JOB_COUNT=$((JOB_COUNT + 1))
+done
+
+echo -e "\n--- Processing Results (Order of Completion) ---\n"
+
+LOG_FILES_TO_PRINT=()
+
+# Loop while there are active background jobs (PIDs array is not empty)
+while (( JOB_COUNT > 0 )); do
+    # Use wait -n to wait for *any* job to finish and get its PID
+    # -n will block until at least one job changes state.
+    wait -n -p finished_pid
+    exit_code=$?
+
+    # Retrieve the name and log file path using the PID
+    script_name="${PID_TO_NAME[$finished_pid]}"
+    LOG_FILE="$LOG_DIR/${script_name}.log"
+
+    JOB_COUNT=$((JOB_COUNT - 1))
+
+    if [ $exit_code -ne 0 ]; then
+        FAILURE_COUNT=$((FAILURE_COUNT + 1))
+        FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
+
+        echo -e "❌ FAILED: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
+        LOG_FILES_TO_PRINT+=( "$LOG_FILE" )
+    else
+        echo -e "✅ SUCCESS: $script_name - Completed at $(date +%H:%M:%S)"
+    fi
+
+    # Unset the entry from the map to clean up
+    unset "PID_TO_NAME[$finished_pid]"
+done
+
+for log in "${LOG_FILES_TO_PRINT[@]}"; do
+    echo -e "\n--- ERRORED $log ---"
+    cat "$log"
+done
+
+echo -e "\n--- FINAL REPORT ---"
+echo "Total Scripts: ${#PIDS[@]}"
+echo "Successful: $(( ${#PIDS[@]} - FAILURE_COUNT ))"
+echo "Failed: $FAILURE_COUNT"
+
+if [ $FINAL_EXIT_CODE -ne 0 ]; then
+    echo -e "\n🚨 ONE OR MORE SCRIPTS FAILED. EXITING WITH CODE 1."
+    exit 1
+else
+    echo -e "\n🎉 ALL SCRIPTS COMPLETED SUCCESSFULLY."
+    exit 0
+fi

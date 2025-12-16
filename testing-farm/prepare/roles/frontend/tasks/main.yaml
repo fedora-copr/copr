@@ -72,6 +72,12 @@
   when: db_created.changed or 'frontend_init_database' in ansible_run_tags
   loop:
     - copr-frontend create-chroot fedora-rawhide-x86_64
+    - copr-frontend create-chroot fedora-43-x86_64
+    - copr-frontend create-chroot epel-6-x86_64
+    - copr-frontend create-chroot epel-7-x86_64
+    - copr-frontend create-chroot epel-8-x86_64
+    - copr-frontend create-chroot epel-9-x86_64
+    - copr-frontend create-chroot epel-10-x86_64
   tags:
     - frontend_init_database
 
