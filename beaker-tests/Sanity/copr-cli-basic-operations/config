@@ -43,3 +43,9 @@ echo "USER = $USER"
 echo "FRONTEND_URL = $FRONTEND_URL"
 echo "BACKEND_URL = $BACKEND_URL"
 echo "DISTGIT_URL = $DISTGIT_URL"
+
+# Make sure our beakerlib-based tests exit with non-zero status upon
+# the test failure.
+if test -n "$BEAKERLIB"; then
+    trap 'test $__INTERNAL_PHASES_WORST_RESULT = PASS ; exit $?' EXIT
+fi

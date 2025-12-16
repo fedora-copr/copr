@@ -1,5 +1,5 @@
 [dist-git]
-frontend_base_url=https://{{ ansible_host }}
+frontend_base_url=https://{{ frontend_hostname }}
 frontend_auth={{ be_fe_token["content"] | b64decode }}
 log_dir=/var/log/copr-dist-git
 per_task_log_dir=/data/distgit/web/logs

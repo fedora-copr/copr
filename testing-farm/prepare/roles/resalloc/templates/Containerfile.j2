@@ -5,6 +5,7 @@ RUN set -ex ; \
     dnf -y install \
         copr-builder \
         openssh-server \
+        which \
     && dnf clean all
 
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
@@ -25,5 +26,16 @@ RUN mkdir -p /home/mockbuilder/.ssh \
     && chown -R mockbuilder:mockbuilder /home/mockbuilder/.ssh
 
 COPY copr.ini /etc/dist-git-client/copr.ini
+COPY main.ini /etc/copr-rpmbuild/main.ini
+
+RUN set -x ; cd /etc/mock ; \
+    for arch in aarch64 ppc64le s390x x86_64; do \
+        for distro in epel-6 epel-7; do \
+            test -f eol/$distro-$arch.cfg && ln -s eol/$distro-$arch.cfg $distro-$arch.cfg ; \
+        done ; \
+        for distro in epel-8 epel-9; do \
+            test -f centos-stream+$distro-$arch.cfg && ln -s centos-stream+$distro-$arch.cfg $distro-$arch.cfg ; \
+        done ; \
+    done
 
 CMD ["/usr/sbin/sshd", "-D"]
