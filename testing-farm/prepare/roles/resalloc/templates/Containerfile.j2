@@ -26,4 +26,13 @@ RUN mkdir -p /home/mockbuilder/.ssh \
 
 COPY copr.ini /etc/dist-git-client/copr.ini
 
+RUN cd /etc/mock ; \
+    for arch in aarch64 ppc64le s390x x86_64; do \
+    for distro in epel-8 epel-9; do \
+        ln -s rhel+$distro-$arch.cfg $distro-$arch.cfg ; \
+    done ; \
+    done
+
+ADD mock /etc/mock
+
 CMD ["/usr/sbin/sshd", "-D"]
