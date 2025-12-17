@@ -3,7 +3,7 @@
 our_dir=$(readlink -f "$(dirname "$0")")
 tests_dir=$our_dir/../beaker-tests/Sanity/copr-cli-basic-operations
 export PATH=$PATH:$tests_dir
-cd "$tests_dir"
+cd "$tests_dir" || exit 1
 
 OWNER=$(copr-cli whoami)
 export OWNER
@@ -27,12 +27,26 @@ FINAL_EXIT_CODE=0
 mkdir -p "$LOG_DIR"
 echo "--- Starting Event-Driven Parallel Execution ---"
 
-for script in "$SCRIPT_DIR"/*.sh; do
+if test $# -eq 0; then
+    # list all scripts
+    set -- "$SCRIPT_DIR"/*.sh
+fi
+
+for script; do
     case $script in
     *all-in-tmux*|*runtest-production.sh|*upload_authentication.sh)
         continue
         ;;
+    *runtest-architectures*)
+        continue
+        ;;
     esac
+
+    if ! test -e "$script"; then
+        echo -e "❌ FAILED: wrong $script file"
+        find "$SCRIPT_DIR" -name '*.sh'
+        exit 1
+    fi
 
     script_name=$(basename "$script")
     LOG_FILE="$LOG_DIR/${script_name}.log"

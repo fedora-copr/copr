@@ -5,13 +5,16 @@
       - copr-frontend
     state: installed
 
-- name: Ensure /data/frontend directory exists and has correct ownership
+- name: Ensure /data/frontend directories exist
   ansible.builtin.file:
-    path: /data/frontend
+    path: "{{ item }}"
     state: directory
     owner: copr-fe
     group: copr-fe
     mode: '0700'
+  loop:
+    - /data/frontend
+    - /data/frontend/srpm_storage
 
 - name: Set persistent SELinux context for /data/frontend
   community.general.sefcontext:
