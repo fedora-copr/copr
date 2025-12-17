@@ -91,6 +91,7 @@
       - i386
       - s390x
       - x86_64
+      - ppc64le
   tags:
     - frontend_init_database
 
