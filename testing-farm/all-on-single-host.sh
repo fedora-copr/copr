@@ -9,7 +9,10 @@ OWNER=$(copr-cli whoami)
 export OWNER
 
 FRONTEND_PUBLIC_HOST=$(curl -4 ifconfig.me)
+# copr-frontend thinks it's hosting publicly, this e.g., affects how .repo files
+# are generated.
 export FRONTEND_PUBLIC_HOST
+# we do access Frontend on localhost
 export FRONTEND_HOST=127.0.0.1
 export FRONTEND_URL=https://$FRONTEND_HOST
 export BACKEND_URL=$FRONTEND_URL
