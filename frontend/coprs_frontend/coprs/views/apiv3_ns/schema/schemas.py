@@ -451,14 +451,15 @@ class _ProjectFields:
     appstream: Boolean = Boolean(
         description="Enable Appstream for this project",
     )
-    packit_forge_projects_allowed: String = String(
+    packit_forge_projects_allowed: List = List(
+        String,
         description=(
-            "Whitespace separated list of forge projects that will be "
+            "List of forge projects that will be "
             "allowed to build in the project via Packit. "
             "Supports wildcard patterns (e.g., github.com/theproject/* will allow "
             "all repositories in the theproject organization)."
         ),
-        example="github.com/fedora-copr/copr github.com/another/project github.com/theproject/*",
+        example=["github.com/fedora-copr/copr", "github.com/another/project", "github.com/theproject/*"],
     )
     follow_fedora_branching: Boolean = Boolean(
         description=(
