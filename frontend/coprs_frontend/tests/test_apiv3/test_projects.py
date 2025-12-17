@@ -31,6 +31,23 @@ class TestApiv3Projects(CoprsTestCase):
         assert [p["id"] for p in projects3] == [3, 1, 2]
         assert projects3 == list(reversed(projects2))
 
+    def test_get_project_packit_forge_projects_allowed(self, f_users, f_coprs,
+                                                        f_mock_chroots, f_db):
+        """
+        Test that packit_forge_projects_allowed is returned as a list in API response
+        """
+        # c3 (barcopr) has packit_forge_projects_allowed set in fixtures
+        url = "/api_3/project?ownername=user2&projectname=barcopr"
+        response = self.tc.get(url)
+        assert response.status_code == 200
+        data = response.json
+
+        assert isinstance(data["packit_forge_projects_allowed"], list)
+        assert data["packit_forge_projects_allowed"] == [
+            "github.com/packit/ogr",
+            "github.com/packit/requre"
+        ]
+
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
     @pytest.mark.parametrize("store, read", [(True, "on"), (False, "off")])
