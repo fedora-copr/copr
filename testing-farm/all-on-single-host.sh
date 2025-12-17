@@ -7,7 +7,9 @@ cd "$tests_dir" || exit 1
 
 OWNER=$(copr-cli whoami)
 export OWNER
-export FRONTEND_HOST=127.0.0.1
+
+FRONTEND_HOST=$(curl -4 ifconfig.me)
+export FRONTEND_HOST
 export FRONTEND_URL=https://$FRONTEND_HOST
 export BACKEND_URL=$FRONTEND_URL
 export VENDOR="?? - "
