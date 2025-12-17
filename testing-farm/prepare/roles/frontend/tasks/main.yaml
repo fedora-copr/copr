@@ -69,22 +69,28 @@
     - frontend_init_database
 
 - name: Initialize database object
-  ansible.builtin.command: "{{ item }}"
+  ansible.builtin.command: "copr-frontend create-chroot {{ item[0] }}-{{ item[1] }}"
   become_user: copr-fe
   become: true
   when: db_created.changed or 'frontend_init_database' in ansible_run_tags
-  loop:
-    - copr-frontend create-chroot fedora-rawhide-x86_64
-    - copr-frontend create-chroot fedora-rawhide-i386
-    - copr-frontend create-chroot fedora-rawhide-aarc64
-    - copr-frontend create-chroot fedora-43-x86_64
-    - copr-frontend create-chroot fedora-43-i386
-    - copr-frontend create-chroot fedora-43-aarch64
-    - copr-frontend create-chroot epel-6-x86_64
-    - copr-frontend create-chroot epel-7-x86_64
-    - copr-frontend create-chroot epel-8-x86_64
-    - copr-frontend create-chroot epel-9-x86_64
-    - copr-frontend create-chroot epel-10-x86_64
+  loop: "{{ distros | product(arches) | list }}"
+  loop_control:
+    label: "Creating {{ item[0] }}-{{ item[1] }}"
+  vars:
+    distros:
+      - fedora-rawhide
+      - fedora-43
+      - fedora-42
+      - epel-10
+      - epel-9
+      - epel-8
+      - epel-7
+      - epel-6
+    arches:
+      - aarch64
+      - i386
+      - s390x
+      - x86_64
   tags:
     - frontend_init_database
 
