@@ -2,6 +2,7 @@
 
 import os
 import sys
+import requests
 # pylint: disable=wrong-import-position
 sys.path.append("/usr/share/copr/coprs_frontend/")
 from coprs.models import User
@@ -14,8 +15,18 @@ TEMPLATE = """\
 username = {username}
 login = {login}
 token = {token}
-copr_url = https://127.0.0.1
+copr_url = https://{host}
 """
+
+
+
+def get_host():
+    """
+    What is our public IPv4?
+    """
+    requests.packages.urllib3.util.connection.HAS_IPV6 = False
+    out = requests.get("https://ifconfig.me", timeout=30)
+    return out.content.decode("utf-8")
 
 
 def _main():
@@ -31,6 +42,7 @@ def _main():
         username=username,
         login=user.api_login,
         token=user.api_token,
+        host=get_host(),
     )
     with open(token_file, "w", encoding="utf-8") as fd:
         fd.write(token)
