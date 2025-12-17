@@ -19,7 +19,6 @@ copr_url = https://{host}
 """
 
 
-
 def get_host():
     """
     What is our public IPv4?
@@ -47,6 +46,7 @@ def _main():
     with open(token_file, "w", encoding="utf-8") as fd:
         fd.write(token)
         os.fchmod(fd.fileno(), 0o600)
+
 
 if __name__ == "__main__":
     with app.app_context():
