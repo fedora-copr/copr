@@ -66,7 +66,7 @@ done
 
 echo -e "\n--- Processing Results (Order of Completion) ---\n"
 
-LOG_FILES_TO_PRINT=()
+FAILED_JOBS=()
 
 # Loop while there are active background jobs (PIDs array is not empty)
 while (( JOB_COUNT > 0 )); do
@@ -86,7 +86,10 @@ while (( JOB_COUNT > 0 )); do
         FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
 
         echo -e "❌ FAILED: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
-        LOG_FILES_TO_PRINT+=( "$LOG_FILE" )
+        FAILED_JOBS+=( "$script_name" )
+        # print the log early, we can react to failure ASAP (while the rest of
+        # tests is finishing).
+        cat "$LOG_FILE"
     else
         echo -e "✅ SUCCESS: $script_name - Completed at $(date +%H:%M:%S)"
     fi
@@ -95,9 +98,8 @@ while (( JOB_COUNT > 0 )); do
     unset "PID_TO_NAME[$finished_pid]"
 done
 
-for log in "${LOG_FILES_TO_PRINT[@]}"; do
-    echo -e "\n--- ERRORED $log ---"
-    cat "$log"
+for job in "${FAILED_JOBS[@]}"; do
+    echo -e "❌ FAILED: $job"
 done
 
 echo -e "\n--- FINAL REPORT ---"
