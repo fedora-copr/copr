@@ -3,6 +3,13 @@ summary: run the behave tests in Fedora Testing Farm
 discover:
   - how: fmf
 
+provision:
+  how: virtual
+  hardware:
+    memory: ">= 8 GB"
+    cpu:
+      processors: ">= 4"
+
 prepare:
   - how: ansible
     playbook: testing-farm/prepare/machine-prepare.yml
