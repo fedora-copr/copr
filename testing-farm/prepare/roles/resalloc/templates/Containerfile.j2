@@ -15,7 +15,7 @@ RUN mkdir -p /root/.ssh && chmod 700 /root /root/.ssh
 COPY key.pub /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys
 
-COPY copr.pem /etc/pki/ca-trust/source/anchors/copr.crt
+COPY self-signed-ca.crt /etc/pki/ca-trust/source/anchors/self-signed-ca.crt
 RUN update-ca-trust
 
 # install mockbuilder user, and allow ssh to it
