@@ -45,30 +45,34 @@ rlJournalStart
         rlRun parse_build_id
         rlRun "copr watch-build $BUILD_ID"
 
-        owner="${OWNER/@/}"
-        project="$NAME_VAR-WebUI"
+        owner_part=$OWNER
+        case $OWNER in
+        @*)
+            owner_part=g/${OWNER/@/}
+            rlRun "curl $FRONTEND_URL/groups/$owner_part/coprs"
+            ;;
+        esac
 
         # These doesn't prove everything works correctly. We are only checking
         # the status code, nothing else. Also, some of the routes are hidden
         # behind an authentication, so we test the routes very superficially.
         # However, if some of them fails, there is likely a bug.
         rlRun "curl $FRONTEND_URL"
-        rlRun "curl $FRONTEND_URL/groups/g/$owner/coprs"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/packages"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/builds"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/monitor"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/monitor/simple"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/monitor/detailed"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/edit"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/permissions"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/integrations"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/repositories"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/delete"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/build/$BUILD_ID"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/package/hello"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/package/hello/rebuild"
-        rlRun "curl $FRONTEND_URL/coprs/g/$owner/$project/package/hello/edit"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/packages"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/builds"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor/simple"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor/detailed"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/edit"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/permissions"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/integrations"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/repositories"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/delete"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/build/$BUILD_ID"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/package/hello"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/package/hello/rebuild"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/package/hello/edit"
         rlRun "curl $FRONTEND_URL/api"
         rlRun "curl $FRONTEND_URL/user/info"
         rlRun "curl $FRONTEND_URL/rss"
