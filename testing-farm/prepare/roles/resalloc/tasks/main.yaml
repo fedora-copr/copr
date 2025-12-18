@@ -74,21 +74,20 @@
   loop:
     - "{{ resalloc_image_dir }}/mock"
 
-- name: Fetch the certificate file from the credentials host
+- name: Fetch the CA file from the credentials host
   ansible.builtin.slurp:
-    src: /root/self-signed.pem
+    src: /root/self-signed-ca.crt
   register: cert_file
   delegate_to: "{{ host_with_secrets }}"
   notify: build builder image
 
-- name: Install copr.pem as a file to copy to container
+- name: Install CA as a file to copy to container
   ansible.builtin.copy:
     content: "{{ cert_file['content'] | b64decode }}"
-    dest: "{{ resalloc_image_dir }}/copr.pem"
+    dest: "{{ resalloc_image_dir }}/self-signed-ca.crt"
     owner: resalloc
     group: resalloc
     mode: '0644'
-  register: ca_trust
   notify: build builder image
 
 - name: Ensure resalloc user has subordinate UIDs defined
