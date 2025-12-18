@@ -53,8 +53,15 @@ rlJournalStart
 
         # Test `dnf copr list' command
         rlRun "dnf copr list > $OUTPUT"
-        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/@copr/copr'"
-        rlRun "cat $OUTPUT |grep 'copr.fedorainfracloud.org/@copr/copr-dev'"
+        for repo in @copr/copr @copr/copr-dev; do
+            if grep copr.fedorainfracloud.org/"$repo" "$OUTPUT"; then
+                continue
+            fi
+            rlRun "dnf -y copr enable \"$repo\""
+            rlRun "dnf copr list > $OUTPUT"
+            rlRun "grep 'copr.fedorainfracloud.org/$repo' $OUTPUT"
+            rlRun "dnf -y copr remove \"$repo\""
+        done
 
         # Test `dnf copr enable' command
         rlRun "copr-cli build ${NAME_PREFIX}DnfCopr ${HELLO}"
