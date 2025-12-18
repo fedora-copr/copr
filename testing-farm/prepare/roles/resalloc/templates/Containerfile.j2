@@ -2,6 +2,7 @@ FROM registry.fedoraproject.org/fedora:42
 
 RUN set -ex ; \
     dnf -y update && \
+    dnf -y copr enable @mock/mock && \
     dnf -y install \
         copr-builder \
         openssh-server \
