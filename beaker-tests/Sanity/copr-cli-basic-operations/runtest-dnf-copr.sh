@@ -75,8 +75,9 @@ rlJournalStart
         rlRun "dnf-3 copr --hub tested-copr list --available-by-user $OWNER > $OUTPUT"
         rlRun "cat $OUTPUT |grep '${NAME_PREFIX}DnfCopr' |grep 'No description given'"
 
-        # Test `dnf copr disable' command
+        # Test disable/remove command
         rlRun "dnf -y copr disable --hub tested-copr ${NAME_PREFIX}DnfCopr"
+        rlRun "dnf -y copr remove --hub tested-copr ${NAME_PREFIX}DnfCopr"
     rlPhaseEnd
 
     rlPhaseStartCleanup
