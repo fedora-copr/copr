@@ -70,22 +70,6 @@
     group: resalloc
   loop:
     - "{{ resalloc_image_dir }}/mock"
-    - "{{ resalloc_image_dir }}/mock/templates"
-
-- name: install custom mock configuration
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ resalloc_image_dir }}/mock/{{ item }}"
-    owner: resalloc
-    group: resalloc
-    mode: '0644'
-  loop:
-    - epel-6-i386.cfg
-    - epel-6-x86_64.cfg
-    - epel-7-ppc64le.cfg
-    - epel-7-x86_64.cfg
-    - templates/epel-6.tpl
-  notify: build builder image
 
 - name: Fetch the certificate file from the credentials host
   ansible.builtin.slurp:

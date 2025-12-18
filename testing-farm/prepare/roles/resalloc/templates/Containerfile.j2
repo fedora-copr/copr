@@ -26,13 +26,13 @@ RUN mkdir -p /home/mockbuilder/.ssh \
 
 COPY copr.ini /etc/dist-git-client/copr.ini
 
-RUN cd /etc/mock ; \
+RUN set -x ; cd /etc/mock ; \
     for arch in aarch64 ppc64le s390x x86_64; do \
         for distro in epel-6 epel-7; do \
             test -f eol/$distro-$arch.cfg && ln -s eol/$distro-$arch.cfg $distro-$arch.cfg ; \
         done ; \
-        for distro in epel-9 epel-10; do \
-          test -f eol/centos-stream+$distro-$arch.cfg && ln -s eol/centos-stream+$distro-$arch.cfg $distro-$arch.cfg ; \
+        for distro in epel-8 epel-9; do \
+            test -f centos-stream+$distro-$arch.cfg && ln -s centos-stream+$distro-$arch.cfg $distro-$arch.cfg ; \
         done ; \
     done
 
