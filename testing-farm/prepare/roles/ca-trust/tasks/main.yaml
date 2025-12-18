@@ -1,11 +1,11 @@
 ---
 - name: Fetch the certificate file from the credentials host
   ansible.builtin.slurp:
-    src: /root/self-signed.pem
+    src: /root/self-signed-ca.crt
   register: cert_file
   delegate_to: "{{ host_with_secrets }}"
 
-- name: Install copr.pem as trusted CA (RHEL/CentOS/Fedora)
+- name: Install self-signed-ca.crt as a trusted CA (RHEL/CentOS/Fedora)
   ansible.builtin.copy:
     content: "{{ cert_file['content'] | b64decode }}"
     dest: /etc/pki/ca-trust/source/anchors/copr.crt
