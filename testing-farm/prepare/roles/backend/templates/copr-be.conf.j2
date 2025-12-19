@@ -6,6 +6,9 @@ destdir=/var/lib/copr/public_html/results
 statsdir=/var/lib/copr/public_html/stats
 do_sign=true
 keygen_host=localhost:8080
+# Single-host execution is resource-intensive, particularly when running
+# multiple concurrent emulated builds.  Limit to a maximum of two per sandbox.
+builds_max_workers_sandbox=2
 
 [ssh]
 builder_config=/home/copr/.ssh/config
