@@ -43,7 +43,7 @@ for script; do
     *all-in-tmux*|*runtest-production.sh|*upload_authentication.sh)
         continue
         ;;
-    *runtest-architectures*)
+    *runtest-storage*)
         continue
         ;;
     esac
