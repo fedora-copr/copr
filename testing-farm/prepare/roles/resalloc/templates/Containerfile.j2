@@ -6,6 +6,7 @@ RUN set -ex ; \
     dnf -y install \
         copr-builder \
         openssh-server \
+        which \
     && dnf clean all
 
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
