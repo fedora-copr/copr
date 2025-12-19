@@ -74,8 +74,8 @@
     cat <<EOF | sudo -u copr-fe psql
     update "user" set "admin" = true, "openid_groups" = '{"fas_groups": ["gitcopr"]}' where username = 'single-host-testing';
     insert into "group" (name, fas_name) values ('copr', 'gitcopr');
-    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority")  values ('centos',        'https://git.centos.org', '{namespace}/rpms/{pkgname}.git', 80);
-    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority")  values ('centos-stream', 'https://gitlab.com',     'redhat/centos-stream/rpms/{pkgname}.git', 90);
+    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority", "default_namespace")  values ('centos',        'https://git.centos.org', '{namespace}/rpms/{pkgname}.git', 80, '');
+    insert into dist_git_instance ("name", "clone_url", "clone_package_uri", "priority", "default_namespace")  values ('centos-stream', 'https://gitlab.com',     'redhat/centos-stream/rpms/{pkgname}.git', 90, '');
     EOF
 
 - name: install dnf copr config for tested instance
