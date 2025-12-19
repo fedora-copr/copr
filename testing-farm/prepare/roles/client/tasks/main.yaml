@@ -92,6 +92,6 @@
   community.general.nmcli:
     conn_name: "lo"
     type: loopback
-    ip4: "{{ ansible_host }}/32"
+    ip4: "{{ frontend_hostname }}/32"
     state: present
   tags: hack_local_route

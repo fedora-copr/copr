@@ -155,11 +155,11 @@
   ansible.builtin.copy:
     content: |
       [fedora-copr]
-      clone_hostnames = {{ ansible_host }}
-      lookaside_location = https://{{ ansible_host }}
+      clone_hostnames = {{ frontend_hostname }}
+      lookaside_location = https://{{ distgit_hostname }}
       lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hashtype}/{hash}/{filename}
       cloning_pattern_package_parts = owner_name project_name package_name
-      cloning_pattern=https://{{ ansible_host }}/git/{package}
+      cloning_pattern=https://{{ distgit_hostname }}/git/{package}
     dest: "{{ resalloc_image_dir }}/copr.ini"
     owner: resalloc
     group: resalloc
