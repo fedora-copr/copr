@@ -36,18 +36,10 @@ rlJournalStart
         # We support aarch64 both in Red Hat and Fedora Copr
         chroots=(
             --chroot "fedora-$FEDORA_VERSION-aarch64"
+            --chroot "fedora-$FEDORA_VERSION-s390x"
+            --chroot "fedora-$FEDORA_VERSION-ppc64le"
+            --chroot "epel-9-ppc64le"
         )
-
-        case $FRONTEND_URL in
-        *fedora*.org*)
-            chroots+=(
-                --chroot "fedora-$FEDORA_VERSION-s390x"
-                --chroot "fedora-$FEDORA_VERSION-ppc64le"
-                --chroot "epel-9-ppc64le"
-            )
-            ;;
-        esac
-
         rlRun "copr-cli create ${chroots[*]} $PROJECT"
         rlRun "copr-cli build $PROJECT ${HELLO}"
     rlPhaseEnd
