@@ -16,7 +16,7 @@ export FRONTEND_PUBLIC_HOST
 export FRONTEND_HOST=127.0.0.1
 export FRONTEND_URL=https://$FRONTEND_HOST
 export BACKEND_URL=$FRONTEND_URL
-export VENDOR="?? - "
+export VENDOR="Testing Copr - user single-host-testing"
 
 SCRIPT_DIR="."
 LOG_DIR="./logs"
