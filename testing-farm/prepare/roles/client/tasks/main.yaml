@@ -82,7 +82,7 @@
   copy:
     content: |
       [tested-copr]
-      hostname = {{ inventory_hostname }}
+      hostname = {{ frontend_hostname }}
       protocol = https
       port = 443
     mode: '0644'
