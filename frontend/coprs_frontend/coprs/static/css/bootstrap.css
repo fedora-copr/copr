@@ -1012,8 +1012,8 @@ th {
   box-sizing: border-box;
 }
 html {
-  font-size: 10px;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  font-size: 1rem !important;
 }
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
