@@ -2,7 +2,7 @@ import time
 from datetime import datetime, timedelta
 import pytest
 import coprs
-from copr_common.enums import StatusEnum
+from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs.helpers import ChrootDeletionStatus
 from tests.coprs_test_case import CoprsTestCase
 
@@ -189,6 +189,22 @@ class TestBuildModel(CoprsTestCase):
         self.b1.source_status = 0
         assert self.b1.source_state == "failed"
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds", "f_db")
+    def test_repeatable_succeeded(self):
+        """
+        Test that builds with succeeded source_status are repeatable.
+        """
+        self.b1.source_status = StatusEnum("succeeded")
+        assert self.b1.repeatable
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_builds", "f_db")
+    def test_repeatable_import_failed(self):
+        """
+        Test that builds which failed during import phase are repeatable.
+        """
+        self.b1.source_status = StatusEnum("failed")
+        self.b1.fail_type = FailTypeEnum("srpm_import_failed")
+        assert self.b1.repeatable
 
 class TestCoprModel(CoprsTestCase):
 
