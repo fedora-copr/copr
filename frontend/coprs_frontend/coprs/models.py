@@ -1393,7 +1393,13 @@ class Build(db.Model, helpers.Serializer):
 
         Build is repeatable only if sources has been imported.
         """
-        return self.source_status == StatusEnum("succeeded")
+        if self.source_status == StatusEnum("succeeded"):
+            return True
+        if (self.source_status == StatusEnum("failed") and
+                self.fail_type == FailTypeEnum("srpm_import_failed") and
+                not self.source_is_uploaded):
+            return True
+        return False
 
     @property
     def finished_early(self):
