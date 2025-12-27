@@ -26,6 +26,8 @@ Requires:      python3-copr >= %min_python_copr_version
 Requires:      python3-jinja2
 Requires:      python3-humanize
 Requires:      python3-koji
+Requires:      python3-typing-extensions
+Requires:      python3-rich
 
 Recommends:    python3-progress
 Recommends:    python3-ConfigUpdater
@@ -39,6 +41,13 @@ BuildRequires: python3-pytest
 BuildRequires: python3-responses
 BuildRequires: python3-setuptools
 BuildRequires: python3-munch
+BuildRequires: python3-typing-extensions
+BuildRequires: python3-rich
+
+%if 0%{?rhel} && 0%{?rhel} <= 8
+Requires:      python3-dataclasses
+BuildRequires: python3-dataclasses
+%endif
 
 # We historically shipped empty doc package, uninstall it.
 Obsoletes:     copr-cli-doc < 1.72
