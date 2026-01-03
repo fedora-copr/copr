@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-builder
+  namespace: copr
+  labels:
+    app: copr
+    component: builder
+spec:
+  containers:
+    - name: builder
+      image: copr-builder:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 22
+          protocol: TCP
+      securityContext:
+        privileged: true
+      resources:
+        limits:
+          memory: "4Gi"
+          cpu: "2000m"
+
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: builder
+  namespace: copr
+spec:
+  selector:
+    component: builder
+  ports:
+    - port: 22
+      targetPort: 22
+      protocol: TCP

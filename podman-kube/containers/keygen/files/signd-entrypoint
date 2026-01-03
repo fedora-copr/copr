@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+allow_statement=${1:-"0.0.0.0/0"}
+
+# Configure signd server
+cat >/etc/sign.conf <<EOF
+allow: $allow_statement
+phrases: /var/lib/copr-keygen/phrases
+gpg: /usr/bin/gpg-copr
+allowuser: $(id -u)
+allow-unprivileged-ports: true
+EOF
+
+# Create required directories
+mkdir --mode=0700 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg
+
+exec /usr/sbin/signd

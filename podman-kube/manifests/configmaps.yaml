@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-frontend-config
+  namespace: copr
+data:
+  # Configuration can be overridden via this ConfigMap
+  # The default configs are baked into the container images
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-backend-config
+  namespace: copr
+data:
+  # Backend configuration overrides
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-distgit-config
+  namespace: copr
+data:
+  # DistGit configuration overrides
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-keygen-config
+  namespace: copr
+data:
+  # Keygen configuration overrides
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-resalloc-config
+  namespace: copr
+data:
+  # Resalloc configuration overrides
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-builder-config
+  namespace: copr
+data:
+  # Builder configuration overrides

@@ -1,0 +1,46 @@
+FROM registry.fedoraproject.org/fedora:43
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
+LABEL description="COPR Builder - RPM build worker"
+
+ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+
+ENV TERM=linux
+
+RUN set -ex ; \
+    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
+        || dnf -y install dnf-plugins-core \
+        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
+    dnf -y update && \
+    dnf -y install htop \
+                   which \
+                   wget \
+                   vim \
+                   openssh-server \
+                   fedora-packager \
+                   mock \
+                   mock-lvm \
+                   createrepo \
+                   yum-utils \
+                   rsync \
+                   openssh-clients \
+                   rpm \
+                   glib2 \
+                   ca-certificates \
+                   scl-utils-build \
+                   ethtool \
+    && dnf -y install copr-builder \
+    && dnf clean all
+
+COPY files/ /
+
+RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
+
+RUN echo 'root:passwd' | chpasswd && \
+    chmod 700 /root /root/.ssh && \
+    touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+
+RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D"]

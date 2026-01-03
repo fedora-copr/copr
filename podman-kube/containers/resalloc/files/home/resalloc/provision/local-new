@@ -1,0 +1,4 @@
+#!/bin/bash
+# Provision script that returns the builder hostname
+# In the podman-kube setup, 'builder' is the service name
+echo builder

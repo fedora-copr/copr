@@ -1,0 +1,16 @@
+FROM registry.fedoraproject.org/fedora:43
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
+LABEL description="PostgreSQL database for COPR"
+
+RUN dnf install -y postgresql-server postgresql && dnf clean all
+
+RUN mkdir -p /var/lib/pgsql/data /var/run/postgresql && \
+    chown -R postgres:postgres /var/lib/pgsql /var/run/postgresql
+
+COPY files/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
+
+EXPOSE 5432
+
+USER postgres
+CMD ["/usr/local/bin/init-db.sh"]

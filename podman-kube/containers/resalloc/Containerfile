@@ -1,0 +1,25 @@
+FROM registry.fedoraproject.org/fedora:43
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
+LABEL description="COPR Resalloc - resource allocation service"
+
+RUN dnf install -y ansible \
+                   vim \
+                   resalloc \
+                   resalloc-aws \
+                   resalloc-server \
+                   resalloc-webui \
+                   sqlite \
+                   findutils \
+                   openssh-clients \
+    && dnf clean all
+
+COPY files/ /
+
+RUN mkdir -p /persistent && \
+    chown -R resalloc:resalloc /persistent
+
+USER resalloc
+
+CMD cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) \
+    && alembic-3 upgrade head \
+    && /usr/bin/resalloc-server

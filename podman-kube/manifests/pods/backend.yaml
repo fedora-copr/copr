@@ -1,0 +1,144 @@
+---
+# COPR Backend Pod (all backend services in one pod)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-backend
+  namespace: copr
+  labels:
+    app: copr
+    component: backend
+spec:
+  containers:
+    # Log service
+    - name: backend-log
+      image: copr-backend:latest
+      imagePullPolicy: Never
+      command:
+        [
+          "/usr/bin/tini",
+          "--",
+          "/usr/sbin/runuser",
+          "-u",
+          "copr",
+          "-g",
+          "copr",
+          "--",
+          "/usr/bin/copr_run_logger.py",
+        ]
+      volumeMounts:
+        - name: results-data
+          mountPath: /var/lib/copr/public_html/results
+      resources:
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+
+    # Build dispatcher
+    - name: backend-build
+      image: copr-backend:latest
+      imagePullPolicy: Never
+      command:
+        [
+          "/usr/bin/tini",
+          "--",
+          "/run-backend",
+          "--sign-host",
+          "keygen-signd",
+          "/usr/sbin/runuser",
+          "-u",
+          "copr",
+          "-g",
+          "copr",
+          "--",
+          "/usr/bin/copr-run-dispatcher-backend",
+          "builds",
+        ]
+      volumeMounts:
+        - name: results-data
+          mountPath: /var/lib/copr/public_html/results
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+
+    # Action dispatcher
+    - name: backend-action
+      image: copr-backend:latest
+      imagePullPolicy: Never
+      command:
+        [
+          "/usr/bin/tini",
+          "--",
+          "/run-backend",
+          "--sign-host",
+          "keygen-signd",
+          "/usr/sbin/runuser",
+          "-u",
+          "copr",
+          "-g",
+          "copr",
+          "--",
+          "/usr/bin/copr-run-dispatcher-backend",
+          "actions",
+        ]
+      volumeMounts:
+        - name: results-data
+          mountPath: /var/lib/copr/public_html/results
+      resources:
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+
+  volumes:
+    - name: results-data
+      persistentVolumeClaim:
+        claimName: copr-results-data
+
+  restartPolicy: Always
+---
+# Backend HTTPD Pod (separate for results serving)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-backend-httpd
+  namespace: copr
+  labels:
+    app: copr
+    component: backend-httpd
+spec:
+  containers:
+    - name: backend-httpd
+      image: copr-backend-httpd:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5002
+          hostPort: 5002
+          protocol: TCP
+      volumeMounts:
+        - name: results-data
+          mountPath: /var/lib/copr/public_html/results
+      resources:
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+
+  volumes:
+    - name: results-data
+      persistentVolumeClaim:
+        claimName: copr-results-data
+
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-httpd
+  namespace: copr
+spec:
+  selector:
+    component: backend-httpd
+  ports:
+    - port: 5002
+      targetPort: 5002
+      protocol: TCP

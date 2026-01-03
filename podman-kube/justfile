@@ -1,0 +1,100 @@
+manifest := "manifests/copr-all.yaml"
+manifest_local := "manifests/copr-local.yaml"
+images := "database redis frontend backend backend-httpd distgit keygen resalloc builder"
+copr_root := parent_directory(justfile_directory())
+
+default:
+    @just --list
+
+# Build all container images (mode: dev or release)
+build mode="dev":
+    #!/bin/bash
+    set -e
+    arg=""
+    [[ "{{mode}}" == "release" ]] || arg="--build-arg ADDITIONAL_COPR_REPOSITORIES=@copr/copr-dev"
+    for img in {{images}}; do
+        echo "Building copr-$img..."
+        podman build $arg -t copr-$img:{{mode}} -t copr-$img:latest \
+            -f containers/$img/Containerfile containers/$img
+    done
+    echo "All images built"
+
+# Build and start (dev/release mode)
+up: build
+    podman kube play --replace --no-hosts {{manifest}}
+    @sleep 3
+    @just setup-ssh
+    @echo ""
+    @echo "COPR is running at http://localhost:5000"
+
+# Start with local source code mounted (for development)
+up-local: build
+    #!/bin/bash
+    set -e
+    echo "Starting with local source code from {{copr_root}}"
+    sed 's|COPR_SOURCE_PATH|{{copr_root}}|g' {{manifest_local}} > /tmp/copr-local-generated.yaml
+    podman kube play --replace --no-hosts /tmp/copr-local-generated.yaml
+    sleep 3
+    just setup-ssh
+    echo ""
+    echo "COPR is running at http://localhost:5000"
+    echo "Local source code mounted at /opt/copr in containers"
+
+# Stop all pods
+down:
+    -podman kube down {{manifest}} 2>/dev/null
+    -podman kube down /tmp/copr-local-generated.yaml 2>/dev/null
+    -podman pod rm -f $(podman pod ls --filter "name=copr" -q) 2>/dev/null
+
+# Show status
+status:
+    @podman pod ls --filter "name=copr"
+    @echo ""
+    @podman ps -a --filter "name=copr" --format "table {{{{.Names}}}}\t{{{{.Status}}}}"
+
+# Configure SSH keys for backend->builder
+setup-ssh:
+    #!/bin/bash
+    echo "Setting up SSH keys..."
+    for i in {1..5}; do
+        podman exec copr-backend-backend-build true 2>/dev/null && break || sleep 2
+    done
+    podman exec copr-backend-backend-build cat /home/copr/.ssh/id_rsa.pub 2>/dev/null | \
+        podman exec -i copr-builder-builder tee -a /root/.ssh/authorized_keys >/dev/null && \
+        echo "SSH keys configured" || echo "Warning: SSH key setup failed"
+
+# View logs for a service
+logs service="frontend":
+    podman logs copr-{{service}}-{{service}}
+
+# Follow logs for a service
+logs-f service="frontend":
+    podman logs -f copr-{{service}}-{{service}}
+
+# Open shell in a container
+shell service="frontend":
+    podman exec -it copr-{{service}}-{{service}} /bin/bash
+
+# Stop and remove all images
+clean: down
+    #!/bin/bash
+    echo "Removing COPR images..."
+    for img in {{images}}; do
+        podman rmi copr-$img 2>/dev/null || true
+    done
+    echo "Done"
+
+# Delete all persistent volumes (fresh start)
+clean-volumes:
+    #!/bin/bash
+    echo "Removing COPR volumes..."
+    for vol in database-data redis-data results-data distgit-data keygen-data resalloc-data; do
+        podman volume rm -f copr-$vol 2>/dev/null || true
+    done
+    echo "Done"
+
+# Restart a specific service (rebuilds pod)
+restart service:
+    #!/bin/bash
+    echo "Restarting copr-{{service}}..."
+    podman pod restart copr-{{service}} 2>/dev/null || echo "Pod not found, try: just up"
