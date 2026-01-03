@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+cd /usr/share/copr/coprs_frontend/
+
+# Initialize database if needed
+./manage.py create-db --alembic alembic.ini
+
+# Create default chroot
+./manage.py create-chroot fedora-rawhide-x86_64
+
+# Set test user for development
+export TEST_REMOTE_USER="${TEST_REMOTE_USER:-jdoe}"
+
+# Start Apache
+exec /usr/sbin/httpd -DFOREGROUND
