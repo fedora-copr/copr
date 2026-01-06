@@ -4,6 +4,7 @@
 
 %global copr_common_version 1.2.1
 
+
 Name:       copr-backend
 Version:    2.11
 Release:    1%{?dist}
