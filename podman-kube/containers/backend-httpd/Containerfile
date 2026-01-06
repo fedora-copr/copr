@@ -6,10 +6,10 @@ RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -y install nginx && \
     dnf clean all
 
-COPY files/nginx.conf /etc/nginx/conf.d/default.conf
+COPY files/nginx.conf /etc/nginx/nginx.conf
 
 RUN mkdir -p /var/lib/copr/public_html/results && \
-    chown -R nginx:nginx /var/lib/copr
+    chown -R nginx:nginx /var/lib/copr /var/log/nginx /var/run
 
 USER nginx
 EXPOSE 5002

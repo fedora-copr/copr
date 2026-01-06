@@ -28,23 +28,42 @@ fi
 echo "Initializing PostgreSQL database..."
 initdb -D "$PGDATA"
 
-# Configure PostgreSQL to accept connections
-echo "host all all 0.0.0.0/0 md5" >> "$PGDATA/pg_hba.conf"
-echo "listen_addresses = '*'" >> "$PGDATA/postgresql.conf"
+cat > "$PGDATA/pg_hba.conf" << 'EOF'
+# COPR database access
+local coprdb copr-fe md5
+host  coprdb copr-fe 0.0.0.0/0 md5
+host  coprdb copr-fe ::0/0 md5
+local coprdb postgres ident
 
-# Start PostgreSQL temporarily to create user and database
+# Default entries
+local all all peer
+host  all all 127.0.0.1/32 ident
+host  all all ::1/128 ident
+EOF
+
+# Configure postgresql.conf with tuning from ansible
+cat >> "$PGDATA/postgresql.conf" << 'EOF'
+listen_addresses = '*'
+shared_buffers = 256MB
+effective_cache_size = 512MB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+checkpoint_completion_target = 0.9
+log_min_duration_statement = 500
+max_connections = 100
+EOF
+
 pg_ctl -D "$PGDATA" -w start
 
 # Create user and database
 psql -c "CREATE USER \"$POSTGRESQL_USER\" WITH PASSWORD '$POSTGRESQL_PASSWORD';"
-psql -c "CREATE DATABASE \"$POSTGRESQL_DATABASE\" OWNER \"$POSTGRESQL_USER\";"
+psql -c "CREATE DATABASE \"$POSTGRESQL_DATABASE\" OWNER \"$POSTGRESQL_USER\" ENCODING 'UTF-8';"
 psql -c "GRANT ALL PRIVILEGES ON DATABASE \"$POSTGRESQL_DATABASE\" TO \"$POSTGRESQL_USER\";"
+# Grant SUPERUSER for alembic migrations
+psql -c "ALTER USER \"$POSTGRESQL_USER\" WITH SUPERUSER;"
 
-# Stop temporary instance
 pg_ctl -D "$PGDATA" -w stop
 
 echo "Database initialized successfully."
 
-# Start PostgreSQL
-echo "Starting PostgreSQL..."
 exec postgres -D "$PGDATA"

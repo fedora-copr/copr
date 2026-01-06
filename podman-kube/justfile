@@ -2,13 +2,14 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 manifest := "manifests/copr-all.yaml"
 manifest_local := "manifests/copr-local.yaml"
-services := "database redis frontend backend backend-httpd distgit keygen resalloc builder"
 copr_root := parent_directory(justfile_directory())
+services := "database redis frontend backend backend-httpd distgit keygen resalloc builder"
 
 default:
     @just --list
 
 # Build base image
+[private]
 build-base mode="dev":
     #!/bin/bash
     arg=""
@@ -17,15 +18,23 @@ build-base mode="dev":
     podman build $arg -t copr-base:{{mode}} -t copr-base:latest \
         -f containers/base/Containerfile containers/base
 
-# Build all container images (base first, then services in parallel)
+# Build a single service with prefixed output (used by parallel build)
+[private]
+build-service img mode="dev":
+    #!/bin/bash
+    podman build -t copr-{{img}}:{{mode}} -t copr-{{img}}:latest \
+        -f containers/{{img}}/Containerfile containers/{{img}} 2>&1 | \
+        sed -u "s/^/[{{img}}] /"
+    exit ${PIPESTATUS[0]}
+
+# Build all container images (base first, then services in parallel limited to CPU cores)
 build mode="dev": (build-base mode)
     #!/bin/bash
-    echo "Building service images in parallel..."
-    for img in {{services}}; do
-        podman build -t copr-$img:{{mode}} -t copr-$img:latest \
-            -f containers/$img/Containerfile containers/$img &
-    done
-    wait
+    echo "Building service images (max {{num_cpus()}} parallel jobs)..."
+    echo ""
+    printf '%s\n' {{services}} | xargs -P {{num_cpus()}} -I {} \
+        just build-service {} {{mode}}
+    echo ""
     echo "All images built"
 
 # Build and start

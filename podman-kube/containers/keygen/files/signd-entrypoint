@@ -15,4 +15,6 @@ EOF
 # Create required directories
 mkdir --mode=0700 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg
 
+export GNUPGHOME=/var/lib/copr-keygen/gnupg
+
 exec /usr/sbin/signd

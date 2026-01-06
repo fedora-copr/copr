@@ -24,8 +24,9 @@ RUN set -ex && \
         /etc/httpd/conf/httpd.conf && \
     echo "PidFile /var/run/httpd/httpd.pid" >> /etc/httpd/conf/httpd.conf && \
     sed -i "s/REDIS_HOST = \"redis\"/REDIS_HOST = \"${REDIS_HOST}\"/g" /etc/copr/copr.conf && \
-    chown -R copr-fe:root /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd && \
-    chmod -R g+rwX /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd
+    mkdir -p /var/www/html/db_dumps /var/www/html/usage && \
+    chown -R copr-fe:root /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd /var/www/html && \
+    chmod -R g+rwX /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd /var/www/html
 
 USER copr-fe
 EXPOSE 5000

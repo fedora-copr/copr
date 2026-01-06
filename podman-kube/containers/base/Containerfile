@@ -17,6 +17,7 @@ RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -y install \
         ca-certificates \
         findutils \
+        glibc-langpack-en \
         tini \
     && dnf clean all
 

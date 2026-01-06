@@ -1,15 +1,6 @@
 # Resalloc server configuration
 
-# SQLite database for local deployment
 db_url: "sqlite:////persistent/db.sqlite"
-
 logdir: "/var/log/resallocserver"
-
-# Listen on all interfaces
 hostname: "0.0.0.0"
-
-# Default port
-# port: 49100
-
-# Debug logging
 loglevel: "debug"
