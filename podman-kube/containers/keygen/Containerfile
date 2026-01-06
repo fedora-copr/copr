@@ -1,53 +1,30 @@
-FROM registry.fedoraproject.org/fedora:43
-LABEL maintainer="copr-devel@lists.fedorahosted.org"
+FROM copr-base:latest
+
 LABEL description="COPR Keygen - GPG key generation and signing"
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
-
-RUN groupadd -r copr-signer -g 992 && \
+RUN set -ex && \
+    groupadd -r copr-signer -g 992 && \
     useradd -r copr-signer -u 993 -g 992 -G 0 -d /var/lib/copr-keygen
 
-RUN set -ex ; \
-    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
-        || dnf -y install dnf-plugins-core \
-        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
-    dnf -y update && \
-    dnf -y install htop \
-                   httpd \
-                   make \
-                   which \
-                   wget \
-                   vim \
-                   yum \
-                   sudo \
-                   python3-alembic \
-                   postgresql-server \
-                   redis \
-                   tini \
-    && dnf -y install copr-keygen \
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-keygen \
+        httpd \
     && dnf clean all
 
 COPY files/ /
 
-RUN sed -i 's/Listen 80/#Listen 80/g' /etc/httpd/conf/httpd.conf
-
-RUN chmod g+rwx /var/log/httpd && \
-    chmod 0755 /usr/bin/sign
-
-RUN chown copr-signer:root /etc/sign.conf && \
-    chmod 0660 /etc/sign.conf
-
-# Workaround: gpg-copr checks for copr-signer user
-RUN sed -i "s|getpass.getuser() != 'copr-signer'|False|" /usr/bin/gpg-copr
-
-RUN dirs="/var/run/signd /var/run/httpd" ; \
-    for dir in $dirs; do \
-      mkdir -p "$dir" && \
-      chown root:root "$dir" && \
-      chmod 0770 "$dir" ; \
-    done
+RUN set -ex && \
+    sed -i 's/Listen 80/#Listen 80/g' /etc/httpd/conf/httpd.conf && \
+    chmod g+rwx /var/log/httpd && \
+    chmod 0755 /usr/bin/sign && \
+    chown copr-signer:root /etc/sign.conf && \
+    chmod 0660 /etc/sign.conf && \
+    sed -i "s|getpass.getuser() != 'copr-signer'|False|" /usr/bin/gpg-copr && \
+    mkdir -p /var/run/signd /var/run/httpd && \
+    chown root:root /var/run/signd /var/run/httpd && \
+    chmod 0770 /var/run/signd /var/run/httpd
 
 USER copr-signer
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
+EXPOSE 5003 5167
 CMD ["/usr/sbin/httpd", "-DFOREGROUND"]

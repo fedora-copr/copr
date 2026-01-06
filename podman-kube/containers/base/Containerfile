@@ -1,0 +1,23 @@
+FROM registry.fedoraproject.org/fedora:43
+
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
+
+ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+
+ENV LANG=en_US.UTF-8 \
+    TERM=linux
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    set -ex && \
+    if [ -n "${ADDITIONAL_COPR_REPOSITORIES}" ]; then \
+        dnf -y install dnf-plugins-core && \
+        for repo in $ADDITIONAL_COPR_REPOSITORIES; do dnf -y copr enable $repo; done; \
+    fi && \
+    dnf -y update && \
+    dnf -y install \
+        ca-certificates \
+        findutils \
+        tini \
+    && dnf clean all
+
+ENTRYPOINT ["/usr/bin/tini", "--"]

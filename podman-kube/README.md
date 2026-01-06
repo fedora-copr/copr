@@ -5,19 +5,14 @@ Run COPR infrastructure locally using `podman kube play` with Kubernetes manifes
 ## Quick Start
 
 ```bash
-# Run with dev packages
-just up
-
-# Run with local source code (for development)
-just up-local
+just up        # Start with dev packages
+just up-local  # Start with local source code mounted
 ```
 
 ## Usage
 
-See the manual from just:
-
 ```bash
-just --list
+just help      # Show all commands
 ```
 
 ## Modes
@@ -28,21 +23,15 @@ just --list
 | `release` | `just build release` | Uses Fedora packages only               |
 | `local`   | `just up-local`      | Mounts repo source code for development |
 
-### Local Development Mode
-
-`just up-local` mounts the repository at `/opt/copr` inside containers with appropriate `PYTHONPATH` settings. Edit code locally, then restart the service:
+### Local Development
 
 ```bash
-# Edit frontend code...
-vim ../frontend/coprs_frontend/coprs/views/misc.py
-
-# Restart frontend to pick up changes
-just restart frontend
+just up-local                    # Start with source mounted at /opt/copr
+vim ../frontend/coprs_frontend/  # Edit code
+just restart frontend            # Pick up changes
 ```
 
 ## Access Points
-
-After starting, the following services are available:
 
 | Service         | URL                   |
 | --------------- | --------------------- |
@@ -54,8 +43,64 @@ After starting, the following services are available:
 
 ## Host Entries (optional)
 
-To make internal URLs work in your browser, add to `/etc/hosts`:
+Add to `/etc/hosts` for internal URL resolution:
 
 ```
 127.0.0.1   frontend backend-httpd distgit keygen resalloc
 ```
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         localhost                                │
+├──────────┬──────────┬──────────┬──────────┬──────────┬─────────┤
+│  :5000   │  :5001   │  :5002   │  :5005   │  :5009   │         │
+│ Frontend │ DistGit  │ Results  │ Resalloc │ Database │  Redis  │
+└────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬────┘
+     │          │          │          │          │          │
+     └──────────┴──────────┴──────────┴──────────┴──────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │  Backend Workers  │
+                    │  (log/build/action)│
+                    └─────────┬─────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │     Builder       │
+                    │   (mock builds)   │
+                    └───────────────────┘
+```
+
+## Future Improvements
+
+Potential enhancements for this infrastructure:
+
+### Short-term
+
+- [ ] Kustomize overlays for dev/staging/prod
+- [ ] Resource limits (CPU/memory) in manifests
+- [ ] Readiness/liveness probes for all services
+- [ ] Secrets management (not hardcoded passwords)
+- [ ] Network policies for service isolation
+
+### Medium-term
+
+- [ ] Helm chart for parameterized deployment
+- [ ] CI/CD pipeline to build and push images to registry
+- [ ] OpenShift-compatible manifests (Routes, DeploymentConfigs)
+- [ ] Horizontal pod autoscaling configs
+- [ ] Prometheus metrics endpoints
+
+### Long-term
+
+- [ ] Multi-node deployment support
+- [ ] External database/redis support
+- [ ] S3-compatible storage for results
+- [ ] Pulp integration for content management
+- [ ] GitOps workflow with ArgoCD/Flux
+
+## Requirements
+
+- podman
+- just (`dnf install just`)

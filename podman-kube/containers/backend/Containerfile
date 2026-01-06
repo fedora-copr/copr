@@ -1,76 +1,53 @@
-FROM registry.fedoraproject.org/fedora:43
-LABEL maintainer="copr-devel@lists.fedorahosted.org"
+FROM copr-base:latest
+
 LABEL description="COPR Backend services"
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
+ENV PYTHONPATH=/usr/share/copr/
 
-ENV LANG=en_US.UTF-8
-ENV PYTHONPATH="/usr/share/copr/"
-ENV TERM=linux
-
-RUN set -ex ; \
-    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
-        || dnf -y install dnf-plugins-core \
-        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
-    dnf -y update && \
-    dnf -y install htop \
-                   make \
-                   wget \
-                   net-tools \
-                   iputils \
-                   vim \
-                   git \
-                   sudo \
-                   openssh-server \
-                   resalloc \
-                   psmisc \
-                   nginx \
-                   findutils \
-                   tini \
-                   pulp-cli \
-                   rng-tools \
-                   expect \
-    && dnf -y install copr-backend \
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-backend \
+        expect \
+        git \
+        iputils \
+        openssh-server \
+        psmisc \
+        pulp-cli \
+        resalloc \
+        rng-tools \
+        sudo \
     && dnf clean all
 
-RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
-
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
-
-RUN echo 'root:passwd' | chpasswd && chmod 700 /root /root/.ssh
-
-RUN set -x ; \
+RUN set -ex && \
+    setcap cap_net_raw,cap_net_admin+p /usr/bin/ping && \
+    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q && \
+    echo 'root:passwd' | chpasswd && \
+    chmod 700 /root /root/.ssh && \
     echo 'copr:passwd' | chpasswd && \
     echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
-    mkdir -p /home/copr/.ssh && chmod 700 /home/copr /home/copr/.ssh && \
+    mkdir -p /home/copr/.ssh && \
+    chmod 700 /home/copr /home/copr/.ssh && \
     ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@localhost && \
-    touch /home/copr/.ssh/authorized_keys && chmod 600 /home/copr/.ssh/authorized_keys && \
+    touch /home/copr/.ssh/authorized_keys && \
+    chmod 600 /home/copr/.ssh/authorized_keys && \
     cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
     cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
-    chown copr:copr -R /home/copr
-
-RUN usermod -a -G mock copr
+    chown -R copr:copr /home/copr && \
+    usermod -a -G mock copr && \
+    mkdir -p /var/lock/copr-backend && \
+    chown copr:copr /var/lock/copr-backend && \
+    rngd -r /dev/urandom || true
 
 COPY files/ /
 
-RUN chmod 700 /root && \
-    chmod 700 /home/copr && \
+RUN set -ex && \
+    chmod 700 /root /home/copr && \
     chmod 400 /home/copr/.ssh/id_rsa && \
     chmod 600 /home/copr/.ssh/id_rsa.pub && \
-    chown -R copr:copr /home/copr
-
-RUN chmod 0755 /usr/bin/sign
-
-RUN chown copr:root /etc/sign.conf && \
+    chown -R copr:copr /home/copr && \
+    chmod 0755 /usr/bin/sign && \
+    chown copr:root /etc/sign.conf && \
     chmod 0660 /etc/sign.conf
 
-RUN mkdir -p /var/lock/copr-backend && \
-    chown copr:copr /var/lock/copr-backend
-
-# Entropy for GPG key generation
-RUN rngd -r /dev/urandom || true
-
 USER copr
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/run-backend"]

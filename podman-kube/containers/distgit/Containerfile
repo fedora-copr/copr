@@ -1,57 +1,40 @@
-FROM registry.fedoraproject.org/fedora:43
-LABEL maintainer="copr-devel@lists.fedorahosted.org"
+FROM copr-base:latest
+
 LABEL description="COPR DistGit - source package management"
 
-ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
-
-ENV TERM=linux
 ENV PYTHONPATH=/usr/share/copr/
 
-RUN set -ex ; \
-    test -z "${ADDITIONAL_COPR_REPOSITORIES}" \
-        || dnf -y install dnf-plugins-core \
-        && for repo in $ADDITIONAL_COPR_REPOSITORIES ; do dnf -y copr enable $repo; done ; \
-    dnf -y update && \
-    dnf -y install htop \
-                   which \
-                   wget \
-                   vim \
-                   cgit \
-                   python3-rpkg \
-                   tini \
-    && dnf -y install copr-dist-git \
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        cgit \
+        copr-dist-git \
+        python3-rpkg \
     && dnf clean all
 
-RUN rm -f /etc/httpd/conf.d/ssl.conf
-
-RUN echo "AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside\\$1\\$2\"" >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
-    echo "Alias /repo/ /var/lib/dist-git/cache/lookaside/" >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf
-
-RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
-
-RUN mkdir -p /tmp/copr-dist-git /var/lock/copr-dist-git/ /home/copr-dist-git && \
+RUN set -ex && \
+    rm -f /etc/httpd/conf.d/ssl.conf && \
+    echo 'AliasMatch "/repo(/.*)/md5(/.*)\" "/var/lib/dist-git/cache/lookaside\$1\$2"' >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
+    echo 'Alias /repo/ /var/lib/dist-git/cache/lookaside/' >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
+    sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf && \
+    mkdir -p /tmp/copr-dist-git /var/lock/copr-dist-git /home/copr-dist-git && \
     chown copr-dist-git:packager /tmp/copr-dist-git && \
-    chown copr-dist-git:copr-dist-git \
-        /var/lock/copr-dist-git/ \
-        /var/lib/copr-dist-git
+    chown copr-dist-git:copr-dist-git /var/lock/copr-dist-git /var/lib/copr-dist-git && \
+    sed -i 's/^cache-size.*//' /etc/cgitrc && \
+    echo 'scan-path=/var/lib/dist-git/git/rpms' >> /etc/cgitrc
 
 COPY files/ /
 
-RUN chmod 644 /etc/copr/copr-dist-git.conf
-
-RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
-    echo " email = copr-devel@lists.fedorahosted.org" >> /home/copr-dist-git/.gitconfig && \
-    echo " name = Copr dist git" >> /home/copr-dist-git/.gitconfig && \
-    chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig
-
-RUN sed -i "s/^cache-size.*//" /etc/cgitrc && \
-    echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
-
-RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock" ; \
-    chown -R copr-dist-git:root $directories && \
-    chmod -R g+rwX $directories
+RUN set -ex && \
+    chmod 644 /etc/copr/copr-dist-git.conf && \
+    cat <<EOF > /home/copr-dist-git/.gitconfig
+[user]
+    email = copr-devel@lists.fedorahosted.org
+    name = Copr dist git
+EOF
+    chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig && \
+    chown -R copr-dist-git:root /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock && \
+    chmod -R g+rwX /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock
 
 USER copr-dist-git
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
+EXPOSE 5001
 CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher-dist-git imports"]

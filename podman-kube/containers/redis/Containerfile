@@ -1,12 +1,17 @@
-FROM registry.fedoraproject.org/fedora:43
-LABEL maintainer="copr-devel@lists.fedorahosted.org"
+FROM copr-base:latest
+
 LABEL description="Redis/Valkey server for COPR"
 
-RUN dnf install -y redis && dnf clean all
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install redis && \
+    dnf clean all
 
 RUN mkdir -p /data && chown valkey:valkey /data
 
-EXPOSE 6379
-
 USER valkey
+EXPOSE 6379
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s \
+    CMD redis-cli ping | grep -q PONG || exit 1
+
+ENTRYPOINT []
 CMD ["redis-server", "--protected-mode", "no", "--dir", "/data"]

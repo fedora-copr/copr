@@ -1,25 +1,34 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
 manifest := "manifests/copr-all.yaml"
 manifest_local := "manifests/copr-local.yaml"
-images := "database redis frontend backend backend-httpd distgit keygen resalloc builder"
+services := "database redis frontend backend backend-httpd distgit keygen resalloc builder"
 copr_root := parent_directory(justfile_directory())
 
 default:
     @just --list
 
-# Build all container images (mode: dev or release)
-build mode="dev":
+# Build base image
+build-base mode="dev":
     #!/bin/bash
-    set -e
     arg=""
     [[ "{{mode}}" == "release" ]] || arg="--build-arg ADDITIONAL_COPR_REPOSITORIES=@copr/copr-dev"
-    for img in {{images}}; do
-        echo "Building copr-$img..."
-        podman build $arg -t copr-$img:{{mode}} -t copr-$img:latest \
-            -f containers/$img/Containerfile containers/$img
+    echo "Building base image..."
+    podman build $arg -t copr-base:{{mode}} -t copr-base:latest \
+        -f containers/base/Containerfile containers/base
+
+# Build all container images (base first, then services in parallel)
+build mode="dev": (build-base mode)
+    #!/bin/bash
+    echo "Building service images in parallel..."
+    for img in {{services}}; do
+        podman build -t copr-$img:{{mode}} -t copr-$img:latest \
+            -f containers/$img/Containerfile containers/$img &
     done
+    wait
     echo "All images built"
 
-# Build and start (dev/release mode)
+# Build and start
 up: build
     podman kube play --replace --no-hosts {{manifest}}
     @sleep 3
@@ -30,8 +39,7 @@ up: build
 # Start with local source code mounted (for development)
 up-local: build
     #!/bin/bash
-    set -e
-    echo "Starting with local source code from {{copr_root}}"
+    echo "Starting with local source from {{copr_root}}"
     sed 's|COPR_SOURCE_PATH|{{copr_root}}|g' {{manifest_local}} > /tmp/copr-local-generated.yaml
     podman kube play --replace --no-hosts /tmp/copr-local-generated.yaml
     sleep 3
@@ -45,19 +53,35 @@ down:
     -podman kube down {{manifest}} 2>/dev/null
     -podman kube down /tmp/copr-local-generated.yaml 2>/dev/null
     -podman pod rm -f $(podman pod ls --filter "name=copr" -q) 2>/dev/null
+    @echo "Stopped"
 
 # Show status
 status:
     @podman pod ls --filter "name=copr"
     @echo ""
-    @podman ps -a --filter "name=copr" --format "table {{{{.Names}}}}\t{{{{.Status}}}}"
+    @podman ps -a --filter "name=copr" --format "table {{{{.Names}}}}\t{{{{.Status}}}}\t{{{{.Ports}}}}"
+
+# Check container health
+health:
+    @echo "Container Health:"
+    @podman ps --filter "name=copr" --format "{{{{.Names}}}} {{{{.Status}}}}" | \
+        while read name status; do \
+            if echo "$status" | grep -q "healthy"; then \
+                echo "  ✓ $name"; \
+            elif echo "$status" | grep -q "unhealthy"; then \
+                echo "  ✗ $name (unhealthy)"; \
+            else \
+                echo "  - $name (no healthcheck)"; \
+            fi \
+        done
 
 # Configure SSH keys for backend->builder
+[private]
 setup-ssh:
     #!/bin/bash
     echo "Setting up SSH keys..."
-    for i in {1..5}; do
-        podman exec copr-backend-backend-build true 2>/dev/null && break || sleep 2
+    for i in {1..10}; do
+        podman exec copr-backend-backend-build true 2>/dev/null && break || sleep 1
     done
     podman exec copr-backend-backend-build cat /home/copr/.ssh/id_rsa.pub 2>/dev/null | \
         podman exec -i copr-builder-builder tee -a /root/.ssh/authorized_keys >/dev/null && \
@@ -75,11 +99,15 @@ logs-f service="frontend":
 shell service="frontend":
     podman exec -it copr-{{service}}-{{service}} /bin/bash
 
-# Stop and remove all images
+# Restart a service
+restart service:
+    podman pod restart copr-{{service}} 2>/dev/null || echo "Pod not found"
+
+# Stop and remove images
 clean: down
     #!/bin/bash
     echo "Removing COPR images..."
-    for img in {{images}}; do
+    for img in {{services}} base; do
         podman rmi copr-$img 2>/dev/null || true
     done
     echo "Done"
@@ -93,8 +121,10 @@ clean-volumes:
     done
     echo "Done"
 
-# Restart a specific service (rebuilds pod)
-restart service:
-    #!/bin/bash
-    echo "Restarting copr-{{service}}..."
-    podman pod restart copr-{{service}} 2>/dev/null || echo "Pod not found, try: just up"
+# Remove everything
+clean-all: clean clean-volumes
+    @echo "All cleaned"
+
+# Show image sizes
+images:
+    @podman images --filter "reference=copr-*" --format "table {{{{.Repository}}}}\t{{{{.Tag}}}}\t{{{{.Size}}}}"
