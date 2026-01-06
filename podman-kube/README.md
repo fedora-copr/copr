@@ -49,58 +49,10 @@ Add to `/etc/hosts` for internal URL resolution:
 127.0.0.1   frontend backend-httpd distgit keygen resalloc
 ```
 
-## Architecture
+## Future: OpenShift Deployment
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         localhost                                │
-├──────────┬──────────┬──────────┬──────────┬──────────┬─────────┤
-│  :5000   │  :5001   │  :5002   │  :5005   │  :5009   │         │
-│ Frontend │ DistGit  │ Results  │ Resalloc │ Database │  Redis  │
-└────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬─────┴────┬────┘
-     │          │          │          │          │          │
-     └──────────┴──────────┴──────────┴──────────┴──────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │  Backend Workers  │
-                    │  (log/build/action)│
-                    └─────────┬─────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │     Builder       │
-                    │   (mock builds)   │
-                    └───────────────────┘
-```
+This podman-kube setup is designed to be portable to OpenShift:
 
-## Future Improvements
-
-Potential enhancements for this infrastructure:
-
-### Short-term
-
-- [ ] Kustomize overlays for dev/staging/prod
-- [ ] Resource limits (CPU/memory) in manifests
-- [ ] Readiness/liveness probes for all services
-- [ ] Secrets management (not hardcoded passwords)
-- [ ] Network policies for service isolation
-
-### Medium-term
-
-- [ ] Helm chart for parameterized deployment
-- [ ] CI/CD pipeline to build and push images to registry
-- [ ] OpenShift-compatible manifests (Routes, DeploymentConfigs)
-- [ ] Horizontal pod autoscaling configs
-- [ ] Prometheus metrics endpoints
-
-### Long-term
-
-- [ ] Multi-node deployment support
-- [ ] External database/redis support
-- [ ] S3-compatible storage for results
-- [ ] Pulp integration for content management
-- [ ] GitOps workflow with ArgoCD/Flux
-
-## Requirements
-
-- podman
-- just (`dnf install just`)
+- Kubernetes manifests are compatible with OpenShift
+- Container images use standard patterns
+- Secrets and ConfigMaps can be managed separately

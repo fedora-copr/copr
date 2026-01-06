@@ -6,9 +6,11 @@ RUN set -ex && \
     groupadd -r copr-signer -g 992 && \
     useradd -r copr-signer -u 993 -g 992 -G 0 -d /var/lib/copr-keygen
 
+# haveged provides entropy for GPG key generation
 RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -y install \
         copr-keygen \
+        haveged \
         httpd \
     && dnf clean all
 

@@ -124,7 +124,7 @@ setup_checks()
         *dev-copr.devel.redhat.com) ;;
         *[0-9]*.[0-9]*.[0-9]*.[0-9]*) ;;  # single-host testing, best effort ipv4 match
         # https://docs.pagure.org/copr.copr/sanity_tests.html#sanity-tests
-        *frontend) ;;
+        *frontend*) ;;
         *) rlDie "improper copr_url in $_config" ;;
     esac
 

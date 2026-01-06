@@ -26,14 +26,16 @@ COPY files/ /
 
 RUN set -ex && \
     chmod 644 /etc/copr/copr-dist-git.conf && \
-    cat <<EOF > /home/copr-dist-git/.gitconfig
+    cat <<'EOF' > /home/copr-dist-git/.gitconfig
 [user]
     email = copr-devel@lists.fedorahosted.org
     name = Copr dist git
 EOF
-    chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig && \
-    chown -R copr-dist-git:root /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock && \
-    chmod -R g+rwX /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock
+RUN set -ex && \
+    mkdir -p /home/copr-dist-git/.config /var/cache/cgit && \
+    chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig /home/copr-dist-git/.config && \
+    chown -R copr-dist-git:root /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock /var/cache/cgit && \
+    chmod -R g+rwX /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock /var/cache/cgit
 
 USER copr-dist-git
 EXPOSE 5001

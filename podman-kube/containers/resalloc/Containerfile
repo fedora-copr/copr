@@ -15,8 +15,10 @@ RUN --mount=type=cache,target=/var/cache/dnf \
 
 COPY files/ /
 
-RUN mkdir -p /persistent && \
-    chown -R resalloc:resalloc /persistent
+RUN set -ex && \
+    mkdir -p /persistent /var/lib/resallocserver/.ssh /var/lib/resallocserver/resalloc_provision && \
+    chmod 700 /var/lib/resallocserver/.ssh && \
+    chown -R resalloc:resalloc /persistent /var/lib/resallocserver
 
 USER resalloc
 EXPOSE 49100 5000

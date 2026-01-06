@@ -18,36 +18,36 @@ RUN --mount=type=cache,target=/var/cache/dnf \
         sudo \
     && dnf clean all
 
+COPY files/ /
+
 RUN set -ex && \
+    groupadd -r obsrun || true && \
+    usermod -a -G obsrun copr && \
     setcap cap_net_raw,cap_net_admin+p /usr/bin/ping && \
     ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q && \
     echo 'root:passwd' | chpasswd && \
+    mkdir -p /root/.ssh && \
     chmod 700 /root /root/.ssh && \
     echo 'copr:passwd' | chpasswd && \
     echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
-    mkdir -p /home/copr/.ssh && \
-    chmod 700 /home/copr /home/copr/.ssh && \
+    mkdir -p /home/copr/.ssh /home/copr/cloud && \
+    chmod 700 /home/copr /home/copr/.ssh /home/copr/cloud && \
     ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@localhost && \
-    touch /home/copr/.ssh/authorized_keys && \
-    chmod 600 /home/copr/.ssh/authorized_keys && \
+    touch /home/copr/.ssh/authorized_keys /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/authorized_keys /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/config && \
     cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
     cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown -R copr:copr /home/copr && \
     usermod -a -G mock copr && \
-    mkdir -p /var/lock/copr-backend && \
-    chown copr:copr /var/lock/copr-backend && \
-    rngd -r /dev/urandom || true
-
-COPY files/ /
-
-RUN set -ex && \
-    chmod 700 /root /home/copr && \
-    chmod 400 /home/copr/.ssh/id_rsa && \
-    chmod 600 /home/copr/.ssh/id_rsa.pub && \
-    chown -R copr:copr /home/copr && \
+    mkdir -p /var/lock/copr-backend /var/lib/copr/jobs /var/lib/copr/public_html/results && \
+    chown -R copr:copr /var/lock/copr-backend /var/lib/copr && \
+    touch /var/lib/copr/public_html/pulp-redirect.txt && \
+    chown copr:copr /var/lib/copr/public_html/pulp-redirect.txt && \
     chmod 0755 /usr/bin/sign && \
     chown copr:root /etc/sign.conf && \
-    chmod 0660 /etc/sign.conf
+    chmod 0660 /etc/sign.conf && \
+    rngd -r /dev/urandom || true
 
 USER copr
 CMD ["/run-backend"]
