@@ -1,14 +1,20 @@
-FROM registry.fedoraproject.org/fedora:43
-LABEL maintainer="copr-devel@lists.fedorahosted.org"
+FROM copr-base:latest
+
 LABEL description="COPR Backend HTTPD - serves build results"
 
-RUN dnf install -y nginx && dnf clean all
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install nginx && \
+    dnf clean all
 
 COPY files/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN mkdir -p /var/lib/copr/public_html/results && \
     chown -R nginx:nginx /var/lib/copr
 
+USER nginx
 EXPOSE 5002
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD curl -sf http://localhost:5002/ || exit 1
 
+ENTRYPOINT []
 CMD ["nginx", "-g", "daemon off;"]
