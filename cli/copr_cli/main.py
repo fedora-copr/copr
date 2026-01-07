@@ -756,12 +756,7 @@ class Commands(object):
                     R=nevra["release"],
                     A=nevra["arch"],
                 )
-                url = "{baseurl}/{chroot}/Packages/{letter}/{filename}".format(
-                    baseurl=build.repo_url,
-                    chroot=chroot.name,
-                    letter=filename[0],
-                    filename=filename,
-                )
+                url = chroot.result_url + filename
                 response = requests.get(url)
                 if not response.ok:
                     sys.stderr.write("Failed to download: {0}\n".format(url))
