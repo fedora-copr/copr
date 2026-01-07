@@ -10,7 +10,6 @@ import re
 import subprocess
 import sys
 import time
-import json
 import warnings
 from collections import defaultdict
 from configparser import ConfigParser
@@ -707,6 +706,7 @@ class Commands(object):
             build.ownername,
             build.projectname,
         )
+        results = self.client.build_proxy.get_built_packages(args.build_id)
 
         for chroot in build_chroots:
             if args.chroots and chroot.name not in args.chroots:
@@ -723,11 +723,6 @@ class Commands(object):
 
             if args.rpms:
                 cmd.extend(["-A", "*.rpm"])
-
-            # Unfortunately, when the project is in Pulp, we need also
-            # `results.json` so that we know what filenames to download from Pulp
-            if args.rpms and project.storage == "pulp":
-                cmd.extend(["-A", "results.json"])
 
             if args.spec:
                 cmd.extend(["-A", "*.spec"])
@@ -754,18 +749,7 @@ class Commands(object):
             if project.storage != "pulp":
                 continue
 
-            results_json = os.path.join(dst, "results.json")
-            try:
-                with open(results_json, "r", encoding="utf-8") as fp:
-                    results = json.load(fp)
-            except FileNotFoundError:
-                # The file doesn't exist when for example `--logs`, or `--spec`
-                # were specified, and in that case we can safely continue. When
-                # no filters were specified or `--rpms` was used, then the file
-                # exists.
-                continue
-
-            for nevra in results["packages"]:
+            for nevra in results[chroot.name]["packages"]:
                 filename = "{N}-{V}-{R}.{A}.rpm".format(
                     N=nevra["name"],
                     V=nevra["version"],
