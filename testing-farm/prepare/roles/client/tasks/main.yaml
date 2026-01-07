@@ -50,6 +50,7 @@
       - git
       - hostname
       - htop
+      - info  # needed by our built&installed hello package
       - iputils
       - jq
       - net-tools

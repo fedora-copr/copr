@@ -13,6 +13,8 @@ check_repo()
     curl --fail "$url" >/dev/null
 }
 
+# TODO: test with PULP
+
 rlJournalStart
     rlPhaseStartSetup
         setup_checks
