@@ -27,7 +27,7 @@ source "$HERE/helpers"
 
 curl()
 {
-    /usr/bin/curl -o /dev/null -s -f $1
+    /usr/bin/curl -A "$COPR_USER_AGENT" -o /dev/null -s -f "$@"
 }
 
 
@@ -57,7 +57,7 @@ rlJournalStart
         # the status code, nothing else. Also, some of the routes are hidden
         # behind an authentication, so we test the routes very superficially.
         # However, if some of them fails, there is likely a bug.
-        rlRun "curl $FRONTEND_URL"
+        rlRun "curl $FRONTEND_URL/coprs/"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/packages"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/builds"
