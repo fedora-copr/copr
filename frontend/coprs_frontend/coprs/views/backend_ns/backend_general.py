@@ -1,5 +1,5 @@
 import flask
-from copr_common.enums import StatusEnum, ActionTypeEnum, StorageEnum
+from copr_common.enums import StatusEnum, ActionTypeEnum, StorageEnum, FailTypeEnum
 from coprs import db, app
 from coprs import models
 from coprs.logic import actions_logic
@@ -109,6 +109,8 @@ def dist_git_upload_completed():
 
     if final_source_status == StatusEnum("succeeded"):
         build.backend_enqueue_buildchroots()
+    else:
+        build.fail_type = FailTypeEnum("srpm_import_failed")
 
     build.source_status = final_source_status
     db.session.add(build)
