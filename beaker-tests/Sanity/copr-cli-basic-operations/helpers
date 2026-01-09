@@ -114,7 +114,7 @@ setup_checks()
         *copr.stg.fedoraproject.org) ;;
         *dev-copr.devel.redhat.com) ;;
         # https://docs.pagure.org/copr.copr/sanity_tests.html#sanity-tests
-        *frontend) ;;
+        *frontend*) ;;
         *) rlDie "improper copr_url in $_config" ;;
     esac
 
