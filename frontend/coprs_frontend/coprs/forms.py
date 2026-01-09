@@ -28,7 +28,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from wtforms import ValidationError
 
 FALSE_VALUES = {False, "false", ""}
-REGEX_BOOTSTRAP_IMAGE = r"^[-\./\w]+(:\w+)?$"
+REGEX_BOOTSTRAP_IMAGE = r"^[-\./\w]+(:[\w.-]+)?$"
 REGEX_CHROOT_DENYLIST = r"^[a-z0-9-_*.+]+$"
 
 
