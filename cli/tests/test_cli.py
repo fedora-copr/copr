@@ -376,6 +376,7 @@ def test_delete_project(config_from_file, project_proxy_delete, capsys):
 
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr.v3.proxies.build.BuildProxy.get_built_packages')
 @mock.patch('copr.v3.proxies.build_chroot.BuildChrootProxy.get_list')
 @mock.patch('copr.v3.proxies.project.ProjectProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -383,6 +384,7 @@ def test_download_build(
     config_from_file,
     project_proxy_get,
     build_chroot_proxy_get_list,
+    _build_proxy_get_built_packages,
     build_proxy_get,
     mock_sp,
     capsys,
@@ -428,6 +430,7 @@ def test_download_build(
 
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr.v3.proxies.build.BuildProxy.get_built_packages')
 @mock.patch('copr.v3.proxies.build_chroot.BuildChrootProxy.get_list')
 @mock.patch('copr.v3.proxies.project.ProjectProxy.get')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
@@ -435,6 +438,7 @@ def test_download_build_select_chroot(
     config_from_file,
     project_proxy_get,
     build_chroot_proxy_get_list,
+    _build_proxy_get_built_packages,
     build_proxy_get,
     mock_sp,
     capsys,
