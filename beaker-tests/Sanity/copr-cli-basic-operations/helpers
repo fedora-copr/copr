@@ -1,5 +1,14 @@
 #!/bin/sh
 
+COPR_USER_AGENT="copr test/1.0"
+
+copr_curl()
+{
+    # Set User-Agent for Copr test tools - allows Anubis bot protection to identify us
+    # use only when really needed
+    curl -A "$COPR_USER_AGENT" "$@"
+}
+
 HELLO=https://github.com/fedora-copr/copr-test-sources/raw/main/hello-2.8-1.src.rpm
 EVIL_HELLO=https://github.com/fedora-copr/copr-test-sources/raw/main/evilhello-2.8-2.src.rpm
 SRPM_BUILDTAG=https://github.com/fedora-copr/copr-test-sources/raw/main/buildtag-0-0.src.rpm
