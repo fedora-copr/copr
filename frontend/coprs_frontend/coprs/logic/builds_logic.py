@@ -486,8 +486,11 @@ class BuildsLogic(object):
         if dirname:
             copr_dir = coprs_logic.CoprDirsLogic.get_by_copr(copr, dirname)
             query = query.filter(models.Build.copr_dir_id==copr_dir.id)
-        query = query.options(selectinload(models.Build.build_chroots),
-                              selectinload(models.Build.package))
+        query = query.options(
+            selectinload(models.Build.build_chroots),
+            selectinload(models.Build.package),
+            selectinload(models.Build.copr_dir),
+        )
         return query
 
     @classmethod
