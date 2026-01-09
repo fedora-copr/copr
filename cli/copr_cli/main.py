@@ -40,6 +40,7 @@ from copr.v3 import (
     CoprConfigException, CoprNoResultException, CoprAuthException,
 )
 from copr.v3.pagination import next_page
+import copr.v3.requests
 from copr_cli.helpers import (
     cli_use_output_format,
     print_project_info,
@@ -2064,6 +2065,9 @@ def _handle_frontend_api_request_error(e, args):
 def main(argv=sys.argv[1:]):
     # pylint: disable=too-many-branches
     try:
+        # Set User-Agent for Copr CLI - allows Anubis bot protection to identify us
+        copr.v3.requests.USER_AGENT = "copr copr-cli/{0}".format(package_version("copr-cli"))
+
         # Set up parser for global args
         parser = setup_parser()
         # Parse the commandline

@@ -27,7 +27,7 @@ source "$HERE/helpers"
 
 curl()
 {
-    /usr/bin/curl -o /dev/null -s -f $1
+    /usr/bin/curl -A "$COPR_USER_AGENT" -o /dev/null -s -f $1
 }
 
 

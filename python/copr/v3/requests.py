@@ -15,6 +15,20 @@ POST = "POST"
 PUT = "PUT"
 DELETE = "DELETE"
 
+def _get_package_version():
+    """Get the version of python-copr package."""
+    try:
+        from importlib.metadata import distribution
+        return distribution("copr").version
+    except ImportError:
+        import pkg_resources
+        return pkg_resources.require("copr")[0].version
+    except Exception:
+        return "unknown"
+
+
+USER_AGENT = "copr python-copr/{0}".format(_get_package_version())
+
 
 class Request(object):
     # This should be a replacement of the _fetch method from APIv1
@@ -69,12 +83,16 @@ class Request(object):
 
     def _request_params(self, endpoint, method=GET, data=None, params=None,
                         headers=None, auth=None):
+        request_headers = {"User-Agent": USER_AGENT}
+        if headers:
+            request_headers.update(headers)
+
         params = {
             "url": self.endpoint_url(endpoint, params),
             "json": data,
             "method": method.upper(),
             "params": params,
-            "headers": headers,
+            "headers": request_headers,
         }
         self._update_auth_params(params, auth)
         return params
@@ -107,7 +125,8 @@ class FileRequest(Request):
         m = MultipartEncoder(data)
         params["json"] = None
         params["data"] = MultipartEncoderMonitor(m, callback)
-        params["headers"] = {'Content-Type': params["data"].content_type}
+        # preserve user agent from parent, add content type
+        params["headers"]["Content-Type"] = params["data"].content_type
         return params
 
 
