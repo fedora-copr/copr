@@ -4,9 +4,11 @@ import os
 import json
 import time
 import requests
-from copr.v3.helpers import List
 from munch import Munch
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
+
+from copr import __version__
+from copr.v3.helpers import List
 from .exceptions import CoprRequestException, CoprNoResultException, CoprTimeoutException, CoprAuthException
 
 
@@ -14,6 +16,8 @@ GET = "GET"
 POST = "POST"
 PUT = "PUT"
 DELETE = "DELETE"
+
+USER_AGENT = "copr python-copr/{0}".format(__version__)
 
 
 class Request(object):
@@ -69,12 +73,16 @@ class Request(object):
 
     def _request_params(self, endpoint, method=GET, data=None, params=None,
                         headers=None, auth=None):
+        request_headers = {"User-Agent": USER_AGENT}
+        if headers:
+            request_headers.update(headers)
+
         params = {
             "url": self.endpoint_url(endpoint, params),
             "json": data,
             "method": method.upper(),
             "params": params,
-            "headers": headers,
+            "headers": request_headers,
         }
         self._update_auth_params(params, auth)
         return params
@@ -107,7 +115,8 @@ class FileRequest(Request):
         m = MultipartEncoder(data)
         params["json"] = None
         params["data"] = MultipartEncoderMonitor(m, callback)
-        params["headers"] = {'Content-Type': params["data"].content_type}
+        # preserve user agent from parent, add content type
+        params["headers"]["Content-Type"] = params["data"].content_type
         return params
 
 
