@@ -5,7 +5,8 @@ Common Copr code for dealing with HTTP requests
 import json
 import time
 import requests
-from copr_common.compat import package_version
+
+from copr_common import __version__
 
 
 class SafeRequest:
@@ -30,9 +31,8 @@ class SafeRequest:
 
         # Use package name and version for the user agent
         self.package_name = 'copr-common'
-        self.user_agent = user_agent or "{name}/{version}".format(
-            name=self.package_name,
-            version=package_version(self.package_name),
+        self.user_agent = user_agent or "copr-common/{version}".format(
+            version=__version__,
         )
 
     def get(self, url, **kwargs):

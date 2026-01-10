@@ -47,7 +47,8 @@ from copr_cli.helpers import (
 )
 from copr_cli.monitor import cli_monitor_parser
 from copr_cli.printers import cli_get_output_printer as get_printer
-from copr_cli.util import get_progress_callback, serializable, package_version
+from copr_cli.util import get_progress_callback, serializable
+from copr_cli import __version__
 from .build_config import MockProfile
 
 
@@ -1164,7 +1165,7 @@ def setup_parser():
                         help="Path to an alternative configuration file")
 
     parser.add_argument("--version", action="version",
-                        version="%(prog)s version " + package_version("copr-cli"))
+                        version="%(prog)s version " + __version__)
 
     parser.add_argument(
         "--no-color",
