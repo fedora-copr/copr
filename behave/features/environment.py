@@ -36,7 +36,7 @@ def before_all(context):
     context.last_package_name = None
 
     # check that API points to valid frontend
-    parsed_fronted = urlparse(context.frontend_url)
+    parsed_frontend = urlparse(context.frontend_url)
     context.copr_cli_config = os.path.expanduser(context.copr_cli_config)
     if not os.path.exists(context.copr_cli_config):
         raise Exception("Missing {}".format(context.copr_cli_config))
@@ -44,9 +44,9 @@ def before_all(context):
     parser.read(context.copr_cli_config)
     api_frontend_url = parser['copr-cli']['copr_url']
     parsed_api = urlparse(api_frontend_url)
-    if parsed_api.hostname != parsed_fronted.hostname:
+    if parsed_api.hostname != parsed_frontend.hostname:
         raise Exception("Url {} from ~/.config/copr isn't {}".format(
-            parsed_api.hostname, parsed_fronted.hostname))
+            parsed_api.hostname, parsed_frontend.hostname))
 
 def after_scenario(_context, _scenario):
     """ hook called after each scenario, hit a debugger here """

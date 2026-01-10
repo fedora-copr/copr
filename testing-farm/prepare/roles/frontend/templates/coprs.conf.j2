@@ -5,7 +5,7 @@
 <VirtualHost *:80>
     # The ServerName directive is optional here since we are catching all traffic,
     # but it's good practice to define it for the primary host.
-    ServerName {{ inventory_hostname }}
+    ServerName {{ frontend_hostname }}
     ServerAlias *
 
     # Use RewriteEngine to capture the requested host and path, and redirect.
@@ -16,7 +16,7 @@
 
 
 <VirtualHost 0.0.0.0:443>
-    ServerName {{ inventory_hostname }}
+    ServerName {{ frontend_hostname }}
     ServerAlias *
 
     SSLEngine on

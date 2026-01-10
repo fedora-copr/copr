@@ -83,6 +83,7 @@ Requires: expect
 Requires: qemu-user-static
 %endif
 Requires: sed
+Requires: which
 
 %if 0%{?fedora} || 0%{?rhel} > 7
 Recommends: rpkg

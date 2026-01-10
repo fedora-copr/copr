@@ -86,8 +86,9 @@ rlJournalStart
         rlAssertEquals "One succeeded build" `grep -r 'succeeded' $OUTPUT | wc -l` 1
         # enable Project1 repo
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project1 $CHROOT"
-        # install hello package
-        rlRun "dnf install -y hello"
+        # install hello package, but only from Project1
+        keep_only_copr_enabled() { echo "--disablerepo '*' --enablerepo copr:${FRONTEND_PUBLIC_HOST}:$(repo_owner):${NAME_VAR}$1"; }
+        rlRun "dnf install -y hello $(keep_only_copr_enabled Project1)"
         # and check whether it's installed
         rlAssertRpm "hello"
         # run it
@@ -96,6 +97,7 @@ rlJournalStart
         rlRun "hello | grep changed" 1
         ### left after this section: Project1, hello installed
 
+        ## TODO: drop this part related to manual createrepo, and rely on auto-createrepo.sh
         ## test auto_createrepo property of copr-project using Project2
         # remove hello
         rlRun "dnf remove hello -y"
@@ -107,8 +109,8 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project2 $HELLO"
         # enable Project2 repo
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project2 $CHROOT"
-        # try to install - FAIL ( public project metadata not updated)
-        rlRun "dnf install -y hello" 1
+        # try to install - FAIL (public project metadata not updated)
+        rlRun "dnf install -y hello $(keep_only_copr_enabled Project2)" 1
         # build 2nd package ( requires 1st package for the build)
         rlRun "copr-cli build ${NAME_PREFIX}Project2 https://github.com/fedora-copr/copr-test-sources/raw/main/hello_beaker_test_2-0.0.1-1.src.rpm"
         # try to install - FAIL ( public project metadata not updated)
@@ -368,7 +370,7 @@ rlJournalStart
         rlRun "dnf install -y hello"
 
         # check repo properties
-        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_URL//*\/\//}:$(repo_owner):${NAME_VAR}
+        REPOFILE_BASE=/etc/yum.repos.d/_copr:${FRONTEND_PUBLIC_HOST}:$(repo_owner):${NAME_VAR}
         REPOFILE=${REPOFILE_BASE}Project10Fork.repo
         rlAssertEquals "Baseurl should point to fork project" `grep -r "^baseurl=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
         rlAssertEquals "GPG pubkey should point to fork project" `grep -r "^gpgkey=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1

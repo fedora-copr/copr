@@ -3,6 +3,7 @@
   ansible.builtin.package:
     name:
       - copr-backend
+      - resalloc  # closing unused tickets
     state: installed
 
 - name: Fetch the fe-be key from the credentials host

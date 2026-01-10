@@ -7,6 +7,9 @@
     host_with_secrets: "{{ ansible_host }}"
     ansible_python_interpreter: /usr/bin/python3
     test_user: single-host-testing
+    frontend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
+    backend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
+    distgit_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
 
   roles:
     - pre-release-packages
@@ -26,9 +29,3 @@
       ansible.builtin.systemd_service:
         name: httpd
         state: restarted
-
-  tasks:
-    - name: create a testing project
-      ansible.builtin.command: >
-        sudo -i -u "{{ test_user }}"
-        copr create foo --chroot fedora-rawhide-x86_64

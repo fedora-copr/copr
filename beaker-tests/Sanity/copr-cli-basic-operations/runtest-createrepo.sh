@@ -19,7 +19,7 @@ rlJournalStart
         # don't specify chroot here, rely on auto-detection
         rlRun "dnf -y copr enable ${URL}/${NAME_PREFIX}Createrepo"
         rlRun "dnf --disablerepo='*' \
-            --enablerepo='copr:${URL}:$(repo_owner):${NAME_VAR}Createrepo' \
+            --enablerepo='copr:${FRONTEND_PUBLIC_HOST}:$(repo_owner):${NAME_VAR}Createrepo' \
             list available 2>&1 | grep 'Failed to synchronize'" 1
 
         rlRun "copr-cli modify ${NAME_PREFIX}Createrepo --chroot fedora-rawhide-x86_64"
@@ -29,7 +29,7 @@ rlJournalStart
         sleep 125
         rlRun "dnf -y copr enable ${URL}/${NAME_PREFIX}Createrepo fedora-rawhide-x86_64"
         rlRun "dnf --disablerepo='*' \
-            --enablerepo='copr:${URL}:$(repo_owner):${NAME_VAR}Createrepo' \
+            --enablerepo='copr:${FRONTEND_PUBLIC_HOST}:$(repo_owner):${NAME_VAR}Createrepo' \
             list available 2>&1 | grep 'Failed to synchronize'" 1
     rlPhaseEnd
 

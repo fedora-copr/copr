@@ -4,13 +4,13 @@ SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://copr-fe:coprpass@/copr-fe'
 DEBUG = True
 SQLALCHEMY_ECHO = True
 SEND_EMAILS = False
-PUBLIC_COPR_HOSTNAME = '{{ ansible_host }}'
-PUBLIC_COPR_BASE_URL = 'https://{{ ansible_host }}'
+PUBLIC_COPR_HOSTNAME = '{{ frontend_hostname }}'
+PUBLIC_COPR_BASE_URL = 'https://{{ frontend_hostname }}'
 
-BACKEND_BASE_URL = 'https://{{ ansible_host }}'
-DIST_GIT_CLONE_URL = 'https://{{ ansible_host }}/git/'
-DIST_GIT_URL = 'https://{{ ansible_host }}/cgit'
-COPR_DIST_GIT_LOGS_URL = 'https://{{ ansible_host }}/per-task-logs'
+BACKEND_BASE_URL = 'https://{{ backend_hostname }}'
+DIST_GIT_CLONE_URL = 'https://{{ distgit_hostname }}/git/'
+DIST_GIT_URL = 'https://{{ distgit_hostname }}/cgit'
+COPR_DIST_GIT_LOGS_URL = 'https://{{ distgit_hostname }}/per-task-logs'
 
 DATA_DIR = '/data/frontend'
 OPENID_STORE = '/data/frontend/openid_store'
@@ -33,4 +33,4 @@ ENABLE_DISCUSSION = False
 ITEMS_PER_PAGE = 10
 PAGES_URLS_COUNT = 5
 
-SERVER_NAME = "{{ ansible_host }}"
+SERVER_NAME = "{{ frontend_hostname }}"
