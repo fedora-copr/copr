@@ -1,0 +1,3 @@
+[version_template]
+template_file = .tito/templates/version.tpl
+destination_file = copr_cli/__init__.py

@@ -27,14 +27,13 @@ from copr_rpmbuild.helpers import (
     copr_chroot_to_task_id,
     macros_for_task,
     locate_srpm,
-    package_version,
 )
+
+from copr_rpmbuild import __version__
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
-
-VERSION = package_version("copr-rpmbuild")
 
 
 def get_parser():
@@ -56,7 +55,7 @@ def get_parser():
 
     base_parser = argparse.ArgumentParser(description="COPR building tool.", parents=[shared_parser])
     base_parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file.")
-    base_parser.add_argument("--version", action="version", version="%(prog)s version " + VERSION)
+    base_parser.add_argument("--version", action="version", version="%(prog)s version " + __version__)
     base_parser.add_argument("--build-id", type=str, help="COPR build ID")
     base_parser.add_argument("--copr", type=str, help="copr for which to build, e.g. @group/project")
 
@@ -89,7 +88,7 @@ def main_daemon(args, config):
     log.info('\nYou can reproduce this build on your computer by running:\n')
     log.info('  sudo dnf install copr-rpmbuild')
     log.info('  %s\n\n', cmd.replace(" --detached", ""))
-    log.info('Version: %s', VERSION)
+    log.info('Version: %s', __version__)
     log.info("PID: %s", main_pid)
     log.info("Logging PID: %s", proc_loggify.pid)
 
