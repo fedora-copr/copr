@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.11
+Version:    2.11.hotfix
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -238,6 +238,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Sun Jan 11 2026 Pavel Raiskup <pavel@raiskup.cz> 2.11.hotfix-1
+- backend: temporarily retain all repository packages
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.11-1
 - timeout= for requests was missing, use SafeRequest
 - copr_prune_results: bigger file limit
