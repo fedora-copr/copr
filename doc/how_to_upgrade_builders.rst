@@ -96,12 +96,6 @@ Now it's time to upload the built images to appropriate places::
 
 Check the stdout/stderr of the upload script, and recall image IDs.
 
-Make sure you tag the images in EC2::
-
-    for image in ami-09a868e2b78e77457 ami-01e3532773eff119c ami-01e3532773eff119c ; do
-    aws ec2 create-tags --resources "$image" --tags Key=FedoraGroup,Value=copr --region us-east-1
-    done
-
 .. _testing:
 
 Testing
