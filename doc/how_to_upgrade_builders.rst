@@ -82,6 +82,7 @@ downloads them back to a directory structured as ``/var/lib/copr/public_html/ima
    # su - resalloc
    $ test -d copr-image-builder || git clone https://github.com/fedora-copr/copr-image-builder
    $ cd copr-image-builder && git pull
+   $ make clean
    $ make IMAGE=$IMAGE_URL<from the previous step>
    ... takes ~1h ...
 
@@ -161,6 +162,7 @@ freshly created images would diverge too much from the old.  Conversely, if you
 really need to regenerate the OCI base image, please regenerate **all the cloud
 images**.  But back to our example, this is how to do it::
 
+    make clean
     IMAGE=$IMAGE_URL make download.aarch64
     STAMP=$(date -I) ARCHES=aarch64 TARGETS=ec2 copr-upload-builder-images /var/lib/copr/public_html/images/2025-10-02/
 
