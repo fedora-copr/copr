@@ -166,6 +166,10 @@ images**.  But back to our example, this is how to do it::
     IMAGE=$IMAGE_URL make download.aarch64
     STAMP=$(date -I) ARCHES=aarch64 TARGETS=ec2 copr-upload-builder-images /var/lib/copr/public_html/images/2025-10-02/
 
+Don't worry the command says "make download", it rebuilds the image first, then
+downloads it.
+
+
 Cleanup
 -------
 
