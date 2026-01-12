@@ -236,6 +236,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         rc, out, err = self.ssh.run_expensive(COMMANDS["rpm_q_builder"])
         if rc != 0:
             raise BuildRetry(MESSAGES["copr_rpmbuild_missing"].format(err))
+        self.log.info("Installed copr-rpmbuild version: %s", out.strip())
         if version.parse(out) < version.parse(MIN_BUILDER_VERSION):
             # retry for this issue indefinitely, till the VM is removed and
             # up2date is spawned
