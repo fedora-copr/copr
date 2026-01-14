@@ -109,6 +109,7 @@ def test_form_regexes():
     assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora:rawhide")
     assert re.match(REGEX_BOOTSTRAP_IMAGE, "registry.fedoraproject.org/fedora")
     assert re.match(REGEX_BOOTSTRAP_IMAGE, "example.com/test:2.0")
+    assert re.match(REGEX_BOOTSTRAP_IMAGE, "example.com/test:3.0-RC1")
     assert not re.match(REGEX_BOOTSTRAP_IMAGE, "docker://example.com/test:30")
 
     items = [
