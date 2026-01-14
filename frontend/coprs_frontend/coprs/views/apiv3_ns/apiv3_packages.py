@@ -101,6 +101,7 @@ def rename_fields(input_dict):
         "script_builddeps": "builddeps",
         "script_resultdir": "resultdir",
         "script_chroot": "chroot",
+        "script_repos": "repos",
     })
 
 

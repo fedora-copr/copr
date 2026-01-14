@@ -972,6 +972,7 @@ class Commands(object):
             "script_chroot": args.script_chroot,
             "script_builddeps": args.script_builddeps,
             "script_resultdir": args.script_resultdir,
+            "script_repos": args.script_repos,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
