@@ -61,9 +61,11 @@ Locate the built image ID in Konflux UI
 Check the last "push" Pipelinerun, and go to the "Details" tab.  You should find
 the ``IMAGE_URL`` field that you want to copy-paste.  If the pipeline failed but
 at least the ``build-image-index`` Task succeeded, go to the "Details" tab on
-that Task and copy the ``IMAGE_URL`` from there.  Example of such URL::
+that Task and copy the ``IMAGE_URL`` from there.  Define a variable like this::
 
-    IMAGE_URL=quay.io/fedora/fedora-bootc:42@sha256:be629db2ab373c054d8f611a214d21b6e16ce48118068d47cb2f1f87a0e30cfa
+    $ ssh root@copr-be-dev.aws.fedoraproject.org
+    # su - resalloc
+    IMAGE_URL=quay.io/redhat-user-workloads/fedora-copr-tenant/copr-image-builder:348c42d4e6249e3f5fef4534e77cf17d61d32fd9
 
 .. _prepare_libvirt_source_images:
 
@@ -78,8 +80,6 @@ Prepare the images on staging backend machine
 This step allocates arch-specific VMs, creates qcow2/raw/ami images on them, and
 downloads them back to a directory structured as ``/var/lib/copr/public_html/images/2025-07-28/``::
 
-   $ ssh root@copr-be-dev.aws.fedoraproject.org
-   # su - resalloc
    $ test -d copr-image-builder || git clone https://github.com/fedora-copr/copr-image-builder
    $ cd copr-image-builder && git pull
    $ make clean
