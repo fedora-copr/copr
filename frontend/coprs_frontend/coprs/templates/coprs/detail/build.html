@@ -196,7 +196,7 @@
         <dt>Source state:</dt>
         <dd>
           {{ build_state_text(build.source_state) }}
-          {% if config.LOG_DETECTIVE_BUTTON and build.source_state == "failed" %}
+          {% if g.user and config.LOG_DETECTIVE_BUTTON and build.source_state == "failed" %}
             {% set link_shown = namespace(value=False) %}
               {% for url in build.get_source_log_urls %}
                 {% if not link_shown.value %}
@@ -254,7 +254,7 @@
               <th>Build Time</th>
               <th>Logs</th>
               <th>State</th>
-              {% if config.LOG_DETECTIVE_BUTTON and has_failed_chroots.value and build.source_state == "succeeded" %}
+              {% if g.user and config.LOG_DETECTIVE_BUTTON and has_failed_chroots.value and build.source_state == "succeeded" %}
               <th>Log Detective AI</th>
               {% endif %}
             </tr>
@@ -273,7 +273,7 @@
               </td>
               <td>
                 {% if chroot.git_hash %}
-                  {% if chroot.dist_git_url %}
+                  {% if g.user and chroot.dist_git_url %}
                     <a href="{{chroot.dist_git_url}}">
                       {{ chroot.git_hash[:7] }}
                     </a>
@@ -298,7 +298,7 @@
               <td>
                 {{ build_state_text(chroot.state, chroot.status_reason, chroot.rpm_live_log_url) }}
               </td>
-              {% if config.LOG_DETECTIVE_BUTTON and has_failed_chroots.value %}
+              {% if g.user and config.LOG_DETECTIVE_BUTTON and has_failed_chroots.value %}
               <td>
                 {% if chroot.state == "failed" %}
                   {{ log_detective_ai_link(chroot.rpm_live_log_url, build.id, chroot.name, build.submitted_on) }}
