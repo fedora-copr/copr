@@ -139,7 +139,7 @@
 {% endmacro %}
 
 {% macro log_detective_ai_link(failed_log_url, build_id, chroot_name, timestamp) %}
-  {% if config.LOG_DETECTIVE_BUTTON %}
+  {% if g.user and config.LOG_DETECTIVE_BUTTON %}
     {# hide the buttons after 13 days (logs are deleted after 14 days) #}
     {% if not (timestamp|is_older_than_days(13)) %}
       {% if failed_log_url %}
