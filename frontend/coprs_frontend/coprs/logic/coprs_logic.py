@@ -1346,9 +1346,12 @@ class CoprChrootsLogic(object):
         1) They were unclicked from the project settings and the short
            preservation time is over
         2) They are EOL and nobody prolonged their preservation
+
+        Note: Chroots (even EOL) belonging to persistent builds are never deleted
         """
-        return query.filter(models.CoprChroot.delete_after
-                            < datetime.datetime.now())
+        return (query
+                .filter(models.CoprChroot.delete_after < datetime.datetime.now())
+                .filter(models.Copr.persistent.is_(False)))
 
     @classmethod
     def unfinished_buildchroot(cls, copr_chroot):

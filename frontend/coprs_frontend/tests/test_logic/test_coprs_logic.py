@@ -276,6 +276,33 @@ class TestCoprChrootsLogic(CoprsTestCase):
         self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
         assert outdated.all() == [self.c2.copr_chroots[0]]
 
+    @pytest.mark.parametrize(
+        "is_persistent, is_present_in_outdated",
+        [
+            (True, False),
+            (False, True),
+        ],
+    )
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_filter_deleted_persistent_builds(self, is_persistent, is_present_in_outdated):
+        """
+        Test that chroots are handled correctly based on build's persistent flag.
+        - Chroots in persistent builds should be excluded from deletion.
+        - Chroots in non-persistent builds should be included for deletion if outdated.
+        """
+        self.c2.persistent = is_persistent
+        self.c2.copr_chroots[0].delete_after = datetime.today() - timedelta(days=1)
+        self.db.session.commit()
+
+        outdated = CoprChrootsLogic.filter_to_be_deleted(
+            CoprChrootsLogic.get_multiple()
+        )
+
+        if is_present_in_outdated:
+            assert self.c2.copr_chroots[0] in outdated.all()
+        else:
+            assert self.c2.copr_chroots[0] not in outdated.all()
+
     @pytest.mark.usefixtures("f_copr_chroots_assigned")
     def test_disabling_disallowed_when_build_runs(self):
         """
