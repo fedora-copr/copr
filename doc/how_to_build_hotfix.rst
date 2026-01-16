@@ -42,6 +42,7 @@ Apply the fix from `main` branch. $SHA1 is commit you want to backport::
 
 Run::
 
+    # TODO For some reason it doesn't report anything
     tito report --untagged-commits
 
 and walk the directories of packages listed. For every SPEC file make sure that `Version` tag has `.hotfix.0` at the end.
@@ -51,6 +52,8 @@ This ensure that the hotfix version is higher than any rebuild in Fedora::
 
 Tag every package that was listed in the step above::
 
+    # TODO This should increment to .hotfix.1-1 but for me it did .hotfix.0-2
+    # Which is a problem because `tito release fedora-git` couldn't handle it
     tito tag
 
 Push the changes::
