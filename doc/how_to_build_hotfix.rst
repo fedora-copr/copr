@@ -51,7 +51,11 @@ This ensure that the hotfix version is higher than any rebuild in Fedora::
 
 Tag every package that was listed in the step above::
 
+    # TODO This should increment to .hotfix.1-1 but for me it did .hotfix.0-2
+    # Which is a problem because `tito release fedora-git` couldn't handle it
     tito tag
+    # workarounded by
+    tito tag --use-version 1.1.hotfix.1 --use-release "1%{?dist}"
 
 Push the changes::
 
