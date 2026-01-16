@@ -307,6 +307,12 @@ class CoprsLogic(object):
             raise exceptions.AccessRestricted("Non-admin cannot set storage")
         storage = StorageEnum(storage or app.config["DEFAULT_STORAGE"])
 
+        # Hotfixed to create all new Packit projects in Pulp even though the
+        # default is still backend. See:
+        # https://docs.google.com/spreadsheets/d/1VNhH10UbisuUvS4xaZGXGClpBhjYODpxEdsTC7p4vzk/
+        if user.name == "packit":
+            storage = StorageEnum.pulp
+
         # form validation checks for duplicates
         cls.new(user, name, group, check_for_duplicates=check_for_duplicates)
 
