@@ -1,19 +1,30 @@
 # This file is sourced in /root/.bashrc inside the container
 
 if ! test -f "$HOME/.config/copr"; then
-    echo
-    echo "Please obtain your personal API config from"
-    echo "https://YOUR_COPR_HOST/api/"
-    echo "and paste it to the ~/.config/copr"
-    echo
+    echo "No API config found at ~/.config/copr"
+    echo ""
+    echo "For LOCAL podman-kube testing:"
+    echo "  1. Run: setup-local-copr"
+    echo "  2. Get token from: http://localhost:5000/api/"
+    echo "  3. Save to ~/.config/copr"
+    echo ""
+    echo "For STAGING testing:"
+    echo "  1. Get token from: https://copr.stg.fedoraproject.org/api/"
+    echo "  2. Save to ~/.config/copr"
+    echo ""
     mkdir -p "$HOME/.config"
 else
-    echo
-    echo "There's $HOME/.config/copr pre-configured, may need edits."
+    echo "Config found: ~/.config/copr"
+    grep -E "^copr_url|^username" "$HOME/.config/copr" 2>/dev/null || true
+    echo ""
 fi
 
-echo "There's /etc/dnf/plugins/copr.d/tested-copr.conf, may need manual edits"
-echo
+echo "DNF copr plugin: /etc/dnf/plugins/copr.d/tested-copr.conf"
+grep -E "^hostname|^protocol|^port" /etc/dnf/plugins/copr.d/tested-copr.conf || true
+echo ""
+echo "Commands: setup-local-copr, copr-cli whoami"
+echo "Tests: cd /root/copr/beaker-tests/Sanity/copr-cli-basic-operations"
+echo ""
 
 # most of the time we want to be in this directory
 cd /root/copr/beaker-tests/Sanity/copr-cli-basic-operations || :
