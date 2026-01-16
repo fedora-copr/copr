@@ -61,8 +61,6 @@ Build packages
 --------------
 
 At this point in time, we have those files most likely patched in production. So you can take a time and follow
-how to `build packages`_.
+how to :ref:`build packages<build_packages_for_production>`
 
 When packages are build, you should run the Ansible playbook and make sure everything runs smoothly.
-
-.. _`build_packages`: https://docs.pagure.org/copr.copr/how_to_release_copr.html#build-packages-for-production
