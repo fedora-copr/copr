@@ -47,8 +47,8 @@
 }
 
 Name:       copr-frontend
-Version:    2.6
-Release:    1%{?dist}
+Version:    2.6.hotfix.0
+Release:    2%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPL-2.0-or-later
@@ -373,6 +373,9 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Fri Jan 16 2026 Jakub Kadlcik <frostyx@email.cz> 2.6.hotfix.0-2
+- frontend: use Pulp storage for all new Packit projects
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.6-1
 - Migrate from pytz to zoneinfo
 - Add API endpoint for generating a new token
