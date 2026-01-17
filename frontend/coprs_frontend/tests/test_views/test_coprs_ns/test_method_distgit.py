@@ -28,10 +28,35 @@ class TestDistGitMethod(CoprsTestCase):
         assert build.source_type == BuildSourceEnum.distgit
         assert build.source_json == json.dumps({
             "clone_url": "https://src.fedoraproject.org/rpms/mock",
+            "distgit": "fedora",
             "committish": "master"})
 
         assert len(build.chroots) == 1
         assert build.chroots[0].name == "fedora-18-x86_64"
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_distgit_build_stores_namespace_distgit(self):
+        """
+        Test that distgit_namespace and distgit source is stored in source_json when provided.
+        """
+        self.db.session.add_all([self.u1, self.c1])
+        data = {
+            "package_name": "mock",
+            "committish": "master",
+            "namespace": "forks/testuser",
+            "chroots": ["fedora-18-x86_64"],
+        }
+        endpoint = "/coprs/{0}/{1}/new_build_distgit/".format(self.u1.name,
+                                                              self.c1.name)
+        self.test_client.post(endpoint, data=data, follow_redirects=True)
+        build = self.models.Build.query.first()
+        assert build.source_type == BuildSourceEnum.distgit
+        source_dict = json.loads(build.source_json)
+        assert "namespace" in source_dict
+        assert "distgit" in source_dict
+        assert source_dict["namespace"] == "forks/testuser"
+        assert source_dict["distgit"] == "fedora"
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
