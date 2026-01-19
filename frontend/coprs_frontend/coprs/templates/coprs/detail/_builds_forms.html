@@ -271,7 +271,7 @@
 {% endmacro %}
 
 {% macro copr_delete_builds(copr, class="") %}
-  <form class="{{ class }} delete-builds show-me-javascript hidden" action="#" method="post">
+  <form class="{{ class }} delete-builds show-me-javascript hidden" action="#" method="post" style="margin-left: 5px;">
     <button class="btn btn-danger" type="submit">
       <span class="pficon pficon-delete"></span> Delete all marked
     </button>
@@ -289,6 +289,32 @@
       }
 
       $.post("{{ copr_url('coprs_ns.copr_delete_builds', copr) }}", {"build_ids": build_ids}, function() {
+        $(location).attr('href', '{{ copr_url('coprs_ns.copr_builds', copr) }}');
+      });
+      return false;
+  });
+  </script>
+{% endmacro %}
+
+{% macro copr_cancel_builds(copr, class="") %}
+  <form class="{{ class }} cancel-builds show-me-javascript hidden" action="#" method="post">
+    <button class="btn btn-default" type="submit">
+      <span class="pficon pficon-close"></span> Cancel all marked
+    </button>
+  </form>
+
+  <script>
+    $('form.cancel-builds').submit(function(event) {
+      var build_ids = [];
+      $('tr.build-row :checkbox[name=build_ids]:checked').each(function() {
+        build_ids.push(this.value);
+      });
+
+      if (!confirm('Are you sure, you want to cancel ' + build_ids.length + ' builds from your copr?')) {
+        return false;
+      }
+
+      $.post("{{ copr_url('coprs_ns.copr_cancel_builds', copr) }}", {"build_ids": build_ids}, function() {
         $(location).attr('href', '{{ copr_url('coprs_ns.copr_builds', copr) }}');
       });
       return false;

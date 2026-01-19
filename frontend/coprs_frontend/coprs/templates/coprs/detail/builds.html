@@ -4,7 +4,7 @@
 {% from "_helpers.html" import render_pagination, serverside_pagination_warning %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
-{% from "coprs/detail/_builds_forms.html" import copr_delete_builds %}
+{% from "coprs/detail/_builds_forms.html" import copr_delete_builds, copr_cancel_builds %}
 
 {% set selected_tab = "builds" %}
 
@@ -24,6 +24,12 @@
 {% if g.user and g.user.can_edit(copr) %}
   {% if builds %}
     {{ copr_delete_builds(copr, class="pull-right button-build-action") }}
+  {% endif %}
+{% endif %}
+
+{% if g.user and g.user.can_build_in(copr) %}
+  {% if builds %}
+    {{ copr_cancel_builds(copr, class="pull-right button-build-action") }}
   {% endif %}
 {% endif %}
 

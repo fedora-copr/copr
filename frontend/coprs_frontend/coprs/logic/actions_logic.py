@@ -282,6 +282,16 @@ class ActionsLogic(object):
             db.session.add(models.CancelRequest(what=chroot.task_id))
 
     @classmethod
+    def send_cancel_multiple_builds(cls, builds):
+        """
+        Schedule cancel for multiple builds at once.
+
+        :type builds: list of models.Build
+        """
+        for build in builds:
+            cls.send_cancel_build(build)
+
+    @classmethod
     def send_update_comps(cls, chroot):
         """ Schedules update comps.xml action
 

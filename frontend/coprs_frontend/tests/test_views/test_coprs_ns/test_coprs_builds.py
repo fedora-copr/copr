@@ -138,6 +138,86 @@ class TestCoprCancelBuild(CoprsTestCase):
         assert self.models.Build.query.first().canceled is False
 
 
+class TestCoprCancelBuilds(CoprsTestCase):
+    """
+    Test batch cancel builds functionality.
+    """
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    @TransactionDecorator("u1")
+    def test_copr_cancel_multiple_builds(self):
+        """
+        Test that user can cancel multiple builds at once.
+        """
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+        for bc in self.b2_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+        self.db.session.add_all(self.b1_bc)
+        self.db.session.add_all(self.b2_bc)
+        self.db.session.add_all([self.b1, self.b2])
+        self.db.session.commit()
+
+        b_id1 = self.b1.id
+        b_id2 = self.b2.id
+        url = "/coprs/{0}/{1}/cancel_builds/".format(self.u1.name, self.c1.name)
+
+        r = self.test_client.post(
+            url, data={"build_ids[]": [b_id1, b_id2]}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b1 = self.models.Build.query.filter(self.models.Build.id == b_id1).first()
+        b2 = self.models.Build.query.filter(self.models.Build.id == b_id2).first()
+
+        assert b1.canceled is True
+        assert b2.canceled is True
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    @TransactionDecorator("u2")
+    def test_copr_cancel_builds_no_permission(self):
+        """
+        Test that user without permissions cannot cancel builds.
+        """
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+        self.u1.admin = False
+        self.db.session.add_all(self.b1_bc)
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        self.db.session.commit()
+
+        b_id1 = self.b1.id
+        url = "/coprs/{0}/{1}/cancel_builds/".format(self.u1.name, self.c1.name)
+
+        r = self.test_client.post(
+            url, data={"build_ids[]": [b_id1]}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b1 = self.models.Build.query.filter(self.models.Build.id == b_id1).first()
+        assert b1.canceled is False
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    @TransactionDecorator("u1")
+    def test_copr_cancel_builds_not_cancelable(self):
+        """
+        Test that already finished builds cannot be canceled.
+        """
+        self.db.session.add_all([self.b1, self.b2])
+        self.db.session.commit()
+
+        b_id1 = self.b1.id
+        url = "/coprs/{0}/{1}/cancel_builds/".format(self.u1.name, self.c1.name)
+
+        r = self.test_client.post(
+            url, data={"build_ids[]": [b_id1]}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b1 = self.models.Build.query.filter(self.models.Build.id == b_id1).first()
+        assert b1.canceled is False
+
+
 class TestCoprDeleteBuild(CoprsTestCase):
 
     @TransactionDecorator("u1")
