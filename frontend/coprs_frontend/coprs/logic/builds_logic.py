@@ -1274,6 +1274,46 @@ class BuildsLogic(object):
         build.canceled = True
         cls.process_update_callback(build)
 
+    @classmethod
+    def cancel_builds(cls, user, build_ids):
+        """
+        Cancel builds specified by list of ids
+
+        :type user: models.User
+        :type build_ids: list of Int
+        """
+        to_cancel = []
+        no_permission = []
+        not_cancelable = []
+
+        build_ids = set(build_ids)
+        builds = cls.get_by_ids(build_ids)
+        for build in builds:
+            if not user.can_build_in(build.copr):
+                no_permission.append(build.id)
+            elif not build.cancelable:
+                not_cancelable.append(build.id)
+            else:
+                to_cancel.append(build)
+
+        if no_permission or not_cancelable:
+            msg = ""
+            if no_permission:
+                msg += "You don't have permissions to cancel build(s) {0}.\n"\
+                    .format(", ".join(map(str, no_permission)))
+            if not_cancelable:
+                msg += "Build(s) {0} cannot be canceled.\n"\
+                    .format(", ".join(map(str, not_cancelable)))
+
+            raise BadRequest(msg)
+
+        log.info("User '%s' canceling builds: %s",
+                 user.username, [x.id for x in to_cancel])
+        ActionsLogic.send_cancel_multiple_builds(to_cancel)
+
+        for build in to_cancel:
+            build.canceled = True
+            cls.process_update_callback(build)
 
     @classmethod
     def check_build_to_delete(cls, user, build):

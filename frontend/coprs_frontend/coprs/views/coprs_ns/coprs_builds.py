@@ -588,3 +588,33 @@ def copr_delete_builds(copr):
     except BadRequest as e:
         flask.flash(e, "error")
         return flask.jsonify({"msg": "error"})
+
+
+################################ xhr batch cancel ################################
+
+@coprs_ns.route("/<username>/<coprname>/cancel_builds/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/cancel_builds/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_cancel_builds(copr):  # pylint: disable=unused-argument
+    """
+    Cancel multiple builds at once.
+
+    :param copr: Copr object (injected by @req_with_copr decorator)
+    """
+    build_ids = flask.request.form.getlist("build_ids[]")
+
+    to_cancel = []
+    for build_id in build_ids:
+        to_cancel.append(int(build_id))
+
+    try:
+        builds_logic.BuildsLogic.cancel_builds(flask.g.user, to_cancel)
+
+        db.session.commit()
+        build_ids_str = ", ".join(build_ids).strip(", ")
+        flask.flash("Builds {} have been canceled successfully.".format(build_ids_str), "success")
+        return flask.jsonify({"msg": "success"})
+    except BadRequest as e:
+        flask.flash(str(e), "error")
+        return flask.jsonify({"msg": "error"})
