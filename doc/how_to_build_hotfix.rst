@@ -46,7 +46,7 @@ Run::
     tito report --untagged-commits
 
 and walk the directories of packages listed. For every SPEC file make sure that `Version` tag has `.hotfix.0` at the end.
-This ensure that the hotfix version is higher than any rebuild in Fedora::
+This ensures that the hotfix version is higher than any rebuild in Fedora::
 
     1.1-5 < 1.1.hotfix.0-1
 
