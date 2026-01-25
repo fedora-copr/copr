@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import io
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -142,6 +143,35 @@ class CoprCli:
                             "--name", package, "--with-all-builds"]
         out, _ = run_check(cmd)
         return json.loads(out)["builds"]
+
+    def get_available_chroots(self):
+        """List all chroots that user can enable in project"""
+        if self.context.available_chroots is not None:
+            return self.context.available_chroots
+        cmd = self._base + ["list-chroots"]
+        out, _ = run_check(cmd)
+        chroots = []
+        for line in out.splitlines():
+            if line.startswith(" "):
+                continue
+            chroots.append(line)
+        self.context.available_chroots = chroots
+        return chroots
+
+    def get_latest_fedora_chroot(self):
+        """Detect the (int) version of latest available Fedora chroot"""
+        if self.context.latest_fedora is not None:
+            return self.context.latest_fedora
+
+        latest_fedora = 0
+        for chroot in self.get_available_chroots():
+            match = re.match(r'^fedora-(\d+)', chroot)
+            if not match:
+                continue
+            latest_fedora = max([latest_fedora, int(match.group(1))])
+
+        self.context.latest_fedora = latest_fedora
+        return latest_fedora
 
 
 def assert_is_subset(set_a, set_b):

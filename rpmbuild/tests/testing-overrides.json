@@ -1,0 +1,56 @@
+{
+  "fedora": [
+    {
+      "definition": null,
+      "tags": [
+        "rhel-9",
+        "rhel-10"
+      ]
+    },
+    {
+      "definition": {
+        "params": null,
+        "value": "44"
+      },
+      "tags": [
+        "fedora-44"
+      ]
+    },
+    {
+      "definition": {
+        "params": null,
+        "value": "45"
+      },
+      "tags": [
+        "fedora-rawhide"
+      ]
+    }
+  ],
+  "rhel": [
+    {
+      "definition": null,
+      "tags": [
+        "fedora-44",
+        "fedora-rawhide"
+      ]
+    },
+    {
+      "definition": {
+        "params": null,
+        "value": "10"
+      },
+      "tags": [
+        "rhel-10"
+      ]
+    },
+    {
+      "definition": {
+        "params": null,
+        "value": "9"
+      },
+      "tags": [
+        "rhel-9"
+      ]
+    }
+  ]
+}
