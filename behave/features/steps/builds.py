@@ -2,7 +2,10 @@
 Steps related to Copr builds
 """
 
+import json
+import os
 import random
+import tempfile
 from hamcrest import assert_that, equal_to, contains_string
 from behave import when, then  # pylint: disable=no-name-in-module
 
@@ -96,3 +99,49 @@ def step_build_from_fork(context, distgit, package_name, committish, committish_
         context.last_project_name,
     ])
     context.cli.wait_success_build(build)
+
+
+@when('a build from specfile template "{template}" is done')
+def step_build_from_spec_template(context, template):
+    """
+    Take a specfile from templates/ directory, and build it.
+    """
+    path = os.path.join("templates", template)
+
+    def _replace(string):
+        string = string.replace('@FEDORA_LATEST@',
+                                str(context.cli.get_latest_fedora_chroot()))
+        return string
+
+    with open(path, "r", encoding="utf-8") as template_fd:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with open(os.path.join(tmp_dir, template), "w", encoding="utf-8") as temp_spec:
+                for line in template_fd.readlines():
+                    temp_spec.write(_replace(line))
+                temp_spec.flush()
+                build = context.cli.run_build(["build", context.last_project_name,
+                                               temp_spec.name])
+                context.cli.wait_success_build(build)
+
+@then('the package "{package_name}" should have "{state}" state for "{chroots}" chroots')
+def step_check_monitor_status(context, package_name, state, chroots):
+    """
+    Check that a subset of build.chroots ended-up in a desired state.
+    """
+    chroots = [x.strip() for x in chroots.split(",")]
+    _, output, _ = context.cli.run(["monitor", context.last_project_name])
+    data = json.loads(output)
+    for chroot in chroots:
+        if "-latest-" in chroot:
+            chroot = chroot.replace("latest",
+                                    str(context.cli.get_latest_fedora_chroot()))
+        found = False
+        for result in data:
+            if result["name"] != package_name:
+                continue
+            if result["chroot"] != chroot:
+                continue
+            found = True
+            assert result["state"] == state
+            break
+        assert found

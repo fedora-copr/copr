@@ -134,6 +134,9 @@ min-public-methods=1
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=21
 
+# Maximum number of function arguments.
+max-positional-arguments=8
+
 
 [FORMAT]
 # Maximum number of characters on a single line.

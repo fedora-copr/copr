@@ -44,7 +44,7 @@ from copr_backend.storage import storage_for_job
 
 MAX_HOST_ATTEMPTS = 3
 MAX_SSH_ATTEMPTS = 5
-MIN_BUILDER_VERSION = "1.3.1"
+MIN_BUILDER_VERSION = "1.6.1"
 CANCEL_CHECK_PERIOD = 5
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
