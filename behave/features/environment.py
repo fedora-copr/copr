@@ -48,5 +48,8 @@ def before_all(context):
         raise Exception("Url {} from ~/.config/copr isn't {}".format(
             parsed_api.hostname, parsed_frontend.hostname))
 
+    context.available_chroots = None
+    context.latest_fedora = None
+
 def after_scenario(_context, _scenario):
     """ hook called after each scenario, hit a debugger here """

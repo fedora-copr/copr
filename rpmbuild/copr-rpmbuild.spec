@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.6
+Version: 1.6.1
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -35,6 +35,7 @@ BuildRequires: %{python}-daemon
 BuildRequires: %{python}-devel
 BuildRequires: %{python}-distro
 BuildRequires: %{python}-httmock
+BuildRequires: python3-norpm
 BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
 BuildRequires: dist-git-client
@@ -70,6 +71,7 @@ Requires: %{python_pfx}-specfile >= 0.21.0
 Requires: python3-backoff >= 1.9.0
 Requires: python3-daemon
 Requires: python3-pyyaml
+Requires: python3-norpm
 
 Requires: mock >= 5.0
 Requires(pre): mock-filesystem

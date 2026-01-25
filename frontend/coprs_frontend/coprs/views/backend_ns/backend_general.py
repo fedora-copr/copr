@@ -25,7 +25,7 @@ def send_frontend_version(response):
     setup the version according to our needs.
     For the backend counterpart, see the `MIN_FE_BE_API` constant.
     """
-    response.headers['Copr-FE-BE-API-Version'] = '7'
+    response.headers['Copr-FE-BE-API-Version'] = '8'
     return response
 
 
@@ -241,6 +241,10 @@ def get_srpm_build_record(task, for_backend=False):
         "package_name": task.package.name if task.package else None,
         "appstream": bool(task.copr.appstream),
         "repos": BuildConfigLogic.get_additional_repo_views(repos, chroot),
+        "distributions_in_project": sorted(list({x.name_release for x in
+                                                 task.copr.active_chroots})),
+        "distributions_in_build": sorted(list({x.mock_chroot.name_release for x
+                                               in task.build_chroots})),
     })
 
     return build_record

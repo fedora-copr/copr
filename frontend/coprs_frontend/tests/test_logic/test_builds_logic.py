@@ -680,9 +680,12 @@ class TestBuildsLogic(CoprsTestCase):
                 "pkg_version": 1,
                 "chroot": "srpm-builds",
                 "results": {
+                    "architecture_specific_tags": {
+                        "fedora-17": {
+                            "exclusivearch": exclusivearch,
+                        }
+                    },
                     "epoch": None,
-                    "excludearch": [],
-                    "exclusivearch": exclusivearch,
                     "name": "biosdevname",
                     "release": "17",
                     "version": "0.7.3"
