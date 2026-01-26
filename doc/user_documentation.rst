@@ -969,6 +969,34 @@ to be kept.
 Projects that opted-in for :ref:`creating_repositories_manually`, are
 exempt from the old package removal because of technical limitations.
 
+.. _`faq-pulp-same-nvra-different-epoch`:
+
+.. rubric:: Packages with the same NVRA but different Epoch on Pulp backend :ref:`¶ <faq-pulp-same-nvra-different-epoch>`
+
+**For projects using the Pulp backend**, there is a known limitation when building
+packages with the same NVRA (Name-Version-Release-Architecture) but different Epoch values.
+
+RPM package filenames are generated from NVRA only (Epoch is not included in
+the filename). For example, both ``foo-1.0-1.fc42.x86_64.rpm`` with Epoch 0 and
+the same package with Epoch 1 will have the identical filename.
+
+However, Pulp constrains repository uniqueness by NEVRA (including Epoch). This
+means two packages can co-exist in a repository with the same NVRA but different
+epochs, but they will have conflicting filenames. When this happens:
+
+- Both packages exist in the repository metadata
+- Only one package file is actually accessible via the repository URL
+- The package with the more recent build time "wins" (regardless the epoch value)
+  and becomes accessible
+- The older package (by build time) cannot be downloaded by DNF clients
+- Operations like ``dnf downgrade`` may not work correctly for the inaccessible package
+
+This is a known upstream Pulp issue tracked at:
+`<https://github.com/pulp/pulp_rpm/issues/4239>`_
+
+**Workaround**: When bumping only the Epoch of a package, also change the
+Release number to ensure unique filenames.
+
 .. _`How is Copr pronounced?`:
 
 .. rubric:: How is Copr pronounced? :ref:`¶ <How is Copr pronounced?>`
