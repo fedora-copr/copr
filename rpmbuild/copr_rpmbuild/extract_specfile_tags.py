@@ -2,10 +2,11 @@
 Extract macro-expanded tag value (e.g., BuildArch) from given specfile.
 """
 
+import logging
 import os
 import tempfile
+
 from copr_common.request import SafeRequest
-import logging
 
 from norpm.macrofile import system_macro_registry
 from norpm.specfile import specfile_expand, ParserHooks
@@ -13,6 +14,17 @@ from norpm.overrides import override_macro_registry
 from norpm.exceptions import NorpmError
 
 DEFAULT_OVERRIDE_URL = "https://raw.githubusercontent.com/praiskup/norpm-macro-overrides/refs/heads/main/distro-arch-specific.json"
+
+DEFAULT_TAG_MAP = {
+    # TODO: extract rhel+epel into the datafile
+    "epel-7": "rhel-7",
+    "epel-8": "rhel-8",
+    "epel-9": "rhel-9",
+    "epel-10": "centos-stream+epel-10",
+    # what do we do about custom-* chroots?
+    "custom-0": "fedora-rawhide",
+    "custom-1": "fedora-rawhide",
+}
 
 class _TagHooks(ParserHooks):
     """ Gather access to spec tags """
@@ -44,7 +56,7 @@ def collapse_tag_values_cb(array_of_tag_values):
         set: A set of all unique strings extracted from the tag definitions.
     """
     concat = " ".join(array_of_tag_values)
-    return set(concat.split())
+    return list(set(concat.split()))
 
 
 def extract_tags_from_specfile(specfile, extract_tags, override_database=None,
@@ -121,10 +133,7 @@ def get_architecture_specific_tags(specfile, extract_tags, targets,
 
     try:
         for distro in targets:
-            ask = distro
-            if distro.startswith("custom-"):
-                # TODO: what do we do about custom-* chroots?
-                ask = "fedora-rawhide"
+            ask = DEFAULT_TAG_MAP.get(distro, distro)
             log.info("Extracting arch-specific tags for %s", distro)
             architecture_tags[distro] = extract_tags_from_specfile(
                 specfile,
