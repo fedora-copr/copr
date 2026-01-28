@@ -672,6 +672,11 @@ class BuildsLogic(object):
             source_dict["clone_url"] = DistGitLogic.get_clone_url(
                     distgit_name, package_name, distgit_namespace)
 
+        if distgit_name:
+            source_dict["distgit"] = distgit_name
+
+        if distgit_namespace:
+            source_dict["namespace"] = distgit_namespace
         if committish:
             source_dict["committish"] = committish
 

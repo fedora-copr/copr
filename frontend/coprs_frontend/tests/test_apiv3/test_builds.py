@@ -30,6 +30,7 @@ CASES = [(
     },
     {
         "clone_url": "git://prio.com/some/other/uri/mock/git",
+        "distgit": "prioritized",
     },
     {
         "distgit": "prioritized",
@@ -43,8 +44,8 @@ CASES = [(
         "distgit": "fedora",
     },
     {
-        # no need to store "distgit" to source_json
-        "clone_url": "https://src.fedoraproject.org/rpms/cpio"
+        "clone_url": "https://src.fedoraproject.org/rpms/cpio",
+        "distgit": "fedora",
     },
     {
         "distgit": "fedora",
@@ -60,6 +61,7 @@ CASES = [(
     {
         "committish": "f15",
         "clone_url": "git://prio.com/some/other/uri/tar/git",
+        "distgit": "prioritized",
     },
     {
         "distgit": "prioritized",
@@ -76,6 +78,8 @@ CASES = [(
     },
     {
         "clone_url": "https://namespaced.org/some/other/uri/@copr/copr/blah/git",
+        "distgit": "namespaced",
+        "namespace": "@copr/copr",
     },
     {
         "distgit": "namespaced",
