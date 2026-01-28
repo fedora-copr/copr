@@ -32,10 +32,12 @@ This page uses JavaScript to show graphs of Copr utilization.
   <div class="row">
       <h4>During last 24 hours</h4>
       <div id="chartChrootsDay"></div>
+      <a href="#" id="chartChrootsDayToggle" class="btn btn-link btn-xs">Show full chart</a>
   </div>
   <div class="row">
       <h4>During last 90 days</h4>
       <div id="chartChrootsNinetyDays"></div>
+      <a href="#" id="chartChrootsNinetyDaysToggle" class="btn btn-link btn-xs">Show full chart</a>
   </div>
   <div class="row">
     <h2>Actions</h2>
@@ -58,7 +60,11 @@ This page uses JavaScript to show graphs of Copr utilization.
   lineGraph({{ data2|tojson }}, 15, "#chartNinetyDays", "%Y-%m-%d");
   lineGraph({{ actions1|tojson }}, 25, "#chartActionsDay", "%H:%M");
   lineGraph({{ actions2|tojson }}, 15, "#chartActionsNinetyDays", "%Y-%m-%d");
-  chrootGraph({{ chroots1|tojson }}, "#chartChrootsDay");
-  chrootGraph({{ chroots2|tojson }}, "#chartChrootsNinetyDays");
+  var chrootsDay = {{ chroots1|tojson }};
+  var chrootsNinety = {{ chroots2|tojson }};
+  var chrootPaddingLeft = 180;
+  var defaultChartLimit = 15;
+  chrootGraphWithToggle(chrootsDay, "#chartChrootsDay", "#chartChrootsDayToggle", defaultChartLimit, {paddingLeft: chrootPaddingLeft});
+  chrootGraphWithToggle(chrootsNinety, "#chartChrootsNinetyDays", "#chartChrootsNinetyDaysToggle", defaultChartLimit, {paddingLeft: chrootPaddingLeft});
 </script>
 {% endblock %}
