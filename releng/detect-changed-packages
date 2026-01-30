@@ -2,7 +2,7 @@
 
 info() { echo "INFO: $*" >&2 ; }
 
-: "${PYTHON_PKG_SUFFIX=}"
+: "${PYTHON_PKG_SUFFIX=3}"
 
 # By default we check against `origin/main`.  This is the case also in GH Action
 # for pull-requests that submits builds and detects changed packages (we are

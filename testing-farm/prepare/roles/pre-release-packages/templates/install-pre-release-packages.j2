@@ -9,23 +9,46 @@ set -ex
 export {{ var }}={{ lookup('env', var ) }}
 {% endfor %}
 
-# Get us into the git root directory.
-# TODO: git root dir, we need to ask TMT team to export a variable for this
-cd "$TMT_TREE/../discover/default-0/tests"
-cd "$(git rev-parse --show-toplevel)"
+upstream=https://github.com/fedora-copr/copr
 
-curl=(curl --location --connect-timeout 60 --retry 5 --retry-delay 20 --remote-time --show-error --fail)
-pr_data=$("${curl[@]}" "https://api.github.com/repos/fedora-copr/copr/pulls/$PACKIT_PR_ID")
+if test -z "$TMT_TREE"; then
+    cd /tmp
+    directory=copr_code
+    test ! -d "$directory" && git clone "$upstream" "$directory"
+    cd "$directory"
+    git checkout main
+    git fetch -f origin pull/$PACKIT_PR_ID/head:pr-$PACKIT_PR_ID
+    git checkout "pr-$PACKIT_PR_ID"
+else
+    # Get us into the git root directory.
+    # TODO: git root dir, we need to ask TMT team to export a variable for this
+    cd "$TMT_TREE/../discover/default-0/tests"
+    cd "$(git rev-parse --show-toplevel)"
+fi
 
 # We are diffing this revision against $commit_sha.  We are not sure where we
 # are, the checkout process is a TF's responsibility.
 git rev-parse HEAD >&2
 
 # We are in a monorepo.  Check package names that need to be installed.
-commits=$(echo "$pr_data" | jq .commits)
-packages=$(COMMIT_SHA="HEAD~$commits" PYTHON_PKG_SUFFIX=3 ./releng/detect-changed-packages)
+packages=$(COMMIT_SHA="HEAD~{{ pull_request_commits }}" ./releng/detect-changed-packages)
+
+# We want to know if a pre-release variant of copr-rpmbuild (from PR) should be
+# installed into the Resalloc's OCI builder image.
+set -- $packages
+
+rpmbuild_check_file=/tmp/install-copr-rpmbuild
+rpmbuild_is_changed=false
+for arg; do
+    test "$arg" = "copr-rpmbuild" && rpmbuild_is_changed=true
+done
+
+if $rpmbuild_is_changed; then
+    touch "$rpmbuild_check_file"
+else
+    rm -f "$rpmbuild_check_file"
+fi
 
 # In Copr, we build packages from the head commits (see
 # .github/workflows/copr-builds.yml).
-commit_sha=$(echo "$pr_data" | jq -r .head.sha)
-./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "$commit_sha" $packages
+./releng/install-copr-packages "@copr/copr-pull-requests:pr:$PACKIT_PR_ID" "{{ pull_request_head_sha }}" "$@"

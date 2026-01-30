@@ -1,13 +1,22 @@
-FROM registry.fedoraproject.org/fedora:42
+FROM registry.fedoraproject.org/fedora:43
+
+ARG PULL_REQUEST_ID= \
+    PULL_REQUEST_HEAD_SHA=
 
 RUN set -ex ; \
     dnf -y update && \
     dnf -y copr enable @mock/mock && \
+    dnf -y copr enable @copr/copr-dev && \
     dnf -y install \
         copr-builder \
         openssh-server \
         which \
     && dnf clean all
+
+RUN set -x ; set -e ; test -n "$PULL_REQUEST_ID" || exit 0 ; \
+    curl https://raw.githubusercontent.com/fedora-copr/copr/refs/heads/main/releng/install-copr-packages -o /usr/local/bin/install-copr-packages ; \
+    chmod +x /usr/local/bin/install-copr-packages ; \
+    install-copr-packages "@copr/copr-pull-requests:pr:$PULL_REQUEST_ID" "$PULL_REQUEST_HEAD_SHA" copr-rpmbuild
 
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 
