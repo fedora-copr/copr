@@ -1,7 +1,7 @@
 ---
 - name: build builder image
   ansible.builtin.command:
-    cmd: "podman build -t builder_x86_64 ."
+    cmd: bash ./build-image
   args:
     chdir: "{{ resalloc_image_dir }}"
   become: true

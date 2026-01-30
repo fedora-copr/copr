@@ -1,4 +1,20 @@
 ---
+- name: GitHub PR Processing
+  when: lookup('env', 'PACKIT_PR_ID') != ""
+  block:
+    - name: Fetch PR data from GitHub
+      ansible.builtin.command: >
+        curl --location --connect-timeout 60 --retry 5 --retry-delay 20
+        --remote-time --show-error --fail
+        https://api.github.com/repos/fedora-copr/copr/pulls/{{ lookup('env', 'PACKIT_PR_ID') }}
+      register: raw_pr_response
+
+    - name: Set pull request related variables
+      ansible.builtin.set_fact:
+        pull_request_id: "{{ lookup('env', 'PACKIT_PR_ID') }}"
+        pull_request_head_sha: "{{ (raw_pr_response.stdout | from_json).head.sha }}"
+        pull_request_commits: "{{ (raw_pr_response.stdout | from_json).commits }}"
+
 - name: pre-release copr packages
   community.general.copr:
     name: '@copr/copr-dev'

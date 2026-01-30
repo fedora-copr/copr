@@ -1,0 +1,12 @@
+#! /bin/bash -x
+
+args=()
+
+if test -f /tmp/install-copr-rpmbuild; then
+    args=(
+        --build-arg=PULL_REQUEST_ID={{ pull_request_id }}
+        --build-arg=PULL_REQUEST_HEAD_SHA={{ pull_request_head_sha }}
+    )
+fi
+
+exec podman build "${args[@]}" -t builder_x86_64 .

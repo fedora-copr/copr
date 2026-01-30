@@ -63,6 +63,7 @@
   loop:
     - Containerfile
     - main.ini
+    - build-image
 
 - name: Ensure parent directory exists
   ansible.builtin.file:
