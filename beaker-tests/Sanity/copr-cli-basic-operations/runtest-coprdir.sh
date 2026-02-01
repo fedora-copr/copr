@@ -49,13 +49,18 @@ rlJournalStart
         # be something like `python-copr` or `python-copr-common`, and the
         # second package would be something like `copr-cli` or `copr-backend`.
 
+        # We need a package with well-structured Source statements so they can
+        # be downloaded easily.  GNU Hello RPM is a great example; it is
+        # intentionally a textbook example of how RPMs should be structured.
+        spec_url=https://src.fedoraproject.org/rpms/hello/raw/f43/f/hello.spec
+
         # This is the dependency (e.g. python-copr)
-        rlRun "curl https://src.fedoraproject.org/rpms/hello/raw/rawhide/f/hello.spec > $tmp/hello-1.spec"
+        rlRun "curl $spec_url > $tmp/hello-1.spec"
         rlRun "sed -i '1s/^/Epoch: 6\n/' $tmp/hello-1.spec"
         rlRun "copr-cli build $PROJECT:custom:foo $tmp/hello-1.spec"
 
         # And this is the package that builds on top of it (e.g. copr-cli)
-        rlRun "curl https://src.fedoraproject.org/rpms/hello/raw/rawhide/f/hello.spec > $tmp/hello-2.spec"
+        rlRun "curl $spec_url > $tmp/hello-2.spec"
         rlRun "sed -i '1s/^/BuildRequires: hello >= 6:\n/' $tmp/hello-2.spec"
         rlRun "copr-cli build $PROJECT:custom:foo $tmp/hello-2.spec"
     rlPhaseEnd
