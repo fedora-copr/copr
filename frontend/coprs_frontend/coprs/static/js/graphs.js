@@ -64,24 +64,64 @@ function lineGraph(data, ticks, bind, format) {
 };
 
 function chrootGraph(data, bind) {
-    chart = graphConfig();
-    chart.axis.x = {show: false};
-    chart.bindto =  bind;
-    chart.data = {
-        columns: data,
-        type: 'bar'
-    };
-    chart.size = {height: 800,
-                  width: undefined};
-    chart.tooltip = {
-        format: {
-            title: function (x) {return ''}
-        },
-        position: function (data, width, height, element) {
-            return {top: 0, left: -150};
+    // distro specific colors for chroot bars
+    var osColors = { 'fedora': '#294172', 'centos': '#262f45', 'rhel': '#cc0000', 'epel': '#48759d', 'mageia': '#262f45',
+                     'opensuse': '#73ba25', 'openmandriva': '#e06f00', 'amazon': '#f99d1c', 'alma': '#dadada', 'alien': '#333333' };
+    var getColor = function(name) {
+        if (!name) return osColors['alien'];
+        var lowerName = name.toLowerCase();
+        for (var os in osColors) {
+            if (lowerName.indexOf(os) !== -1) return osColors[os];
         }
-    }
-    chart.zoom = {enabled: false};
+        return osColors['alien'];
+    };
+    data.sort(function(a, b) {
+        return b[1] - a[1];
+    });
+    var categories = [];
+    var columns = ['Builds'];
+    data.forEach(function(item) {
+        categories.push(item[0]);
+        columns.push(item[1]);
+    });
+    var chart = {
+        bindto: bind,
+        size: {
+            height: Math.max((categories.length * 25) + 50, 100)
+        },
+        data: {
+            columns: [columns],
+            type: 'bar',
+            color: function (color, d) {
+                if (d.index !== undefined) return getColor(categories[d.index]);
+                return color;
+            },
+            labels: true
+        },
+        axis: {
+            rotated: true,
+            x: {
+                type: 'category',
+                categories: categories,
+                tick: {
+                    multiline: false
+                }
+            },
+            y: {
+                show: false
+            }
+        },
+        legend: {
+            show: false
+        },
+        tooltip: {
+            show: false
+        },
+        grid: {
+            y: {show: false},
+            x: {show: false}
+        }
+    };
     var chrootsChart = c3.generate(chart);
 };
 
