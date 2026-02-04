@@ -1609,6 +1609,18 @@ class BuildChrootResultsLogic:
     """
 
     @classmethod
+    def get_multiply(cls):
+        """ Return a base query for searching built packages. """
+        return (
+            models.BuildChrootResult.query
+            .options(
+                selectinload(models.BuildChrootResult.build_chroot)
+                .selectinload(models.BuildChroot.build)
+                .selectinload(models.Build.copr)
+            )
+        )
+
+    @classmethod
     def create(cls, build_chroot, name, epoch, version, release, arch):
         """
         Create a new record about a built package in some `BuildChroot`
@@ -1638,6 +1650,31 @@ class BuildChrootResultsLogic:
             return []
         return [cls.create(build_chroot, **result)
                 for result in results["packages"]]
+
+    @classmethod
+    def filter_by_name(cls, query, name):
+        """ Filter search query by package name. """
+        return query.filter(models.BuildChrootResult.name == name)
+
+    @classmethod
+    def filter_by_epoch(cls, query, epoch):
+        """ Filter search query by package epoch. """
+        return query.filter(models.BuildChrootResult.epoch == epoch)
+
+    @classmethod
+    def filter_by_version(cls, query, version):
+        """ Filter search query by package version. """
+        return query.filter(models.BuildChrootResult.version == version)
+
+    @classmethod
+    def filter_by_release(cls, query, release):
+        """ Filter search query by package release. """
+        return query.filter(models.BuildChrootResult.release == release)
+
+    @classmethod
+    def filter_by_arch(cls, query, arch):
+        """ Filter search query by package architecture. """
+        return query.filter(models.BuildChrootResult.arch == arch)
 
 
 class BuildsMonitorLogic(object):

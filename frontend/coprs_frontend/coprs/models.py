@@ -2229,6 +2229,13 @@ class BuildChrootResult(db.Model, helpers.Serializer):
     Represents a built package within some `BuildChroot`
     """
 
+    __table_args__ = (
+        db.Index(
+            "build_chroot_result_name_version_release_arch_epoch_idx",
+            "name", "version", "release", "arch", "epoch",
+        ),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     build_chroot_id = db.Column(
         db.Integer,
