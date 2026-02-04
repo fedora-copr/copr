@@ -195,6 +195,48 @@ def coprs_fulltext_search(page=1):
                             graph=data)
 
 
+@coprs_ns.route("/packages/search/", defaults={"page": 1})
+@coprs_ns.route("/packages/search/<int:page>/")
+def build_chroot_results_search(page=1):
+    """ Search built packages across all build chroot results. """
+    form = forms.BuildChrootResultSearchForm(formdata=flask.request.args, meta={"csrf": False})
+    results = []
+    paginator = None
+    search_performed = False
+    search_params = {}
+
+    if flask.request.args:
+        search_performed = True
+        if form.validate():
+            search_params = form.search_params()
+            display_query = builds_logic.BuildChrootResultsLogic.get_multiply()
+            count_query = models.BuildChrootResult.query
+
+            filter_mapping = {
+                "name": builds_logic.BuildChrootResultsLogic.filter_by_name,
+                "epoch": builds_logic.BuildChrootResultsLogic.filter_by_epoch,
+                "version": builds_logic.BuildChrootResultsLogic.filter_by_version,
+                "release": builds_logic.BuildChrootResultsLogic.filter_by_release,
+                "arch": builds_logic.BuildChrootResultsLogic.filter_by_arch,
+            }
+
+            for param, value in search_params.items():
+                display_query = filter_mapping[param](display_query, value)
+                count_query = filter_mapping[param](count_query, value)
+
+            total_count = count_query.count()
+            display_query = display_query.order_by(models.BuildChrootResult.id.desc())
+            paginator = helpers.Paginator(display_query, total_count, page,
+                                          additional_params=search_params)
+            results = paginator.sliced_query
+
+    return render_template("coprs/search_packages.html",
+                            form=form,
+                            results=results,
+                            paginator=paginator,
+                            search_performed=search_performed)
+
+
 @coprs_ns.route("/<username>/new-fedora-review/", methods=["GET", "POST"])
 @login_required
 def copr_add_fedora_review(username):  # pylint: disable=unused-argument

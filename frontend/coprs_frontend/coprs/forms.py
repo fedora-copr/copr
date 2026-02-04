@@ -1750,6 +1750,59 @@ class AdminPlaygroundSearchForm(BaseForm):
     project = wtforms.StringField("Project")
 
 
+class BuildChrootResultSearchForm(BaseForm):
+    """ Search built packages across all build chroot results. """
+    name = wtforms.StringField(
+        "Name",
+        validators=[wtforms.validators.Optional()],
+        filters=[EmptyStringToNone()])
+    epoch = wtforms.IntegerField(
+        "Epoch",
+        validators=[wtforms.validators.Optional()])
+    version = wtforms.StringField(
+        "Version",
+        validators=[wtforms.validators.Optional()],
+        filters=[EmptyStringToNone()])
+    release = wtforms.StringField(
+        "Release",
+        validators=[wtforms.validators.Optional()],
+        filters=[EmptyStringToNone()])
+    arch = wtforms.StringField(
+        "Arch",
+        validators=[wtforms.validators.Optional()],
+        filters=[EmptyStringToNone()])
+
+    def validate(self, extra_validators=None):
+        """ Validate that at least one search field is provided. """
+        # pylint: disable=unused-argument
+        result = super().validate()
+        if not result:
+            return False
+
+        has_value = any([
+            self.name.data,
+            self.version.data,
+            self.release.data,
+            self.arch.data,
+            self.epoch.data is not None,
+        ])
+        if not has_value:
+            self.name.errors.append("At least one search field must be provided")
+            return False
+        return True
+
+    def search_params(self):
+        """ Return validated query params to preserve in pagination links. """
+        params = {
+            "name": self.name.data,
+            "epoch": self.epoch.data,
+            "version": self.version.data,
+            "release": self.release.data,
+            "arch": self.arch.data,
+        }
+        return {key: value for key, value in params.items() if value is not None}
+
+
 class GroupUniqueNameValidator(object):
 
     def __init__(self, message=None):
