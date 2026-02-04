@@ -4,6 +4,7 @@ import flask
 from coprs import app
 from coprs.constants import BANNER_LOCATION
 from coprs.helpers import current_url
+from coprs.helpers import copr_url
 from coprs.oidc import oidc_enabled
 
 
@@ -89,3 +90,9 @@ def counter_processor():
 def current_url_processor():
     """ Provide 'current_url()' method in templates """
     return dict(current_url=current_url)
+
+
+@app.context_processor
+def copr_url_processor():
+    """ Provide `copr_url()` helper in templates. """
+    return {"copr_url": copr_url}
