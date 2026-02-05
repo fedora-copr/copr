@@ -17,3 +17,8 @@
 # rhsm:
 #   - rhel-*
 #   - epel-*
+#
+# Location of the macro override database.  It is recommended to host (or
+# "cache") the latest version of the database file on the instance-specific
+# copr-backend machine.
+#macro_override_db_url: "https://raw.githubusercontent.com/praiskup/norpm-macro-overrides/refs/heads/main/distro-arch-specific.json"
