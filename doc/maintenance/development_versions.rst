@@ -9,6 +9,25 @@ Sometimes, typically when proposing a change (e.g., modifying the Backend
 specify version constraints between our components to avoid
 misinstallations.  Below are a few documented scenarios.
 
+
+Package Update Time a.k.a. TL;DR
+--------------------------------
+
+Most dependency checks are enforced by ``Requires`` in package versions.  When
+updating the system, you generally do not need to worry about these, as the
+package manager prevents invalid configurations.  However, some checks occur at
+runtime.
+
+The runtime protection hierarchy follows a ``frontend -> backend <- rpmbuild``
+pattern.  In this model, the backend drives critical runtime checks; if the
+frontend or the builder is too old for a specific backend version, the backend
+will "hang" and wait for them to be updated.
+
+In practice, this means that whenever you update the system with a backward-
+incompatible change in the inter-component API, you must follow a "shutdown ->
+upgrade -> restart" workflow targeting the **backend component first**.
+
+
 Changing the Frontend ↔ Backend Protocol
 ----------------------------------------
 
@@ -23,6 +42,26 @@ risky (backend would process incompatible requests).
 To ensure smooth upgrades, always update the ``copr-backend`` machine
 first, so it is ready (after re-deployment) and waiting for the updated &&
 fully-compatible Frontend.
+
+
+Changes in Backend ↔ Builder Protocol
+-------------------------------------
+
+Whenever the Backend attempts to hand over a task to a Builder machine, it
+verifies the "remote" ``copr-builder`` RPM (sub)package version.  If the version
+is lower than ``MIN_BUILDER_VERSION`` (as defined in
+``backend/copr_backend/background_worker_build.py``), the Backend marks the
+builder machine as unusable, and allocates a new one instead.
+
+
+Changes in Frontend ↔ Builder Protocol
+--------------------------------------
+
+Typically, this involves updating certain ``/backend/`` routes on the Frontend.
+This process must be performed in two steps: the runtime dependencies for both
+``Frontend ↔ Backend`` and ``Backend ↔ Builder`` (see above) must be bumped
+simultaneously.
+
 
 Changes in python3-copr-common
 ------------------------------
