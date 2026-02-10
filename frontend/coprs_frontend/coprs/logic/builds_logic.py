@@ -490,6 +490,7 @@ class BuildsLogic(object):
             selectinload(models.Build.build_chroots),
             selectinload(models.Build.package),
             selectinload(models.Build.copr_dir),
+            selectinload(models.Build.copr),
         )
         return query
 
