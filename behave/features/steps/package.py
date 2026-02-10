@@ -9,10 +9,12 @@ from hamcrest import assert_that, equal_to
 from behave import when, then  # pylint: disable=no-name-in-module
 
 
-@when(u'a DistGit {distgit} "{package}" package from '
+# pylint: disable=missing-function-docstring
+
+@when('a DistGit {distgit} "{package}" package from '
       u'{committype} "{commit}" is added')
-def step_impl(context, distgit, package, committype, commit):
-    _unused = committype
+def step_create_distgit_package(context, distgit, package, committype, commit):
+    _ = committype
     distgit = distgit.strip().lower()
     status, _, _ = context.cli.run([
         'add-package-distgit', '--distgit', distgit, '--name', package,
@@ -20,9 +22,10 @@ def step_impl(context, distgit, package, committype, commit):
     context.last_package_name = package
     assert status == 0
 
-@when(u'the DistGit package is modified to build from {committype} "{commit}"')
-def step_impl(context, committype, commit):
-    _unused = committype
+
+@when('the DistGit package is modified to build from {committype} "{commit}"')
+def step_modify_distgit_package(context, committype, commit):
+    _ = committype
     # a relatively easy package from non-default branch
     status, _, _ = context.cli.run([
         'edit-package-distgit', '--distgit', 'centos', '--name',
@@ -30,9 +33,10 @@ def step_impl(context, committype, commit):
         context.last_project_name])
     assert status == 0
 
-@then(u'the package is configured to build from distgit {committype} "{commit}"')
-def step_impl(context, committype, commit):
-    _unused = committype
+
+@then('the package is configured to build from distgit {committype} "{commit}"')
+def step_configure_to_distgit(context, committype, commit):
+    _ = committype
     package = context.last_package_name
     status, out, _ = context.cli.run(['get-package', context.last_project_name,
                                       '--name', package])
