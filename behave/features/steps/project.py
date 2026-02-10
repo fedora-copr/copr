@@ -9,6 +9,8 @@ from behave import given  # pylint: disable=no-name-in-module
 from copr_behave_lib import no_output
 
 
+# pylint: disable=missing-function-docstring
+
 def clean_project(context, project):
     """ Clean copr project by copr-cli """
     with no_output():
@@ -22,8 +24,8 @@ def clean_project(context, project):
         assert AssertionError("cli returned {}".format(rc))
 
 
-@given(u'a project that builds packages for this system')
-def step_impl(context):
+@given('a project that builds packages for this system')
+def step_create_project_building_for_host(context):
     name = context.scenario.name.replace(" ", "-").lower()
     name = "{}-{}".format(name, context.started)
     cmd = ["create", name, "--chroot", context.system_chroot]
@@ -32,8 +34,8 @@ def step_impl(context):
     context.last_project_name = name
 
 
-@given(u'a project with {chroot} chroot enabled')
-def step_impl(context, chroot):
+@given('a project with {chroot} chroot enabled')
+def step_create_project_with_single_chroot(context, chroot):
     name = context.scenario.name.replace(" ", "-").lower()
     name = "{}-{}".format(name, context.started)
     cmd = ["create", name, "--chroot", chroot]
