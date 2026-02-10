@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.6.hotfix.3
+Version:    2.6.hotfix.4
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -373,6 +373,9 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Feb 10 2026 Jakub Kadlcik <frostyx@email.cz> 2.6.hotfix.4-1
+- frontend: preload build.copr to fix the builds page for large projects
+
 * Thu Jan 29 2026 Jakub Kadlcik <frostyx@email.cz> 2.6.hotfix.3-1
 - Preload build.copr_dir to fix the builds page for large projects
 
