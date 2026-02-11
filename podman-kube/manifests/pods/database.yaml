@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-database
+  namespace: copr
+  labels:
+    app: copr
+    component: database
+spec:
+  containers:
+    - name: database
+      image: copr-database:latest
+      imagePullPolicy: Never
+      env:
+        - name: POSTGRESQL_USER
+          value: "copr-fe"
+        - name: POSTGRESQL_PASSWORD
+          value: "coprpass"
+        - name: POSTGRESQL_DATABASE
+          value: "coprdb"
+      ports:
+        - containerPort: 5432
+          hostPort: 5009
+          protocol: TCP
+      volumeMounts:
+        - name: database-data
+          mountPath: /var/lib/pgsql/data
+      resources:
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+  volumes:
+    - name: database-data
+      persistentVolumeClaim:
+        claimName: copr-database-data
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: copr
+spec:
+  selector:
+    component: database
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
