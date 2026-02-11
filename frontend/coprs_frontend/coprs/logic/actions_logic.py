@@ -116,6 +116,7 @@ class ActionsLogic(object):
             "appstream": copr.appstream,
             "storage": copr.storage,
             "reason": reason,
+            "persistent": copr.persistent,
         }
 
         run_in = set()

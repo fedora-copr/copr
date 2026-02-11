@@ -34,16 +34,19 @@ def storage_for_job(job, opts, log):
         job.project_name,
         job.appstream,
         job.uses_devel_repo,
+        # When building, we don't have to know if a project is persistent
+        None,
         opts,
         log,
     )
 
 
-def storage_for_enum(enum_value, owner, project, appstream, devel, opts, log):
+def storage_for_enum(enum_value, owner, project, appstream,
+                     devel, persistent, opts, log):
     """
     Return an appropriate `StorageEnum` value
     """
-    args = [owner, project, appstream, devel, opts, log]
+    args = [owner, project, appstream, devel, persistent, opts, log]
     if enum_value == StorageEnum.pulp:
         return PulpStorage(*args)
     return BackendStorage(*args)
@@ -54,11 +57,12 @@ class Storage:
     Storage agnostic, high-level interface for storing and acessing our data
     """
 
-    def __init__(self, owner, project, appstream, devel, opts, log):
+    def __init__(self, owner, project, appstream, devel, persistent, opts, log):
         self.owner = owner
         self.project = project
         self.appstream = appstream
         self.devel = devel
+        self.persistent = persistent
         self.opts = opts
         self.log = log
 
@@ -300,7 +304,10 @@ class PulpStorage(Storage):
     def init_project(self, dirname, chroot, reason=None):
         repository_name = self._repository_name(chroot, dirname)
         try:
-            response = self.client.create_repository(repository_name)
+            response = self.client.create_repository(
+                repository_name,
+                persistent=self.persistent,
+            )
         except RequestError as ex:
             if "This field must be unique" not in ex.response.text:
                 self.log.error(
