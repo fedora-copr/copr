@@ -283,15 +283,18 @@ class PulpClient:
         )
         return response
 
-    def create_repository(self, name):
+    def create_repository(self, name, persistent=False):
         """
         Create an RPM repository
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create
         """
         uri = "/api/v3/repositories/rpm/rpm/"
-        data = {"name": name, "retain_repo_versions": 1,
-                # Temporarily retain all packages, workaround for #4071
-                "retain_package_versions": 0}
+        data = {
+            "name": name,
+            "retain_repo_versions": 1,
+            # Temporarily retain all packages, workaround for #4071
+            "retain_package_versions": 0 if persistent else 0,
+        }
         self.log.info("Pulp: create_repository: %s %s", uri, name)
         return self.send("POST", uri, data)
 

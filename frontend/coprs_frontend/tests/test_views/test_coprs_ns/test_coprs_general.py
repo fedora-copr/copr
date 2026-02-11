@@ -511,6 +511,7 @@ class TestCoprUpdate(CoprsTestCase):
             "chroots": ["fedora-18-x86_64"],
             "appstream": True,
             "devel": True,
+            "persistent": False,
             "reason": CreaterepoReason.manual_createrepo_toggle,
             "storage": StorageEnum("backend"),
         }
@@ -1145,6 +1146,7 @@ class TestCoprActionsGeneration(CoprsTestCase):
             "project_dirnames": ["test"],
             "appstream": False,
             "devel": False,
+            "persistent": False,
             "reason": CreaterepoReason.new_chroot,
             "storage": StorageEnum("backend"),
         }

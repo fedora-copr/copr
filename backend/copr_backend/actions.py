@@ -97,8 +97,9 @@ class Action(object):
             owner = self.ext_data.get("ownername")
             project = self.ext_data.get("projectname")
             devel = self.ext_data.get("devel")
+            persistent = self.ext_data.get("persistent")
             appstream = self.ext_data.get("appstream")
-            args = [owner, project, appstream, devel, self.opts, self.log]
+            args = [owner, project, appstream, devel, persistent, self.opts, self.log]
             self.storage = storage_for_enum(enum, *args)
 
             # Even though we already have `self.storage` which uses an
