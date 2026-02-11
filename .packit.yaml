@@ -195,7 +195,7 @@ jobs:
   - job: tests
     trigger: pull_request
     targets:
-      - fedora-latest-x86_64
+      - fedora-latest-stable-x86_64
     packages:
       - copr-frontend
     skip_build: true
