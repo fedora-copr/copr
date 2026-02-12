@@ -1,0 +1,30 @@
+# Resalloc: mount host podman socket for dynamic builder provisioning.
+# Uses spc_t SELinux type (equivalent to --security-opt label=disable) and
+# runAsUser: 0 so the container can access the host's podman socket.
+# PODMAN_SOCKET_PATH is substituted at deploy time by the justfile.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-resalloc
+spec:
+  containers:
+    - name: resalloc
+      securityContext:
+        seLinuxOptions:
+          type: "spc_t"
+        runAsUser: 0
+      env:
+        - name: CONTAINER_HOST
+          value: "unix:///run/podman/podman.sock"
+        - name: COPR_PODMAN_NETWORK
+          value: "copr"
+        - name: BUILDER_IMAGE
+          value: "copr-builder:latest"
+      volumeMounts:
+        - name: podman-socket
+          mountPath: /run/podman/podman.sock
+  volumes:
+    - name: podman-socket
+      hostPath:
+        path: PODMAN_SOCKET_PATH
+        type: File

@@ -1,0 +1,29 @@
+FROM copr-base:latest
+
+LABEL description="COPR Resalloc - resource allocation with dynamic builder provisioning"
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        ansible \
+        openssh-clients \
+        podman-remote \
+        resalloc \
+        resalloc-server \
+        resalloc-webui \
+        sqlite \
+    && dnf clean all
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    mkdir -p /persistent /var/lib/resallocserver/.ssh /var/lib/resallocserver/resalloc_provision \
+        /var/log/resallocserver && \
+    chmod 700 /var/lib/resallocserver/.ssh && \
+    chmod +x /home/resalloc/provision/local-new /home/resalloc/provision/local-delete && \
+    chown -R resalloc:resalloc /persistent /var/lib/resallocserver /home/resalloc \
+        /var/log/resallocserver
+
+USER resalloc
+EXPOSE 49100 5000
+ENTRYPOINT []
+CMD bash -c 'cd $(rpm -ql resalloc-server | grep alembic.ini | xargs dirname) && alembic-3 upgrade head && /usr/bin/resalloc-server'

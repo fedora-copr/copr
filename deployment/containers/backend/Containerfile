@@ -1,0 +1,64 @@
+FROM copr-base:latest
+
+LABEL description="COPR Backend services"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+ENV PYTHONPATH=/usr/share/copr/
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-backend \
+        expect \
+        git \
+        iputils \
+        openssh-server \
+        psmisc \
+        pulp-cli \
+        resalloc \
+        rng-tools \
+        sudo \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-backend
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    groupadd -r obsrun || true && \
+    usermod -a -G obsrun copr && \
+    setcap cap_net_raw,cap_net_admin+p /usr/bin/ping && \
+    setcap cap_net_bind_service+ep /usr/bin/sign && \
+    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q && \
+    echo 'root:passwd' | chpasswd && \
+    mkdir -p /root/.ssh && \
+    chmod 700 /root /root/.ssh && \
+    echo 'copr:passwd' | chpasswd && \
+    echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    mkdir -p /home/copr/.ssh /home/copr/cloud && \
+    chmod 700 /home/copr /home/copr/.ssh /home/copr/cloud && \
+    # Use pre-generated SSH keys from build context (shared with builder)
+    # If keys don't exist in context, generate new ones
+    test -f /home/copr/.ssh/id_rsa || \
+        ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@localhost && \
+    touch /home/copr/.ssh/authorized_keys /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/authorized_keys /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/id_rsa && \
+    chmod 644 /home/copr/.ssh/id_rsa.pub && \
+    chmod 600 /home/copr/.ssh/config && \
+    cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
+    cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
+    chown -R copr:copr /home/copr && \
+    usermod -a -G mock copr && \
+    mkdir -p /var/lock/copr-backend /var/lib/copr/jobs /var/lib/copr/public_html/results && \
+    chown -R copr:copr /var/lock/copr-backend /var/lib/copr && \
+    touch /var/lib/copr/public_html/pulp-redirect.txt && \
+    chown copr:copr /var/lib/copr/public_html/pulp-redirect.txt && \
+    chmod 0755 /usr/bin/sign && \
+    chown copr:root /etc/sign.conf && \
+    chmod 0660 /etc/sign.conf && \
+    rngd -r /dev/urandom || true
+
+USER copr
+CMD ["/run-backend"]

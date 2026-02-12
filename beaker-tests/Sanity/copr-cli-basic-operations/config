@@ -38,7 +38,7 @@ SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HERE=$SCRIPTPATH
 FILES=$HERE/files
 
-: ${COPR_CLEANUP=true}
+: ${COPR_CLEANUP=false}
 
 # Debug
 echo "USER = $USER"

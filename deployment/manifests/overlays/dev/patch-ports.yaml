@@ -1,0 +1,112 @@
+# Patch: add hostPorts for local access and imagePullPolicy for local images
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-frontend
+spec:
+  initContainers:
+    - name: frontend-init
+      imagePullPolicy: Never
+  containers:
+    - name: frontend
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5000
+          hostPort: 5000
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-backend
+spec:
+  containers:
+    - name: backend-log
+      imagePullPolicy: Never
+    - name: backend-build
+      imagePullPolicy: Never
+    - name: backend-action
+      imagePullPolicy: Never
+    - name: backend-httpd
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5002
+          hostPort: 5002
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-distgit
+spec:
+  containers:
+    - name: distgit
+      imagePullPolicy: Never
+    - name: distgit-httpd
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5001
+          hostPort: 5001
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-keygen
+spec:
+  containers:
+    - name: keygen-signd
+      imagePullPolicy: Never
+    - name: keygen-httpd
+      imagePullPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-database
+spec:
+  containers:
+    - name: database
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5432
+          hostPort: 5009
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-redis
+spec:
+  containers:
+    - name: redis
+      imagePullPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-resalloc
+spec:
+  containers:
+    - name: resalloc
+      imagePullPolicy: Never
+    - name: resalloc-webui
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 5000
+          hostPort: 5005
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-pulp
+spec:
+  containers:
+    - name: pulp
+      ports:
+        - containerPort: 80
+          hostPort: 5006
+          protocol: TCP
+

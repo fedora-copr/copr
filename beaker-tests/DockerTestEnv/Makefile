@@ -4,6 +4,7 @@ mkfile_path:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 CONTAINER_NAME ?= test-env
 CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
+COPR_NETWORK ?= copr
 
 help:
 	@echo "COPR Test Environment"
@@ -11,16 +12,17 @@ help:
 	@echo "Targets:"
 	@echo "  build       Build test container image"
 	@echo "  run         Run container (for staging/remote testing)"
-	@echo "  run-local   Run container with host network (for local podman-kube)"
+	@echo "  run-local   Run container on copr network (for local deployment testing)"
 	@echo "  sh          Open shell in container"
 	@echo "  start/stop  Start/stop container"
 	@echo "  del         Delete container"
 	@echo ""
-	@echo "For local podman-kube testing:"
-	@echo "  1. make build"
-	@echo "  2. make run-local"
-	@echo "  3. make sh"
-	@echo "  4. Inside container: setup-local-copr"
+	@echo "For local deployment testing:"
+	@echo "  1. cd ../../deployment && just up"
+	@echo "  2. cd ../beaker-tests/DockerTestEnv"
+	@echo "  3. make build && make run-local"
+	@echo "  4. make sh"
+	@echo "  5. Inside container: setup-local-copr"
 	@echo ""
 
 build:
@@ -38,8 +40,8 @@ run:
 		-w /root/ \
 		test-env-image
 
-# Run with host network - for local podman-kube testing
-# This allows the container to access localhost:5000 etc.
+# Run on the copr network - for local deployment testing
+# Aardvark-dns resolves all service hostnames (frontend, backend-httpd, etc.)
 run-local:
 	$(CONTAINER_ENGINE) run \
 		-dit \
@@ -47,10 +49,13 @@ run-local:
 		--name="$(CONTAINER_NAME)" \
 		-h $(CONTAINER_NAME) \
 		-w /root/ \
-		--network=host \
-		--add-host=frontend:127.0.0.1 \
-		--add-host=backend-httpd:127.0.0.1 \
-		--add-host=distgit:127.0.0.1 \
+		--network=$(COPR_NETWORK) \
+		--no-hosts \
+		-e FRONTEND_URL=http://frontend:5000 \
+		-e FRONTEND_PUBLIC_HOST=frontend \
+		-e BACKEND_URL=http://backend-httpd:5002 \
+		-e DISTGIT_URL=http://distgit:5001 \
+		-e DNF_COPR_ID=tested-copr \
 		test-env-image
 
 sh:

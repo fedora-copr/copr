@@ -1,0 +1,15 @@
+FROM copr-base:latest
+
+LABEL description="Redis/Valkey server for COPR"
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install redis && \
+    dnf clean all
+
+RUN mkdir -p /data && chown valkey:valkey /data
+
+USER valkey
+EXPOSE 6379
+
+ENTRYPOINT []
+CMD ["redis-server", "--protected-mode", "no", "--dir", "/data"]

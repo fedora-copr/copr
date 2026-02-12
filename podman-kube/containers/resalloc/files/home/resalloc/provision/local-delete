@@ -1,3 +1,0 @@
-#!/bin/bash
-# Delete script - nothing to do for local builder
-exit 0

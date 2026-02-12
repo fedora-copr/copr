@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-resalloc
+  labels:
+    app: copr
+    component: resalloc
+spec:
+  hostname: resalloc
+  containers:
+    # Resalloc server
+    - name: resalloc
+      image: copr-resalloc:latest
+      command:
+        - /bin/bash
+        - "-c"
+        - "cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) && alembic-3 upgrade head && /usr/bin/resalloc-server"
+      ports:
+        - containerPort: 49100
+          protocol: TCP
+      volumeMounts:
+        - name: resalloc-data
+          mountPath: /persistent
+      livenessProbe:
+        tcpSocket:
+          port: 49100
+        initialDelaySeconds: 15
+        periodSeconds: 30
+        timeoutSeconds: 5
+      resources:
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+
+    # Resalloc WebUI (optional, for debugging/monitoring)
+    - name: resalloc-webui
+      image: copr-resalloc:latest
+      command:
+        - python3
+        - "-c"
+        - "from resallocwebui.app import app; app.run(host='0.0.0.0')"
+      ports:
+        - containerPort: 5000
+          protocol: TCP
+      volumeMounts:
+        - name: resalloc-data
+          mountPath: /persistent
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "100m"
+
+  volumes:
+    - name: resalloc-data
+      persistentVolumeClaim:
+        claimName: copr-resalloc-data
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resalloc
+spec:
+  selector:
+    component: resalloc
+  ports:
+    - name: server
+      port: 49100
+      targetPort: 49100
+      protocol: TCP
+    - name: webui
+      port: 5000
+      targetPort: 5000
+      protocol: TCP

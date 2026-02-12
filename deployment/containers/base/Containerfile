@@ -1,0 +1,32 @@
+FROM registry.fedoraproject.org/fedora:43
+
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
+
+ARG ADDITIONAL_COPR_REPOSITORIES=""
+
+ENV LANG=en_US.UTF-8 \
+    TERM=linux
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    set -ex && \
+    if [ -n "${ADDITIONAL_COPR_REPOSITORIES}" ]; then \
+        dnf -y install dnf-plugins-core && \
+        for repo in $ADDITIONAL_COPR_REPOSITORIES; do dnf -y copr enable $repo; done; \
+    fi && \
+    dnf -y update && \
+    dnf -y install \
+        ca-certificates \
+        findutils \
+        glibc-langpack-en \
+        tini \
+    && dnf clean all
+
+# Pre-install releng/install-copr-packages for PR overlay (used by child images)
+RUN curl -o /usr/local/bin/install-copr-packages \
+        https://raw.githubusercontent.com/fedora-copr/copr/refs/heads/main/releng/install-copr-packages && \
+    chmod +x /usr/local/bin/install-copr-packages && \
+    printf '#!/bin/bash\ntest -n "$COPR_PR_ID" || exit 0\nTIMEOUT=${TIMEOUT:-180} install-copr-packages \\\n    "@copr/copr-pull-requests:pr:$COPR_PR_ID" "$COPR_PR_HEAD_SHA" \\\n    "$@" || true\n' \
+        > /usr/local/bin/overlay-pr-packages && \
+    chmod +x /usr/local/bin/overlay-pr-packages
+
+ENTRYPOINT ["/usr/bin/tini", "--"]

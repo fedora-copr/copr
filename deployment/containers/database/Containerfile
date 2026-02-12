@@ -1,0 +1,19 @@
+FROM copr-base:latest
+
+LABEL description="PostgreSQL database for COPR"
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install postgresql-server postgresql && \
+    dnf clean all
+
+RUN mkdir -p /var/lib/pgsql/data /var/run/postgresql && \
+    chown -R postgres:postgres /var/lib/pgsql /var/run/postgresql
+
+COPY rootfs/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
+
+USER postgres
+EXPOSE 5432
+
+ENTRYPOINT []
+CMD ["/usr/local/bin/init-db.sh"]

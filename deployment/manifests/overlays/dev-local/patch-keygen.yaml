@@ -1,0 +1,21 @@
+# Patch: mount host source code into keygen containers for live development
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-keygen
+spec:
+  containers:
+    - name: keygen-signd
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+    - name: keygen-httpd
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+  volumes:
+    - name: copr-source
+      hostPath:
+        path: COPR_SOURCE_PATH
+        type: Directory
+

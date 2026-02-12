@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-pulp
+  labels:
+    app: copr
+    component: pulp
+spec:
+  hostname: pulp
+  containers:
+    - name: pulp
+      image: ghcr.io/pulp/pulp:latest
+      env:
+        - name: PULP_DEFAULT_ADMIN_PASSWORD
+          value: "admin"
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - name: pulp-storage
+          mountPath: /var/lib/pulp
+        - name: pulp-database
+          mountPath: /var/lib/pgsql
+      readinessProbe:
+        httpGet:
+          path: /pulp/api/v3/status/
+          port: 80
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        timeoutSeconds: 10
+      livenessProbe:
+        httpGet:
+          path: /pulp/api/v3/status/
+          port: 80
+        initialDelaySeconds: 60
+        periodSeconds: 30
+        timeoutSeconds: 10
+      resources:
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
+  volumes:
+    - name: pulp-storage
+      persistentVolumeClaim:
+        claimName: copr-pulp-storage
+    - name: pulp-database
+      persistentVolumeClaim:
+        claimName: copr-pulp-database
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulp
+spec:
+  selector:
+    component: pulp
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+

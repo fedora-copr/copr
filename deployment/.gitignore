@@ -1,0 +1,7 @@
+# Generated SSH keys (created by `just build`)
+containers/.ssh/
+
+# Distributed keys in build contexts (copied from containers/.ssh/)
+containers/backend/rootfs/home/copr/.ssh/id_rsa
+containers/backend/rootfs/home/copr/.ssh/id_rsa.pub
+containers/builder/rootfs/root/.ssh/authorized_keys
