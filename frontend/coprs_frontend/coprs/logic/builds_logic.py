@@ -1150,16 +1150,16 @@ class BuildsLogic(object):
             # Skip excluded architectures
             if upd_dict.get("chroot") == "srpm-builds" and upd_dict.get("results"):
                 for chroot in build.build_chroots:
+                    tags = upd_dict["results"]["architecture_specific_tags"]
+                    tags = tags[chroot.mock_chroot.name_release]
                     arch = chroot.mock_chroot.arch
-
-                    exclusivearch = upd_dict["results"].get("exclusivearch")
+                    exclusivearch = tags.get("exclusivearch")
                     if exclusivearch and arch not in exclusivearch:
                         chroot.status_reason = \
                             "This chroot was skipped because of ExclusiveArch"
                         finish(chroot, StatusEnum("skipped"))
-
-                    excludearch = upd_dict["results"].get("excludearch")
-                    if arch in excludearch:
+                    excludearch = tags.get("excludearch")
+                    if excludearch and arch in excludearch:
                         chroot.status_reason = \
                             "This chroot was skipped because of ExcludeArch"
                         finish(chroot, StatusEnum("skipped"))

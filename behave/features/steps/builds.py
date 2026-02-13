@@ -2,17 +2,22 @@
 Steps related to Copr builds
 """
 
+import json
+import os
 import random
+import tempfile
 from hamcrest import assert_that, equal_to, contains_string
 from behave import when, then  # pylint: disable=no-name-in-module
 
 from copr_behave_lib import run_check, run, assert_is_subset
 
 
-@when(u'a build of {distgit} DistGit {package_name} package from '
-      u'{committish} {committish_type} is done')
-def step_impl(context, distgit, package_name, committish, committish_type):
-    _ = (committish_type)
+# pylint: disable=missing-function-docstring
+
+@when('a build of {distgit} DistGit {package_name} package from '
+      '{committish} {committish_type} is done')
+def step_build_distgit(context, distgit, package_name, committish, committish_type):
+    _ = committish_type
     distgit = distgit.lower()
     build = context.cli.run_build([
         "build-distgit",
@@ -24,8 +29,8 @@ def step_impl(context, distgit, package_name, committish, committish_type):
     context.cli.wait_success_build(build)
 
 
-@then(u'the build results are distributed')
-def step_impl(context):
+@then('the build results are distributed')
+def step_check_repo(context):
     # TODO: can we run this in container, and not rely on root access?
     owner = context.cli.whoami()
     project = context.last_project_name
@@ -46,7 +51,7 @@ def step_impl(context):
 
 
 @then("there's a package {package} build with source version-release {vr} (without dist tag)")
-def step_impl(context, package, vr):
+def step_nevra_presence(context, package, vr):
     owner = context.cli.whoami()
     project = context.last_project_name
     found = False
@@ -58,7 +63,7 @@ def step_impl(context, package, vr):
 
 
 @then('package changelog for {package_name} in {chroot} chroot contains "{string}" string')
-def step_impl(context, package_name, chroot, string):
+def step_check_changelog_content(context, package_name, chroot, string):
     owner = context.cli.whoami()
     project = context.last_project_name
     repo_id = "hell-{}".format(random.random())
@@ -72,8 +77,8 @@ def step_impl(context, package_name, chroot, string):
     assert_that(out, contains_string(string))
 
 
-@when(u'the package build is requested')
-def step_impl(context):
+@when('the package build is requested')
+def step_rebuild_pkg(context):
     build = context.cli.run_build([
         "build-package",
         "--name", context.last_package_name,
@@ -82,10 +87,10 @@ def step_impl(context):
     context.cli.wait_success_build(build)
 
 
-@when(u'build of {distgit} DistGit namespaced {package_name} package from '
-      u'{committish} {committish_type} in {namespace} is done')
+@when('build of {distgit} DistGit namespaced {package_name} package from '
+      '{committish} {committish_type} in {namespace} is done')
 def step_build_from_fork(context, distgit, package_name, committish, committish_type, namespace):
-    _ = (committish_type)
+    _ = committish_type
     distgit = distgit.lower()
     build = context.cli.run_build([
         "build-distgit",
@@ -96,3 +101,50 @@ def step_build_from_fork(context, distgit, package_name, committish, committish_
         context.last_project_name,
     ])
     context.cli.wait_success_build(build)
+
+
+@when('a build from specfile template "{template}" is done')
+def step_build_from_spec_template(context, template):
+    """
+    Take a specfile from templates/ directory, and build it.
+    """
+    path = os.path.join("templates", template)
+
+    def _replace(string):
+        string = string.replace('@FEDORA_LATEST@',
+                                str(context.cli.get_latest_fedora_chroot()))
+        return string
+
+    with open(path, "r", encoding="utf-8") as template_fd:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with open(os.path.join(tmp_dir, template), "w", encoding="utf-8") as temp_spec:
+                for line in template_fd.readlines():
+                    temp_spec.write(_replace(line))
+                temp_spec.flush()
+                build = context.cli.run_build(["build", context.last_project_name,
+                                               temp_spec.name])
+                context.cli.wait_success_build(build)
+
+
+@then('the package "{package_name}" should have "{state}" state for "{chroots}" chroots')
+def step_check_monitor_status(context, package_name, state, chroots):
+    """
+    Check that a subset of build.chroots ended-up in a desired state.
+    """
+    chroots = [x.strip() for x in chroots.split(",")]
+    _, output, _ = context.cli.run(["monitor", context.last_project_name])
+    data = json.loads(output)
+    for chroot in chroots:
+        if "-latest-" in chroot:
+            chroot = chroot.replace("latest",
+                                    str(context.cli.get_latest_fedora_chroot()))
+        found = False
+        for result in data:
+            if result["name"] != package_name:
+                continue
+            if result["chroot"] != chroot:
+                continue
+            found = True
+            assert result["state"] == state
+            break
+        assert found
