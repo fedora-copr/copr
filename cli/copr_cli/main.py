@@ -751,6 +751,11 @@ class Commands(object):
             if project.storage != "pulp":
                 continue
 
+            # wget above uses -P to specify the prefix, but if there is no
+            # hit (e.g., --rpms && PULP, see #4167), we must pre-create the
+            # directory manually.
+            os.makedirs(dst, exist_ok=True)
+
             for nevra in results[chroot.name]["packages"]:
                 filename = "{N}-{V}-{R}.{A}.rpm".format(
                     N=nevra["name"],
