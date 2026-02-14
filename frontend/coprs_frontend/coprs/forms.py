@@ -1733,6 +1733,11 @@ class PinnedCoprsForm(BaseForm):
         return True
 
 
+class ProfileDescriptionForm(BaseForm):
+    """Form for editing user or group profile description."""
+    profile_description = wtforms.TextAreaField("Profile Description")
+
+
 class VoteForCopr(BaseForm):
     """
     Form for upvoting and downvoting projects
