@@ -1,0 +1,41 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import owner_detail_url, render_field, render_form_errors %}
+{% block title %}Customize Profile{% endblock %}
+{% block header %}Customize Profile{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ owner_detail_url(owner) }}">{{ owner.at_name if owner.at_name is defined else owner.name }}</a>
+  </li>
+  <li class="active">Customize profile</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<h1 id="customize-profile-title">Customize profile</h1>
+{{ render_form_errors(form=form) }}
+<form class="form-horizontal" action="" method="POST">
+  {{ form.csrf_token }}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      Profile description for {{ owner.at_name if owner.at_name is defined else owner.name }}
+    </div>
+    <div class="panel-body">
+      {{ render_field(
+          form.profile_description,
+          label_width=3,
+          rows=15,
+          cols=50,
+          placeholder='Optional - tell people about yourself, your projects, '
+                      ~ 'links, contact info, etc.',
+          info='You can use <a href="https://daringfireball.net/projects/markdown/syntax">'
+               ~ 'markdown syntax</a>, inline HTML is forbidden.'
+      ) }}
+      <input class="btn btn-primary pull-right" type="submit" name="submit" value="Submit">
+    </div>
+  </div>
+</form>
+{% endblock %}

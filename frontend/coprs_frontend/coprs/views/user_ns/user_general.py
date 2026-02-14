@@ -1,6 +1,6 @@
 import flask
 from coprs import app, db, models, helpers
-from coprs.forms import PinnedCoprsForm
+from coprs.forms import PinnedCoprsForm, ProfileDescriptionForm
 from coprs.views.misc import login_required
 from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.builds_logic import BuildsLogic
@@ -93,6 +93,51 @@ def process_pinned_projects_post(owner, url_on_success):
     PinnedCoprsLogic.delete_by_owner(owner)
     for i, copr_id in enumerate(filter(None, form.copr_ids.data)):
         PinnedCoprsLogic.add(owner, int(copr_id), i)
+    db.session.commit()
+
+    return flask.redirect(url_on_success)
+
+
+@user_ns.route("/customize-profile/")
+@user_ns.route("/customize-profile/<group_name>")
+@login_required
+def profile_description(group_name=None):
+    """Render profile description customization form."""
+    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name(group_name)
+    return render_profile_description(owner)
+
+
+def render_profile_description(owner, form=None):
+    """Render profile description page for a user or group owner."""
+    form = form or ProfileDescriptionForm(obj=owner)
+    graph = BuildsLogic.get_small_graph_data('30min')
+    return flask.render_template("profile_description.html",
+                                 owner=owner,
+                                 form=form,
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
+                                 graph=graph)
+
+
+@user_ns.route("/customize-profile/", methods=["POST"])
+@user_ns.route("/customize-profile/<group_name>", methods=["POST"])
+@login_required
+def profile_description_post(group_name=None):
+    """Handle profile description customization POST endpoint."""
+    owner = flask.g.user if not group_name else ComplexLogic.get_group_by_name(group_name)
+    url_on_success = helpers.owner_url(owner)
+    return process_profile_description_post(owner, url_on_success)
+
+
+def process_profile_description_post(owner, url_on_success):
+    """Validate and persist profile description updates."""
+    if isinstance(owner, models.Group):
+        UsersLogic.raise_if_not_in_group(flask.g.user, owner)
+
+    form = ProfileDescriptionForm()
+    if not form.validate_on_submit():
+        return render_profile_description(owner, form=form)
+
+    owner.profile_description = form.profile_description.data
     db.session.commit()
 
     return flask.redirect(url_on_success)
