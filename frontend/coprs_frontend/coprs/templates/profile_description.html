@@ -1,0 +1,36 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import render_field, render_form_errors %}
+{% block title %}Customize profile{% endblock %}
+{% block header %}Customize profile{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    {% if owner.at_name is defined %}
+      <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=owner.name) }}">{{ owner.at_name }}</a>
+    {% else %}
+      <a href="{{ url_for('coprs_ns.coprs_by_user', username=owner.name) }}">{{ owner.name }}</a>
+    {% endif %}
+  </li>
+  <li class="active">Customize profile</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:22px;margin-top:22px">Customize profile</h1>
+{{ render_form_errors(form=form) }}
+<form class="form-horizontal" action="" method="POST">
+  {{ form.csrf_token }}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      Profile description for {{ owner.at_name if owner.at_name is defined else owner.name }}
+    </div>
+    <div class="panel-body">
+      {{ render_field(form.profile_description, label_width=3, rows=15, cols=50, placeholder='Optional - tell people about yourself, your projects, links, contact info, etc.', info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.') }}
+      <input class="btn btn-primary pull-right" type="submit" name="submit" value="Submit">
+    </div>
+  </div>
+</form>
+{% endblock %}
