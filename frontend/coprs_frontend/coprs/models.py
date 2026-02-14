@@ -77,6 +77,9 @@ class _UserPublic(db.Model, helpers.Serializer):
     #     openid_groups = {"fas_groups": ["foo", "bar", "baz"]}
     openid_groups = db.Column(JSONEncodedDict)
 
+    # User profile custom markdown/HTML content
+    profile_description = db.Column(db.Text)
+
 
 class _UserPrivate(db.Model, helpers.Serializer):
     """
@@ -2392,6 +2395,9 @@ class Group(db.Model, helpers.Serializer):
     name = db.Column(db.String(127))
 
     fas_name = db.Column(db.String(127), unique=True)
+
+    # Group profile custom markdown/HTML content shown on the profile page
+    profile_description = db.Column(db.Text)
 
     @property
     def at_name(self):

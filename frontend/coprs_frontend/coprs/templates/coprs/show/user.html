@@ -40,13 +40,19 @@
 
       {% include "user_meta.html" %}
   </p>
+
+  {% if user.profile_description %}
+  <div class="profile-description">
+    {{ user.profile_description|markdown }}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 
 {% block projects_header %}
 {% if g.user == user %}
-{{ projects_header() }}
+{{ projects_header(customize_profile=True) }}
 {% endif %}
 
 <h2 class="page-title">{{user.name|capitalize}}'s Projects</h2>
