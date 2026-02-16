@@ -10,7 +10,7 @@ RUN dnf -y update \
     && dnf -y install hostname htop net-tools iputils vim git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect python3-behave python3-hamcrest \
-    && dnf -y install python3-copr rpm-build copr-cli jq \
+    && dnf -y install python3-copr rpm-build copr-cli jq texinfo \
     && dnf -y install beakerlib util-linux-script \
     && dnf -y clean all
 
