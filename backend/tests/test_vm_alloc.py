@@ -47,7 +47,7 @@ def test_ticket_with_args(rcon):
     host.ticket.output = "1.1.1.1"
     host.wait_ready()
     assert rcon.return_value.newTicket.call_args_list == [
-        mock.call(['copr_builder', 'arch_x86_64'], 'somesb'),
+        mock.call(['arch_x86_64', 'copr_builder'], 'somesb'),
     ]
     assert host.hostname == "1.1.1.1"
 

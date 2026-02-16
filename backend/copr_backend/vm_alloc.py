@@ -171,7 +171,7 @@ class ResallocHostFactory(HostFactory):
         request_tags = ["copr_builder"]
         if tags:
             request_tags.extend(tags)
-
+        request_tags = sorted(set(request_tags))
         host = ResallocHost()
         host.ticket = self.conn.newTicket(request_tags, sandbox)
         host.requested_tags = request_tags
