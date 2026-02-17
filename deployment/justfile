@@ -1,0 +1,189 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+copr_root := parent_directory(justfile_directory())
+network := "copr"
+
+default:
+    @just --list
+
+# ─── Build ───────────────────────────────────────────────────────────────────
+
+# Generate SSH keypair for backend<->builder communication
+[private]
+generate-ssh-keys:
+    #!/bin/bash
+    set -euo pipefail
+    SSH_DIR="containers/.ssh"
+    mkdir -p "$SSH_DIR"
+    if [ ! -f "$SSH_DIR/id_rsa" ]; then
+        ssh-keygen -t rsa -b 4096 -N '' -q -f "$SSH_DIR/id_rsa" -C copr@copr-local
+        echo "SSH keypair generated"
+    fi
+    mkdir -p containers/backend/rootfs/home/copr/.ssh
+    mkdir -p containers/builder/rootfs/root/.ssh
+    cp "$SSH_DIR/id_rsa" containers/backend/rootfs/home/copr/.ssh/id_rsa
+    cp "$SSH_DIR/id_rsa.pub" containers/backend/rootfs/home/copr/.ssh/id_rsa.pub
+    cp "$SSH_DIR/id_rsa.pub" containers/builder/rootfs/root/.ssh/authorized_keys
+
+# Build base image with optional repo configuration
+[private]
+build-base mode="dev":
+    #!/bin/bash
+    set -euo pipefail
+    args=()
+    case "{{mode}}" in
+        dev|pr)  args+=(--build-arg ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev") ;;
+        release) ;;
+    esac
+    echo "Building base image (mode={{mode}})..."
+    podman build "${args[@]}" -t copr-base:latest \
+        -f containers/base/Containerfile containers/base
+
+# Fetch PR head SHA from GitHub API
+[private]
+pr-head-sha pr_id:
+    @curl -sf "https://api.github.com/repos/fedora-copr/copr/pulls/{{pr_id}}" | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['sha'])"
+
+# Build all container images
+build mode="dev" pr_id="": generate-ssh-keys (build-base mode)
+    #!/bin/bash
+    set -euo pipefail
+    pr_args=()
+    if [ "{{mode}}" = "pr" ] && [ -n "{{pr_id}}" ]; then
+        head_sha=$(just pr-head-sha {{pr_id}})
+        pr_args+=(--build-arg COPR_PR_ID="{{pr_id}}" --build-arg COPR_PR_HEAD_SHA="$head_sha")
+        echo "PR #{{pr_id}} head SHA: $head_sha"
+    fi
+    echo "Building service images..."
+    printf '%s\n' database redis frontend backend backend-httpd distgit keygen resalloc builder | \
+        xargs -P {{num_cpus()}} -I {} \
+            podman build ${pr_args[@]+"${pr_args[@]}"} -t copr-{}:latest \
+                -f containers/{}/Containerfile containers/{}
+    echo "All images built (mode={{mode}})"
+
+# ─── Deploy ──────────────────────────────────────────────────────────────────
+
+# Render kustomize manifests and apply via podman kube play
+[private]
+kube-play overlay="base":
+    #!/bin/bash
+    set -euo pipefail
+    manifests_dir="manifests"
+    if [ -d "$manifests_dir/overlays/{{overlay}}" ]; then
+        target="$manifests_dir/overlays/{{overlay}}"
+    else
+        target="$manifests_dir/{{overlay}}"
+    fi
+    socket_path="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock"
+    kustomize build "$target" \
+        | sed -e "s|COPR_SOURCE_PATH|{{copr_root}}|g" \
+              -e "s|PODMAN_SOCKET_PATH|${socket_path}|g" \
+        | podman kube play --replace --no-hosts --network {{network}} -
+
+# Start infrastructure (dev mode - @copr/copr-dev packages)
+up: build
+    @podman network exists {{network}} 2>/dev/null || podman network create {{network}}
+    just kube-play dev
+    @echo "COPR is running at http://localhost:5000"
+
+# Start with stable Fedora RPMs only
+up-release: (build "release")
+    @podman network exists {{network}} 2>/dev/null || podman network create {{network}}
+    just kube-play dev
+    @echo "COPR is running at http://localhost:5000 (release mode)"
+
+# Start with RPMs from a specific pull request
+up-pr pr_id: (build "pr" pr_id)
+    @podman network exists {{network}} 2>/dev/null || podman network create {{network}}
+    just kube-play dev
+    @echo "COPR is running at http://localhost:5000 (PR #{{pr_id}})"
+
+# Start with local source code mounted for development
+up-local: build
+    @podman network exists {{network}} 2>/dev/null || podman network create {{network}}
+    just kube-play dev-local
+    @echo "COPR is running at http://localhost:5000 (local source at /opt/copr)"
+
+# Stop all pods and dynamic builders
+down:
+    #!/bin/bash
+    podman rm -f $(podman ps -a --filter "name=copr-builder-" -q 2>/dev/null) 2>/dev/null || true
+    podman pod rm -f $(podman pod ls --filter "name=copr-" -q 2>/dev/null) 2>/dev/null || true
+    echo "Stopped"
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+# Show status of all pods and containers
+status:
+    @echo "=== Pods ==="
+    @podman pod ls --filter "name=copr"
+    @echo ""
+    @echo "=== Containers ==="
+    @podman ps -a --filter "name=copr" --format "table {{{{.Names}}}}\t{{{{.Status}}}}\t{{{{.Ports}}}}"
+    @echo ""
+    @echo "=== Dynamic Builders ==="
+    @podman ps -a --filter "name=copr-builder-" --format "table {{{{.Names}}}}\t{{{{.Status}}}}" 2>/dev/null || echo "  (none)"
+
+# View logs for a service
+logs service="frontend":
+    podman logs copr-{{service}}-{{service}}
+
+# Follow logs for a service
+logs-f service="frontend":
+    podman logs -f copr-{{service}}-{{service}}
+
+# Open shell in a container
+shell service="frontend":
+    podman exec -it copr-{{service}}-{{service}} /bin/bash
+
+# Restart a pod
+restart service:
+    podman pod restart copr-{{service}}
+
+# Preview rendered manifests (for debugging)
+render overlay="base":
+    #!/bin/bash
+    set -euo pipefail
+    manifests_dir="manifests"
+    if [ -d "$manifests_dir/overlays/{{overlay}}" ]; then
+        target="$manifests_dir/overlays/{{overlay}}"
+    else
+        target="$manifests_dir/{{overlay}}"
+    fi
+    socket_path="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock"
+    kustomize build "$target" \
+        | sed -e "s|COPR_SOURCE_PATH|{{copr_root}}|g" \
+              -e "s|PODMAN_SOCKET_PATH|${socket_path}|g"
+
+# ─── Cleanup ─────────────────────────────────────────────────────────────────
+
+# Stop and remove images
+clean: down
+    #!/bin/bash
+    for img in database redis frontend backend backend-httpd distgit keygen resalloc builder base; do
+        podman rmi -f copr-$img 2>/dev/null || true
+    done
+    echo "Images removed"
+
+# Remove persistent volumes
+clean-volumes:
+    #!/bin/bash
+    for vol in database-data redis-data results-data distgit-data keygen-data resalloc-data pulp-storage pulp-database; do
+        podman volume rm -f copr-$vol 2>/dev/null || true
+    done
+    echo "Volumes removed"
+
+# Remove generated SSH keys
+clean-keys:
+    rm -rf containers/.ssh
+    rm -f containers/backend/rootfs/home/copr/.ssh/id_rsa containers/backend/rootfs/home/copr/.ssh/id_rsa.pub
+    rm -f containers/builder/rootfs/root/.ssh/authorized_keys
+
+# Remove everything (images, volumes, keys, network)
+clean-all: clean clean-volumes clean-keys
+    @podman network rm {{network}} 2>/dev/null || true
+    @echo "All cleaned"
+
+# Show image sizes
+images:
+    @podman images --filter "reference=copr-*" --format "table {{{{.Repository}}}}\t{{{{.Tag}}}}\t{{{{.Size}}}}"

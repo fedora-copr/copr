@@ -1,0 +1,34 @@
+# Patch: mount host source code into backend containers for live development
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-backend
+spec:
+  containers:
+    - name: backend-log
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/backend:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+    - name: backend-build
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/backend:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+    - name: backend-action
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/backend:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+  volumes:
+    - name: copr-source
+      hostPath:
+        path: COPR_SOURCE_PATH
+        type: Directory
+

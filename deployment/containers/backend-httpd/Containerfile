@@ -1,0 +1,19 @@
+FROM copr-base:latest
+
+LABEL description="COPR Backend HTTPD - serves build results"
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install nginx && \
+    dnf clean all
+
+COPY rootfs/ /
+
+RUN mkdir -p /var/lib/copr/public_html/results && \
+    chown -R nginx:nginx /var/lib/copr /var/log/nginx /var/run /etc/nginx
+
+USER nginx
+EXPOSE 5002
+
+ENTRYPOINT []
+# TODO: fix this resolver substitution, this is ugly hack
+CMD ["sh", "-c", "RESOLVER=$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf) && sed -i \"s/__RESOLVER__/${RESOLVER}/g\" /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"]

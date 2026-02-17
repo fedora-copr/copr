@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import io
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -113,8 +114,10 @@ class CoprCli:
 
     def dnf_copr_project(self, owner, project):
         """ Get the ID we can `dnf copr enable` easily """
-        host = urlparse(self.context.frontend_url).hostname
-        return "{}/{}/{}".format(host, owner, project)
+        dnf_copr_id = os.environ.get("DNF_COPR_ID")
+        if not dnf_copr_id:
+            dnf_copr_id = urlparse(self.context.frontend_url).hostname
+        return "{}/{}/{}".format(dnf_copr_id, owner, project)
 
     def get_latest_pkg_builds(self, owner, project):
         """ Get the list of <name>-<version> strings inside copr from builds """

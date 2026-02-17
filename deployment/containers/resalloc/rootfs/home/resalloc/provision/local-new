@@ -1,0 +1,26 @@
+#!/bin/bash
+# Provision a new builder container dynamically via the host's podman.
+# Resalloc calls this script when a builder resource is needed.
+# The builder container is created on the same podman network as the
+# infrastructure so that DNS resolution works between all containers.
+
+set -e
+
+NETWORK="${COPR_PODMAN_NETWORK:-copr}"
+IMAGE="${BUILDER_IMAGE:-copr-builder:latest}"
+NAME="copr-builder-${RESALLOC_NAME:-manual-$(date +%s)}"
+
+# Create builder container on the shared network
+# --no-hosts: prevent copying host's /etc/hosts (which may map service
+#   names to 127.0.0.1), letting Podman's Aardvark-dns resolve them
+podman-remote run \
+    --name "$NAME" \
+    --hostname "$NAME" \
+    --network "$NETWORK" \
+    --no-hosts \
+    --privileged \
+    --rm \
+    -d \
+    "$IMAGE" >/dev/null
+
+echo "$NAME"

@@ -10,7 +10,7 @@ RUN dnf -y update \
     && dnf -y install hostname htop net-tools iputils vim git sudo \
               openssh-server psmisc python-jedi procps-ng findutils tmux \
               expect python3-behave python3-hamcrest \
-    && dnf -y install python3-copr rpm-build copr-cli jq \
+    && dnf -y install python3-copr rpm-build copr-cli jq texinfo \
     && dnf -y install beakerlib util-linux-script \
     && dnf -y clean all
 
@@ -27,9 +27,12 @@ RUN echo 'export LANG=en_US.UTF-8' >> /root/.bashrc
 RUN echo 'set -g history-limit 40960' > /root/.tmux.conf
 
 COPY bashrc /root/.bashrc_copr
+COPY setup-local-copr.sh /usr/local/bin/setup-local-copr
 
-RUN echo "source /root/.bashrc_copr" >> /root/.bashrc
+RUN chmod +x /usr/local/bin/setup-local-copr \
+    && echo "source /root/.bashrc_copr" >> /root/.bashrc
 
+# Default to staging, can be overridden at runtime with setup-local-copr
 RUN echo -e "[tested-copr]\nhostname = copr.stg.fedoraproject.org\nprotocol = https\nport = 443\n" \
     >  /etc/dnf/plugins/copr.d/tested-copr.conf
 

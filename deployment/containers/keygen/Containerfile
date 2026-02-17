@@ -1,0 +1,40 @@
+FROM copr-base:latest
+
+LABEL description="COPR Keygen - GPG key generation and signing"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+RUN set -ex && \
+    groupadd -r copr-signer -g 992 && \
+    useradd -r copr-signer -u 993 -g 992 -G 0 -d /var/lib/copr-keygen
+
+# haveged provides entropy for GPG key generation
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-keygen \
+        haveged \
+        httpd \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-keygen
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    sed -i 's/Listen 80/#Listen 80/g' /etc/httpd/conf/httpd.conf && \
+    chmod g+rwx /var/log/httpd && \
+    chmod 0755 /usr/bin/sign && \
+    chown copr-signer:root /etc/sign.conf && \
+    chmod 0660 /etc/sign.conf && \
+    sed -i "s|getpass.getuser() != 'copr-signer'|False|" /usr/bin/gpg-copr && \
+    mkdir -p /var/run/signd /var/run/httpd && \
+    chown root:root /var/run/signd /var/run/httpd && \
+    chmod 0770 /var/run/signd /var/run/httpd && \
+    # Pre-create keygen directories with secure permissions
+    mkdir --mode=0700 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg && \
+    chown -R copr-signer:copr-signer /var/lib/copr-keygen
+
+USER copr-signer
+EXPOSE 5003 5167
+CMD ["/usr/sbin/httpd", "-DFOREGROUND"]

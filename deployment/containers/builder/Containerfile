@@ -1,0 +1,53 @@
+FROM copr-base:latest
+
+LABEL description="COPR Builder - RPM build worker"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-builder \
+        createrepo \
+        fedora-packager \
+        mock \
+        mock-lvm \
+        openssh-clients \
+        openssh-server \
+        rsync \
+        yum-utils \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-rpmbuild
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q && \
+    echo 'root:passwd' | chpasswd && \
+    mkdir -p /root/.ssh && \
+    chmod 700 /root /root/.ssh && \
+    # authorized_keys is pre-populated from build context (shared with backend)
+    touch /root/.ssh/authorized_keys && \
+    chmod 600 /root/.ssh/authorized_keys && \
+    # Configure mock to not use nspawn (not available in containers)
+    echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg && \
+    # Link EOL mock configs for broader chroot support
+    cd /etc/mock && \
+    for arch in aarch64 ppc64le s390x x86_64; do \
+        for distro in epel-6 epel-7; do \
+            test -f eol/$distro-$arch.cfg && ln -sf eol/$distro-$arch.cfg $distro-$arch.cfg || true; \
+        done; \
+        for distro in epel-8 epel-9; do \
+            test -f centos-stream+$distro-$arch.cfg && ln -sf centos-stream+$distro-$arch.cfg $distro-$arch.cfg || true; \
+        done; \
+    done
+
+# Ensure Python output is unbuffered so copr-rpmbuild task info
+# (including spec_generator) appears before mock output in builder-live.log.
+# SetEnv in sshd_config is the only reliable way for SSH command sessions.
+RUN echo 'SetEnv PYTHONUNBUFFERED=1' >> /etc/ssh/sshd_config
+
+EXPOSE 22
+ENTRYPOINT []
+CMD ["/usr/sbin/sshd", "-D"]

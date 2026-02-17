@@ -1,0 +1,24 @@
+# Patch: mount host source code into distgit containers for live development
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-distgit
+spec:
+  containers:
+    - name: distgit
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/dist-git:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+    - name: distgit-httpd
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+  volumes:
+    - name: copr-source
+      hostPath:
+        path: COPR_SOURCE_PATH
+        type: Directory
+

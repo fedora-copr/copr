@@ -1,0 +1,26 @@
+# Template for dynamically provisioned builder containers.
+# NOT deployed as a static pod - builders are created on-demand by resalloc.
+# In OpenShift, this would be adapted as a Job template.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-builder
+  labels:
+    app: copr
+    component: builder
+spec:
+  containers:
+    - name: builder
+      image: copr-builder:latest
+      ports:
+        - containerPort: 22
+          protocol: TCP
+      securityContext:
+        privileged: true
+      resources:
+        limits:
+          memory: "4Gi"
+          cpu: "2000m"
+  restartPolicy: Always
+

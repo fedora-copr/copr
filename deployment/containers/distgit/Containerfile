@@ -1,0 +1,47 @@
+FROM copr-base:latest
+
+LABEL description="COPR DistGit - source package management"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+ENV PYTHONPATH=/usr/share/copr/
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        cgit \
+        copr-dist-git \
+        python3-rpkg \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-dist-git
+
+RUN set -ex && \
+    rm -f /etc/httpd/conf.d/ssl.conf && \
+    echo 'AliasMatch "/repo(/.*)/md5(/.*)\" "/var/lib/dist-git/cache/lookaside\$1\$2"' >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
+    echo 'Alias /repo/ /var/lib/dist-git/cache/lookaside/' >> /etc/httpd/conf.d/dist-git/lookaside-copr.conf && \
+    sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf && \
+    mkdir -p /tmp/copr-dist-git /var/lock/copr-dist-git /home/copr-dist-git && \
+    chown copr-dist-git:packager /tmp/copr-dist-git && \
+    chown copr-dist-git:copr-dist-git /var/lock/copr-dist-git /var/lib/copr-dist-git && \
+    sed -i 's/^cache-size.*//' /etc/cgitrc && \
+    echo 'scan-path=/var/lib/dist-git/git/rpms' >> /etc/cgitrc
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    chmod 644 /etc/copr/copr-dist-git.conf && \
+    cat <<'EOF' > /home/copr-dist-git/.gitconfig
+[user]
+    email = copr-devel@lists.fedorahosted.org
+    name = Copr dist git
+EOF
+RUN set -ex && \
+    mkdir -p /home/copr-dist-git/.config /var/cache/cgit && \
+    chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig /home/copr-dist-git/.config && \
+    chown -R copr-dist-git:root /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock /var/cache/cgit && \
+    chmod -R g+rwX /etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock /var/cache/cgit
+
+USER copr-dist-git
+EXPOSE 5001
+CMD ["bash", "-c", "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher-dist-git imports"]

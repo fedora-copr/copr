@@ -1,0 +1,105 @@
+#!/bin/bash
+# Frontend init: initialize database, chroots, dev user, groups.
+# Runs once before httpd starts (as Kubernetes init container).
+
+set -e
+
+# Wait for database to be ready
+echo "Waiting for database..."
+for i in $(seq 1 60); do
+    if python3 -c "import psycopg2; psycopg2.connect('postgresql://copr-fe:coprpass@database:5432/coprdb')" 2>/dev/null; then
+        echo "Database is ready."
+        break
+    fi
+    if [ "$i" -eq 60 ]; then
+        echo "ERROR: Database not available after 60s" >&2
+        exit 1
+    fi
+    sleep 1
+done
+
+cd /usr/share/copr/coprs_frontend/
+
+# Initialize database if needed
+./manage.py create-db --alembic alembic.ini
+
+# Create chroots for development (including non-native arches for test coverage)
+for chroot in \
+    fedora-43-x86_64 fedora-43-i386 fedora-43-aarch64 \
+    fedora-43-ppc64le fedora-43-s390x \
+    fedora-42-x86_64 fedora-42-i386 fedora-42-aarch64 \
+    fedora-41-x86_64 fedora-41-i386 fedora-41-aarch64 \
+    fedora-rawhide-x86_64 fedora-rawhide-i386 fedora-rawhide-aarch64 \
+    epel-9-x86_64 epel-9-aarch64 epel-9-ppc64le epel-9-s390x \
+    epel-8-x86_64 epel-8-aarch64 epel-8-ppc64le \
+    epel-7-x86_64 \
+    epel-6-x86_64; do
+    ./manage.py create-chroot "$chroot" 2>/dev/null || true
+done
+
+# Rebuild search indexes if needed
+if ! ./manage.py update_indexes_required 2>/dev/null; then
+    echo "Rebuilding search indexes..."
+    ./manage.py update_indexes || true
+fi
+
+# Create directories (fallback)
+mkdir -p /var/www/html/db_dumps /var/www/html/usage 2>/dev/null || true
+
+# Create default development user (for local testing without real auth)
+DEV_USER="${TEST_REMOTE_USER:-jdoe}"
+if ! ./manage.py add-user "$DEV_USER" "${DEV_USER}@localhost" 2>/dev/null; then
+    echo "User $DEV_USER already exists"
+fi
+./manage.py alter-user "$DEV_USER" --admin || true
+echo "Development user '$DEV_USER' ready (admin)"
+
+# Create test groups, DistGit instances, and add user to them
+python3 << 'PYEOF'
+import sys
+sys.path.insert(0, '/usr/share/copr/coprs_frontend')
+from coprs import app, db
+from coprs.models import Group, User, DistGitInstance
+
+with app.app_context():
+    # Create groups
+    for name, fas_name in [('copr', 'gitcopr'), ('mock', 'gitmock')]:
+        if not Group.query.filter(Group.name == name).first():
+            db.session.add(Group(name=name, fas_name=fas_name))
+            print(f"Created group @{name}")
+
+    # Add external DistGit instances (fedora is auto-created)
+    distgits = [
+        {
+            "name": "centos",
+            "clone_url": "https://git.centos.org",
+            "clone_package_uri": "rpms/{pkgname}.git",
+            "priority": 90,
+        },
+        {
+            "name": "centos-stream",
+            "clone_url": "https://gitlab.com/redhat/centos-stream",
+            "clone_package_uri": "rpms/{pkgname}.git",
+            "priority": 80,
+        },
+    ]
+    for dg in distgits:
+        if not DistGitInstance.query.filter(DistGitInstance.name == dg["name"]).first():
+            db.session.add(DistGitInstance(**dg))
+            print(f"Created DistGit instance '{dg['name']}'")
+
+    # Add user to groups
+    user = User.query.filter(User.username == 'jdoe').first()
+    if user:
+        teams = ['gitcopr', 'gitmock']
+        existing = []
+        if user.openid_groups and isinstance(user.openid_groups, dict):
+            existing = user.openid_groups.get('fas_groups', [])
+        merged = list(set(existing + teams))
+        user.openid_groups = {"fas_groups": merged}
+
+    db.session.commit()
+PYEOF
+
+echo "Frontend initialization complete."
+

@@ -1,0 +1,27 @@
+# Patch: mount host source code into frontend for live development
+apiVersion: v1
+kind: Pod
+metadata:
+  name: copr-frontend
+spec:
+  initContainers:
+    - name: frontend-init
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/frontend/coprs_frontend:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+  containers:
+    - name: frontend
+      env:
+        - name: PYTHONPATH
+          value: "/opt/copr/frontend/coprs_frontend:/opt/copr/common"
+      volumeMounts:
+        - name: copr-source
+          mountPath: /opt/copr
+  volumes:
+    - name: copr-source
+      hostPath:
+        path: COPR_SOURCE_PATH
+        type: Directory
