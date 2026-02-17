@@ -1929,13 +1929,13 @@ class CoprChroot(db.Model, helpers.Serializer):
         Return how soon the chroot is going to be deleted (expired).
         The largest unit we use is a day and the smallest is an hour. When the
         remaining time is just a couple of minutes or seconds, we just say that
-        it is "less then an hour".
+        it is "less than an hour".
         """
         if self.delete_after is None:
             return None
 
         if self.delete_after_expired:
-            return "To be removed in next cleanup"
+            return "to be removed in the next cleanup"
 
         delta = self.delete_after - datetime.datetime.now()
         if delta.days:
@@ -1944,7 +1944,7 @@ class CoprChroot(db.Model, helpers.Serializer):
         hours = int(round(delta.seconds / 3600))
         if hours:
             return "{0} hours".format(hours)
-        return "less then an hour"
+        return "less than an hour"
 
     @property
     def module_setup_commands(self):

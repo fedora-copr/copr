@@ -19,7 +19,7 @@ then
     repoquery --repofrompath=query,$CHROOT_PATH --repoid=query -a --location 2>$ERR_LOG \
         | cut -c8- > $LATEST_PKGS
 
-    # Remove builds older then $DAYS days and which have newer builds available
+    # Remove builds older than $DAYS days and which have newer builds available
     for SUCCESS in $(find -name success -mtime +$DAYS); do
         DIR=$(basename $(dirname $SUCCESS))
         echo "# checking dir: " $DIR

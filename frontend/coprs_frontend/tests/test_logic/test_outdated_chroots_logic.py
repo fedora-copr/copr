@@ -224,7 +224,7 @@ class TestOutdatedChrootsLogic(CoprsTestCase):
         assert chroot.delete_after_humanized == "12 hours"
 
         chroot.delete_after = datetime.now() + timedelta(minutes=30)
-        assert chroot.delete_after_humanized == "less then an hour"
+        assert chroot.delete_after_humanized == "less than an hour"
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_outdated_chroots_expired(self):
