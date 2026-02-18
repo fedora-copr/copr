@@ -118,7 +118,7 @@ class Storage:
         """
         raise NotImplementedError
 
-    def fork_project(self, src_fullname, dst_fullname, builds_map):
+    def fork_project(self, src_fullname, dst_fullname, builds_map, createrepo=True):
         """
         Fork build results from one project to another
         """
@@ -234,7 +234,7 @@ class BackendStorage(Storage):
         self.log.info("Checking that %s exists", repodata)
         return os.path.exists(repodata)
 
-    def fork_project(self, src_fullname, dst_fullname, builds_map):
+    def fork_project(self, src_fullname, dst_fullname, builds_map, createrepo=True):
         dst_owner, dst_project = dst_fullname.split("/")
         old_path = os.path.join(self.opts.destdir, src_fullname)
         new_path = os.path.join(self.opts.destdir, dst_fullname)
@@ -267,7 +267,7 @@ class BackendStorage(Storage):
                     chroot_paths.add(new_chroot_path)
 
         for chroot_path in chroot_paths:
-            if not call_copr_repo(chroot_path, logger=self.log):
+            if createrepo and not call_copr_repo(chroot_path, logger=self.log):
                 return False
         return True
 
@@ -547,7 +547,7 @@ class PulpStorage(Storage):
             return False
         return True
 
-    def fork_project(self, src_fullname, dst_fullname, builds_map):
+    def fork_project(self, src_fullname, dst_fullname, builds_map, createrepo=True):
         _dst_owner, dst_project = dst_fullname.split("/")
         for chroot, src_dst_dir in builds_map.items():
             if not chroot or not src_dst_dir:
@@ -585,7 +585,7 @@ class PulpStorage(Storage):
                 )
 
             repository = self._get_repository(chroot)
-            if not self.client.create_publication(repository):
+            if createrepo and not self.client.create_publication(repository):
                 self.log.error("Failed to publish a repository")
                 return False
 
