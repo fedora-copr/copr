@@ -54,11 +54,12 @@ def pending_all():
     })
 
     project_stats = Counter()
+    project_coprs = {}
     background_stats = Counter()
     chroot_stats = Counter()
     architecture_stats = Counter()
 
-    def _calc_task(owner_name, project_name, chroot_name, architecture, background):
+    def _calc_task(owner_name, project_name, chroot_name, architecture, background, copr):
         owner_stats[owner_name] += 1
         owner = owner_substats[owner_name]
         owner["projects"][project_name] += 1
@@ -66,6 +67,8 @@ def pending_all():
         owner["background"][background] += 1
         owner["architecture"][architecture] += 1
         project_stats[project_name] += 1
+        if project_name not in project_coprs:
+            project_coprs[project_name] = copr
         chroot_stats[chroot_name] += 1
         background_stats[background] += 1
         architecture_stats[architecture] += 1
@@ -78,6 +81,7 @@ def pending_all():
             task.mock_chroot.name,
             task.mock_chroot.arch,
             task.build.is_background,
+            task.build.copr,
         )
 
     srpm_tasks = builds_logic.BuildsLogic.get_pending_srpm_build_tasks(data_type="overview").all()
@@ -88,6 +92,7 @@ def pending_all():
             "srpm-builds",
             "noarch",
             task.is_background,
+            task.copr,
         )
 
     calculated_stats = {
@@ -102,6 +107,7 @@ def pending_all():
     return flask.render_template(
         "status_overview.html",
         stats=calculated_stats,
+        project_coprs=project_coprs,
         state_of_tasks="pending",
         cache_seconds=PENDING_ALL_CACHE_SECONDS,
     )
