@@ -19,6 +19,8 @@ from coprs.measure import checkpoint_start
 from coprs.auth import UserAuth, OpenIDConnect
 from coprs.oidc import oidc_enabled, oidc_username_from_userinfo
 from coprs import oidc
+from coprs.constants import DEFAULT_ROBOTS_TXT
+
 
 @app.before_request
 def before_request():
@@ -313,3 +315,17 @@ def api_login_required(endpoint_method):
 
         return endpoint_method(self, *args, **kwargs)
     return check_if_api_login_is_required
+
+
+@misc.route("/robots.txt")
+def robots_txt():
+    """
+    Robots.txt for managing crawler and AI agent access, if no robots.txt is found
+    prohibit everything.
+    """
+    try:
+        with flask.current_app.open_resource("static/robots.txt") as f:
+            content = f.read().decode("utf-8")
+            return flask.Response(content, mimetype="text/plain")
+    except FileNotFoundError:
+        return flask.Response(DEFAULT_ROBOTS_TXT, mimetype="text/plain")
