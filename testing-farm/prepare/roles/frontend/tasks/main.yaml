@@ -1,4 +1,7 @@
 ---
+- name: Enable @copr/copr-dev
+  command: dnf -y copr enable @copr/copr-dev
+
 - name: install needed packages
   package:
     name:
