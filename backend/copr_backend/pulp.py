@@ -215,7 +215,7 @@ class PulpClient:
 
     def __init__(self, config, log=None, opts=None):
         self.config = config
-        self.timeout = 60
+        self.timeout = 60 * 5
         self.log = log or logging.getLogger(__name__)
         self.opts = opts
 
