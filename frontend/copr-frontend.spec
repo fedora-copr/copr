@@ -115,6 +115,7 @@ BuildRequires: python3dist(pygal)
 BuildRequires: redis
 BuildRequires: modulemd-tools >= 0.6
 BuildRequires: python3dist(authlib)
+BuildRequires: python3-sentry-sdk+flask
 %endif
 
 Requires: crontabs
@@ -171,6 +172,7 @@ Requires: js-jquery-ui
 Requires: python3dist(xstatic-patternfly)
 Requires: modulemd-tools >= 0.6
 Requires: python3dist(authlib)
+Requires: python3-sentry-sdk+flask
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4

@@ -4,7 +4,11 @@
 Process one Build task provided by frontend (on backend).
 """
 
+import sentry_sdk
 from copr_backend.background_worker_build import BuildBackgroundWorker
 
 if __name__ == "__main__":
-    BuildBackgroundWorker().process()
+    worker = BuildBackgroundWorker()
+    if worker.opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=worker.opts["sentry_dsn"])
+    worker.process()
