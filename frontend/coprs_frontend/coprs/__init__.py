@@ -17,6 +17,11 @@ from flask_whooshee import Whooshee
 
 from coprs.request import get_request_class
 from redis import StrictRedis
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
 
 app = flask.Flask(__name__)
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
@@ -38,6 +43,17 @@ app.config["SESSION_REDIS"] = StrictRedis(
     port=app.config["REDIS_PORT"],
     db=1,
 )
+
+if app.config["SENTRY_DSN"]:
+    sentry_sdk.init(
+        dsn=app.config["SENTRY_DSN"],
+        integrations=[
+            FlaskIntegration(),
+            SqlalchemyIntegration(),
+            RedisIntegration(),
+        ],
+    )
+
 
 session = Session(app)
 

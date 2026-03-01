@@ -53,6 +53,7 @@ BuildRequires: python3-tabulate
 BuildRequires: python3-zstandard
 BuildRequires: python3-cachetools
 BuildRequires: python3-libdnf5
+BuildRequires: python3-sentry-sdk
 BuildRequires: prunerepo >= %prunerepo_version
 BuildRequires: resalloc-server
 BuildRequires: dnf
@@ -93,6 +94,7 @@ Requires:   redis
 Requires:   rpm-sign
 Requires:   rsync
 Requires:   python3-libdnf5
+Requires:   python3-sentry-sdk
 Recommends: util-linux-core
 Requires:   zstd
 

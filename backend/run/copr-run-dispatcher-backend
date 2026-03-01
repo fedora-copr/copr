@@ -6,6 +6,7 @@ dispatchers from our systemd unit files.
 """
 
 import sys
+import sentry_sdk
 
 from copr_backend.daemons.action_dispatcher import ActionDispatcher
 from copr_backend.daemons.build_dispatcher import BuildDispatcher
@@ -23,7 +24,11 @@ def _main():
         raise NotImplementedError(
             "Not implemented '{}' dispatcher".format(request))
 
-    dispatcher(backend_opts=get_backend_opts()).run()
+    opts = get_backend_opts()
+    if opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=opts["sentry_dsn"])
+
+    dispatcher(backend_opts=opts).run()
 
 
 if __name__ == "__main__":

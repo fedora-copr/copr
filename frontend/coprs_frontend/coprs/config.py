@@ -214,6 +214,9 @@ class Config(object):
     # configured in Lighttpd
     PULP_CONTENT_URL = None
 
+    # Optionally enable Sentry integration by providing your project DSN
+    SENTRY_DSN = None
+
 
 class ProductionConfig(Config):
     DEBUG = False
