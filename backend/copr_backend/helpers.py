@@ -314,6 +314,9 @@ class BackendConfigReader(object):
         opts.sign_domain = _get_conf(
             cp, "backend", "sign_domain", DOMAIN)
 
+        opts.sentry_dsn = _get_conf(
+            cp, "backend", "sentry_dsn", None)
+
         opts.build_groups = []
         for group_id in range(opts.build_groups_count):
             archs = _get_conf(cp, "backend",

@@ -7,6 +7,7 @@ Process one import task provided by frontend (on distgit).
 import os
 import sys
 import requests
+import sentry_sdk
 from copr_common.background_worker import BackgroundWorker
 from copr_dist_git.helpers import get_distgit_opts
 from copr_dist_git.importer import Importer
@@ -64,4 +65,6 @@ class ImportBackgroundWorker(BackgroundWorker):
 
 if __name__ == "__main__":
     worker = ImportBackgroundWorker()
+    if worker.opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=worker.opts["sentry_dsn"])
     worker.process()

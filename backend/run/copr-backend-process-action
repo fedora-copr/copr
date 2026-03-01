@@ -4,6 +4,7 @@
 Process one Action task provided by frontend (on backend).
 """
 
+import sentry_sdk
 from copr_common.enums import BackendResultEnum
 
 from copr_backend.background_worker import BackendBackgroundWorker
@@ -52,4 +53,6 @@ class ActionBackgroundWorker(BackendBackgroundWorker):
 
 if __name__ == "__main__":
     worker = ActionBackgroundWorker()
+    if worker.opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=worker.opts["sentry_dsn"])
     worker.process()

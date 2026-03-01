@@ -24,6 +24,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-redis
 BuildRequires: python3-setproctitle
+BuildRequires: python3-sentry-sdk
 
 Recommends: logrotate
 Requires: systemd
@@ -39,6 +40,7 @@ Requires: python3-munch
 Requires: python3-setproctitle
 Requires: python3-daemon
 Requires: python3-redis
+Requires: python3-sentry-sdk
 Requires: findutils
 Requires: (copr-selinux if selinux-policy-targeted)
 Requires: crontabs
