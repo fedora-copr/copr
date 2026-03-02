@@ -33,7 +33,8 @@
 %templatedir/documentation_cards.html           \
 %templatedir/welcome.html                       \
 %templatedir/contact_us.html                    \
-%templatedir/sponsors.html
+%templatedir/sponsors.html                      \
+%templatedir/robots.txt
 
 %global devel_files \
 %flavor_generator
