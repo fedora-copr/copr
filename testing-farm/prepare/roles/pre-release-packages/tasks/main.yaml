@@ -19,6 +19,12 @@
   community.general.copr:
     name: '@copr/copr-dev'
 
+- name: "avoid TF's priority hack"
+  replace:
+    path: /etc/yum.repos.d/tag-repository.repo
+    regexp: '^priority=.*'
+    replace: ''
+
 - name: install packages needed when testing
   package:
     name:
