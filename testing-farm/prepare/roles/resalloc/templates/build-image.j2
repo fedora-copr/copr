@@ -2,6 +2,8 @@
 
 args=()
 
+dnf -y copr enable @copr/copr-dev
+
 if test -f /tmp/install-copr-rpmbuild; then
     args=(
         --build-arg=PULL_REQUEST_ID={{ pull_request_id }}

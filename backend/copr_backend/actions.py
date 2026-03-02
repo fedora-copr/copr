@@ -228,6 +228,7 @@ class Fork(Action, GPGMixin):
                 "src_fullname": self.data["old_value"],
                 "dst_fullname": self.data["new_value"],
                 "builds_map": builds_map,
+                "createrepo": isinstance(self.storage, BackendStorage)
             }
 
             # It doesn't matter what storage is used, we need to fork on
@@ -236,6 +237,7 @@ class Fork(Action, GPGMixin):
                 result = BackendResultEnum("failure")
 
             if isinstance(self.storage, PulpStorage):
+                kwargs["createrepo"] = True
                 if not self.storage.fork_project(**kwargs):
                     result = BackendResultEnum("failure")
 
