@@ -31,6 +31,7 @@ BuildRequires: systemd
 BuildRequires: util-linux
 
 BuildRequires: python3-devel
+BuildRequires: hello
 
 BuildRequires: python3-copr
 BuildRequires: python3-copr-common >= %copr_common_version
