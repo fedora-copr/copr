@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.11.hotfix
+Version:    2.11.hotfix.2.1
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -238,6 +238,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Mar 03 2026 Jakub Kadlcik <frostyx@email.cz> 2.11.hotfix.2.1-1
+- backend: increase Pulp timeouts
+
 * Sun Jan 11 2026 Pavel Raiskup <pavel@raiskup.cz> 2.11.hotfix-1
 - backend: temporarily retain all repository packages
 
