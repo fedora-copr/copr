@@ -184,5 +184,8 @@ doctest:
 # See https://github.com/fedora-copr/copr/issues/828
 deps:
 	sudo dnf builddep ../frontend/copr-frontend.spec
-	sudo dnf install python3-eralchemy
-	sudo dnf install python*-sphinx_rtd_theme
+	sudo dnf install \
+		python3-eralchemy \
+		python*-sphinx_rtd_theme \
+		python3-pygraphviz \
+		plantuml
