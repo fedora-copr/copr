@@ -1,7 +1,7 @@
-%global copr_common_version 0.25.1~~dev0
+%global copr_common_version 1.5.1
 
 Name:       copr-dist-git
-Version:    1.3
+Version:    1.5
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
