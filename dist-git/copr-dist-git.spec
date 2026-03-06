@@ -1,4 +1,4 @@
-%global copr_common_version 0.25.1~~dev0
+%global copr_common_version 1.5~~dev0
 
 Name:       copr-dist-git
 Version:    1.3

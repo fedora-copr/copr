@@ -21,13 +21,21 @@ class SafeRequest:
     SLEEP_INCREMENT_TIME = 5
 
     def __init__(self, auth=None, cert=None, log=None,
-                 try_indefinitely=False, timeout=2 * 60, user_agent=None):
+                 try_indefinitely=False, timeout=30, attempts=None,
+                 user_agent=None):
         # pylint: disable=too-many-positional-arguments
         self.auth = auth
         self.cert = cert
         self.log = log
-        self.try_indefinitely = try_indefinitely
         self.timeout = timeout
+
+        if attempts and try_indefinitely:
+            raise ValueError("Can't set both attempts and try_indefinitely")
+        if not attempts and not try_indefinitely:
+            attempts = 5
+
+        self.attempts = attempts
+        self.try_indefinitely = try_indefinitely
 
         # Use package name and version for the user agent
         self.package_name = 'copr-common'
@@ -76,7 +84,7 @@ class SafeRequest:
             elif self.auth:
                 req_args["auth"] = self.auth
             req_args["headers"] = headers
-            req_args["timeout"] = self.timeout / 5
+            req_args["timeout"] = self.timeout
             method = method.lower()
             if method in ["post", "put", "patch"]:
                 req_args["data"] = data if files else json.dumps(data)
@@ -110,19 +118,16 @@ class SafeRequest:
 
     def _send_request_repeatedly(self, url, method, data=None, **kwargs):
         """
-        Repeat the request until it succeeds, or timeout is reached.
+        Repeat the request until it succeeds, or number of attempts is reached.
         """
         sleep = self.SLEEP_INCREMENT_TIME
-        start = time.time()
-        stop = start + self.timeout
-
         i = 0
         while True:
             i += 1
-            if not self.try_indefinitely and time.time() > stop:
+            if not self.try_indefinitely and i > self.attempts:
                 raise RequestError(
                     "Attempt to talk to server timeouted "
-                    "(we gave it {} attempts)".format(i))
+                    "(we gave it {} attempts)".format(self.attempts))
 
             try:
                 return self._send_request(url, method=method, data=data,
