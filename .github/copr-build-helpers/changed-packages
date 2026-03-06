@@ -13,7 +13,7 @@ dump_package_name() {
     separator=", "
 }
 
-./releng/detect-changed-packages | \
+PYTHON_PKG_SUFFIX="" ./releng/detect-changed-packages | \
 while read -r package; do
     dump_package_name "$package"
 done
