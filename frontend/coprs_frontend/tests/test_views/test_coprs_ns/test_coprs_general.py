@@ -84,6 +84,25 @@ class TestCoprsOwned(CoprsTestCase):
         r = self.test_client.get("/coprs/{0}/".format(self.u1.name))
         assert r.data.count(b'<!--copr-project-->') == 1
 
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_customize_user_profile_description(self):
+        self.db.session.add(self.u1)
+        response = self.test_client.post(
+            "/user/customize-profile/",
+            data={"profile_description": "<blink>bio</blink>\n\n```python\nprint('hello')\n```"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+
+        user = self.models.User.query.filter(models.User.id == self.u1.id).first()
+        assert "bio" in user.profile_description
+
+        show = self.test_client.get("/coprs/{0}/".format(self.u1.name))
+        page = show.data.decode("utf-8")
+        assert "bio" in page
+        assert "<blink>" not in page
+        assert "language-python" in page
 
 class TestCoprNew(CoprsTestCase):
     success_string = "New project has been created successfully."

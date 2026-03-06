@@ -97,7 +97,7 @@ footer > div{
   background-repeat: repeat-x;
   height: 75px;
   color: white;
-  //margin-bottom: 30px;
+  /*margin-bottom: 30px;*/
 }
 
 #main-bar .container {
@@ -166,7 +166,7 @@ div.breadcrumb-panel ol.breadcrumb {
 }
 
 #profile {
-  height: 88px;
+  min-height: 88px;
 }
 
 #profile h1 {
@@ -177,10 +177,33 @@ div.breadcrumb-panel ol.breadcrumb {
   color: #ddd;
 }
 
-#profile img {
+#profile .profile-description p {
+  color: #555;
+}
+
+#profile > img.avatar {
   float: left;
   margin-right: 20px;
 }
+
+.profile-description {
+  clear: both;
+  padding-top: 10px;
+}
+
+.profile-description img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+
+#profile .profile-description hr {
+  border: 0;
+  border-top: 1px solid #bbb;
+  margin: 14px 0;
+}
+
 
 img.avatar {
   padding: 4px;
