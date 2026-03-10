@@ -5,6 +5,7 @@ Test Pulp client
 # pylint: disable=attribute-defined-outside-init
 
 from unittest.mock import Mock
+import pytest
 from copr_backend.pulp import PulpClient
 
 
@@ -113,3 +114,28 @@ class TestPulp:
 
         assert not response.ok
         assert client.send.call_count == 1
+
+    def test_get_content_build_ids_batched(self):
+        client = PulpClient(self.config)
+        results = [{"prn": f"rpm-{i}"} for i in range(50)]
+        mock_response = self.create_mock_response(results, 50, next_url=None)
+        client.send = Mock(return_value=mock_response)
+
+        build_ids = list(range(25))
+        response = client.get_content(build_ids, fields=["prn"])
+        assert client.send.call_count == 4
+        assert client.send.call_args_list[0].args[1].count("build_id") == 7
+        assert client.send.call_args_list[1].args[1].count("build_id") == 7
+        assert client.send.call_args_list[2].args[1].count("build_id") == 7
+        assert client.send.call_args_list[3].args[1].count("build_id") == 4
+
+        assert response.ok
+        assert response.json()["count"] == 200
+
+    def test_get_content_build_ids_empty(self):
+        client = PulpClient(self.config)
+        client.send = Mock()
+        with pytest.raises(ValueError) as ex:
+            client.get_content([], fields=["prn"])
+        assert "Content must be queried for specific builds" in str(ex)
+        assert not client.send.called
