@@ -145,10 +145,9 @@ Requires: yum-utils
 %latest_requires dnf5-plugins
 %endif
 
-%latest_requires python3-dnf
+%latest_requires python3-dnf5
 %latest_requires dist-git-client
-%latest_requires dnf-plugins-core
-%latest_requires libdnf
+%latest_requires libdnf5
 %latest_requires librepo
 %latest_requires libsolv
 %latest_requires mock
