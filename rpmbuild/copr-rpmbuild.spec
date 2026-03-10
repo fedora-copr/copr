@@ -107,12 +107,6 @@ build build-id 12345 for chroot epel-7-x86_64.
 Summary: copr-rpmbuild with all weak dependencies
 Requires: %{name} = %{version}-%{release}
 
-%if 0%{?fedora} && 0%{?fedora} < 41
-# replacement for yum/yum-utils, to be able to work with el* chroots
-# bootstrap_container.
-Requires: dnf-yum
-Requires: dnf-utils
-%endif
 # selinux toolset to allow running ansible against the builder
 Requires: python3-libselinux
 Requires: python3-libsemanage
@@ -151,10 +145,9 @@ Requires: yum-utils
 %latest_requires dnf5-plugins
 %endif
 
-%latest_requires python3-dnf
+%latest_requires python3-dnf5
 %latest_requires dist-git-client
-%latest_requires dnf-plugins-core
-%latest_requires libdnf
+%latest_requires libdnf5
 %latest_requires librepo
 %latest_requires libsolv
 %latest_requires mock
