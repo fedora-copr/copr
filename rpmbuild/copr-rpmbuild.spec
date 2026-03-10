@@ -145,17 +145,19 @@ Requires: yum-utils
 %latest_requires dnf5-plugins
 %endif
 
-%latest_requires python3-dnf
+%latest_requires python3-dnf5
 %latest_requires dist-git-client
-%latest_requires dnf-plugins-core
-%latest_requires libdnf
+%latest_requires libdnf5
 %latest_requires librepo
 %latest_requires libsolv
 %latest_requires mock
 %latest_requires mock-core-configs
 %latest_requires system-rpm-config
 %latest_requires rpm
-
+# Old DNF4 compability and builds without bootstrap - remove when DNF4 disappear from the repo
+%latest_requires python3-dnf
+%latest_requires dnf-plugins-core
+%latest_requires libdnf
 
 %description -n copr-builder
 Provides command capable of running COPR build-tasks.
