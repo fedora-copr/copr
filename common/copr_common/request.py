@@ -126,7 +126,7 @@ class SafeRequest:
             i += 1
             if not self.try_indefinitely and i > self.attempts:
                 raise RequestError(
-                    "Attempt to talk to server timeouted "
+                    "The server didn't return a successful response "
                     "(we gave it {} attempts)".format(self.attempts))
 
             try:
