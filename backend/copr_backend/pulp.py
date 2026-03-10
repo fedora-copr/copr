@@ -9,6 +9,7 @@ import os
 import time
 import tomllib
 import hashlib
+from itertools import batched
 from urllib.parse import urlencode
 
 from copr_common.request import SafeRequest
@@ -612,6 +613,20 @@ class PulpClient:
         Get a list of PRNs for RPMs with provided build ids
         https://pulpproject.org/pulp_rpm/restapi/#tag/Content:-Packages/operation/content_rpm_packages_list
         """
+        if not build_ids:
+            raise ValueError("Content must be queried for specific builds")
+
+        all_results = []
+        # We need to chunk the `build_ids` into lists of only 7 items otherwise
+        # we are going to hit validation error from Pulp
+        # See https://github.com/fedora-copr/copr/issues/4187
+        # See https://github.com/pulp/pulpcore/issues/7435
+        for batch in batched(build_ids, 7):
+            results, response = self._get_content(batch, chroot, fields)
+            all_results.extend(results)
+        return PaginatedResponse(all_results, response)
+
+    def _get_content(self, build_ids, chroot=None, fields=None):
         query = "("
         for i, build_id in enumerate(build_ids):
             if i:
@@ -650,7 +665,7 @@ class PulpClient:
             offset += limit
 
         self.log.info("Pulp: get_content: fetched %d items", len(all_results))
-        return PaginatedResponse(all_results, response)
+        return all_results, response
 
     def delete_repository(self, repository):
         """
