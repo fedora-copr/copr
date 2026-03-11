@@ -14,7 +14,6 @@ from contextlib import suppress
 
 import configparser
 from configparser import ConfigParser
-
 from operator import methodcaller
 
 import traceback
@@ -26,6 +25,7 @@ import subprocess
 
 import munch
 from munch import Munch
+import yaml
 
 from copr_common.redis_helpers import get_redis_connection
 from copr.v3 import Client
@@ -249,6 +249,25 @@ def _get_limits_conf(parser):
     return limits
 
 
+def _load_rpmeta_hw_info(config_path):
+    """
+    Load rpmeta hardware pool definitions from a YAML file.
+    Returns an empty dict if the file is missing or unparseable.
+    """
+    log = logging.getLogger(__name__)
+    if not config_path or not os.path.exists(config_path):
+        log.warning("rpmeta: HW pools config not found at %s, "
+                     "predictions disabled", config_path)
+        return {}
+    try:
+        with open(config_path, "r", encoding="utf-8") as fh:
+            return yaml.safe_load(fh) or {}
+    except (yaml.YAMLError, OSError) as exc:
+        log.warning("rpmeta: failed to parse HW pools config %s: %s",
+                     config_path, exc)
+        return {}
+
+
 class BackendConfigReader(object):
     def __init__(self, config_file=None, ext_opts=None):
         self.config_file = config_file or "/etc/copr/copr-be.conf"
@@ -273,7 +292,7 @@ class BackendConfigReader(object):
                 "Error parsing config file: {0}: {1}".format(
                     self.config_file, e))
 
-    def _read_unsafe(self):
+    def _read_unsafe(self):  # pylint: disable=too-many-statements
         cp = ConfigParser()
         cp.read(self.config_file)
 
@@ -434,6 +453,18 @@ class BackendConfigReader(object):
         opts.msg_buses = []
         for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
             opts.msg_buses.append(pyconffile(bus_config))
+
+        # rpmeta integration
+        opts.rpmeta_enabled = _get_conf(
+            cp, "backend", "rpmeta_enabled", False, mode="bool")
+        opts.rpmeta_url = _get_conf(
+            cp, "backend", "rpmeta_url", None)
+        opts.rpmeta_timeout = _get_conf(
+            cp, "backend", "rpmeta_timeout", 5, mode="int")
+        rpmeta_hw_pools_config = _get_conf(
+            cp, "backend", "rpmeta_hw_pools_config",
+            "/etc/copr/rpmeta-hw-pools.yaml")
+        opts.rpmeta_hw_info = _load_rpmeta_hw_info(rpmeta_hw_pools_config)
 
         # thoughts for later
         # ssh key for connecting to builders?
