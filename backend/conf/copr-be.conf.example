@@ -101,6 +101,14 @@ prune_days=14
 # e.g. format: user#projectname@copr.{sign_domain}
 #sign_domain=fedorahosted.org
 
+# rpmeta - tooling for effecient hardware allocation for RPM builds
+# When enabled, backend queries rpmeta before allocating a VM
+#rpmeta_enabled=false
+#rpmeta_url=https://rpmeta.fedorainfracloud.org
+#rpmeta_timeout=5
+# Mapping to hardware resources we have
+#rpmeta_hw_pools_config=/etc/copr/rpmeta-hw-pools.yaml
+
 [builder]
 # default is 1800
 timeout=3600
