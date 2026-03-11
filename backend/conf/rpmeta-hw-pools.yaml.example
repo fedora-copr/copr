@@ -1,0 +1,35 @@
+# Hardware specs of builder machines per architecture.
+# Used by copr-backend to call rpmeta with the correct HW info.
+# Update when builder hardware changes.
+
+x86_64:
+  cpu_model_name: "AMD EPYC 7R13 Processor"
+  cpu_arch: "x86_64"
+  cpu_model: "1"
+  cpu_cores: 4
+  ram: 16.0
+  swap: 0.0
+
+aarch64:
+  cpu_model_name: "Neoverse-N1"
+  cpu_arch: "aarch64"
+  cpu_model: "1"
+  cpu_cores: 4
+  ram: 16.0
+  swap: 0.0
+
+ppc64le:
+  cpu_model_name: "POWER9"
+  cpu_arch: "ppc64le"
+  cpu_model: "2"
+  cpu_cores: 8
+  ram: 32.0
+  swap: 0.0
+
+s390x:
+  cpu_model_name: "IBM z15"
+  cpu_arch: "s390x"
+  cpu_model: "8561"
+  cpu_cores: 4
+  ram: 16.0
+  swap: 0.0

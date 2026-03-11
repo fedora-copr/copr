@@ -434,6 +434,17 @@ class BackendConfigReader(object):
         for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
             opts.msg_buses.append(pyconffile(bus_config))
 
+        # rpmeta integration
+        opts.rpmeta_enabled = _get_conf(
+            cp, "backend", "rpmeta_enabled", False, mode="bool")
+        opts.rpmeta_url = _get_conf(
+            cp, "backend", "rpmeta_url", None)
+        opts.rpmeta_timeout = _get_conf(
+            cp, "backend", "rpmeta_timeout", 5, mode="int")
+        opts.rpmeta_hw_pools_config = _get_conf(
+            cp, "backend", "rpmeta_hw_pools_config",
+            "/etc/copr/rpmeta-hw-pools.yaml")
+
         # thoughts for later
         # ssh key for connecting to builders?
         # cloud key stuff?
