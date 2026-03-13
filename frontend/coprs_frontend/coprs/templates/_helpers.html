@@ -314,6 +314,15 @@
 {%- endmacro %}
 
 
+{% macro owner_detail_url(owner) %}
+  {% if owner.at_name is defined %}
+    {{ url_for('groups_ns.list_projects_by_group', group_name=owner.name) }}
+  {% else %}
+    {{ url_for('coprs_ns.coprs_by_user', username=owner.name) }}
+  {% endif %}
+{% endmacro %}
+
+
 {% macro user_projects_panel(user) %}
   <div class="panel panel-default">
     <div class="panel-heading">
@@ -1006,7 +1015,8 @@
 
 
 {% macro projects_header(new_project=True, fedora_review=True,
-                         customize_pinned=True, my_projects=True) %}
+                         customize_pinned=True, my_projects=True,
+                         customize_profile=False) %}
 <div class="btn-group pull-right" role="group">
 
   {% if new_project %}
@@ -1032,6 +1042,13 @@
   <a href="{{ url_for('user_ns.pinned_projects') }}"
      class="btn button-new btn-default">
     <span class="pficon pficon-edit"></span> Customize Pinned
+  </a>
+  {% endif %}
+
+  {% if customize_profile %}
+  <a href="{{ url_for('user_ns.profile_description') }}"
+     class="btn button-new btn-default">
+    <span class="pficon pficon-edit"></span> Customize Profile
   </a>
   {% endif %}
 
