@@ -4,12 +4,14 @@ import json
 import pprint
 import sys
 import os
-import requests
 import re
+from urllib.parse import urlparse
+
 import munch
-import subprocess
 
 from sqlalchemy.sql import text
+
+from copr_common.request import SafeRequest, RequestError
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -24,7 +26,6 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs import helpers
 
-from urllib.parse import urlparse
 
 SUPPORTED_SOURCE_TYPES = [
     helpers.BuildSourceEnum("scm"),
@@ -37,17 +38,20 @@ TOPICS = {}
 for topic, url in app.config["PAGURE_EVENTS"].items():
     TOPICS['{0}'.format(topic)] = url
 
+
 def get_repeatedly(url):
     log.info("getting url {}".format(url))
-    for attempt in range(1, 4):
-        r = requests.get(url)
-        if r.status_code == requests.codes.ok:
-            return r.text
-        else:
-            log.error('Bad http status {0} from url {1}, attempt {2}'.format(
-                r.status_code, url, attempt))
-    # pagure down?
-    return ""
+    try:
+        response = SafeRequest(
+            log=log,
+            try_indefinitely=False,
+            timeout=300,
+        ).get(url)
+        return response.text
+    except RequestError:
+        log.exception("can't get pagure info")
+        return ""
+
 
 class ScmPackage(object):
     def __init__(self, db_row):
