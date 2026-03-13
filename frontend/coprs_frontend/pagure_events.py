@@ -46,6 +46,7 @@ def get_repeatedly(url):
             log=log,
             try_indefinitely=False,
             timeout=300,
+            user_agent="packit.dev/packit",
         ).get(url)
         return response.text
     except RequestError:
