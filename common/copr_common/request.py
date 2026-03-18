@@ -2,6 +2,7 @@
 Common Copr code for dealing with HTTP requests
 """
 
+import logging
 import json
 import time
 import requests
@@ -27,6 +28,11 @@ class SafeRequest:
         self.auth = auth
         self.cert = cert
         self.log = log
+        if log is None:
+            self.log = logging.getLogger("noop_logger")
+            if not self.log.handlers:
+                self.log.addHandler(logging.NullHandler())
+
         self.timeout = timeout
 
         if attempts and try_indefinitely:
