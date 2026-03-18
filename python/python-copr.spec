@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.5
+Version:    2.5.1
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 

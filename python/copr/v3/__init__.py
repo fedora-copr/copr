@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from .helpers import config_from_file, wait
+from .helpers import config_from_file, wait, DEFAULT_CONFIG_PATH
 from .client import Client
 from .proxies import BaseProxy
 from .proxies.project import ProjectProxy
@@ -19,6 +19,7 @@ from .exceptions import (CoprException,
 
 
 __all__ = [
+    "DEFAULT_CONFIG_PATH",
     "config_from_file",
     "wait",
     "Client",
