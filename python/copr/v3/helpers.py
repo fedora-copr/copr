@@ -8,6 +8,9 @@ from munch import Munch
 from .exceptions import CoprConfigException, CoprException
 
 
+DEFAULT_CONFIG_PATH = os.path.expanduser(os.path.join("~", ".config", "copr"))
+
+
 class List(list):
     def __init__(self, items, meta=None, response=None, proxy=None):
         list.__init__(self, items)
@@ -18,12 +21,9 @@ class List(list):
 
 def config_from_file(path=None):
     raw_config = configparser.ConfigParser()
-
     config = {}
-    default_path = os.path.join("~", ".config", "copr")
-
     try:
-        exists = raw_config.read(os.path.expanduser(path or default_path))
+        exists = raw_config.read(os.path.expanduser(path or DEFAULT_CONFIG_PATH))
     except configparser.Error as ex:
         raise CoprConfigException(str(ex))
 
