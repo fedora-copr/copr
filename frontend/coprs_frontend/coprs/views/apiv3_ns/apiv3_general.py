@@ -85,6 +85,7 @@ class APIToken(Resource):
         return {
             "api_login": user.api_login,
             "api_token": user.api_token,
+            "expiration": str(user.api_token_expiration),
         }
 
 

@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-lines
 
+import io
 import argparse
 import datetime
 import logging
@@ -336,17 +337,29 @@ class Commands(object):
         self._update_config(config_path, {
             "login": result.api_login,
             "token": result.api_token,
-        })
+        }, result.expiration)
         print(f"New API token was updated in {config_path}.")
 
 
-    def _update_config(self, path, data):
+    def _update_config(self, path, data, expiration):
         if ConfigUpdater:
             config = ConfigUpdater()
             config.read(path)
             for key, value in data.items():
                 config["copr-cli"][key].value = value
             config.update_file()
+
+            with open(path, "r+") as fp:
+                content = fp.read()
+                content = re.sub(
+                    r"# expiration date: .*",
+                    f"# expiration date: {expiration}",
+                    content,
+                )
+                fp.seek(0)
+                fp.write(content)
+                fp.truncate()
+
         else:
             # This breaks the previous formatting, removes comments inside of
             # the config file, etc. That's why we only use it as a fallback.
@@ -354,7 +367,12 @@ class Commands(object):
             config = ConfigParser()
             config["copr-cli"] = self.client.config
             with open(path, "w") as fp:
-                config.write(fp)
+                # Hack to remove blank line between config section and comment
+                buffer = io.StringIO()
+                config.write(buffer)
+                fp.write(buffer.getvalue().rstrip())
+                fp.write(f"\n# expiration date: {expiration}\n")
+
 
     def action_new_webhook_secret(self, args):
         """
