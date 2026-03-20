@@ -207,8 +207,8 @@ def change_storage_for_project(fullname, dst, config):
                 uploaded.update(results)
 
             # Add build results to the repository
-            all_package_hrefs = [x["pulp_href"] for x in uploaded.values()]
-            if not storage.create_repository_version(subproject, chroot, all_package_hrefs):
+            all_package_prns = [x["prn"] for x in uploaded.values()]
+            if not storage.create_repository_version(subproject, chroot, all_package_prns):
                 log.error("Failed to create repository version for chroot: %s", chroot)
                 sys.exit(1)
 

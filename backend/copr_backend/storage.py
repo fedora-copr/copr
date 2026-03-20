@@ -461,11 +461,12 @@ class PulpStorage(Storage):
                 try:
                     response = future.result()
                     if response.ok:
-                        created = response.json().get("pulp_href")
+                        data = response.json()
                         uploaded[os.path.basename(filepath)] = {
                             "build_id": build_id,
                             "path": filepath,
-                            "pulp_href": created,
+                            "pulp_href": data.get("pulp_href"),
+                            "prn": data.get("prn"),
                         }
                         self.log.info(
                             "[%s/%s] Uploaded to Pulp: %s",
@@ -484,12 +485,12 @@ class PulpStorage(Storage):
 
             return uploaded
 
-    def create_repository_version(self, dirname, chroot, package_hrefs):
+    def create_repository_version(self, dirname, chroot, package_hrefs_or_prns):
         """
         Create a new repository version by adding a list of RPMs to the latest repository version.
         """
         repository = self._get_repository(chroot, dirname)
-        return self.client.add_content(repository, package_hrefs)
+        return self.client.add_content(repository, package_hrefs_or_prns)
 
     def publish_repository(self, chroot, **kwargs):
         # Publishing occurs after each repository version is created.
