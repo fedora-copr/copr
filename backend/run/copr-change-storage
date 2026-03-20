@@ -106,7 +106,7 @@ def add_redirect(fullname):
         print(fullname, file=fp)
 
 
-def change_storage_for_project(fullname, dst, config):
+def change_storage_for_project(project, dst, config):
     """
     Migrate one project
     """
@@ -114,13 +114,12 @@ def change_storage_for_project(fullname, dst, config):
     # pylint: disable=too-many-statements
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-nested-blocks
-    owner, project = fullname.split("/")
-    ownerdir = os.path.join(config.destdir, owner)
+    ownerdir = os.path.join(config.destdir, project.ownername)
     ok = True
 
     for subproject_entry in os.scandir(ownerdir):
         subproject = subproject_entry.name
-        if not (subproject == project or subproject.startswith(project + ":")):
+        if not (subproject == project.name or subproject.startswith(project.name + ":")):
             continue
 
         coprdir = os.path.join(ownerdir, subproject)
@@ -136,7 +135,14 @@ def change_storage_for_project(fullname, dst, config):
             appstream = None
             devel = None
             storage = PulpStorage(
-                owner, subproject, appstream, devel, config, log)
+                project.ownername,
+                subproject,
+                appstream,
+                devel,
+                project.persistent,
+                config,
+                log,
+            )
 
             # TODO Fault-tolerance and data consistency
             # Errors when creating things in Pulp will likely happen
@@ -218,17 +224,17 @@ def change_storage_for_project(fullname, dst, config):
     if not ok:
         log.error(
             "Failure during '%s' migration, not switching on frontend",
-            fullname,
+            project.full_name,
         )
         sys.exit(1)
 
     # Change storage in the frontend database
     frontend_client = FrontendClient(config, try_indefinitely=False, logger=log)
     try:
-        change_on_frontend(frontend_client, owner, project, dst)
+        change_on_frontend(frontend_client, project.ownername, project.name, dst)
     except FrontendClientException as ex:
         log.error("Failed to change storage on frontend for %s because: %s",
-                  fullname, str(ex))
+                  project.full_name, str(ex))
         # If the project was deleted on frontend, we don't mind
         if "404 NOT FOUND" not in str(ex):
             sys.exit(1)
@@ -236,12 +242,12 @@ def change_storage_for_project(fullname, dst, config):
     # At this point all data is successfully migrated and frontend thinks the
     # project is in Pulp, so we can safely add the HTTP redirect
     try:
-        add_redirect(fullname)
+        add_redirect(project.full_name)
     except OSError as ex:
         log.error("Failed to add a redirect for %s because: %s",
-                  fullname, str(ex))
+                  project.full_name, str(ex))
 
-    log.info("Project %s successfully migrated", fullname)
+    log.info("Project %s successfully migrated", project.full_name)
 
 
 def query_project(owner, name, config):
@@ -328,7 +334,7 @@ def main():
             print("Skipping {0} - comps.xml not supported in PULP".format(args.project))
             sys.exit(0)
 
-        change_storage_for_project(args.project, args.dst, config)
+        change_storage_for_project(project, args.dst, config)
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
         for i, fullname in enumerate(projects, start=1):
@@ -343,7 +349,7 @@ def main():
                 print("Skipping {0} - comps.xml not supported in PULP".format(fullname))
                 continue
 
-            change_storage_for_project(fullname, args.dst, config)
+            change_storage_for_project(project, args.dst, config)
     else:
         log.error("Unexpected choice. This should never happen")
         sys.exit(1)
