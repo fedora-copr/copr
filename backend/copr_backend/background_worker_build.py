@@ -418,7 +418,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         if not self.host:
             return
 
-        self.log.info("Releasing VM back to pool")
+        self.log.info("VM Release request")
         self.host.release()
         self.host = None
 
@@ -480,6 +480,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
     def _cancel_vm_allocation(self):
         self.redis_set_worker_flag("canceling", 1)
+        self.log.info("Build canceled (VM not allocated)")
         self._drop_host()
 
     def _alloc_host(self):
@@ -528,6 +529,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         """
         self._proctitle("Canceling running task...")
         self.redis_set_worker_flag("canceling", 1)
+        self.log.info("Canceling the build on the remote machine")
         try:
             cmd = "copr-rpmbuild-cancel"
             rc, out, err = self.ssh.run_expensive(cmd, max_retries=3)

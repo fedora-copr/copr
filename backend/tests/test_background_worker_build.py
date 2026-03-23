@@ -575,7 +575,7 @@ def test_cancel_before_start(f_build_rpm_sign_on, caplog):
     worker.process()
     assert_logs_exist([
         "Build was canceled",
-        "Releasing VM back to pool",
+        "VM Release request",
         "Canceling the build early",
         COMMON_MSGS["not finished"],
         "Worker failed build",
