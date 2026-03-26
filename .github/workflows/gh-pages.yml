@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - 'doc/**'
+      - '.github/workflows/gh-pages.yml'
   pull_request:
     paths:
       - 'doc/**'
+      - '.github/workflows/gh-pages.yml'
   workflow_dispatch:
 
 permissions:
