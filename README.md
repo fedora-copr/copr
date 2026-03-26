@@ -1,7 +1,7 @@
 # Copr
 
 [**Project Page**](https://github.com/fedora-copr/copr) |
-[**Documentation**](https://docs.pagure.org/copr.copr/) |
+[**Documentation**](https://docs.copr.fedorainfracloud.org/) |
 [**Report a Bug**](https://bugzilla.redhat.com/enter_bug.cgi?product=Copr) |
 [**Already reported bugs**](https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678560&product=Copr&query_format=advanced) |
 [**Security issues**](https://github.com/fedora-copr/copr/security) |
@@ -39,6 +39,6 @@ cd copr
 docker-compose up -d
 ```
 
-For more information see [our wiki page](https://docs.pagure.org/copr.copr/contribute.html?highlight=contribute).
+For more information see [our wiki page](https://docs.copr.fedorainfracloud.org/contribute.html?highlight=contribute).
 
 [Unreported tracebacks](https://retrace.fedoraproject.org/faf/problems/?component_names=copr-cli%2Cpython-copr) of client tools.

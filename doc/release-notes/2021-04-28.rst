@@ -78,7 +78,7 @@ Bugfixes
 .. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-1b68061525
 .. _`EPEL 7`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2021-a62814e545
 .. _`was introduced`: http://frostyx.cz/posts/running-fedora-review-after-copr-build
-.. _`are deleted after 14 days`: https://docs.pagure.org/copr.copr/user_documentation.html#how-long-do-you-keep-the-builds
+.. _`are deleted after 14 days`: https://docs.copr.fedorainfracloud.org/user_documentation.html#how-long-do-you-keep-the-builds
 .. _`#1734`: https://pagure.io/copr/copr/issue/1743
 .. _`#534`: https://pagure.io/copr/copr/issue/534
 .. _`#172`: https://pagure.io/copr/copr/issue/172

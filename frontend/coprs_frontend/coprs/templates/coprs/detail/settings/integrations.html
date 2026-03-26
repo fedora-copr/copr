@@ -11,7 +11,7 @@
     <div class="col-sm-8 col-md-9">
         <h2> Integrations </h2>
 
-        For detailed information, please see <a href="https://docs.pagure.org/copr.copr/user_documentation.html#webhooks">the docs</a>.
+        For detailed information, please see <a href="https://docs.copr.fedorainfracloud.org/user_documentation.html#webhooks">the docs</a>.
 
         <h3> Pagure </h3>
         <ol>
@@ -86,7 +86,7 @@
                         {% else %}{{ webhook.webhook_uuid }}
                         {% endif %}
                    </td>
-                    <td>{% if webhook.user_agent is none %} Not Set 
+                    <td>{% if webhook.user_agent is none %} Not Set
                         {% else %} {{webhook.user_agent}}
                         {% endif %}
                     </td>

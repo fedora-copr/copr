@@ -1299,7 +1299,7 @@ class CoprChrootsLogic(object):
         preservation period, but not yet expired (not yet to be removed).  Used
         for sending e-mail notifications.
 
-        See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
+        See https://docs.copr.fedorainfracloud.org/developer_documentation/eol-logic.html
         """
         return (query
                 .options(joinedload(models.CoprChroot.mock_chroot))

@@ -819,7 +819,7 @@ class ReposLogic:
         # project owner. Or all of them for the same reason. Also all
         # architectures may be deleted by the project owner but on a different
         # day and therefore the remaining time may be different)
-        # See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
+        # See https://docs.copr.fedorainfracloud.org/developer_documentation/eol-logic.html
         reasons = {}
         for chroot in delete_chroots:
             reason_format = "{0} and will remain available for another {1} days"

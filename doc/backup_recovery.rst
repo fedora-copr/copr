@@ -150,12 +150,12 @@ On ``copr-backend-dev`` or ``copr-backend-prod`` run::
 
 Umount, disassemble raid, and detach volumes from ``copr-backend-dev``
 or ``copr-backend-prod`` instance according to
-https://docs.pagure.org/copr.copr/raid_on_backend.html#detaching-volume
+https://docs.copr.fedorainfracloud.org/raid_on_backend.html#detaching-volume
 
 Attach all the ``copr-backend-backup-test-raid-10`` volumes to the
 ``copr-backend-dev`` or ``copr-backend-prod`` instance. And assemble
 the raid according to
-https://docs.pagure.org/copr.copr/raid_on_backend.html#attaching-volume
+https://docs.copr.fedorainfracloud.org/raid_on_backend.html#attaching-volume
 
 
 Fix permissions

@@ -268,11 +268,11 @@ the new host certificates (avoiding later manipulation with ``known_hosts``).
 On ``batcave01``, execute the playbook to provision the instance (ignore the
 playbook for upgrading Copr packages).  For the dev instance, refer to
 
-https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-dev-machines
+https://docs.copr.fedorainfracloud.org/how_to_release_copr.html#upgrade-dev-machines
 
 and for production, refer to
 
-https://docs.pagure.org/copr.copr/how_to_release_copr.html#upgrade-production-machines
+https://docs.copr.fedorainfracloud.org/how_to_release_copr.html#upgrade-production-machines
 
 It's possible that the playbook fails, but it typically isn't crucial now.  If
 provisioning at least reaches the end of the ``base`` role, revert the
