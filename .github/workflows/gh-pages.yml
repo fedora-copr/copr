@@ -36,13 +36,13 @@ jobs:
         working-directory: doc
 
       - name: Build HTML
-        run: make dirhtml
+        run: make html
         working-directory: doc
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: doc/_build/dirhtml
+          path: doc/_build/html
 
   deploy:
     if: github.ref == 'refs/heads/main'
