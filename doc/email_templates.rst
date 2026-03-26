@@ -46,7 +46,7 @@ Disable chroots
 
 
     [1] https://fedoraproject.org/wiki/End_of_life
-    [2] https://docs.pagure.org/copr.copr/copr_outdated_chroots_removal_policy.html
+    [2] https://docs.copr.fedorainfracloud.org/copr_outdated_chroots_removal_policy.html
     [3] http://frostyx.cz/posts/copr-removing-outdated-chroots
 
     <NAME>

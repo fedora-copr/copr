@@ -131,7 +131,7 @@ scm_type = String(
 )
 
 source_build_method = String(
-    description="https://docs.pagure.org/copr.copr/user_documentation.html#scm",
+    description="https://docs.copr.fedorainfracloud.org/user_documentation.html#scm",
     example="tito",
 )
 

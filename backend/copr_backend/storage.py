@@ -90,7 +90,7 @@ class Storage:
         Publish new build results in the repository
 
         See when we run createrepo
-        https://docs.pagure.org/copr.copr/createrepo.html
+        https://docs.copr.fedorainfracloud.org/createrepo.html
         """
         raise NotImplementedError
 

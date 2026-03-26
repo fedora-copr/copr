@@ -86,7 +86,7 @@ class TestMail(CoprsTestCase):
                             "that have some builds in outdated chroots\n\n"
 
                             "According to the 'Copr outdated chroots removal policy'\n"
-                            "https://docs.pagure.org/copr.copr/copr_outdated_chroots_removal_policy.html\n"
+                            "https://docs.copr.fedorainfracloud.org/copr_outdated_chroots_removal_policy.html\n"
                             "data are going to be preserved 123 days after the chroot is EOL "
                             "and then automatically deleted, unless you decide to prolong the expiration period.\n\n"
 

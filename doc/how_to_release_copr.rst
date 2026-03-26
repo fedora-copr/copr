@@ -331,7 +331,7 @@ At this moment, every Copr service should be up and running.
 Generate documentation
 ......................
 
-Generate `Copr project documentation <https://docs.pagure.org/copr.copr/>`_
+Generate `Copr project documentation <https://docs.copr.fedorainfracloud.org/>`_
 
 ::
 

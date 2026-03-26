@@ -215,7 +215,7 @@ class ChrootDeletionStatus(metaclass=EnumType):
     it goes through several stages before its data is finally deleted.
     Each `models.CoprChroot` is in one of the following states.
 
-    See https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
+    See https://docs.copr.fedorainfracloud.org/developer_documentation/eol-logic.html
     """
     # pylint: disable=too-few-public-methods
     vals = {

@@ -97,12 +97,12 @@ Bugfixes
 .. _`task queue`: https://copr.fedorainfracloud.org/status/
 .. _`Resalloc WebUI`: https://download.copr.fedorainfracloud.org/resalloc
 .. _`the contribution`: https://github.com/fedora-copr/copr/pull/2713
-.. _`is now documented`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html#auto-rebuilding
-.. _`Pagure PR/commit flagging description`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html#pr-commit-flagging
-.. _`Pagure documentation`: https://docs.pagure.org/copr.copr/user_documentation/pagure_integration.html
-.. _`SRPM is downloaded only once`: https://docs.pagure.org/copr.copr/user_documentation.html#distgit
-.. _`Copr architecture`: https://docs.pagure.org/copr.copr/developer_documentation/architecture.html
-.. _`backup recovery page`: https://docs.pagure.org/copr.copr/backup_recovery.html
+.. _`is now documented`: https://docs.copr.fedorainfracloud.org/user_documentation/pagure_integration.html#auto-rebuilding
+.. _`Pagure PR/commit flagging description`: https://docs.copr.fedorainfracloud.org/user_documentation/pagure_integration.html#pr-commit-flagging
+.. _`Pagure documentation`: https://docs.copr.fedorainfracloud.org/user_documentation/pagure_integration.html
+.. _`SRPM is downloaded only once`: https://docs.copr.fedorainfracloud.org/user_documentation.html#distgit
+.. _`Copr architecture`: https://docs.copr.fedorainfracloud.org/developer_documentation/architecture.html
+.. _`backup recovery page`: https://docs.copr.fedorainfracloud.org/backup_recovery.html
 .. _`graphs of how much others use Copr`: https://copr.fedorainfracloud.org/usage/
 .. _`OpenAPI`: https://www.openapis.org/
 .. _`Swagger`: https://swagger.io/

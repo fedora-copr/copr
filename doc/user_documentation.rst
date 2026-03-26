@@ -53,7 +53,7 @@ of known Copr instances:
        | Fedora Copr instance which is also
        | considered to be the default Copr
        | instance by many users and tools.
-     - `Contact <https://docs.pagure.org/copr.copr/index.html#communication>`__,
+     - `Contact <https://docs.copr.fedorainfracloud.org/index.html#communication>`__,
        `Issues <https://github.com/fedora-copr/copr/issues>`__
 
    * - https://copr.stg.fedoraproject.org

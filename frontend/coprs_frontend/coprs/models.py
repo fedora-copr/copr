@@ -1,6 +1,6 @@
 """
 Copr Frontend database layout, see the ER diagram:
-https://docs.pagure.org/copr.copr/_images/db-erd.png
+https://docs.copr.fedorainfracloud.org/_images/db-erd.png
 """
 
 import copy
@@ -1848,7 +1848,7 @@ class CoprChroot(db.Model, helpers.Serializer):
         but we are considering 5 boolean variables and basically doing 2^5
         binary table.
 
-        https://docs.pagure.org/copr.copr/developer_documentation/eol-logic.html
+        https://docs.copr.fedorainfracloud.org/developer_documentation/eol-logic.html
         """
         # pylint: disable=too-many-return-statements
 

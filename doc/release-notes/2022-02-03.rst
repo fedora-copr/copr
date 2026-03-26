@@ -67,4 +67,4 @@ Bugfixes
 .. _`rhbz#1870320`: https://bugzilla.redhat.com/show_bug.cgi?id=1870320
 .. _`rhbz#2036631`: https://bugzilla.redhat.com/show_bug.cgi?id=2036631
 .. _`#1985`: https://pagure.io/copr/copr/issue/1985
-.. _`Documentation`: https://docs.pagure.org/copr.copr/user_documentation.html#advanced-searching
+.. _`Documentation`: https://docs.copr.fedorainfracloud.org/user_documentation.html#advanced-searching

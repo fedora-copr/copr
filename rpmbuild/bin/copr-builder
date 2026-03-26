@@ -28,7 +28,7 @@ not as your personal computing system.
 
 Please be aware that the legal restrictions for what you can build
 in Copr apply here as well.
-https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr
+https://docs.copr.fedorainfracloud.org/user_documentation.html#what-i-can-build-in-copr
 
 You can display more help on how to use the builder by running copr-builder:
     $ copr-builder --help

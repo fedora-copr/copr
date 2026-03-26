@@ -91,14 +91,14 @@ Bugfixes
 .. _`EPEL 8`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-39e4fd10dc
 .. _`EPEL 9`: https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2022-6fb4f3e501
 
-.. _`mass rebuilds`: https://docs.pagure.org/copr.copr/user_documentation.html#mass-rebuilds
+.. _`mass rebuilds`: https://docs.copr.fedorainfracloud.org/user_documentation.html#mass-rebuilds
 .. _`several problems`: https://pagure.io/copr/copr/issue/2095
 .. _`PR#2108`: https://pagure.io/copr/copr/pull-request/2108
 .. _`PR#2091`: https://pagure.io/copr/copr/pull-request/2091
 .. _`PR#2080`: https://pagure.io/copr/copr/pull-request/2080
 .. _`PR#2111`: https://pagure.io/copr/copr/pull-request/2111
 .. _`PR#2072`: https://pagure.io/copr/copr/pull-request/2072
-.. _`submitting builds from DistGit`: https://docs.pagure.org/copr.copr/user_documentation.html#distgit
+.. _`submitting builds from DistGit`: https://docs.copr.fedorainfracloud.org/user_documentation.html#distgit
 .. _`implemented`: https://pagure.io/copr/copr/pull-request/2049
 .. _`#2076`: https://pagure.io/copr/copr/issue/2076
 .. _`#2113`: https://pagure.io/copr/copr/issue/2113

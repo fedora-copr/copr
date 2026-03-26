@@ -21,8 +21,8 @@ class Dispatcher(multiprocessing.Process):
     4) Go to 1)
 
     See also:
-    https://docs.pagure.org/copr.copr/developer_documentation/dispatchers.html
-    https://docs.pagure.org/copr.copr/developer_documentation/worker_manager.html
+    https://docs.copr.fedorainfracloud.org/developer_documentation/dispatchers.html
+    https://docs.copr.fedorainfracloud.org/developer_documentation/worker_manager.html
     """
 
     # set to either 'action' or 'build' in sub-class

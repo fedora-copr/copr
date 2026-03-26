@@ -63,7 +63,7 @@ def chroots_template(template):
     """
     Load the MockChroot configuration from /etc/copr/chroots.conf.  For more
     info take a look at
-    https://docs.pagure.org/copr.copr/how_to_manage_chroots.html#managing-chroot-comments
+    https://docs.copr.fedorainfracloud.org/how_to_manage_chroots.html#managing-chroot-comments
     """
 
     # Meh, this used to be just 'imp.load_source()' (but 'imp' is deprecated).

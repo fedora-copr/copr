@@ -112,9 +112,9 @@ Bugfixes
 .. _`FedoraReview#486`: https://pagure.io/FedoraReview/issue/486
 .. _`FedoraReview#310`: https://pagure.io/FedoraReview/issue/310
 
-.. _`They are now documented`: https://docs.pagure.org/copr.copr/user_documentation.html#rpm-macros
-.. _`known Copr instances`: https://docs.pagure.org/copr.copr/user_documentation.html#public-copr-instances
+.. _`They are now documented`: https://docs.copr.fedorainfracloud.org/user_documentation.html#rpm-macros
+.. _`known Copr instances`: https://docs.copr.fedorainfracloud.org/user_documentation.html#public-copr-instances
 .. _`@pkking`: https://github.com/pkking
 .. _`openEuler`: https://www.openeuler.org/en/
-.. _`how to reproduce build locally`: https://docs.pagure.org/copr.copr/user_documentation/reproducing_builds.html#reproducing-builds
+.. _`how to reproduce build locally`: https://docs.copr.fedorainfracloud.org/user_documentation/reproducing_builds.html#reproducing-builds
 .. _`python-specfile`: https://github.com/packit/specfile

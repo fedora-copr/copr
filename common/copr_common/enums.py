@@ -150,7 +150,7 @@ class CreaterepoReason(metaclass=EnumType):
     we run it differently.
 
     See when do we run createrepo:
-    https://docs.pagure.org/copr.copr/createrepo.html#when-do-we-run-createrepo
+    https://docs.copr.fedorainfracloud.org/createrepo.html#when-do-we-run-createrepo
     """
     vals = {
         "new_project": 0,
