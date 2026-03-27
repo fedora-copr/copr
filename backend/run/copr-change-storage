@@ -299,6 +299,32 @@ def all_projects_for_owner(owner, config):
     return fullnames
 
 
+def handle_project(fullname, config, dst):
+    """
+    Process a single project migration
+    """
+    ownername, projectname = fullname.split("/", 1)
+    project = query_project(ownername, projectname, config)
+    if project.storage == dst:
+        print(
+            "The project {0} has already been migrated to {1}"
+            .format(fullname, dst)
+        )
+        return 1
+
+    if project.devel_mode:
+        log.error("Skip: project %s uses manual createrepo, see %s",
+                  fullname, "https://github.com/fedora-copr/copr/issues/4238")
+        return 1
+
+    if has_comps(project, config):
+        print("Skipping {0} - comps.xml not supported in PULP".format(fullname))
+        return 1
+
+    change_storage_for_project(project, dst, config)
+    return 0
+
+
 def main():
     """
     The main function
@@ -321,20 +347,7 @@ def main():
 
     config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     if args.project:
-        ownername, projectname = args.project.split("/", 1)
-        project = query_project(ownername, projectname, config)
-        if project.storage == args.dst:
-            print(
-                "The project {0} has already been migrated to {1}"
-                .format(args.project, args.dst)
-            )
-            sys.exit(0)
-
-        if has_comps(project, config):
-            print("Skipping {0} - comps.xml not supported in PULP".format(args.project))
-            sys.exit(0)
-
-        change_storage_for_project(project, args.dst, config)
+        sys.exit(handle_project(args.project, config, args.dst))
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
         for i, fullname in enumerate(projects, start=1):
@@ -343,13 +356,9 @@ def main():
                 .format(i, len(projects), fullname, args.dst)
             )
 
-            ownername, projectname = fullname.split("/", 1)
-            project = query_project(ownername, projectname, config)
-            if has_comps(project, config):
-                print("Skipping {0} - comps.xml not supported in PULP".format(fullname))
-                continue
+            status = "Success." if handle_project(fullname, config, args.dst) == 0 else "Failure."
+            log.info("Project migration for %s %s", fullname, status)
 
-            change_storage_for_project(project, args.dst, config)
     else:
         log.error("Unexpected choice. This should never happen")
         sys.exit(1)
