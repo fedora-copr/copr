@@ -312,6 +312,11 @@ def handle_project(fullname, config, dst):
         )
         return 1
 
+    if project.devel_mode:
+        log.error("Skip: project %s uses manual createrepo, see %s",
+                  fullname, "https://github.com/fedora-copr/copr/issues/4238")
+        return 1
+
     if has_comps(project, config):
         print("Skipping {0} - comps.xml not supported in PULP".format(fullname))
         return 1
