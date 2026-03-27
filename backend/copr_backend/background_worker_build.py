@@ -31,6 +31,7 @@ from copr_backend.exceptions import (
     CoprBackendError,
     FrontendClientException,
 )
+from copr_backend.rpmeta import log_rpmeta_prediction
 from copr_backend.helpers import (
     run_cmd, register_build_result, format_evr,
 )
@@ -1032,6 +1033,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
 
         self._wait_for_repos()
         self._cancel_if_requested()
+        log_rpmeta_prediction(self.job, self.opts, self.log)
         self._alloc_host()
         self._alloc_ssh_connection()
         self._check_vm()
