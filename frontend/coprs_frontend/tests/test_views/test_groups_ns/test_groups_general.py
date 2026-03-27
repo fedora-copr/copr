@@ -1,4 +1,6 @@
 # coding: utf-8
+import pytest
+
 from coprs import models
 
 from coprs.logic.users_logic import UsersLogic
@@ -64,3 +66,34 @@ class TestGroups(CoprsTestCase):
         )
         # assert r.status_code == 403
         assert not UsersLogic.group_alias_exists(alias)
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_groups", "f_db")
+    def test_customize_group_profile_description(self):
+        self.db.session.add_all([self.u1, self.g1])
+
+        post = self.test_client.post(
+            "/user/customize-profile/{}".format(self.g1.name),
+            data={"profile_description": "Group **about** section"},
+            follow_redirects=False,
+        )
+
+        assert post.status_code == 302
+        group = self.db.session.merge(self.g1)
+        assert group.profile_description == "Group **about** section"
+
+        page = self.test_client.get("/groups/g/{}/coprs/".format(group.name)).data.decode("utf-8")
+        assert "<strong>about</strong>" in page
+
+    @TransactionDecorator("u2")
+    @pytest.mark.usefixtures("f_users", "f_groups", "f_db")
+    def test_group_profile_description_forbidden(self):
+        self.db.session.add_all([self.u2, self.g1])
+
+        post = self.test_client.post(
+            "/user/customize-profile/{}".format(self.g1.name),
+            data={"profile_description": "forbidden"},
+            follow_redirects=False,
+        )
+
+        assert post.status_code == 403
