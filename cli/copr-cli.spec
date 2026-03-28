@@ -1,5 +1,5 @@
 %global __python %_bindir/python3
-%global min_python_copr_version 1.128.1
+%global min_python_copr_version 2.5.1
 
 Name:       copr-cli
 Version:    2.4

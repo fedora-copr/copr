@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-lines
 
+import io
 import argparse
 import datetime
 import logging
@@ -37,6 +38,7 @@ import copr.exceptions as copr_exceptions
 from copr.v3 import (
     Client, config_from_file, CoprException, CoprRequestException,
     CoprConfigException, CoprNoResultException, CoprAuthException,
+    DEFAULT_CONFIG_PATH,
 )
 from copr.v3.pagination import next_page
 import copr.v3.requests as copr_requests
@@ -314,38 +316,50 @@ class Commands(object):
         """
         Simply print out the current user as defined in copr config.
         """
-
-        if not os.path.exists(args.config):
+        config_path = args.config or DEFAULT_CONFIG_PATH
+        if not os.path.exists(config_path):
             # We don't want to generate the file when user authenticates
             # via gssapi, or?
-            raise CoprConfigException(f"File {args.config} not found.  Can't update.")
+            raise CoprConfigException(f"File {config_path} not found.  Can't update.")
 
         # We know there's a TOCTOU.  It is better to check that the file is
         # writable *before* we regenerate the token, avoiding a situation where
         # we have no way to write the new token.
-        if not os.access(args.config, os.W_OK):
-            raise CoprConfigException(f"File {args.config} is not writable.  Can't update.")
+        if not os.access(config_path, os.W_OK):
+            raise CoprConfigException(f"File {config_path} is not writable.  Can't update.")
 
         if not (self.config["login"] and self.config["token"]):
             # users that use gssapi do not have token/login specified
-            raise CoprConfigException(f"Current {args.config} doesn't specify login/token.  Can't update.")
+            raise CoprConfigException(f"Current {config_path} doesn't specify login/token.  Can't update.")
 
         result = self.client.base_proxy.new_api_token()
 
-        self._update_config(args.config, {
+        self._update_config(config_path, {
             "login": result.api_login,
             "token": result.api_token,
-        })
-        print(f"New API token was updated in {args.config}.")
+        }, result.expiration)
+        print(f"New API token was updated in {config_path}.")
 
 
-    def _update_config(self, path, data):
+    def _update_config(self, path, data, expiration):
         if ConfigUpdater:
             config = ConfigUpdater()
             config.read(path)
             for key, value in data.items():
                 config["copr-cli"][key].value = value
             config.update_file()
+
+            with open(path, "r+") as fp:
+                content = fp.read()
+                content = re.sub(
+                    r"# expiration date: .*",
+                    f"# expiration date: {expiration}",
+                    content,
+                )
+                fp.seek(0)
+                fp.write(content)
+                fp.truncate()
+
         else:
             # This breaks the previous formatting, removes comments inside of
             # the config file, etc. That's why we only use it as a fallback.
@@ -353,7 +367,12 @@ class Commands(object):
             config = ConfigParser()
             config["copr-cli"] = self.client.config
             with open(path, "w") as fp:
-                config.write(fp)
+                # Hack to remove blank line between config section and comment
+                buffer = io.StringIO()
+                config.write(buffer)
+                fp.write(buffer.getvalue().rstrip())
+                fp.write(f"\n# expiration date: {expiration}\n")
+
 
     def action_new_webhook_secret(self, args):
         """
