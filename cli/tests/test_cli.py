@@ -428,6 +428,75 @@ def test_download_build(
         assert call_args_list in expected_sp_call_args
 
 
+@mock.patch("builtins.open", new_callable=mock.mock_open)
+@mock.patch('copr_cli.main.requests')
+@mock.patch('copr_cli.main.subprocess')
+@mock.patch('copr.v3.proxies.build.BuildProxy.get')
+@mock.patch('copr.v3.proxies.build.BuildProxy.get_built_packages')
+@mock.patch('copr.v3.proxies.build_chroot.BuildChrootProxy.get_list')
+@mock.patch('copr.v3.proxies.project.ProjectProxy.get')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+def test_download_pulp_manual_createrepo(
+    _config_from_file,
+    project_proxy_get,
+    build_chroot_proxy_get_list,
+    build_proxy_get_built_packages,
+    build_proxy_get,
+    mock_sp,
+    mock_requests,
+    _mock_open,
+):
+    project_proxy_get.return_value = MagicMock(
+        storage="pulp",
+        devel_mode=True,
+    )
+
+    build_proxy_get.return_value = MagicMock(
+        repo_url="Doesn't matter",
+        ownername="frostyx",
+        projectname="foo",
+    )
+
+    build_proxy_get_built_packages.return_value = Munch({
+        'fedora-43-x86_64': {
+            'packages': [
+                {
+                    'arch': 'src',
+                    'epoch': None,
+                    'name': 'hello',
+                    'release': '1.fc43',
+                    'version': '2.12.3'
+                },
+                {
+                    'arch': 'x86_64',
+                    'epoch': None,
+                    'name': 'hello',
+                    'release': '1.fc43',
+                    'version': '2.12.3'
+                },
+            ],
+        }
+    })
+    build_chroot = MagicMock()
+    build_chroot.configure_mock(
+        name="fedora-43-x86_64",
+        result_url=(
+            "https://download.copr-dev.fedorainfracloud.org"
+            "/results/frostyx/foo/fedora-43-x86_64/02924902-hello/"
+        )
+    )
+    build_chroot_proxy_get_list.return_value = [build_chroot]
+
+    mock_sp.call.return_value = None
+    main.main(argv=["download-build", "frostyx/foo"])
+    assert mock_requests.get.call_count == 2
+    for args, _kwargs in mock_requests.get.call_args_list:
+        assert args[0].startswith((
+            "https://download.copr-dev.fedorainfracloud.org"
+            "/results/frostyx/foo/fedora-43-x86_64-devel/02924902-hello/"
+        ))
+
+
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get')
 @mock.patch('copr.v3.proxies.build.BuildProxy.get_built_packages')

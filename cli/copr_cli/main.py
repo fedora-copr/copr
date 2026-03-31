@@ -756,6 +756,14 @@ class Commands(object):
             # directory manually.
             os.makedirs(dst, exist_ok=True)
 
+            chroot_result_url = chroot.result_url
+            if project.devel_mode:
+                chroot_result_url = chroot.result_url.rstrip("/") + "/"
+                path_split = urlparse(chroot_result_url).path.split("/")
+                path_split[-3] += "-devel"
+                devel_path = "/".join(path_split)
+                chroot_result_url = urljoin(chroot.result_url, devel_path)
+
             for nevra in results[chroot.name]["packages"]:
                 filename = "{N}-{V}-{R}.{A}.rpm".format(
                     N=nevra["name"],
@@ -763,7 +771,7 @@ class Commands(object):
                     R=nevra["release"],
                     A=nevra["arch"],
                 )
-                url = chroot.result_url + filename
+                url = chroot_result_url + filename
                 response = requests.get(url)
                 if not response.ok:
                     sys.stderr.write("Failed to download: {0}\n".format(url))
