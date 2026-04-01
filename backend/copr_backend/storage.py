@@ -17,7 +17,12 @@ import shutil
 import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
 from copr_common.request import RequestError, SafeRequest
-from copr_backend.helpers import call_copr_repo, build_chroot_log_name, ensure_dir_exists
+from copr_backend.helpers import (
+    build_chroot_log_name,
+    call_copr_repo,
+    ensure_dir_exists,
+    ensure_dir_removed,
+)
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
 from .sign import resign_rpms_in_dir
@@ -485,10 +490,29 @@ class PulpStorage(Storage):
 
             return uploaded
 
+    def _cleanup_backend_storage(self, chroot_dir):
+        """
+        We know we upload stuff to PULP for given chroot, hence there's no need
+        to keep (some) data on our backend.
+
+        Chroot dir format needs to look like:
+        /var/lib/copr/public_html/results/owner/copr-dir-name/fedora-rawhide-x86_64
+        """
+        ensure_dir_removed(os.path.join(chroot_dir, "repodata"))
+        ensure_dir_removed(os.path.join(chroot_dir, "devel", "repodata"))
+
     def create_repository_version(self, dirname, chroot, package_hrefs_or_prns):
         """
         Create a new repository version by adding a list of RPMs to the latest repository version.
         """
+
+        # Perform backend cleanup whenever new Pulp content is created.  This
+        # ensures that metadata is cleared for newly migrated projects, as well
+        # as for previously migrated projects that persistently retain stale
+        # metadata.  https://github.com/fedora-copr/copr/issues/4209
+        chroot_dir = os.path.join(self.opts.destdir, self.owner, dirname, chroot)
+        self._cleanup_backend_storage(chroot_dir)
+
         repository = self._get_repository(chroot, dirname)
         return self.client.add_content(repository, package_hrefs_or_prns)
 

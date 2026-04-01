@@ -10,6 +10,7 @@ import types
 import glob
 import shlex
 import shutil
+from contextlib import suppress
 
 import configparser
 from configparser import ConfigParser
@@ -621,6 +622,15 @@ def ensure_dir_exists(path, log):
     except:
         log.exception("Can't create %s directory", path)
         raise
+
+
+def ensure_dir_removed(directory):
+    """
+    This is to avoid doing try-except for FileNotFoundError in every rmtree
+    call.
+    """
+    with suppress(FileNotFoundError):
+        shutil.rmtree(directory)
 
 
 def get_chroot_arch(chroot):
