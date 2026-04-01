@@ -34,9 +34,9 @@ class TestRepos(CoprsTestCase):
 
         test_sets.extend([
             dict(args=(m2, http_url),
-                 expected="http://example.com/path/fedora-$releasever-$basearch/"),
+                 expected="http://example.com/path/fedora-rawhide-$basearch/"),
             dict(args=(m2, https_url),
-                 expected="https://example.com/path/fedora-$releasever-$basearch/")])
+                 expected="https://example.com/path/fedora-rawhide-$basearch/")])
 
         m3 = deepcopy(mock_chroot)
         m3.os_release = "rhel7"
