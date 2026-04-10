@@ -627,15 +627,17 @@ class PulpClient:
         return PaginatedResponse(all_results, response)
 
     def _get_content(self, build_ids, chroot=None, fields=None):
-        query = "("
+        query = ""
         for i, build_id in enumerate(build_ids):
             if i:
                 query += " OR "
-            query += f"pulp_label_select=\"build_id={build_id}\""
-        query += ")"
-
-        if chroot:
-            query += f" AND pulp_label_select=\"chroot={chroot}\""
+            query += "("
+            query += f"pulp_label_select=\"build_id={build_id}"
+            if chroot:
+                query += f",chroot={chroot}\""
+            else:
+                query += "\""
+            query += ")"
 
         all_results = []
         offset = 0
