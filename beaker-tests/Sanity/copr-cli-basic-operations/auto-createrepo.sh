@@ -25,13 +25,22 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        if [[ $STORAGE == "pulp" ]]; then
+            urls=(
+                $PULP_CONTENT_URL/$PROJECT_T/$CHROOT-devel
+                $PULP_CONTENT_URL/$PROJECT_T/$CHROOT
+                $PULP_CONTENT_URL/$PROJECT_F/$CHROOT
+            )
+        else
+            urls=(
+                $BACKEND_URL/results/$PROJECT_T/$CHROOT/devel
+                $BACKEND_URL/results/$PROJECT_T/$CHROOT
+                $BACKEND_URL/results/$PROJECT_F/$CHROOT
+            )
+        fi
         while true; do
             success=:
-            for url in \
-                $BACKEND_URL/results/$PROJECT_T/$CHROOT/devel \
-                $BACKEND_URL/results/$PROJECT_T/$CHROOT \
-                $BACKEND_URL/results/$PROJECT_F/$CHROOT ;
-            do
+            for url in "${urls[@]}"; do
                 # all those must be created ^^^
                 check_repo "$url" && continue
                 success=false
@@ -47,7 +56,11 @@ rlJournalStart
         rlRun "copr-cli build $PROJECT_T $HELLO"
 
         rlLog "The devel repo must not exist in $PROJECT_F, till we flip the config"
-        rlRun "check_repo $BACKEND_URL/results/$PROJECT_F/$CHROOT/devel" 22
+        if [[ $STORAGE == "pulp" ]]; then
+            rlRun "check_repo $PULP_CONTENT_URL/$PROJECT_F/$CHROOT-devel" 22
+        else
+            rlRun "check_repo $BACKEND_URL/results/$PROJECT_F/$CHROOT/devel" 22
+        fi
 
 
         rlRun "copr-cli modify --disable_createrepo true $PROJECT_F"

@@ -9,6 +9,8 @@ BACKEND_URL=https://dev-coprbe.devel.redhat.com
 DISTGIT_URL=https://dev-copr-dist-git.devel.redhat.com
 VENDOR="Red Hat Internal Copr (devel) - "
 DISTGIT_BRANCH_FEDORA_PREFIX=fedora/
+PULP_CONTENT_URL=""
+STORAGE="backend"
 
 set -e
 
@@ -27,5 +29,6 @@ EOF
 
 fi
 
-export OWNER FRONTEND_URL BACKEND_URL DISTGIT_URL VENDOR DISTGIT_BRANCH_FEDORA_PREFIX
+export OWNER FRONTEND_URL BACKEND_URL DISTGIT_URL VENDOR \
+       DISTGIT_BRANCH_FEDORA_PREFIX PULP_CONTENT_URL STORAGE
 exec "$our_dir/all-in-tmux.sh" "$@"
