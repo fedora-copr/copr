@@ -39,6 +39,8 @@ rlJournalStart
         setup_checks
         # and install... things
         yum -y install dnf dnf-plugins-core
+        # the info package is needed as a dependency of the hello
+        dnf -y install info
         TMP=`mktemp -d`
     rlPhaseEnd
 
