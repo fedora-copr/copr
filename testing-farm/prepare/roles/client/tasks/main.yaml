@@ -63,6 +63,7 @@
       - util-linux-script
       - vim
       - wget
+      - lftp
 
 - name: test environment hacks, inspired by DockerTestEnv/Dockerfile
   shell: |
