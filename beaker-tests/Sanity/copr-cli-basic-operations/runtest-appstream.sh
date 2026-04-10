@@ -32,6 +32,14 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        # Pulp doesn't support appstream metadata yet
+        # See https://github.com/fedora-copr/copr/issues/3499
+        # See https://github.com/pulp/pulp_rpm/issues/2432
+        if [[ $STORAGE == "pulp" ]]; then
+            rlLog "Skipping, Pulp doesn't support appstream metadata yet"
+            exit 0
+        fi
+
         # Create a project with appstream option turned on, and make sure
         # it is generated into the repodata
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Appstream --appstream off"
