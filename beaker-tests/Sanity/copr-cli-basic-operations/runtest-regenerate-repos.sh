@@ -13,7 +13,12 @@ rlJournalStart
 
     rlPhaseStartTest
         PROJECT=${NAME_PREFIX}RegenerateRepos
-        URL="$BACKEND_URL/results/$PROJECT/$CHROOT/repodata/"
+
+        if [[ $STORAGE == "pulp" ]]; then
+            URL="$PULP_CONTENT_URL/$PROJECT/$CHROOT/repodata/"
+        else
+            URL="$BACKEND_URL/results/$PROJECT/$CHROOT/repodata/"
+        fi
 
         # Create a project that doesn't generate repositories automatically
         # and build some package in it
@@ -21,7 +26,8 @@ rlJournalStart
         rlRun "copr-cli build $PROJECT $HELLO"
 
         # The repository shouldn't provide any packages
-        rlRun "wget -r -np -P /tmp/$PROJECT/1 $URL"
+        rlRun "mkdir -p /tmp/$PROJECT/"
+        rlRun "lftp -c mirror $URL /tmp/$PROJECT/1"
         FILELISTS=`find /tmp/$PROJECT/1/ -name "*-filelists.xml.gz"`
         rlRun "gunzip -c $FILELISTS |grep 'packages=\"0\"'"
 
@@ -31,7 +37,7 @@ rlJournalStart
         sleep 60
 
         # Once the repository is regenerated, some packages should be available
-        rlRun "wget -r -np -P /tmp/$PROJECT/2 $URL"
+        rlRun "lftp -c mirror $URL /tmp/$PROJECT/2"
         FILELISTS=`find /tmp/$PROJECT/2/ -name "*-filelists.xml.gz"`
         rlRun "gunzip -c $FILELISTS |grep 'packages=\"4\"'"
     rlPhaseEnd
