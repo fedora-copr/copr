@@ -2,7 +2,7 @@
 %global min_python_copr_version 2.5.1
 
 Name:       copr-cli
-Version:    2.4
+Version:    2.5
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -100,6 +100,18 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.5-1
+- Fix download-build for manual createrepo Pulp projects
+- Make sure new-api-token updates expiration token
+- Don't traceback new-api-token for default config
+- Fix download-build from PULP with --rpms
+- Fix script-repos not being saved at all for custom pkgs
+- Use a URL that would be available before the Pulp migration
+- Use build_proxy.get_built_packages to figure out package NEVRAs
+- Bypass anubis challenge by setting copr user agent
+- Use Tito to generate component.__version__
+- Colorize build statuses
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.4-1
 - Fix copr-cli download for Pulp projects
 - Add API endpoint for generating a new token
