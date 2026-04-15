@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.5.1
+Version:    2.6
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,11 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.6-1
+- Don't traceback new-api-token for default config
+- Bypass anubis challenge by setting copr user agent
+- Use Tito to generate component.__version__
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.5-1
 - Add API endpoint for generating a new token
 - Make copr.v3.helpers.wait official part of API
