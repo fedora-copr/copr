@@ -1,7 +1,7 @@
 %global copr_common_version 1.5.1
 
 Name:       copr-dist-git
-Version:    1.5
+Version:    1.6
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -136,6 +136,10 @@ install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.6-1
+- Use SafeRequest.timeout only as a timeout per request
+- Initial Sentry integration
+
 * Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 1.3-1
 - Stop using deprecated %%py3_build/%%py3_install macros
 
