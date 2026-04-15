@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.6
+Version:    2.7
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,31 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
+- Don't require admin permissions to show the rebuild button
+- Make sure new-api-token updates expiration token
+- Use SafeRequest for pagure-events
+- Make projects clickable in /status/pending/all
+- Initial Sentry integration
+- Extract Exclu*Arch/BuildArch for all targets
+- Improve chroots graph display
+- Implement persistent projects in Pulp
+- Implement global package search for build chroot results
+- Add distgit source and namespace to source_json
+- Preload build.copr to fix the builds page for large projects
+- Add cancel all marked button
+- Fix script-repos not being saved at all for custom pkgs
+- Exclude persistent projects from EOL chroot deletion
+- Disable AI Log Detective and dist-git redirect for non-logged users
+- Add a test for container tags containing dashes
+- Allow dots and dashes in the container regex
+- Allow resubmit for builds that failed during imports
+- Use build.copr instead of copr context for batches builds
+- Preload build.copr_dir to fix the builds page for large projects
+- Improve timestamp printing in the frontend
+- Fix packit_forge_projects_allowed to return list in API
+- Don't use future=True for sqlalchemy create_engine
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.6-1
 - Migrate from pytz to zoneinfo
 - Add API endpoint for generating a new token
