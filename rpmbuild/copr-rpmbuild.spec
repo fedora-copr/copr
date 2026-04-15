@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.6.1
+Version: 1.7
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -304,6 +304,12 @@ EOF
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.7-1
+- Do not require DNF4 packages and instead require DNF5 packages
+- Extract Exclu*Arch/BuildArch for all targets
+- Add dependency on the which command
+- Use Tito to generate component.__version__
+
 * Mon Sep 29 2025 Jakub Kadlcik <frostyx@email.cz> 1.6-1
 - Re-store umask to default Fedora value
 - Don't traceback on builders without user SSH access

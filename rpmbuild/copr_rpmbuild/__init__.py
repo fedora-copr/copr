@@ -2,4 +2,4 @@
 Copr Project - generated version file for sub-component
 """
 
-__version__ = "1.6"
+__version__ = "1.7"
