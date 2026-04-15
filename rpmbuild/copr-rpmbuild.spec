@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.7
+Version: 1.8
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -304,6 +304,9 @@ EOF
 
 
 %changelog
+* Thu Apr 16 2026 Jakub Kadlcik <frostyx@email.cz> 1.8-1
+- AFAIK there is no python3-dnf5 only python3-libdnf5
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.7-1
 - Do not require DNF4 packages and instead require DNF5 packages
 - Extract Exclu*Arch/BuildArch for all targets
