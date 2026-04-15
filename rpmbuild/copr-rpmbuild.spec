@@ -145,7 +145,7 @@ Requires: yum-utils
 %latest_requires dnf5-plugins
 %endif
 
-%latest_requires python3-dnf5
+%latest_requires python3-libdnf5
 %latest_requires dist-git-client
 %latest_requires libdnf5
 %latest_requires librepo
