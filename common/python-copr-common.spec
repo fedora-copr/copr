@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.5.1
+Version:    1.6
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -79,6 +79,11 @@ version=%version %py3_install
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.6-1
+- Do not traceback in SafeRequest if log= is not set
+- Use SafeRequest.timeout only as a timeout per request
+- use Tito to generate component.__version__
+
 * Tue Dec 09 2025 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.5-1
 - Send JSON data for PATCH requests
 - Implement chunked uploads to Pulp
