@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.6
+Version:    1.7
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -79,6 +79,9 @@ version=%version %py3_install
 
 
 %changelog
+* Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.7-1
+- Fix test_posix_live_output_cut test for s390x
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.6-1
 - Do not traceback in SafeRequest if log= is not set
 - Use SafeRequest.timeout only as a timeout per request
