@@ -140,8 +140,10 @@ For each package do::
     cd <package subdir>
     # run this for python-copr and copr-cli
     tito release fedora-git-clients
-    # run this for python-copr-common, copr-messaging and copr-rpmbuild packages
+    # run this for python-copr-common and copr-messaging packages
     tito release fedora-git-common
+    # run this for the copr-rpmbuild package
+    tito release fedora-git-rpmbuild
     # run this for other (server) packages (copr-frontend, copr-backend, ...)
     tito release fedora-git
 
