@@ -34,6 +34,18 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        # The point of this file was to have a minimal set of tests that is
+        # run against all supported storages. However, some Copr instances
+        # don't use Pulp and therefore it doesn't make sense to run this
+        # test against them. This is all a temporary situation anyway,
+        # the proper way of doing things is going to be
+        # https://github.com/fedora-copr/copr/issues/4205
+        # and we are going to run the full beaker test suite there
+        if [[ $STORAGE == "backend" ]]; then
+            rlLog "Skipping, this Copr instance doesn't use Pulp"
+            exit 0
+        fi
+
         for storage in "backend" "pulp"; do
             project="$PROJECT-$storage"
             rlRun "copr-cli create --chroot $CHROOT $project --storage $storage"
