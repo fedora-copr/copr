@@ -1113,6 +1113,17 @@ contents of the directories.  Either please ignore the inconsistency, or visit
 the `non-cached host variant
 <http://copr-be.cloud.fedoraproject.org/results/>`_.
 
+.. _`Build succeeded, I see results but not RPMs!`:
+
+.. rubric:: Build succeeded, I see results but not RPMs! :ref:`¶ <Build succeeded, I see results but not RPMs!>`
+
+Fedora Copr stores built RPMs in Pulp. If you see a directory listing with
+missing RPMs, use the "Go to Pulp results for this project" link in the footer.
+The Pulp repositories use a different directory structure (a-z directory split),
+but you should be able to click your way to the packages.
+
+This doesn't affect DNF/YUM behavior in any way, we have redirects in place.
+
 .. _`faq-build-timeout`:
 
 .. rubric:: My build failed because of a timeout, why?  :ref:`¶ <faq-build-timeout>`
