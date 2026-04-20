@@ -333,12 +333,8 @@ At this moment, every Copr service should be up and running.
 Generate documentation
 ......................
 
-Generate `Copr project documentation <https://docs.copr.fedorainfracloud.org/>`_
-
-::
-
-    cd doc
-    ./update_docs.sh
+The `Copr project documentation <https://docs.copr.fedorainfracloud.org/>`_
+is generated automatically for every commit in the ``main`` branch.
 
 Generate package specific documentation by going to:
 
