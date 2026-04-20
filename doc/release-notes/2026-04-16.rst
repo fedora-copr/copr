@@ -1,0 +1,80 @@
+.. _release_notes_2026_04_16:
+
+Highlights from 2026-04-16 release
+==================================
+
+Enhancements
+------------
+
+- `#4078`_ - Colorized build statuses in ``copr-cli``
+- `#3325`_ - Improvements for the `chroots graph`_
+- `#3715`_ - Sentry integration
+- `#1947`_ - Support for searching by package NEVRA
+- `#4089`_ - Hover humanized times to see the exact date and time
+- `#2844`_ - Allow resubmit for builds that failed during imports
+- `#4135`_ - Improved parsing of ``ExcludeArch``, ``ExclusiveArch``,
+  and ``BuildArch`` for more reliable chroot skips
+
+
+Integration with Pulp
+---------------------
+
+We are in the process of `migrating Fedora Copr build results from our backend
+storage to Pulp`_ and therefore a lot of work went into performance
+improvements, bugfixes and features related to our integration with Pulp.
+
+- `#4258`_ - Improved filter for content queries
+- `#4209`_ - Cleanup of unused backend-side repodata for Pulp projects
+- `#4238`_ - Projects with manual createrepo are not being migrated to Pulp yet
+- `#4164`_ - Support for persistent projects
+- `#4228`_ - Performance improvements when adding packages to a repository
+- `#4187`_ - Performance improvements when deleting multiple builds at once
+- `#4178`_ - Not running createrepo when forking Pulp projects
+
+
+Bugfixes
+--------
+
+- `#4261`_ - Don't require admin permissions to show the rebuild button
+- `#4149`_ - Make sure ``copr-cli new-api-token`` updates expiration token
+- `#4149`_ - Don't traceback ``copr-cli new-api-token`` for default config
+- `#4236`_ - Fix ``copr-cli download-build`` for manual createrepo Pulp projects
+- `#4167`_ - Fix ``copr-cli download-build`` from Pulp with ``--rpms``
+- `#4076`_ - Fix ``script-repos`` not being saved at all for custom packages
+- `#4092`_ - Fix ``packit_forge_projects_allowed`` to return list in API
+- `#4052`_ - Disable AI Log Detective and dist-git redirect for non-logged users
+- `#3867`_ - Bypass Anubis challenge by setting copr user agent
+- `#4204`_ - More reliable pagure events listener
+- `#3609`_ - Properly store DistGit instance and namespace when submitting builds
+- `#4114`_ - Allow dots and dashes in the bootstrap image regex
+
+
+
+.. _migrating Fedora Copr build results from our backend storage to Pulp: https://fedora-copr.github.io/posts/migrating-copr-results-to-pulp
+.. _chroots graph: https://copr.fedorainfracloud.org/status/stats/
+
+.. _#4228: https://github.com/fedora-copr/copr/issues/4228
+.. _#4078: https://github.com/fedora-copr/copr/issues/4078
+.. _#4236: https://github.com/fedora-copr/copr/issues/4236
+.. _#3867: https://github.com/fedora-copr/copr/issues/3867
+.. _#4167: https://github.com/fedora-copr/copr/issues/4167
+.. _#4076: https://github.com/fedora-copr/copr/issues/4076
+.. _#4261: https://github.com/fedora-copr/copr/issues/4261
+.. _#4092: https://github.com/fedora-copr/copr/issues/4092
+.. _#4052: https://github.com/fedora-copr/copr/issues/4052
+.. _#4209: https://github.com/fedora-copr/copr/issues/4209
+.. _#4238: https://github.com/fedora-copr/copr/issues/4238
+.. _#4187: https://github.com/fedora-copr/copr/issues/4187
+.. _#4149: https://github.com/fedora-copr/copr/issues/4149
+.. _#4135: https://github.com/fedora-copr/copr/issues/4135
+.. _#3715: https://github.com/fedora-copr/copr/issues/3715
+.. _#3325: https://github.com/fedora-copr/copr/issues/3325
+.. _#1947: https://github.com/fedora-copr/copr/issues/1947
+.. _#2844: https://github.com/fedora-copr/copr/issues/2844
+.. _#4178: https://github.com/fedora-copr/copr/issues/4178
+.. _#4204: https://github.com/fedora-copr/copr/issues/4204
+.. _#3609: https://github.com/fedora-copr/copr/issues/3609
+.. _#4164: https://github.com/fedora-copr/copr/pull/4164
+.. _#4258: https://github.com/fedora-copr/copr/pull/4258
+.. _#4089: https://github.com/fedora-copr/copr/pull/4089
+.. _#4114: https://github.com/fedora-copr/copr/pull/4114
