@@ -32,7 +32,7 @@ To start your developer environment, simply run ``docker-compose up`` command in
 
     $ docker-compose up -d
 
-    $ docker exec -it copr_frontend_1 bash
+    $ docker exec -it copr-frontend-1 bash
 
     [copr-fe@frontend /]$ init-database.sh
 
@@ -74,7 +74,7 @@ You can get shell to the e.g. backend container and see the logs
 
 ::
 
-    $ docker exec -it docker_backend_1 /bin/bash
+    $ docker exec -it copr-backend-log-1 /bin/bash
     # tail -f /var/log/copr-backend/backend.log
 
 
