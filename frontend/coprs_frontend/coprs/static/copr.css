@@ -186,6 +186,9 @@ img.avatar {
   padding: 4px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: content-box;
+  max-width: 80px;
+  max-height: 80px;
 }
 
 .alert ul {
