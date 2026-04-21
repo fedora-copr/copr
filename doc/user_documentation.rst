@@ -1176,14 +1176,14 @@ script::
 
     #! /bin/sh -x
     package=<package>
-    copr-distgit-client clone "$package" --dist-git fedora
+    dist-git-client clone "$package" --dist-git fedora
     cd "$package" || exit 1
     .. tweak the spec file or checkout the desired branch ..
-    copr-distgit-client sources  # download sources
-    copr-distgit-client srpm --outputdir .
+    dist-git-client sources  # download sources
+    dist-git-client srpm --outputdir .
     bsdtar xf *.src.rpm -C "$COPR_RESULTDIR"
 
-Set the Buildroot dependencies to ``copr-distgit-client bsdtar``.  Alternatively
+Set the Buildroot dependencies to ``dist-git-client bsdtar``.  Alternatively
 you can go even deeper and use ``git rpmdevtools rpmautospec`` deps with::
 
     git clone <git url> <project name>

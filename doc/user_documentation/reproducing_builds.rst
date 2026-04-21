@@ -33,7 +33,7 @@ situations may require additional configurations though; notable examples:
        configuration into one of the `Mock configuration directories`_.
 
     3. For non-public DistGit instances, configured typically in non-public Copr
-       instances, may need a config file in ``/etc/copr-distgit-client/``.  Ask
+       instances, may need a config file in ``/etc/dist-git-client/``.  Ask
        your Copr admins to provide the configuration file for you.
 
     4. Uploaded spec files and SRPMs are very quickly removed from Copr
