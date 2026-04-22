@@ -38,6 +38,8 @@ jobs:
           linter_tags: |
             pylint
             ruff
+          install_rpm_packages: |
+            python3-specfile
 
       - name: Upload artifact with detected defects in SARIF format
         uses: actions/upload-artifact@v7
