@@ -6,6 +6,7 @@ import subprocess
 import sys
 import argparse
 import json
+
 import logging
 import shutil
 import pprint
@@ -14,6 +15,8 @@ import shlex
 from urllib.parse import urljoin, urlencode
 
 import daemon
+import requests.exceptions
+import simplejson
 
 from copr_common.request import SafeRequest, RequestError
 from copr_common.helpers import nullcontext
@@ -97,6 +100,12 @@ def main_daemon(args, config):
     try:
         fcntl.lockf(lockfd, fcntl.LOCK_EX, 1)
         init(args, config)
+
+        if args.chroot and '/' in args.chroot:
+            raise RuntimeError(
+                "The -r/--chroot option expects a chroot name "
+                "(e.g. fedora-rawhide-x86_64), not a file path"
+            )
 
         if args.dump_configs:
             action = dump_configs
@@ -281,16 +290,18 @@ def dump_configs(args, config):
 
 
 def get_vanilla_build_config(url):
+    request = SafeRequest(log=log)
+    response = request.get(url)
     try:
-        request = SafeRequest(log=log)
-        response = request.get(url)
         build_config = response.json()
-        if not build_config:
-            raise RuntimeError("No valid build_config at {0}".format(url))
-        return build_config
-
-    except json.decoder.JSONDecodeError as ex:
-        raise RuntimeError("No valid build_config at {0}".format(url)) from ex
+    except (json.JSONDecodeError, simplejson.JSONDecodeError,
+            requests.exceptions.JSONDecodeError) as ex:
+        raise RuntimeError(
+            f"No valid build_config (JSON) at {url}"
+        ) from ex
+    if not build_config:
+        raise RuntimeError(f"No valid build_config at {url}")
+    return build_config
 
 
 def read_task_from_file(path):
