@@ -17,6 +17,14 @@ from copr_common.lock import lock, LockTimeout
 from copr_common.redis_helpers import get_redis_connection
 
 
+# JSON data in a POST request can be large but they probably cannot be
+# unlimited. Also, the more package we specify in one request, the longer it
+# takes Pulp to process it. And at some point (around 50k) it gets too slow and
+# the requests starts timeouting.
+# So how many PRNs are we going to send per one request?
+MAX_CONTENT_UNITS_IN_BATCH = 10000
+
+
 class PaginatedResponse:
     """
     A response-like object that maintains backward compatibility with PULP API responses
@@ -155,6 +163,15 @@ class BatchedAddRemoveContent:
                 continue
 
             task_opts = json.loads(task_dict["task"])
+
+            units = len(task_opts["add_content_units"])
+            units += len(task_opts["remove_content_units"])
+            if units > MAX_CONTENT_UNITS_IN_BATCH:
+                self.log.info(
+                    "Limit %s of units per request reached, skip the rest",
+                    MAX_CONTENT_UNITS_IN_BATCH,
+                )
+                break
 
             # we can process this task!
             self.notify_keys.append(key)
@@ -587,12 +604,19 @@ class PulpClient:
         Add a list of artifacts to a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        batch = BatchedAddRemoveContent(repository, artifacts, None, self.opts, self.log)
-        # Put our task to Redis DB and allow _others_ to process our
-        # own task.  This needs to be run _before_ the lock() call.
-        batch.make_request()
-        self.try_lock(repository, batch)
-        self.log.info("Pulp: add_content: %s (%s)", repository, artifacts)
+        size = MAX_CONTENT_UNITS_IN_BATCH
+        pages = [list(x) for x in batched(artifacts, size)]
+        for i, page in enumerate(pages, start=1):
+            batch = BatchedAddRemoveContent(
+                repository, page, None, self.opts, self.log)
+            # Put our task to Redis DB and allow _others_ to process our
+            # own task.  This needs to be run _before_ the lock() call.
+            batch.make_request()
+            self.try_lock(repository, batch)
+            self.log.info(
+                "Pulp: add_content: %s (%s) [%s/%s]",
+                repository, page, i, len(pages),
+            )
         return True
 
     def delete_content(self, repository, artifacts):
@@ -600,12 +624,19 @@ class PulpClient:
         Delete a list of artifacts from a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        batch = BatchedAddRemoveContent(repository, None, artifacts, self.opts, self.log)
-        # Put our task to Redis DB and allow _others_ to process our
-        # own task.  This needs to be run _before_ the lock() call.
-        batch.make_request()
-        self.try_lock(repository, batch)
-        self.log.info("Pulp: delete_content: %s (%s)", repository, artifacts)
+        size = MAX_CONTENT_UNITS_IN_BATCH
+        pages = [list(x) for x in batched(artifacts, size)]
+        for i, page in enumerate(pages, start=1):
+            batch = BatchedAddRemoveContent(
+                repository, None, page, self.opts, self.log)
+            # Put our task to Redis DB and allow _others_ to process our
+            # own task.  This needs to be run _before_ the lock() call.
+            batch.make_request()
+            self.try_lock(repository, batch)
+            self.log.info(
+                "Pulp: delete_content: %s (%s) [%s/%s]",
+                repository, page, i, len(pages),
+            )
         return True
 
     def get_content(self, build_ids, chroot=None, fields=None):
