@@ -587,12 +587,18 @@ class PulpClient:
         Add a list of artifacts to a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        batch = BatchedAddRemoveContent(repository, artifacts, None, self.opts, self.log)
-        # Put our task to Redis DB and allow _others_ to process our
-        # own task.  This needs to be run _before_ the lock() call.
-        batch.make_request()
-        self.try_lock(repository, batch)
-        self.log.info("Pulp: add_content: %s (%s)", repository, artifacts)
+        pages = [list(x) for x in batched(artifacts, 10000)]
+        for i, page in enumerate(pages, start=1):
+            batch = BatchedAddRemoveContent(
+                repository, page, None, self.opts, self.log)
+            # Put our task to Redis DB and allow _others_ to process our
+            # own task.  This needs to be run _before_ the lock() call.
+            batch.make_request()
+            self.try_lock(repository, batch)
+            self.log.info(
+                "Pulp: add_content: %s (%s) [%s/%s]",
+                repository, page, i, len(pages),
+            )
         return True
 
     def delete_content(self, repository, artifacts):
@@ -600,12 +606,18 @@ class PulpClient:
         Delete a list of artifacts from a repository
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        batch = BatchedAddRemoveContent(repository, None, artifacts, self.opts, self.log)
-        # Put our task to Redis DB and allow _others_ to process our
-        # own task.  This needs to be run _before_ the lock() call.
-        batch.make_request()
-        self.try_lock(repository, batch)
-        self.log.info("Pulp: delete_content: %s (%s)", repository, artifacts)
+        pages = [list(x) for x in batched(artifacts, 10000)]
+        for i, page in enumerate(pages, start=1):
+            batch = BatchedAddRemoveContent(
+                repository, None, page, self.opts, self.log)
+            # Put our task to Redis DB and allow _others_ to process our
+            # own task.  This needs to be run _before_ the lock() call.
+            batch.make_request()
+            self.try_lock(repository, batch)
+            self.log.info(
+                "Pulp: delete_content: %s (%s) [%s/%s]",
+                repository, page, i, len(pages),
+            )
         return True
 
     def get_content(self, build_ids, chroot=None, fields=None):
