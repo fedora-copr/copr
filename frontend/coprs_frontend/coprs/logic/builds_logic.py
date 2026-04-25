@@ -1827,6 +1827,10 @@ class BuildsMonitorLogic(object):
             .add_columns(
                 builds_ids.c.package_id.label("package_id"),
             )
+            .options(
+                joinedload(models.BuildChroot.build)
+                .load_only(models.Build.pkg_version)
+            )
         )
 
 
