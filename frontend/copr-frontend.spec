@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.7
+Version:    2.7.hotfix.0
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,9 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Mon Apr 27 2026 Jakub Kadlcik <frostyx@email.cz> 2.7.hotfix.0-1
+- frontend: preload build.pkg_version for detailed monitor
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
 - Don't require admin permissions to show the rebuild button
 - Make sure new-api-token updates expiration token
