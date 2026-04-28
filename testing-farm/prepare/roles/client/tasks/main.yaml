@@ -56,6 +56,7 @@
       - net-tools
       - procps-ng
       - python3-behave
+      - python3-fedora-distro-aliases
       - python3-hamcrest
       - rpm-build
       - sudo
