@@ -401,33 +401,36 @@ def get_srpm_build_task(build_id):
 @backend_ns.route("/update/", methods=["POST", "PUT"])
 @misc.backend_authenticated
 def update():
-    result = {}
-
+    # Streamed to prevent Apache 504 when update_state_from_dict triggers
+    # slow cascading deletes (e.g. removing large projects).
     request_data = flask.request.json
-    for typ, logic_cls in [("actions", actions_logic.ActionsLogic),
-                           ("builds", BuildsLogic)]:
 
-        if typ not in request_data:
-            continue
+    def _stream():
+        result = {}
+        for typ, logic_cls in [("actions", actions_logic.ActionsLogic),
+                               ("builds", BuildsLogic)]:
+            if typ not in request_data:
+                continue
+            to_update = {}
+            for obj in request_data[typ]:
+                to_update[obj["id"]] = obj
+            existing = {}
+            for obj in logic_cls.get_by_ids(to_update.keys()).all():
+                existing[obj.id] = obj
+            non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
+            for i, obj in existing.items():
+                logic_cls.update_state_from_dict(obj, to_update[i])
+            db.session.commit()
+            result[f"updated_{typ}_ids"] = list(existing.keys())
+            result[f"non_existing_{typ}_ids"] = non_existing_ids
+            # Keep the connection alive while the DB commits.
+            yield "\n"
+        yield flask.json.dumps(result)
 
-        to_update = {}
-        for obj in request_data[typ]:
-            to_update[obj["id"]] = obj
-
-        existing = {}
-        for obj in logic_cls.get_by_ids(to_update.keys()).all():
-            existing[obj.id] = obj
-
-        non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
-
-        for i, obj in existing.items():
-            logic_cls.update_state_from_dict(obj, to_update[i])
-
-        db.session.commit()
-        result.update({"updated_{0}_ids".format(typ): list(existing.keys()),
-                       "non_existing_{0}_ids".format(typ): non_existing_ids})
-
-    return flask.jsonify(result)
+    return app.response_class(
+        flask.stream_with_context(_stream()),
+        mimetype="application/json",
+    )
 
 
 @backend_ns.route("/starting_build/", methods=["POST", "PUT"])
