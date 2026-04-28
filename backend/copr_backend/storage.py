@@ -521,9 +521,14 @@ class PulpStorage(Storage):
         return True
 
     def delete_repository(self, chroot):
+        name = self._repository_name(chroot)
         repository = self._get_repository(chroot)
-        distribution = self._get_distribution(chroot)
+        self.log.info("Removing Pulp repository: %s", name)
         self.client.delete_repository(repository)
+
+        name = self._distribution_name(chroot)
+        distribution = self._get_distribution(chroot)
+        self.log.info("Removing Pulp distribution: %s", name)
         self.client.delete_distribution(distribution)
 
     def delete_project(self, dirname):
@@ -531,8 +536,11 @@ class PulpStorage(Storage):
         response = self.client.list_distributions(prefix)
         distributions = response.json()["results"]
         for distribution in distributions:
+            name = distribution["name"]
+            self.log.info("Removing Pulp distribution for %s", name)
             self.client.delete_distribution(distribution["pulp_href"])
             if distribution["repository"]:
+                self.log.info("Removing Pulp repository for %s", name)
                 self.client.delete_repository(distribution["repository"])
 
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
