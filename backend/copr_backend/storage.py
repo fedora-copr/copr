@@ -527,7 +527,7 @@ class PulpStorage(Storage):
         self.client.delete_distribution(distribution)
 
     def delete_project(self, dirname):
-        prefix = "{0}/{1}".format(self.owner, dirname)
+        prefix = "{0}/{1}/".format(self.owner, dirname)
         response = self.client.list_distributions(prefix)
         distributions = response.json()["results"]
         for distribution in distributions:
