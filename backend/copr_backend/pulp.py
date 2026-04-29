@@ -389,7 +389,7 @@ class PulpClient:
         # There is no endpoint for querying a single publication
         uri = "/api/v3/publications/rpm/rpm/?"
         uri += urlencode({"repository": repository, "offset": 0, "limit": 1})
-        self.log.info("Pulp: get_publicatoin: %s", uri)
+        self.log.info("Pulp: get_publication: %s", uri)
         return self.send("GET", uri)
 
     def create_content(self, path, labels, timeout=3600):
