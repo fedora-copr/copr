@@ -398,6 +398,20 @@ class PulpClient:
         self.log.info("Pulp: publishing %s %s", uri, repository)
         return self.send("POST", uri, data)
 
+    def publish(self, repository):
+        """
+        Create a publication and wait for the task to finish.
+        """
+        response = self.create_publication(repository)
+        task = response.json()["task"]
+        response = self.wait_for_finished_task(task)
+        data = response.json()
+        if not response.ok or data["state"] != "completed":
+            self.log.error("Failed to publish %s: %s", repository, data)
+            return False
+        self.log.info("Successfully published %s", repository)
+        return True
+
     def get_publication(self, repository):
         """
         Get a single RPM publication
@@ -546,15 +560,7 @@ class PulpClient:
             return False
 
         # Make a request to create a new publication
-        response = self.create_publication(repository)
-        task = response.json()["task"]
-        response = self.wait_for_finished_task(task)
-        data = response.json()
-        if response.ok and data["state"] == "completed":
-            self.log.info("Successfully created Pulp publication of repository %s", repository)
-            return True
-        self.log.info("Failed to create Pulp publication of repository %s", repository)
-        return False
+        return self.publish(repository)
 
     def try_lock(self, repository, batch):
         """
