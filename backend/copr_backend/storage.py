@@ -419,12 +419,11 @@ class PulpStorage(Storage):
 
         # And finally, run the actual createrepo for either the devel or
         # the public repository
-        response = self.client.create_publication(repository_href)
-
-        redirect = PulpHTTPRedirect(log=self.log)
-        redirect.add(self.owner, self.project)
-
-        return True
+        try:
+            return self.client.publish(repository_href)
+        finally:
+            redirect = PulpHTTPRedirect(log=self.log)
+            redirect.add(self.owner, self.project)
 
     def upload_rpm(self, path, labels):
         """
@@ -625,8 +624,7 @@ class PulpStorage(Storage):
                 )
 
             repository = self._get_repository(chroot)
-            if createrepo and not self.client.create_publication(repository):
-                self.log.error("Failed to publish a repository")
+            if createrepo and not self.client.publish(repository):
                 return False
 
         return True
