@@ -10,10 +10,10 @@ from unittest import mock
 
 import pytest
 import requests
-import yaml
+from munch import Munch
 
 from copr_backend import rpmeta
-from copr_backend.helpers import _load_rpmeta_hw_info
+from copr_backend.rpmeta import _load_rpmeta_hw_info
 
 
 SAMPLE_HW_CONFIG = """\
@@ -34,8 +34,6 @@ aarch64:
   swap: 0.0
 """
 
-SAMPLE_HW_INFO = yaml.safe_load(SAMPLE_HW_CONFIG)
-
 
 def _make_job(**kwargs):
     defaults = {
@@ -51,15 +49,19 @@ def _make_job(**kwargs):
 
 
 def _make_opts(tmpdir, **overrides):
+    hw_path = os.path.join(tmpdir, "hw-info.yaml")
+    if not os.path.exists(hw_path):
+        with open(hw_path, "w", encoding="utf-8") as fh:
+            fh.write(SAMPLE_HW_CONFIG)
     defaults = {
         "rpmeta_enabled": True,
         "rpmeta_url": "http://localhost:44882",
         "rpmeta_timeout": 5,
-        "rpmeta_hw_info": SAMPLE_HW_INFO,
+        "rpmeta_hw_pools_config": hw_path,
         "log_dir": tmpdir,
     }
     defaults.update(overrides)
-    return mock.MagicMock(**defaults)
+    return Munch(defaults)
 
 
 @pytest.fixture(autouse=True)
@@ -87,25 +89,33 @@ def config_file(tmpdir):
 
 class TestLoadRpmetaHwInfo:
     def test_loads_valid_config(self, config_file):
-        data = _load_rpmeta_hw_info(config_file)
+        log = mock.MagicMock()
+        data = _load_rpmeta_hw_info(config_file, log)
         assert "x86_64" in data
         assert data["x86_64"]["cpu_arch"] == "x86_64"
         assert data["aarch64"]["cpu_cores"] == 4
+        log.warning.assert_not_called()
 
     def test_missing_file_returns_empty(self, tmpdir):
-        data = _load_rpmeta_hw_info(os.path.join(tmpdir, "nonexistent.yaml"))
+        log = mock.MagicMock()
+        data = _load_rpmeta_hw_info(os.path.join(tmpdir, "nonexistent.yaml"), log)
         assert data == {}
+        log.warning.assert_called()
 
     def test_none_path_returns_empty(self):
-        data = _load_rpmeta_hw_info(None)
+        log = mock.MagicMock()
+        data = _load_rpmeta_hw_info(None, log)
         assert data == {}
+        log.warning.assert_called()
 
     def test_invalid_yaml_returns_empty(self, tmpdir):
+        log = mock.MagicMock()
         path = os.path.join(tmpdir, "bad.yaml")
         with open(path, "w", encoding="utf-8") as fh:
             fh.write("{{{{not valid yaml: [")
-        data = _load_rpmeta_hw_info(path)
+        data = _load_rpmeta_hw_info(path, log)
         assert data == {}
+        log.warning.assert_called()
 
 
 class TestParseVersion:

@@ -7,6 +7,7 @@ import logging
 import os
 
 import requests
+import yaml
 
 from copr_backend.helpers import create_file_logger
 
@@ -22,6 +23,39 @@ def _get_predictions_logger(log_dir):
     logger.setLevel(logging.INFO)
     logger.propagate = False
     return logger
+
+
+def _load_rpmeta_hw_info(config_path, log):
+    """
+    Load rpmeta hardware pool definitions from a YAML file.
+    Returns an empty dict if the file is missing or unparseable.
+    """
+    if not config_path or not os.path.exists(config_path):
+        log.warning("rpmeta: HW pools config not found at %s, "
+                     "predictions disabled", config_path)
+        return {}
+    try:
+        with open(config_path, "r", encoding="utf-8") as fh:
+            return yaml.safe_load(fh) or {}
+    except (yaml.YAMLError, OSError) as exc:
+        log.warning("rpmeta: failed to parse HW pools config %s: %s",
+                     config_path, exc)
+        return {}
+
+
+def _get_hw_info(opts, log):
+    """
+    Return the parsed HW pool info dict, loading from YAML on first call.
+    The result is cached on the opts object itself.
+    """
+    try:
+        return opts._rpmeta_hw_info_cached
+    except AttributeError:
+        pass
+    config_path = getattr(opts, "rpmeta_hw_pools_config", None)
+    hw_info = _load_rpmeta_hw_info(config_path, log)
+    opts._rpmeta_hw_info_cached = hw_info
+    return hw_info
 
 
 def parse_version(package_version):
@@ -77,7 +111,7 @@ def _rpmeta_predict_inner(job, opts, log):  # pylint: disable=too-many-return-st
     if job.chroot == "srpm-builds":
         return None
 
-    hw_info_map = getattr(opts, "rpmeta_hw_info", {})
+    hw_info_map = _get_hw_info(opts, log)
     if not hw_info_map:
         return None
 
