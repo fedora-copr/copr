@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.12.hotfix.1
+Version:    2.12.hotfix.2
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,10 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Thu Apr 30 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.2-1
+- backend: fix typo in log entry
+- Revert setup.py change done by standard tito tagger
+
 * Thu Apr 30 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.1-1
 - Bumping the release so that AI sees a changed package
 
