@@ -5,8 +5,8 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.12.hotfix.0
-Release:    2%{?dist}
+Version:    2.12.hotfix.1
+Release:    1%{?dist}
 Summary:    Backend for Copr
 
 License:    GPL-2.0-or-later
@@ -240,6 +240,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Thu Apr 30 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.1-1
+- Bumping the release so that AI sees a changed package
+
 * Thu Apr 30 2026 Jakub Kadlcik <frostyx@email.cz> - 2.12.hotfix.0-2
 - Rebuild
 
