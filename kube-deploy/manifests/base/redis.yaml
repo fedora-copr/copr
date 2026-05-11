@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-redis
+  labels:
+    app: copr
+    component: redis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: redis
+    spec:
+      containers:
+        - name: redis
+          image: copr-redis:latest
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: copr-redis-data
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    component: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP

@@ -14,7 +14,7 @@ EVIL_HELLO=https://github.com/fedora-copr/copr-test-sources/raw/main/evilhello-2
 SRPM_BUILDTAG=https://github.com/fedora-copr/copr-test-sources/raw/main/buildtag-0-0.src.rpm
 COPR_HELLO_GIT=https://github.com/fedora-copr/copr-test-hello.git
 COPR_HELLO_2_GIT=https://github.com/fedora-copr/copr-test-hello-2.git
-DNF_COPR_ID=tested-copr
+: "${DNF_COPR_ID:=tested-copr}"
 
 parse_build_id()
 {
@@ -124,7 +124,7 @@ setup_checks()
         *dev-copr.devel.redhat.com) ;;
         *[0-9]*.[0-9]*.[0-9]*.[0-9]*) ;;  # single-host testing, best effort ipv4 match
         # https://docs.copr.fedorainfracloud.org/sanity_tests.html#sanity-tests
-        *frontend) ;;
+        *frontend*) ;;
         *) rlDie "improper copr_url in $_config" ;;
     esac
 

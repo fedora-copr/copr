@@ -1,0 +1,2 @@
+# Generated SSH keys (created by `just build`, mounted at runtime)
+containers/.ssh/

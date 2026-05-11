@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-frontend
+  labels:
+    app: copr
+    component: frontend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: frontend
+    spec:
+      initContainers:
+        - name: wait-database
+          image: copr-frontend:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z database 5432; do echo 'waiting for database'; sleep 2; done",
+            ]
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+        - name: wait-redis
+          image: copr-frontend:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z redis 6379; do echo 'waiting for redis'; sleep 2; done",
+            ]
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+        - name: frontend-init
+          image: copr-frontend:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /frontend-init
+          volumeMounts:
+            - name: frontend-config
+              mountPath: /etc/copr/copr.conf
+              subPath: copr.conf
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "320Mi"
+              cpu: "300m"
+      containers:
+        - name: frontend
+          image: copr-frontend:latest
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - name: frontend-config
+              mountPath: /etc/copr/copr.conf
+              subPath: copr.conf
+          startupProbe:
+            httpGet:
+              path: /
+              port: 5000
+            failureThreshold: 30
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+            requests:
+              memory: "640Mi"
+              cpu: "600m"
+      volumes:
+        - name: frontend-config
+          configMap:
+            name: copr-frontend-config
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    component: frontend
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      protocol: TCP

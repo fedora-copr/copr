@@ -1,0 +1,40 @@
+FROM copr-base:latest
+
+LABEL description="COPR Frontend - Web UI and API"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+ENV REDIS_HOST=redis
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-frontend \
+        mock-core-configs \
+        modulemd-tools \
+        python3-alembic \
+        python3-anytree \
+        python3-authlib \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-frontend
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    sed -i \
+        -e 's/User apache/User copr-fe/g' \
+        -e 's/Group apache/Group copr-fe/g' \
+        -e 's/Listen 80/#Listen 80/g' \
+        /etc/httpd/conf/httpd.conf && \
+    echo "PidFile /var/run/httpd/httpd.pid" >> /etc/httpd/conf/httpd.conf && \
+    sed -i "s/REDIS_HOST = 'redis'/REDIS_HOST = '${REDIS_HOST}'/g" /etc/copr/copr.conf && \
+    mkdir -p /var/www/html/db_dumps /var/www/html/usage && \
+    chown -R copr-fe:root /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd /var/www/html && \
+    chmod -R g+rwX /usr/share/copr /var/log/copr-frontend /etc/httpd /var/run/httpd /var/log/httpd /var/www/html
+
+USER copr-fe
+EXPOSE 5000
+
+ENTRYPOINT []
+CMD ["/entrypoint"]

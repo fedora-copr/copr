@@ -1,0 +1,108 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-keygen
+  labels:
+    app: copr
+    component: keygen
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: keygen
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: keygen
+    spec:
+      hostname: keygen
+      containers:
+        - name: keygen-signd
+          image: copr-keygen:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /signd-entrypoint
+          ports:
+            - containerPort: 5167
+              protocol: TCP
+          volumeMounts:
+            - name: keygen-data
+              mountPath: /var/lib/copr-keygen
+          livenessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+        - name: keygen-httpd
+          image: copr-keygen:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /bin/bash
+            - "-c"
+            - "mkdir --mode=0700 -p /var/lib/copr-keygen/phrases /var/lib/copr-keygen/gnupg && mkdir --mode=0755 -p /var/run/httpd && exec /usr/sbin/httpd -DFOREGROUND"
+          ports:
+            - containerPort: 5003
+              protocol: TCP
+          volumeMounts:
+            - name: keygen-data
+              mountPath: /var/lib/copr-keygen
+          livenessProbe:
+            tcpSocket:
+              port: 5003
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 5003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+      volumes:
+        - name: keygen-data
+          persistentVolumeClaim:
+            claimName: copr-keygen-data
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keygen
+spec:
+  selector:
+    component: keygen
+  ports:
+    - name: httpd
+      port: 5003
+      targetPort: 5003
+      protocol: TCP
+    - name: signd
+      port: 5167
+      targetPort: 5167
+      protocol: TCP

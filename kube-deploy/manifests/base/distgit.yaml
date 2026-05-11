@@ -1,0 +1,118 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-distgit
+  labels:
+    app: copr
+    component: distgit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: distgit
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: distgit
+    spec:
+      initContainers:
+        - name: wait-frontend
+          image: copr-distgit:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z frontend 5000; do echo 'waiting for frontend'; sleep 2; done",
+            ]
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+      containers:
+        - name: distgit
+          image: copr-distgit:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - bash
+            - "-c"
+            - "mkdir -p /var/lib/dist-git/cache /var/lib/dist-git/git && exec /usr/bin/copr-run-dispatcher-dist-git imports"
+          volumeMounts:
+            - name: distgit-data
+              mountPath: /var/lib/dist-git
+            - name: distgit-logs
+              mountPath: /var/lib/copr-dist-git
+            - name: distgit-config
+              mountPath: /etc/copr/copr-dist-git.conf
+              subPath: copr-dist-git.conf
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "320Mi"
+              cpu: "300m"
+
+        - name: distgit-httpd
+          image: copr-distgit:latest
+          command:
+            - /usr/sbin/httpd
+            - "-DFOREGROUND"
+          ports:
+            - containerPort: 5001
+              protocol: TCP
+          volumeMounts:
+            - name: distgit-data
+              mountPath: /var/lib/dist-git
+            - name: distgit-logs
+              mountPath: /var/lib/copr-dist-git
+          readinessProbe:
+            tcpSocket:
+              port: 5001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+      volumes:
+        - name: distgit-config
+          configMap:
+            name: copr-distgit-config
+        - name: distgit-data
+          persistentVolumeClaim:
+            claimName: copr-distgit-data
+        - name: distgit-logs
+          emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: distgit
+spec:
+  selector:
+    component: distgit
+  ports:
+    - name: http
+      port: 5001
+      targetPort: 5001
+      protocol: TCP

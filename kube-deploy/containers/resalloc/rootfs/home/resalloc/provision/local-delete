@@ -1,0 +1,6 @@
+#!/bin/bash
+# Remove a builder container. Called by resalloc when a builder
+# resource is no longer needed.
+
+NAME="copr-builder-${RESALLOC_NAME}"
+podman-remote rm -f "$NAME" 2>/dev/null || true
