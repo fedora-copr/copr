@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.12.hotfix.2
+Version:    2.12.hotfix.3
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,10 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Mon May 11 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.3-1
+- backend: paginate add_content and delete_content requests to Pulp
+- backend: dump a backup of files uploaded to Pulp
+
 * Thu Apr 30 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.2-1
 - backend: fix typo in log entry
 - Revert setup.py change done by standard tito tagger
