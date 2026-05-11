@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-keygen
+spec:
+  template:
+    spec:
+      containers:
+        - name: keygen-signd
+          volumeMounts:
+            - name: copr-source
+              mountPath: /opt/copr
+        - name: keygen-httpd
+          command:
+            - bash
+            - -c
+            - |
+              rm -rf /usr/share/copr-keygen/copr_keygen
+              ln -s /opt/copr/keygen/src/copr_keygen /usr/share/copr-keygen/copr_keygen
+              exec httpd -DFOREGROUND
+          env:
+            - name: PYTHONPATH
+              value: "/opt/copr/keygen/src:/opt/copr/common"
+          volumeMounts:
+            - name: copr-source
+              mountPath: /opt/copr
+      volumes:
+        - name: copr-source
+          hostPath:
+            path: COPR_SOURCE_PATH
+            type: Directory

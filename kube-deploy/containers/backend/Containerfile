@@ -1,0 +1,46 @@
+FROM copr-base:latest
+
+LABEL description="COPR Backend services"
+
+ARG COPR_PR_ID="" \
+    COPR_PR_HEAD_SHA=""
+
+ENV PYTHONPATH=/usr/share/copr/
+
+RUN --mount=type=cache,target=/var/cache/dnf \
+    dnf -y install \
+        copr-backend \
+        expect \
+        git \
+        iputils \
+        psmisc \
+        pulp-cli \
+        resalloc \
+        rng-tools \
+    && dnf clean all
+
+RUN overlay-pr-packages copr-backend
+
+COPY rootfs/ /
+
+RUN set -ex && \
+    groupadd -r obsrun || true && \
+    usermod -a -G obsrun copr && \
+    setcap cap_net_bind_service+ep /usr/bin/sign && \
+    mkdir -p /home/copr/.ssh /home/copr/cloud && \
+    chmod 700 /home/copr /home/copr/.ssh /home/copr/cloud && \
+    touch /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/known_hosts && \
+    chmod 600 /home/copr/.ssh/config && \
+    chown -R copr:copr /home/copr && \
+    usermod -a -G mock copr && \
+    mkdir -p /var/lock/copr-backend /var/lib/copr/jobs /var/lib/copr/public_html/results && \
+    chown -R copr:copr /var/lock/copr-backend /var/lib/copr && \
+    touch /var/lib/copr/public_html/pulp-redirect.txt && \
+    chown copr:copr /var/lib/copr/public_html/pulp-redirect.txt && \
+    chmod 0755 /usr/bin/sign && \
+    ln -sf /tmp/sign.conf /etc/sign.conf && \
+    rngd -r /dev/urandom || true
+
+USER copr
+CMD ["/run-backend"]

@@ -1,0 +1,224 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-backend
+  labels:
+    app: copr
+    component: backend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: backend
+    spec:
+      initContainers:
+        - name: wait-redis
+          image: copr-backend:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z redis 6379; do echo 'waiting for redis'; sleep 2; done",
+            ]
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+        - name: wait-resalloc
+          image: copr-backend:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z resalloc 49100; do echo 'waiting for resalloc'; sleep 2; done",
+            ]
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+        - name: fix-ssh-perms
+          image: copr-backend:latest
+          command:
+            [
+              "sh",
+              "-c",
+              "cp /ssh-host/id_ed25519 /ssh-ready/ && cp /ssh-host/id_ed25519.pub /ssh-ready/ && chown 987:987 /ssh-ready/* && chmod 600 /ssh-ready/id_ed25519 && chmod 644 /ssh-ready/id_ed25519.pub",
+            ]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: ssh-keys
+              mountPath: /ssh-host
+              readOnly: true
+            - name: ssh-ready
+              mountPath: /ssh-ready
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+      containers:
+        - name: backend-log
+          image: copr-backend:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /usr/bin/copr_run_logger.py
+          volumeMounts:
+            - name: results-data
+              mountPath: /var/lib/copr/public_html/results
+            - name: backend-config
+              mountPath: /etc/copr/copr-be.conf
+              subPath: copr-be.conf
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr_run_logger"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+        - name: backend-build
+          image: copr-backend:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /run-backend
+            - "--sign-host"
+            - "keygen"
+            - /usr/bin/copr-run-dispatcher-backend
+            - builds
+          volumeMounts:
+            - name: results-data
+              mountPath: /var/lib/copr/public_html/results
+            - name: backend-config
+              mountPath: /etc/copr/copr-be.conf
+              subPath: copr-be.conf
+            - name: ssh-ready
+              mountPath: /home/copr/.ssh/id_ed25519
+              subPath: id_ed25519
+              readOnly: true
+            - name: ssh-ready
+              mountPath: /home/copr/.ssh/id_ed25519.pub
+              subPath: id_ed25519.pub
+              readOnly: true
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr-run-dispatcher"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "320Mi"
+              cpu: "300m"
+
+        - name: backend-action
+          image: copr-backend:latest
+          command:
+            - /usr/bin/tini
+            - "--"
+            - /run-backend
+            - "--sign-host"
+            - "keygen"
+            - /usr/bin/copr-run-dispatcher-backend
+            - actions
+          volumeMounts:
+            - name: results-data
+              mountPath: /var/lib/copr/public_html/results
+            - name: backend-config
+              mountPath: /etc/copr/copr-be.conf
+              subPath: copr-be.conf
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr-run-dispatcher"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+        - name: backend-httpd
+          image: copr-backend-httpd:latest
+          ports:
+            - containerPort: 5002
+              protocol: TCP
+          volumeMounts:
+            - name: results-data
+              mountPath: /var/lib/copr/public_html/results
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5002
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+      volumes:
+        - name: backend-config
+          configMap:
+            name: copr-backend-config
+        - name: results-data
+          persistentVolumeClaim:
+            claimName: copr-results-data
+        - name: ssh-keys
+          hostPath:
+            path: REPLACE_COPR_SSH_DIR
+            type: Directory
+        - name: ssh-ready
+          emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-httpd
+spec:
+  selector:
+    component: backend
+  ports:
+    - name: http
+      port: 5002
+      targetPort: 5002
+      protocol: TCP

@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-database
+  labels:
+    app: copr
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: database
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: database
+    spec:
+      containers:
+        - name: database
+          image: copr-database:latest
+          env:
+            - name: POSTGRESQL_USER
+              value: "copr-fe"
+            - name: POSTGRESQL_PASSWORD
+              value: "coprpass"
+            - name: POSTGRESQL_DATABASE
+              value: "coprdb"
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: database-data
+              mountPath: /var/lib/pgsql/data
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "320Mi"
+              cpu: "300m"
+      volumes:
+        - name: database-data
+          persistentVolumeClaim:
+            claimName: copr-database-data
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  selector:
+    component: database
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+      protocol: TCP

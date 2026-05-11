@@ -1,0 +1,112 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-resalloc
+  labels:
+    app: copr
+    component: resalloc
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: resalloc
+  template:
+    metadata:
+      labels:
+        app: copr
+        component: resalloc
+    spec:
+      containers:
+        - name: resalloc
+          image: copr-resalloc:latest
+          command:
+            - /bin/bash
+            - "-c"
+            - "cd $(rpm -ql resalloc-server |grep alembic.ini |xargs dirname) && alembic-3 upgrade head && /usr/bin/resalloc-server"
+          ports:
+            - containerPort: 49100
+              protocol: TCP
+          volumeMounts:
+            - name: resalloc-data
+              mountPath: /persistent
+            - name: resalloc-config
+              mountPath: /etc/resallocserver/pools.yaml
+              subPath: pools.yaml
+          livenessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+            requests:
+              memory: "160Mi"
+              cpu: "120m"
+
+        # Resalloc WebUI (optional, for debugging/monitoring)
+        - name: resalloc-webui
+          image: copr-resalloc:latest
+          command:
+            - python3
+            - "-c"
+            - "from resallocwebui.app import app; app.run(host='0.0.0.0', port=5007)"
+          ports:
+            - containerPort: 5007
+              protocol: TCP
+          volumeMounts:
+            - name: resalloc-data
+              mountPath: /persistent
+          livenessProbe:
+            tcpSocket:
+              port: 5007
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 5007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+            requests:
+              memory: "80Mi"
+              cpu: "60m"
+
+      volumes:
+        - name: resalloc-config
+          configMap:
+            name: copr-resalloc-config
+        - name: resalloc-data
+          persistentVolumeClaim:
+            claimName: copr-resalloc-data
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resalloc
+spec:
+  selector:
+    component: resalloc
+  ports:
+    - name: server
+      port: 49100
+      targetPort: 49100
+      protocol: TCP
+    - name: webui
+      port: 5007
+      targetPort: 5007
+      protocol: TCP

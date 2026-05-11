@@ -1,0 +1,9 @@
+#!/bin/bash
+# Frontend runtime: start httpd with simulated Kerberos auth.
+
+set -e
+
+DEV_USER="${TEST_REMOTE_USER:-jdoe}"
+export TEST_REMOTE_USER="$DEV_USER"
+
+exec /usr/sbin/httpd -DFOREGROUND

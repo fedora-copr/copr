@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-frontend
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: frontend-init
+          env:
+            - name: PYTHONPATH
+              value: "/opt/copr/frontend/coprs_frontend:/opt/copr/common"
+          volumeMounts:
+            - name: copr-source
+              mountPath: /opt/copr
+      containers:
+        - name: frontend
+          command:
+            - bash
+            - -c
+            - |
+              rm -rf /usr/share/copr/coprs_frontend/coprs
+              ln -s /opt/copr/frontend/coprs_frontend/coprs /usr/share/copr/coprs_frontend/coprs
+              ln -sf /opt/copr/common/copr_common /usr/share/copr/coprs_frontend/copr_common
+              exec httpd -DFOREGROUND
+          env:
+            - name: PYTHONPATH
+              value: "/opt/copr/frontend/coprs_frontend:/opt/copr/common"
+          volumeMounts:
+            - name: copr-source
+              mountPath: /opt/copr
+      volumes:
+        - name: copr-source
+          hostPath:
+            path: COPR_SOURCE_PATH
+            type: Directory
