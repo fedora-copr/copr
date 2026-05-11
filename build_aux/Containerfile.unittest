@@ -1,15 +1,36 @@
-FROM fedora:39
+FROM fedora:latest
 
-RUN dnf update -y && dnf install python-pytest-cov copr-dist-git rpmdevtools python3-copr copr-cli dnf-plugins-core -y
+RUN dnf install -y \
+    dnf-plugins-core \
+    python-pytest-cov \
+    redis \
+    rpmdevtools \
+    vcs-diff-lint \
+    && dnf clean all
 
-RUN useradd copr_user
+WORKDIR /tmp/specs
+COPY backend/copr-backend.spec backend/
+COPY frontend/copr-frontend.spec frontend/
+COPY cli/copr-cli.spec cli/
+COPY dist-git/copr-dist-git.spec dist-git/
+COPY rpmbuild/copr-rpmbuild.spec rpmbuild/
+COPY keygen/copr-keygen.spec keygen/
+COPY common/python-copr-common.spec common/
+COPY messaging/copr-messaging.spec messaging/
+COPY python/python-copr.spec python/
+
+RUN dnf builddep -y \
+    backend/copr-backend.spec \
+    frontend/copr-frontend.spec \
+    cli/copr-cli.spec \
+    dist-git/copr-dist-git.spec \
+    rpmbuild/copr-rpmbuild.spec \
+    keygen/copr-keygen.spec \
+    common/python-copr-common.spec \
+    messaging/copr-messaging.spec \
+    python/python-copr.spec \
+    && dnf clean all
+
+RUN groupadd -g 1000 copr_user && useradd -u 1000 -g 1000 copr_user
 USER copr_user
-WORKDIR /home/copr_user/copr
-COPY --chown=copr_user . /home/copr_user/copr
-
-USER root
-RUN dnf builddep *.spec -y
-USER copr_user
-
-# bind the code from local machine here
-WORKDIR /home/copr_user/copr_bind
+WORKDIR /copr

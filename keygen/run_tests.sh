@@ -14,4 +14,4 @@ for arg; do
     esac
 done
 
-PYTHONPATH=./src:$PYTHONPATH python3 -B -m pytest "${COVPARAMS[@]}" tests "${KEEP_ARGS[@]}"
+PYTHONPATH="./src${PYTHONPATH:+:$PYTHONPATH}" python3 -B -m pytest "${COVPARAMS[@]}" tests "${KEEP_ARGS[@]}"

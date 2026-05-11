@@ -1,3 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 
-PYTHONPATH=../python/:./copr_cli:$PYTHONPATH python3 -B -m pytest --cov-report term-missing --cov ./copr_cli/ $@
+COVPARAMS=(--cov-report term-missing --cov ./copr_cli/)
+
+KEEP_ARGS=()
+for arg; do
+    case $arg in
+    --nocov|--no-cov)
+        COVPARAMS=()
+        ;;
+    *)
+        KEEP_ARGS+=("$arg")
+        ;;
+    esac
+done
+
+PYTHONPATH="../python/:./copr_cli${PYTHONPATH:+:$PYTHONPATH}" python3 -B -m pytest "${COVPARAMS[@]}" "${KEEP_ARGS[@]}"
