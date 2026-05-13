@@ -611,7 +611,8 @@ class CoprForm(BaseForm):
             default=True, false_values=FALSE_VALUES,
             description="""Build will be deleted only if there is a
             newer build (with respect to package version) and it is
-            older than 14 days""")
+            older than 14 days. Note: pruning is based on RPM package
+            names (Name: in .spec), not on Copr package names.""")
 
     use_bootstrap_container = wtforms.StringField(
         "backward-compat-only: old bootstrap",
