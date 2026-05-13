@@ -16,13 +16,11 @@ from copr_common.enums import (
     CreaterepoReason,
 )
 from copr_common.worker_manager import WorkerManager
-from copr_common.lock import lock
-
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
+from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 
 from .sign import create_user_keys, CoprKeygenRequestError
-from .constants import PULP_REDIRECT_FILE
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       call_copr_repo, copy2_but_hardlink_rpms)
@@ -144,32 +142,10 @@ class Createrepo(Action):
                     result = BackendResultEnum("failure")
 
         if isinstance(self.storage, PulpStorage):
-            self.add_http_redirect()
+            redirect = PulpHTTPRedirect(log=self.log)
+            redirect.add(self.storage.owner, self.storage.project)
 
         return result
-
-    def add_http_redirect(self):
-        """
-        Create a HTTP redirect for this project.  See:
-        https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
-        """
-        path = PULP_REDIRECT_FILE
-        fullname = "{0}/{1}".format(self.storage.owner, self.storage.project)
-        try:
-            with open(path, "r", encoding="utf-8") as fp:
-                projects = fp.read().splitlines()
-
-            if fullname in projects:
-                return
-
-            lockdir = "/var/lock/copr-backend"
-            with lock(path, lockdir=lockdir, timeout=-1, log=self.log):
-                with open(path, "a", encoding="utf-8") as fp:
-                    print(fullname, file=fp)
-
-        except FileNotFoundError:
-            # Ignoring because this Copr instance doesn't need redirects
-            pass
 
 
 class GPGMixin(object):
@@ -241,6 +217,9 @@ class Fork(Action, GPGMixin):
                 if not self.storage.fork_project(**kwargs):
                     result = BackendResultEnum("failure")
 
+                redirect = PulpHTTPRedirect(log=self.log)
+                redirect.add(self.storage.owner, self.storage.project)
+
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
@@ -267,36 +246,10 @@ class DeleteProject(Action):
                 self.backend_storage.delete_project(dirname)
 
             if isinstance(self.storage, PulpStorage):
-                self.remove_http_redirect(dirname)
+                redirect = PulpHTTPRedirect(log=self.log)
+                redirect.remove(self.storage.owner, dirname)
 
         return BackendResultEnum("success")
-
-    def remove_http_redirect(self, dirname):
-        """
-        Remove a HTTP redirect for this project.
-        """
-        path = PULP_REDIRECT_FILE
-        fullname = "{0}/{1}".format(self.storage.owner, dirname)
-        try:
-            with open(path, "r", encoding="utf-8") as fp:
-                projects = fp.read().splitlines()
-
-            if fullname not in projects:
-                return
-
-            lockdir = "/var/lock/copr-backend"
-            with lock(path, lockdir=lockdir, timeout=-1, log=self.log):
-                with open(path, "r", encoding="utf-8") as fp:
-                    projects = fp.read().splitlines()
-
-                filtered_projects = [p for p in projects if p != fullname]
-                with open(path, "w", encoding="utf-8") as fp:
-                    for project in filtered_projects:
-                        print(project, file=fp)
-
-        except FileNotFoundError:
-            # Ignoring because this Copr instance doesn't need redirects
-            pass
 
 
 class CompsUpdate(Action):
