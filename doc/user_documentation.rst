@@ -958,6 +958,37 @@ even though that build might not be the newest one.  Also, if there are
 two builds of the same package version, it is undefined which one is going
 to be kept.
 
+.. warning::
+   The pruner operates on **RPM package names** (the ``Name:`` field in
+   the ``.spec`` file) within each repository, **not** on Copr's "package"
+   concept visible in the web UI.
+
+   A Copr "package" (shown on the project Packages tab) is merely a source
+   definition — a recipe for how to produce builds.  Multiple Copr packages
+   can produce RPMs with the same ``Name:``, and a single Copr package can
+   produce RPMs with different names (subpackages).
+
+   The pruner that deletes old builds groups all RPMs in the repository by
+   their RPM package name regardless of which Copr package produced them.
+   If you have Copr packages, let's say
+   ``golang1.24``, ``golang1.25``, and ``golang1.26`` but their ``.spec`` files
+   all contain::
+
+      Name:    golang
+      Version: 1.24 / 1.25 / 1.26
+      Release: 1%{?dist}
+
+   the pruner treats them as versions of the **same** package (because the
+   ``Name:`` is identical) and only keeps the latest version.
+
+.. tip::
+   If you need to maintain multiple versions of the same software
+   simultaneously, use one of these strategies:
+
+   - Create a separate Copr project for each version
+   - Or include the version in the RPM ``Name:`` tag (e.g. ``golang1.24``,
+     ``golang1.25``) so the pruner sees them as distinct packages
+
 .. note::
    **For projects using the Pulp backend**, the retention policy is different, and the 14-day preservation period
    is **not guaranteed**. Instead of a time limit, retention is count-based: Copr keeps the **5 most recent successful builds**
@@ -965,6 +996,9 @@ to be kept.
    stay within the limit. Consequently, if you produce builds frequently (more than 5 versions of a package within 14 days),
    the older builds will be removed much sooner. This behavior is controlled by Pulp's built-in
    ``retain_package_versions`` `repository setting <https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create>`_.
+
+   The same distinction between RPM names and Copr package names applies here
+   — Pulp counts versions per **RPM package name**, not per Copr package.
 
 Projects that opted-in for :ref:`creating_repositories_manually`, are
 exempt from the old package removal because of technical limitations.
