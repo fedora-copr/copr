@@ -357,21 +357,16 @@ class PulpStorage(Storage):
             publication = response.json()["results"][0]["pulp_href"]
             public_distribution = self._get_distribution(chroot, dirname, devel=False)
 
-            response = self.client.update_distribution(public_distribution, publication=publication)
-            if not response.ok:
-                self.log.error("Failed to update Pulp distribution %s for because %s",
-                               public_distribution, response.text)
+            if not self.client.update_distribution(public_distribution, publication=publication):
+                return False
 
         # We want to disable the manual createrepo feature on a project
         elif reason == CreaterepoReason.manual_createrepo_toggle:
             public_distribution = self._get_distribution(chroot)
-            response = self.client.update_distribution(
+            if not self.client.update_distribution(
                 public_distribution,
                 repository=repository_href,
-            )
-            if not response.ok:
-                self.log.error("Failed to update Pulp distribution %s for because %s",
-                               public_distribution_name, response.text)
+            ):
                 return False
 
         # The "Regenerate" button was clicked for a manual createrepo project.
@@ -408,13 +403,10 @@ class PulpStorage(Storage):
                     devel_distribution_name,
                     publication,
                 )
-                response = self.client.update_distribution(
+                if not self.client.update_distribution(
                     public_distribution["pulp_href"],
                     publication=publication,
-                )
-                if not response.ok:
-                    self.log.error("Failed to update Pulp distribution %s for because %s",
-                                   public_distribution_name, response.text)
+                ):
                     return False
 
         # And finally, run the actual createrepo for either the devel or
