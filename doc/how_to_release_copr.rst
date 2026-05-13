@@ -10,6 +10,33 @@ good to know what's ahead.
 Keep amending this page if you find something not matching reality or expectations.
 
 
+.. _release_copr_projects:
+
+Copr projects used during the release
+--------------------------------------
+
+`@copr/copr-dev <https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/>`_
+    Automatic test builds from every push to ``main``.  The CI workflow
+    (``.github/workflows/copr-builds.yml``) rebuilds only the packages that
+    changed in each push (test builds, not tagged releases).  This is the repo
+    you upgrade dev machines from **before tagging**.
+
+`@copr/copr <https://copr.fedorainfracloud.org/coprs/g/copr/copr/>`_
+    Tagged release builds.  After you run ``tito tag`` and push, you manually
+    trigger builds here.  These are the packages that go into Koji / infra
+    repos / production.
+
+.. warning::
+
+   **Version skew in** ``@copr/copr-dev``:  Because CI only rebuilds changed
+   packages, the repo can accumulate builds from different commits.  For
+   example, ``python-copr-common`` might be from commit A while
+   ``copr-backend`` (which depends on it) is still from an older commit B.
+   Before relying on ``@copr/copr-dev`` for pre-release testing, always run
+   ``build_aux/rebuild-copr-stack`` to rebuild all packages in correct
+   dependency order from the current ``main`` HEAD.
+
+
 Pre-release
 -----------
 
@@ -17,14 +44,98 @@ The goal is to do as much work pre-release as possible while focusing
 only on important things and not creating a work overload with tasks,
 that can be done post-release.
 
+The key principle: **test before tagging**.  If you tag first and tests fail,
+the tags are already pushed and you need fix-up tags on top.  Instead, deploy
+test builds from ``@copr/copr-dev`` to dev machines, run sanity tests, and only
+create release tags once everything passes.
 
-Tag untagged packages that have changes in them
-...............................................
 
-Make sure you are on the ``main`` branch and that it is up-to-date::
+Rebuild @copr/copr-dev from current main
+.........................................
+
+Make sure you are on the ``main`` branch and that it is up-to-date with
+the `upstream repository <https://github.com/fedora-copr/copr>`_::
 
   git checkout main
-  git pull --rebase
+  git pull --rebase origin main
+
+.. note::
+
+    Commands in this document assume ``origin`` points to ``fedora-copr/copr``.
+    If your ``origin`` is a personal fork, substitute your upstream remote name
+    (commonly ``upstream``)::
+
+        git remote -v  # check which remote points to fedora-copr/copr
+
+Ensure all PRs intended for this release are merged.  Then rebuild the entire
+stack into ``@copr/copr-dev`` in proper dependency order::
+
+    ./build_aux/rebuild-copr-stack
+
+This ensures all packages in the repo are built from the same ``main`` HEAD
+with no version skew.  Wait for all builds to finish.
+
+Verify that all builds at
+https://copr.fedorainfracloud.org/coprs/g/copr/copr-dev/builds/ show
+"succeeded" status.  If any build fails, investigate the build log, fix the
+issue on ``main``, push the changes, and re-run ``./build_aux/rebuild-copr-stack``.
+
+
+Upgrade -dev machines
+.....................
+
+Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask
+Mirek or somebody from fedora-infra)::
+
+    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org groups/copr-backend.yml
+    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org groups/copr-keygen.yml
+    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend.yml
+    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
+
+.. note::
+
+    If there is a new version of copr-rpmbuild, follow the
+    :ref:`terminate_resalloc_vms` instructions.
+
+Make sure expected versions of Copr packages are installed on the dev
+instances::
+
+    ./releng/run-on-all-infra --devel 'rpm -qa | grep copr'
+
+If versions do not match, see the safe install tip below and fix before
+proceeding.
+
+.. tip::
+
+   Rather than trusting a blanket ``dnf update``, verify that the installed NVRs
+   match what you expect. You can use ``releng/install-copr-packages`` to install
+   packages from a Copr directory, identified by the upstream commit whose short
+   hash appears in the RPM Release field::
+
+       # On the target machine:
+       ./releng/install-copr-packages @copr/copr-dev <commit-sha> copr-frontend copr-backend
+
+
+Test on dev machines
+....................
+
+Run the :ref:`sanity tests <sanity_tests>` from a Podman container (alternatively
+this can also be run from :ref:`Beaker directly <beaker_tests>`).
+
+
+Call for QA
+...........
+
+Move `MODIFIED+ <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&product=Copr>`_
+bugzillas to ON_QA.
+
+Ask people to test, verify bugs, and generally help with QA. They will ignore it but you will feel good about giving them a chance.
+
+
+Tag untagged packages that have changes in them
+................................................
+
+**Prerequisite:** All sanity tests on dev machines pass (previous step).
 
 Run::
 
@@ -34,7 +145,7 @@ and walk the directories of packages listed, and tag them. During development,
 we sometimes put a `.PATCH` number into our packages versions. See what packages has
 such version::
 
-    find -maxdepth 2 -name *.spec |xargs grep "Version:" |grep -E '[0-9]+\.[0-9]+\.[0-9]+'
+    find . -maxdepth 2 -name "*.spec" -exec grep -H "Version:" {} + | grep -E '[0-9]+\.[0-9]+\.[0-9]+'
 
 If a package has `.PATCH` number, manually increment its
 version to the subsequent ``Major.Minor`` version with::
@@ -46,12 +157,12 @@ For others, new version can be bumped automatically::
     tito tag
 
 Make sure that the %changelog is nice and meaningful, i.e. remove the
-`frontend:`, `rpmbuild:`, etc. prefixes and filter-out entries which are not
+``frontend:``, ``rpmbuild:``, etc. prefixes and filter-out entries which are not
 interesting for the package end-users (git-log != %changelog).  Later on, if
 properly polished, the %changelogs' contents may be used for filling the Bodhi
 update text.
 
-Push all new tags at once::
+Push all new tags at once to the `upstream repository <https://github.com/fedora-copr/copr>`_::
 
     git push --follow-tags origin
 
@@ -65,53 +176,8 @@ Build all the updated packages into ``@copr/copr`` copr project::
     copr build-package @copr/copr --nowait --name copr-frontend
     ...
 
-
-Upgrade -dev machines
-.....................
-
-Check that .repo files correctly points to ``@copr/copr``. And run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
-
-    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org \
-                       manual/copr/copr-backend-upgrade.yml
-    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org groups/copr-backend.yml
-
-    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org \
-                       manual/copr/copr-keygen-upgrade.yml
-    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org groups/copr-keygen.yml
-
-    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org \
-                       manual/copr/copr-frontend-upgrade.yml
-    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend.yml
-
-    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org \
-                       manual/copr/copr-dist-git-upgrade.yml
-    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
-
-.. note::
-
-    If there is a new version of copr-rpmbuild, follow the
-    :ref:`terminate_resalloc_vms` instructions.
-
-Make sure expected versions of Copr packages are installed on the dev
-instances::
-
-    ./releng/run-on-all-infra --devel 'rpm -qa | grep copr'
-
-
-Call for QA
-...........
-
-Move `MODIFIED+ <https://bugzilla.redhat.com/buglist.cgi?bug_status=POST&bug_status=MODIFIED&product=Copr>`_
-bugzillas to ON_QA.
-
-Ask people to test, verify bugs, and generally help with QA. They will ignore it but you will feel good about giving them a chance.
-
-
-Test
-....
-
-Run the :ref:`sanity tests<sanity_tests>` from a Podman container (alternatively
-this can be run also from :ref:`Beaker directly <beaker_tests>`).
+**Verify:** All builds in ``@copr/copr`` succeed at
+https://copr.fedorainfracloud.org/coprs/g/copr/copr/builds/.
 
 
 .. _build_packages_for_production:
@@ -214,7 +280,7 @@ in the repo::
 
 When the packages are ready, you can install the packages on the devel copr
 stack (staging infra repository is enabled there by default).  Now for example
-you can re-run te tests against the soon-to-be production packages.
+you can re-run the tests against the soon-to-be production packages.
 
 Besides the obvious server packages, don't forget to submit also
 `python-copr` and `copr-cli` (we use it on the backend).
@@ -281,7 +347,7 @@ Upgrade production machines
 It is advised to stop ``copr-backend.target`` before upgrading production machines to avoid failing
 builds due to temporarily having installed incompatible versions of Copr packages.
 
-Run on batcave01.iad2.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
+Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask Mirek or somebody from fedora-infra)::
 
     sudo rbac-playbook -l copr-be.aws.fedoraproject.org \
                        manual/copr/copr-backend-upgrade.yml
@@ -322,6 +388,10 @@ Run post-release beaker test::
     [root@test-env ~]$ ./runtest-production.sh
 
 or just run some build and check if it succeeds.
+
+If the tests pass or the manual build succeeds, you can proceed to the next
+step.  If not, diagnose and
+consider a hotfix (see :ref:`how_to_build_hotfix`).
 
 
 Post-release
