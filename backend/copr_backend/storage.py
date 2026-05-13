@@ -338,6 +338,11 @@ class PulpStorage(Storage):
                 distribution_name,
                 repository_href,
             )
+            task = response.json()["task"]
+            if not self.client.wait_for_finished_task(
+                task, f"create distribution {distribution_name}",
+            ):
+                return False
         except RequestError as ex:
             if "This field must be unique" not in ex.response.text:
                 self.log.error(
@@ -350,9 +355,6 @@ class PulpStorage(Storage):
         # If a project enabled the manual createrepo mode, we need to create a
         # devel distribution to be consumed by other builds within the project
         if self.devel:
-            # Wait until we can get the publication
-            if task := response.json().get("task"):
-                self.client.wait_for_finished_task(task)
             response = self.client.get_publication(repository_href)
             publication = response.json()["results"][0]["pulp_href"]
             public_distribution = self._get_distribution(chroot, dirname, devel=False)

@@ -393,11 +393,9 @@ class PulpClient:
             return False
         if response.status_code == 202:
             task = response.json()["task"]
-            response = self.wait_for_finished_task(task)
-            data = response.json()
-            if not response.ok or data["state"] != "completed":
-                self.log.error("Failed to update distribution %s: %s",
-                               distribution, data)
+            if not self.wait_for_finished_task(
+                task, f"update distribution {distribution}",
+            ):
                 return False
         self.log.info("Successfully updated distribution %s", distribution)
         return True
@@ -418,10 +416,9 @@ class PulpClient:
         """
         response = self.create_publication(repository)
         task = response.json()["task"]
-        response = self.wait_for_finished_task(task)
-        data = response.json()
-        if not response.ok or data["state"] != "completed":
-            self.log.error("Failed to publish %s: %s", repository, data)
+        if not self.wait_for_finished_task(
+            task, f"publish {repository}",
+        ):
             return False
         self.log.info("Successfully published %s", repository)
         return True
@@ -514,12 +511,11 @@ class PulpClient:
         # We need to wait until the task finishes. This is the disadvantage
         # compared to standard uploads
         task = response.json()["task"]
-        response = self.wait_for_finished_task(task)
-        data = response.json()
-        if not response.ok or data["state"] != "completed":
-            self.log.error("Failed to upload chunked %s", path)
-            self.log.error("Response %s: %s", response, response.json())
-            raise RuntimeError("Failed to upload chunked {0}".format(path))
+        data = self.wait_for_finished_task(
+            task, f"upload chunked {path}",
+        )
+        if not data:
+            raise RuntimeError(f"Failed to upload chunked {path}")
         self.log.info("Successfully uploaded chunked %s", path)
 
         resources = data["created_resources"]
@@ -564,14 +560,11 @@ class PulpClient:
                            repository, response.text)
             return False
         task = response.json()["task"]
-        response = self.wait_for_finished_task(task)
-        data = response.json()
-        if response.ok and data["state"] == "completed":
-            self.log.info("Successfully modified Pulp repository content %s", repository)
-        else:
-            self.log.error("Failed to modify Pulp repository content %s", repository)
-            self.log.error("Response %s: %s", response, response.json())
+        if not self.wait_for_finished_task(
+            task, f"modify repository content {repository}",
+        ):
             return False
+        self.log.info("Successfully modified Pulp repository content %s", repository)
 
         # Make a request to create a new publication
         return self.publish(repository)
@@ -738,24 +731,32 @@ class PulpClient:
         self.log.info("Pulp: delete_distribution: %s", distribution)
         return self.send("DELETE", url)
 
-    def wait_for_finished_task(self, task, timeout=86400):
+    def wait_for_finished_task(self, task, description="task", timeout=86400):
         """
-        Pulp task (e.g. creating a publication) can be running for an
-        unpredictably long time. We need to wait until it is finished to know
-        what it actually did.
+        Wait for a Pulp task to finish.  Return the task data dict on
+        success, or None on failure.
         """
-        start = time.time()
+        start = time.monotonic()
         while True:
+            if time.monotonic() > start + timeout:
+                self.log.error("Pulp %s %s timed out after %ss",
+                               description, task, timeout)
+                return None
             self.log.info("Pulp: polling task status: %s", task)
             response = self.get_task(task)
             if not response.ok:
-                break
-            if response.json()["state"] not in ["waiting", "running"]:
-                break
-            if time.time() > start + timeout:
+                self.log.warning("Pulp %s %s: status request failed: %s",
+                                 description, task, response.text)
+                time.sleep(5)
+                continue
+            data = response.json()
+            if data["state"] not in ["waiting", "running"]:
                 break
             time.sleep(5)
-        return response
+        if data["state"] == "completed":
+            return data
+        self.log.error("Pulp %s %s failed: %s", description, task, data)
+        return None
 
     def list_distributions(self, prefix):
         """
