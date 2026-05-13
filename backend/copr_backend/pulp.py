@@ -386,7 +386,21 @@ class PulpClient:
             "repository": repository,
         }
         self.log.info("Pulp: updating distribution %s", distribution)
-        return self.send("PATCH", url, data)
+        response = self.send("PATCH", url, data)
+        if not response.ok:
+            self.log.error("Failed to update distribution %s: %s",
+                           distribution, response.text)
+            return False
+        if response.status_code == 202:
+            task = response.json()["task"]
+            response = self.wait_for_finished_task(task)
+            data = response.json()
+            if not response.ok or data["state"] != "completed":
+                self.log.error("Failed to update distribution %s: %s",
+                               distribution, data)
+                return False
+        self.log.info("Successfully updated distribution %s", distribution)
+        return True
 
     def create_publication(self, repository):
         """
