@@ -397,7 +397,6 @@ class PulpClient:
                 task, f"update distribution {distribution}",
             ):
                 return False
-        self.log.info("Successfully updated distribution %s", distribution)
         return True
 
     def create_publication(self, repository):
@@ -420,7 +419,6 @@ class PulpClient:
             task, f"publish {repository}",
         ):
             return False
-        self.log.info("Successfully published %s", repository)
         return True
 
     def get_publication(self, repository):
@@ -516,7 +514,6 @@ class PulpClient:
         )
         if not data:
             raise RuntimeError(f"Failed to upload chunked {path}")
-        self.log.info("Successfully uploaded chunked %s", path)
 
         resources = data["created_resources"]
         if len(resources) != 1:
@@ -564,7 +561,6 @@ class PulpClient:
             task, f"modify repository content {repository}",
         ):
             return False
-        self.log.info("Successfully modified Pulp repository content %s", repository)
 
         # Make a request to create a new publication
         return self.publish(repository)
@@ -754,6 +750,7 @@ class PulpClient:
                 break
             time.sleep(5)
         if data["state"] == "completed":
+            self.log.info("Pulp %s %s succeeded", description, task)
             return data
         self.log.error("Pulp %s %s failed: %s", description, task, data)
         return None
