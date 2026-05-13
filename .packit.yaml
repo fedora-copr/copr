@@ -200,6 +200,7 @@ jobs:
       - copr-frontend
     skip_build: true
     manual_trigger: true
+    status_name_template: "packit/testing-farm/gating/{package}"
 
   # Main commit builds:
   #
