@@ -5,6 +5,7 @@ from coprs import db_session_scope
 from coprs import app
 from coprs import exceptions
 from coprs.logic import coprs_logic
+from coprs.logic.builds_logic import BuildsLogic
 from commands.create_chroot import print_invalid_format, print_doesnt_exist
 
 
@@ -40,6 +41,9 @@ def func_alter_chroot(chroot_names, action):
 
                 if action == "deactivate":
                     continue
+
+                if not activate:
+                    BuildsLogic.cancel_build_chroots_by_mock(mock_chroot)
 
                 for copr_chroot in mock_chroot.copr_chroots:
                     # Don't touch unclicked chroots

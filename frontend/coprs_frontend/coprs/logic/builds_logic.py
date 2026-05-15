@@ -1322,6 +1322,33 @@ class BuildsLogic(object):
             cls.process_update_callback(build)
 
     @classmethod
+    def cancel_build_chroots_by_mock(cls, mock_chroot, reason=None):
+        """
+        Cancel all non-finished BuildChroots for the given MockChroot.
+        Used when a chroot is EOLed so that pending/running builds don't
+        get stuck.
+        """
+        if reason is None:
+            reason = f"Chroot '{mock_chroot.name}' has been EOLed"
+
+        build_chroots = (
+            models.BuildChroot.query
+            .filter(models.BuildChroot.mock_chroot_id == mock_chroot.id)
+            .filter(models.BuildChroot.status.notin_(helpers.FINISHED_STATUSES))
+            .all()
+        )
+
+        for bch in build_chroots:
+            bch.status = StatusEnum("canceled")
+            bch.status_reason = reason
+            db.session.add(models.CancelRequest(what=bch.task_id))
+            db.session.add(bch)
+
+        affected_builds = {bch.build for bch in build_chroots}
+        for build in affected_builds:
+            cls.process_update_callback(build)
+
+    @classmethod
     def check_build_to_delete(cls, user, build):
         """
         :type user: models.User or models.AutomationUser
