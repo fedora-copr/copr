@@ -152,6 +152,61 @@ class TestWaitingBuilds(CoprsTestCase):
             'allow_user_ssh': False,
         }]
 
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_canceled_build_not_in_pending_jobs(self):
+        """
+        After cancel_build(), the build must not appear in /backend/pending-jobs/
+        even before the backend processes the CancelRequest.
+        """
+        self.b2.source_status = StatusEnum("pending")
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/pending-jobs/")
+        data = json.loads(r.data.decode("utf-8"))
+        assert any(j["build_id"] == self.b2.id for j in data)
+
+        BuildsLogic.cancel_build(self.u1, self.b2)
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/pending-jobs/")
+        data = json.loads(r.data.decode("utf-8"))
+        assert not any(j["build_id"] == self.b2.id for j in data)
+
+        cancel_requests = self.models.CancelRequest.query.all()
+        assert len(cancel_requests) > 0
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_builds", "f_db")
+    def test_backend_report_after_cancel(self):
+        """
+        If a build is canceled and then the backend reports it as succeeded,
+        the chroot status must stay canceled (first terminal state wins).
+        """
+        for bch in self.b3_bc:
+            bch.status = StatusEnum("running")
+        self.db.session.commit()
+
+        BuildsLogic.cancel_build(self.u2, self.b3)
+        self.db.session.commit()
+
+        chroot_name = self.b3_bc[0].name
+        task_id = f"{self.b3.id}-{chroot_name}"
+        r = self.tc.post(
+            f"/backend/build-tasks/canceled/{task_id}/",
+            content_type="application/json",
+            headers=self.auth_header,
+            data=json.dumps(True),
+        )
+        assert r.status_code == 200
+
+        build_chroot = BuildsLogic.get_build_task(task_id)
+        assert build_chroot.status == StatusEnum("canceled")
+
+        self.backend_report_build_end(
+            self.b3, chroot_name, StatusEnum("succeeded"))
+
+        build_chroot = BuildsLogic.get_build_task(task_id)
+        assert build_chroot.status == StatusEnum("canceled")
+
 # status = 0 # failure
 # status = 1 # succeeded
 class TestUpdateBuilds(CoprsTestCase):

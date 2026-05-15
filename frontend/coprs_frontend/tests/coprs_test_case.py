@@ -110,6 +110,27 @@ class CoprsTestCase(object):
                 self.backend_passwd).encode("utf-8")).decode("utf-8")
         }
 
+    def backend_report_build_end(self, build, chroot_name, status):
+        """
+        Simulate the backend reporting a build chroot result via
+        /backend/update/.
+        """
+        r = self.tc.post(
+            "/backend/update/",
+            content_type="application/json",
+            headers=self.auth_header,
+            data=json.dumps({"builds": [{
+                "id": build.id,
+                "copr_id": build.copr.id,
+                "status": status,
+                "chroot": chroot_name,
+                "result_dir": "bar",
+                "results": {"packages": []},
+                "ended_on": 1390866440,
+            }]}),
+        )
+        assert r.status_code == 200
+
     @pytest.fixture
     def f_db(self):
         self.db.session.commit()
