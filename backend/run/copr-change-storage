@@ -15,7 +15,7 @@ import time
 from copr.v3 import Client, CoprRequestException
 from copr_common.log import setup_script_logger
 from copr_backend.helpers import BackendConfigReader
-from copr_backend.constants import PULP_REDIRECT_FILE
+from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 from copr_backend.storage import PulpStorage
 from copr_backend.frontend import FrontendClient
 from copr_backend.exceptions import FrontendClientException
@@ -96,16 +96,6 @@ def change_on_frontend(client, owner, project, storage):
         "storage": storage,
     }
     client.post("change-storage", data)
-
-
-def add_redirect(fullname):
-    """
-    Create a HTTP redirect for this project
-    See https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
-    """
-    path = PULP_REDIRECT_FILE
-    with open(path, "a", encoding="utf-8") as fp:
-        print(fullname, file=fp)
 
 
 def change_storage_for_project(project, dst, config):
@@ -257,7 +247,8 @@ def change_storage_for_project(project, dst, config):
     # At this point all data is successfully migrated and frontend thinks the
     # project is in Pulp, so we can safely add the HTTP redirect
     try:
-        add_redirect(project.full_name)
+        redirect = PulpHTTPRedirect(log=log)
+        redirect.add(project.ownername, project.name)
     except OSError as ex:
         log.error("Failed to add a redirect for %s because: %s",
                   project.full_name, str(ex))
