@@ -143,8 +143,8 @@
     {# hide the buttons after 13 days (logs are deleted after 14 days) #}
     {% if not (timestamp|is_older_than_days(13)) %}
       {% if failed_log_url %}
-        {% set url = "https://log-detective.com/explain?url=%s" %}
-        <a href="{{ url | format(failed_log_url | urlencode) }}"
+        {% set url = "https://log-detective.com/explain/copr/%s/%s" %}
+        <a href="{{ url | format(build_id, chroot_name) }}"
           class="pficon pficon-info"
           title="See what AI can tell you about the build failure">
           Ask AI
