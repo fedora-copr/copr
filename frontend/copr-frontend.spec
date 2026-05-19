@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.7.hotfix.0
+Version:    2.7.hotfix.1
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,9 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue May 19 2026 Jakub Kadlcik <frostyx@email.cz> 2.7.hotfix.1-1
+- frontend: don't fail pending-actions when copr is None
+
 * Mon Apr 27 2026 Jakub Kadlcik <frostyx@email.cz> 2.7.hotfix.0-1
 - frontend: preload build.pkg_version for detailed monitor
 
