@@ -312,10 +312,14 @@ def pending_actions():
             # https://github.com/fedora-copr/copr/issues/2698
             continue
 
+        project_owner = None
+        if action.copr:
+            project_owner = action.copr.owner_name
+
         data.append({
             'id': action.id,
             'priority': action.priority or action.default_priority,
-            "project_owner": action.copr.owner_name,
+            "project_owner": project_owner,
         })
 
     return flask.json.dumps(data)
