@@ -344,8 +344,8 @@ section.
 .. _`copr devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`Amazon AWS account`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
 .. _`Cloud Base Images`: https://fedoraproject.org/cloud/download/
-.. _`DNS SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/dns/
+.. _`DNS SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/dns/
 .. _`ec2instances.info`: https://ec2instances.info/
 .. _`helper playbook repository`: https://github.com/fedora-copr/ansible-fedora-copr
-.. _`playbook SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/ansible/
+.. _`playbook SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/ansible/
 .. _`private IP change`: https://pagure.io/fedora-infra/ansible/c/6c80a870ff2a62e73da98f7607574e534369fb37

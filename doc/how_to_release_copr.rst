@@ -257,7 +257,7 @@ For each package do::
 Submit packages into stg infra tags
 ...................................
 
-Submit the pacakges into `Infra tags repo <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/infra-repo/>`_.
+Submit the pacakges into `Infra tags repo <https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/infra-repo/>`_.
 If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or someone on ``#fedora-admin`` libera.chat channel.
 
 .. warning::

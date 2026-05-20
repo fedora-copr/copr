@@ -86,7 +86,7 @@ Resolved outage
 
 
 .. _`copr-devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
-.. _`Fedora Outage SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/outage/
-.. _`Fedora Status SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/status-fedora/
+.. _`Fedora Outage SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/outage/
+.. _`Fedora Status SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/status-fedora/
 .. _`Fedora Copr Blog`: https://fedora-copr.github.io/
 .. _`Matrix channel`: https://matrix.to/#/#buildsys:fedoraproject.org

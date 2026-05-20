@@ -78,5 +78,5 @@ repository
 
 .. _`Nagios probes`: https://nagios.fedoraproject.org/nagios/cgi-bin//status.cgi?hostgroup=copr_hypervisor&style=detail
 .. _`how to install hypervisors`: https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/hypervisor/README
-.. _`Batcave01`: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/infra-git-repo/
+.. _`Batcave01`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/infra-git-repo/
 .. _`restart server in Fedora DC`: https://docs.fedoraproject.org/en-US/infra/howtos/restart_datacenter_server/
