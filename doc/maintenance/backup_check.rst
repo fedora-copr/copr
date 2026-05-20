@@ -74,7 +74,7 @@ For Frontend, we backup the PostgreSQL database (hourly).  Check
     -rw-r--r--. 1 postgres postgres 662M Nov  5 01:21 coprdb-2024-11-05.dump.xz
 
 If we provide such an updated tarball, `rdiff-backup
-<https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/rdiff-backup/>`_
+<https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/rdiff-backup/>`_
 periodically comes and pulls the backups "out"; as long as the box is in an
 appropriate `Ansible group
 <https://pagure.io/fedora-infra/ansible/blob/81f81668cc0ea3101cf74d56401aad3c1354f788/f/inventory/backups#_4>`_
