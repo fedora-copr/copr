@@ -18,7 +18,6 @@ from copr_common.enums import (
 from copr_common.worker_manager import WorkerManager
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
-from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
@@ -140,11 +139,6 @@ class Createrepo(Action):
                 )
                 if not success:
                     result = BackendResultEnum("failure")
-
-        if isinstance(self.storage, PulpStorage):
-            redirect = PulpHTTPRedirect(log=self.log)
-            redirect.add(self.storage.owner, self.storage.project)
-
         return result
 
 
@@ -217,9 +211,6 @@ class Fork(Action, GPGMixin):
                 if not self.storage.fork_project(**kwargs):
                     result = BackendResultEnum("failure")
 
-                redirect = PulpHTTPRedirect(log=self.log)
-                redirect.add(self.storage.owner, self.storage.project)
-
         except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
@@ -244,10 +235,6 @@ class DeleteProject(Action):
             self.storage.delete_project(dirname)
             if not isinstance(self.storage, BackendStorage):
                 self.backend_storage.delete_project(dirname)
-
-            if isinstance(self.storage, PulpStorage):
-                redirect = PulpHTTPRedirect(log=self.log)
-                redirect.remove(self.storage.owner, dirname)
 
         return BackendResultEnum("success")
 

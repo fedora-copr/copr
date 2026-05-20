@@ -25,6 +25,7 @@ from copr_backend.helpers import (
 )
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
+from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 from .sign import resign_rpms_in_dir
 
 
@@ -419,7 +420,11 @@ class PulpStorage(Storage):
         # And finally, run the actual createrepo for either the devel or
         # the public repository
         response = self.client.create_publication(repository_href)
-        return response.ok
+
+        redirect = PulpHTTPRedirect(log=self.log)
+        redirect.add(self.owner, self.project)
+
+        return True
 
     def upload_rpm(self, path, labels):
         """
@@ -542,6 +547,8 @@ class PulpStorage(Storage):
             if distribution["repository"]:
                 self.log.info("Removing Pulp repository for %s", name)
                 self.client.delete_repository(distribution["repository"])
+        redirect = PulpHTTPRedirect(log=self.log)
+        redirect.remove(self.owner, dirname)
 
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
         # pylint: disable=too-many-locals
