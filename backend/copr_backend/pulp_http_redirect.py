@@ -33,6 +33,9 @@ class PulpHTTPRedirect:
                 return
 
             with lock(self.path, lockdir=self.lockdir, timeout=-1, log=self.log):
+                with open(self.path, "r", encoding="utf-8") as fp:
+                    projects = fp.read().splitlines()
+
                 with open(self.path, "a", encoding="utf-8") as fp:
                     print(fullname, file=fp)
 
