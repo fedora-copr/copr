@@ -143,6 +143,11 @@ class BlockedOwnersLimit(PredicateWorkerLimit):
     """
     def __init__(self, blocked_owners):
         def predicate(x):
+            # We don't have the `name` or `full_name` available, so the next
+            # best thing is checking sandbox
+            pypi = ("@copr/PyPI--", "@copr/PyPI3--")
+            if x.sandbox and x.sandbox.startswith(pypi):
+                return True
             return x.owner in blocked_owners
         super().__init__(predicate, limit=0, name="blocked_users")
 
