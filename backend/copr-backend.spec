@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.12.hotfix.5
+Version:    2.12.hotfix.6
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Wed May 27 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.6-1
+- backend: don't try to block @copr/PyPI and @copr/PyPI3 actions
+
 * Tue May 26 2026 Jakub Kadlcik <frostyx@email.cz> 2.12.hotfix.5-1
 - backend: block all actions and builds for @copr/PyPI and @copr/PyPI3
 
