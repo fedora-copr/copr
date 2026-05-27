@@ -43,6 +43,11 @@ BuildRequires: python3-setuptools
 BuildRequires: python3-munch
 BuildRequires: python3-typing-extensions
 BuildRequires: python3-rich
+%if !(0%{?rhel} && 0%{?rhel} <= 8)
+BuildRequires: python3-pip
+BuildRequires: python3-wheel
+BuildRequires: pyproject-rpm-macros
+%endif
 
 %if 0%{?rhel} && 0%{?rhel} <= 8
 Requires:      python3-dataclasses
@@ -63,21 +68,29 @@ This package contains command line interface.
 
 
 %build
-version="%{version}" %py_build
+%if 0%{?rhel} && 0%{?rhel} <= 8
+%py3_build
+%else
+%pyproject_wheel
+%endif
 mv copr_cli/README.rst ./
-# convert manages
+# convert manpages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
 
 %install
-version="%{version}" %py_install
-ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
+%if 0%{?rhel} && 0%{?rhel} <= 8
+%py3_install
+%else
+%pyproject_install
+%endif
+ln -sf copr-cli %{buildroot}%{_bindir}/copr
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 install -d %{buildroot}%{_datadir}/cheat
 cp -a man/copr-cli.cheat %{buildroot}%{_datadir}/cheat/copr-cli
-ln -s %{_datadir}/cheat/copr-cli %{buildroot}%{_datadir}/cheat/copr
+ln -s copr-cli %{buildroot}%{_datadir}/cheat/copr
 install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-build-order
 
 
