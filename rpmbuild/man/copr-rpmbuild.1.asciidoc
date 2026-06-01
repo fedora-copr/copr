@@ -24,13 +24,13 @@ OPTIONS
 *--drop-resultdir*::
     Drops resultdir and its content at the beginning before continuing.
 
-*--config* _CONFIG_PATH_::
+*-c*, *--config* _CONFIG_PATH_::
     Path to an alternative config file. By default _/etc/copr-rpmbuild/main.ini_ is used.
 
-*--detached*::
-    Run build in background and output the process PID. Log into /var/lib/copr-rpmbuild/main.log.
+*-d*, *--detached*::
+    Run build in background and output the process PID. Log into _/var/lib/copr-rpmbuild/main.log_.
 
-*--chroot* _CHROOT_NAME_::
+*-r*, *--chroot* _CHROOT_NAME_::
     Name of the chroot to build for. This follows mock's convention for naming chroots (e.g. fedora-27-x86_64). See _/etc/mock_ for the full list.
 
 *--srpm*::
@@ -39,10 +39,10 @@ OPTIONS
 *--rpm*::
     Build RPM. This is the default action. Requires *--chroot* to be specified.
 
-*--verbose*::
+*-v*, *--verbose*::
     Print debugging information.
 
-*--help*::
+*-h*, *--help*::
     Display help.
 
 
