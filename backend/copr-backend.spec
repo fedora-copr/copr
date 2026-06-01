@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.12
+Version:    2.13
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,15 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Mon Jun 01 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.13-1
+- Move HTTP redirect management to PulpStorage class
+- Create HTTP redirect for forked Pulp projects
+- Paginate add_content and delete_content requests to Pulp
+- Dump a backup of files uploaded to Pulp
+- Fix project prefix matching in Pulp repository removal
+- Integrate rpmeta for build time predictions
+- Delay rpmeta HW pools loading to prediction time
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.12-1
 - Modify pulp label filter for content queries
 - Cleanup backend-side metadata for PULP chroots
