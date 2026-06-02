@@ -1,0 +1,37 @@
+.. _release_notes_2026_06_02:
+
+Highlights from 2026-06-02 release
+==================================
+
+This is a backend-only release.
+
+
+Enhancements
+------------
+
+- Build time predictions powered by `rpmeta`_ are now integrated into the
+  backend. Currently, the tool output is only logged for monitoring purposes, so
+  users won't notice any changes yet. In the future, this will be used to
+  route long-running builds to more powerful builders.
+
+
+Integration with Pulp
+---------------------
+
+- `#4312`_ - Pulp redirects now work correctly for forked projects.
+- `#4312`_ - Pulp API requests are now paginated to avoid timeouts
+ on large repositories.
+- `#4312`_ - A backup of files uploaded to Pulp is now dumped for
+ disaster recovery purposes.
+
+
+Bugfixes
+--------
+
+- `#4290`_ - Fixed a bug where the project prefix filter could accidentally
+  match multiple projects during Pulp repository removal.
+
+
+.. _rpmeta: https://github.com/fedora-copr/rpmeta
+.. _#4312: https://github.com/fedora-copr/copr/issues/4312
+.. _#4290: https://github.com/fedora-copr/copr/issues/4290
