@@ -5,7 +5,7 @@
 %global copr_common_version 1.2.1
 
 Name:       copr-backend
-Version:    2.13.hotfix.0
+Version:    2.13.hotfix.1
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Jun 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.13.hotfix.1-1
+- Revert setup.py change done by standard tito tagger
+
 * Tue Jun 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.13.hotfix.0-1
 - Revert "backend: block all actions and builds for @copr/PyPI and @copr/PyPI3"
 
