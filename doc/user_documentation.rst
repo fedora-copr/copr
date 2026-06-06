@@ -1047,7 +1047,7 @@ We didn't start off to create another buildsystem. We originally just wanted to 
 
 .. rubric:: Did you consider OBS? :ref:`¶ <Did you consider OBS?>`
 
-Yes, we did. See `Copr and integration with Koji <http://miroslav.suchy.cz/blog/archives/2013/08/29/copr_and_integration_with_koji/index.html>`_ and `Copr Implemented using OBS <http://miroslav.suchy.cz/blog/archives/2013/08/30/copr_implemented_using_obs/index.html>`_. And the `mailing list discussion <https://lists.fedoraproject.org/pipermail/devel/2013-August/188575.html>`_, as well as the `conclusion <https://lists.fedoraproject.org/pipermail/devel/2013-September/188751.html>`_.
+Yes, we did. See `Copr and integration with Koji <http://miroslav.suchy.cz/blog/archives/2013/08/29/copr_and_integration_with_koji/index.html>`_ and `Copr Implemented using OBS <http://miroslav.suchy.cz/blog/archives/2013/08/30/copr_implemented_using_obs/index.html>`_. And the `mailing list discussion <https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/2EEYIEO5ZE2LLHNM7WFYC2533AMGCELX/#PX2QV6JTCK6WE4HTKGNOS3M6YZRNTVI5>`_, as well as the `conclusion <https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/PX2QV6JTCK6WE4HTKGNOS3M6YZRNTVI5/>`_.
 
 .. _`Can I get notifications from Copr builds?`:
 
