@@ -13,7 +13,7 @@ data:
 
     frontend_base_url = http://frontend:5000
 
-    frontend_auth = 1234
+    frontend_auth = __COPR_BACKEND_FRONTEND_AUTH__
 
     destdir = /var/lib/copr/public_html/results
 

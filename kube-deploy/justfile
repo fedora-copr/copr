@@ -101,6 +101,74 @@ up-local: build
     just kube-play dev-local
     @echo "COPR is running at http://localhost:5000 (local source at /opt/copr)"
 
+# ─── OpenShift (CRC MicroShift) ───────────────────────────────────────────
+
+crc_ssh_key := home_directory() / ".crc/machines/crc/id_ed25519"
+crc_ssh := "ssh -i " + crc_ssh_key + " -p 2222 -o StrictHostKeyChecking=no core@127.0.0.1"
+
+# Build images on host and push to CRC MicroShift VM
+push-images-to-crc: build
+    #!/bin/bash
+    set -euo pipefail
+    images=(copr-base copr-database copr-redis copr-frontend copr-backend copr-backend-httpd copr-distgit copr-keygen copr-resalloc copr-builder)
+    echo "Pushing ${#images[@]} images to CRC VM..."
+    for img in "${images[@]}"; do
+        echo "  $img..."
+        podman save "localhost/$img:latest" | {{crc_ssh}} "sudo TMPDIR=/var/home podman load"
+    done
+    echo "All images loaded into CRC VM"
+
+# Deploy to MicroShift (builds images, pushes to VM, applies manifests)
+up-openshift: generate-ssh-keys push-images-to-crc
+    #!/bin/bash
+    set -euo pipefail
+    eval $(crc oc-env)
+    echo "Creating namespace..."
+    oc create namespace copr 2>/dev/null || true
+    echo "Granting SCCs..."
+    oc adm policy add-scc-to-user anyuid -z copr-anyuid -n copr 2>/dev/null || true
+    oc adm policy add-scc-to-user privileged -z copr-anyuid -n copr 2>/dev/null || true
+    oc adm policy add-scc-to-user anyuid -z copr-builder-sa -n copr 2>/dev/null || true
+    echo "Injecting SSH keys as Secret..."
+    ssh_dir="{{justfile_directory()}}/containers/.ssh"
+    oc create secret generic copr-ssh-keys \
+        --namespace=copr \
+        --from-file=id_ed25519="$ssh_dir/id_ed25519" \
+        --from-file=id_ed25519.pub="$ssh_dir/id_ed25519.pub" \
+        --dry-run=client -o yaml | oc apply -f -
+    echo "Applying manifests..."
+    kustomize build manifests/overlays/openshift/ | oc apply -f -
+    echo "COPR is deploying on MicroShift"
+    echo "  just status-openshift       # check deployment"
+    echo "  oc logs -n copr <pod>       # view pod logs"
+
+# Stop OpenShift deployment
+down-openshift:
+    #!/bin/bash
+    eval $(crc oc-env)
+    oc delete pods -n copr -l app=copr-builder --ignore-not-found 2>/dev/null || true
+    kustomize build manifests/overlays/openshift/ | oc delete --ignore-not-found -f - 2>/dev/null || true
+    oc delete namespace copr --ignore-not-found 2>/dev/null || true
+    echo "Stopped"
+
+# Show OpenShift deployment status
+status-openshift:
+    #!/bin/bash
+    eval $(crc oc-env)
+    echo "=== Pods ==="
+    oc get pods -n copr 2>/dev/null || echo "  (namespace not found)"
+    echo ""
+    echo "=== Routes ==="
+    oc get routes -n copr 2>/dev/null || echo "  (none)"
+    echo ""
+    echo "=== PVCs ==="
+    oc get pvc -n copr 2>/dev/null || echo "  (none)"
+    echo ""
+    echo "=== Builder Pods ==="
+    oc get pods -n copr -l app=copr-builder 2>/dev/null || echo "  (none)"
+
+# ─── Stop ─────────────────────────────────────────────────────────────────
+
 # Stop all pods and dynamic builders
 down:
     #!/bin/bash

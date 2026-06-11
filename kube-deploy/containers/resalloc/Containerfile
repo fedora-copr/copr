@@ -5,6 +5,7 @@ LABEL description="COPR Resalloc - resource allocation with dynamic builder prov
 RUN --mount=type=cache,target=/var/cache/dnf \
     dnf -y install \
         ansible \
+        kubernetes-client \
         openssh-clients \
         podman-remote \
         resalloc \
@@ -19,7 +20,8 @@ RUN set -ex && \
     mkdir -p /persistent /var/lib/resallocserver/.ssh /var/lib/resallocserver/resalloc_provision \
         /var/log/resallocserver && \
     chmod 700 /var/lib/resallocserver/.ssh && \
-    chmod +x /home/resalloc/provision/local-new /home/resalloc/provision/local-delete && \
+    chmod +x /home/resalloc/provision/local-new /home/resalloc/provision/local-delete \
+        /home/resalloc/provision/k8s-new /home/resalloc/provision/k8s-delete && \
     chown -R resalloc:root /persistent /var/lib/resallocserver /home/resalloc \
         /var/log/resallocserver && \
     chmod -R g+rwX /persistent /var/lib/resallocserver /home/resalloc \

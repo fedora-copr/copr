@@ -56,6 +56,32 @@ spec:
             - /usr/bin/tini
             - "--"
             - /frontend-init
+          env:
+            - name: COPR_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: copr-frontend-secrets
+                  key: secret-key
+            - name: COPR_BACKEND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: copr-frontend-secrets
+                  key: backend-password
+            - name: COPR_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: username
+            - name: COPR_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: password
+            - name: COPR_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: database
           volumeMounts:
             - name: frontend-config
               mountPath: /etc/copr/copr.conf
@@ -73,6 +99,32 @@ spec:
           ports:
             - containerPort: 5000
               protocol: TCP
+          env:
+            - name: COPR_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: copr-frontend-secrets
+                  key: secret-key
+            - name: COPR_BACKEND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: copr-frontend-secrets
+                  key: backend-password
+            - name: COPR_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: username
+            - name: COPR_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: password
+            - name: COPR_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: database
           volumeMounts:
             - name: frontend-config
               mountPath: /etc/copr/copr.conf

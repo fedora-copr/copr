@@ -10,6 +10,12 @@ labels:
 
 resources:
   - volumes.yaml
+  - secrets/frontend.yaml
+  - secrets/backend.yaml
+  - secrets/database.yaml
+  - secrets/distgit.yaml
+  # ssh-keys.yaml intentionally excluded - injected at deploy time
+  # because it requires real key material from the host
   - configmaps/frontend.yaml
   - configmaps/backend.yaml
   - configmaps/resalloc.yaml

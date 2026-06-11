@@ -1,0 +1,24 @@
+# Dev overlay: override SSH keys Secret with hostPath for podman kube play.
+# REPLACE_COPR_SSH_DIR is substituted at deploy time by the justfile.
+# Uses $patch:replace on the volumes list to avoid merging hostPath+secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-backend
+spec:
+  template:
+    spec:
+      volumes:
+        - $patch: replace
+        - name: backend-config
+          configMap:
+            name: copr-backend-config
+        - name: backend-config-rendered
+          emptyDir: {}
+        - name: results-data
+          persistentVolumeClaim:
+            claimName: copr-results-data
+        - name: ssh-keys
+          hostPath:
+            path: REPLACE_COPR_SSH_DIR
+            type: Directory

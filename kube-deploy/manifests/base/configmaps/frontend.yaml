@@ -17,10 +17,14 @@ data:
     WHOOSHEE_MIN_STRING_LEN = 2
     WHOOSHEE_WRITER_TIMEOUT = 10
 
-    SECRET_KEY = 'local-dev-secret-key-not-for-production'
-    BACKEND_PASSWORD = '1234'
+    import os
+    SECRET_KEY = os.environ.get('COPR_SECRET_KEY', 'MISSING')
+    BACKEND_PASSWORD = os.environ.get('COPR_BACKEND_PASSWORD', 'MISSING')
 
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://copr-fe:coprpass@database:5432/coprdb'
+    _db_user = os.environ.get('COPR_DB_USER', 'copr-fe')
+    _db_pass = os.environ.get('COPR_DB_PASSWORD', 'MISSING')
+    _db_name = os.environ.get('COPR_DB_NAME', 'coprdb')
+    SQLALCHEMY_DATABASE_URI = f'postgresql+psycopg2://{_db_user}:{_db_pass}@database:5432/{_db_name}'
 
     LOGGING_LEVEL = 'debug'
     DEBUG = True
