@@ -35,6 +35,31 @@ spec:
             requests:
               memory: "32Mi"
               cpu: "50m"
+        - name: render-config
+          image: copr-distgit:latest
+          command:
+            - sh
+            - "-c"
+            - 'python3 -c "import os,sys; sys.stdout.write(open(''/etc/copr-template/copr-dist-git.conf'').read().replace(''__COPR_DISTGIT_FRONTEND_AUTH__'', os.environ[''COPR_FRONTEND_AUTH'']))" > /etc/copr-rendered/copr-dist-git.conf'
+          env:
+            - name: COPR_FRONTEND_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: copr-distgit-secrets
+                  key: frontend-auth
+          volumeMounts:
+            - name: distgit-config
+              mountPath: /etc/copr-template/copr-dist-git.conf
+              subPath: copr-dist-git.conf
+            - name: distgit-config-rendered
+              mountPath: /etc/copr-rendered
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
       containers:
         - name: distgit
           image: copr-distgit:latest
@@ -49,7 +74,7 @@ spec:
               mountPath: /var/lib/dist-git
             - name: distgit-logs
               mountPath: /var/lib/copr-dist-git
-            - name: distgit-config
+            - name: distgit-config-rendered
               mountPath: /etc/copr/copr-dist-git.conf
               subPath: copr-dist-git.conf
           resources:
@@ -97,6 +122,8 @@ spec:
         - name: distgit-config
           configMap:
             name: copr-distgit-config
+        - name: distgit-config-rendered
+          emptyDir: {}
         - name: distgit-data
           persistentVolumeClaim:
             claimName: copr-distgit-data

@@ -67,6 +67,9 @@ spec:
           volumeMounts:
             - name: resalloc-data
               mountPath: /persistent
+            - name: resalloc-config
+              mountPath: /etc/resallocserver/pools.yaml
+              subPath: pools.yaml
           livenessProbe:
             tcpSocket:
               port: 5007

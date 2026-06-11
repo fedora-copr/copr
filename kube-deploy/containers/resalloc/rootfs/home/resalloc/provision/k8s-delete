@@ -1,0 +1,12 @@
+#!/bin/bash
+# Remove a builder pod. Called by resalloc when a builder
+# resource is no longer needed.
+
+NAME="copr-builder-${RESALLOC_NAME}"
+NAME="${NAME//_/-}"
+NAMESPACE="${COPR_NAMESPACE:-copr}"
+
+kubectl delete pod "$NAME" \
+    --namespace="$NAMESPACE" \
+    --ignore-not-found \
+    --wait=false

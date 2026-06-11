@@ -1,0 +1,60 @@
+# Resalloc: use K8s-based builder provisioning (oc run) instead of
+# host podman socket. Assigns the copr-builder-sa ServiceAccount
+# so resalloc can create/delete builder pods via the K8s API.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-resalloc
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-builder-sa
+      containers:
+        - name: resalloc
+          env:
+            - name: BUILDER_IMAGE
+              value: "localhost/copr-builder:latest"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-resalloc-config
+data:
+  pools.yaml: |
+    openshift_x86_64:
+      max: 24
+      max_starting: 24
+      max_prealloc: 0
+
+      tags:
+        - arch_noarch
+        - arch_x86_64
+        - arch_x86_64_native
+        - arch_x86_64_v2
+        - arch_x86_64_v2_native
+        - arch_aarch64
+        - arch_aarch64_emulated
+        - arch_ppc64le
+        - arch_ppc64le_emulated
+        - arch_i386
+        - arch_i386_native
+        - arch_i586
+        - arch_i586_native
+        - arch_i686
+        - arch_i686_native
+        - arch_armhfp
+        - arch_armhfp_emulated
+        - arch_s390x
+        - arch_s390x_emulated
+
+      tags_on_demand:
+        - copr_builder
+
+      cmd_new: "/home/resalloc/provision/k8s-new"
+      cmd_delete: "/home/resalloc/provision/k8s-delete"
+
+      livecheck_period: 180
+      reuse_opportunity_time: 0
+      reuse_max_count: 0
+      reuse_max_time: 0

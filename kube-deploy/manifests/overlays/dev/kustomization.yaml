@@ -10,3 +10,4 @@ resources:
 patches:
   - path: patch-ports.yaml
   - path: patch-resalloc.yaml
+  - path: patch-ssh.yaml

@@ -8,7 +8,7 @@ data:
     [dist-git]
     frontend_base_url = http://frontend:5000
 
-    frontend_auth = 1234
+    frontend_auth = __COPR_DISTGIT_FRONTEND_AUTH__
 
     per_task_log_dir = /var/lib/copr-dist-git/per-task-logs/
 

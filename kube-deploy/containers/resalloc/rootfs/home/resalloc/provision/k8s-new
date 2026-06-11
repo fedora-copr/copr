@@ -1,0 +1,52 @@
+#!/bin/bash
+# Provision a new builder pod via the Kubernetes API.
+# Resalloc calls this script when a builder resource is needed.
+# The builder pod runs SSHD so the backend can connect via SSH.
+
+set -e
+
+IMAGE="${BUILDER_IMAGE:-localhost/copr-builder:latest}"
+NAME="copr-builder-${RESALLOC_NAME:-manual-$(date +%s)}"
+NAME="${NAME//_/-}"
+NAMESPACE="${COPR_NAMESPACE:-copr}"
+
+kubectl run "$NAME" \
+    --namespace="$NAMESPACE" \
+    --image="$IMAGE" \
+    --image-pull-policy=IfNotPresent \
+    --restart=Never \
+    --labels="app=copr-builder" \
+    --overrides='{
+      "spec": {
+        "serviceAccountName": "copr-anyuid",
+        "containers": [{
+          "name": "builder",
+          "image": "'"$IMAGE"'",
+          "imagePullPolicy": "IfNotPresent",
+          "command": ["/usr/sbin/sshd", "-D"],
+          "securityContext": {"privileged": true},
+          "ports": [{"containerPort": 22}],
+          "volumeMounts": [{
+            "name": "ssh-pubkey",
+            "mountPath": "/root/.ssh/authorized_keys",
+            "subPath": "id_ed25519.pub",
+            "readOnly": true
+          }]
+        }],
+        "volumes": [{
+          "name": "ssh-pubkey",
+          "secret": {
+            "secretName": "copr-ssh-keys",
+            "defaultMode": 384
+          }
+        }]
+      }
+    }' >/dev/null
+
+kubectl wait --for=condition=Ready "pod/$NAME" \
+    --namespace="$NAMESPACE" \
+    --timeout=120s >/dev/null
+
+kubectl get pod "$NAME" \
+    --namespace="$NAMESPACE" \
+    --output=jsonpath='{.status.podIP}'

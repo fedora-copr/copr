@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-database
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-keygen
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-distgit
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-backend
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-frontend
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-pulp
+spec:
+  template:
+    spec:
+      serviceAccountName: copr-anyuid
+      securityContext:
+        runAsUser: 0

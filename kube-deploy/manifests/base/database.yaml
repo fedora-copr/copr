@@ -19,16 +19,30 @@ spec:
         app: copr
         component: database
     spec:
+      securityContext:
+        runAsUser: 26
+        fsGroup: 26
       containers:
         - name: database
           image: copr-database:latest
           env:
+            - name: PGDATA
+              value: /var/lib/pgsql/data/pgdata
             - name: POSTGRESQL_USER
-              value: "copr-fe"
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: username
             - name: POSTGRESQL_PASSWORD
-              value: "coprpass"
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: password
             - name: POSTGRESQL_DATABASE
-              value: "coprdb"
+              valueFrom:
+                secretKeyRef:
+                  name: copr-database-secrets
+                  key: database
           ports:
             - containerPort: 5432
               protocol: TCP

@@ -63,14 +63,45 @@ and pipes the result to `podman kube play`.
 
 Run `just` to see all available commands.
 
-## Future: OpenShift Deployment
+## Local OpenShift (CRC MicroShift)
 
-This setup is designed as the foundation for OpenShift deployment:
+Run Copr on a local OpenShift cluster using CRC
+with the MicroShift preset.
 
-- Deployment manifests in `base/` map directly to OpenShift resources
-- Service definitions are included for OpenShift service discovery
-- ConfigMaps and PVCs are defined as separate resources
-- Container images use standard patterns (non-root users, health checks)
-- Dynamic builder provisioning translates to OpenShift Jobs
-- The `containers/` directory is shared between local and OpenShift deployments
-- Kustomize overlays demonstrate the pattern used in OpenShift
+### Setup
+
+```bash
+crc setup
+crc config set preset microshift
+crc config set cpus 12
+crc config set memory 24576
+crc config set disk-size 80
+crc start
+```
+
+### Deploy
+
+```bash
+just up-openshift       # Build images, push to CRC, apply manifests
+just status-openshift   # Check pod status
+just down-openshift     # Tear down
+```
+
+Images are built locally with `podman`, transferred into the CRC VM via
+`podman save | ssh podman load`, and referenced as `localhost/copr-*` with
+`imagePullPolicy: Never`. The `overlays/openshift/` kustomization handles
+image name prefixing, pull policy, security contexts, and resalloc pool
+sizing.
+
+### Running tests
+
+TODO: still needs some tweaks... will fill out after https://github.com/fedora-copr/copr/pull/4305
+
+### Useful URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://copr-frontend-copr.apps.crc.testing |
+| Backend results | http://copr-backend-copr.apps.crc.testing |
+| Dist-git | http://copr-distgit-copr.apps.crc.testing |
+| Resalloc WebUI | http://copr-resalloc-copr.apps.crc.testing/pools |

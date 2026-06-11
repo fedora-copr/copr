@@ -1,0 +1,109 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-frontend
+spec:
+  template:
+    spec:
+      $patch: merge
+      initContainers:
+        - name: wait-database
+          imagePullPolicy: Never
+        - name: wait-redis
+          imagePullPolicy: Never
+        - name: frontend-init
+          imagePullPolicy: Never
+      containers:
+        - name: frontend
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-backend
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-redis
+          imagePullPolicy: Never
+        - name: wait-resalloc
+          imagePullPolicy: Never
+        - name: render-config
+          imagePullPolicy: Never
+      containers:
+        - name: backend-log
+          imagePullPolicy: Never
+        - name: backend-build
+          imagePullPolicy: Never
+        - name: backend-action
+          imagePullPolicy: Never
+        - name: backend-httpd
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-distgit
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: wait-frontend
+          imagePullPolicy: Never
+        - name: render-config
+          imagePullPolicy: Never
+      containers:
+        - name: distgit
+          imagePullPolicy: Never
+        - name: distgit-httpd
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-keygen
+spec:
+  template:
+    spec:
+      containers:
+        - name: keygen-signd
+          imagePullPolicy: Never
+        - name: keygen-httpd
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-database
+spec:
+  template:
+    spec:
+      containers:
+        - name: database
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-redis
+spec:
+  template:
+    spec:
+      containers:
+        - name: redis
+          imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copr-resalloc
+spec:
+  template:
+    spec:
+      containers:
+        - name: resalloc
+          imagePullPolicy: Never
+        - name: resalloc-webui
+          imagePullPolicy: Never

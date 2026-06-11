@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: copr
+
+sortOptions:
+  order: fifo
+
+resources:
+  - ../../base
+  - routes.yaml
+  - rbac.yaml
+
+images:
+  - name: copr-frontend
+    newName: localhost/copr-frontend
+  - name: copr-backend
+    newName: localhost/copr-backend
+  - name: copr-backend-httpd
+    newName: localhost/copr-backend-httpd
+  - name: copr-database
+    newName: localhost/copr-database
+  - name: copr-redis
+    newName: localhost/copr-redis
+  - name: copr-distgit
+    newName: localhost/copr-distgit
+  - name: copr-keygen
+    newName: localhost/copr-keygen
+  - name: copr-resalloc
+    newName: localhost/copr-resalloc
+
+patches:
+  - path: patch-pullpolicy.yaml
+  - path: patch-resalloc.yaml
+  - path: patch-security.yaml
