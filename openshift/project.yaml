@@ -1,0 +1,9 @@
+---
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: ${PROJECT_NAME}
+parameters:
+  - name: PROJECT_NAME
+    description: Name of the OpenShift project (namespace)
+    required: true
