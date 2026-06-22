@@ -57,7 +57,8 @@ VALID_RPM_JOB = {
         "baseurl": "https://download.copr-dev.fedorainfracloud.org/"
                    "results/@copr/TEST1575431880356948981Project10/fedora-30-x86_64/",
         "id": "copr_base",
-        "name": "Copr repository"
+        "name": "Copr repository",
+        "repo_gpgcheck": False,
     }],
     "sandbox": "@copr/TEST1575431880356948981Project10--praiskup",
     "source_json": json.dumps({
@@ -103,11 +104,13 @@ VALID_SUBPROJECT_PRM_JOB = {
                           '@copr/copr-pull-requests/fedora-40-x86_64/',
                'id': 'copr_base',
                'name': 'Copr repository',
-               'priority': None},
+               'priority': None,
+               'repo_gpgcheck': False},
               {'baseurl': 'https://download.copr.fedorainfracloud.org'
                           '/results/@copr/copr-dev/fedora-40-x86_64/',
                'id': 'copr_copr_copr_dev',
-               'name': 'Additional repo copr_copr_copr_dev'}],
+               'name': 'Additional repo copr_copr_copr_dev',
+               'repo_gpgcheck': False}],
     'sandbox': '@copr/copr-pull-requests--ddf1880c-45a5-4627-a025-43ae696008f2',
     'source_json': {},
     'source_type': None,

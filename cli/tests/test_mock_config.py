@@ -51,6 +51,7 @@ config_opts['dnf.conf'] += \"\"\"
 name="Copr repository"
 baseurl=https://copr-be-dev.cloud.fedoraproject.org/results/praiskup/ping/fedora-rawhide-x86_64/
 {0}gpgcheck=0
+repo_gpgcheck=0
 enabled=1
 skip_if_unavailable=1
 metadata_expire=0
@@ -70,7 +71,8 @@ best=1
             "repos": [{
                 "baseurl": "https://copr-be-dev.cloud.fedoraproject.org/results/praiskup/ping/fedora-rawhide-x86_64/",
                 "id": "copr_base",
-                "name": "Copr repository"
+                "name": "Copr repository",
+                "repo_gpgcheck": False,
             }],
             "use_bootstrap_container": False,
             "with_opts": [],
