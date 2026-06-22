@@ -28,7 +28,7 @@ jobs:
     container:
       image: fedora:latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install make
         run: dnf install -y make
