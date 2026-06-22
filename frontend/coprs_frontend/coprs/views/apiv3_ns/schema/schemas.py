@@ -228,6 +228,10 @@ class Repo(Schema):
         description="The priority value of this repository. Defaults to 99",
         example=42,
     )
+    repo_gpgcheck: Boolean = Boolean(
+        description="Whether to verify repo metadata signatures. "
+                    "False for Copr repositories.",
+    )
     id: String = String(example="copr_base")
     name: String = String(example="Copr repository")
 

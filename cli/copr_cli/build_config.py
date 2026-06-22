@@ -54,6 +54,9 @@ priority={{ repo.priority }}
 module_hotfixes={{ repo.module_hotfixes }}
 {%- endif %}
 gpgcheck=0
+{%- if repo.repo_gpgcheck is defined and repo.repo_gpgcheck is not none %}
+repo_gpgcheck={{ repo.repo_gpgcheck|int }}
+{%- endif %}
 enabled=1
 skip_if_unavailable=1
 metadata_expire=0

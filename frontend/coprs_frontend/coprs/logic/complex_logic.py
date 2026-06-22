@@ -608,6 +608,7 @@ class BuildConfigLogic(object):
             "id": "copr_base",
             "baseurl": copr.repo_url + "/{}/".format(chroot_id),
             "name": "Copr repository",
+            "repo_gpgcheck": False,
         }]
 
         if copr.module_hotfixes:
@@ -621,6 +622,7 @@ class BuildConfigLogic(object):
                 "id": "copr_base_devel",
                 "baseurl": baseurl,
                 "name": "Copr buildroot",
+                "repo_gpgcheck": False,
             })
 
         if not coprdir.main:
@@ -628,6 +630,7 @@ class BuildConfigLogic(object):
                 "id": "copr_coprdir",
                 "baseurl": coprdir.repo_url + "/{}/".format(chroot_id),
                 "name": "Coprdir repository",
+                "repo_gpgcheck": False,
             })
 
         # None value of the priority won't show in API
@@ -704,8 +707,10 @@ class BuildConfigLogic(object):
                 copr = ComplexLogic.get_copr_by_repo(repo)
             except ObjectNotFound:
                 copr = None
-            if copr and copr.module_hotfixes:
-                params["module_hotfixes"] = True
+            if copr:
+                params["repo_gpgcheck"] = False
+                if copr.module_hotfixes:
+                    params["module_hotfixes"] = True
 
             repo_view.update(params)
             repos.append(repo_view)
