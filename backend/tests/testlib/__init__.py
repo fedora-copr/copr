@@ -310,6 +310,29 @@ class AsyncCreaterepoRequestFactory:
             self.redis.hset(key, "status", "success")
 
 
+class AsyncAddRemoveRequestFactory:
+    """ Generator for asynchronous add/remove content requests """
+    def __init__(self, redis):
+        self.pid = os.getpid()
+        self.redis = redis
+
+    def get(self, repo_href, overrides=None, done=False):
+        """ put new request to redis """
+        task = {
+            "add_content_units": [],
+            "remove_content_units": ["prn:1"],
+            "dirs_to_delete": [],
+        }
+        self.pid += 1
+        if overrides:
+            task.update(overrides)
+        key = "add_remove_batched::{}::{}".format(repo_href, self.pid)
+        task_json = json.dumps(task)
+        self.redis.hset(key, "task", task_json)
+        if done:
+            self.redis.hset(key, "status", "success")
+
+
 def patch_path(method, directory):
     directory = os.path.realpath(directory)
 
