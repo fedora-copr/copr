@@ -5,13 +5,18 @@ import tempfile
 import shutil
 
 import testlib
-from testlib import assert_logs_exist, AsyncCreaterepoRequestFactory
+from testlib import (
+    assert_logs_exist,
+    AsyncCreaterepoRequestFactory,
+    AsyncAddRemoveRequestFactory,
+)
 
 from copr_common.redis_helpers import get_redis_connection
 from copr_backend.createrepo import (
     BatchedCreaterepo,
     MAX_IN_BATCH,
 )
+from copr_backend.pulp import BatchedAddRemoveContent
 
 from copr_backend.helpers import BackendConfigReader
 
@@ -257,3 +262,92 @@ class TestBatchedCreaterepo:
                     without_status.add(add_dir)
         assert "add_2" in without_status
         assert len(without_status) == 3
+
+
+class TestBatchedAddRemoveContent:
+    def setup_method(self):
+        self.workdir = tempfile.mkdtemp(prefix="copr-batched-ar-test-")
+        self.config_file = testlib.minimal_be_config(self.workdir, {
+            "redis_db": 9,
+            "redis_port": 7777,
+        })
+        self.config = BackendConfigReader(self.config_file).read()
+        self.redis = get_redis_connection(self.config)
+        self.request_add_remove = AsyncAddRemoveRequestFactory(self.redis)
+        self.redis.flushdb()
+
+    def teardown_method(self):
+        shutil.rmtree(self.workdir)
+        self.redis.flushdb()
+
+    def _prep_batch(self, repo_href, rpms_to_add=None, rpms_to_remove=None,
+                    dirs_to_delete=None):
+        self.batch = BatchedAddRemoveContent(
+            repo_href,
+            rpms_to_add or [],
+            rpms_to_remove or ["prn:own"],
+            backend_opts=self.config,
+            log=logging.getLogger(),
+            dirs_to_delete=dirs_to_delete,
+        )
+        return self.batch
+
+    def test_dirs_to_delete_stored_in_redis(self):
+        repo = "/api/v3/repositories/rpm/rpm/abc/"
+        batch = self._prep_batch(repo, dirs_to_delete=["/some/path/build1"])
+        batch.make_request()
+
+        keys = self.redis.keys()
+        assert len(keys) == 1
+        task = json.loads(self.redis.hgetall(keys[0])["task"])
+        assert task["dirs_to_delete"] == ["/some/path/build1"]
+
+    def test_dirs_to_delete_collected_from_others(self):
+        repo = "/api/v3/repositories/rpm/rpm/def/"
+        batch = self._prep_batch(repo, dirs_to_delete=["/path/a"])
+        batch.make_request()
+
+        self.request_add_remove.get(repo, {
+            "remove_content_units": ["prn:2"],
+            "dirs_to_delete": ["/path/b", "/path/c"],
+        })
+        self.request_add_remove.get(repo, {
+            "remove_content_units": ["prn:3"],
+            "dirs_to_delete": ["/path/a"],
+        })
+
+        assert not batch.check_processed()
+        result = batch.options()
+        assert set(result["dirs_to_delete"]) == {"/path/a", "/path/b", "/path/c"}
+        assert len(batch.notify_keys) == 2
+
+    def test_dirs_to_delete_empty_by_default(self):
+        repo = "/api/v3/repositories/rpm/rpm/ghi/"
+        batch = self._prep_batch(repo)
+        batch.make_request()
+
+        self.request_add_remove.get(repo)
+
+        assert not batch.check_processed()
+        result = batch.options()
+        assert result["dirs_to_delete"] == []
+
+    def test_dirs_to_delete_backward_compat(self):
+        """Old Redis entries without dirs_to_delete should still work."""
+        repo = "/api/v3/repositories/rpm/rpm/compat/"
+        batch = self._prep_batch(repo, dirs_to_delete=["/path/new"])
+        batch.make_request()
+
+        # Simulate an old-format entry without dirs_to_delete
+        old_task = json.dumps({
+            "add_content_units": [],
+            "remove_content_units": ["prn:old"],
+        })
+        old_pid = os.getpid() + 999
+        old_key = "add_remove_batched::{}::{}".format(repo, old_pid)
+        self.redis.hset(old_key, "task", old_task)
+
+        assert not batch.check_processed()
+        result = batch.options()
+        assert set(result["dirs_to_delete"]) == {"/path/new"}
+        assert "prn:old" in result["remove_content_units"]
