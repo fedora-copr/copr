@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:43
+FROM registry.fedoraproject.org/fedora:44
 
 LABEL maintainer="copr-devel@lists.fedorahosted.org"
 
