@@ -79,8 +79,8 @@
   vars:
     distros:
       - fedora-rawhide
+      - fedora-44
       - fedora-43
-      - fedora-42
       - epel-10
       - epel-9
       - epel-8

@@ -19,10 +19,10 @@ cd /usr/share/copr/coprs_frontend/
 ./manage.py create-db --alembic alembic.ini
 
 for chroot in \
+    fedora-44-x86_64 fedora-44-i386 fedora-44-aarch64 \
+    fedora-44-ppc64le fedora-44-s390x \
     fedora-43-x86_64 fedora-43-i386 fedora-43-aarch64 \
-    fedora-43-ppc64le fedora-43-s390x \
     fedora-42-x86_64 fedora-42-i386 fedora-42-aarch64 \
-    fedora-41-x86_64 fedora-41-i386 fedora-41-aarch64 \
     fedora-rawhide-x86_64 fedora-rawhide-i386 fedora-rawhide-aarch64 \
     epel-9-x86_64 epel-9-aarch64 epel-9-ppc64le epel-9-s390x \
     epel-8-x86_64 epel-8-aarch64 epel-8-ppc64le \

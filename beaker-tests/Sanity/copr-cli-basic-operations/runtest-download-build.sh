@@ -12,9 +12,9 @@ source "$HERE/helpers"
 check_downloaded_files()
 {
     # When running in Testing Farm, we download a bunch of files like these
-    # fedora-43-x86_64/index.html?C=M;O=D
-    # fedora-43-x86_64/index.html?C=S;O=D
-    # fedora-43-x86_64/index.html?C=M;O=A
+    # fedora-44-x86_64/index.html?C=M;O=D
+    # fedora-44-x86_64/index.html?C=S;O=D
+    # fedora-44-x86_64/index.html?C=M;O=A
     # ...
     # This doesn't happen in production, so let's just remove them
     find . -name 'index.html?*' -delete

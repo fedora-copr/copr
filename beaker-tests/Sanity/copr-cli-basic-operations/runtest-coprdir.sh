@@ -52,7 +52,7 @@ rlJournalStart
         # We need a package with well-structured Source statements so they can
         # be downloaded easily.  GNU Hello RPM is a great example; it is
         # intentionally a textbook example of how RPMs should be structured.
-        spec_url=https://src.fedoraproject.org/rpms/hello/raw/f43/f/hello.spec
+        spec_url=https://src.fedoraproject.org/rpms/hello/raw/f44/f/hello.spec
 
         # This is the dependency (e.g. python-copr)
         rlRun "curl $spec_url > $tmp/hello-1.spec"
