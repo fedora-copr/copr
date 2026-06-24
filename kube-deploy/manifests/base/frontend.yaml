@@ -125,6 +125,16 @@ spec:
                 secretKeyRef:
                   name: copr-database-secrets
                   key: database
+            - name: PUBLIC_COPR_HOSTNAME
+              value: "frontend:5000"
+            - name: PUBLIC_COPR_BASE_URL
+              value: "http://frontend:5000"
+            - name: BACKEND_BASE_URL
+              value: "http://backend-httpd:5002"
+            - name: RESALLOC_URL
+              value: "http://resalloc:5007"
+            - name: DISTGIT_BASE_URL
+              value: "http://distgit:5001"
           volumeMounts:
             - name: frontend-config
               mountPath: /etc/copr/copr.conf

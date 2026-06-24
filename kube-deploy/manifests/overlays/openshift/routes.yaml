@@ -31,3 +31,14 @@ spec:
   to:
     kind: Service
     name: distgit
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: copr-resalloc
+spec:
+  port:
+    targetPort: webui
+  to:
+    kind: Service
+    name: resalloc

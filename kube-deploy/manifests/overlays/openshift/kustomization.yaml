@@ -10,6 +10,7 @@ resources:
   - ../../base
   - routes.yaml
   - rbac.yaml
+  - configmap-builder-distgit.yaml
 
 images:
   - name: copr-frontend
@@ -33,3 +34,4 @@ patches:
   - path: patch-pullpolicy.yaml
   - path: patch-resalloc.yaml
   - path: patch-security.yaml
+  - path: patch-urls.yaml

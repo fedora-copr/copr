@@ -9,7 +9,7 @@ data:
 
     build_user = root
 
-    results_baseurl = http://backend-httpd:5002/results
+    results_baseurl = __PUBLIC_BACKEND_URL__/results
 
     frontend_base_url = http://frontend:5000
 

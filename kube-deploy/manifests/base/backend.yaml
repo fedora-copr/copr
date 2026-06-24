@@ -57,13 +57,15 @@ spec:
           command:
             - sh
             - "-c"
-            - 'python3 -c "import os,sys; sys.stdout.write(open(''/etc/copr-template/copr-be.conf'').read().replace(''__COPR_BACKEND_FRONTEND_AUTH__'', os.environ[''COPR_FRONTEND_AUTH'']))" > /etc/copr-rendered/copr-be.conf'
+            - 'python3 -c "import os,sys; t=open(''/etc/copr-template/copr-be.conf'').read(); t=t.replace(''__COPR_BACKEND_FRONTEND_AUTH__'', os.environ[''COPR_FRONTEND_AUTH'']); t=t.replace(''__PUBLIC_BACKEND_URL__'', os.environ.get(''PUBLIC_BACKEND_URL'', ''http://backend-httpd:5002'')); sys.stdout.write(t)" > /etc/copr-rendered/copr-be.conf'
           env:
             - name: COPR_FRONTEND_AUTH
               valueFrom:
                 secretKeyRef:
                   name: copr-backend-secrets
                   key: frontend-auth
+            - name: PUBLIC_BACKEND_URL
+              value: "http://backend-httpd:5002"
           volumeMounts:
             - name: backend-config
               mountPath: /etc/copr-template/copr-be.conf
