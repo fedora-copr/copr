@@ -4,7 +4,7 @@ import stat
 import configparser
 import shutil
 
-from copr_rpmbuild.providers.scm import ScmProvider, MAKE_SRPM_TEPMLATE
+from copr_rpmbuild.providers.scm import ScmProvider, MAKE_SRPM_TEMPLATE
 from copr_rpmbuild.helpers import read_config
 from . import TestCase
 
@@ -142,7 +142,7 @@ class TestScmProvider(TestCase):
         bind_mount_cmd_part = '--plugin-option=bind_mount:dirs=(("{0}", "/mnt/{1}"), ("{2}", "/mnt/{3}"))'\
                               .format(provider.workdir, workdir_base,
                                       resultdir, basename)
-        make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(
+        make_srpm_cmd_part = MAKE_SRPM_TEMPLATE.format(
             "/mnt/{0}/somerepo/subpkg".format(workdir_base),
             "/mnt/{0}/somerepo/.copr/Makefile".format(workdir_base),
             "/mnt/{0}".format(basename),
