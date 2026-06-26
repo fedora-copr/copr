@@ -20,6 +20,13 @@ config_opts['use_host_resolv'] = False
 {%- if isolation not in ["default", None] %}
 config_opts['isolation'] = '{{ isolation }}'
 {%- endif %}
+{%- if resource_monitoring %}
+# Keep systemd-nspawn containers inside the cgroup we are
+# already running in. Without this, resource sampling done from outside
+# of mock (e.g. via `systemd-run` wrapping the whole `mock` invocation)
+# would miss everything that runs through systemd-nspawn.
+config_opts['nspawn_args'] = config_opts.get('nspawn_args', []) + ['--keep-unit']
+{%- endif %}
 
 {%- for key, value in macros.items() %}
 config_opts['macros']['{{ key }}'] = '{{ value }}'

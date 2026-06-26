@@ -15,6 +15,10 @@ from copr_rpmbuild.helpers import (
     macros_for_task,
     mock_snippet_for_tags,
 )
+from copr_rpmbuild.resource_monitor import (
+    CgroupSampler,
+    write_resource_results,
+)
 
 log = logging.getLogger("__main__")
 
@@ -87,6 +91,7 @@ class MockBuilder(object):
             modules=self.module_setup_commands,
             copr_build_id=self.build_id,
             isolation=self.isolation,
+            resource_monitoring=self.copr_rpmbuild_config.resource_monitoring,
             macros=self.macros,
             mock_snippet=mock_snippet_for_tags(
                 self.copr_rpmbuild_config.tags_to_mock_snippet, self.tags
@@ -174,6 +179,20 @@ class MockBuilder(object):
 
         return tuples
 
+    def _wrap_with_systemd_run(self, cmd):
+        unit_name = "copr-build-{}".format(self.build_id)
+        wrapped = [
+            'systemd-run', '--quiet', '--wait', '--pipe', '--collect',
+            '--unit={}'.format(unit_name),
+            '-p', 'MemoryAccounting=yes',
+            '-p', 'CPUAccounting=yes',
+            '-p', 'IOAccounting=yes',
+            '--',
+        ] + cmd
+        cgroup_path = "/sys/fs/cgroup/system.slice/{}.service".format(
+            unit_name)
+        return wrapped, cgroup_path, unit_name
+
     def produce_rpm(self, spec, sources, resultdir):
         cmd = MOCK_CALL + [
                "--spec", spec,
@@ -194,8 +213,19 @@ class MockBuilder(object):
         if self.allow_user_ssh:
             cmd += ["--no-cleanup-after"]
 
+        monitoring = self.copr_rpmbuild_config.resource_monitoring
+        sampler = None
+        unit_name = None
+
+        if monitoring:
+            cmd, cgroup_path, unit_name = self._wrap_with_systemd_run(cmd)
+            sampler = CgroupSampler(cgroup_path)
+
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
                 timeout=self.timeout)
+
+        if sampler:
+            sampler.start()
 
         try:
             process.communicate()
@@ -203,6 +233,19 @@ class MockBuilder(object):
             raise RuntimeError(str(e))
         finally:
             process.done()
+            if sampler:
+                try:
+                    sampler.stop()
+                    write_resource_results(resultdir, sampler)
+                except Exception:
+                    log.warning("Resource monitoring failed, skipping",
+                                exc_info=True)
+            if unit_name:
+                subprocess.call(
+                    ['systemctl', 'stop', unit_name],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
 
         if process.returncode != 0:
             raise RuntimeError("Build failed")

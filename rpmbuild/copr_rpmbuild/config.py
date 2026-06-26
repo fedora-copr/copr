@@ -16,6 +16,7 @@ class Config:
     def __init__(self):
         self.tags_to_mock_snippet = []
         self.rhsm = []
+        self.resource_monitoring = False
 
     def load_config(self):
         """
@@ -30,3 +31,4 @@ class Config:
 
         self.tags_to_mock_snippet = config_data.get("tags_to_mock_snippet", [])
         self.rhsm = config_data.get("rhsm", [])
+        self.resource_monitoring = config_data.get("resource_monitoring", False)
