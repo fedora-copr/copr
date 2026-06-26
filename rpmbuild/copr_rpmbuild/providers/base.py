@@ -1,5 +1,4 @@
 import os
-import errno
 import logging
 import shutil
 import stat
@@ -46,11 +45,6 @@ class Provider(object):
         # A per-task uniquely named working directory.  Ideally all the
         # work-in-progress stuff should live here.
         self.workdir = tempfile.mkdtemp(dir=self.workspace, prefix="workdir-")
-        try:
-            os.mkdir(self.workdir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
 
         self.copr_rpmbuild_config = Config()
         self.copr_rpmbuild_config.load_config()

@@ -14,7 +14,7 @@ from copr_rpmbuild.providers.base import Provider
 
 log = logging.getLogger("__main__")
 
-MAKE_SRPM_TEPMLATE = (
+MAKE_SRPM_TEMPLATE = (
     "set -x && "
     'cd {0} && '
     'echo -e "[safe]\ndirectory = {4}\ndirectory = {4}/*" > ~/.gitconfig && '
@@ -83,9 +83,8 @@ class ScmProvider(Provider):
         config_path = os.path.join(config_dir_path, 'rpkg.conf')
         log.debug('Writing config into '+config_path)
 
-        f = open(config_path, "w+")
-        f.write(config)
-        f.close()
+        with open(config_path, "w", encoding="utf-8") as f:
+            f.write(config)
 
         return config_path
 
@@ -117,7 +116,7 @@ class ScmProvider(Provider):
             .format(self.workdir, mock_workdir, self.resultdir, mock_resultdir)
 
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
-        make_srpm_cmd_part = MAKE_SRPM_TEPMLATE.format(mock_cwd, makefile_path,
+        make_srpm_cmd_part = MAKE_SRPM_TEMPLATE.format(mock_cwd, makefile_path,
                 mock_resultdir, mock_spec_path, mock_repodir)
 
         mock_config_file = self.generate_mock_config()
