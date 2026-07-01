@@ -45,6 +45,7 @@ import commands.warning_banner
 import commands.usage_treemap
 import commands.failed_to_succeeded_stats
 import commands.change_storage
+import commands.owners_in_storage
 
 from coprs import app
 
@@ -100,6 +101,7 @@ commands_list =	[
     "usage_treemap",
     "failed_to_succeeded_stats",
     "change_storage",
+    "owners_in_storage",
 ]
 
 
