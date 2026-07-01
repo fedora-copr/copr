@@ -135,7 +135,7 @@ min-public-methods=1
 max-public-methods=21
 
 # Maximum number of function arguments.
-max-positional-arguments=8
+max-positional-arguments=9
 
 
 [FORMAT]
