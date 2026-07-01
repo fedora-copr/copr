@@ -561,14 +561,13 @@ class PulpStorage(Storage):
             repository = self._get_repository(chroot)
             # Find the RPMs by list of build ids
             content_response = self.client.get_content(build_ids, fields=["prn"])
-            list_of_prns = [package["prn"] for package in content_response.json()["results"] ]
-            self.client.delete_content(repository, list_of_prns)
-            self.log.info("Deleted resources: %s", list_of_prns)
+            list_of_prns = [package["prn"] for package in content_response.json()["results"]]
 
-            # Delete results from the backend (logs, info files, etc)
-            for subdir in subdirs:
-                path = os.path.join(chroot_path, subdir)
-                shutil.rmtree(path)
+            dirs_to_delete = [os.path.join(chroot_path, subdir)
+                              for subdir in subdirs]
+            self.client.delete_content(repository, list_of_prns,
+                                       dirs_to_delete=dirs_to_delete)
+            self.log.info("Deleted resources: %s", list_of_prns)
         return result
 
     def repository_exists(self, dirname, chroot, baseurl):
