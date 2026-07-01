@@ -52,6 +52,11 @@ def get_arg_parser():
         "--owner",
         help="Migrate all projects for this owner",
     )
+    target.add_argument(
+        "--blocked-owners",
+        action="store_true",
+        help="Migrate all projects for all currently blocked owners",
+    )
     parser.add_argument(
         "--delete",
         action="store_true",
@@ -331,6 +336,24 @@ def handle_project(fullname, config, dst):
     return 0
 
 
+def handle_projects(projects, config, dst):
+    """
+    Process a migration of multiple projects
+    """
+    result = 0
+    for i, fullname in enumerate(projects, start=1):
+        print(
+            "[{0}/{1}] Migrating {2} to {3}"
+            .format(i, len(projects), fullname, dst)
+        )
+        success = handle_project(fullname, config, dst) == 0
+        status = "Success." if success else "Failure."
+        log.info("Project migration for %s %s", fullname, status)
+        if not success:
+            result = 1
+    return result
+
+
 def main():
     """
     The main function
@@ -356,15 +379,14 @@ def main():
         sys.exit(handle_project(args.project, config, args.dst))
     elif args.owner:
         projects = all_projects_for_owner(args.owner, config)
-        for i, fullname in enumerate(projects, start=1):
-            print(
-                "[{0}/{1}] Migrating {2} to {3}"
-                .format(i, len(projects), fullname, args.dst)
-            )
-
-            status = "Success." if handle_project(fullname, config, args.dst) == 0 else "Failure."
-            log.info("Project migration for %s %s", fullname, status)
-
+        sys.exit(handle_projects(projects, config, args.dst))
+    elif args.blocked_owners:
+        result = 0
+        for owner in config.builds_limits["blocked_owners"]:
+            projects = all_projects_for_owner(owner, config)
+            if handle_projects(projects, config, args.dst) != 0:
+                result = 1
+        sys.exit(result)
     else:
         log.error("Unexpected choice. This should never happen")
         sys.exit(1)
