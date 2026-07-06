@@ -574,7 +574,11 @@ def get_redis_logger(opts, name, who):
 def create_file_logger(name, filepath, fmt=None):
     logger = logging.getLogger(name)
 
-    if not logger.handlers:
+    has_file_handler = any(
+        isinstance(h, logging.handlers.WatchedFileHandler)
+        for h in logger.handlers
+    )
+    if not has_file_handler:
         handler = logging.handlers.WatchedFileHandler(filename=filepath)
         handler.setFormatter(fmt if fmt is not None else default_log_format)
         logger.addHandler(handler)
