@@ -351,7 +351,7 @@ With custom webhook(s), you can upload data like::
     $ curl -X POST --data "hook payload data" ....
 
 If the ``PACKAGE_NAME`` package configured in your project uses the script-like
-"Custom" build method, the POST data will be available as a ``$(CWD)/hook_data``
+"Custom" build method, the POST data will be available as a ``$(CWD)/hook_payload``
 file while generating RPM sources.  You can handle this file according to your
 needs in the custom script.
 
