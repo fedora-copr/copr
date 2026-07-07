@@ -90,6 +90,15 @@ Build package from its source definition
 mock-config::
 Get the mock profile (similar to koji mock-config)
 
+edit-permissions::
+Edit roles/permissions on a copr project
+
+list-permissions::
+Print the copr project roles/permissions
+
+request-permissions::
+Request (or reject) your role in the copr project
+
 
 PROJECT ACTIONS
 ---------------
@@ -393,6 +402,62 @@ Path to a project chroot as owner/project/chroot or project/chroot
 Set the formatting style. We recommend using json, which prints the required data in json format.
 The text format prints the required data in a column, one piece of information per line.
 The text-row format prints all information separated by a space on a single line.
+
+PERMISSION ACTIONS
+------------------
+
+`copr-cli edit-permissions [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli edit-permissions [-h] [--admin USERNAME[=VALUE]]
+                                 [--builder USERNAME[=VALUE]]
+                                 PROJECT
+
+Edit roles/permissions on a copr project.
+
+PROJECT::
+An existing copr project.
+
+--admin USERNAME[=VALUE]::
+Set the 'admin' role for USERNAME in PROJECT, VALUE can be one of
+'approved|request|nothing' (default=approved).
+
+--builder USERNAME[=VALUE]::
+Set the 'builder' role for USERNAME in PROJECT, VALUE can be one of
+'approved|request|nothing' (default=approved).
+
+
+`copr-cli list-permissions [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli list-permissions [-h] PROJECT
+
+Print the copr project roles/permissions.
+
+PROJECT::
+An existing copr project.
+
+
+`copr-cli request-permissions [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli request-permissions [-h] [--admin [VALUE]]
+                                    [--builder [VALUE]]
+                                    PROJECT
+
+Request (or reject) your role in the copr project.
+
+PROJECT::
+An existing copr project.
+
+--admin [VALUE]::
+Request/cancel request/remove your 'admin' permissions in PROJECT.
+VALUE can be one of 'request|nothing' (default=request).
+
+--builder [VALUE]::
+Request/cancel request/remove your 'builder' permissions in PROJECT.
+VALUE can be one of 'request|nothing' (default=request).
+
 
 PACKAGE ACTIONS
 ---------------
