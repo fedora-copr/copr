@@ -1,0 +1,30 @@
+---
+# Shared with the rpm-software-management/mock project.
+# See: https://docs.coderabbit.ai/reference/configuration
+# Language for CodeRabbit review comments.
+language: en-US
+
+reviews:
+  # Review profile: "chill" focuses on bugs and security issues only,
+  # avoiding noise from style/naming/documentation suggestions.
+  profile: chill
+
+  # Do not generate a high-level summary paragraph for each PR review.
+  high_level_summary: false
+
+  # Do not append a whimsical poem to each review.
+  poem: false
+
+  # After this many pushes (not individual commits) that trigger an
+  # incremental review, CodeRabbit pauses and stops reviewing automatically.
+  # The initial full-PR review is not counted.  To resume reviewing after
+  # the pause, post a PR comment: @coderabbitai review
+  auto_review:
+    auto_pause_after_reviewed_commits: 1
+
+  # Collapse the per-file walkthrough section so it does not dominate the
+  # review comment.
+  collapse_walkthrough: true
+
+  # Do not generate sequence diagrams for changed code paths.
+  sequence_diagrams: false
