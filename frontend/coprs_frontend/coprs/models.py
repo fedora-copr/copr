@@ -1204,6 +1204,11 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def import_log_url_distgit(self):
+        # rpm_upload builds skip dist-git import entirely -- there's no
+        # import log to link to
+        if self.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            return None
+
         if self.source_state not in ["importing", "succeeded", "failed"]:
             return None
 
@@ -1396,6 +1401,9 @@ class Build(db.Model, helpers.Serializer):
 
         Build is repeatable only if sources has been imported.
         """
+        if self.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            # the uploaded RPMs are not preserved after the build finishes
+            return False
         if self.source_status == StatusEnum("succeeded"):
             return True
         if (self.source_status == StatusEnum("failed") and
@@ -2081,6 +2089,10 @@ class BuildChroot(db.Model, TagMixin, helpers.Serializer):
 
     @property
     def dist_git_url(self):
+        # "direct RPM upload" builds skip dist-git import entirely -> no
+        # dist-git URL
+        if self.build.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            return None
         if app.config["DIST_GIT_URL"]:
             if self.state == "forked":
                 if self.build.copr.forked_from.deleted:
@@ -2185,6 +2197,8 @@ class BuildChroot(db.Model, TagMixin, helpers.Serializer):
         self.build.package.dist_git_clone_url because that one is not
         CoprDir-specific.
         """
+        if self.build.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            return None
         dirname = self.build.copr_dir.full_name
         package = self.build.package.name
         return "{}/{}/{}".format(app.config["DIST_GIT_CLONE_URL"], dirname, package)
@@ -2211,6 +2225,11 @@ class BuildChroot(db.Model, TagMixin, helpers.Serializer):
         The sources are successfully prepared in copr-dist-git, it's time to
         place this buildchroot task into the "pending-jobs" queue.
         """
+        if self.build.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            # skips dist-git import entirely -> nothing to tag-match
+            self.set_tags([])
+            return
+
         # now is the time to add tags...?
         # now is the time to skip exclude arch...?
         pkg_path = (

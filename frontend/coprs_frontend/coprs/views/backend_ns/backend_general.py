@@ -1,5 +1,11 @@
 import flask
-from copr_common.enums import StatusEnum, ActionTypeEnum, StorageEnum, FailTypeEnum
+from copr_common.enums import (
+    StatusEnum,
+    ActionTypeEnum,
+    StorageEnum,
+    FailTypeEnum,
+    BuildSourceEnum,
+)
 from coprs import db, app
 from coprs import models
 from coprs.logic import actions_logic
@@ -200,6 +206,16 @@ def get_build_record(task, for_backend=False):
     bch_isolation = BuildConfigLogic.get_build_isolation(
         build_config, task.build)
     build_record.update(bch_isolation)
+
+    if task.build.source_type == BuildSourceEnum("rpm_upload"):
+        # not using "source_type"/"source_json" here -- RPMResults.enabled
+        # in copr-rpmbuild requires "source_type" to be absent
+        source_data = task.build.source_json_dict
+        base_url = app.config["PUBLIC_COPR_BASE_URL"]
+        build_record["prebuilt_rpm_urls"] = [
+            f"{base_url}/tmp/{source_data.get('tmp')}/{filename}"
+            for filename in source_data.get("files", [])
+        ]
 
     return build_record
 

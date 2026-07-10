@@ -52,6 +52,12 @@ class FedoraReview(AutomationTool):
             return False
         if not self.chroot.startswith("fedora-"):
             return False
+        if not self.mock_config_file:
+            # No mock build happened for this task (e.g. a "direct RPM
+            # upload" build, see rpmbuild/main.py:build_rpm_upload()) --
+            # there is no spec file nor mock config for fedora-review to
+            # work with.
+            return False
         return self.fedora_review_enabled
 
     def run(self):

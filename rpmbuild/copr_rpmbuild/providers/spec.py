@@ -1,8 +1,9 @@
 import os
 import logging
 
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse
 
+from copr_rpmbuild.helpers import download_file
 from copr_rpmbuild.providers.base import Provider
 
 log = logging.getLogger("__main__")
@@ -21,17 +22,7 @@ class UrlProvider(Provider):
         return path
 
     def download_srpm(self):
-        basename = unquote(os.path.basename(self.parsed_url.path))
-        filename = os.path.join(self.resultdir, basename)
-        response = self.request.get(self.url, stream=True)
-        if response.status_code != 200:
-            raise RuntimeError('Requests get status "{0}" for "{1}"'.format(
-                response.status_code, self.url
-            ))
-
-        with open(filename, 'wb') as f:
-            for chunk in response:
-                f.write(chunk)
+        return download_file(self.url, self.resultdir, request=self.request)
 
     def produce_srpm(self):
         if self.parsed_url.path.endswith(".spec"):
