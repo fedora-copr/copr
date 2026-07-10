@@ -801,7 +801,12 @@
                 {% endif %}
                 <td data-order="source build">Source build</td>
               {% else %}
-                <td data-order="{{ task.build.package.name }}">{{ task.build.package.name }} </td>
+                {# build may have no linked Package (e.g. direct RPM upload) #}
+                {% if task.build.package_name is not none %}
+                  <td data-order="{{ task.build.package_name }}">{{ task.build.package_name }} </td>
+                {% else %}
+                  <td data-order="-">-</td>
+                {% endif %}
                 <td data-order="{{ task.build.pkg_version }}">{{ task.build.pkg_version }} </td>
                 <td data-order="{{ task.mock_chroot.name }}">{{ task.mock_chroot.name }}</td>
               {% endif %}

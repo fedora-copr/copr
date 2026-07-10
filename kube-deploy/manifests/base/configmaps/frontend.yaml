@@ -62,6 +62,8 @@ data:
 
     ENABLE_DISCUSSION = False
 
+    DIRECT_RPM_UPLOAD = True
+
     CHROOT_NAME_RELEASE_ALIAS = {"epel-8": "rhelbeta-8"}
 
     MAX_BUILD_TIMEOUT = 180000

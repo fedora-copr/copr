@@ -143,6 +143,41 @@ class ActionsLogic(object):
         return action
 
     @classmethod
+    def send_finalize_rpm_upload(cls, build, chroot, file_urls):
+        """
+        Create a new "finalize_rpm_upload" Action in queue for a build.
+        Unlike a normal build, there is no builder involved, check
+        finalize_rpm_upload action on backend.
+
+        :param build: models.Build (already flushed, i.e. build.id is set)
+        :param chroot: models.MockChroot
+        :param file_urls: list of the RPMs
+        """
+        copr = build.copr
+        data_dict = {
+            "ownername": copr.owner_name,
+            "projectname": copr.name,
+            "project_dirname": build.copr_dirname,
+            "appstream": copr.appstream,
+            "storage": copr.storage,
+            "devel": copr.devel_mode,
+            "persistent": copr.persistent,
+            "build_id": build.id,
+            "chroot": chroot.name,
+            "file_urls": file_urls,
+        }
+        action = models.Action(
+            action_type=ActionTypeEnum("finalize_rpm_upload"),
+            object_type="build",
+            object_id=build.id,
+            data=json.dumps(data_dict),
+            created_on=int(time.time()),
+            copr_id=copr.id,
+        )
+        db.session.add(action)
+        return action
+
+    @classmethod
     def send_delete_copr(cls, copr):
         data_dict = {
             "ownername": copr.owner_name,

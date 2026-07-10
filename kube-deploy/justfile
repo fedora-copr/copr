@@ -191,19 +191,19 @@ status:
 
 # View logs for a service
 logs service="frontend":
-    podman logs copr-{{service}}-{{service}}
+    podman logs copr-{{service}}-pod-{{service}}
 
 # Follow logs for a service
 logs-f service="frontend":
-    podman logs -f copr-{{service}}-{{service}}
+    podman logs -f copr-{{service}}-pod-{{service}}
 
 # Open shell in a container
 shell service="frontend":
-    podman exec -it copr-{{service}}-{{service}} /bin/bash
+    podman exec -it copr-{{service}}-pod-{{service}} /bin/bash
 
 # Restart a pod
 restart service:
-    podman pod restart copr-{{service}}
+    podman pod restart copr-{{service}}-pod
 
 # Preview rendered manifests (for debugging)
 render overlay="base":

@@ -34,6 +34,7 @@ class ActionTypeEnum(metaclass=EnumType):
         "build_module": 9,
         "cancel_build": 10,
         "remove_dirs": 11,
+        "finalize_rpm_upload": 12,
     }
 
 
@@ -57,6 +58,7 @@ class DefaultActionPriorityEnum(metaclass=EnumType):
         "fork": 0,
         "build_module": 0,
         "update_comps": 0,
+        "finalize_rpm_upload": 0,
         "delete": 60,
         "rawhide_to_release": 70,
     }
@@ -118,6 +120,7 @@ class BuildSourceEnum(metaclass=EnumType):
             "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
             "custom": 9, # user-provided script to build sources
             "distgit": 10, # distgit_instance, package_name, committish
+            "rpm_upload": 11, # tmp, files -- pre-built RPMs uploaded directly, no SRPM build
            }
 
 

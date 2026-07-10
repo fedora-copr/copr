@@ -1,5 +1,7 @@
 import re
+from unittest import mock
 import pytest
+import wtforms
 import flask
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
@@ -7,6 +9,7 @@ from coprs.forms import (
     PinnedCoprsForm,
     CoprFormFactory,
     CreateModuleForm,
+    RpmValidator,
     REGEX_BOOTSTRAP_IMAGE,
     REGEX_CHROOT_DENYLIST,
 )
@@ -101,6 +104,40 @@ class TestCreateModuleForm(CoprsTestCase):
                                     profile_names=["foo", "bar"])
             assert not form.validate()
             assert "Missing profile name" in form.errors["profile_names"][0]
+
+
+class TestRpmValidator:
+    @staticmethod
+    def _field(filename):
+        file_storage = mock.Mock()
+        file_storage.filename = filename
+        field = mock.Mock()
+        field.data = [file_storage]
+        return field
+
+    def test_valid_rpm(self):
+        validator = RpmValidator()
+        validator(None, self._field("hello-2.8-1.fc43.x86_64.rpm"))
+
+    def test_rejects_src_rpm(self):
+        validator = RpmValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field("hello-2.8-1.fc43.src.rpm"))
+
+    def test_rejects_non_rpm(self):
+        validator = RpmValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field("hello.txt"))
+
+    def test_rejects_missing_filename(self):
+        validator = RpmValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(None))
+
+    def test_rejects_empty_filename(self):
+        validator = RpmValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(""))
 
 
 def test_form_regexes():

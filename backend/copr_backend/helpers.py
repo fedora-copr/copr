@@ -27,6 +27,7 @@ import munch
 from munch import Munch
 
 from copr_common.redis_helpers import get_redis_connection
+from copr_common.request import SafeRequest, RequestError
 from copr.v3 import Client
 from copr_backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
@@ -712,6 +713,34 @@ def build_target_dir(build_id, package_name=None):
 
 def build_chroot_log_name(build_id, package_name=None):
     return 'build-{}.log'.format(build_target_dir(build_id, package_name))
+
+
+def download_file(url, destination, log=None):
+    """
+    Download a file from the given URL.
+
+    :returns str: filesystem path to the downloaded file.
+    :raises CoprBackendError: on any download failure
+    """
+    log = log or logging.getLogger(__name__)
+    log.debug("Downloading %s", url)
+    try:
+        # are 2 minutes enough? e.g. big RPMs slow connection...
+        request = SafeRequest(log=log, timeout=2 * 60)
+        response = request.send(url, method='get', stream=True)
+    except RequestError as ex:
+        raise CoprBackendError(f"Failed to download {url}: {ex}") from ex
+
+    filename = os.path.basename(url)
+    filepath = os.path.join(destination, filename)
+    try:
+        with response:
+            with open(filepath, 'wb') as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+    except OSError as ex:
+        raise CoprBackendError(f"Failed to save {filepath}: {ex}") from ex
+    return filepath
 
 
 def copy2_but_hardlink_rpms(src, dest, **kwargs):
