@@ -4,7 +4,7 @@
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
-%global copr_common_version 1.1.2
+%global copr_common_version 1.7.3
 
 # Please bump the %%flavor_guard version every-time some incompatible change
 # happens (since the last release) in %%flavor_files set of files.  Those files
@@ -87,7 +87,7 @@ BuildRequires: python3dist(flask-caching)
 BuildRequires: python3dist(flask-sqlalchemy)
 BuildRequires: python3dist(flask-session)
 BuildRequires: python3dist(flask-whooshee)
-BuildRequires: python3dist(flask-wtf)
+BuildRequires: python3dist(flask-wtf) >= 1.2.1
 BuildRequires: python3dist(flask-restx)
 BuildRequires: python3-gobject
 BuildRequires: python3dist(html2text)
@@ -142,7 +142,7 @@ Requires: python3dist(flask-caching)
 Requires: python3dist(flask-sqlalchemy)
 Requires: python3dist(flask-session)
 Requires: python3dist(flask-whooshee)
-Requires: python3dist(flask-wtf)
+Requires: python3dist(flask-wtf) >= 1.2.1
 Requires: python3dist(flask-restx)
 Requires: python3-gobject
 Requires: python3dist(html2text)

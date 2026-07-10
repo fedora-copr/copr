@@ -1,8 +1,10 @@
 import json
 
+from io import BytesIO
 from unittest import mock, skip
 import pytest
 
+from werkzeug.datastructures import FileStorage
 from flask_sqlalchemy.record_queries import get_recorded_queries
 
 from copr_common.enums import BackendResultEnum, StatusEnum, DefaultActionPriorityEnum
@@ -44,6 +46,31 @@ class TestGetBuildTask(CoprsTestCase):
         r = self.tc.get("/backend/get-build-task/" + str(self.b2.id) + "-fedora-18-x86_64", headers=self.auth_header).data
         data = json.loads(r.decode("utf-8"))
         assert data['modules']['toggle'] == [{'disable': 'XXX'}, {'enable': 'YYY'}, {'enable': 'ZZZ'}]
+
+    def test_rpm_upload_prebuilt_rpm_urls(self, f_users, f_coprs, f_mock_chroots, f_db):
+        """
+        A "direct RPM upload" build has no dist-git source, so the Builder
+        needs the uploaded RPMs' URLs (served from Frontend's tmp storage)
+        instead of the usual git_repo/git_hash.
+        """
+        filename = "hello-2.8-1.fc18.x86_64.rpm"
+        rpm_file = FileStorage(stream=BytesIO(b"fake rpm bytes"),
+                               filename=filename,
+                               content_type="application/x-rpm")
+        build = BuildsLogic.create_new_from_rpm_upload(
+            self.u1, self.c1, "fedora-18-x86_64", [rpm_file])
+        self.db.session.commit()
+
+        build_chroot = build.build_chroots[0]
+        task_id = f"{build.id}-{build_chroot.name}"
+        r = self.tc.get(f"/backend/get-build-task/{task_id}",
+                        headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+
+        tmp = build.source_json_dict["tmp"]
+        base_url = app.config["PUBLIC_COPR_BASE_URL"]
+        assert data["prebuilt_rpm_urls"] == [f"{base_url}/tmp/{tmp}/{filename}"]
+
 
 class TestWaitingBuilds(CoprsTestCase):
 

@@ -2,7 +2,7 @@ Flask
 Flask-OpenID
 Flask-SQLAlchemy
 Flask-Session
-Flask-WTF
+Flask-WTF >= 1.2.1
 flask-whooshee
 pytest
 pytest-cov

@@ -74,6 +74,13 @@
   <dd>{{ source_json_dict["gem_name"] }}</dd>
   {% endif %}
 
+  {% if source_type_text == "rpm_upload" %}
+  <dt>Uploaded RPMs:</dt>
+  {% for filename in source_json_dict.get("files", []) %}
+  <dd>{{ filename }}</dd>
+  {% endfor %}
+  {% endif %}
+
 {% if source_type_text == "distgit" %}
   {% for info in ["distgit", "committish", "clone_url"] %}
   {% if source_json_dict.get(info) %}

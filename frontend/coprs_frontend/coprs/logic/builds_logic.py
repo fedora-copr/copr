@@ -396,6 +396,11 @@ class BuildsLogic(object):
             # that this is racy -- Package reference provides some build
             # configuration which can be changed in the middle of the
             # BuildChroot processing.
+            #
+            # Builds with NULL package_id (e.g. "upload"/"url" source
+            # types) are silently missing from /status/pending/ and the
+            # sidebar queue-size counters. Fix could be outerjoin, but
+            # could cause other issues.
             query = query.join(models.Package, models.Package.id == models.Build.package_id)
 
         query = (
@@ -520,6 +525,10 @@ class BuildsLogic(object):
                                     chroot_names=None, **build_options):
         skip_import = False
         git_hashes = {}
+
+        if source_build.source_type == helpers.BuildSourceEnum('rpm_upload'):
+            raise UnrepeatableBuildException(
+                "Direct RPM upload builds cannot be repeated.")
 
         if source_build.source_type == helpers.BuildSourceEnum('upload'):
             if source_build.repeatable:
@@ -723,6 +732,139 @@ class BuildsLogic(object):
                                    copr_dirname=copr_dirname, **build_options)
         except Exception:
             shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
+            raise
+
+        return build
+
+    @classmethod
+    def _find_active_chroot(cls, copr, chroot_name):
+        for active_chroot in copr.active_chroots:
+            if active_chroot.name == chroot_name:
+                return active_chroot
+        raise BadRequest(
+            f"Chroot {chroot_name} does not exist or is not active "
+            f"in the project {copr.full_name}")
+
+    @classmethod
+    def _save_uploaded_rpms(cls, form_files):
+        """
+        Save each uploaded file into a fresh STORAGE_DIR tmp directory.
+
+        :return: (tmp_name, filenames)
+        :raises BadRequest: if there isn't exactly one uploaded file, or if
+            its filename is invalid / not a ".rpm"
+        :raises InsufficientStorage
+        """
+        if len(form_files) != 1:
+            # multi-RPM upload may be added later
+            raise BadRequest(
+                "Only one RPM can be uploaded per call for now "
+                "(multi-RPM upload may be added later).")
+
+        sanitized_names = []
+        for form_file in form_files:
+            sanitized = secure_filename(form_file.filename)
+            if (not sanitized or not sanitized.endswith(".rpm") or
+                    sanitized.endswith((".src.rpm", ".nosrc.rpm"))):
+                raise BadRequest(
+                    f"Uploaded filename '{form_file.filename}' is invalid "
+                    "or could not be safely sanitized to a valid .rpm filename.")
+            sanitized_names.append(sanitized)
+
+        tmp = None
+        try:
+            tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
+            tmp_name = os.path.basename(tmp)
+            filenames = []
+            for form_file, filename in zip(form_files, sanitized_names):
+                save_form_file_field_to(form_file, os.path.join(tmp, filename))
+                filenames.append(filename)
+            return tmp_name, filenames
+        except OSError as error:
+            if tmp:
+                shutil.rmtree(tmp)
+            raise InsufficientStorage(
+                f"Can not create storage directory for uploaded file(s): {error}"
+            ) from error
+
+    @classmethod
+    def _find_or_create_rpm_upload_package(cls, user, copr, pkg_name, source_json):
+        package = PackagesLogic.get(copr.id, pkg_name).first()
+        if package:
+            return package
+
+        try:
+            package = PackagesLogic.add(
+                user, copr, pkg_name,
+                helpers.BuildSourceEnum("rpm_upload"), source_json)
+            db.session.add(package)
+            db.session.commit()
+        except (IntegrityError, DuplicateException):
+            # a concurrent request created the same package in the meantime
+            db.session.rollback()
+            package = PackagesLogic.get(copr.id, pkg_name).first()
+        return package
+
+    @classmethod
+    def create_new_from_rpm_upload(cls, user, copr, chroot_name, form_files, *,
+                                   copr_dirname=None, background=False,
+                                   timeout=None, after_build_id=None,
+                                   with_build_id=None):
+        """
+        Create a build that publishes built RPMs directly for a
+        single chroot, skipping the SRPM build and dist-git import phases
+        entirely.
+
+        :type user: models.User
+        :type copr: models.Copr
+        :param str chroot_name: name of the chroot to publish into
+        :param form_files: list of uploaded-file objects
+        :return: models.Build
+        """
+        coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
+            copr, "Can't build while there is an operation in progress: {action}")
+        users_logic.UsersLogic.raise_if_cant_build_in_copr(
+            user, copr, "You don't have permissions to build in this copr.")
+
+        chroot = cls._find_active_chroot(copr, chroot_name)
+        tmp_name, filenames = cls._save_uploaded_rpms(form_files)
+
+        try:
+            pkg_name = helpers.parse_package_name(filenames[0])
+            if not pkg_name:
+                raise BadRequest(
+                    f"Can not derive a package name from the uploaded "
+                    f"filename '{filenames[0]}'")
+
+            source_json = json.dumps({"tmp": tmp_name, "files": filenames})
+            package = cls._find_or_create_rpm_upload_package(
+                user, copr, pkg_name, source_json)
+            batch = cls.setup_batch(after_build_id, with_build_id, user)
+
+            copr_dir = None
+            if copr_dirname:
+                copr_dir = coprs_logic.CoprDirsLogic.get_or_create(copr, copr_dirname)
+
+            build = models.Build(
+                user=user,
+                pkgs=", ".join(filenames),
+                copr=copr,
+                copr_dir=copr_dir,
+                package=package,
+                source_type=helpers.BuildSourceEnum("rpm_upload"),
+                source_json=source_json,
+                source_status=StatusEnum("succeeded"),
+                submitted_on=int(time.time()),
+                is_background=bool(background),
+                batch=batch,
+                timeout=timeout or app.config["DEFAULT_BUILD_TIMEOUT"],
+            )
+            db.session.add(build)
+
+            cls.assign_buildchroots(build, [chroot], status=StatusEnum("pending"))
+        except Exception:
+            # TODO: some cleanup procedure instead of broad exception catch
+            shutil.rmtree(os.path.join(app.config["STORAGE_DIR"], tmp_name))
             raise
 
         return build
@@ -1182,6 +1324,13 @@ class BuildsLogic(object):
                         assert isinstance(upd_dict, dict)
                         BuildChrootResultsLogic.create_from_dict(
                             build_chroot, upd_dict.get("results"))
+
+                        # Direct RPM upload builds have no dist-git import (and
+                        # thus no other "import completed"/"SRPM failed" hook)
+                        # to trigger this cleanup, so do it here once the (one
+                        # and only) BuildChroot reaches a terminal state.
+                        if build.source_type == helpers.BuildSourceEnum("rpm_upload"):
+                            cls.delete_local_source(build)
 
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()

@@ -4,11 +4,13 @@ Test all kind of build request via v3 API
 
 import copy
 import json
+from io import BytesIO
 
 import pytest
 
 from bs4 import BeautifulSoup
-from copr_common.enums import BuildSourceEnum
+from werkzeug.datastructures import FileStorage
+from copr_common.enums import BuildSourceEnum, StatusEnum
 from coprs.logic.builds_logic import BuildChrootResultsLogic
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -261,6 +263,95 @@ class TestAPIv3Builds(CoprsTestCase):
         assert response.status_code == 200
         build = self.models.Build.query.first()
         assert {chroot.name for chroot in build.chroots} == expected
+
+
+def _fake_rpm_file(filename, content=b"fake rpm bytes"):
+    return FileStorage(stream=BytesIO(content), filename=filename,
+                       content_type="application/x-rpm")
+
+
+class TestAPIv3BuildsRpmUpload(CoprsTestCase):
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_rpm_upload_creates_pending_chroot(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroot": "fedora-17-x86_64",
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 200
+
+        build = self.models.Build.query.first()
+        assert build is not None
+        assert build.source_type == BuildSourceEnum("rpm_upload")
+        assert build.source_status == StatusEnum("succeeded")
+        assert build.package is not None
+        assert build.package.name == "hello"
+
+        assert len(build.build_chroots) == 1
+        build_chroot = build.build_chroots[0]
+        assert build_chroot.name == "fedora-17-x86_64"
+        assert build_chroot.status == StatusEnum("pending")
+
+        source_data = json.loads(build.source_json)
+        assert source_data["files"] == ["hello-2.8-1.fc43.x86_64.rpm"]
+
+        # no Action is queued for this build type -- the pending BuildChroot
+        # is picked up and dispatched to a real builder like any other build
+        assert self.models.Action.query.first() is None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_multiple_files(self):
+        # only one RPM can be uploaded per call for now
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroot": "fedora-17-x86_64",
+            "pkgs": [
+                _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+                _fake_rpm_file("hello-debuginfo-2.8-1.fc43.x86_64.rpm"),
+            ],
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 400
+        assert self.models.Build.query.first() is None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_srpm(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroot": "fedora-17-x86_64",
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.src.rpm"),
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 400
+        assert self.models.Build.query.first() is None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_inactive_chroot(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroot": "fedora-rawhide-i386",  # not enabled for user2/foocopr
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 400
+        assert self.models.Build.query.first() is None
 
 
 class TestWebUIBuilds(CoprsTestCase):

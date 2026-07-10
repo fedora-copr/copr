@@ -8,7 +8,7 @@ from fnmatch import fnmatch, filter as fnmatch_filter
 import flask
 import wtforms
 
-from flask_wtf.file import FileRequired, FileField
+from flask_wtf.file import FileRequired, FileField, MultipleFileField
 
 try: # get rid of deprecation warning with newer flask_wtf
     from flask_wtf import FlaskForm
@@ -285,6 +285,26 @@ class SrpmValidator(object):
         filename = field.data.filename.lower()
         if not filename.endswith((".src.rpm", ".nosrc.rpm", ".spec")):
             raise wtforms.ValidationError(self.message)
+
+
+class RpmValidator:
+    """
+    Validate that every uploaded file is a plain, already-built .rpm
+    (not a .src.rpm / .nosrc.rpm) with a usable filename.
+    """
+    def __init__(self, message=None):
+        if not message:
+            message = "You can only upload .rpm files"
+        self.message = message
+
+    def __call__(self, form, field):
+        for file_storage in field.data or []:
+            if not file_storage.filename:
+                raise wtforms.ValidationError(self.message)
+            filename = file_storage.filename.lower()
+            if (not filename.endswith(".rpm") or
+                    filename.endswith((".src.rpm", ".nosrc.rpm"))):
+                raise wtforms.ValidationError(self.message)
 
 
 class CoprUniqueNameValidator(object):
@@ -1470,6 +1490,21 @@ class BuildFormUploadFactory(object):
         form.pkgs = FileField('srpm', validators=[
             FileRequired(),
             SrpmValidator()])
+        return form
+
+
+class BuildFormRpmUploadFactory:
+    """
+    Build form for the direct RPM upload build source.
+    """
+    def __new__(cls, active_chroots):
+        form = _get_build_form(active_chroots, BaseForm)
+        form.chroot = wtforms.SelectField('chroot', choices=[
+            (ch.name, ch.name) for ch in active_chroots], validators=[
+            wtforms.validators.DataRequired()])
+        form.pkgs = MultipleFileField('rpms', validators=[
+            FileRequired(),
+            RpmValidator()])
         return form
 
 
