@@ -712,16 +712,9 @@ class ListBuild(ParamsSchema):
 
 
 @dataclass
-class _GenericBuildOptions:
-    chroot_names: List = List(
-        String,
-        description="List of chroot names",
-        example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
-    )
+class _BuildOptionsBase:
     background: Boolean = fields.background
     timeout: Integer = fields.timeout
-    bootstrap: String = fields.bootstrap
-    isolation: String = fields.isolation
     after_build_id: Integer = Integer(
         description="Build after the batch containing the Build ID build",
         example=123,
@@ -730,6 +723,17 @@ class _GenericBuildOptions:
         description="Build in the same batch with the Build ID build",
         example=123,
     )
+
+
+@dataclass
+class _GenericBuildOptions(_BuildOptionsBase):
+    chroot_names: List = List(
+        String,
+        description="List of chroot names",
+        example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
+    )
+    bootstrap: String = fields.bootstrap
+    isolation: String = fields.isolation
     packit_forge_project: String = String(
         description="Forge project name that Packit passes",
         example="github.com/fedora-copr/copr",
@@ -762,6 +766,17 @@ class CreateBuildUrl(_BuildDataCommon, _GenericBuildOptions, InputSchema):
 class CreateBuildUpload(_BuildDataCommon, _GenericBuildOptions, InputSchema):
     project_dirname: String = fields.project_dirname
     pkgs: List = List(Raw, description="application/x-rpm files to build from")
+
+
+@dataclass
+class CreateBuildRpmUpload(_BuildDataCommon, _BuildOptionsBase, InputSchema):
+    project_dirname: String = fields.project_dirname
+    chroot: String = fields.mock_chroot
+    pkgs: List = List(
+        Raw,
+        description="application/x-rpm files to publish directly, "
+                    "skipping the SRPM build phase entirely",
+    )
 
 
 @dataclass
@@ -852,6 +867,7 @@ module_add_input_model = ModuleAdd.get_cls().input_model()
 
 create_build_url_input_model = CreateBuildUrl.get_cls().input_model()
 create_build_upload_input_model = CreateBuildUpload.get_cls().input_model()
+create_build_rpm_upload_input_model = CreateBuildRpmUpload.get_cls().input_model()
 create_build_scm_input_model = CreateBuildSCM.get_cls().input_model()
 create_build_distgit_input_model = CreateBuildDistGit.get_cls().input_model()
 create_build_pypi_input_model = CreateBuildPyPI.get_cls().input_model()

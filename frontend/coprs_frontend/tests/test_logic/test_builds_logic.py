@@ -4,15 +4,17 @@ import json
 import os
 import tempfile
 import time
+from io import BytesIO
 from unittest import mock
 
 import pytest
+from werkzeug.datastructures import FileStorage
 
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import models
 from coprs.request import NAMED_FILE_FROM_BYTES
 
-from copr_common.enums import StatusEnum, StorageEnum
+from copr_common.enums import BuildSourceEnum, StatusEnum, StorageEnum
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
                               MalformedArgumentException,
@@ -462,6 +464,137 @@ class TestBuildsLogic(CoprsTestCase):
                                                copr_dirname=None)
         assert "Can not create storage directory for uploaded file" in str(error.value)
         assert "[Errno 28] No space left on device" in str(error.value)
+
+    @staticmethod
+    def _fake_rpm_file(filename, content=b"fake rpm bytes"):
+        rpm_file = FileStorage(stream=BytesIO(content), filename=filename,
+                               content_type="application/x-rpm")
+        # spy on .save() (still calls through to the real implementation)
+        # so tests can assert whether/how many times it was called
+        rpm_file.save = mock.Mock(wraps=rpm_file.save)
+        return rpm_file
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_multiple_files(self):
+        # only one RPM can be uploaded per call for now
+        rpm_files = [
+            self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm"),
+            self._fake_rpm_file("hello-devel-2.8-1.fc18.x86_64.rpm"),
+        ]
+        with pytest.raises(BadRequest) as error:
+            BuildsLogic.create_new_from_rpm_upload(
+                self.u1, self.c1, "fedora-18-x86_64", rpm_files)
+        assert "Only one RPM can be uploaded per call" in str(error.value)
+        assert self.models.Build.query.first() is None
+        for rpm_file in rpm_files:
+            rpm_file.save.assert_not_called()
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_unsanitizable_name(self):
+        # secure_filename() strips filenames it can't safely represent
+        # (e.g. non-ASCII names) down to something that no longer ends
+        # with ".rpm", or even an empty string
+        rpm_file = self._fake_rpm_file("日本語.rpm")
+        with pytest.raises(BadRequest) as error:
+            BuildsLogic.create_new_from_rpm_upload(
+                self.u1, self.c1, "fedora-18-x86_64", [rpm_file])
+        assert "invalid" in str(error.value)
+        assert self.models.Build.query.first() is None
+        rpm_file.save.assert_not_called()
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_rejects_bad_pkg_name(self):
+        storage_dir = self.app.config["STORAGE_DIR"]
+        before = set(os.listdir(storage_dir))
+
+        rpm_file = self._fake_rpm_file("1-2.rpm")
+        with pytest.raises(BadRequest) as error:
+            BuildsLogic.create_new_from_rpm_upload(
+                self.u1, self.c1, "fedora-18-x86_64", [rpm_file])
+        assert "Can not derive a package name" in str(error.value)
+        assert self.models.Build.query.first() is None
+
+        # the file was already saved before the name could be derived
+        # make sure the tmp dir got cleaned up again
+        after = set(os.listdir(storage_dir))
+        assert after == before
+
+    @mock.patch("coprs.logic.coprs_logic.CoprDirsLogic.get_or_create")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_cleans_tmpdir_on_failure(self, get_or_create):
+        # any failure occurring after the files were already saved to
+        # STORAGE_DIR (e.g. resolving copr_dir) must not leak the
+        # just-created tmp upload directory
+        get_or_create.side_effect = RuntimeError("boom")
+
+        storage_dir = self.app.config["STORAGE_DIR"]
+        before = set(os.listdir(storage_dir))
+
+        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        with pytest.raises(RuntimeError):
+            BuildsLogic.create_new_from_rpm_upload(
+                self.u1, self.c1, "fedora-18-x86_64", [rpm_file],
+                copr_dirname="some-dir")
+
+        assert self.models.Build.query.first() is None
+        after = set(os.listdir(storage_dir))
+        assert after == before
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_create_new_from_rpm_upload(self):
+        self.web_ui.new_project("test", ["fedora-18-x86_64"])
+        user = self.db.session.get(models.User, 1)
+        copr = models.Copr.query.first()
+
+        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        build = BuildsLogic.create_new_from_rpm_upload(
+            user, copr, "fedora-18-x86_64", [rpm_file])
+        self.db.session.commit()
+
+        assert build.source_type == BuildSourceEnum("rpm_upload")
+        assert build.source_status == StatusEnum("succeeded")
+        assert build.package is not None
+        assert build.package.name == "hello"
+        assert len(build.build_chroots) == 1
+
+        build_chroot = build.build_chroots[0]
+        assert build_chroot.name == "fedora-18-x86_64"
+        assert build_chroot.status == StatusEnum("pending")
+
+        rpm_file.save.assert_called_once()
+
+        # no Action is queued for this build (e.g. new_project() above may
+        # have queued unrelated ones, like gen_gpg_key) -- the pending
+        # BuildChroot is picked up and dispatched to a real builder instead,
+        # like any other build
+        build_actions = self.models.Action.query.filter_by(
+            object_type="build", object_id=build.id).all()
+        assert build_actions == []
+
+        tmp_dir_name = build.source_json_dict["tmp"]
+        storage_path = os.path.join(self.app.config["STORAGE_DIR"], tmp_dir_name)
+        assert os.path.isdir(storage_path)
+
+        # simulate a builder reporting a successful build (via the generic
+        # /backend/update endpoint, same as any other build/chroot)
+        nevra = {"name": "hello", "epoch": None, "version": "2.8",
+                 "release": "1.fc18", "arch": "x86_64"}
+        self.backend.update({"builds": [{
+            "id": build.id,
+            "chroot": "fedora-18-x86_64",
+            "status": StatusEnum("succeeded"),
+            "result_dir": "00000001",
+            "results": {"packages": [nevra]},
+        }]})
+
+        build_chroot = self.db.session.get(models.BuildChroot, build_chroot.id)
+        assert build_chroot.status == StatusEnum("succeeded")
+        assert len(build_chroot.results) == 1
+        assert build_chroot.results[0].name == "hello"
+
+        # the tmp-dir cleanup hook should have removed the staging directory
+        assert not os.path.isdir(storage_path)
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")

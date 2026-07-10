@@ -236,6 +236,7 @@ def build_source_description(state):
         "rubygems": "Build from RubyGems",
         "custom": "Custom build method",
         "distgit": "Build from DistGit",
+        "rpm_upload": "Direct RPM upload (no SRPM build)",
     }
 
     return description_map.get(state, "")

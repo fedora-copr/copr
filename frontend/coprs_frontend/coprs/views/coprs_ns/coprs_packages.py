@@ -24,7 +24,8 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPackageSourceException,
-                              InsufficientRightsException, MalformedArgumentException)
+                              InsufficientRightsException, MalformedArgumentException,
+                              UnrepeatableBuildException)
 
 
 
@@ -116,7 +117,8 @@ def copr_rebuild_all_packages(copr):
             )
 
         except (ObjectNotFound, ActionInProgressException, NoPackageSourceException, \
-                InsufficientRightsException, MalformedArgumentException) as e:
+                InsufficientRightsException, MalformedArgumentException,
+                UnrepeatableBuildException) as e:
             db.session.rollback()
             flask.flash(str(e), "error")
         else:
