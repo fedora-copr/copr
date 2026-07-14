@@ -122,7 +122,6 @@ Requires: podman
 Requires: pyp2rpm
 Requires: pyp2spec >= 0.10.0
 Requires: rubygem-gem2rpm
-Requires: scl-utils-build
 Requires: fedora-review >= 0.8
 Requires: fedora-review-plugin-java
 %endif

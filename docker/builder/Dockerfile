@@ -28,7 +28,6 @@ RUN set -ex ; \
                    rpm \
                    glib2 \
                    ca-certificates \
-                   scl-utils-build \
                    ethtool \
     && dnf -y install copr-builder \
     && dnf clean all
