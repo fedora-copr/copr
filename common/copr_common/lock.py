@@ -1,48 +1,98 @@
 """
-File locking for multithreading
+Fair (FIFO) distributed locking using a Redis queue.
+
+Waiters enqueue their PID and are served in arrival order.  Dead-process
+detection uses kill(pid, 0) so no heartbeat thread is needed.
 """
 
-import os
 import contextlib
-import filelock
+import errno
+import os
+
 from setproctitle import getproctitle, setproctitle
+
+BLPOP_TIMEOUT = 5  # seconds between dead-process checks
+NOTIFY_TTL = 120  # seconds; caps stale notify keys from slow releasers
+
+
+def _is_alive(pid):
+    """Return True if *pid* refers to a running (non-zombie) process."""
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError as e:
+        if e.errno == errno.ESRCH:
+            return False
+        # EPERM → process exists but we lack permission
+        return True
+
+
+def _queue_key(path):
+    return "copr:lock:queue:{}".format(path)
+
+
+def _notify_key(path, pid):
+    return "copr:lock:notify:{}:{}".format(path, pid)
 
 
 @contextlib.contextmanager
-def lock(path, lockdir, timeout, log):
+def lock(path, redis_conn, log):
     """
-    Create a lock file that can be accessed only by one thread at the time.
-    A practical use-case for this is to lock a repository so multiple versions
-    of the same package cannot be imported in paralel.
+    Fair (FIFO) distributed lock backed by a Redis list.
 
-    We want to pass a simple `path` parameter specifying what file or directory
-    should be locked. This however isn't where the lockfile is going to be
-    created. It will be created in the `lockdir`.
+    Processes waiting for the lock are served in the order they called
+    this function.  If the lock holder dies without releasing, the next
+    waiter detects it via kill(pid, 0) and removes the stale entry.
 
-    From FileLock docs:
-    Using a timeout < 0 makes the lock block until it can be acquired while
-    timeout == 0 results in only one attempt to acquire the lock before raising
-    a Timeout exception (-> non-blocking).
+    :param path:        Logical resource to lock (e.g. a repository path).
+    :param redis_conn:  A ``redis.StrictRedis`` connection.
+    :param log:         Logger instance.
     """
-    filename = path.replace("/", "_@_") + ".lock"
-    lockfile = os.path.join(lockdir, filename)
+    queue = _queue_key(path)
+    my_pid = os.getpid()
+    my_pid_str = str(my_pid)
+    notify = _notify_key(path, my_pid)
 
     title = getproctitle()
     setproctitle("{0} [locking]".format(title))
-    log.debug("acquiring lock")
+    log.debug("acquiring lock (fair/redis)")
+
+    redis_conn.rpush(queue, my_pid_str)
     try:
-        with filelock.FileLock(lockfile, timeout=timeout):
-            setproctitle("{0} [locked]".format(title))
-            log.debug("acquired lock")
-            yield
-    except filelock.Timeout as err:
-        log.debug("lock timeouted")
-        raise LockTimeout("Timeouted on lock for: {}".format(path)) from err
+        while True:
+            head = redis_conn.lindex(queue, 0)
+            if head is None:
+                # Queue disappeared (e.g. Redis flushed) — re-enqueue.
+                redis_conn.rpush(queue, my_pid_str)
+                continue
+
+            if head == my_pid_str:
+                break
+
+            head_pid = int(head)
+            if not _is_alive(head_pid):
+                log.debug("removing dead lock holder pid=%s", head)
+                redis_conn.lrem(queue, 1, head)
+                continue
+
+            redis_conn.blpop(notify, timeout=BLPOP_TIMEOUT)
+
+        setproctitle("{0} [locked]".format(title))
+        log.debug("acquired lock (fair/redis)")
+        yield
+
     finally:
-        setproctitle("{0} [locking]".format(title))
-
-
-class LockTimeout(OSError):
-    """
-    Raised for lock() timeout, if timeout= option is set to value >= 0
-    """
+        # lrem (not lpop) so we only ever remove our own entry — even if
+        # an exception/signal fires before we reached the queue head.
+        redis_conn.lrem(queue, 1, my_pid_str)
+        next_pid = redis_conn.lindex(queue, 0)
+        if next_pid is not None:
+            nk = _notify_key(path, next_pid)
+            redis_conn.rpush(nk, "1")
+            # After lrem the next waiter may already have proceeded (via
+            # BLPOP timeout) and finished before we get here.  In that
+            # case this "1" is never consumed and the key leaks.  A TTL
+            # bounds the accumulation of such orphaned notify keys.
+            redis_conn.expire(nk, NOTIFY_TTL)
+        redis_conn.delete(notify)
+        setproctitle(title)
