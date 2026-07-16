@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.7
+Version:    1.7.2
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -22,9 +22,10 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 %endif
 BuildRequires: python3-pytest
+BuildRequires: python3-redis
 BuildRequires: python3-requests
-BuildRequires: python3-filelock
 BuildRequires: python3-setproctitle
+BuildRequires: redis
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -69,7 +70,7 @@ version=%version %py3_install
 %endif
 
 %check
-%{_bindir}/python3 -m pytest -vv tests
+./run_tests.sh -vv --no-cov
 
 
 %files -n python3-%{srcname}

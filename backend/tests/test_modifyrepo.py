@@ -41,14 +41,13 @@ fix_gpg_script = 'run/copr_fix_gpg.py'
 # pylint: disable=too-many-public-methods
 
 @contextlib.contextmanager
-def _lock(directory="non-existent"):
+def _lock(redis_conn, directory="non-existent"):
     filedict = runpy.run_path(modifyrepo)
     opts = munch.Munch()
     opts.log = logging.getLogger()
     opts.directory = directory
     lock = filedict['lock']
-    lockdir = os.environ.get("COPR_TESTSUITE_LOCKPATH")
-    with lock(opts.directory, lockdir=lockdir, timeout=-1, log=opts.log):
+    with lock(opts.directory, redis_conn=redis_conn, log=opts.log):
         yield opts
 
 class TestModifyRepo(object):
@@ -57,7 +56,6 @@ class TestModifyRepo(object):
         self.be_config = minimal_be_config(self.workdir)
         self.os_env_patcher = mock.patch.dict(os.environ, {
             'PATH': os.environ['PATH']+':run',
-            'COPR_TESTSUITE_LOCKPATH': self.workdir,
             'COPR_BE_CONFIG': self.be_config,
         })
         self.os_env_patcher.start()
@@ -71,7 +69,7 @@ class TestModifyRepo(object):
         self.redis.flushdb()
 
     def test_copr_modifyrepo_locks(self):
-        with _lock(self.workdir) as opts:
+        with _lock(self.redis, self.workdir) as opts:
             cmd = [modifyrepo, opts.directory, '--log-to-stdout']
             proc = subprocess.Popen(cmd,
                                     stdout=subprocess.PIPE,
@@ -149,7 +147,7 @@ class TestModifyRepo(object):
         repodata = os.path.join(chrootdir, 'repodata')
         repoinfo = load_primary_xml(repodata)
         assert repoinfo['hrefs'] == set()
-        with _lock(chrootdir) as opts:
+        with _lock(self.redis, chrootdir) as opts:
             # delay processing by lock
             cmd = [modifyrepo, "--batched", "--log-to-stdout",
                    opts.directory, "--add", ctx.builds[1]]
@@ -595,9 +593,8 @@ class TestModifyRepo(object):
         opts = ["--rpms-to-remove", rpm_name] * 9000
         assert call == ["copr-repo", "--batched", "/tmp"] + opts + ["--no-appstream-metadata"]
 
-    @pytest.mark.parametrize('run_bg', [True, False])
     @mock.patch.dict(os.environ, {'COPR_TESTSUITE_NO_OUTPUT': '1'})
-    def test_copr_repo_timeouted_check(self, f_second_build, run_bg):
+    def test_copr_repo_timeouted_check(self, f_second_build):
         _unused = self
         ctx = f_second_build
         chroot = ctx.chroots[0]
@@ -613,12 +610,11 @@ class TestModifyRepo(object):
             # give parent some time to lock the repo
             time.sleep(1)
             # Run the blocked (by parent) createrepo, it must finish soon
-            # anway because parent will claim the task is done.
+            # after the parent releases the lock.
             assert call_copr_repo(chrootdir, add=[ctx.builds[1]])
-            # sys.exit() can not be used in testsuite
             os._exit(0)  # pylint: disable=protected-access
 
-        with _lock(chrootdir):
+        with _lock(self.redis, chrootdir):
             # give the child some time to fill its Redis keys
             sleeper = 1
             while True:
@@ -629,24 +625,12 @@ class TestModifyRepo(object):
                 assert sleeper < 10*15  # 15s
 
             assert len(self.redis.keys()) == 1
-            key = self.redis.keys()[0]
 
-            # Claim we did that task (even if not) and check that the child
-            # finishes after some time.
-            if not run_bg:
-                self.redis.hset(key, "status", "success")
-                assert os.wait()[1] == 0
-                assert self.redis.get(key) is None
-
-        if run_bg:
-            # actually process the background job!
-            assert os.wait()[1] == 0
+        # lock released, child's copr-repo can now proceed
+        assert os.wait()[1] == 0
 
         repodata = load_primary_xml(repodata)
-        if run_bg:
-            assert repodata['names'] == {'example'}
-        else:
-            assert repodata['names'] == set()
+        assert repodata['names'] == {'example'}
 
 
 @mock.patch("copr_backend.helpers.subprocess.Popen")
