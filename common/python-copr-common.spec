@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.7
+Version:    1.7.1
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -23,7 +23,6 @@ BuildRequires: python3-setuptools
 %endif
 BuildRequires: python3-pytest
 BuildRequires: python3-requests
-BuildRequires: python3-filelock
 BuildRequires: python3-setproctitle
 
 %global _description\

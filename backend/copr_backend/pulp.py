@@ -14,7 +14,7 @@ from itertools import batched
 from urllib.parse import urlencode
 
 from copr_common.request import SafeRequest
-from copr_common.lock import lock, LockTimeout
+from copr_common.lock import lock
 from copr_common.redis_helpers import get_redis_connection
 
 
@@ -247,29 +247,18 @@ class BatchedAddRemoveContent:
 
     def try_lock(self, repository):
         """
-        Periodically try to acquire the lock, and execute the _execute_locked() method.
+        Acquire the lock and execute the _execute_locked() method.
         """
+        if self.check_processed(delete_if_not=False):
+            self.log.info("Task processed by other process (no-lock)")
+            return
 
-        while True:
-
-            if self.check_processed(delete_if_not=False):
-                self.log.info("Task processed by other process (no-lock)")
-                return
-
-            try:
-                lockdir = os.environ.get(
-                    "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
-                with lock(repository, lockdir=lockdir, timeout=5, log=self.log):
-                    if self._execute_locked(repository):
-                        self.commit()
-                        self.log.debug("Repository version and Publication created by this process")
-                        break
-
-            except LockTimeout:
-                continue  # Try again...
-
-            # we never loop, only upon timeout
-            assert False
+        lockdir = os.environ.get(
+            "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
+        with lock(repository, lockdir=lockdir, log=self.log):
+            if self._execute_locked(repository):
+                self.commit()
+                self.log.debug("Repository version and Publication created by this process")
 
 
 class PulpClient:

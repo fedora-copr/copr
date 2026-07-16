@@ -83,7 +83,7 @@ class Importer(object):
             )
 
             repo = os.path.join(self.opts.lookaside_location, task.reponame)
-            with lock(repo, lockdir=helpers.LOCK_PATH, timeout=-1, log=log):
+            with lock(repo, lockdir=helpers.LOCK_PATH, log=log):
                 result.update(import_package(
                     self.opts,
                     task.repo_namespace,

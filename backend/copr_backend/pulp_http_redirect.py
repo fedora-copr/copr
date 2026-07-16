@@ -32,7 +32,7 @@ class PulpHTTPRedirect:
             if fullname in projects:
                 return
 
-            with lock(self.path, lockdir=self.lockdir, timeout=-1, log=self.log):
+            with lock(self.path, lockdir=self.lockdir, log=self.log):
                 with open(self.path, "r", encoding="utf-8") as fp:
                     projects = fp.read().splitlines()
 
@@ -55,7 +55,7 @@ class PulpHTTPRedirect:
             if fullname not in projects:
                 return
 
-            with lock(self.path, lockdir=self.lockdir, timeout=-1, log=self.log):
+            with lock(self.path, lockdir=self.lockdir, log=self.log):
                 with open(self.path, "r", encoding="utf-8") as fp:
                     projects = fp.read().splitlines()
 
