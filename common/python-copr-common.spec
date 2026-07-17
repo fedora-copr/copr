@@ -22,10 +22,10 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 %endif
 BuildRequires: python3-pytest
+BuildRequires: python3-redis
 BuildRequires: python3-requests
 BuildRequires: python3-setproctitle
-BuildRequires: python3-valkey
-BuildRequires: valkey
+BuildRequires: redis-server
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
