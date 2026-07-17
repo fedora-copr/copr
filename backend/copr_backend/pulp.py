@@ -249,10 +249,6 @@ class BatchedAddRemoveContent:
         """
         Acquire the lock and execute the _execute_locked() method.
         """
-        if self.check_processed(delete_if_not=False):
-            self.log.info("Task processed by other process (no-lock)")
-            return
-
         with lock(repository, redis_conn=self.redis, log=self.log):
             if self._execute_locked(repository):
                 self.commit()

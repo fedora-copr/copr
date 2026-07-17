@@ -12,6 +12,7 @@ import os
 from setproctitle import getproctitle, setproctitle
 
 BLPOP_TIMEOUT = 5  # seconds between dead-process checks
+NOTIFY_TTL = 120  # seconds; caps stale notify keys from slow releasers
 
 
 def _is_alive(pid):
@@ -84,6 +85,12 @@ def lock(path, redis_conn, log):
         redis_conn.lpop(queue)
         next_pid = redis_conn.lindex(queue, 0)
         if next_pid is not None:
-            redis_conn.rpush(_notify_key(path, next_pid), "1")
+            nk = _notify_key(path, next_pid)
+            redis_conn.rpush(nk, "1")
+            # After lpop the next waiter may already have proceeded (via
+            # BLPOP timeout) and finished before we get here.  In that
+            # case this "1" is never consumed and the key leaks.  A TTL
+            # bounds the accumulation of such orphaned notify keys.
+            redis_conn.expire(nk, NOTIFY_TTL)
         redis_conn.delete(notify)
         setproctitle(title)

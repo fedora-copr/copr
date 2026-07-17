@@ -376,10 +376,6 @@ def main_try_lock(opts, batch):
     """
     Acquire the lock and execute the main_locked() method.
     """
-    if batch.check_processed(delete_if_not=False):
-        opts.log.info("Task processed by other process (no-lock)")
-        return
-
     with lock(opts.directory, redis_conn=batch.redis, log=opts.log):
         main_locked(opts, batch, opts.log)
         batch.commit()
