@@ -4,11 +4,11 @@ set -x
 set -e
 
 REDIS_PORT=7777
-redis-server --port $REDIS_PORT &> _redis.log &
+valkey-server --port $REDIS_PORT &> _valkey.log &
 
 cleanup ()
 {
-    redis-cli -p "$REDIS_PORT" shutdown
+    valkey-cli -p "$REDIS_PORT" shutdown
     wait
 }
 trap cleanup EXIT

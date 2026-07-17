@@ -25,6 +25,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-requests
 BuildRequires: python3-setproctitle
 BuildRequires: python3-valkey
+BuildRequires: valkey
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -69,7 +70,7 @@ version=%version %py3_install
 %endif
 
 %check
-%{_bindir}/python3 -m pytest -vv tests
+./run_tests.sh -vv --no-cov
 
 
 %files -n python3-%{srcname}
