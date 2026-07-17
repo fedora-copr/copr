@@ -25,6 +25,7 @@ BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-redis
 BuildRequires: python3-setproctitle
 BuildRequires: python3-sentry-sdk
+BuildRequires: redis-server
 
 Recommends: logrotate
 Requires: systemd
