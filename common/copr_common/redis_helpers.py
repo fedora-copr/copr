@@ -29,6 +29,9 @@ def get_redis_connection(opts):
             kwargs[key] = getattr(opts, config_key)
             continue
 
+    # WARNING: if you use password, note that you shouldn't use this
+    # get_redis_connection() helper with two different passwords (password is
+    # intentionally not hashed to not keep it in memory on more places).
     cache_key = (
         kwargs.get("host", "localhost"),
         int(kwargs.get("port", 6379)),
