@@ -41,14 +41,13 @@ fix_gpg_script = 'run/copr_fix_gpg.py'
 # pylint: disable=too-many-public-methods
 
 @contextlib.contextmanager
-def _lock(directory="non-existent"):
+def _lock(redis_conn, directory="non-existent"):
     filedict = runpy.run_path(modifyrepo)
     opts = munch.Munch()
     opts.log = logging.getLogger()
     opts.directory = directory
     lock = filedict['lock']
-    lockdir = os.environ.get("COPR_TESTSUITE_LOCKPATH")
-    with lock(opts.directory, lockdir=lockdir, log=opts.log):
+    with lock(opts.directory, redis_conn=redis_conn, log=opts.log):
         yield opts
 
 class TestModifyRepo(object):
@@ -57,7 +56,6 @@ class TestModifyRepo(object):
         self.be_config = minimal_be_config(self.workdir)
         self.os_env_patcher = mock.patch.dict(os.environ, {
             'PATH': os.environ['PATH']+':run',
-            'COPR_TESTSUITE_LOCKPATH': self.workdir,
             'COPR_BE_CONFIG': self.be_config,
         })
         self.os_env_patcher.start()
@@ -71,7 +69,7 @@ class TestModifyRepo(object):
         self.redis.flushdb()
 
     def test_copr_modifyrepo_locks(self):
-        with _lock(self.workdir) as opts:
+        with _lock(self.redis, self.workdir) as opts:
             cmd = [modifyrepo, opts.directory, '--log-to-stdout']
             proc = subprocess.Popen(cmd,
                                     stdout=subprocess.PIPE,
@@ -149,7 +147,7 @@ class TestModifyRepo(object):
         repodata = os.path.join(chrootdir, 'repodata')
         repoinfo = load_primary_xml(repodata)
         assert repoinfo['hrefs'] == set()
-        with _lock(chrootdir) as opts:
+        with _lock(self.redis, chrootdir) as opts:
             # delay processing by lock
             cmd = [modifyrepo, "--batched", "--log-to-stdout",
                    opts.directory, "--add", ctx.builds[1]]
@@ -616,7 +614,7 @@ class TestModifyRepo(object):
             assert call_copr_repo(chrootdir, add=[ctx.builds[1]])
             os._exit(0)  # pylint: disable=protected-access
 
-        with _lock(chrootdir):
+        with _lock(self.redis, chrootdir):
             # give the child some time to fill its Redis keys
             sleeper = 1
             while True:

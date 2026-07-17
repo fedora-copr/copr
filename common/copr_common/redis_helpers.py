@@ -4,10 +4,13 @@ Copr common code related to redis
 
 from redis import StrictRedis
 
+_connections = {}
+
 
 def get_redis_connection(opts):
     """
-    Creates redis client object using backend config
+    Creates redis client object using backend config, or returns
+    a cached connection if one already exists for the same (host, port, db).
 
     :rtype: StrictRedis
     """
@@ -26,4 +29,12 @@ def get_redis_connection(opts):
             kwargs[key] = getattr(opts, config_key)
             continue
 
-    return StrictRedis(encoding="utf-8", decode_responses=True, **kwargs)
+    cache_key = (
+        kwargs.get("host", "localhost"),
+        int(kwargs.get("port", 6379)),
+        int(kwargs.get("db", 0)),
+    )
+    if cache_key not in _connections:
+        _connections[cache_key] = StrictRedis(
+            encoding="utf-8", decode_responses=True, **kwargs)
+    return _connections[cache_key]

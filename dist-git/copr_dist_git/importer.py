@@ -9,6 +9,7 @@ from requests import get, post
 
 from copr_common.worker_manager import WorkerManager
 from copr_common.lock import lock
+from copr_common.redis_helpers import get_redis_connection
 
 from .package_import import import_package
 from .process_pool import Worker, Pool, SingleThreadWorker
@@ -83,7 +84,8 @@ class Importer(object):
             )
 
             repo = os.path.join(self.opts.lookaside_location, task.reponame)
-            with lock(repo, lockdir=helpers.LOCK_PATH, log=log):
+            redis_conn = get_redis_connection(self.opts)
+            with lock(repo, redis_conn=redis_conn, log=log):
                 result.update(import_package(
                     self.opts,
                     task.repo_namespace,

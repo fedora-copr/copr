@@ -253,9 +253,7 @@ class BatchedAddRemoveContent:
             self.log.info("Task processed by other process (no-lock)")
             return
 
-        lockdir = os.environ.get(
-            "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
-        with lock(repository, lockdir=lockdir, log=self.log):
+        with lock(repository, redis_conn=self.redis, log=self.log):
             if self._execute_locked(repository):
                 self.commit()
                 self.log.debug("Repository version and Publication created by this process")

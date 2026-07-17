@@ -19,13 +19,14 @@ __url__ = "https://github.com/fedora-copr/copr"
 
 
 requires = [
+    "redis",
     "setproctitle",
 ]
 
 
 setup(
     name='copr-common',
-    version="1.7.1",
+    version="1.7.2",
     description=__description__,
     long_description=long_description,
     author=__author__,

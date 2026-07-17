@@ -31,6 +31,8 @@ class Base(object):
             "git_user_name": "Test user",
             "git_user_email": "test@test.org",
             "max_workers": 10,
+            "redis_host": "127.0.0.1",
+            "redis_port": 7777,
         })
 
         self.importer = importer.Importer(self.opts)

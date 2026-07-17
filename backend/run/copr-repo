@@ -380,9 +380,7 @@ def main_try_lock(opts, batch):
         opts.log.info("Task processed by other process (no-lock)")
         return
 
-    lockdir = os.environ.get(
-        "COPR_TESTSUITE_LOCKPATH", "/var/lock/copr-backend")
-    with lock(opts.directory, lockdir=lockdir, log=opts.log):
+    with lock(opts.directory, redis_conn=batch.redis, log=opts.log):
         main_locked(opts, batch, opts.log)
         batch.commit()
         opts.log.debug("Metadata built by this process")
