@@ -82,12 +82,14 @@ def lock(path, redis_conn, log):
         yield
 
     finally:
-        redis_conn.lpop(queue)
+        # lrem (not lpop) so we only ever remove our own entry — even if
+        # an exception/signal fires before we reached the queue head.
+        redis_conn.lrem(queue, 1, my_pid_str)
         next_pid = redis_conn.lindex(queue, 0)
         if next_pid is not None:
             nk = _notify_key(path, next_pid)
             redis_conn.rpush(nk, "1")
-            # After lpop the next waiter may already have proceeded (via
+            # After lrem the next waiter may already have proceeded (via
             # BLPOP timeout) and finished before we get here.  In that
             # case this "1" is never consumed and the key leaks.  A TTL
             # bounds the accumulation of such orphaned notify keys.
