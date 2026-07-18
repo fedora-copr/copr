@@ -28,3 +28,11 @@ reviews:
 
   # Do not generate sequence diagrams for changed code paths.
   sequence_diagrams: false
+
+  # No fortune message while the review is running.
+  # https://docs.coderabbit.ai/reference/configuration#param-in-progress-fortune
+  in_progress_fortune: false
+
+  # No emojis
+  # https://docs.coderabbit.ai/reference/configuration#param-art
+  art: false
