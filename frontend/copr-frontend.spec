@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.7
+Version:    2.7.hotfix.2
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,17 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Sat Jul 18 2026 Jakub Kadlcik <frostyx@email.cz> 2.7.hotfix.2-1
+- frontend: list all owners that still have projects in some storage
+- frontend: cancel pending build chroots when a chroot is EOLed
+- frontend: add tests for build cancel vs pending-jobs race conditions
+- Change the URL to work with the new API
+- frontend: don't fail pending-actions when copr is None
+- docs: clarify that pruning is based on RPM names, not Copr packages
+- frontend: preload build.pkg_version for detailed monitor
+- frontend: implement custom markdown/html for users and groups
+- frontend: limit the maximum avatar width
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
 - Don't require admin permissions to show the rebuild button
 - Make sure new-api-token updates expiration token
