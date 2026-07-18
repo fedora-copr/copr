@@ -18,6 +18,7 @@ requires = [
     'humanize',
     'jinja2',
     'setuptools',
+    'rich',
 ]
 
 __name__ = 'copr-cli'
