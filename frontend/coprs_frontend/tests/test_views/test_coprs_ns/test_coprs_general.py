@@ -100,7 +100,9 @@ class TestCoprsOwned(CoprsTestCase):
 
         show = self.test_client.get("/coprs/{0}/".format(self.u1.name))
         page = show.data.decode("utf-8")
+        assert '<div class="copr-markdown">' in page
         assert "bio" in page
+        assert "&lt;blink&gt;bio&lt;/blink&gt;" in page
         assert "<blink>" not in page
         assert "language-python" in page
 
@@ -366,11 +368,11 @@ class TestCoprDetail(CoprsTestCase):
 
     def test_codeblock_html_in_project_description(self, f_users, f_coprs):
         r = self.tc.get("/coprs/{0}/{1}/".format(self.u1.name, self.c1.name))
-        lines = ['<pre><code class="language-python"><div class="highlight"><span></span><span class="c1"># code snippet</span>',
+        lines = ['<pre><code class="language-python"><span class="c1"># code snippet</span>',
                  '    <span class="n">bar</span><span class="p">()</span>',
                  '    <span class="k">return</span> <span class="mi">1</span>',
-                 '</div>',
                  '</code></pre>']
+        escaped_code = ['&lt;blink&gt;Some HTML code &lt;/blink&gt;']
         removed_code = ['<blink>']
 
         alternatives = [
@@ -379,8 +381,11 @@ class TestCoprDetail(CoprsTestCase):
         ]
 
         generated_html = r.data.decode("utf-8")
+        assert '<div class="copr-markdown">' in generated_html
         assert any(exp in generated_html for exp in alternatives)
         for line in lines:
+            assert line in generated_html
+        for line in escaped_code:
             assert line in generated_html
         for line in removed_code:
             assert line not in generated_html
