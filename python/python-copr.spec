@@ -47,6 +47,7 @@ BuildRequires: python3-requests
 BuildRequires: python3-requests-toolbelt
 BuildRequires: python3-sphinx
 BuildRequires: python3-requests-gssapi
+BuildRequires: python3-typing-extensions
 
 Requires: python3-munch
 Requires: python3-filelock
@@ -54,6 +55,7 @@ Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-setuptools
 Requires: python3-requests-gssapi
+Requires: python3-typing-extensions
 
 %{?python_provide:%python_provide python3-copr}
 
