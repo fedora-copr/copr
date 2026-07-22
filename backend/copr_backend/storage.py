@@ -249,9 +249,8 @@ class BackendStorage(Storage):
             self.log.info("Source copr directory doesn't exist: %s", old_path)
             return False
 
-        chroot_paths = set()
         for chroot, src_dst_dir in builds_map.items():
-            if not chroot or not src_dst_dir:
+            if not chroot:
                 continue
 
             for old_dir_name, new_dir_name in src_dst_dir.items():
@@ -260,7 +259,7 @@ class BackendStorage(Storage):
                 if not src_dir or not dst_dir:
                     continue
 
-                new_chroot_path = self._fork_build(
+                self._fork_build(
                     chroot,
                     old_path,
                     new_path,
@@ -269,11 +268,14 @@ class BackendStorage(Storage):
                     dst_owner,
                     dst_project,
                 )
-                if new_chroot_path and chroot != "srpm-builds":
-                    chroot_paths.add(new_chroot_path)
 
-        for chroot_path in chroot_paths:
-            if createrepo and not call_copr_repo(chroot_path, logger=self.log):
+            if chroot == "srpm-builds":
+                continue
+
+            new_chroot_path = os.path.join(new_path, chroot)
+            ensure_dir_exists(new_chroot_path, self.log)
+
+            if createrepo and not call_copr_repo(new_chroot_path, logger=self.log):
                 return False
         return True
 
@@ -581,8 +583,9 @@ class PulpStorage(Storage):
 
     def fork_project(self, src_fullname, dst_fullname, builds_map, createrepo=True):
         _dst_owner, dst_project = dst_fullname.split("/")
+
         for chroot, src_dst_dir in builds_map.items():
-            if not chroot or not src_dst_dir:
+            if not chroot:
                 continue
 
             # It should be a dirname here but since forking CoprDirs is not
