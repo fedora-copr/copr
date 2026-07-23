@@ -1,5 +1,18 @@
 #!/bin/bash
 
+set -x
+set -e
+
+REDIS_PORT=7777
+redis-server --port $REDIS_PORT &> _redis.log &
+
+cleanup ()
+{
+    redis-cli -p "$REDIS_PORT" shutdown
+    wait
+}
+trap cleanup EXIT
+
 COVPARAMS=(--cov-report term-missing --cov ./copr_common/)
 
 KEEP_ARGS=()

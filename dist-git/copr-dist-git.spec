@@ -1,4 +1,4 @@
-%global copr_common_version 1.5.1
+%global copr_common_version 1.7.2
 
 Name:       copr-dist-git
 Version:    1.6
@@ -25,6 +25,7 @@ BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-redis
 BuildRequires: python3-setproctitle
 BuildRequires: python3-sentry-sdk
+BuildRequires: redis
 
 Recommends: logrotate
 Requires: systemd

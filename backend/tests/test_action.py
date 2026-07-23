@@ -1,4 +1,4 @@
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines,attribute-defined-outside-init
 
 import os
 import json
@@ -18,7 +18,9 @@ import pytest
 from requests import RequestException
 
 from copr_common.enums import ActionTypeEnum, BackendResultEnum, StorageEnum
+from copr_common.redis_helpers import get_redis_connection
 
+from testlib import minimal_be_config
 from testlib.repodata import load_primary_xml
 from copr_backend.actions import Action
 from copr_backend.exceptions import CoprKeygenRequestError
@@ -65,17 +67,19 @@ class TestAction(object):
             keygen_host="example.com"
         )
 
-        self.lockpath = tempfile.mkdtemp(prefix="copr-test-lockpath")
+        self.redis = get_redis_connection(self.opts)
+        self.config_dir = tempfile.mkdtemp(prefix="copr-test-action-cfg-")
+        self.be_config = minimal_be_config(self.config_dir)
         self.os_env_patcher = mock.patch.dict(os.environ, {
             'COPR_TESTSUITE_NO_OUTPUT': '1',
-            'COPR_TESTSUITE_LOCKPATH': self.lockpath,
             'PATH': os.environ['PATH']+':run',
+            'COPR_BE_CONFIG': self.be_config,
         })
         self.os_env_patcher.start()
 
     def teardown_method(self, method):
         self.rm_tmp_dir()
-        shutil.rmtree(self.lockpath)
+        shutil.rmtree(self.config_dir)
         self.os_env_patcher.stop()
 
     def rm_tmp_dir(self):
