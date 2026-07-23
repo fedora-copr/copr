@@ -9,7 +9,7 @@ import time
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-import commonmark
+from markdown_it import MarkdownIt
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
@@ -26,37 +26,42 @@ from copr_common.enums import ModuleStatusEnum, StatusEnum
 from coprs import app
 from coprs import helpers
 
-class CoprHtmlRenderer(commonmark.HtmlRenderer):
-    def code_block(self, node, entering):
-        info_words = node.info.split() if node.info else []
-        attrs = self.attrs(node)
-        lexer = None
 
-        if len(info_words) > 0 and len(info_words[0]) > 0:
-            code = commonmark.common.escape_xml(info_words[0])
-            attrs.append(['class', 'language-' + code])
+def _highlight_code(code, lang_name="", _lang_attrs=""):
+    """Return Pygments-highlighted HTML for a markdown code block."""
+    lexer = None
 
-            try:
-                lexer = get_lexer_by_name(info_words[0])
-            except ClassNotFound:
-                pass
+    if lang_name:
+        try:
+            lexer = get_lexer_by_name(lang_name)
+        except ClassNotFound:
+            pass
 
-        if lexer is None:
-            try:
-                lexer = guess_lexer(node.literal)
-            except ClassNotFound:
-                lexer = TextLexer
+    if lexer is None:
+        try:
+            lexer = guess_lexer(code)
+        except ClassNotFound:
+            lexer = TextLexer()
 
-        self.cr()
-        self.tag('pre')
-        self.tag('code', attrs)
-        code = highlight(node.literal, lexer, HtmlFormatter())
-        code = re.sub('<pre>', '', code)
-        code = re.sub('</pre>', '', code)
-        self.lit(code)
-        self.tag('/code')
-        self.tag('/pre')
-        self.cr()
+    return highlight(code, lexer, HtmlFormatter(nowrap=True))
+
+
+def _render_code_block(tokens, idx, _options, _env):
+    """Render indented code blocks with the same highlighting as fenced blocks."""
+    token = tokens[idx]
+    highlighted = _highlight_code(token.content)
+    if highlighted.startswith("<pre"):
+        return highlighted + "\n"
+    return "<pre><code>" + highlighted + "</code></pre>\n"
+
+
+MARKDOWN = MarkdownIt("commonmark", {
+    # To restore commonmark safe=True's old tag-dropping behavior, use html=True
+    # and override the html_inline/html_block renderer rules to return "".
+    "html": False,
+    "highlight": _highlight_code,
+})
+MARKDOWN.renderer.rules["code_block"] = _render_code_block
 
 
 @app.template_filter("remove_anchor")
@@ -178,13 +183,11 @@ def natural_time_delta(seconds: int) -> str:
 
 @app.template_filter("markdown")
 def markdown_filter(data):
+    """Render user-provided markdown as HTML with raw HTML escaped."""
     if not data:
         return ''
 
-    parser = commonmark.Parser()
-    renderer = CoprHtmlRenderer({'safe': True})
-
-    return Markup(renderer.render(parser.parse(data)))
+    return Markup('<div class="copr-markdown">{0}</div>'.format(MARKDOWN.render(data)))
 
 
 @app.template_filter("pkg_name")
