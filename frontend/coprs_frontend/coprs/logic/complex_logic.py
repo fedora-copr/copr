@@ -154,6 +154,9 @@ class ComplexLogic(object):
             raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
+        for chroot in copr.active_chroots:
+            builds_map[chroot.name] = {}
+
         srpm_builds_src = []
         srpm_builds_dst = []
 
