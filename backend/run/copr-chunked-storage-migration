@@ -1,0 +1,123 @@
+#! /usr/bin/python3
+
+
+import argparse
+import json
+from pathlib import Path
+import zstandard as zstd
+
+
+def get_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--owners",
+        type=Path,
+        required=True,
+        help="Use `copr-frontend owners_in_storage` to get the list",
+    )
+    parser.add_argument(
+        "--stats",
+        type=Path,
+        required=True,
+        help="Look for JSON files in `/var/lib/copr/public_html/stats/samples/`",
+    )
+    parser.add_argument(
+        "--max-size",
+        type=int,
+        required=False,
+        default=300 * 1024 * 1024 * 1024,
+        help="The max number of bytes per batch",
+    )
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        required=False,
+        default=100000,
+        help="The max number of files per batch",
+    )
+    return parser
+
+
+def load_stats(path: Path) -> dict:
+    with open(path, "rb") as fp:
+        decompressor = zstd.ZstdDecompressor()
+        with decompressor.stream_reader(fp) as stream:
+            data = json.load(stream)
+    return data
+
+
+def count_files(owner: str) -> int:
+    path = Path("/var/lib/copr/public_html/results/") / owner
+    files = path.rglob("*.rpm")
+    return len(list(files))
+
+
+def main():
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    owners = list(reversed(args.owners.read_text().split()))
+    stats = load_stats(args.stats)
+
+    skip = [
+        "djdelorie",
+        "jakub",
+        "lkiesow",
+        "@kicad",
+        "medzik",
+        "@dotnet-sig",
+        "@kernel-vanilla",
+        "@asahi",
+        "ryanabx",
+        "@python",
+        "tstellar",
+        "mochaa",
+        "@fedora-llvm-team",
+        "ycollet",
+        "rhcontainerbot",
+        "psimovec",
+        "ppalka",
+        "ljavorsk",
+        "tuliom",
+        "torsava",
+        "dmalcolm",
+        "iucar",
+        "@rubygems",
+        "@copr",
+        "packit",
+    ]
+
+    chunks = []
+    while owners:
+        chunk_size = 0
+        chunk_files = 0
+        chunk = []
+        while owners:
+            owner = owners.pop()
+            print(f"Owner: {owner}")
+
+            if owner in skip:
+                print(f"Skipping {owner}")
+                continue
+
+            if owner not in stats["owners"]:
+                print(f"Owner {owner} is not in stats")
+                continue
+
+            size = stats["owners"][owner]
+            if chunk_size + size > args.max_size:
+                break
+
+            files = count_files(owner)
+            if chunk_files + files > args.max_files:
+                break
+
+            chunk_size += size
+            chunk_files += files
+            chunk.append(owner)
+        chunks.append(chunk)
+    print(f"Chunks: {len(chunks)}")
+
+
+if __name__ == "__main__":
+    main()
