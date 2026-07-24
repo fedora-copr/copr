@@ -5,6 +5,8 @@ import json
 import logging
 import tempfile
 import shutil
+from unittest import mock
+import pytest
 from munch import Munch
 
 from copr_common.tree import walk_limited
@@ -12,11 +14,13 @@ from copr_common.redis_helpers import get_redis_connection
 from copr_backend.background_worker_build import BackendError
 from copr_backend.helpers import (
     copy2_but_hardlink_rpms,
+    download_file,
     get_chroot_arch,
     get_redis_logger,
     format_filename,
 )
 from copr_backend.constants import LOG_REDIS_FIFO
+from copr_backend.exceptions import CoprBackendError
 
 """
 SOME TESTS REQUIRES RUNNING REDIS
@@ -148,3 +152,46 @@ class TestHelpers(object):
             assert _read(rpmfile_dst) == "rpmfile re-signed"
             # copied file is not affected
             assert _read(textfile_dst) == "text"
+
+
+class TestDownloadFile:
+    @staticmethod
+    def _fake_response(chunks):
+        response = mock.MagicMock()
+        response.iter_content.return_value = iter(chunks)
+        # a real requests.Response.__exit__ never suppresses exceptions;
+        # MagicMock's default (truthy) return value would incorrectly
+        # swallow the OSError we expect to propagate in some tests
+        response.__exit__.return_value = False
+        return response
+
+    @mock.patch("copr_backend.helpers.SafeRequest")
+    def test_success(self, mc_safe_request):
+        response = self._fake_response([b"hello", b" world"])
+        mc_safe_request.return_value.send.return_value = response
+
+        with tempfile.TemporaryDirectory(prefix="copr-test-download") as destdir:
+            filepath = download_file(
+                "http://example.com/hello-1.0-1.fc40.x86_64.rpm", destdir)
+
+            assert filepath == os.path.join(
+                destdir, "hello-1.0-1.fc40.x86_64.rpm")
+            with open(filepath, "rb") as f:
+                assert f.read() == b"hello world"
+
+        response.__exit__.assert_called_once()
+
+    @mock.patch("copr_backend.helpers.SafeRequest")
+    def test_response_is_closed_on_write_failure(self, mc_safe_request):
+        response = self._fake_response([b"hello"])
+        mc_safe_request.return_value.send.return_value = response
+
+        # destdir doesn't exist -> open() raises OSError while streaming
+        with pytest.raises(CoprBackendError):
+            download_file(
+                "http://example.com/hello-1.0-1.fc40.x86_64.rpm",
+                "/no/such/directory")
+
+        # even though writing failed, the response must still be closed
+        # rather than leaking the underlying connection
+        response.__exit__.assert_called_once()

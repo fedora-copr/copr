@@ -2,7 +2,7 @@
 %global tests_version 5
 %global tests_tar test-data-copr-backend
 
-%global copr_common_version 1.2.1
+%global copr_common_version 1.7
 
 Name:       copr-backend
 Version:    2.13
@@ -54,6 +54,7 @@ BuildRequires: python3-zstandard
 BuildRequires: python3-cachetools
 BuildRequires: python3-libdnf5
 BuildRequires: python3-sentry-sdk
+BuildRequires: python3-rpm
 BuildRequires: prunerepo >= %prunerepo_version
 BuildRequires: resalloc-server
 BuildRequires: dnf
@@ -95,6 +96,7 @@ Requires:   rpm-sign
 Requires:   rsync
 Requires:   python3-libdnf5
 Requires:   python3-sentry-sdk
+Requires:   python3-rpm
 Recommends: util-linux-core
 Requires:   zstd
 

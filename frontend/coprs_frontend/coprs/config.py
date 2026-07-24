@@ -202,6 +202,10 @@ class Config(object):
 
     LOG_DETECTIVE_BUTTON = False
 
+    # Allow users to upload finished RPMs directly, skipping SRPM build and
+    # dist-git import entirely.
+    DIRECT_RPM_UPLOAD = False
+
     ROLLING_CHROOTS_INACTIVITY_WARNING = 180
     ROLLING_CHROOTS_INACTIVITY_REMOVAL = 180
 

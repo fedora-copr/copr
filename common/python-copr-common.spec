@@ -25,6 +25,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-requests
 BuildRequires: python3-filelock
 BuildRequires: python3-setproctitle
+BuildRequires: python3-rpm
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -40,6 +41,7 @@ useful for developers only.\
 %package -n python3-%{srcname}
 Summary: %{summary}
 %{?python_provide:%python_provide python3-%{srcname}}
+Requires: python3-rpm
 %description -n python3-%{srcname} %_description
 
 

@@ -22,6 +22,7 @@ spec:
               rm -rf /usr/share/copr/coprs_frontend/coprs
               ln -s /opt/copr/frontend/coprs_frontend/coprs /usr/share/copr/coprs_frontend/coprs
               ln -sf /opt/copr/common/copr_common /usr/share/copr/coprs_frontend/copr_common
+              export TEST_REMOTE_USER="${TEST_REMOTE_USER:-jdoe}"
               exec httpd -DFOREGROUND
           env:
             - name: PYTHONPATH

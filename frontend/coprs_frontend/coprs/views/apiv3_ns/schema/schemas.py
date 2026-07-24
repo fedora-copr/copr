@@ -765,6 +765,27 @@ class CreateBuildUpload(_BuildDataCommon, _GenericBuildOptions, InputSchema):
 
 
 @dataclass
+class CreateBuildRpmUpload(_BuildDataCommon, InputSchema):
+    project_dirname: String = fields.project_dirname
+    chroot: String = fields.mock_chroot
+    background: Boolean = fields.background
+    timeout: Integer = fields.timeout
+    after_build_id: Integer = Integer(
+        description="Build after the batch containing the Build ID build",
+        example=123,
+    )
+    with_build_id: Integer = Integer(
+        description="Build in the same batch with the Build ID build",
+        example=123,
+    )
+    pkgs: List = List(
+        Raw,
+        description="application/x-rpm files to publish directly, "
+                    "skipping the SRPM build phase entirely",
+    )
+
+
+@dataclass
 class CreateBuildSCM(_BuildDataCommon, _GenericBuildOptions, _SourceDictScmFields, InputSchema):
     project_dirname: String = fields.project_dirname
     scm_type: String = fields.scm_type
@@ -852,6 +873,7 @@ module_add_input_model = ModuleAdd.get_cls().input_model()
 
 create_build_url_input_model = CreateBuildUrl.get_cls().input_model()
 create_build_upload_input_model = CreateBuildUpload.get_cls().input_model()
+create_build_rpm_upload_input_model = CreateBuildRpmUpload.get_cls().input_model()
 create_build_scm_input_model = CreateBuildSCM.get_cls().input_model()
 create_build_distgit_input_model = CreateBuildDistGit.get_cls().input_model()
 create_build_pypi_input_model = CreateBuildPyPI.get_cls().input_model()

@@ -11,14 +11,15 @@ from werkzeug.utils import secure_filename
 from flask_restx import Namespace, Resource
 
 from copr_common.enums import StatusEnum
-from coprs import db, forms, models
+from coprs import app, db, forms, models
 from coprs.exceptions import (BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import api, rename_fields_helper, deprecated_route_method_type
 from coprs.views.apiv3_ns.schema.schemas import build_model, pagination_build_model, source_chroot_model, \
     source_build_config_model, list_build_params, create_build_url_input_model, create_build_upload_input_model, \
-    create_build_scm_input_model, create_build_distgit_input_model, create_build_pypi_input_model, \
-    create_build_rubygems_input_model, create_build_custom_input_model, delete_builds_input_model, list_build_model
+    create_build_rpm_upload_input_model, create_build_scm_input_model, create_build_distgit_input_model, \
+    create_build_pypi_input_model, create_build_rubygems_input_model, create_build_custom_input_model, \
+    delete_builds_input_model, list_build_model
 from coprs.views.apiv3_ns.schema.docs import get_build_docs
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
@@ -311,6 +312,42 @@ class CreateFromUpload(Resource):
             )
 
         return process_creating_new_build(copr, form, create_new_build)
+
+
+if app.config["DIRECT_RPM_UPLOAD"]:
+    @apiv3_builds_ns.route("/create/rpm-upload")
+    class CreateFromRpmUpload(Resource):
+        @file_upload
+        @api_login_required
+        @apiv3_builds_ns.expect(create_build_rpm_upload_input_model)
+        @apiv3_builds_ns.marshal_with(build_model)
+        def post(self):
+            """
+            Create a build from RPM upload
+            Publish one or more already-built RPMs directly for a single chroot.
+            """
+            copr = get_copr()
+            data = get_form_compatible_data()
+            # pylint: disable-next=not-callable
+            form = forms.BuildFormRpmUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
+            form.pkgs.data = flask.request.files.getlist("pkgs")
+            if not form.validate_on_submit():
+                raise BadRequest(f"Bad request parameters: {form.errors}")
+
+            if not flask.g.user.can_build_in(copr):
+                raise AccessRestricted(f"User {flask.g.user.username} is not allowed "
+                                       f"to build in the copr: {copr.full_name}")
+
+            build = BuildsLogic.create_new_from_rpm_upload(
+                flask.g.user, copr, form.chroot.data, form.pkgs.data,
+                copr_dirname=form.project_dirname.data,
+                background=form.background.data,
+                timeout=form.timeout.data,
+                after_build_id=form.after_build_id.data,
+                with_build_id=form.with_build_id.data,
+            )
+            db.session.commit()
+            return to_dict(build)
 
 
 @apiv3_builds_ns.route("/create/scm")

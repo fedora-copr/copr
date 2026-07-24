@@ -1,7 +1,9 @@
+import glob
 import json
 import os
 import os.path
 import shutil
+import tempfile
 import time
 import traceback
 
@@ -12,18 +14,21 @@ from munch import Munch
 from copr_common.enums import (
     ActionTypeEnum,
     BackendResultEnum,
+    StatusEnum,
     StorageEnum,
     CreaterepoReason,
 )
+from copr_common.rpm import get_rpm_nevra_dict
 from copr_common.worker_manager import WorkerManager
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
+from copr_backend.frontend import FrontendClient
 
-from .sign import create_user_keys, CoprKeygenRequestError
-from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
-from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
-                      call_copr_repo, copy2_but_hardlink_rpms)
-from .sign import get_pubkey
+from .sign import create_user_keys, get_pubkey, sign_rpms_in_dir, CoprKeygenRequestError
+from .exceptions import CoprBackendError, CreateRepoError, CoprSignError, FrontendClientException
+from .helpers import (build_target_dir, download_file, get_redis_logger,
+                      silent_remove, ensure_dir_exists, call_copr_repo,
+                      copy2_but_hardlink_rpms)
 
 
 class Action(object):
@@ -59,6 +64,7 @@ class Action(object):
             ActionTypeEnum("rawhide_to_release"): RawhideToRelease,
             ActionTypeEnum("fork"): Fork,
             ActionTypeEnum("remove_dirs"): RemoveDirs,
+            ActionTypeEnum("finalize_rpm_upload"): FinalizeRpmUpload,
         }.get(action_type, None)
 
         if action_type == ActionTypeEnum("delete"):
@@ -217,6 +223,116 @@ class Fork(Action, GPGMixin):
             self.log.error(traceback.format_exc())
             result = BackendResultEnum("failure")
         return result
+
+
+class FinalizeRpmUpload(Action):
+    """
+    Finalize a "direct RPM upload" build for a single chroot.
+    Download the RPMs that a user uploaded to frontend, validate,
+    sign, and run createrepo without allocating builder.
+
+    See BuildsLogic.create_new_from_rpm_upload on the frontend, which
+    creates the Build/BuildChroot (in "pending" state) and queues this
+    Action instead of a normal build task.
+    """
+
+    def run(self):
+        build_id = self.ext_data["build_id"]
+        chroot = self.ext_data["chroot"]
+        ownername = self.ext_data["ownername"]
+        project_dirname = self.ext_data["project_dirname"]
+
+        self.log.info("Action finalize_rpm_upload for build %s, chroot %s",
+                      build_id, chroot)
+
+        chroot_dir = os.path.join(self.destdir, ownername, project_dirname, chroot)
+        target_dir_name = build_target_dir(build_id)
+        results_dir = os.path.join(chroot_dir, target_dir_name)
+
+        # stage into a private dir first and only move into results_dir right
+        # before createrepo, so a concurrent createrepo run never sees a
+        # partially written/unsigned RPM to avoid race condition
+        staging_dir = tempfile.mkdtemp(prefix="rpm-upload-staging-", dir=self.destdir)
+
+        frontend_client = FrontendClient(self.opts, self.log)
+
+        try:
+            packages = self._download_and_validate(chroot, staging_dir)
+
+            if self.opts.do_sign:
+                sign_rpms_in_dir(ownername, self.storage.project, staging_dir,
+                                 chroot, self.opts, self.log)
+
+            ensure_dir_exists(results_dir, self.log)
+            for rpm_path in glob.glob(os.path.join(staging_dir, "*.rpm")):
+                os.rename(rpm_path, os.path.join(results_dir, os.path.basename(rpm_path)))
+
+            # mirrors real build publish flow... pulp publishes here, backend storage
+            # publishes via createrepo_c below
+            rpm_paths = self.storage.find_build_results(results_dir)
+            upload_result = self.storage.upload_build_results(
+                rpm_paths, chroot, build_id=build_id)
+            if upload_result:
+                hrefs = [x["pulp_href"] for x in upload_result.values()]
+                if not self.storage.create_repository_version(project_dirname, chroot, hrefs):
+                    raise CoprBackendError(
+                        f"Pulp: Failed to create repository version "
+                        f"for {project_dirname} and {chroot}"
+                    )
+
+            if not self.storage.publish_repository(
+                    chroot, chroot_dir=chroot_dir, target_dir_name=target_dir_name
+                ):
+                raise CoprBackendError("createrepo failed")
+
+            # mirrors _add_pubkey(); this build skips BuildBackgroundWorker, which
+            # normally publishes pubkey.gpg
+            if self.opts.do_sign:
+                project_dir = os.path.join(self.destdir, ownername, project_dirname)
+                pubkey_path = os.path.join(project_dir, "pubkey.gpg")
+                get_pubkey(ownername, self.storage.project, self.log,
+                          self.opts.sign_domain, pubkey_path)
+
+        except Exception as ex:  # pylint: disable=broad-except
+            # deliberately broad: whatever goes wrong here, the BuildChroot
+            # must not be left stuck in "pending" forever
+            self.log.error("finalize_rpm_upload failed for build %s: %s",
+                           build_id, ex)
+            frontend_client.update({"builds": [{
+                "id": build_id,
+                "chroot": chroot,
+                "status": StatusEnum("failed"),
+                "status_reason": str(ex),
+                "ended_on": time.time(),
+            }]})
+            return BackendResultEnum("failure")
+        finally:
+            shutil.rmtree(staging_dir, ignore_errors=True)
+
+        frontend_client.update({"builds": [{
+            "id": build_id,
+            "chroot": chroot,
+            "status": StatusEnum("succeeded"),
+            "result_dir": target_dir_name,
+            "ended_on": time.time(),
+            "results": {"packages": packages},
+        }]})
+        return BackendResultEnum("success")
+
+    def _download_and_validate(self, chroot, target_dir):
+        for url in self.ext_data["file_urls"]:
+            download_file(url, target_dir, log=self.log)
+
+        chroot_arch = chroot.rsplit("-", 1)[-1]
+        packages = []
+        for rpm_path in glob.glob(os.path.join(target_dir, "*.rpm")):
+            nevra = get_rpm_nevra_dict(rpm_path)
+            if nevra["arch"] not in (chroot_arch, "noarch"):
+                raise CoprBackendError(
+                    f"Uploaded RPM {os.path.basename(rpm_path)} has arch '{nevra['arch']}',"
+                    f" which doesn't match chroot '{chroot}'")
+            packages.append(nevra)
+        return packages
 
 
 class DeleteProject(Action):
