@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copr-builder-distgit-client
+data:
+  zz-openshift.ini: |
+    [distgit-openshift]
+    clone_hostnames = copr-distgit-copr.apps.crc.testing
+    lookaside_location = http://copr-distgit-copr.apps.crc.testing
+    lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hash}/{filename}

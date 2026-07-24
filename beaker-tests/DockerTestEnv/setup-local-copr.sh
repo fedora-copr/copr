@@ -2,15 +2,16 @@
 # Setup test environment for COPR instance
 #
 # Usage:
-#   setup-local-copr                 # Local instance (default)
+#   setup-local-copr local-kube       # Podman kube play instance (default)
+#   setup-local-copr local-openshift  # Local OpenShift/CRC instance
 #   setup-local-copr staging         # Fedora staging
 #   setup-local-copr prod            # Fedora production
-#   setup-local-copr --auto-token    # Local + auto-generate API token
+#   setup-local-copr --auto-token    # Add to any target to auto-configure API token
 
 set -e
 
 AUTO_TOKEN=false
-TARGET="local"
+TARGET="local-kube"
 
 for arg in "$@"; do
     case $arg in
@@ -20,12 +21,19 @@ for arg in "$@"; do
 done
 
 case $TARGET in
-    local)
-        echo "Configuring for local COPR instance..."
+    local-kube)
+        echo "Configuring for podman kube play COPR instance..."
         HOSTNAME="frontend"
         PROTOCOL="http"
         PORT="5000"
         COPR_URL="http://frontend:5000"
+        ;;
+    local-openshift)
+        echo "Configuring for local OpenShift/CRC COPR instance..."
+        HOSTNAME="copr-frontend-copr.apps.crc.testing"
+        PROTOCOL="http"
+        PORT="80"
+        COPR_URL="http://copr-frontend-copr.apps.crc.testing"
         ;;
     staging|stg)
         echo "Configuring for Fedora COPR staging..."
@@ -43,14 +51,26 @@ case $TARGET in
         ;;
     *)
         echo "Unknown target: $TARGET"
-        echo "Usage: $0 [local|staging|prod] [--auto-token]"
+        echo "Usage: $0 [local-kube|local-openshift|staging|prod] [--auto-token]"
         exit 1
         ;;
 esac
 
-# Configure DNF copr plugin
+# Configure DNF copr plugin.
+#
+# Two sections are written for the same target, keyed differently:
+#   - [tested-copr]  lets tests use the short alias (DNF_COPR_ID=tested-copr,
+#     e.g. `dnf copr enable tested-copr/user/project`).
+#   - [$HOSTNAME]    is needed because dnf-plugins-core resolves the "hub" in
+#     the `hub/user/project` form by looking up a config section whose NAME
+#     equals the hub string.
 cat > /etc/dnf/plugins/copr.d/tested-copr.conf << EOF
 [tested-copr]
+hostname = $HOSTNAME
+protocol = $PROTOCOL
+port = $PORT
+
+[$HOSTNAME]
 hostname = $HOSTNAME
 protocol = $PROTOCOL
 port = $PORT

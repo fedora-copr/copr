@@ -24,6 +24,8 @@ for chroot in \
     fedora-43-x86_64 fedora-43-i386 fedora-43-aarch64 \
     fedora-42-x86_64 fedora-42-i386 fedora-42-aarch64 \
     fedora-rawhide-x86_64 fedora-rawhide-i386 fedora-rawhide-aarch64 \
+    fedora-rawhide-ppc64le fedora-rawhide-s390x \
+    epel-10-x86_64 epel-10-aarch64 epel-10-ppc64le epel-10-s390x \
     epel-9-x86_64 epel-9-aarch64 epel-9-ppc64le epel-9-s390x \
     epel-8-x86_64 epel-8-aarch64 epel-8-ppc64le \
     epel-7-x86_64 \

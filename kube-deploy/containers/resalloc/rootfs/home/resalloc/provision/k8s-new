@@ -31,6 +31,11 @@ kubectl run "$NAME" \
             "mountPath": "/root/.ssh/authorized_keys",
             "subPath": "id_ed25519.pub",
             "readOnly": true
+          }, {
+            "name": "distgit-client-config",
+            "mountPath": "/etc/dist-git-client/zz-openshift.ini",
+            "subPath": "zz-openshift.ini",
+            "readOnly": true
           }]
         }],
         "volumes": [{
@@ -38,6 +43,12 @@ kubectl run "$NAME" \
           "secret": {
             "secretName": "copr-ssh-keys",
             "defaultMode": 384
+          }
+        }, {
+          "name": "distgit-client-config",
+          "configMap": {
+            "name": "copr-builder-distgit-client",
+            "optional": true
           }
         }]
       }
