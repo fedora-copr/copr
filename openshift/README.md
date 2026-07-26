@@ -23,6 +23,7 @@ Therefore, builders need to stay as virtual machines only.
 The make target checks the OpenShift cluster and runs Helm with helm/secrets.yaml.
 
 Currently we maintain the images here: https://quay.io/organization/copr
+Rebuild them using `make images`.
 
 WARNING: This deployment is in a pre-production state!
 
