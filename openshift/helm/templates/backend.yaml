@@ -42,7 +42,7 @@ metadata:
   name: copr-backend-config
 type: Opaque
 data:
-  copr-be.conf: "{{ backend_config | b64encode }}"
+  copr-be.conf: {{ tpl (.Files.Get "config/backend-copr-be.conf") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -50,9 +50,16 @@ kind: Secret
 metadata:
   name: backend-home
 type: Opaque
-data:
-  id_rsa: "{{ aws_config.ssh_key.private | b64encode }}"
-  ssh_config: SG9zdCAqCiAgIElkZW50aXR5RmlsZSB+Ly5zc2gvaWRfcnNhCiAgIFN0cmljdEhvc3RLZXlDaGVja2luZyAgbm8KICAgVXNlcktub3duSG9zdHNGaWxlIC9kZXYvbnVsbAogICBTZXJ2ZXJBbGl2ZUludGVydmFsIDIwCiAgIFNlcnZlckFsaXZlQ291bnRNYXggNQogICBDb25uZWN0VGltZW91dCA2MAo=
+stringData:
+  id_rsa: {{ .Values.aws_config.ssh_key.private | quote }}
+  ssh_config: |
+    Host *
+       IdentityFile ~/.ssh/id_rsa
+       StrictHostKeyChecking  no
+       UserKnownHostsFile /dev/null
+       ServerAliveInterval 20
+       ServerAliveCountMax 5
+       ConnectTimeout 60
 
 ---
 apiVersion: v1
@@ -61,7 +68,7 @@ metadata:
   name: copr-backend-httpd-config
 type: Opaque
 data:
-  nginx-copr-be.conf: "{{ backend_httpd_config | b64encode }}"
+  nginx-copr-be.conf: {{ tpl (.Files.Get "config/backend-nginx.conf") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -106,10 +113,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: copr-backend
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -117,8 +125,10 @@ spec:
     spec:
       containers:
         - name: log
-          image: "{{ copr_backend_image }}"
+          image: {{ .Values.copr_backend_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.backend.log | indent 12 }}
           command: ["/usr/bin/tini", "--"]
           args: ["/usr/bin/copr_run_logger.py"]
           volumeMounts:
@@ -128,8 +138,10 @@ spec:
               mountPath: /var/log/copr-backend
 
         - name: actions
-          image: "{{ copr_backend_image }}"
+          image: {{ .Values.copr_backend_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.backend.actions | indent 12 }}
           volumeMounts:
             - name: config
               mountPath: /etc/copr
@@ -141,8 +153,10 @@ spec:
           args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher-backend", "actions"]
 
         - name: builds
-          image: "{{ copr_backend_image }}"
+          image: {{ .Values.copr_backend_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.backend.builds | indent 12 }}
           volumeMounts:
             - name: config
               mountPath: /etc/copr
@@ -205,6 +219,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.backend.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:
@@ -223,10 +239,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: copr-backend-httpd
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -234,8 +251,10 @@ spec:
     spec:
       containers:
         - name: httpd
-          image: "{{ nginx_image }}"
+          image: {{ .Values.nginx_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.backend.httpd | indent 12 }}
           command: ["nginx", "-g", "daemon off;"]
           volumeMounts:
             - name: results
@@ -258,6 +277,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.backend.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:

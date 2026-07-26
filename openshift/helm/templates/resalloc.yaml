@@ -5,9 +5,9 @@ metadata:
   name: resalloc-config
 type: Opaque
 data:
-  pools.yaml: "{{ resalloc_pool_yaml | b64encode }}"
-  server.yaml: "{{ resalloc_server_yaml | b64encode }}"
-  spinup-playbook.yml: "{{ resalloc_spinup_playbook | b64encode }}"
+  pools.yaml: {{ tpl (.Files.Get "config/resalloc-pool.yaml.j2") . | b64enc | quote }}
+  server.yaml: {{ tpl (.Files.Get "config/resalloc-server.yaml.j2") . | b64enc | quote }}
+  spinup-playbook.yml: {{ tpl (.Files.Get "config/resalloc-spinup-playbook.yml.j2") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -17,11 +17,11 @@ metadata:
 type: Opaque
 data:
   aws_config: W2RlZmF1bHRdCnJlZ2lvbiA9IHVzLWVhc3QtMQo=
-  aws_credentials: "{{ aws_credentials | b64encode }}"
-  id_rsa: "{{ aws_config.ssh_key.private | b64encode }}"
+  aws_credentials: {{ tpl (.Files.Get "config/resalloc-aws-credentials.j2") . | b64enc | quote }}
+  id_rsa: {{ .Values.aws_config.ssh_key.private | toString | b64enc | quote }}
   ssh_config: SG9zdCAqCiAgIElkZW50aXR5RmlsZSB+Ly5zc2gvaWRfcnNhCiAgIFN0cmljdEhvc3RLZXlDaGVja2luZyAgbm8KICAgVXNlcktub3duSG9zdHNGaWxlIC9kZXYvbnVsbAogICBTZXJ2ZXJBbGl2ZUludGVydmFsIDIwCiAgIFNlcnZlckFsaXZlQ291bnRNYXggNQogICBDb25uZWN0VGltZW91dCA2MAo=
 
-  ansible_conf: "{{ '[defaults]\nlocal_tmp=/tmp/.ansible\n[ssh_connection]\ncontrol_path_dir=/tmp/.ansible\n' | b64encode }}"
+  ansible_conf: {{ "[defaults]\nlocal_tmp=/tmp/.ansible\n[ssh_connection]\ncontrol_path_dir=/tmp/.ansible\n" | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -65,10 +65,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: resalloc
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -76,8 +77,10 @@ spec:
     spec:
       containers:
         - name: server
-          image: "{{ resalloc_image }}"
+          image: {{ .Values.resalloc_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.resalloc.app | indent 12 }}
           volumeMounts:
             - name: resalloc-data
               mountPath: /var/lib/resallocserver
@@ -127,6 +130,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.resalloc.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:

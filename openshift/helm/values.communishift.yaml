@@ -1,0 +1,142 @@
+---
+resources:
+  backend:
+    log:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+    actions:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "128Mi"
+        cpu: "75m"
+    builds:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "128Mi"
+        cpu: "75m"
+    httpd:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  distgit:
+    imports:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "128Mi"
+        cpu: "75m"
+    httpd:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  frontend:
+    app:
+      requests:
+        memory: "256Mi"
+        cpu: "20m"
+      limits:
+        memory: "512Mi"
+        cpu: "100m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  keygen:
+    signer:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "128Mi"
+        cpu: "75m"
+    httpd:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  postgres:
+    app:
+      requests:
+        memory: "128Mi"
+        cpu: "25m"
+      limits:
+        memory: "256Mi"
+        cpu: "100m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  redis:
+    app:
+      requests:
+        memory: "64Mi"
+        cpu: "20m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"
+  resalloc:
+    app:
+      requests:
+        memory: "128Mi"
+        cpu: "10m"
+      limits:
+        memory: "512Mi"
+        cpu: "100m"
+    strategy:
+      requests:
+        memory: "16Mi"
+        cpu: "5m"
+      limits:
+        memory: "64Mi"
+        cpu: "25m"

@@ -10,7 +10,7 @@
 
   tasks:
     - name: setup the hostname so we can easily identify the box
-      hostname: name="{% raw %}{{ lookup('env', 'RESALLOC_NAME') | default('unknown-builder') | replace('_', '-') }}{% endraw %}"
+      hostname: name="{{ `{{ lookup('env', 'RESALLOC_NAME') | default('unknown-builder') | replace('_', '-') }}` }}"
 
     - name: disable updates-testing
       file:
@@ -34,8 +34,8 @@
         dest: /etc/copr-rpmbuild/main.ini
         content: |
           [main]
-          frontend_url = {{ frontend_base_url }}
-          distgit_lookaside_url = https://{{ '${%' }} raw {{ '%}{{' }} git_props:remote_netloc {{ '}}{%' }} endraw {{ '%}' }}/repo/pkgs/%(repo_path)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
+          frontend_url = {{ .Values.frontend_base_url }}
+          distgit_lookaside_url = https://{{ `{{ git_props:remote_netloc }}` }}/repo/pkgs/%(repo_path)s/%(filename)s/%(hashtype)s/%(hash)s/%(filename)s
           distgit_clone_url = {scheme}://{netloc}/%(repo_path)s
           rpm_vendor_copr_name = Testing Copr
 
@@ -49,15 +49,15 @@
         dest: /etc/copr-distgit-client/local-copr.ini
         content: |
           [local-copr]
-          clone_hostnames = {{ distgit_fqdn }}
-          lookaside_location = http://{{ distgit_fqdn }}
+          clone_hostnames = {{ .Values.distgit_fqdn }}
+          lookaside_location = http://{{ .Values.distgit_fqdn }}
           lookaside_uri_pattern = repo/pkgs/{namespace[1]}/{namespace[0]}/{name}/{filename}/{hash}/{filename}
 
     - name: mockbuilder authorized_keys
-      authorized_key: user=mockbuilder key="{{ aws_config.ssh_key.public }}"
+      authorized_key: user=mockbuilder key="{{ .Values.aws_config.ssh_key.public }}"
 
     - name: root authorized_keys
-      authorized_key: user=root key="{{ aws_config.ssh_key.public }}"
+      authorized_key: user=root key="{{ .Values.aws_config.ssh_key.public }}"
 
     - name: mount cache filesystem on /var/cache/mock
       mount: path=/var/cache/mock state=mounted src=mock_cache_tmpfs fstype=tmpfs opts="size=32G"

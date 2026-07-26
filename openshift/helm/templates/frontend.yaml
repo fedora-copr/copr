@@ -7,7 +7,7 @@ metadata:
   name: copr-frontend-config
 type: Opaque
 data:
-  copr.conf: "{{ frontend_config | b64encode }}"
+  copr.conf: {{ tpl (.Files.Get "config/frontend-copr.conf") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -38,10 +38,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: copr-frontend
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -49,15 +50,13 @@ spec:
     spec:
       containers:
         - name: copr-frontend
-          image: "{{ copr_frontend_image }}"
+          image: {{ .Values.copr_frontend_image | quote }}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
               protocol: TCP
           resources:
-            limits:
-              memory: "500Mi"
-              cpu: "200m"
+{{ toYaml .Values.resources.frontend.app | indent 12 }}
           volumeMounts:
             - name: copr-frontend-config
               mountPath: /etc/copr
@@ -70,6 +69,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.frontend.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:

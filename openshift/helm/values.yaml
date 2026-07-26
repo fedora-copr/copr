@@ -1,0 +1,34 @@
+---
+# Default chart values. Put private deployment overrides into secrets.yaml.
+
+project: copr-dev
+create_project: false
+deployment: dev
+
+postgres_user: copr-fe
+postgres_password: ""
+postgres_database_name: copr-db
+
+frontend_backend_password: ""
+
+frontend_base_url: http://copr-frontend:5000
+distgit_fqdn: copr-distgit
+backend_fqdn: copr-backend
+
+# Empty PostgreSQL/Redis images preserve the legacy ImageStream trigger flow.
+postgresql_image: ""
+redis_image: ""
+copr_frontend_image: quay.io/copr/frontend:test
+copr_backend_image: quay.io/copr/backend:test
+nginx_image: quay.io/centos7/nginx-120-centos7
+copr_distgit_image: quay.io/copr/distgit:test
+resalloc_image: quay.io/copr/resalloc:test
+copr_keygen_image: quay.io/copr/keygen:test
+
+aws_config:
+  access_key_id: ""
+  secret_access_key: ""
+  ssh_key:
+    name: ""
+    private: ""
+    public: ""

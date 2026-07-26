@@ -4,10 +4,10 @@ kind: Secret
 metadata:
   name: postgresql
 type: Opaque
-data:
-  database-user: "{{ postgres_user | b64encode }}"
-  database-password: "{{ postgres_password | b64encode }}"
-  database-name: "{{ postgres_database_name | b64encode }}"
+stringData:
+  database-user: {{ .Values.postgres_user | quote }}
+  database-password: {{ .Values.postgres_password | quote }}
+  database-name: {{ .Values.postgres_database_name | quote }}
 
 ---
 apiVersion: v1
@@ -32,19 +32,22 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: "{{ '12Gi' if deployment == 'prod' else '1Gi' }}"
+      storage: {{ ternary "12Gi" "1Gi" (eq .Values.deployment "prod") | quote }}
 
 ---
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
   name: postgresql
 spec:
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     name: postgresql
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.postgres.strategy | indent 6 }}
   template:
     metadata:
       labels:
@@ -68,7 +71,7 @@ spec:
                 secretKeyRef:
                   key: database-name
                   name: postgresql
-          image: "{{ postgresql_image }}"
+          image: {{ .Values.postgresql_image | quote }}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:
@@ -88,8 +91,7 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 1
           resources:
-            limits:
-              memory: 512Mi
+{{ toYaml .Values.resources.postgres.app | indent 12 }}
           volumeMounts:
             - mountPath: /var/lib/pgsql/data
               name: postgresql-data

@@ -1,0 +1,7 @@
+{{- if .Values.create_project }}
+---
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: {{ .Values.project }}
+{{- end }}

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: copr
+description: Copr OpenShift deployment
+type: application
+version: 0.1.0
+appVersion: test
+
