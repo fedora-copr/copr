@@ -36,3 +36,23 @@ reviews:
   # No emojis
   # https://docs.coderabbit.ai/reference/configuration#param-art
   art: false
+
+  # https://docs.coderabbit.ai/reference/configuration#param-tone-instructions
+  tone_instructions: >
+    Use a concise, professional tone. Do not use emojis, jokes, poems, or
+    decorative language.
+
+  # Do not show "Run configuration", "Commits", and "Files selected for
+  # processing" sections.
+  # https://docs.coderabbit.ai/reference/configuration#param-review-status
+  review_status: false
+
+  # Do not generate Finishing Touches section
+  # https://docs.coderabbit.ai/reference/configuration#param-finishing-touches
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+    simplify:
+      enabled: false
