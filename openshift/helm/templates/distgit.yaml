@@ -42,7 +42,7 @@ metadata:
   name: distgit-config
 type: Opaque
 data:
-  dist-git.conf: "{{ distgit_config | b64encode }}"
+  dist-git.conf: {{ tpl (.Files.Get "config/distgit-distgit.conf.j2") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -51,7 +51,7 @@ metadata:
   name: distgit-copr-config
 type: Opaque
 data:
-  copr-dist-git.conf: "{{ distgit_copr_config | b64encode }}"
+  copr-dist-git.conf: {{ tpl (.Files.Get "config/distgit-copr.conf.j2") . | b64enc | quote }}
 
 ---
 apiVersion: v1
@@ -82,10 +82,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: copr-distgit
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -93,8 +94,10 @@ spec:
     spec:
       containers:
         - name: imports
-          image: "{{ copr_distgit_image }}"
+          image: {{ .Values.copr_distgit_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.distgit.imports | indent 12 }}
           volumeMounts:
             - name: distgit-copr-config
               mountPath: /etc/copr
@@ -110,8 +113,10 @@ spec:
               mountPath: /var/lock/copr-dist-git
 
         - name: httpd
-          image: "{{ copr_distgit_image }}"
+          image: {{ .Values.copr_distgit_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.distgit.httpd | indent 12 }}
           volumeMounts:
             - name: distgit-copr-config
               mountPath: /etc/copr
@@ -155,6 +160,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.distgit.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:

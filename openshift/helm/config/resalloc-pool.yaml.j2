@@ -1,6 +1,6 @@
 # vi: ft=yaml
 ---
-copr_os_{{ project.replace("-", "_") }}_{{ deployment }}_aws_x86:
+copr_os_{{ replace "-" "_" .Values.project }}_{{ .Values.deployment }}_aws_x86:
   max: 4
   max_starting: 1
   max_prealloc: 1
@@ -26,7 +26,7 @@ copr_os_{{ project.replace("-", "_") }}_{{ deployment }}_aws_x86:
     /usr/bin/resalloc-aws-new \
     --aws-profile default \
     --ami ami-09127a5df568314d3 \
-    --ssh-key-name "{{ aws_config.ssh_key.name }}" \
+    --ssh-key-name "{{ .Values.aws_config.ssh_key.name }}" \
     --debug \
     --private-ip \
     --security-group-id sg-07a0adee998a8fcde \

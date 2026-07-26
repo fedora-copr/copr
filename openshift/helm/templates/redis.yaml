@@ -29,18 +29,21 @@ kind: DeploymentConfig
 metadata:
   name: redis
 spec:
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     name: redis
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.redis.strategy | indent 6 }}
   template:
     metadata:
       labels:
         name: redis
     spec:
       containers:
-        - image: '{{ redis_image }}'
+        - image: {{ .Values.redis_image | quote }}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             initialDelaySeconds: 30
@@ -61,8 +64,7 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 1
           resources:
-            limits:
-              memory: 512Mi
+{{ toYaml .Values.resources.redis.app | indent 12 }}
           volumeMounts:
             - mountPath: /var/lib/redis/data
               name: redis-data

@@ -55,10 +55,11 @@ spec:
 
 ---
 kind: DeploymentConfig
-apiVersion: v1
+apiVersion: apps.openshift.io/v1
 metadata:
   name: copr-keygen
 spec:
+  revisionHistoryLimit: 1
   template:
     metadata:
       labels:
@@ -66,8 +67,10 @@ spec:
     spec:
       containers:
         - name: signer
-          image: "{{ copr_keygen_image }}"
+          image: {{ .Values.copr_keygen_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.keygen.signer | indent 12 }}
           command: ["/usr/bin/tini", "--"]
           args: ["/signd-entrypoint", "0.0.0.0/0"]
           volumeMounts:
@@ -80,8 +83,10 @@ spec:
               protocol: TCP
 
         - name: httpd
-          image: "{{ copr_keygen_image }}"
+          image: {{ .Values.copr_keygen_image | quote }}
           imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.keygen.httpd | indent 12 }}
           command: ["/usr/sbin/httpd", "-DFOREGROUND"]
           volumeMounts:
             - name: storage
@@ -105,6 +110,8 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
+    resources:
+{{ toYaml .Values.resources.keygen.strategy | indent 6 }}
 
   triggers:
     - imageChangeParams:

@@ -7,6 +7,7 @@ This directory contains the deployment scripts and base configuration that
 allows you to quickly deploy a fully-working Copr build system infrastructure
 into an OpenShift cluster, with builders (virtual machines) being automatically
 started/stopped in external clouds (currently just pre-configured AWS).
+The OpenShift objects are deployed from the Helm chart in helm/.
 
 Note: At the time of writing this document, it is not common to be able to start
 privileged containers in OpenShift, nor rootless containers (user namespaces).
@@ -14,8 +15,12 @@ Therefore, builders need to stay as virtual machines only.
 
 1. get an OpenShift Cluster
 2. get AWS token (for EC2 access)
-3. $ cp secret-vars.yml.template secret-vars.yml and fill the gaps
-4. hit the $ make
+3. Install prerequisites:
+   sudo dnf install python3-kubernetes helm
+4. $ cp helm/values.example.yaml helm/secrets.yaml and fill the gaps
+5. hit the $ make
+
+The make target checks the OpenShift cluster and runs Helm with helm/secrets.yaml.
 
 Currently we maintain the images here: https://quay.io/organization/copr
 
@@ -53,9 +58,7 @@ TODO list
   https://bugzilla.redhat.com/show_bug.cgi?id=2025899)
 
 - automatize the AWS SSH key creation/removal (this is the hardest part in the
-  secret-vars.yml config file)
-
-- separate the normal and secret vars (now everything is in secret-vars.yml)
+  helm/secrets.yaml config file)
 
 
 Research
