@@ -444,6 +444,10 @@ class BackendConfigReader(object):
         opts.rpmeta_hw_pools_config = _get_conf(
             cp, "backend", "rpmeta_hw_pools_config",
             "/etc/copr/rpmeta-hw-pools.yaml")
+        opts.rpmeta_powerful_threshold = _get_conf(
+            cp, "backend", "rpmeta_powerful_threshold", 120, mode="int")
+        opts.rpmeta_powerful_tag = _get_conf(
+            cp, "backend", "rpmeta_powerful_tag", "on_demand_powerful")
 
         # thoughts for later
         # ssh key for connecting to builders?
