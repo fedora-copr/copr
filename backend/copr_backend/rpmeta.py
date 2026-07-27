@@ -90,6 +90,11 @@ def rpmeta_predict_build_time(job, opts, log):
     Returns the predicted build time as a number, or None when the
     prediction is unavailable (disabled, unsupported arch, API error, …).
 
+    When the prediction is at/above ``opts.rpmeta_powerful_threshold``
+    minutes, ``job.tags`` is mutated in place to add the
+    ``opts.rpmeta_powerful_tag``, so that the subsequent VM allocation
+    routes the build to a powerful builder.
+
     This function never raises -- all errors are caught and logged so that
     the build proceeds normally regardless of rpmeta availability.
     """
@@ -168,21 +173,39 @@ def _rpmeta_predict_inner(job, opts, log):  # pylint: disable=too-many-return-st
         log.warning("rpmeta: API returned 200 but no prediction value")
         return None
 
-    # 120 is a magic number here, logic of deciding which VM specs to use will change in the
-    # future. For now, anything above 120 minutes is considered in need of a powerful builder.
-    recommends_powerful = prediction >= 120
+    threshold = getattr(opts, "rpmeta_powerful_threshold", 120)
+    powerful_tag = getattr(opts, "rpmeta_powerful_tag", "on_demand_powerful")
+    recommends_powerful = prediction >= threshold
+    already_tagged = powerful_tag in job.tags
+
+    demoted = False
+    if already_tagged and not recommends_powerful:
+        job.tags.remove(powerful_tag)
+        demoted = True
 
     prediction_logger = _get_predictions_logger(opts.log_dir)
     prediction_logger.info(json.dumps({
         "build_id": job.build_id,
         "prediction": prediction,
+        "threshold": threshold,
         "recommends_powerful": recommends_powerful,
-        "has_powerful_tag": "on_demand_powerful" in job.tags,
+        "has_powerful_tag": already_tagged and not demoted,
+        "demoted": demoted,
     }))
 
-    if recommends_powerful:
+    if demoted:
+        log.info("rpmeta: predicted %d min for %s on %s (below threshold %d) "
+                 "-> demoted from powerful builder (tag '%s' removed)",
+                 prediction, job.package_name, job.chroot, threshold,
+                 powerful_tag)
+    elif already_tagged:
         log.info("rpmeta: predicted %d min for %s on %s "
-                 "-> recommends powerful builder (no build promotion)",
+                 "-> keeping powerful builder tag",
+                 prediction, job.package_name, job.chroot)
+    elif recommends_powerful:
+        log.info("rpmeta: predicted %d min for %s on %s "
+                 "-> would benefit from a powerful builder, but rpmeta "
+                 "never promotes builds on its own",
                  prediction, job.package_name, job.chroot)
     else:
         log.info("rpmeta: predicted %d min for %s on %s "

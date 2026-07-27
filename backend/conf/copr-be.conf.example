@@ -108,6 +108,12 @@ prune_days=14
 #rpmeta_timeout=5
 # Mapping to hardware resources we have
 #rpmeta_hw_pools_config=/etc/copr/rpmeta-hw-pools.yaml
+# Predicted build time (in minutes) at/above which rpmeta recommends
+# routing the build to a more powerful builder.
+#rpmeta_powerful_threshold=120
+# Job tag used to route a build to a powerful builder VM. Must
+# match the tag name expected by resalloc pools / mock config snippets.
+#rpmeta_powerful_tag=on_demand_powerful
 
 [builder]
 # default is 1800
