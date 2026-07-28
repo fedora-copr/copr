@@ -1,6 +1,7 @@
 import sys
 import datetime
 import click
+from sqlalchemy.exc import SQLAlchemyError
 from coprs import db, app
 from coprs.logic import coprs_logic
 from coprs.mail import send_mail, OutdatedChrootMessage
@@ -33,7 +34,7 @@ def notify_outdated_chroots_function(dry_run, email_filter, all):
     if not dry_run:
         dev_instance_warning(email_filter)
 
-    notifier = DryRunNotifier() if dry_run else Notifier()
+    notifier = Notifier(dry_run=dry_run)
     outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
     user_chroots_map = get_user_chroots_map(outdated, email_filter).items()
     for i, (user, chroots) in enumerate(user_chroots_map, start=1):
@@ -85,10 +86,32 @@ def dev_instance_warning(email_filter):
         sys.exit(1)
 
 
-class Notifier(object):
+class Notifier:
+    """
+    High-level facade for our dry-runnable operations
+    """
+    def __init__(self, dry_run=False):
+        self.dry_run = dry_run
+
     def notify(self, user, chroots):
+        """
+        Send emails and mark the chroots as notified
+        """
+        about = [
+            "{0} ({1})".format(chroot.copr.full_name, chroot.name)
+            for chroot in chroots
+        ]
+        app.logger.info("Notify %s about %s", user.mail, about)
+
+        if self.dry_run:
+            return
+
         msg = OutdatedChrootMessage(chroots)
-        send_mail([user.mail], msg)
+        try:
+            send_mail([user.mail], msg)
+        except Exception:  # pylint: disable=broad-exception-caught
+            app.logger.exception("Failed to notify %s", user.mail)
+            raise
 
         # If `send_mail` didn't raise any exception,
         # we consider the email to be sent correctly
@@ -96,13 +119,14 @@ class Notifier(object):
             chroot.delete_notify = datetime.datetime.now()
 
     def commit(self):
-        db.session.commit()
+        """
+        Commit changes to the database
+        """
+        if self.dry_run:
+            return
 
-
-class DryRunNotifier(object):
-    def notify(self, user, chroots):
-        about = ["{0} ({1})".format(chroot.copr.full_name, chroot.name) for chroot in chroots]
-        print("Notify {} about {}".format(user.mail, about))
-
-    def commit(self):
-        pass
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            app.logger.exception("Failed to commit")
+            raise
