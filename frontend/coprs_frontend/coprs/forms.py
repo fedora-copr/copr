@@ -3,7 +3,7 @@ import re
 from urllib.parse import urlparse
 
 import json
-from fnmatch import fnmatch
+from fnmatch import fnmatch, filter as fnmatch_filter
 
 import flask
 import wtforms
@@ -172,6 +172,25 @@ class BooleanFieldOptional(wtforms.BooleanField):
 class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
+
+
+class ChrootPatternsField(MultiCheckboxField):
+    """
+    Chroot validation that supports Unix filename pattern
+    matching
+    """
+    # pylint: disable=too-few-public-methods
+    def pre_validate(self, _form):
+        """
+        Chroot validation with unix file pattern matching
+        """
+        available = [choice[0] for choice in self.choices]
+        for value in self.data or []:
+            if value in available:
+                continue
+            if not fnmatch_filter(available, value):
+                raise wtforms.ValidationError(
+                    "'{0}' is not a valid choice for this field.".format(value))
 
 
 class ChrootsField(MultiCheckboxField):
@@ -1271,16 +1290,30 @@ class RebuildAllPackagesFormFactory(object):
         return form_cls
 
 
+def expand_chroots(patterns, chroots_list):
+    """
+    Expand chroot names from the patterns that matches with
+    the chroots list
+    """
+    matched = set()
+    for pattern in patterns or []:
+        if pattern in chroots_list:
+            matched.add(pattern)
+            continue
+        matched.update(fnmatch_filter(chroots_list, pattern))
+    return matched
+
+
 def _get_build_form(active_chroots, form, package=None):
     class F(form):
         @property
         def selected_chroots(self):
-            chroots = self.chroots.data or []
+            chroots = expand_chroots(self.chroots.data, self.chroots_list)
             if self.exclude_chroots.data:
-                chroots = set(chroots or self.chroots_list)
-                chroots -= set(self.exclude_chroots.data)
-                return list(chroots)
-            return chroots
+                chroots = chroots or set(self.chroots_list)
+                chroots -= expand_chroots(self.exclude_chroots.data,
+                                          self.chroots_list)
+            return list(chroots)
 
     package_timeout = app.config["DEFAULT_BUILD_TIMEOUT"]
     if package and package.timeout:
@@ -1316,12 +1349,12 @@ def _get_build_form(active_chroots, form, package=None):
     if package:
         package_chroots = set([ch.name for ch in package.chroots])
 
-    F.chroots = MultiCheckboxField(
+    F.chroots = ChrootPatternsField(
         "Chroots",
         choices=[(ch, ch) for ch in F.chroots_list],
         default=[ch for ch in F.chroots_list if ch in package_chroots])
 
-    F.exclude_chroots = MultiCheckboxField(
+    F.exclude_chroots = ChrootPatternsField(
         "Exclude Chroots",
         choices=[(ch, ch) for ch in F.chroots_list],
         default=[])
