@@ -222,11 +222,11 @@ usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout T
                       copr_repo PKG [PKG ...]
 
 -r, --chroot::
-If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
+If you don't need this build for all the project's chroots. You can use it several times for each chroot you need. Supports glob patterns.
 
 --exclude-chroot::
 If you don't need this build for all the project's chroots. You can use it
-several times for each chroot you don't need.
+several times for each chroot you don't need. Supports glob patterns.
 
 --memory::
 Override memory for this build. This is actually not used and it have no effect.

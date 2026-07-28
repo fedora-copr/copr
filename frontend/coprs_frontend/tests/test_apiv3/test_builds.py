@@ -224,6 +224,45 @@ class TestAPIv3Builds(CoprsTestCase):
         expected -= set(exclude_chroots)
         assert {ch.name for ch in build.chroots} == expected
 
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_mock_chroots_many", "f_db")
+    @pytest.mark.parametrize("chroots,exclude_chroots,expected", [
+        (["fedora-20-x86_64"], [], {"fedora-20-x86_64"}),
+        (["epel-*-i386"], [], {"epel-5-i386", "epel-6-i386"}),
+        (["fedora-2?-*"], ["fedora-2[123]-*"], {"fedora-20-x86_64",
+                                                "fedora-20-i386"}),
+        ([], ["fedora-*"], {"epel-5-i386", "epel-5-x86_64", "epel-6-i386",
+                            "epel-6-x86_64", "epel-7-x86_64"}),
+        (["rhel-*"], [], None),
+        ([], ["rhel-*"], None),
+    ])
+    def test_v3_builds_chroot_patterns(self, chroots, exclude_chroots,
+                                       expected):
+        """
+        Unix file patterns in --chroot and --exclude-chroot are expanded against
+        the project's chroots.
+        """
+        form_data = {
+            "ownername": "user1",
+            "projectname": "foocopr",
+            "pkgs": "http://example.com/some.src.rpm",
+            "chroots": chroots,
+            "exclude_chroots": exclude_chroots,
+        }
+
+        user = self.models.User.query.filter_by(username="user1").first()
+        response = self.post_api3_with_auth("/api_3/build/create/url",
+                                            form_data, user)
+
+        if expected is None:
+            assert response.status_code == 400
+            return
+
+        assert response.status_code == 200
+        build = self.models.Build.query.first()
+        assert {chroot.name for chroot in build.chroots} == expected
+
+
 class TestWebUIBuilds(CoprsTestCase):
 
     @TransactionDecorator("u1")
