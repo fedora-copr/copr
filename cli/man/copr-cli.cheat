@@ -28,5 +28,8 @@ copr-cli cancel <build_id>
 # to build rpm(s) from GIT
 copr-cli buildscm test-project --clone-url https://github.com/fedora-copr/copr.git --subdir cli
 
+# to build a PyPI package together with its dependencies
+copr-cli buildpypi test-project --packagename pydantic-ai --with-deps --chroot fedora-rawhide-x86_64
+
 # to regenerate repository metadata for a project
 copr-cli regenerate-repos test-project

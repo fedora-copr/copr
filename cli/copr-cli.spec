@@ -31,6 +31,7 @@ Requires:      python3-rich
 
 Recommends:    python3-progress
 Recommends:    python3-ConfigUpdater
+Recommends:    python3-coprtree
 Suggests:      python3-beautifulsoup4
 
 BuildRequires: python3-copr >= %min_python_copr_version
