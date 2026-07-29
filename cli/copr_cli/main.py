@@ -6,13 +6,15 @@ import io
 import argparse
 import datetime
 import logging
+from copy import copy
 import os
 import re
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 import warnings
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from configparser import ConfigParser
 from rich.text import Text
 from rich.console import Console
@@ -44,6 +46,7 @@ from copr.v3.pagination import next_page
 import copr.v3.requests as copr_requests
 from copr_cli.helpers import (
     cli_use_output_format,
+    cli_with_deps_option,
     print_project_info,
     colorize_status,
 )
@@ -75,6 +78,8 @@ BOOTSTRAP_MAP = {
     "image": "image",
     None: "default",
 }
+
+SourceMethod = namedtuple("SourceMethod", ["provider", "build_function"])
 
 try:
     input = raw_input
@@ -439,6 +444,16 @@ class Commands(object):
 
         self.print_build_info_and_wait(builds, args)
 
+    def pypi_cb(self, package, **kwargs):
+        """
+        Callback function for building a PyPI package.
+        """
+        return self.client.build_proxy.create_from_pypi(
+            pypi_package_name=package.name,
+            pypi_package_version=package.version,
+            **kwargs)
+
+
     @requires_api_auth
     def action_build_pypi(self, args):
         """
@@ -453,6 +468,12 @@ class Commands(object):
             "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
         }
+        if args.with_deps:
+            source_method = SourceMethod(
+                provider="pypi.org",
+                build_function=self.pypi_cb,
+            )
+            return self.process_build_with_deps(args, source_method)
         return self.process_build(args, self.client.build_proxy.create_from_pypi, data)
 
     @requires_api_auth
@@ -536,6 +557,91 @@ class Commands(object):
                                 project_dirname=project_dirname,
                                 buildopts=buildopts, **data)
         builds = result if type(result) == list else [result]
+        self.print_build_info_and_wait(builds, args)
+
+
+    def process_build_with_deps(self, args, source_method):
+        """
+        Resolve the dependency tree of the requested package, and submit each
+        level of the tree as a separate batch.
+        """
+        # pylint: disable=too-many-locals
+        try:
+            # We want this to be an optional feature and don't require every
+            # user to install the dependency. It may not even be available on
+            # all systems where we need the copr-cli to run.
+            # pylint: disable=import-outside-toplevel
+            from coprtree.coprtree import resolve_dependencies
+            from coprtree.exceptions import CoprtreeError
+            from coprtree.models import BuildEnv, BuildTarget
+        except ImportError as err:
+            raise CoprException(
+                "The --with-deps option requires the coprtree library to be "
+                "installed, install it using sudo dnf install python3-coprtree"
+            ) from err
+
+        if not args.chroots or len(args.chroots) > 1:
+            raise argparse.ArgumentTypeError(
+                "The --with-deps option requires exactly one --chroot for now"
+            )
+
+        username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
+
+        target = BuildTarget(
+            provider=source_method.provider, # only pypi is supported for now
+            name=args.packagename,
+            version=args.packageversion,
+        )
+        env = BuildEnv(chroot=args.chroots[0],
+                       copr_project="{0}/{1}".format(username, projectname))
+
+        if not target.version:
+            print("No package version specified, building the latest version "
+                  "of {0}".format(target.name))
+
+        try:
+            levels = list(resolve_dependencies(target, env))
+        except CoprtreeError as err:
+            raise CoprException(
+                "Can not resolve the dependencies: {0}\n"
+                "Please report this at "
+                "https://github.com/sundaram123krishnan/coprtree/issues"
+                .format(err)) from err
+
+        builds = []
+        build_opts = buildopts_from_args(args)
+
+        batch = build_opts.pop("with_build_id", None)
+        previous_batch = build_opts.pop("after_build_id", None)
+        for number, level in enumerate(levels):
+            for index, package in enumerate(level):
+                actual_options = copy(build_opts)
+                if batch is not None:
+                    actual_options.update({"with_build_id": batch})
+                elif previous_batch is not None:
+                    actual_options.update({"after_build_id": previous_batch})
+
+                package_details = SimpleNamespace(
+                    name=package.name,
+                    version=package.version,
+                )
+                build = source_method.build_function(
+                    package=package_details,
+                    ownername=username,
+                    projectname=projectname,
+                    project_dirname=project_dirname,
+                    buildopts=actual_options,
+                )
+                if index == 0:
+                    print("level {0}:".format(number))
+                print("{0} {1} -> build {2}".format(
+                    package.name, package.version, build.id))
+                builds.append(build)
+                batch = batch or build.id
+            previous_batch = batch
+            batch = None
+
+
         self.print_build_info_and_wait(builds, args)
 
 
@@ -1601,6 +1707,7 @@ def setup_parser():
     parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_pypi_args_parent, parser_build_parent],
                                               help="Build PyPI package to a specified copr")
     parser_build_pypi.set_defaults(func="action_build_pypi")
+    cli_with_deps_option(parser_build_pypi)
 
     # create the parser for the "buildgem" command
     parser_build_rubygems = subparsers.add_parser("buildgem", parents=[parser_rubygems_args_parent, parser_build_parent],

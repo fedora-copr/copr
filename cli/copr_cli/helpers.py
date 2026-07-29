@@ -9,6 +9,7 @@ information per line. The text-row format prints all information separated
 by a space on a single line.
 """
 
+
 def cli_use_output_format(parser, default='json'):
     """
     Add '--output-format' option to given parser.
@@ -18,6 +19,19 @@ def cli_use_output_format(parser, default='json'):
         choices=["text", "json", "text-row"],
         help=output_format_help,
         default=default,
+    )
+
+
+def cli_with_deps_option(parser):
+    """
+    Add '--with-deps' option to given parser.
+    """
+    parser.add_argument(
+        "--with-deps",
+        action="store_true",
+        help="Build the package dependencies for a given package using the "
+             "coprtree library. More information can be found at: "
+             "https://github.com/sundaram123krishnan/coprtree",
     )
 
 

@@ -268,7 +268,7 @@ This limitation comes from the COPR API.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr buildpypi [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--background]
+                      [--background] [--with-deps]
                       [--pythonversions [VERSION [VERSION ...]]] [--packageversion PYPIVERSION]
                       --packagename PYPINAME
                       project
@@ -281,6 +281,10 @@ Version of the PyPI package to be built (by default latest)
 
 --packagename PYPINAME::
 Name of the PyPI package to be built, required.
+
+--with-deps::
+Build also the dependencies of the package. The dependency tree is resolved by the coprtree library. Requires the python3-coprtree package to be installed.  Please report bugs in the dependency resolution to
+https://github.com/sundaram123krishnan/coprtree
 
 
 For the rest of the arguments, see `copr-cli build` command above.
