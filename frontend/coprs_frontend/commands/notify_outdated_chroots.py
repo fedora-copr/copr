@@ -111,7 +111,7 @@ class Notifier:
             send_mail([user.mail], msg)
         except Exception:  # pylint: disable=broad-exception-caught
             app.logger.exception("Failed to notify %s", user.mail)
-            raise
+            return
 
         # If `send_mail` didn't raise any exception,
         # we consider the email to be sent correctly
