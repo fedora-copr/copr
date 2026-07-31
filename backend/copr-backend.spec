@@ -32,6 +32,7 @@ BuildRequires: util-linux
 
 BuildRequires: python3-devel
 
+BuildRequires: python3-backoff
 BuildRequires: python3-copr
 BuildRequires: python3-copr-common >= %copr_common_version
 BuildRequires: python3-daemon
@@ -88,6 +89,7 @@ Requires:   python3-resalloc >= 3.0
 Requires:   python3-retask
 Requires:   python3-setproctitle
 Requires:   python3-tabulate
+Requires:   python3-backoff
 Requires:   python3-boto3
 Requires:   python3-cachetools
 Requires:   redis

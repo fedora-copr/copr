@@ -13,6 +13,8 @@ import hashlib
 from itertools import batched
 from urllib.parse import urlencode
 
+import backoff
+
 from copr_common.request import SafeRequest
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
@@ -225,14 +227,9 @@ class BatchedAddRemoveContent:
         try:
             if not data["add_content_units"] and not data["remove_content_units"]:
                 return True
-            response = self.client.modify_repository_content(repository, **data)
-            if not response.ok:
-                self.log.error("Failed to create a new repository version for: %s, %s",
-                               repository, response.text)
-                return False
-            task = response.json()["task"]
-            if not self.client.wait_for_finished_task(
-                task, f"modify repository content {repository}",
+            if not self.client.request_and_wait(
+                lambda: self.client.modify_repository_content(repository, **data),
+                f"modify repository content {repository}",
             ):
                 return False
 
@@ -422,10 +419,11 @@ class PulpClient:
         self.log.info("Pulp: create_distribution: %s %s", uri, data)
         return self.send("POST", uri, data)
 
-    def update_distribution(self, distribution, publication=None, repository=None):
+    def _send_update_distribution(self, distribution, publication=None,
+                                   repository=None):
         """
-        Update an RPM distribution
-        https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
+        Send a request to update an RPM distribution.
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
 
         This allows us to point a distribution to either a publication or
         a repository. Not both, that doesn't make sense and Pulp would raise
@@ -440,18 +438,20 @@ class PulpClient:
             "repository": repository,
         }
         self.log.info("Pulp: updating distribution %s", distribution)
-        response = self.send("PATCH", url, data)
-        if not response.ok:
-            self.log.error("Failed to update distribution %s: %s",
-                           distribution, response.text)
-            return False
-        if response.status_code == 202:
-            task = response.json()["task"]
-            if not self.wait_for_finished_task(
-                task, f"update distribution {distribution}",
-            ):
-                return False
-        return True
+        return self.send("PATCH", url, data)
+
+    def update_distribution(self, distribution, publication=None,
+                            repository=None):
+        """
+        Update an RPM distribution and wait for the async task to finish.
+        """
+        return self.request_and_wait(
+            lambda: self._send_update_distribution(
+                distribution, publication=publication,
+                repository=repository,
+            ),
+            f"update distribution {distribution}",
+        )
 
     def create_publication(self, repository):
         """
@@ -467,13 +467,10 @@ class PulpClient:
         """
         Create a publication and wait for the task to finish.
         """
-        response = self.create_publication(repository)
-        task = response.json()["task"]
-        if not self.wait_for_finished_task(
-            task, f"publish {repository}",
-        ):
-            return False
-        return True
+        return self.request_and_wait(
+            lambda: self.create_publication(repository),
+            f"publish {repository}",
+        )
 
     def get_publication(self, repository):
         """
@@ -555,16 +552,15 @@ class PulpClient:
 
         # Send the file request that we want to reassemble the file
         commit_url = self.config["base_url"] + upload_href + "commit/"
-        data = {
+        commit_data = {
             "sha256": sha256.hexdigest(),
         }
-        response = self.send("POST", commit_url, data=data)
 
         # We need to wait until the task finishes. This is the disadvantage
         # compared to standard uploads
-        task = response.json()["task"]
-        data = self.wait_for_finished_task(
-            task, f"upload chunked {path}",
+        data = self.request_and_wait(
+            lambda: self.send("POST", commit_url, data=commit_data),
+            f"upload chunked {path}",
         )
         if not data:
             raise RuntimeError(f"Failed to upload chunked {path}")
@@ -748,6 +744,31 @@ class PulpClient:
             return data
         self.log.error("Pulp %s %s failed: %s", description, task, data)
         return None
+
+    def request_and_wait(self, request_fn, description, timeout=86400):
+        """
+        Submit a Pulp request, wait for the background task to finish, and
+        retry the whole submit+wait cycle on task failure (with exponential
+        backoff) until timeout is reached.  Return the task data dict on
+        success, or None on timeout.
+        """
+        deadline = time.monotonic() + timeout
+
+        @backoff.on_predicate(backoff.expo, max_time=timeout,
+                              max_value=300, logger=self.log)
+        def _try():
+            response = request_fn()
+            if not response.ok:
+                self.log.error("%s request failed: %s",
+                               description, response.text)
+                return None
+            if response.status_code != 202:
+                return response.json()
+            task = response.json()["task"]
+            self.log.info("Pulp: %s => task %s", description, task)
+            remaining = max(360, deadline - time.monotonic())
+            return self.wait_for_finished_task(task, description, remaining)
+        return _try()
 
     def list_distributions(self, prefix):
         """
