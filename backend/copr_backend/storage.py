@@ -337,13 +337,11 @@ class PulpStorage(Storage):
         devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
 
         try:
-            response = self.client.create_distribution(
-                distribution_name,
-                repository_href,
-            )
-            task = response.json()["task"]
-            if not self.client.wait_for_finished_task(
-                task, f"create distribution {distribution_name}",
+            if not self.client.request_and_wait(
+                lambda: self.client.create_distribution(
+                    distribution_name, repository_href,
+                ),
+                f"create distribution {distribution_name}",
             ):
                 return False
         except RequestError as ex:
