@@ -25,7 +25,7 @@ def send_frontend_version(response):
     setup the version according to our needs.
     For the backend counterpart, see the `MIN_FE_BE_API` constant.
     """
-    response.headers['Copr-FE-BE-API-Version'] = '8'
+    response.headers['Copr-FE-BE-API-Version'] = '9'
     return response
 
 
