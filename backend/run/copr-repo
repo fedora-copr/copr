@@ -18,7 +18,7 @@ import shutil
 import subprocess
 import sys
 
-from copr_common.lock import lock
+from copr_common.lock import Lock
 from copr_backend.constants import CHROOTS_USING_SQLITE_REPODATA
 from copr_backend.createrepo import BatchedCreaterepo
 from copr_backend.helpers import (
@@ -376,7 +376,7 @@ def main_try_lock(opts, batch):
     """
     Acquire the lock and execute the main_locked() method.
     """
-    with lock(opts.directory, redis_conn=batch.redis, log=opts.log):
+    with Lock(batch.redis, opts.log).lock(opts.directory):
         main_locked(opts, batch, opts.log)
         batch.commit()
         opts.log.debug("Metadata built by this process")

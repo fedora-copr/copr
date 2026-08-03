@@ -16,6 +16,7 @@ from distutils.errors import DistutilsFileError # pylint: disable=deprecated-mod
 import shutil
 import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
+from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
 from copr_common.request import RequestError, SafeRequest
 from copr_backend.helpers import (
@@ -307,6 +308,7 @@ class PulpStorage(Storage):
         super().__init__(*args, **kwargs)
         self.client = PulpClient.create_from_config_file(log=self.log, opts=self.opts)
         self._redis_conn = get_redis_connection(self.opts)
+        self._lock = Lock(self._redis_conn, self.log)
 
     def init_project(self, dirname, chroot, reason=None):
         repository_name = self._repository_name(chroot, dirname)
@@ -417,7 +419,7 @@ class PulpStorage(Storage):
         try:
             return self.client.publish(repository_href)
         finally:
-            redirect = PulpHTTPRedirect(redis_conn=self._redis_conn, log=self.log)
+            redirect = PulpHTTPRedirect(lock=self._lock)
             redirect.add(self.owner, self.project)
 
     def upload_rpm(self, path, labels):
@@ -541,7 +543,7 @@ class PulpStorage(Storage):
             if distribution["repository"]:
                 self.log.info("Removing Pulp repository for %s", name)
                 self.client.delete_repository(distribution["repository"])
-        redirect = PulpHTTPRedirect(redis_conn=self._redis_conn, log=self.log)
+        redirect = PulpHTTPRedirect(lock=self._lock)
         redirect.remove(self.owner, dirname)
 
     def delete_builds(self, dirname, chroot_builddirs, build_ids):

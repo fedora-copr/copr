@@ -46,8 +46,8 @@ def _lock(redis_conn, directory="non-existent"):
     opts = munch.Munch()
     opts.log = logging.getLogger()
     opts.directory = directory
-    lock = filedict['lock']
-    with lock(opts.directory, redis_conn=redis_conn, log=opts.log):
+    lock = filedict['Lock']
+    with lock(redis_conn, opts.log).lock(opts.directory):
         yield opts
 
 class TestModifyRepo(object):

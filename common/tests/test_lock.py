@@ -11,7 +11,7 @@ import time
 
 from redis import StrictRedis
 
-from copr_common.lock import lock
+from copr_common.lock import Lock
 
 CONCURRENCY = 8
 MAX_WAIT = 10  # seconds
@@ -45,12 +45,12 @@ def test_lock_fairness():
 
     children = []
     try:
-        with lock(lock_name, redis_conn=redis_conn, log=log):
+        with Lock(redis_conn, log).lock(lock_name):
             for i in range(CONCURRENCY):
                 pid = os.fork()
                 if pid == 0:
                     child_redis = _get_redis()
-                    with lock(lock_name, redis_conn=child_redis, log=log):
+                    with Lock(child_redis, log).lock(lock_name):
                         fd = os.open(result_file,
                                      os.O_WRONLY | os.O_CREAT | os.O_APPEND,
                                      0o644)
@@ -123,7 +123,7 @@ def test_lock_dead_process_cleanup():
         # lock() should detect the dead PID at the head of the queue,
         # remove it, and let us through.
         acquired = False
-        with lock(lock_name, redis_conn=redis_conn, log=log):
+        with Lock(redis_conn, log).lock(lock_name):
             acquired = True
         assert acquired
     finally:
