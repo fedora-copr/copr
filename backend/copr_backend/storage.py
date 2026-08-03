@@ -250,9 +250,6 @@ class BackendStorage(Storage):
             return False
 
         for chroot, src_dst_dir in builds_map.items():
-            if not chroot:
-                continue
-
             for old_dir_name, new_dir_name in src_dst_dir.items():
                 src_dir, dst_dir = old_dir_name, new_dir_name
 
@@ -585,9 +582,6 @@ class PulpStorage(Storage):
         _dst_owner, dst_project = dst_fullname.split("/")
 
         for chroot, src_dst_dir in builds_map.items():
-            if not chroot:
-                continue
-
             # It should be a dirname here but since forking CoprDirs is not
             # supported yet, we pass the project name
             # See https://github.com/fedora-copr/copr/issues/3820
