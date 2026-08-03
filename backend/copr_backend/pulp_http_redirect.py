@@ -2,7 +2,6 @@
 Maintain a list of HTTP redirects to Pulp
 """
 
-from copr_common.lock import lock
 from .constants import PULP_REDIRECT_FILE
 
 
@@ -13,14 +12,9 @@ class PulpHTTPRedirect:
     https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
     """
 
-    def __init__(self, path=None, redis_conn=None, log=None):
+    def __init__(self, lock, path=None):
+        self.lock = lock
         self.path = path or PULP_REDIRECT_FILE
-        self.redis_conn = redis_conn
-        self.log = log
-        if not self.log:
-            raise NotImplementedError("Default logger not implemented yet")
-        if not self.redis_conn:
-            raise NotImplementedError("Redis connection is required")
 
     def add(self, owner, project):
         """
@@ -34,7 +28,7 @@ class PulpHTTPRedirect:
             if fullname in projects:
                 return
 
-            with lock(self.path, redis_conn=self.redis_conn, log=self.log):
+            with self.lock.lock(self.path):
                 with open(self.path, "r", encoding="utf-8") as fp:
                     projects = fp.read().splitlines()
 
@@ -57,7 +51,7 @@ class PulpHTTPRedirect:
             if fullname not in projects:
                 return
 
-            with lock(self.path, redis_conn=self.redis_conn, log=self.log):
+            with self.lock.lock(self.path):
                 with open(self.path, "r", encoding="utf-8") as fp:
                     projects = fp.read().splitlines()
 

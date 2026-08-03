@@ -14,7 +14,7 @@ from itertools import batched
 from urllib.parse import urlencode
 
 from copr_common.request import SafeRequest
-from copr_common.lock import lock
+from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
 
 
@@ -249,7 +249,7 @@ class BatchedAddRemoveContent:
         """
         Acquire the lock and execute the _execute_locked() method.
         """
-        with lock(repository, redis_conn=self.redis, log=self.log):
+        with Lock(self.redis, self.log).lock(repository):
             if self._execute_locked(repository):
                 self.commit()
                 self.log.debug("Repository version and Publication created by this process")
