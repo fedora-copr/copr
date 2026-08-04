@@ -13,8 +13,6 @@ import hashlib
 from itertools import batched
 from urllib.parse import urlencode
 
-import backoff
-
 from copr_common.request import SafeRequest
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
@@ -219,21 +217,20 @@ class BatchedAddRemoveContent:
         """
         if self.check_processed():
             self.log.info("Task processed by other process")
-            return True
+            return
 
         data = self.options()
         dirs_to_delete = data.pop("dirs_to_delete", [])
 
         try:
             if not data["add_content_units"] and not data["remove_content_units"]:
-                return True
-            if not self.client.request_and_wait(
-                lambda: self.client.modify_repository_content(repository, **data),
-                f"modify repository content {repository}",
-            ):
-                return False
-
-            return self.client.publish(repository)
+                return
+            self.client.deliver_and_wait([
+                self.client.modify_repository_content(repository, **data),
+            ])
+            self.client.deliver_and_wait([
+                self.client.publish(repository),
+            ])
         finally:
             self._delete_dirs(dirs_to_delete)
 
@@ -247,9 +244,19 @@ class BatchedAddRemoveContent:
         Acquire the lock and execute the _execute_locked() method.
         """
         with Lock(self.redis, self.log).lock(repository):
-            if self._execute_locked(repository):
-                self.commit()
-                self.log.debug("Repository version and Publication created by this process")
+            self._execute_locked(repository)
+            self.commit()
+
+
+class PulpRequest:
+    """
+    A deferred Pulp API request that can be submitted and waited on.
+    """
+    def __init__(self, method, url, data=None, description=""):
+        self.method = method
+        self.url = url
+        self.data = data
+        self.description = description
 
 
 class PulpClient:
@@ -354,7 +361,7 @@ class PulpClient:
 
     def create_repository(self, name, persistent=False):
         """
-        Create an RPM repository
+        Build a PulpRequest to create an RPM repository.
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_create
         """
         uri = "/api/v3/repositories/rpm/rpm/"
@@ -364,8 +371,8 @@ class PulpClient:
             # Temporarily retain all packages, workaround for #4071
             "retain_package_versions": 0 if persistent else 0,
         }
-        self.log.info("Pulp: create_repository: %s %s", uri, name)
-        return self.send("POST", uri, data)
+        return PulpRequest("POST", uri, data,
+                           f"create repository {name}")
 
     def get_repository(self, name):
         """
@@ -416,13 +423,13 @@ class PulpClient:
             "repository": repository,
             "base_path": basepath or name,
         }
-        self.log.info("Pulp: create_distribution: %s %s", uri, data)
-        return self.send("POST", uri, data)
+        return PulpRequest("POST", uri, data,
+                           f"create distribution {name}")
 
-    def _send_update_distribution(self, distribution, publication=None,
-                                   repository=None):
+    def update_distribution(self, distribution, publication=None,
+                            repository=None):
         """
-        Send a request to update an RPM distribution.
+        Build a PulpRequest to update an RPM distribution.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
 
         This allows us to point a distribution to either a publication or
@@ -437,40 +444,17 @@ class PulpClient:
             "publication": publication,
             "repository": repository,
         }
-        self.log.info("Pulp: updating distribution %s", distribution)
-        return self.send("PATCH", url, data)
+        return PulpRequest("PATCH", url, data,
+                           f"update distribution {distribution}")
 
-    def update_distribution(self, distribution, publication=None,
-                            repository=None):
+    def publish(self, repository):
         """
-        Update an RPM distribution and wait for the async task to finish.
-        """
-        return self.request_and_wait(
-            lambda: self._send_update_distribution(
-                distribution, publication=publication,
-                repository=repository,
-            ),
-            f"update distribution {distribution}",
-        )
-
-    def create_publication(self, repository):
-        """
-        Create an RPM publication
+        Build a PulpRequest to create an RPM publication.
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Publications:-Rpm/operation/publications_rpm_rpm_create
         """
         uri = "/api/v3/publications/rpm/rpm/"
         data = {"repository": repository}
-        self.log.info("Pulp: publishing %s %s", uri, repository)
-        return self.send("POST", uri, data)
-
-    def publish(self, repository):
-        """
-        Create a publication and wait for the task to finish.
-        """
-        return self.request_and_wait(
-            lambda: self.create_publication(repository),
-            f"publish {repository}",
-        )
+        return PulpRequest("POST", uri, data, f"publish {repository}")
 
     def get_publication(self, repository):
         """
@@ -558,12 +542,10 @@ class PulpClient:
 
         # We need to wait until the task finishes. This is the disadvantage
         # compared to standard uploads
-        data = self.request_and_wait(
-            lambda: self.send("POST", commit_url, data=commit_data),
-            f"upload chunked {path}",
-        )
-        if not data:
-            raise RuntimeError(f"Failed to upload chunked {path}")
+        data = self.deliver_and_wait([
+            PulpRequest("POST", commit_url, commit_data,
+                        f"upload chunked {path}"),
+        ])[0]
 
         resources = data["created_resources"]
         if len(resources) != 1:
@@ -589,13 +571,14 @@ class PulpClient:
 
     def modify_repository_content(self, repository, add_content_units, remove_content_units):
         """
-        Add and/or remove a list of artifacts to/from a repository
+        Build a PulpRequest to add/remove artifacts to/from a repository.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
         path = os.path.join(repository, "modify/")
         url = self.config["base_url"] + path
         data = {"add_content_units": add_content_units or [], "remove_content_units": remove_content_units or []}
-        return self.send("POST", url, data)
+        return PulpRequest("POST", url, data,
+                           f"modify repository content {repository}")
 
     def add_content(self, repository, artifacts):
         """
@@ -705,8 +688,8 @@ class PulpClient:
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_delete
         """
         url = self.config["base_url"] + repository
-        self.log.info("Pulp: delete_repository: %s", repository)
-        return self.send("DELETE", url)
+        return PulpRequest("DELETE", url,
+                           description=f"delete repository {repository}")
 
     def delete_distribution(self, distribution):
         """
@@ -714,61 +697,67 @@ class PulpClient:
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_delete
         """
         url = self.config["base_url"] + distribution
-        self.log.info("Pulp: delete_distribution: %s", distribution)
-        return self.send("DELETE", url)
+        return PulpRequest("DELETE", url,
+                           description=f"delete distribution {distribution}")
 
-    def wait_for_finished_task(self, task, description="task", timeout=86400):
+    def deliver_and_wait(self, requests, timeout=86400):
         """
-        Wait for a Pulp task to finish.  Return the task data dict on
-        success, or None on failure.
+        Submit multiple PulpRequests and wait for all background tasks to
+        finish.  Retry failed requests/tasks until timeout.  Raise
+        RuntimeError if any request cannot be completed within the timeout.
         """
-        start = time.monotonic()
-        while True:
-            if time.monotonic() > start + timeout:
-                self.log.error("Pulp %s %s timed out after %ss",
-                               description, task, timeout)
-                return None
-            self.log.info("Pulp: polling task status: %s", task)
-            response = self.get_task(task)
-            if not response.ok:
-                self.log.warning("Pulp %s %s: status request failed: %s",
-                                 description, task, response.text)
-                time.sleep(5)
-                continue
-            data = response.json()
-            if data["state"] not in ["waiting", "running"]:
-                break
-            time.sleep(5)
-        if data["state"] == "completed":
-            self.log.info("Pulp %s %s succeeded", description, task)
-            return data
-        self.log.error("Pulp %s %s failed: %s", description, task, data)
-        return None
+        if not requests:
+            return []
 
-    def request_and_wait(self, request_fn, description, timeout=86400):
-        """
-        Submit a Pulp request, wait for the background task to finish, and
-        retry the whole submit+wait cycle on task failure (with exponential
-        backoff) until timeout is reached.  Return the task data dict on
-        success, or None on timeout.
-        """
         deadline = time.monotonic() + timeout
+        results = [None] * len(requests)
 
-        @backoff.on_predicate(backoff.expo, max_time=timeout,
-                              max_value=300, logger=self.log)
-        def _try():
-            response = request_fn()
-            if not response.ok:
-                self.log.error("%s request failed: %s",
-                               description, response.text)
-                return None
-            if response.status_code != 202:
-                return response.json()
-            task = response.json()["task"]
-            self.log.info("Pulp: %s => task %s", description, task)
-            remaining = max(360, deadline - time.monotonic())
-            return self.wait_for_finished_task(task, description, remaining)
-        return _try()
+        # Initialize the todo-list.
+        # (index, request, task_href_or_None, backoff_sleep)
+        pending = [(i, req, None, 5) for i, req in enumerate(requests)]
+
+        while pending:
+            if time.monotonic() > deadline:
+                descriptions = ", ".join(
+                    req.description for _, req, _, _ in pending)
+                raise RuntimeError(
+                    f"Pulp tasks timed out after {timeout}s: {descriptions}")
+
+            still_pending = []
+            for i, req, task, backoff_sleep in pending:
+                if task is None:
+                    self.log.info("Pulp: submitting %s", req.description)
+                    response = self.send(req.method, req.url, req.data)
+                    if response.status_code != 202:
+                        results[i] = response.json()
+                        continue
+                    task = response.json()["task"]
+                    self.log.info("Pulp: %s => task %s",
+                                  req.description, task)
+                    still_pending.append((i, req, task, backoff_sleep))
+                    continue
+
+                response = self.get_task(task)
+                data = response.json()
+                if data["state"] in ("waiting", "running"):
+                    still_pending.append((i, req, task, backoff_sleep))
+                    continue
+                if data["state"] == "completed":
+                    self.log.info("Pulp %s %s succeeded",
+                                  req.description, task)
+                    results[i] = data
+                    continue
+                self.log.warning("Pulp %s %s failed, resubmitting: %s",
+                                  req.description, task, data)
+                # Re-add with None href.
+                still_pending.append((i, req, None,
+                                      min(backoff_sleep * 2, 300)))
+
+            pending = still_pending
+            if pending:
+                time.sleep(max(s for _, _, _, s in pending))
+
+        return results
 
     def list_distributions(self, prefix):
         """
