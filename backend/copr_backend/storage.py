@@ -313,18 +313,15 @@ class PulpStorage(Storage):
     def init_project(self, dirname, chroot, reason=None):
         repository_name = self._repository_name(chroot, dirname)
         try:
-            response = self.client.create_repository(
-                repository_name,
-                persistent=self.persistent,
-            )
+            self.client.deliver_and_wait([
+                self.client.create_repository(
+                    repository_name,
+                    persistent=self.persistent,
+                ),
+            ])
         except RequestError as ex:
             if "This field must be unique" not in ex.response.text:
-                self.log.error(
-                    "Failed to create a Pulp repository %s because of %s",
-                    repository_name,
-                    ex.response.text,
-                )
-                return False
+                raise
 
         # When a repository is mentioned in other endpoints, it needs to be
         # mentioned by its href, not name
@@ -337,21 +334,13 @@ class PulpStorage(Storage):
         devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
 
         try:
-            if not self.client.request_and_wait(
-                lambda: self.client.create_distribution(
-                    distribution_name, repository_href,
-                ),
-                f"create distribution {distribution_name}",
-            ):
-                return False
+            self.client.deliver_and_wait([
+                self.client.create_distribution(
+                    distribution_name, repository_href),
+            ])
         except RequestError as ex:
             if "This field must be unique" not in ex.response.text:
-                self.log.error(
-                    "Failed to create a Pulp distribution %s because of %s",
-                    public_distribution_name,
-                    ex.response.text,
-                )
-                return False
+                raise
 
         # If a project enabled the manual createrepo mode, we need to create a
         # devel distribution to be consumed by other builds within the project
@@ -359,18 +348,18 @@ class PulpStorage(Storage):
             response = self.client.get_publication(repository_href)
             publication = response.json()["results"][0]["pulp_href"]
             public_distribution = self._get_distribution(chroot, dirname, devel=False)
-
-            if not self.client.update_distribution(public_distribution, publication=publication):
-                return False
+            self.client.deliver_and_wait([
+                self.client.update_distribution(
+                    public_distribution, publication=publication),
+            ])
 
         # We want to disable the manual createrepo feature on a project
         elif reason == CreaterepoReason.manual_createrepo_toggle:
             public_distribution = self._get_distribution(chroot)
-            if not self.client.update_distribution(
-                public_distribution,
-                repository=repository_href,
-            ):
-                return False
+            self.client.deliver_and_wait([
+                self.client.update_distribution(
+                    public_distribution, repository=repository_href),
+            ])
 
         # The "Regenerate" button was clicked for a manual createrepo project.
         # We want to copy packages from the devel repo to the public repo.
@@ -406,16 +395,18 @@ class PulpStorage(Storage):
                     devel_distribution_name,
                     publication,
                 )
-                if not self.client.update_distribution(
-                    public_distribution["pulp_href"],
-                    publication=publication,
-                ):
-                    return False
+                self.client.deliver_and_wait([
+                    self.client.update_distribution(
+                        public_distribution["pulp_href"],
+                        publication=publication),
+                ])
 
         # And finally, run the actual createrepo for either the devel or
         # the public repository
         try:
-            return self.client.publish(repository_href)
+            self.client.deliver_and_wait([
+                self.client.publish(repository_href),
+            ])
         finally:
             redirect = PulpHTTPRedirect(lock=self._lock)
             redirect.add(self.owner, self.project)
@@ -520,27 +511,35 @@ class PulpStorage(Storage):
         return True
 
     def delete_repository(self, chroot):
-        name = self._repository_name(chroot)
         repository = self._get_repository(chroot)
-        self.log.info("Removing Pulp repository: %s", name)
-        self.client.delete_repository(repository)
-
-        name = self._distribution_name(chroot)
         distribution = self._get_distribution(chroot)
-        self.log.info("Removing Pulp distribution: %s", name)
-        self.client.delete_distribution(distribution)
+        self.log.info("Removing Pulp repository and distribution for %s",
+                       chroot)
+        self.client.deliver_and_wait([
+            self.client.delete_distribution(distribution),
+        ])
+        self.client.deliver_and_wait([
+            self.client.delete_repository(repository),
+        ])
 
     def delete_project(self, dirname):
         prefix = "{0}/{1}/".format(self.owner, dirname)
         response = self.client.list_distributions(prefix)
         distributions = response.json()["results"]
+        dist_requests = []
+        repo_requests = []
         for distribution in distributions:
-            name = distribution["name"]
-            self.log.info("Removing Pulp distribution for %s", name)
-            self.client.delete_distribution(distribution["pulp_href"])
+            self.log.info("Removing Pulp distribution for %s",
+                          distribution["name"])
+            dist_requests.append(
+                self.client.delete_distribution(distribution["pulp_href"]))
             if distribution["repository"]:
-                self.log.info("Removing Pulp repository for %s", name)
-                self.client.delete_repository(distribution["repository"])
+                self.log.info("Removing Pulp repository for %s",
+                              distribution["name"])
+                repo_requests.append(
+                    self.client.delete_repository(distribution["repository"]))
+        self.client.deliver_and_wait(dist_requests)
+        self.client.deliver_and_wait(repo_requests)
         redirect = PulpHTTPRedirect(lock=self._lock)
         redirect.remove(self.owner, dirname)
 
@@ -587,9 +586,7 @@ class PulpStorage(Storage):
             # It should be a dirname here but since forking CoprDirs is not
             # supported yet, we pass the project name
             # See https://github.com/fedora-copr/copr/issues/3820
-            if not self.init_project(dst_project, chroot):
-                self.log.error("Failed to init the dst project")
-                return False
+            self.init_project(dst_project, chroot)
 
             for old_dir_name, new_dir_name in src_dst_dir.items():
                 src_dir, dst_dir = old_dir_name, new_dir_name
@@ -615,11 +612,11 @@ class PulpStorage(Storage):
                     chroot,
                 )
 
-            repository = self._get_repository(chroot)
-            if createrepo and not self.client.publish(repository):
-                return False
-
-        return True
+            if createrepo:
+                repository = self._get_repository(chroot)
+                self.client.deliver_and_wait([
+                    self.client.publish(repository),
+                ])
 
     def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
                     dst_owner, dst_project, dst_dirname, chroot):
