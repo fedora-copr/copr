@@ -1,0 +1,22 @@
+---
+- name: Start Pulp container
+  containers.podman.podman_container:
+    name: pulp
+    image: ghcr.io/pulp/pulp:latest
+    state: started
+    env:
+      PULP_DEFAULT_ADMIN_PASSWORD: "admin"
+    ports:
+      - "5006:80"
+    device:
+      - /dev/fuse:/dev/fuse
+
+- name: Wait for Pulp to become ready
+  ansible.builtin.uri:
+    url: http://localhost:5006/pulp/api/v3/status/
+    method: GET
+    status_code: 200
+  register: pulp_status
+  until: pulp_status.status == 200
+  retries: 60
+  delay: 5

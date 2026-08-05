@@ -34,3 +34,9 @@ ITEMS_PER_PAGE = 10
 PAGES_URLS_COUNT = 5
 
 SERVER_NAME = "{{ frontend_hostname }}"
+
+{% if with_pulp | bool %}
+DEFAULT_STORAGE = "pulp"
+{% else %}
+DEFAULT_STORAGE = "backend"
+{% endif %}

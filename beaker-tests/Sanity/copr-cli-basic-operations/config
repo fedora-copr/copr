@@ -14,12 +14,12 @@ frontend_host_from_url=${FRONTEND_URL//*\/\//}
 : "${OWNER=@copr}"
 : "${VENDOR=Fedora Copr (devel) - group @copr}"
 : "${DISTGIT_BRANCH_FEDORA_PREFIX=f}"
-: "${PULP_CONTENT_URL=https://packages.redhat.com/api/pulp-content/public-copr-stage}"
 
-if [[ -n $PULP_CONTENT_URL ]]; then
-    : "${STORAGE=pulp}"
-else
-    : "${STORAGE=backend}"
+: "${STORAGE=backend}"
+
+if [[ $STORAGE == "pulp" ]]; then
+    # Set to an URL to PULP hosing, NO MAGIC REDIRECTS from backend!
+    : "${PULP_CONTENT_URL=https://packages.redhat.com/api/pulp-content/public-copr-stage}"
 fi
 
 # Owner and project

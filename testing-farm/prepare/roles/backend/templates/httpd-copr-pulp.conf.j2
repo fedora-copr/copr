@@ -1,0 +1,31 @@
+RewriteMap lc int:tolower
+
+<Directory /var/lib/copr/public_html/results/>
+    RewriteEngine On
+
+    # For non-existing files, redirect /foo/devel/.. to /foo-devel/..
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule (.*)/([^/]+)/devel/(.*\.(xml|xml\.gz|xml\.zck|rpm))$ /pulp/content/$1/$2-devel/$3 [PT]
+
+    # RPMs in build result dirs (without already having /Packages/ part):
+    # file.rpm → Packages/<letter>/file.rpm
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} !.*/Packages/
+    RewriteRule (.*/)[0-9]+-[^/]+/((.).*\.rpm)$ /pulp/content/$1Packages/${lc:$3}/$2 [PT]
+
+    # RPMs already with Packages/ path: just swap /results/ → /pulp/content/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule (.*\.rpm)$ /pulp/content/$1 [PT]
+
+    # XML metadata and other files: direct path mapping
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule (.*\.(xml|xml\.gz|xml\.zck))$ /pulp/content/$1 [PT]
+</Directory>
+
+AliasMatch ^/pulp/content/(.*)/pubkey\.gpg$ /var/lib/copr/public_html/results/$1/pubkey.gpg
+
+<LocationMatch "^/pulp/content/.*/pubkey\.gpg$">
+    ProxyPass "!"
+</LocationMatch>
+ProxyPass /pulp/ http://localhost:5006/pulp/
+ProxyPassReverse /pulp/ http://localhost:5006/pulp/

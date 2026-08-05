@@ -1,0 +1,19 @@
+---
+summary: run the sanity tests with Pulp storage backend
+discover:
+  - how: fmf
+
+provision:
+  how: virtual
+  hardware:
+    memory: ">= 8 GB"
+    cpu:
+      processors: ">= 4"
+
+prepare:
+  - how: ansible
+    playbook: testing-farm/prepare/machine-prepare.yml
+    extra-args: "-e with_pulp=true"
+
+execute:
+  - how: tmt
