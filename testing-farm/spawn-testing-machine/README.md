@@ -7,8 +7,8 @@ Starting EC2 machine
        ---
        aws:
          profile: fedora-copr
-         # Fedora Cloud 43 -- Paris
-         image: ami-055e6291d0779237f
+         # Fedora Cloud 44 -- Paris
+         image: ami-08f1b4b33395e356b
          ssh_key: praiskup
          instance_type: c5a.xlarge
          security_group: CoprSingleHost
