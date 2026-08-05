@@ -26,6 +26,11 @@ def before_all(context):
     context.backend_url = os.environ.get(
         "BACKEND_URL",
         "https://copr-be-dev.cloud.fedoraproject.org")
+    pulp_content_url = os.environ.get("PULP_CONTENT_URL", "")
+    if pulp_content_url:
+        context.content_url = pulp_content_url
+    else:
+        context.content_url = context.backend_url + "/results"
     context.copr_cli_config = os.environ.get(
         "COPR_CLI_CONFIG",
         "~/.config/copr")

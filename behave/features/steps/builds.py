@@ -67,7 +67,7 @@ def step_check_changelog_content(context, package_name, chroot, string):
     owner = context.cli.whoami()
     project = context.last_project_name
     repo_id = "hell-{}".format(random.random())
-    repo_url = "/".join([context.backend_url, "results", owner, project, chroot])
+    repo_url = "/".join([context.content_url, owner, project, chroot])
     repoquery = [
         "dnf", "repoquery", "--disablerepo=*", "--enablerepo", repo_id,
         "--repofrompath", "{},{}".format(repo_id, repo_url)
