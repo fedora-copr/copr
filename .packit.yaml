@@ -194,13 +194,27 @@ jobs:
 
   - job: tests
     trigger: pull_request
+    identifier: gating
     targets:
       - fedora-44-x86_64
     packages:
       - copr-frontend
     skip_build: true
     manual_trigger: true
+    tmt_plan: /testing-farm/plans/sanity
     status_name_template: "packit/testing-farm/gating/{package}"
+
+  - job: tests
+    trigger: pull_request
+    identifier: gating-pulp
+    targets:
+      - fedora-44-x86_64
+    packages:
+      - copr-frontend
+    skip_build: true
+    manual_trigger: true
+    tmt_plan: /testing-farm/plans/gating-pulp
+    status_name_template: "packit/testing-farm/gating-pulp/{package}"
 
   # Main commit builds:
   #

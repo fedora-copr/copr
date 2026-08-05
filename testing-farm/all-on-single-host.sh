@@ -14,8 +14,14 @@ export FRONTEND_HOST=127.0.0.1
 export FRONTEND_PUBLIC_HOST
 export FRONTEND_URL=https://$FRONTEND_HOST
 export BACKEND_URL=$FRONTEND_URL
-export PULP_CONTENT_URL=""
-export STORAGE="backend"
+: "${STORAGE:=$(sed -n 's/^DEFAULT_STORAGE\s*=\s*"\(.*\)"/\1/p' /etc/copr/copr.conf 2>/dev/null || echo backend)}"
+if test "$STORAGE" = "pulp"; then
+    PULP_CONTENT_URL="https://$FRONTEND_PUBLIC_HOST/pulp/content"
+else
+    : "${PULP_CONTENT_URL:=}"
+fi
+export PULP_CONTENT_URL
+export STORAGE
 
 export VENDOR="Testing Copr - user single-host-testing"
 
@@ -45,7 +51,7 @@ for script; do
         continue
         ;;
     *runtest-storage*)
-        continue
+        test "$STORAGE" = "backend" && continue
         ;;
     esac
 

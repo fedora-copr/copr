@@ -77,6 +77,40 @@
     group: copr
     mode: '0600'
 
+- name: Deploy Pulp HTTPD proxy configuration
+  ansible.builtin.template:
+    src: httpd-copr-pulp.conf.j2
+    dest: /etc/httpd/conf.d/copr-pulp.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
+  when: with_pulp | default(false) | bool
+
+- name: Install pulp-cli
+  ansible.builtin.package:
+    name: pulp-cli
+    state: installed
+  when: with_pulp | default(false) | bool
+
+- name: Create pulp-cli config directory for copr user
+  ansible.builtin.file:
+    path: /home/copr/.config/pulp
+    state: directory
+    owner: copr
+    group: copr
+    mode: '0755'
+  when: with_pulp | default(false) | bool
+
+- name: Deploy pulp-cli configuration
+  ansible.builtin.template:
+    src: cli.toml.j2
+    dest: /home/copr/.config/pulp/cli.toml
+    owner: copr
+    group: copr
+    mode: '0600'
+  when: with_pulp | default(false) | bool
+
 - name: Start and enable copr-backend
   ansible.builtin.systemd_service:
     name: copr-backend.target

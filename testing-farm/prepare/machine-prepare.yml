@@ -10,6 +10,7 @@
     frontend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
     backend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
     distgit_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
+    with_pulp: false
 
   roles:
     - pre-release-packages
@@ -17,6 +18,8 @@
     - ca-trust
     - resalloc
     - distgit
+    - role: pulp
+      when: with_pulp | bool
     - backend
     - frontend
     - keygen

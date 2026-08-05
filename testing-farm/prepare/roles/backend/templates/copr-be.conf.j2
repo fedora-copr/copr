@@ -10,5 +10,9 @@ keygen_host=localhost:8080
 # multiple concurrent emulated builds.  Limit to a maximum of two per sandbox.
 builds_max_workers_sandbox=2
 
+{% if with_pulp | bool %}
+pulp_content_url=https://{{ frontend_hostname }}/results
+{% endif %}
+
 [ssh]
 builder_config=/home/copr/.ssh/config
