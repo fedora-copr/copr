@@ -77,6 +77,8 @@ Recommends: python3-copr-messaging
 Requires:   python3-daemon
 Requires:   python3-dateutil
 Recommends: python3-fedmsg
+Recommends: python3-stomppy
+Recommends: python3-kafka
 Requires:   python3-gobject
 Requires:   python3-humanize
 Requires:   python3-jinja2

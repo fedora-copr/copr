@@ -29,6 +29,12 @@ except ImportError:
     stomp = None
     StompConnectionListener = object
 
+try:
+    from kafka import KafkaProducer
+except ImportError:
+    # python-kafka is also optional
+    KafkaProducer = None
+
 
 def message_from_worker_job(style, topic, job, who, ip, pid):
     """
@@ -300,6 +306,46 @@ class MsgBusStomp(MsgBus):
                        content_type='application/json')
 
 
+class MsgBusKafka(MsgBus):
+    """
+    Connect to Kafka cluster and publish messages.  Configuration mirrors
+    MsgBusStomp: 'hosts' (bootstrap servers), 'auth' (SASL/SCRAM username +
+    password), 'destination' (Kafka topic name).
+    """
+
+    bus_type = "kafka"
+
+    def __init__(self, opts, log=None):
+        super().__init__(opts, log)
+
+        if KafkaProducer is None:
+            raise RuntimeError(
+                "Kafka support requires the python3-kafka package to be "
+                "installed")
+
+        # allow dict.get() (with default None) method
+        auth = {}
+        if getattr(self.opts, 'auth', None):
+            auth = self.opts.auth
+
+        self.producer = KafkaProducer(
+            bootstrap_servers=self.opts.hosts,
+            security_protocol='SASL_SSL',
+            sasl_mechanism='SCRAM-SHA-512',
+            sasl_plain_username=auth.get('username'),
+            sasl_plain_password=auth.get('password'),
+            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+        )
+
+    def _send_message(self, message):
+        future = self.producer.send(
+            self.opts.destination,
+            value=message.body,
+            headers=[('topic', message.topic.encode('utf-8'))],
+        )
+        future.get(timeout=10)
+
+
 class MsgBusFedmsg(MsgBus):
     """
     Connect to fedmsg and send messages over it.
@@ -351,6 +397,8 @@ class MessageSender:
                 msg_buses.append(MsgBusStomp(bus_config, log))
             elif bus_config.bus_type == 'fedora-messaging':
                 msg_buses.append(MsgBusFedoraMessaging(bus_config, log))
+            elif bus_config.bus_type == 'kafka':
+                msg_buses.append(MsgBusKafka(bus_config, log))
 
         if backend_opts.fedmsg_enabled:
             msg_buses.append(MsgBusFedmsg(log))
