@@ -93,6 +93,13 @@
     state: installed
   when: with_pulp | default(false) | bool
 
+- name: Fetch the Pulp admin password
+  ansible.builtin.slurp:
+    src: /root/pulp-admin-password
+  delegate_to: "{{ host_with_secrets }}"
+  register: pulp_admin_password
+  when: with_pulp | default(false) | bool
+
 - name: Create pulp-cli config directory for copr user
   ansible.builtin.file:
     path: /home/copr/.config/pulp
