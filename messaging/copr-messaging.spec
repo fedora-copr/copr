@@ -46,6 +46,8 @@ Provides: %name = %version
 
 Requires: python3-copr-common
 Requires: python3-fedora-messaging
+Recommends: python3-stomppy
+Recommends: python3-kafka
 
 %description -n python3-%name %_description
 
