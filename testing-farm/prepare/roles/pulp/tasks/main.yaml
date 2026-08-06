@@ -4,6 +4,7 @@
     src: /root/pulp-admin-password
   delegate_to: "{{ host_with_secrets }}"
   register: pulp_admin_password
+  no_log: true
 
 - name: Start Pulp container
   containers.podman.podman_container:
@@ -16,6 +17,7 @@
       - "5006:80"
     device:
       - /dev/fuse:/dev/fuse
+  no_log: true
 
 - name: Wait for Pulp to become ready
   ansible.builtin.uri:

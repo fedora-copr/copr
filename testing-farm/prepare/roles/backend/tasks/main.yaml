@@ -11,6 +11,7 @@
     src: /root/be-fe-token
   delegate_to: "{{ host_with_secrets }}"
   register: be_fe_token
+  no_log: true
 
 - name: Configure Copr Backend
   ansible.builtin.template:
@@ -68,6 +69,7 @@
     src: /root/backend_builder
   delegate_to: "{{ host_with_secrets }}"
   register: key_file
+  no_log: true
 
 - name: Install the fetched SSH private key for copr
   ansible.builtin.copy:
@@ -98,6 +100,7 @@
     src: /root/pulp-admin-password
   delegate_to: "{{ host_with_secrets }}"
   register: pulp_admin_password
+  no_log: true
   when: with_pulp | default(false) | bool
 
 - name: Create pulp-cli config directory for copr user
@@ -116,6 +119,7 @@
     owner: copr
     group: copr
     mode: '0600'
+  no_log: true
   when: with_pulp | default(false) | bool
 
 - name: Start and enable copr-backend
