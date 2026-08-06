@@ -427,7 +427,7 @@ Rotation checklist
 
 .. _`Ansible SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/ansible/
 .. _`sysadmin-main FAS group`: https://accounts.fedoraproject.org/group/sysadmin-main/
-.. _`root_auth_users`: https://pagure.io/fedora-infra/ansible/blob/main/f/inventory/group_vars/copr_aws
+.. _`root_auth_users`: https://forge.fedoraproject.org/infra/ansible/src/branch/main/inventory/group_vars/copr_aws
 .. _`FAS aws-copr`: https://accounts.fedoraproject.org/group/aws-copr/
 .. _`FAS gitcopr`: https://accounts.fedoraproject.org/group/gitcopr/
 .. _`FAS copr-sig`: https://accounts.fedoraproject.org/group/copr-sig/

@@ -262,7 +262,7 @@ If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or some
 
 .. warning::
 
-    There's a long-term `race in Koji <https://pagure.io/fedora-infrastructure/issue/9504>`_.
+    There's a long-term `race in Koji <https://forge.fedoraproject.org/infra/tickets/issues/9504>`_.
     If you plan to submit more packages (and likely you do), submit all **but
     one** at once.  Keep one package to be submitted later, when other tasks are
     already processed to "poke through" potencially broken repository.

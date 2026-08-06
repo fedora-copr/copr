@@ -24,13 +24,13 @@ The following image illustrates the monitoring work-flow:
 
 .. image:: /_static/monitoring-schema.uml.png
 
-.. _`Fedora Infrastructure`: https://pagure.io/fedora-infrastructure
+.. _`Fedora Infrastructure`: https://forge.fedoraproject.org/infra/tickets
 .. _`AWS CloudFront`: https://aws.amazon.com/cloudfront/
 .. _`UptimeRobot`: https://uptimerobot.com/
 .. _`Prometheus`: https://prometheus.io/
 .. _`Nagios`: https://nagios.fedoraproject.org/nagios/cgi-bin//status.cgi?hostgroup=copr_all_instances_aws&style=overview
 .. _`Nagios external`: https://nagios-external.fedoraproject.org/nagios/cgi-bin//status.cgi?hostgroup=copr_all_instances_aws&style=overview
-.. _`copr-ping test`: https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/tasks/copr-ping.yml
+.. _`copr-ping test`: https://forge.fedoraproject.org/infra/ansible/src/branch/main/roles/copr/backend/tasks/copr-ping.yml
 .. _`periodically submits`: https://copr.fedorainfracloud.org/coprs/g/copr/copr-ping/builds/
 .. _`usage statistics`: https://copr-be.cloud.fedoraproject.org/stats/index.html
 .. _`analyze storage`: https://github.com/fedora-copr/copr/blob/main/backend/run/copr-backend-analyze-results

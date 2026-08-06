@@ -9,7 +9,7 @@ class PulpHTTPRedirect:
     """
     Maintain a list of Copr projects that have data in Pulp and therefore need
     HTTP redirects there. See the redirect script here:
-    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
+    https://forge.fedoraproject.org/infra/ansible/src/branch/main/roles/copr/backend/templates/lighttpd/pulp-redirect.lua.j2
     """
 
     def __init__(self, lock, path=None):

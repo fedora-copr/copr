@@ -13,7 +13,7 @@ contains all the data (including private stuff like API tokens), and therefore
 we **never publish it or download it onto our machines**.  The dump is created in
 the ``/backups/`` directory on Copr Frontend, and it is periodically pulled by
 a rdiff-backup Fedora Infrastructure bot `configured by Ansible
-<https://pagure.io/fedora-infra/ansible/blob/main/f/playbooks/rdiff-backup.yml>`_.
+<https://forge.fedoraproject.org/infra/ansible/src/branch/main/playbooks/rdiff-backup.yml>`_.
 
 To generate the backup manually (this can be useful e.g. before upgrading to a
 new major version of PostgreSQL), run::
