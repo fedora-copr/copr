@@ -186,6 +186,10 @@ def _rpmeta_predict_inner(job, opts, log):  # pylint: disable=too-many-return-st
     prediction_logger = _get_predictions_logger(opts.log_dir)
     prediction_logger.info(json.dumps({
         "build_id": job.build_id,
+        "chroot": job.chroot,
+        "arch": job.arch,
+        "package_name": job.package_name,
+        "package_version": job.package_version,
         "prediction": prediction,
         "threshold": threshold,
         "recommends_powerful": recommends_powerful,
