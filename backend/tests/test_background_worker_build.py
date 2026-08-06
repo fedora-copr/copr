@@ -234,23 +234,25 @@ def f_build_rpm_sign_on(f_build_rpm_case):
     config.bw = _reset_build_worker()
     return config
 
-@_patch_bwbuild_object("time")
+@mock.patch("copr_backend.storage.time")
 def test_waiting_for_repo_fail(mc_time, f_build_rpm_case_no_repodata, caplog):
     """ check that worker loops in _wait_for_repos """
     worker = f_build_rpm_case_no_repodata.bw
     mc_time.time.side_effect = [1, 2, 3, 4, 5, 6, 120, 121]
     worker.process()
     expected = [
+        (logging.INFO, "Waiting for copr_base repository"),
         (
             logging.ERROR,
-            str(BackendError(MESSAGES["give_up_repo"].format("copr_base"))),
-        ),
-        (logging.INFO, MESSAGES["repo_waiting"] % "copr_base"),
+            "Giving up waiting for copr_base repository, "
+            "please try to manually regenerate the DNF repository "
+            "(e.g. by 'copr-cli regenerate-repos <project_name>')"
+        )
     ]
     for exp in expected:
         assert exp in [(r[1], r[2]) for r in caplog.record_tuples]
 
-@_patch_bwbuild_object("time")
+@mock.patch("copr_backend.storage.time")
 def test_waiting_for_repo_success(mc_time, f_build_rpm_case_no_repodata, caplog):
     """ check that worker loops in _wait_for_repos """
     worker = f_build_rpm_case_no_repodata.bw
@@ -272,7 +274,7 @@ def test_waiting_for_repo_success(mc_time, f_build_rpm_case_no_repodata, caplog)
     assert len(worker._alloc_host.call_args_list) == 1
 
     assert (
-        logging.INFO, MESSAGES["repo_waiting"] % "copr_base"
+        logging.INFO, "Waiting for copr_base repository"
     )  in [(r[1], r[2]) for r in caplog.record_tuples]
 
 def test_full_rpm_build_no_sign(f_build_rpm_case, caplog):

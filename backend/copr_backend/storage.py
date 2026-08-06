@@ -4,6 +4,7 @@ Support for various data storages, e.g. results directory on backend, Pulp, etc.
 
 import os
 import gc
+import time
 from tempfile import TemporaryDirectory
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # We need to stop using the deprecated distutils module.
@@ -148,6 +149,34 @@ class Storage:
                 path = os.path.join(root, name)
                 results.append(path)
         return results
+
+    def wait_for_repo(self, dirname, chroot, repo_id, baseurl):
+        """
+        Wait a while for initial createrepo, and eventually fail the build
+        if the waiting is not successful.
+        """
+        waiting_since = time.time()
+        while time.time() - waiting_since < 60:
+            if self.repository_exists(dirname, chroot, baseurl):
+                return
+
+            # Either (a) the very first copr-repo run in this chroot dir
+            # is still running on background (or failed), or (b) we are
+            # hitting the race condition between
+            # 'rm -rf repodata && mv .repodata repodata' sequence that
+            # is done in createrepo_c.  Try again after some time.
+            self.log.info("Waiting for %s repository", repo_id)
+            time.sleep(2)
+
+        # This should never happen, but if yes - we need to debug
+        # properly.  Give up waiting, and fail the build.  That should
+        # motivate people to report bugs.
+        raise CoprBackendError(
+            "Giving up waiting for {0} repository, "
+            "please try to manually regenerate the DNF repository "
+            "(e.g. by 'copr-cli regenerate-repos <project_name>')"
+            .format(repo_id)
+        )
 
 
 class BackendStorage(Storage):
@@ -345,6 +374,12 @@ class PulpStorage(Storage):
         # If a project enabled the manual createrepo mode, we need to create a
         # devel distribution to be consumed by other builds within the project
         if self.devel:
+            baseurl = "{0}/{1}/".format(
+                self.opts.pulp_content_url,
+                public_distribution_name,
+            )
+            self.wait_for_repo(dirname, chroot, "copr_base", baseurl)
+
             response = self.client.get_publication(repository_href)
             publication = response.json()["results"][0]["pulp_href"]
             public_distribution = self._get_distribution(chroot, dirname, devel=False)

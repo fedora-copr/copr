@@ -50,12 +50,6 @@ CANCEL_CHECK_PERIOD = 5
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 
 MESSAGES = {
-    "give_up_repo":
-        "Giving up waiting for {0} repository, "
-        "please try to manually regenerate the DNF repository "
-        "(e.g. by 'copr-cli regenerate-repos <project_name>')",
-    "repo_waiting":
-        "Waiting for %s repository",
     "copr_rpmbuild_missing":
         "The copr-rpmbuild package was not found: {}",
 }
@@ -341,34 +335,6 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             results = json.load(f)
         self.job.results = results
 
-    def _wait_for_repo(self, repo_id, baseurl):
-        """
-        Wait a while for initial createrepo, and eventually fail the build
-        if the waiting is not successful.
-        """
-        waiting_since = time.time()
-        while time.time() - waiting_since < 60:
-            exists = self.storage.repository_exists(
-                self.job.project_dirname,
-                self.job.chroot,
-                baseurl,
-            )
-            if exists:
-                return
-
-            # Either (a) the very first copr-repo run in this chroot dir
-            # is still running on background (or failed), or (b) we are
-            # hitting the race condition between
-            # 'rm -rf repodata && mv .repodata repodata' sequence that
-            # is done in createrepo_c.  Try again after some time.
-            self.log.info(MESSAGES["repo_waiting"], repo_id)
-            time.sleep(2)
-
-        # This should never happen, but if yes - we need to debug
-        # properly.  Give up waiting, and fail the build.  That should
-        # motivate people to report bugs.
-        raise BackendError(MESSAGES["give_up_repo"].format(repo_id))
-
     def _wait_for_repos(self):
         """
         Wait a while for initial createrepo of `copr_base` and `copr_coprdir`,
@@ -385,7 +351,12 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             # trying to enable them.
             if repo["id"] not in ["copr_base", "copr_coprdir"]:
                 continue
-            self._wait_for_repo(repo["id"], repo["baseurl"])
+            self.storage.wait_for_repo(
+                self.job.project_dirname,
+                self.job.chroot,
+                repo["id"],
+                repo["baseurl"],
+            )
 
     def _get_build_job(self):
         """
