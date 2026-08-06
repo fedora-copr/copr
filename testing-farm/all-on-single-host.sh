@@ -36,6 +36,16 @@ pulp) EXPECTED_FAILURES+=( "runtest-regenerate-repos.sh" ) ;;
 esac
 
 is_expected_failure() {
+    # Example usage:
+    # if is_expected_failure "$script_name"; then
+    #     if [ $exit_code -ne 0 ]; then
+    #         echo -e "⚠️  EXPECTED FAILURE: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
+    #     else
+    #         FAILURE_COUNT=$((FAILURE_COUNT + 1))
+    #         FINAL_EXIT_CODE=1
+    #         echo -e "❗ UNEXPECTED PASS: $script_name - Completed at $(date +%H:%M:%S)"
+    #         FAILED_JOBS+=( "$script_name (UNEXPECTED PASS)" )
+    #     fi
     local name=$1
     for ef in "${EXPECTED_FAILURES[@]}"; do
         test "$ef" = "$name" && return 0
@@ -107,16 +117,7 @@ while (( JOB_COUNT > 0 )); do
 
     JOB_COUNT=$((JOB_COUNT - 1))
 
-    if is_expected_failure "$script_name"; then
-        if [ $exit_code -ne 0 ]; then
-            echo -e "⚠️  EXPECTED FAILURE: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
-        else
-            FAILURE_COUNT=$((FAILURE_COUNT + 1))
-            FINAL_EXIT_CODE=1
-            echo -e "❗ UNEXPECTED PASS: $script_name - Completed at $(date +%H:%M:%S)"
-            FAILED_JOBS+=( "$script_name (UNEXPECTED PASS)" )
-        fi
-    elif [ $exit_code -ne 0 ]; then
+    if [ $exit_code -ne 0 ]; then
         FAILURE_COUNT=$((FAILURE_COUNT + 1))
         FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
 
