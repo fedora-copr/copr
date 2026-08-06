@@ -170,16 +170,16 @@ class TestRpmetaPredictBuildTime:
         assert "no HW info for arch" in log.info.call_args[0][0]
 
     @pytest.mark.parametrize(
-        "prediction_val,tags,expect_final_tag,expect_demoted,expect_log_substr", [
+        "prediction_val,tags,expect_final_tag,expect_promoted,expect_log_substr", [
             # Never tagged, below threshold -> stays untouched.
             (30, ["copr_builder", "arch_x86_64"],
              False, False, "normal builder sufficient"),
-            # Never tagged, above threshold -> rpmeta never promotes.
+            # Never tagged, above threshold -> promoted (tag added).
             (185, ["copr_builder", "arch_x86_64"],
-             False, False, "never promotes builds on its own"),
-            # Already tagged, below threshold -> demoted (tag removed).
+             True, True, "promoted to powerful builder"),
+            # Already tagged, below threshold -> rpmeta never demotes.
             (30, ["copr_builder", "arch_x86_64", "on_demand_powerful"],
-             False, True, "demoted from powerful builder"),
+             True, False, "keeping powerful builder tag"),
             # Already tagged, above threshold -> tag is kept.
             (185, ["copr_builder", "arch_x86_64", "on_demand_powerful"],
              True, False, "keeping powerful builder tag"),
@@ -187,7 +187,7 @@ class TestRpmetaPredictBuildTime:
     @mock.patch("copr_backend.rpmeta.requests.post")
     def test_successful_prediction(self, mock_post, tmpdir,
                                    prediction_val, tags, expect_final_tag,
-                                   expect_demoted, expect_log_substr):
+                                   expect_promoted, expect_log_substr):
         mock_post.return_value = _mock_prediction(prediction_val)
 
         log = mock.MagicMock()
@@ -209,14 +209,18 @@ class TestRpmetaPredictBuildTime:
             record = json.loads(fh.readline())
 
         assert record["build_id"] == 12345
+        assert record["chroot"] == "fedora-41-x86_64"
+        assert record["arch"] == "x86_64"
+        assert record["package_name"] == "test-pkg"
+        assert record["package_version"] == "0:1.2.3-1.fc41"
         assert record["prediction"] == prediction_val
         assert record["threshold"] == 120
         assert record["recommends_powerful"] is (prediction_val >= 120)
         assert record["has_powerful_tag"] is expect_final_tag
-        assert record["demoted"] is expect_demoted
+        assert record["promoted"] is expect_promoted
 
-    def test_never_promotes_untagged_job(self, tmpdir):
-        """rpmeta must never add the powerful tag on its own."""
+    def test_promotes_untagged_job_above_threshold(self, tmpdir):
+        """rpmeta adds the powerful tag to any build predicted above threshold."""
         log = mock.MagicMock()
         opts = _make_opts(tmpdir)
         job = _make_job(tags=["copr_builder", "arch_x86_64"])
@@ -225,10 +229,10 @@ class TestRpmetaPredictBuildTime:
             mock_post.return_value = _mock_prediction(500)
             rpmeta.rpmeta_predict_build_time(job, opts, log)
 
-        assert job.tags == ["copr_builder", "arch_x86_64"]
+        assert job.tags == ["copr_builder", "arch_x86_64", "on_demand_powerful"]
 
-    def test_demotes_tagged_job_below_threshold(self, tmpdir):
-        """rpmeta must mutate job.tags in place so VM allocation sees it."""
+    def test_never_removes_existing_tag(self, tmpdir):
+        """rpmeta must never demote a build that already has the powerful tag."""
         log = mock.MagicMock()
         opts = _make_opts(tmpdir)
         job = _make_job(tags=["copr_builder", "arch_x86_64", "on_demand_powerful"])
@@ -237,7 +241,7 @@ class TestRpmetaPredictBuildTime:
             mock_post.return_value = _mock_prediction(10)
             rpmeta.rpmeta_predict_build_time(job, opts, log)
 
-        assert job.tags == ["copr_builder", "arch_x86_64"]
+        assert job.tags == ["copr_builder", "arch_x86_64", "on_demand_powerful"]
 
     def test_keeps_tag_when_still_above_threshold(self, tmpdir):
         log = mock.MagicMock()
@@ -250,43 +254,43 @@ class TestRpmetaPredictBuildTime:
 
         assert job.tags == ["copr_builder", "arch_x86_64", "on_demand_powerful"]
 
-    @pytest.mark.parametrize("threshold,prediction_val,expect_demoted", [
-        (120, 119, True),
-        (120, 120, False),
-        (30, 29, True),
-        (300, 299, True),
-        (300, 300, False),
+    @pytest.mark.parametrize("threshold,prediction_val,expect_promoted", [
+        (120, 119, False),
+        (120, 120, True),
+        (30, 29, False),
+        (300, 299, False),
+        (300, 300, True),
     ])
     @mock.patch("copr_backend.rpmeta.requests.post")
     def test_configurable_threshold(self, mock_post, tmpdir,
-                                    threshold, prediction_val, expect_demoted):
+                                    threshold, prediction_val, expect_promoted):
         mock_post.return_value = _mock_prediction(prediction_val)
 
         log = mock.MagicMock()
         opts = _make_opts(tmpdir, rpmeta_powerful_threshold=threshold)
-        job = _make_job(tags=["copr_builder", "arch_x86_64", "on_demand_powerful"])
+        job = _make_job(tags=["copr_builder", "arch_x86_64"])
         result = rpmeta.rpmeta_predict_build_time(job, opts, log)
         assert result == prediction_val
-        assert ("on_demand_powerful" in job.tags) is not expect_demoted
+        assert ("on_demand_powerful" in job.tags) is expect_promoted
 
         pred_log = os.path.join(tmpdir, "rpmeta-predictions.log")
         with open(pred_log, encoding="utf-8") as fh:
             record = json.loads(fh.readline())
-        assert record["demoted"] is expect_demoted
+        assert record["promoted"] is expect_promoted
 
     @mock.patch("copr_backend.rpmeta.requests.post")
     def test_default_threshold_when_not_configured(self, mock_post, tmpdir):
-        mock_post.return_value = _mock_prediction(100)
+        mock_post.return_value = _mock_prediction(150)
 
         log = mock.MagicMock()
         opts = _make_opts(tmpdir)
         del opts["rpmeta_powerful_threshold"]
 
-        job = _make_job(tags=["copr_builder", "arch_x86_64", "on_demand_powerful"])
+        job = _make_job(tags=["copr_builder", "arch_x86_64"])
         result = rpmeta.rpmeta_predict_build_time(job, opts, log)
-        assert result == 100
-        # 100 < the default threshold of 120 -> demoted.
-        assert "on_demand_powerful" not in job.tags
+        assert result == 150
+        # 150 >= the default threshold of 120 -> promoted.
+        assert "on_demand_powerful" in job.tags
 
     @pytest.mark.parametrize("side_effect,status_code,expect_log_method,expect_log_substr", [
         (None, 404, "info", "not known to model"),

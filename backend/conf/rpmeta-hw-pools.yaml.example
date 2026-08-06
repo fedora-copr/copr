@@ -1,6 +1,12 @@
 # Hardware specs of builder machines per architecture.
 # Used by copr-backend to call rpmeta with the correct HW info.
 # Update when builder hardware changes.
+#
+# IMPORTANT: only list architectures that actually have a powerful
+# builder pool (on_demand_powerful / rpmeta_powerful_tag) available.
+# rpmeta only promotes builds to a powerful builder for architectures
+# present here -- if an architecture is omitted, no prediction is made
+# for it and the powerful builder tag is never added.
 
 x86_64:
   cpu_model_name: "AMD EPYC 7R13 Processor"
