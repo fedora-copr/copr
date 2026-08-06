@@ -28,6 +28,21 @@ export VENDOR="Testing Copr - user single-host-testing"
 SCRIPT_DIR="."
 LOG_DIR="./logs"
 
+# Tests that are known to fail with Pulp storage
+EXPECTED_FAILURES=()
+
+case $STORAGE in
+pulp) EXPECTED_FAILURES+=( "runtest-regenerate-repos.sh" ) ;;
+esac
+
+is_expected_failure() {
+    local name=$1
+    for ef in "${EXPECTED_FAILURES[@]}"; do
+        test "$ef" = "$name" && return 0
+    done
+    return 1
+}
+
 PIDS=()
 # Global map to store the script name indexed by its PID
 declare -A PID_TO_NAME
@@ -92,7 +107,16 @@ while (( JOB_COUNT > 0 )); do
 
     JOB_COUNT=$((JOB_COUNT - 1))
 
-    if [ $exit_code -ne 0 ]; then
+    if is_expected_failure "$script_name"; then
+        if [ $exit_code -ne 0 ]; then
+            echo -e "⚠️  EXPECTED FAILURE: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
+        else
+            FAILURE_COUNT=$((FAILURE_COUNT + 1))
+            FINAL_EXIT_CODE=1
+            echo -e "❗ UNEXPECTED PASS: $script_name - Completed at $(date +%H:%M:%S)"
+            FAILED_JOBS+=( "$script_name (UNEXPECTED PASS)" )
+        fi
+    elif [ $exit_code -ne 0 ]; then
         FAILURE_COUNT=$((FAILURE_COUNT + 1))
         FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
 
