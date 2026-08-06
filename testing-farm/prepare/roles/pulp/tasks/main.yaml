@@ -1,11 +1,17 @@
 ---
+- name: Fetch the Pulp admin password
+  ansible.builtin.slurp:
+    src: /root/pulp-admin-password
+  delegate_to: "{{ host_with_secrets }}"
+  register: pulp_admin_password
+
 - name: Start Pulp container
   containers.podman.podman_container:
     name: pulp
     image: ghcr.io/pulp/pulp:latest
     state: started
     env:
-      PULP_DEFAULT_ADMIN_PASSWORD: "admin"
+      PULP_DEFAULT_ADMIN_PASSWORD: "{{ pulp_admin_password['content'] | b64decode }}"
     ports:
       - "5006:80"
     device:
