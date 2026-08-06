@@ -4,13 +4,30 @@
   user: "root"
 
   vars:
-    host_with_secrets: "{{ ansible_host }}"
+    host_with_secrets: '{{ inventory_hostname }}'
     ansible_python_interpreter: /usr/bin/python3
     test_user: single-host-testing
-    frontend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
-    backend_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
-    distgit_hostname: '{{ ansible_host | regex_replace("^root@", "") }}'
+    frontend_hostname: "{{ public_ip }}"
+    backend_hostname: "{{ public_ip }}"
+    distgit_hostname: "{{ public_ip }}"
     with_pulp: false
+
+  pre_tasks:
+    - name: Detect public IP address
+      ansible.builtin.uri:
+        url: https://ifconfig.me/ip
+        return_content: true
+        headers:
+          Accept: text/plain
+      register: public_ip_result
+
+    - name: Set public_ip fact
+      ansible.builtin.set_fact:
+        public_ip: "{{ public_ip_result.content | trim }}"
+
+    - name: Show detected public IP
+      ansible.builtin.debug:
+        msg: "Public IP: {{ public_ip }}"
 
   roles:
     - pre-release-packages
