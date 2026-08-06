@@ -81,7 +81,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        rlRun "copr-cli delete ${NAME_PREFIX}DnfCopr"
+        cleanProject "${NAME_PREFIX}DnfCopr"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
