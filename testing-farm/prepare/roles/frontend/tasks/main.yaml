@@ -52,6 +52,7 @@
     src: /root/be-fe-token
   delegate_to: "{{ host_with_secrets }}"
   register: be_fe_token
+  no_log: true
 
 - name: Configure Copr Frontend
   ansible.builtin.template:
@@ -130,6 +131,7 @@
     src: /root/self-signed.key
   delegate_to: "{{ host_with_secrets }}"
   register: key_file
+  no_log: true
 
 - name: Install the fetched private key file on the target host
   ansible.builtin.copy:
