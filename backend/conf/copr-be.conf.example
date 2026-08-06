@@ -106,10 +106,13 @@ prune_days=14
 #rpmeta_enabled=false
 #rpmeta_url=https://rpmeta.fedorainfracloud.org
 #rpmeta_timeout=5
-# Mapping to hardware resources we have
+# Mapping to hardware resources we have. Only list architectures that
+# actually have a powerful builder pool available -- an architecture with
+# no entry here is skipped entirely (no prediction, tag never added). See
+# rpmeta-hw-pools.yaml.example.
 #rpmeta_hw_pools_config=/etc/copr/rpmeta-hw-pools.yaml
-# Predicted build time (in minutes) at/above which rpmeta recommends
-# routing the build to a more powerful builder.
+# Predicted build time (in minutes) at/above which rpmeta adds the
+# powerful builder tag to a build (see rpmeta_powerful_tag below).
 #rpmeta_powerful_threshold=120
 # Job tag used to route a build to a powerful builder VM. Must
 # match the tag name expected by resalloc pools / mock config snippets.
