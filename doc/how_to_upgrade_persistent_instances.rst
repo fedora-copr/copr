@@ -56,7 +56,7 @@ Then, check the file-system modifications::
     ...
 
 E.g., the ``/var/www/cgi-resalloc`` file is a weird change, but that in
-particular is covered `in playbooks <https://pagure.io/fedora-infra/ansible/c/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
+particular is covered `in playbooks <https://forge.fedoraproject.org/infra/ansible/commit/d6ede12e3247f7b5f5d8b4dafc1710ae6987847c>`_.
 The ``pulp.py`` change is important to note though!  You may consult the
 ``dnf diff copr-backend`` output, find the corresponding upstream PR on GitHub,
 and tag the PR with ``hot-fixed`` label (if not already done).
@@ -339,7 +339,7 @@ section.
 .. _`Fedora Infra OpenStack`: https://fedorainfracloud.org
 .. _`OpenStack images dashboard`: https://fedorainfracloud.org/dashboard/project/images/
 .. _`OpenStack instances dashboard`: https://fedorainfracloud.org/dashboard/project/instances/
-.. _`Fedora infrastructure issue #7966`: https://pagure.io/fedora-infrastructure/issue/7966
+.. _`Fedora infrastructure issue #7966`: https://forge.fedoraproject.org/infra/tickets/issues/7966
 .. _`fedora devel`: https://lists.fedorahosted.org/archives/list/devel@lists.fedoraproject.org/
 .. _`copr devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`Amazon AWS account`: https://id.fedoraproject.org/saml2/SSO/Redirect?SPIdentifier=urn:amazon:webservices&RelayState=https://console.aws.amazon.com
@@ -348,4 +348,4 @@ section.
 .. _`ec2instances.info`: https://ec2instances.info/
 .. _`helper playbook repository`: https://github.com/fedora-copr/ansible-fedora-copr
 .. _`playbook SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/ansible/
-.. _`private IP change`: https://pagure.io/fedora-infra/ansible/c/6c80a870ff2a62e73da98f7607574e534369fb37
+.. _`private IP change`: https://forge.fedoraproject.org/infra/ansible/commit/6c80a870ff2a62e73da98f7607574e534369fb37

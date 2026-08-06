@@ -23,7 +23,7 @@ Planned outage
    Outage Calendar`` room.
 
 2. Prepare `an infrastructure ticket
-   <https://pagure.io/fedora-infrastructure/new_issue>`_ using one of these
+   <https://forge.fedoraproject.org/infra/tickets/issues/new>`_ using one of these
    templates
 
    .. toctree::
@@ -42,7 +42,7 @@ Planned outage
 
 4. Adjust the `Matrix channel`_ title so it contains a message similar to::
 
-        Planned outage 2022-08-17 20:00 UTC - https://pagure.io/fedora-infrastructure/issue/10854
+        Planned outage 2022-08-17 20:00 UTC - https://forge.fedoraproject.org/infra/tickets/issues/10854
 
 5. Create a new "planned" `Fedora Status SOP`_ entry.
 

@@ -112,6 +112,6 @@ inodes cached, 28M inodes and 15T synced in 6.5hours).   We had also decreased
 the ``dirty_ratio`` and ``dirty_background_ratio`` to have more frequent syncs
 considering the large RAM.
 
-.. _`ansible configuration`: https://pagure.io/fedora-infra/ansible/blob/main/f/roles/copr/backend/tasks/mount_fs.yml
-.. _`list of volumes`: https://pagure.io/fedora-infra/ansible/blob/main/f/inventory/group_vars/copr_all_instances_aws
+.. _`ansible configuration`: https://forge.fedoraproject.org/infra/ansible/src/branch/main/roles/copr/backend/tasks/mount_fs.yml
+.. _`list of volumes`: https://forge.fedoraproject.org/infra/ansible/src/branch/main/inventory/group_vars/copr_all_instances_aws
 .. _mdadm_sync: https://raid.wiki.kernel.org/index.php/Initial_Array_Creation

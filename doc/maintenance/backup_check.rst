@@ -12,7 +12,7 @@ Copr Backend
 
 The backend storage uses a complex RAID setup to provide redundancy directly on
 the server (in EC2).  Backups are then
-`synchronized periodically <https://pagure.io/fedora-infra/ansible/blob/81f81668cc0ea3101cf74d56401aad3c1354f788/f/roles/rsnapshot-push/tasks/main.yml#_67>`_
+`synchronized periodically <https://forge.fedoraproject.org/infra/ansible/src/commit/81f81668cc0ea3101cf74d56401aad3c1354f788/roles/rsnapshot-push/tasks/main.yml#L67>`_
 to the storinator01 host as incremental backups via rsnapshot.
 To verify backend backups, you should:
 
@@ -77,9 +77,9 @@ If we provide such an updated tarball, `rdiff-backup
 <https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/rdiff-backup/>`_
 periodically comes and pulls the backups "out"; as long as the box is in an
 appropriate `Ansible group
-<https://pagure.io/fedora-infra/ansible/blob/81f81668cc0ea3101cf74d56401aad3c1354f788/f/inventory/backups#_4>`_
+<https://forge.fedoraproject.org/infra/ansible/src/commit/81f81668cc0ea3101cf74d56401aad3c1354f788/inventory/backups#L4>`_
 and we `configure
-<https://pagure.io/fedora-infra/ansible/blob/81f81668cc0ea3101cf74d56401aad3c1354f788/f/inventory/host_vars/copr-fe.aws.fedoraproject.org#_6>`_
+<https://forge.fedoraproject.org/infra/ansible/src/commit/81f81668cc0ea3101cf74d56401aad3c1354f788/inventory/host_vars/copr-fe.aws.fedoraproject.org#L6>`_
 the backup dir.
 
 For Frontend data volume, we also do automatic volume snapshots (see Copr Keygen

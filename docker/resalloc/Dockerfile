@@ -5,7 +5,7 @@ MAINTAINER copr-devel@lists.fedorahosted.org
 # https://github.com/praiskup/resalloc/blob/master/docs/start-resalloc-server.txt
 #
 # Copr production deployment is described here
-# https://pagure.io/fedora-infra/ansible/blob/master/f/roles/copr/backend/tasks/resalloc.yml
+# https://forge.fedoraproject.org/infra/ansible/src/branch/main/roles/copr/backend/tasks/resalloc.yml
 
 RUN dnf install -y ansible \
                    vim \

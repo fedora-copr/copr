@@ -2,7 +2,7 @@
 Optionally run `fedora-review` tool after build
 
 See the `fedora-review` tool:
-https://pagure.io/FedoraReview
+https://forge.fedoraproject.org/packaging/FedoraReview
 
 See the Fedora Review Process
 https://fedoraproject.org/wiki/Package_Review_Process
@@ -78,7 +78,7 @@ class FedoraReview(AutomationTool):
         Currently, fedora-review tool doesn't have an option to specify
         a destdir, and produces output to a directory called after the package
         name. We want to rename it to something more straighforward.
-        See https://pagure.io/FedoraReview/issue/410
+        See https://forge.fedoraproject.org/packaging/FedoraReview/issues/410
 
         We also don't want to save all results, only some text files.
         """

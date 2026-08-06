@@ -38,7 +38,7 @@ The Fedora Infra ticket and the e-mail may look like::
 
     <e-mail backref to infra ticket>
     Infrastructure ticket:
-    https://pagure.io/fedora-infrastructure/issue/11468
+    https://forge.fedoraproject.org/infra/tickets/issues/11468
 
     Please join Fedora Build System Matrix channel:
     https://matrix.to/#/#buildsys:fedoraproject.org

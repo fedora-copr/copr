@@ -12,7 +12,7 @@ AWS CLI cheatsheet:
     aws s3 cp s3://fedora-copr/cloudwatch/E2PUZIRCXCOXTG.2021-12-07-15.00d7a244.gz ./
 
 Token permissions are required:
-https://pagure.io/fedora-infrastructure/issue/10395
+https://forge.fedoraproject.org/infra/tickets/issues/10395
 """
 
 

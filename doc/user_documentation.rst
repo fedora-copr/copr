@@ -586,7 +586,7 @@ Quick HOWTO for the `Package Review`_ time::
     ...
     # wait and see the results!
 
-.. _`Fedora Review`: https://pagure.io/FedoraReview
+.. _`Fedora Review`: https://forge.fedoraproject.org/packaging/FedoraReview
 .. _`Package Review`: https://fedoraproject.org/wiki/Package_Review_Process
 
 
@@ -1093,7 +1093,7 @@ You should press Ctrl+Shift+R to invalidate your cache and reload page
 
 .. rubric:: How can I create new group? :ref:`¶ <How can I create new group?>`
 
-Groups membership is handled by `FAS <https://accounts.fedoraproject.org>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://pagure.io/fedora-infrastructure/new_issue>`_.
+Groups membership is handled by `FAS <https://accounts.fedoraproject.org>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://forge.fedoraproject.org/infra/tickets/issues/new>`_.
 You have to log out and then log in again to Copr so Copr can read your new
 settings.  Note also that you might need to wait a few minutes till the
 `group list gets synchronized <https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/ipsilon/#_known_issues>`_.
