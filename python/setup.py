@@ -19,6 +19,7 @@ requires = [
     'requests-toolbelt',
     'setuptools',
     'munch',
+    'typing_extensions',
 ]
 
 __description__ = "Python client for copr service."
