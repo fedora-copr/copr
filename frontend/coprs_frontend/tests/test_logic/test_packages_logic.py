@@ -1,11 +1,40 @@
 import pytest
 
+from coprs import exceptions, helpers
 from coprs.logic.packages_logic import PackagesLogic
 
 from tests.coprs_test_case import CoprsTestCase
 
 
 class TestPackagesLogic(CoprsTestCase):
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_build_package_rejects_rpm_upload(self):
+        package = self.models.Package(
+            name="hello", copr=self.c1,
+            source_type=helpers.BuildSourceEnum("rpm_upload"),
+            source_json="{}",
+        )
+        self.db.session.add(package)
+        self.db.session.commit()
+
+        with pytest.raises(exceptions.UnrepeatableBuildException):
+            PackagesLogic.build_package(self.u1, self.c1, package)
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_batch_build_rejects_rpm_upload(self):
+        package = self.models.Package(
+            name="hello", copr=self.c1,
+            source_type=helpers.BuildSourceEnum("rpm_upload"),
+            source_json="{}",
+        )
+        self.db.session.add(package)
+        self.db.session.commit()
+
+        with pytest.raises(exceptions.UnrepeatableBuildException):
+            PackagesLogic.batch_build(
+                self.u1, self.c1, [package],
+                chroot_names=["fedora-18-x86_64"])
 
     def test_last_successful_build_chroots(self, f_users, f_fork_prepare, f_build_few_chroots):
         builds_p4 = PackagesLogic.last_successful_build_chroots(self.p4)

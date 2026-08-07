@@ -29,6 +29,8 @@ from copr_rpmbuild.helpers import (
     copr_chroot_to_task_id,
     macros_for_task,
     locate_srpm,
+    download_file,
+    get_rpm_header,
 )
 
 from copr_rpmbuild import __version__
@@ -236,6 +238,10 @@ def build_rpm(args, config):
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
+    if task.get("prebuilt_rpm_urls"):
+        build_rpm_upload(task, config)
+        return
+
     try:
         source_json = {
             "clone_url": task["git_repo"],
@@ -256,6 +262,28 @@ def build_rpm(args, config):
     finally:
         builder.archive_configs()
         distgit.cleanup()
+
+
+def build_rpm_upload(task, config):
+    """
+    Build a --chroot task for a "direct RPM upload" build.
+    """
+    resultdir = config.get("main", "resultdir")
+    chroot_arch = task["chroot"].rsplit("-", 1)[-1]
+
+    for url in task["prebuilt_rpm_urls"]:
+        rpm_path = download_file(url, resultdir)
+        hdr = get_rpm_header(rpm_path)
+        if hdr["arch"] not in (chroot_arch, "noarch"):
+            raise RuntimeError(
+                "Uploaded RPM {0} has arch '{1}', which doesn't match "
+                "chroot '{2}'".format(
+                    os.path.basename(rpm_path), hdr["arch"], task["chroot"]))
+
+    with open(os.path.join(resultdir, "success"), "w", encoding="utf-8") as success:
+        success.write("done")
+
+    run_automation_tools(task, resultdir, None, log, config)
 
 
 def dump_configs(args, config):

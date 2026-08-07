@@ -13,6 +13,7 @@ from coprs.exceptions import (
         DuplicateException,
         ApiError,
         UnknownSourceTypeException,
+        UnrepeatableBuildException,
         InvalidForm,
 )
 from coprs.views.misc import api_login_required
@@ -295,7 +296,7 @@ class PackageBuild(Resource):
                 build = PackagesLogic.build_package(
                     flask.g.user, copr, package, form.selected_chroots,
                     copr_dirname=form.project_dirname.data, **buildopts)
-            except NoPackageSourceException as e:
+            except (NoPackageSourceException, UnrepeatableBuildException) as e:
                 raise BadRequest(str(e)) from e
             db.session.commit()
         else:

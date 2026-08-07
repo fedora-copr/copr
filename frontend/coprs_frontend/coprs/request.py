@@ -76,12 +76,14 @@ def save_form_file_field_to(field, path: str):
     Store the uploaded data on Werkzeug file field.  Use this if the hack
     with _CoprRequestClass above is in action, and when you are sure that the
     uploaded file is on the same partition with the target path (so we can
-    hardlink).
+    hardlink).  Accepts either a WTForms file field, or a raw
+    werkzeug.datastructures.FileStorage instance directly.
     """
-    stream = field.data.stream
+    file_storage = field.data if hasattr(field, "data") else field
+    stream = file_storage.stream
 
     # Detect if SpooledTemporaryFile or NamedTemporaryFile is the storage
     if hasattr(stream, "named_file"):
         os.link(stream.name, path)
     else:
-        field.data.save(path)
+        file_storage.save(path)

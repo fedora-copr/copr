@@ -10,6 +10,7 @@ import datetime
 import shlex
 from threading import Timer
 from collections import OrderedDict
+from urllib.parse import unquote, urlparse
 
 import backoff
 import rpm
@@ -17,6 +18,7 @@ import munch
 from specfile import Specfile
 
 from copr_common.enums import BuildSourceEnum
+from copr_common.request import SafeRequest, RequestError
 
 log = logging.getLogger("__main__")
 
@@ -116,6 +118,46 @@ def get_rpm_header(path):
     with open(path, "rb") as f:
         hdr = ts.hdrFromFdno(f.fileno())
         return hdr
+
+
+def download_file(url, destination, request=None):
+    """
+    Download a file from the given URL into the destination directory.
+
+    :param request: an existing `SafeRequest` instance to (re)use, e.g. when
+        the caller already has one configured.  When not given, a new one is
+        created with a generous timeout (big RPM/SRPM files, slow
+        connections...).
+    :returns str: filesystem path to the downloaded file.
+    :raises RuntimeError: on any download failure
+    """
+    log.debug("Downloading %s", url)
+    if request is None:
+        request = SafeRequest(log=log, timeout=2 * 60)
+    try:
+        response = request.send(url, method="get", stream=True)
+    except RequestError as ex:
+        raise RuntimeError(f"Failed to download {url}: {ex}") from ex
+
+    # %-decode the URL path *before* taking its basename -- otherwise an
+    # encoded separator (e.g. "..%2f..%2fetc%2fpwn") would only be decoded
+    # into "../../etc/pwn" after basename() already treated it as a single
+    # (safe-looking) path component, allowing it to escape `destination`
+    # once joined.  The query string (e.g. "?dl=1") is dropped by urlparse().
+    filename = os.path.basename(unquote(urlparse(url).path))
+    # without this, such a URL would make us write outside `destination`
+    # (via "..") or onto it directly (via "" / ".") instead of a real file
+    if not filename or filename in (".", ".."):
+        raise RuntimeError(f"Cannot derive a safe filename from {url}")
+    filepath = os.path.join(destination, filename)
+    try:
+        with response:
+            with open(filepath, "wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+    except OSError as ex:
+        raise RuntimeError(f"Failed to save {filepath}: {ex}") from ex
+    return filepath
 
 
 def get_package_name(spec_path):

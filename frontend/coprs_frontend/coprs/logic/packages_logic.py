@@ -331,6 +331,9 @@ class PackagesLogic(object):
 
     @classmethod
     def build_package(cls, user, copr, package, chroot_names=None, copr_dirname=None, **build_options):
+        if package.source_type == helpers.BuildSourceEnum("rpm_upload"):
+            raise exceptions.UnrepeatableBuildException(
+                "Direct RPM upload builds cannot be repeated.")
         if not package.has_source_type_set or not package.source_json:
             raise exceptions.NoPackageSourceException('Unset default source for package {0}'.format(package.name))
 
@@ -350,6 +353,10 @@ class PackagesLogic(object):
                                                      with_build_id, user,
                                                      always_create=True)
         for package in packages:
+            if package.source_type == helpers.BuildSourceEnum("rpm_upload"):
+                raise exceptions.UnrepeatableBuildException(
+                    "Direct RPM upload builds cannot be repeated.")
+
             git_hashes = {}
             skip_import = False
             source_build = None
