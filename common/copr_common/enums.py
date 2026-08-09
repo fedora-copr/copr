@@ -163,3 +163,12 @@ class CreaterepoReason(metaclass=EnumType):
         "delete_build": 6,
         "prunerepo": 7,
     }
+
+
+class NotificationTypeEnum(metaclass=EnumType):
+    """
+    Notification message types.
+    """
+    vals = {
+        "eol_chroot":  0,
+    }
