@@ -7,6 +7,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import PinnedCoprsLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
+from coprs.logic.notifications_logic import NotificationsLogic
 from coprs.views.coprs_ns.coprs_general import process_copr_repositories
 from . import user_ns
 
@@ -34,6 +35,37 @@ def user_info_download():
     response.mimetype = "application/json"
     response.headers["Content-Disposition"] = "attachment; filename={0}.json".format(user.name)
     return response
+
+
+@user_ns.route("/notifications", defaults={"page": 1})
+@user_ns.route("/notifications/<int:page>/")
+@login_required
+def notifications(page=1):
+    """
+    List the current user's unseen notification messages, paginated.
+    """
+    user = flask.g.user
+    query = NotificationsLogic.get_unseen_user_notifications(user)
+    paginator = helpers.Paginator(query, query.count(), page)
+    user_notifications = paginator.sliced_query
+    return flask.render_template("notifications.html",
+                                 user=user,
+                                 notifications=user_notifications,
+                                 paginator=paginator,
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
+                                 graph=BuildsLogic.get_small_graph_data('30min'))
+
+
+@user_ns.route("/notifications/mark-seen", methods=["POST"])
+@login_required
+def notifications_mark_seen():
+    """
+    Mark the selected notification messages as seen for the current user.
+    """
+    notification_ids = [int(x) for x in flask.request.form.getlist("notification_ids[]")]
+    NotificationsLogic.mark_seen_by_ids(flask.g.user, notification_ids)
+    db.session.commit()
+    return flask.jsonify({"msg": "success"})
 
 
 @user_ns.route("/delete")

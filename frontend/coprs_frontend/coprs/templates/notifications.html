@@ -1,0 +1,72 @@
+{% extends "coprs/show.html" %}
+{% from "_helpers.html" import render_pagination %}
+{% block title %}Notifications{% endblock %}
+{% block header %}Notifications{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+    </li>
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=user.name) }}">{{ user.name }}</a>
+    </li>
+    <li class="active">
+        Notifications
+    </li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<h1>Notifications</h1>
+
+{% if not notifications %}
+<p>You have no unseen notifications.</p>
+{% else %}
+<form class="mark-seen-form">
+  <div class="notification-list">
+    <div class="notification-list-header">
+      <label class="notification-select-all-label">
+        <input type="checkbox" id="notification-select-all"><span class="notification-select-all-text">Select all</span>
+      </label>
+    </div>
+    {% for notification in notifications %}
+      <div class="notification-row">
+        <input type="checkbox"
+            name="notification_ids"
+            value="{{ notification.id }}"
+            aria-label="Mark {{ notification.subject }} as seen"
+        >
+        <div class="notification-row-content">
+          <div class="notification-row-top">
+            <strong>{{ notification.subject }}</strong>
+            <span class="notification-row-time">{{ notification.created_on | time_ago }} ago</span>
+          </div>
+          <div class="notification-row-body">{{ notification.body | urlize(40, true) }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <button class="btn btn-primary" type="submit">Mark seen</button>
+</form>
+
+<script>
+  $('#notification-select-all').change(function() {
+    $('.notification-row :checkbox[name=notification_ids]').prop('checked', $(this).prop('checked'));
+  });
+
+  $('form.mark-seen-form').submit(function(event) {
+    var notification_ids = [];
+    $('.notification-row :checkbox[name=notification_ids]:checked').each(function() {
+      notification_ids.push(this.value);
+    });
+
+    $.post("{{ url_for('user_ns.notifications_mark_seen') }}", {"notification_ids": notification_ids}, function() {
+      $(location).attr('href', "{{ url_for('user_ns.notifications', page=[paginator.page - 1, 1] | max) }}");
+    });
+    return false;
+  });
+</script>
+
+{{ render_pagination(request, paginator) }}
+{% endif %}
+{% endblock %}

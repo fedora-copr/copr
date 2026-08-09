@@ -67,8 +67,14 @@ class TestNotifyOutdatedChroots(CoprsTestCase):
         self.c2.copr_chroots[0].mock_chroot.is_active = False
         self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
         assert self.c2.copr_chroots[0].delete_notify is None
+        assert self.models.Notification.query.count() == 0
         notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
         assert self.c2.copr_chroots[0].delete_notify is not None
+
+        notifications = self.models.Notification.query.all()
+        assert len(notifications) == 1
+        assert notifications[0].user_id == self.u2.id
+        assert "outdated chroots" in notifications[0].subject
 
         assert send_mail.call_count == 1
         recipients, message = send_mail.call_args[0]
@@ -89,6 +95,26 @@ class TestNotifyOutdatedChroots(CoprsTestCase):
         notify_outdated_chroots_function(dry_run=False, email_filter=None, all=True)
         assert send_mail.call_count == 2
         assert self.c2.copr_chroots[0].delete_notify != previous_delete_notify
+
+    @patch("commands.notify_outdated_chroots.dev_instance_warning")
+    @patch("commands.notify_outdated_chroots.send_mail")
+    def test_no_notification_when_email_fails(
+            self, send_mail, dev_instance_warning, f_users, f_coprs, f_mock_chroots, f_db):  # pylint: disable=unused-argument
+        """
+        When email fails, neither mark chroot as notified nor create a
+        notification message
+        """
+        app.config["SERVER_NAME"] = "localhost"
+        send_mail.side_effect = ConnectionRefusedError("no SMTP server")
+
+        self.c2.copr_chroots[0].mock_chroot.is_active = False
+        self.c2.copr_chroots[0].delete_after = datetime.today() + timedelta(days=150)
+
+        notify_outdated_chroots_function(dry_run=False, email_filter=None, all=False)
+
+        assert send_mail.call_count == 1
+        assert self.c2.copr_chroots[0].delete_notify is None
+        assert self.models.Notification.query.count() == 0
 
     @patch("commands.notify_outdated_chroots.dev_instance_warning")
     @patch("commands.notify_outdated_chroots.send_mail")
