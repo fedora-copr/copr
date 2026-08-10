@@ -25,6 +25,8 @@ spec:
           env:
             - name: PULP_DEFAULT_ADMIN_PASSWORD
               value: "admin"
+            - name: PULP_SECRET_KEY
+              value: "change-me-to-something-secret"
           ports:
             - containerPort: 80
               protocol: TCP
