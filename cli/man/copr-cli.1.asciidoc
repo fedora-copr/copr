@@ -474,6 +474,7 @@ usage: copr add-package-pypi [-h] [--pythonversions [VERSION [VERSION ...]]]
                              [--packageversion PYPIVERSION] --packagename
                              PYPINAME --name PKGNAME
                              [--webhook-rebuild {on,off}]
+                             [--chroot-denylist CHROOT_DENYLIST]
                              project
 
 Add package of 'PyPI' source type.
@@ -493,6 +494,10 @@ Name of the package to be edited or created
 --webhook-rebuild {on,off}::
 Enable auto-rebuilding
 
+--chroot-denylist CHROOT_DENYLIST::
+Comma-separated list of wildcard patterns of chroots to exclude from
+builds, e.g. 'fedora-*,epel-*-i386'
+
 
 `copr-cli edit-package-pypi [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -501,6 +506,7 @@ usage: copr edit-package-pypi [-h] [--pythonversions [VERSION [VERSION ...]]]
                              [--packageversion PYPIVERSION] --packagename
                              PYPINAME --name PKGNAME
                              [--webhook-rebuild {on,off}]
+                             [--chroot-denylist CHROOT_DENYLIST]
                              project
 
 Edit source definition and type of an existing package. Options are shared with add-package-pypi.
@@ -513,6 +519,7 @@ usage: copr add-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
                             [--type {git,svn}]
                             [--method {rpkg,tito,tito_test,make_srpm}] --name
                             PKGNAME [--webhook-rebuild {on,off}]
+                            [--chroot-denylist CHROOT_DENYLIST]
                             copr
 
 Add package of SCM source type.
@@ -541,6 +548,10 @@ Name of the package to be edited or created
 --webhook-rebuild {on,off}::
 Enable auto-rebuilding
 
+--chroot-denylist CHROOT_DENYLIST::
+Comma-separated list of wildcard patterns of chroots to exclude from
+builds, e.g. 'fedora-*,epel-*-i386'
+
 
 `copr-cli edit-package-scm [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,6 +560,7 @@ usage: copr edit-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
                              [--type {git,svn}]
                              [--method {rpkg,tito,tito_test,make_srpm}] --name
                              PKGNAME [--webhook-rebuild {on,off}]
+                             [--chroot-denylist CHROOT_DENYLIST]
                              copr
 
 Edit package of SCM source type.
@@ -558,6 +570,7 @@ Edit package of SCM source type.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr add-package-rubygems [-h] [--gem GEM] --name PKGNAME
                                  [--webhook-rebuild {on,off}]
+                                 [--chroot-denylist CHROOT_DENYLIST]
                                  project
 
 Add package of 'RubyGems' source type.
@@ -571,11 +584,16 @@ Name of the package to be edited or created
 --webhook-rebuild {on,off}::
 Enable auto-rebuilding
 
+--chroot-denylist CHROOT_DENYLIST::
+Comma-separated list of wildcard patterns of chroots to exclude from
+builds, e.g. 'fedora-*,epel-*-i386'
+
 
 `copr-cli edit-package-rubygems [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr edit-package-rubygems [-h] [--gem GEM] --name PKGNAME
                                  [--webhook-rebuild {on,off}]
+                                 [--chroot-denylist CHROOT_DENYLIST]
                                  project
 
 Edit source definition and type of an existing package. Options are shared with add-package-rubygems.
@@ -590,6 +608,7 @@ usage: copr add-package-custom [-h] --script SCRIPT
                                [--script-repos SCRIPT_REPOS]
                                --name PKGNAME
                                [--webhook-rebuild {on,off}]
+                               [--chroot-denylist CHROOT_DENYLIST]
                                [--max-builds MAX_BUILDS]
                                [--timeout TIMEOUT]
                                project
@@ -617,6 +636,10 @@ Name of the package to be edited or created
 --webhook-rebuild {on,off}::
 Enable auto-rebuilding.
 
+--chroot-denylist CHROOT_DENYLIST::
+Comma-separated list of wildcard patterns of chroots to exclude from
+builds, e.g. 'fedora-*,epel-*-i386'
+
 --max-builds MAX_BUILDS::
 Keep only the specified number of the newest-by-id builds
 (garbage collector is run daily), zero disables (default)
@@ -634,6 +657,7 @@ usage: copr edit-package-custom [-h]
                                 [--script-resultdir SCRIPT_RESULTDIR]
                                 [--script-repos SCRIPT_REPOS]
                                 --name PKGNAME [--webhook-rebuild {on,off}]
+                                [--chroot-denylist CHROOT_DENYLIST]
                                 [--max-builds MAX_BUILDS]
                                 [--timeout TIMEOUT]
                                 project
