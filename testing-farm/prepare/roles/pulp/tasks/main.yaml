@@ -6,6 +6,13 @@
   register: pulp_admin_password
   no_log: true
 
+- name: Fetch the Pulp SECRET_KEY
+  ansible.builtin.slurp:
+    src: /root/pulp-secret-key
+  delegate_to: "{{ host_with_secrets }}"
+  register: pulp_secret_key
+  no_log: true
+
 - name: Start Pulp container
   containers.podman.podman_container:
     name: pulp
@@ -13,6 +20,7 @@
     state: started
     env:
       PULP_DEFAULT_ADMIN_PASSWORD: "{{ pulp_admin_password['content'] | b64decode }}"
+      PULP_SECRET_KEY: "{{ pulp_secret_key['content'] | b64decode }}"
     ports:
       - "5006:80"
     device:

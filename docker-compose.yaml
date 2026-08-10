@@ -201,6 +201,7 @@ services:
     tty: true
     environment:
       - PULP_DEFAULT_ADMIN_PASSWORD=admin
+      - PULP_SECRET_KEY=change-me-to-something-secret
     ports:
       - 5006:80
     volumes:
