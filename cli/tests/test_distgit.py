@@ -125,6 +125,7 @@ class TestDistGitMethodPackage(object):
              'committish': None,
              'max_builds': None,
              'timeout': None,
+             'chroot_denylist': None,
              'webhook_rebuild': None})
 
     def test_edit_package_full(self, f_patch_package_distgit, capsys):
@@ -144,6 +145,7 @@ class TestDistGitMethodPackage(object):
              'committish': "master",
              'max_builds': "1",
              'timeout': "18000",
+             'chroot_denylist': None,
              'webhook_rebuild': True})
 
     @staticmethod

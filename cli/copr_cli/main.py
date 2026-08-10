@@ -1041,6 +1041,7 @@ class Commands(object):
             "python_versions": args.pythonversions,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
+            "chroot_denylist": args.chroot_denylist,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -1062,6 +1063,7 @@ class Commands(object):
             "source_build_method": args.srpm_build_method,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
+            "chroot_denylist": args.chroot_denylist,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -1080,6 +1082,7 @@ class Commands(object):
             "committish": args.committish,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
+            "chroot_denylist": args.chroot_denylist,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         ownername, projectname = self.parse_name(args.copr)
@@ -1099,6 +1102,7 @@ class Commands(object):
             "gem_name": args.gem_name,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
+            "chroot_denylist": args.chroot_denylist,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -1119,6 +1123,7 @@ class Commands(object):
             "script_repos": args.script_repos,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
+            "chroot_denylist": args.chroot_denylist,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -1916,6 +1921,10 @@ def setup_parser():
             "--timeout",
             help="Number of seconds we allow the builds to run, default is "\
                  "18000 (5h)")
+    parser_add_or_edit_package_parent.add_argument(
+            "--chroot-denylist",
+            help="Comma-separated list of wildcard patterns of chroots "
+                 "to exclude from builds, e.g. 'fedora-*,epel-*-i386'")
 
     # PyPI edit/create
     parser_add_package_pypi = subparsers.add_parser("add-package-pypi",
