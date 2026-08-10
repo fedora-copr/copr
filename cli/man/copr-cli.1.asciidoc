@@ -264,6 +264,22 @@ ftp server. Note that you cannot combine local file paths and URLs in one comman
 This limitation comes from the COPR API.
 
 
+`copr-cli uploadrpm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli uploadrpm [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                          [--background]
+                          copr_repo RPM
+
+Publish an already-built local RPM directly to a project, skipping the SRPM
+build phase entirely.
+
+For the arguments, see `copr-cli build` command above.
+
+RPM::
+Local path to the already-built .rpm file to publish.
+
+
 `copr-cli buildpypi [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

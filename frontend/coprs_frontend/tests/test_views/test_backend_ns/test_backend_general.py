@@ -58,7 +58,7 @@ class TestGetBuildTask(CoprsTestCase):
                                filename=filename,
                                content_type="application/x-rpm")
         build = BuildsLogic.create_new_from_rpm_upload(
-            self.u1, self.c1, "fedora-18-x86_64", [rpm_file])
+            self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file])
         self.db.session.commit()
 
         build_chroot = build.build_chroots[0]

@@ -771,7 +771,11 @@ class CreateBuildUpload(_BuildDataCommon, _GenericBuildOptions, InputSchema):
 @dataclass
 class CreateBuildRpmUpload(_BuildDataCommon, _BuildOptionsBase, InputSchema):
     project_dirname: String = fields.project_dirname
-    chroot: String = fields.mock_chroot
+    chroot_names: List = List(
+        String,
+        description="List of chroot names",
+        example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
+    )
     pkgs: List = List(
         Raw,
         description="application/x-rpm files to publish directly, "

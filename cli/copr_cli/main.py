@@ -455,6 +455,33 @@ class Commands(object):
 
 
     @requires_api_auth
+    def action_upload_rpm(self, args):
+        """ Method called when the 'uploadrpm' action has been selected by
+        the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
+        buildopts = buildopts_from_args(args)
+
+        if not os.path.exists(args.rpm):
+            raise CoprException("File {0} not found".format(args.rpm))
+
+        progress_callback = get_progress_callback(os.path.getsize(args.rpm))
+        buildopts["progress_callback"] = progress_callback
+        print('Uploading package {0}'.format(args.rpm))
+        try:
+            build = self.client.build_proxy.create_from_rpm_upload(
+                ownername=username, projectname=projectname,
+                project_dirname=project_dirname, buildopts=buildopts,
+                path=args.rpm)
+        finally:
+            if progress_callback:
+                progress_callback.finish()
+
+        self.print_build_info_and_wait([build], args)
+
+    @requires_api_auth
     def action_build_pypi(self, args):
         """
         Method called when the 'buildpypi' action has been selected by the user.
@@ -1702,6 +1729,15 @@ def setup_parser():
         help="List of filenames or URLs for SRPMs or SPEC files to build packages")
 
     parser_build.set_defaults(func="action_build")
+
+    # create the parser for the "uploadrpm" command
+    parser_upload_rpm = subparsers.add_parser(
+        "uploadrpm", parents=[parser_build_parent],
+        help="Publish an already-built local RPM directly to a specified copr, "
+             "skipping the SRPM build phase entirely")
+    parser_upload_rpm.add_argument(
+        "rpm", help="Local path to the already-built .rpm file to publish")
+    parser_upload_rpm.set_defaults(func="action_upload_rpm")
 
     # create the parser for the "buildpypi" command
     parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_pypi_args_parent, parser_build_parent],

@@ -1499,9 +1499,6 @@ class BuildFormRpmUploadFactory:
     """
     def __new__(cls, active_chroots):
         form = _get_build_form(active_chroots, BaseForm)
-        form.chroot = wtforms.SelectField('chroot', choices=[
-            (ch.name, ch.name) for ch in active_chroots], validators=[
-            wtforms.validators.DataRequired()])
         form.pkgs = MultipleFileField('rpms', validators=[
             FileRequired(),
             RpmValidator()])
