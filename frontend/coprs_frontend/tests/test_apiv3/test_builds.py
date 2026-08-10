@@ -278,7 +278,7 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
         content = {
             "ownername": "user2",
             "projectname": "foocopr",
-            "chroot": "fedora-17-x86_64",
+            "chroots": "fedora-17-x86_64",
             "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
         }
         response = self.post_api3_with_auth_multipart(
@@ -306,13 +306,32 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_db")
+    def test_rpm_upload_multiple_chroots(self):
+        # a single RPM can be published to more than one chroot in one call
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroots": ["fedora-17-x86_64", "fedora-17-i386"],
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 200
+
+        build = self.models.Build.query.first()
+        assert {bch.name for bch in build.build_chroots} == {
+            "fedora-17-x86_64", "fedora-17-i386"}
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
     def test_rpm_upload_rejects_multiple_files(self):
         # only one RPM can be uploaded per call for now
         user = self.models.User.query.filter_by(username="user2").first()
         content = {
             "ownername": "user2",
             "projectname": "foocopr",
-            "chroot": "fedora-17-x86_64",
+            "chroots": "fedora-17-x86_64",
             "pkgs": [
                 _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
                 _fake_rpm_file("hello-debuginfo-2.8-1.fc43.x86_64.rpm"),
@@ -330,7 +349,7 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
         content = {
             "ownername": "user2",
             "projectname": "foocopr",
-            "chroot": "fedora-17-x86_64",
+            "chroots": "fedora-17-x86_64",
             "pkgs": _fake_rpm_file("hello-2.8-1.fc43.src.rpm"),
         }
         response = self.post_api3_with_auth_multipart(
@@ -340,12 +359,35 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_db")
+    def test_rpm_upload_disabled_feature(self):
+        # the route is always registered (so a disabled feature gives a
+        # clear error instead of a generic 404), but hidden from swagger
+        # docs (doc=app.config["DIRECT_RPM_UPLOAD"]) when disabled
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroots": "fedora-17-x86_64",
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+        }
+        self.app.config["DIRECT_RPM_UPLOAD"] = False
+        try:
+            response = self.post_api3_with_auth_multipart(
+                "/api_3/build/create/rpm-upload", content, user)
+        finally:
+            self.app.config["DIRECT_RPM_UPLOAD"] = True
+        assert response.status_code == 400
+        assert "not enabled" in response.json["error"]
+        assert self.models.Build.query.first() is None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
     def test_rpm_upload_rejects_inactive_chroot(self):
         user = self.models.User.query.filter_by(username="user2").first()
         content = {
             "ownername": "user2",
             "projectname": "foocopr",
-            "chroot": "fedora-rawhide-i386",  # not enabled for user2/foocopr
+            "chroots": "fedora-rawhide-i386",  # not enabled for user2/foocopr
             "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
         }
         response = self.post_api3_with_auth_multipart(

@@ -1,3 +1,5 @@
+import tempfile
+
 from requests import Response
 from copr.v3 import Client, BuildProxy
 from copr.v3.requests import Request
@@ -35,3 +37,21 @@ def test_build_distgit(send):
         'ownername': 'praiskup', 'projectname': 'ping',
         'distgit': None, 'namespace': None, 'package_name': 'mock',
         'committish': 'master', 'project_dirname': None}
+
+
+@mock.patch('copr.v3.proxies.Request.send')
+def test_build_rpm_upload(send):
+    mock_client = Client.create_from_config_file(config_location)
+    with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm_file:
+        mock_client.build_proxy.create_from_rpm_upload(
+            "praiskup", "ping", rpm_file.name,
+            buildopts={"chroots": ["fedora-40-x86_64"]},
+        )
+        assert len(send.call_args_list) == 1
+        call = send.call_args_list[0]
+        args = call[1]
+        assert args['method'] == 'POST'
+        assert args['endpoint'] == '/build/create/rpm-upload'
+        assert args['data'] == {
+            'ownername': 'praiskup', 'projectname': 'ping',
+            'project_dirname': None, 'chroots': ['fedora-40-x86_64']}

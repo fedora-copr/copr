@@ -31,7 +31,16 @@ def get_form_compatible_data(preserve=None):
 
 
 def get_input_dict():
-    return flask.request.get_json(silent=True) or dict(flask.request.form)
+    json_data = flask.request.get_json(silent=True)
+    if json_data is not None:
+        return json_data
+
+    # plain dict(MultiDict) would silently keep only the first value for
+    # a repeated form key (e.g. multiple "chroots" fields sent over
+    # multipart/form-data) -- keep such keys as a list instead
+    form = flask.request.form
+    return {k: form.getlist(k) if len(form.getlist(k)) > 1 else form[k]
+           for k in form}
 
 
 def get_input():

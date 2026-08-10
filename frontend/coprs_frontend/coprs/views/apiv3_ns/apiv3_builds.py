@@ -314,40 +314,48 @@ class CreateFromUpload(Resource):
         return process_creating_new_build(copr, form, create_new_build)
 
 
-if app.config["DIRECT_RPM_UPLOAD"]:
-    @apiv3_builds_ns.route("/create/rpm-upload")
-    class CreateFromRpmUpload(Resource):
-        @file_upload
-        @api_login_required
-        @apiv3_builds_ns.expect(create_build_rpm_upload_input_model)
-        @apiv3_builds_ns.marshal_with(build_model)
-        def post(self):
-            """
-            Create a build from RPM upload
-            Publish an already-built RPM directly for a single chroot.
-            """
-            copr = get_copr()
-            data = get_form_compatible_data()
-            # pylint: disable-next=not-callable
-            form = forms.BuildFormRpmUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
-            form.pkgs.data = flask.request.files.getlist("pkgs")
-            if not form.validate_on_submit():
-                raise BadRequest(f"Bad request parameters: {form.errors}")
+@apiv3_builds_ns.route(
+    "/create/rpm-upload",
+    # None means that the route is documented
+    # False means that the route is not documented
+    doc=None if app.config["DIRECT_RPM_UPLOAD"] else False
+)
+class CreateFromRpmUpload(Resource):
+    @file_upload
+    @api_login_required
+    @apiv3_builds_ns.expect(create_build_rpm_upload_input_model)
+    @apiv3_builds_ns.marshal_with(build_model)
+    def post(self):
+        """
+        Create a build from RPM upload
+        Publish an already-built RPM directly for one or more chroots.
+        """
+        if not app.config["DIRECT_RPM_UPLOAD"]:
+            raise BadRequest(
+                "Direct RPM upload is not enabled on this Copr instance")
 
-            if not flask.g.user.can_build_in(copr):
-                raise AccessRestricted(f"User {flask.g.user.username} is not allowed "
-                                       f"to build in the copr: {copr.full_name}")
+        copr = get_copr()
+        data = get_form_compatible_data(preserve=["chroots", "exclude_chroots"])
+        # pylint: disable-next=not-callable
+        form = forms.BuildFormRpmUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
+        form.pkgs.data = flask.request.files.getlist("pkgs")
+        if not form.validate_on_submit():
+            raise BadRequest(f"Bad request parameters: {form.errors}")
 
-            build = BuildsLogic.create_new_from_rpm_upload(
-                flask.g.user, copr, form.chroot.data, form.pkgs.data,
-                copr_dirname=form.project_dirname.data,
-                background=form.background.data,
-                timeout=form.timeout.data,
-                after_build_id=form.after_build_id.data,
-                with_build_id=form.with_build_id.data,
-            )
-            db.session.commit()
-            return to_dict(build)
+        if not flask.g.user.can_build_in(copr):
+            raise AccessRestricted(f"User {flask.g.user.username} is not allowed "
+                                   f"to build in the copr: {copr.full_name}")
+
+        build = BuildsLogic.create_new_from_rpm_upload(
+            flask.g.user, copr, form.selected_chroots, form.pkgs.data,
+            copr_dirname=form.project_dirname.data,
+            background=form.background.data,
+            timeout=form.timeout.data,
+            after_build_id=form.after_build_id.data,
+            with_build_id=form.with_build_id.data,
+        )
+        db.session.commit()
+        return to_dict(build)
 
 
 @apiv3_builds_ns.route("/create/scm")

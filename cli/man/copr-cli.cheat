@@ -31,5 +31,8 @@ copr-cli buildscm test-project --clone-url https://github.com/fedora-copr/copr.g
 # to build a PyPI package together with its dependencies
 copr-cli buildpypi test-project --packagename pydantic-ai --with-deps --chroot fedora-rawhide-x86_64
 
+# to publish an already-built local RPM directly, skipping the SRPM build
+copr-cli uploadrpm test-project ~/packages/package-1.6-1.fc28.x86_64.rpm
+
 # to regenerate repository metadata for a project
 copr-cli regenerate-repos test-project

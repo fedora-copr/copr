@@ -797,18 +797,18 @@ class BuildsLogic(object):
         return package
 
     @classmethod
-    def create_new_from_rpm_upload(cls, user, copr, chroot_name, form_files, *,
+    def create_new_from_rpm_upload(cls, user, copr, chroot_names, form_files, *,
                                    copr_dirname=None, background=False,
                                    timeout=None, after_build_id=None,
                                    with_build_id=None):
         """
-        Create a build that publishes built RPMs directly for a
-        single chroot, skipping the SRPM build and dist-git import phases
+        Create a build that publishes built RPMs directly for one or more
+        chroots, skipping the SRPM build and dist-git import phases
         entirely.
 
         :type user: models.User
         :type copr: models.Copr
-        :param str chroot_name: name of the chroot to publish into
+        :param chroot_names: names of the chroots to publish into
         :param form_files: list of uploaded-file objects
         :return: models.Build
         """
@@ -817,7 +817,6 @@ class BuildsLogic(object):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr, "You don't have permissions to build in this copr.")
 
-        chroot = next(c for c in copr.active_chroots if c.name == chroot_name)
         tmp_name, filenames = cls._save_uploaded_rpms(form_files)
 
         try:
@@ -852,7 +851,12 @@ class BuildsLogic(object):
             )
             db.session.add(build)
 
-            cls.assign_buildchroots(build, [chroot], status=StatusEnum("pending"))
+            if chroot_names:
+                chroots = [c for c in copr.active_chroots if c.name in chroot_names]
+                cls.assign_buildchroots(build, chroots, status=StatusEnum("pending"))
+            else:
+                cls.assign_buildchroots_from_package(
+                    build, status=StatusEnum("pending"))
         except Exception:
             # TODO: some cleanup procedure instead of broad exception catch
             shutil.rmtree(os.path.join(app.config["STORAGE_DIR"], tmp_name))
