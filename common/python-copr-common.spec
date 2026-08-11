@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.7.3
+Version:    1.8
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -80,6 +80,12 @@ version=%version %py3_install
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 1.8-1
+- Add direct RPM upload build type
+- Efactor lock() function into Lock class
+- Fair FIFO locking via Redis queue
+- Fix container-based unit test workflow
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.7-1
 - Fix test_posix_live_output_cut test for s390x
 
