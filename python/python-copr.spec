@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.6
+Version:    2.7
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
+- Upload rpm to python and cli
+- Fix container-based unit test workflow
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.6-1
 - Don't traceback new-api-token for default config
 - Bypass anubis challenge by setting copr user agent
