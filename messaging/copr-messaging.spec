@@ -7,7 +7,7 @@ Package also provides several convenience methods for working with \
 copr messages.
 
 Name:       copr-messaging
-Version:    1.2
+Version:    1.3
 Release:    1%{?dist}
 Summary:    Abstraction for Copr messaging listeners/publishers
 
@@ -109,6 +109,10 @@ rm -rf html/.{doctrees,buildinfo}
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 1.3-1
+- Add kafka as new msgbus
+- Fix container-based unit test workflow
+
 * Tue Aug 26 2025 Jakub Kadlcik <frostyx@email.cz> 1.2-1
 - Stop using deprecated %%py3_build/%%py3_install macros
 
