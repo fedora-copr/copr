@@ -2,7 +2,7 @@
 %global min_python_copr_version 2.5.1
 
 Name:       copr-cli
-Version:    2.5
+Version:    2.6
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,16 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.6-1
+- Add --chroot-denylist to add/edit-package commands
+- Upload rpm to python and cli
+- Add --with-deps to buildpypi
+- Support unix file pattern matching in --chroot and --exclude-chroot
+- Require the rich package
+- Document permission commands in man page
+- Fix container-based unit test workflow
+- Fix AttributeError: module 'pkgutil' has no attribute 'get_loader'
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.5-1
 - Fix download-build for manual createrepo Pulp projects
 - Make sure new-api-token updates expiration token
