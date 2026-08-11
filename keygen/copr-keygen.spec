@@ -2,7 +2,7 @@
 %global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
-Version:    2.2
+Version:    2.3
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -171,6 +171,9 @@ systemctl condrestart httpd &>/dev/null || :
 %endif
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.3-1
+- Fix container-based unit test workflow
+
 * Tue Sep 16 2025 Jakub Kadlcik <frostyx@email.cz> 2.2-1
 - Stop using deprecated %%py3_build/%%py3_install macros
 
