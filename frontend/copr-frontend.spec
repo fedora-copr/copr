@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.7
+Version:    2.8
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -375,6 +375,26 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.8-1
+- Upload rpm to python and cli
+- Add direct RPM upload build type
+- Move URLs from pagure to forgejo
+- Support unix file pattern matching in --chroot and --exclude-chroot
+- Don't check for "None" keywords
+- Fork also empty repositories
+- Don't crash when failing to send a notification email
+- Add logging for the notify_outdated_chroots script
+- Port markdown rendering to markdown-it-py
+- List all owners that still have projects in some storage
+- Cancel pending build chroots when a chroot is EOLed
+- Add tests for build cancel vs pending-jobs race conditions
+- Change the URL to work with the new API
+- Don't fail pending-actions when copr is None
+- Clarify that pruning is based on RPM names, not Copr packages
+- Preload build.pkg_version for detailed monitor
+- Implement custom markdown/html for users and groups
+- Limit the maximum avatar width
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
 - Don't require admin permissions to show the rebuild button
 - Make sure new-api-token updates expiration token
