@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.8
+Version: 1.9
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -303,6 +303,17 @@ EOF
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 1.9-1
+- Add direct RPM upload build type
+- Move URLs from pagure to forgejo
+- Do not build-depend on scl-utils
+- Fix typo, redundant mkdir, and file handle leak
+- Fix container-based unit test workflow
+- Improve copr-rpmbuild man page
+- Add markup to copr-rpmbuild man page
+- Avoid ugly traceback for invalid --task-url and -r
+- Open spec file as read-only
+
 * Thu Apr 16 2026 Jakub Kadlcik <frostyx@email.cz> 1.8-1
 - AFAIK there is no python3-dnf5 only python3-libdnf5
 
