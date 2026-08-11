@@ -238,7 +238,7 @@ def f_build_rpm_sign_on(f_build_rpm_case):
 def test_waiting_for_repo_fail(mc_time, f_build_rpm_case_no_repodata, caplog):
     """ check that worker loops in _wait_for_repos """
     worker = f_build_rpm_case_no_repodata.bw
-    mc_time.time.side_effect = [1, 2, 3, 4, 5, 6, 120, 121]
+    mc_time.time.side_effect = [1, 2, 3, 4, 5, 6, 700, 701]
     worker.process()
     expected = [
         (logging.INFO, "Waiting for copr_base repository"),

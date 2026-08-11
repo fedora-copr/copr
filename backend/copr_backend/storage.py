@@ -32,6 +32,8 @@ from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 from .sign import resign_rpms_in_dir
 
 
+REPO_TIMEOUT = 600  # seconds
+
 def storage_for_job(job, opts, log):
     """
     Return an appropriate storage object for a given job
@@ -156,7 +158,7 @@ class Storage:
         if the waiting is not successful.
         """
         waiting_since = time.time()
-        while time.time() - waiting_since < 60:
+        while time.time() - waiting_since < REPO_TIMEOUT:
             if self.repository_exists(dirname, chroot, baseurl):
                 return
 
