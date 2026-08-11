@@ -1,7 +1,7 @@
 %global copr_common_version 1.7.2
 
 Name:       copr-dist-git
-Version:    1.6
+Version:    1.7
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -137,6 +137,10 @@ install -m0644 -D conf/copr-dist-git.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 1.7-1
+- Refactor lock() function into Lock class
+- Fair FIFO locking via Redis queue
+
 * Wed Apr 15 2026 Jakub Kadlcik <frostyx@email.cz> 1.6-1
 - Use SafeRequest.timeout only as a timeout per request
 - Initial Sentry integration
