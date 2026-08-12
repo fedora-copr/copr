@@ -15,7 +15,11 @@ frontend_host_from_url=${FRONTEND_URL//*\/\//}
 : "${VENDOR=Fedora Copr (devel) - group @copr}"
 : "${DISTGIT_BRANCH_FEDORA_PREFIX=f}"
 
-: "${STORAGE=backend}"
+if [[ $frontend_host_from_url == "copr.stg.fedoraproject.org" ]]; then
+    : "${STORAGE=pulp}"
+else
+    : "${STORAGE=backend}"
+fi
 
 if [[ $STORAGE == "pulp" ]]; then
     # Set to an URL to PULP hosing, NO MAGIC REDIRECTS from backend!
