@@ -87,9 +87,17 @@ Upgrade -dev machines
 Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask
 Mirek or somebody from fedora-infra)::
 
+    sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org \
+                       manual/copr/copr-backend-upgrade.yml
     sudo rbac-playbook -l copr-be-dev.aws.fedoraproject.org groups/copr-backend.yml
+    sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org \
+                       manual/copr/copr-keygen-upgrade.yml
     sudo rbac-playbook -l copr-keygen-dev.aws.fedoraproject.org groups/copr-keygen.yml
+    sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org \
+                       manual/copr/copr-frontend-upgrade.yml
     sudo rbac-playbook -l copr-fe-dev.aws.fedoraproject.org groups/copr-frontend.yml
+    sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org \
+                       manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git-dev.aws.fedoraproject.org groups/copr-dist-git.yml
 
 .. note::
@@ -112,8 +120,19 @@ proceeding.
    packages from a Copr directory, identified by the upstream commit whose short
    hash appears in the RPM Release field::
 
-       # On the target machine:
-       ./releng/install-copr-packages @copr/copr-dev <commit-sha> copr-frontend copr-backend
+     ssha="..."
+
+     scp releng/install-copr-packages root@copr-be-dev.aws.fedoraproject.org:/tmp/
+     ssh root@copr-be-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-backend python3-copr-common python3-copr copr-cli'
+
+     scp releng/install-copr-packages root@copr-fe-dev.aws.fedoraproject.org:/tmp/
+     ssh root@copr-fe-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-frontend copr-frontend-fedora python3-copr-common'
+
+     scp releng/install-copr-packages root@copr-dist-git-dev.aws.fedoraproject.org:/tmp/
+     ssh root@copr-dist-git-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-dist-git python3-copr-common python3-copr'
+
+     scp releng/install-copr-packages root@copr-keygen-dev.aws.fedoraproject.org:/tmp/
+     ssh root@copr-keygen-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-keygen python3-copr-common'
 
 
 Test on dev machines
@@ -368,6 +387,11 @@ Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask Mi
 .. note::
 
     You shouldn't need to upgrade DB manually, playbook covers it.
+
+.. note::
+
+    If there is a new version of copr-rpmbuild, follow the
+    :ref:`terminate_resalloc_vms` instructions.
 
 Make sure expected versions of Copr packages are installed on the
 production instances::
