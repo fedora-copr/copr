@@ -1,0 +1,62 @@
+.. _release_notes_2026_08_12:
+
+Highlights from 2026-08-12 release
+==================================
+
+Enhancements
+------------
+
+- `#2645`_ - ``--chroot`` and ``--exclude-chroot`` now support Unix file
+  pattern matching in the frontend and CLI.
+- `#4373`_ - ``copr-cli buildpypi`` now supports ``--with-deps``. Read
+  more in a blog post - `PyPI dependencies, resolved and built for you`_
+- `#4354`_ - Locking now uses fair FIFO Redis queues.
+- ``copr-cli`` now supports ``--chroot-denylist`` for ``add-package`` and
+  ``edit-package``.
+- ``copr-cli`` now documents permission management commands in the man page.
+- Kafka was added as a new message bus backend.
+- ``rpmeta`` build time predictions are now enabled.
+- Markdown rendering in the frontend was ported to ``markdown-it-py``.
+- Copr now supports direct RPM upload builds.  Users can upload already-built
+  RPM files and publish them directly into a selected chroot. This
+  feature will not be enabled on the Fedora Copr instance.
+- OpenShift deployment templates were converted to a Helm chart.
+
+
+Integration with Pulp
+---------------------
+
+- `#4317`_ - Failed Pulp background tasks are now retried with exponential
+  backoff.
+- `#4417`_ - Fixed waiting for Pulp publications when creating devel
+  repositories.
+- `#4363`_ - Fixed a race in ``PulpStorage.delete_builds()``.
+- The backend now handles asynchronous Pulp distribution updates.
+- The backend now waits for Pulp publication tasks to finish.
+- Pulp request handling was refactored around ``PulpRequest`` and
+  ``deliver_and_wait``.
+
+
+Bugfixes
+--------
+
+- `#4371`_ - The EOL chroot notification script no longer crashes when
+  failing to send a notification
+- `#4398`_ - Forking also empty repositories
+- `#4392`_ - Fixed dependency on ``python3-rich`` for colors in ``copr-cli``
+- `#4375`_ - Documented client permission commands.
+- ``rpmbuild`` no longer build-depends on ``scl-utils``.
+- Fixed ``create_file_logger`` compatibility with pytest 9.1 and newer.
+
+.. _PyPI dependencies, resolved and built for you: https://fedora-copr.github.io/posts/pypi-dependencies-resolved-and-built-for-you
+.. _#2645: https://github.com/fedora-copr/copr/issues/2645
+.. _#4317: https://github.com/fedora-copr/copr/issues/4317
+.. _#4352: https://github.com/fedora-copr/copr/issues/4352
+.. _#4354: https://github.com/fedora-copr/copr/issues/4354
+.. _#4363: https://github.com/fedora-copr/copr/issues/4363
+.. _#4371: https://github.com/fedora-copr/copr/issues/4371
+.. _#4373: https://github.com/fedora-copr/copr/issues/4373
+.. _#4375: https://github.com/fedora-copr/copr/issues/4375
+.. _#4392: https://github.com/fedora-copr/copr/issues/4392
+.. _#4398: https://github.com/fedora-copr/copr/issues/4398
+.. _#4417: https://github.com/fedora-copr/copr/issues/4417
