@@ -56,6 +56,11 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        if [[ $FRONTEND_URL == "https://copr.stg.fedoraproject.org" ]]; then
+            rlLog "Skipping, RPM uploads are not enabled for the Fedora Copr instance"
+            exit 0
+        fi
+
         rlRun "copr-cli create --chroot $CHROOT $PROJECT"
 
         rlRun "RPM_PATH=\$(build_local_rpm)" 0 "Building a local test RPM"
