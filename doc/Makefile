@@ -182,8 +182,12 @@ doctest:
 # all the BuildRequires there. But until that happens, this `make` target is
 # better than trial and error
 # See https://github.com/fedora-copr/copr/issues/828
+# Enable copr-dev, as the pre-release build requirements may point to
+# pre-release versions of our internal packages.
 deps:
-	sudo dnf builddep ../frontend/copr-frontend.spec
+	key=https://download.copr.fedorainfracloud.org/results/@copr/copr-dev/pubkey.gpg ; \
+	repo='https://download.copr.fedorainfracloud.org/results/@copr/copr-dev/fedora-$$releasever-$$basearch/' ; \
+	sudo dnf --setopt=copr-dev.gpgkey="$$key" --repofrompath=copr-dev,"$$repo" builddep ../frontend/copr-frontend.spec
 	sudo dnf install \
 		python3-eralchemy \
 		python*-sphinx_rtd_theme \
