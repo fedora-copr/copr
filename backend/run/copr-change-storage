@@ -12,8 +12,10 @@ import tempfile
 import argparse
 import logging
 import time
+from itertools import groupby
 from copr.v3 import Client, CoprRequestException
 from copr_common.log import setup_script_logger
+from copr_common.redis_helpers import get_redis_connection
 from copr_backend.helpers import BackendConfigReader
 from copr_backend.pulp_http_redirect import PulpHTTPRedirect
 from copr_backend.storage import PulpStorage
@@ -310,6 +312,50 @@ def all_projects_for_owner(owner, config):
     return fullnames
 
 
+def _owners_with_running_tasks(frontend_client, frontend_endpoint, task_id_key,
+                              redis, redis_key_prefix):
+    tasks = frontend_client.get(frontend_endpoint).json()
+    owners = set()
+    for key in redis.scan_iter(match=f"{redis_key_prefix}*"):
+        data = redis.hgetall(key)
+        if data.get("status") == "done":
+            continue
+        task_id = key.removeprefix(redis_key_prefix)
+        owner = None
+        for task in tasks:
+            if str(task[task_id_key]) == task_id:
+                owner = task["project_owner"]
+                break
+        owners.add(owner)
+    return owners
+
+
+def owners_with_running_builds(frontend_client, redis):
+    """
+    Set of owner names for which there are currently running builds
+    """
+    return _owners_with_running_tasks(
+        frontend_client,
+        "pending-jobs",
+        "task_id",
+        redis,
+        "rpm_build_worker:",
+    )
+
+
+def owners_with_running_actions(frontend_client, redis):
+    """
+    Set of owner names for which there are currently running actions
+    """
+    return _owners_with_running_tasks(
+        frontend_client,
+        "pending-actions",
+        "id",
+        redis,
+        "action_worker:",
+    )
+
+
 def handle_project(fullname, config, dst):
     """
     Process a single project migration
@@ -340,17 +386,33 @@ def handle_projects(projects, config, dst):
     """
     Process a migration of multiple projects
     """
+    frontend_client = FrontendClient(config, logger=log)
+    redis = get_redis_connection(config)
+
     result = 0
-    for i, fullname in enumerate(projects, start=1):
-        print(
-            "[{0}/{1}] Migrating {2} to {3}"
-            .format(i, len(projects), fullname, dst)
-        )
-        success = handle_project(fullname, config, dst) == 0
-        status = "Success." if success else "Failure."
-        log.info("Project migration for %s %s", fullname, status)
-        if not success:
+    groups = groupby(projects, key=lambda x: x.split("/")[0])
+    for owner, projects_from_owner in groups:
+        if owner in owners_with_running_builds(frontend_client, redis):
+            log.info("Skipping %s - There is a running build for this owner", owner)
             result = 1
+            continue
+
+        if owner in owners_with_running_actions(frontend_client, redis):
+            log.info("Skipping %s - There is a running action for this owner", owner)
+            result = 1
+            continue
+
+        projects_from_owner = list(projects_from_owner)
+        for i, fullname in enumerate(projects_from_owner, start=1):
+            print(
+                "[{0}/{1}] Migrating {2} to {3}"
+                .format(i, len(projects_from_owner), fullname, dst)
+            )
+            success = handle_project(fullname, config, dst) == 0
+            status = "Success." if success else "Failure."
+            log.info("Project migration for %s %s", fullname, status)
+            if not success:
+                result = 1
     return result
 
 
@@ -382,10 +444,11 @@ def main():
         sys.exit(handle_projects(projects, config, args.dst))
     elif args.blocked_owners:
         result = 0
+        projects = []
         for owner in config.builds_limits["blocked_owners"]:
-            projects = all_projects_for_owner(owner, config)
-            if handle_projects(projects, config, args.dst) != 0:
-                result = 1
+            projects.extend(all_projects_for_owner(owner, config))
+        if handle_projects(projects, config, args.dst) != 0:
+            result = 1
         sys.exit(result)
     else:
         log.error("Unexpected choice. This should never happen")
