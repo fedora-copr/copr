@@ -196,6 +196,19 @@ class BuildTagLimit(PredicateWorkerLimit):
         super().__init__(predicate, limit, name="tag_{}".format(tag))
 
 
+class BuildTagCombinationLimit(PredicateWorkerLimit):
+    """
+    Limit the amount of concurrently running builds that match all tags
+    in the given set simultaneously.
+    """
+    def __init__(self, tagset, limit):
+        self._tagset = frozenset(tagset)
+        def predicate(x):
+            return self._tagset.issubset(x.tags)
+        super().__init__(predicate, limit,
+                         name="tag_combination_{}".format("+".join(sorted(tagset))))
+
+
 class RPMBuildWorkerManager(WorkerManager):
     """
     Manager taking care of background build workers.

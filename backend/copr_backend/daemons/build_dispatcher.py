@@ -8,6 +8,7 @@ from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
     ArchitectureUserWorkerLimit,
     BuildTagLimit,
+    BuildTagCombinationLimit,
     UserSSHLimit,
     BlockedOwnersLimit,
     RPMBuildWorkerManager,
@@ -86,7 +87,7 @@ class BuildDispatcher(BackendDispatcher):
         super().__init__(backend_opts)
         self.max_workers = backend_opts.builds_max_workers
 
-        for tag_type in ["arch", "tag", "arch_per_owner"]:
+        for tag_type in ["arch", "tag", "arch_per_owner", "tag_combination"]:
             match tag_type:
                 case "arch":
                     lclass = ArchitectureWorkerLimit
@@ -94,9 +95,14 @@ class BuildDispatcher(BackendDispatcher):
                     lclass = BuildTagLimit
                 case "arch_per_owner":
                     lclass = ArchitectureUserWorkerLimit
+                case "tag_combination":
+                    lclass = BuildTagCombinationLimit
             for tag, limit in backend_opts.builds_limits[tag_type].items():
                 self.log.info("setting %s(%s) limit to %s", tag_type, tag, limit)
-                self.limits.append(lclass(tag, limit))
+                if lclass is BuildTagCombinationLimit:
+                    self.limits.append(lclass(tag.split("+"), limit))
+                else:
+                    self.limits.append(lclass(tag, limit))
 
         for limit_type in ['sandbox', 'owner']:
             max_builders = backend_opts.builds_limits[limit_type]
