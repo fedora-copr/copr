@@ -39,6 +39,7 @@ class TestBackendConfigReader:
         assert opts.destdir == "/tmp"
         assert opts.builds_limits == {'arch': {}, 'tag': {}, 'owner': 20,
                                       'sandbox': 10, 'arch_per_owner': {},
+                                      'tag_combination': {},
                                       'userssh': 2, 'blocked_owners': []}
 
     def test_correct_build_limits(self):
@@ -67,6 +68,7 @@ class TestBackendConfigReader:
                 'ppc64le': 11,
                 's390x': 5,
             },
+            'tag_combination': {},
             'userssh': 7,
             'blocked_owners': [],
         }

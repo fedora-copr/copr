@@ -14,6 +14,7 @@ from copr_backend.rpm_builds import (
     ArchitectureWorkerLimit,
     ArchitectureUserWorkerLimit,
     BuildTagLimit,
+    BuildTagCombinationLimit,
     BuildQueueTask,
 )
 
@@ -46,6 +47,20 @@ TASKS = [{
     "chroot": "fedora-31-aarch64",
     "project_owner": "bedrich",
     "sandbox": "sb2",
+}, {
+    "build_id": 5,
+    "task_id": "5-fedora-rawhide-ppc64le",
+    "chroot": "fedora-rawhide-ppc64le",
+    "project_owner": "bedrich",
+    "sandbox": "sb3",
+    "tags": ["ppc64le", "on_demand_powerful"],
+}, {
+    "build_id": 6,
+    "task_id": "6-fedora-rawhide-ppc64le",
+    "chroot": "fedora-rawhide-ppc64le",
+    "project_owner": "bedrich",
+    "sandbox": "sb3",
+    "tags": ["ppc64le"],
 }]
 
 class _QT(BackendQueueTask):
@@ -135,16 +150,52 @@ def test_worker_limit_info():
     assert ["limit info: " + limit.info() for limit in limits] == [
         "limit info: Unnamed 'PredicateWorkerLimit' limit, matching: w:7, "
         'w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64, '
-        'w:7-fedora-31-aarch64',
+        'w:7-fedora-31-aarch64, w:5-fedora-rawhide-ppc64le, w:6-fedora-rawhide-ppc64le',
         "limit info: 'allmatch', matching: w:7, w:7-fedora-rawhide-x86_64, "
-        'w:7-fedora-32-x86_64, w:7-fedora-31-x86_64, w:7-fedora-31-aarch64',
-        "limit info: Unnamed 'HashWorkerLimit' limit, counter: cecil=2, bedrich=3",
-        "limit info: 'sandbox', counter: sb1=1, sb2=3",
+        'w:7-fedora-32-x86_64, w:7-fedora-31-x86_64, w:7-fedora-31-aarch64, '
+        'w:5-fedora-rawhide-ppc64le, w:6-fedora-rawhide-ppc64le',
+        "limit info: Unnamed 'HashWorkerLimit' limit, counter: cecil=2, bedrich=5",
+        "limit info: 'sandbox', counter: sb1=1, sb2=3, sb3=2",
         "limit info: 'arch_x86_64', matching: w:7-fedora-rawhide-x86_64, w:7-fedora-32-x86_64, w:7-fedora-31-x86_64",
         "limit info: 'arch_aarch64', matching: w:7-fedora-31-aarch64",
         "limit info: 'arch_aarch64_owner', counter: aarch64_bedrich=1",
         "limit info: 'tag_special_requirement', matching: w:7-fedora-31-x86_64",
     ]
+
+def test_build_tag_combination_limit():
+    tagset = ["ppc64le", "on_demand_powerful"]
+    wl = BuildTagCombinationLimit(tagset, 2)
+    tasks = [BuildQueueTask(t) for t in TASKS]
+    # task[5] has both tags, task[6] has only ppc64le
+    both_tags = tasks[5]
+    one_tag = tasks[6]
+    no_tags = tasks[1]
+
+    assert wl.check(both_tags)
+    assert wl.check(one_tag)
+    assert wl.check(no_tags)
+
+    wl.worker_added("w1", both_tags)
+    assert wl.check(both_tags)
+    # one_tag doesn't match the combination, still allowed
+    assert wl.check(one_tag)
+
+    wl.worker_added("w2", both_tags)
+    # now we hit the limit for tasks matching both tags
+    assert not wl.check(both_tags)
+    # one_tag still doesn't match the combination
+    assert wl.check(one_tag)
+    assert wl.check(no_tags)
+
+    wl.clear()
+    assert wl.check(both_tags)
+
+
+def test_build_tag_combination_limit_info():
+    tagset = ["on_demand_powerful", "ppc64le"]
+    wl = BuildTagCombinationLimit(tagset, 3)
+    assert wl.info() == "'tag_combination_on_demand_powerful+ppc64le'"
+
 
 def test_string_counter():
     counter = StringCounter()
