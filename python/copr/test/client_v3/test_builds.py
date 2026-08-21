@@ -54,4 +54,5 @@ def test_build_rpm_upload(send):
         assert args['endpoint'] == '/build/create/rpm-upload'
         assert args['data'] == {
             'ownername': 'praiskup', 'projectname': 'ping',
-            'project_dirname': None, 'chroots': ['fedora-40-x86_64']}
+            'project_dirname': None, 'chroots': ['fedora-40-x86_64'],
+            'sha256': None}

@@ -1,3 +1,4 @@
+import hashlib
 import tempfile
 import shutil
 import json
@@ -51,6 +52,17 @@ log = app.logger
 PROCESSING_STATES = [StatusEnum(s) for s in [
     "running", "pending", "starting", "importing", "waiting",
 ]]
+
+
+def sha256_of_file(path):
+    """
+    Return sha256sum string for given filename path.
+    """
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 class BuildsLogic(object):
@@ -737,13 +749,14 @@ class BuildsLogic(object):
         return build
 
     @classmethod
-    def _save_uploaded_rpms(cls, form_files):
+    def _save_uploaded_rpms(cls, form_files, expected_sha256=None):
         """
         Save each uploaded file into a fresh STORAGE_DIR tmp directory.
 
         :return: (tmp_name, filenames)
         :raises BadRequest: if there isn't exactly one uploaded file, or if
-            its filename is invalid / not a ".rpm"
+            its filename is invalid / not a ".rpm", or if expected_sha256
+            doesn't match
         :raises InsufficientStorage
         """
         if len(form_files) != 1:
@@ -768,15 +781,20 @@ class BuildsLogic(object):
             tmp_name = os.path.basename(tmp)
             filenames = []
             for form_file, filename in zip(form_files, sanitized_names):
-                save_form_file_field_to(form_file, os.path.join(tmp, filename))
+                file_path = os.path.join(tmp, filename)
+                save_form_file_field_to(form_file, file_path)
+                if expected_sha256:
+                    actual = sha256_of_file(file_path)
+                    if expected_sha256.lower() != actual.lower():
+                        raise BadRequest(
+                            f"SHA256 mismatch for '{filename}': "
+                            f"expected {expected_sha256}, got {actual}")
                 filenames.append(filename)
             return tmp_name, filenames
-        except OSError as error:
+        except (OSError, BadRequest):
             if tmp:
                 shutil.rmtree(tmp)
-            raise InsufficientStorage(
-                f"Can not create storage directory for uploaded file(s): {error}"
-            ) from error
+            raise
 
     @classmethod
     def _find_or_create_rpm_upload_package(cls, user, copr, pkg_name, source_json):
@@ -796,11 +814,13 @@ class BuildsLogic(object):
             package = PackagesLogic.get(copr.id, pkg_name).first()
         return package
 
+    # pylint: disable=too-many-arguments
     @classmethod
     def create_new_from_rpm_upload(cls, user, copr, chroot_names, form_files, *,
                                    copr_dirname=None, background=False,
                                    timeout=None, after_build_id=None,
-                                   with_build_id=None):
+                                   with_build_id=None,
+                                   expected_sha256=None):
         """
         Create a build that publishes built RPMs directly for one or more
         chroots, skipping the SRPM build and dist-git import phases
@@ -817,7 +837,7 @@ class BuildsLogic(object):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr, "You don't have permissions to build in this copr.")
 
-        tmp_name, filenames = cls._save_uploaded_rpms(form_files)
+        tmp_name, filenames = cls._save_uploaded_rpms(form_files, expected_sha256)
 
         try:
             pkg_name = helpers.parse_package_name(filenames[0])

@@ -353,6 +353,7 @@ class CreateFromRpmUpload(Resource):
             timeout=form.timeout.data,
             after_build_id=form.after_build_id.data,
             with_build_id=form.with_build_id.data,
+            expected_sha256=form.sha256.data or None,
         )
         db.session.commit()
         return to_dict(build)
