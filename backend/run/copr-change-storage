@@ -154,11 +154,7 @@ def change_storage_for_project(project, dst, config):
             # are currently writing into the results directory. Otherwise
             # we can end up with incosystent data in Pulp.
 
-            result = storage.init_project(subproject, chroot)
-            if not result:
-                log.error("Failed to initialize chroot: %s", chroot)
-                ok = False
-                break
+            storage.init_project(subproject, chroot)
 
             uploaded = {}
 
