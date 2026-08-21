@@ -308,7 +308,7 @@ class PulpClient:
         See Client Side Certificates
         https://docs.python-requests.org/en/latest/user/advanced/
         """
-        return (self.config["cert"], self.config["key"])
+        return (self.config.get("cert"), self.config.get("key"))
 
     def url(self, endpoint):
         """
