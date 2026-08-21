@@ -474,7 +474,8 @@ class Commands(object):
             build = self.client.build_proxy.create_from_rpm_upload(
                 ownername=username, projectname=projectname,
                 project_dirname=project_dirname, buildopts=buildopts,
-                path=args.rpm)
+                path=args.rpm,
+                sha256=getattr(args, "sha256", None))
         finally:
             if progress_callback:
                 progress_callback.finish()
@@ -1742,6 +1743,9 @@ def setup_parser():
              "skipping the SRPM build phase entirely")
     parser_upload_rpm.add_argument(
         "rpm", help="Local path to the already-built .rpm file to publish")
+    parser_upload_rpm.add_argument(
+        "--sha256", help="Expected SHA256 hex digest of the uploaded file; "
+        "the server rejects the build on mismatch")
     parser_upload_rpm.set_defaults(func="action_upload_rpm")
 
     # create the parser for the "buildpypi" command

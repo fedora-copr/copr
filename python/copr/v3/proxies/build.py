@@ -150,7 +150,8 @@ class BuildProxy(BaseProxy):
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
     def create_from_rpm_upload(self, ownername, projectname, path, *,
-                               buildopts=None, project_dirname=None):
+                               buildopts=None, project_dirname=None,
+                               sha256=None):
         """
         Publish an already-built local RPM file directly, skipping the SRPM
         build and dist-git import phases entirely.
@@ -160,6 +161,7 @@ class BuildProxy(BaseProxy):
         :param str path: local path to the already-built .rpm file
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
+        :param str sha256: expected SHA256 hex digest of the uploaded file
         :return: Munch
         """
         endpoint = "/build/create/rpm-upload"
@@ -172,6 +174,7 @@ class BuildProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "project_dirname": project_dirname,
+            "sha256": sha256,
         }
         files = {
             "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),

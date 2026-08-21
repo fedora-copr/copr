@@ -79,6 +79,18 @@ rlJournalStart
             --enablerepo=\"copr:${FRONTEND_PUBLIC_HOST}:$(repo_owner):${PROJECTNAME}\" \
             $PACKAGE"
         rlAssertRpm "$PACKAGE"
+
+        # SHA256 checksum verification -- correct checksum should succeed
+        rlRun "CHECKSUM=\$(sha256sum $RPM_PATH | cut -d' ' -f1)"
+        rlRun -s "copr-cli uploadrpm --nowait --chroot $CHROOT \
+            --sha256 $CHECKSUM $PROJECT $RPM_PATH"
+        rlRun "parse_build_id"
+        rlRun "copr watch-build $BUILD_ID"
+
+        # SHA256 checksum verification -- wrong checksum should be rejected
+        rlRun "copr-cli uploadrpm --chroot $CHROOT \
+            --sha256 0000000000000000000000000000000000000000000000000000000000000000 \
+            $PROJECT $RPM_PATH" 1 "Upload with wrong SHA256 should fail"
     rlPhaseEnd
 
     rlPhaseStartCleanup

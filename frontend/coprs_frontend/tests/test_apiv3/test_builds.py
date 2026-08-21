@@ -359,6 +359,39 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_db")
+    def test_rpm_upload_sha256_match(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroots": "fedora-17-x86_64",
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+            "sha256": "dae37be1717e714967b78e21ea9fdf00928a7652687d462f3ad631cde43d1a3d",
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 200
+        assert self.models.Build.query.first() is not None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_rpm_upload_sha256_mismatch(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        content = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "chroots": "fedora-17-x86_64",
+            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        }
+        response = self.post_api3_with_auth_multipart(
+            "/api_3/build/create/rpm-upload", content, user)
+        assert response.status_code == 400
+        assert "SHA256 mismatch" in response.json["error"]
+        assert self.models.Build.query.first() is None
+
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
     def test_rpm_upload_disabled_feature(self):
         # the route is always registered (so a disabled feature gives a
         # clear error instead of a generic 404), but hidden from swagger

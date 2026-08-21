@@ -781,6 +781,10 @@ class CreateBuildRpmUpload(_BuildDataCommon, _BuildOptionsBase, InputSchema):
         description="application/x-rpm files to publish directly, "
                     "skipping the SRPM build phase entirely",
     )
+    sha256: String = String(
+        description="Expected SHA256 hex digest of the uploaded file; "
+                    "the build is rejected on mismatch",
+    )
 
 
 @dataclass

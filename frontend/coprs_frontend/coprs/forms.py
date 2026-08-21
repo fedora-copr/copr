@@ -1502,6 +1502,7 @@ class BuildFormRpmUploadFactory:
         form.pkgs = MultipleFileField('rpms', validators=[
             FileRequired(),
             RpmValidator()])
+        form.sha256 = wtforms.StringField('sha256')
         return form
 
 
