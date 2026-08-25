@@ -5,7 +5,7 @@
 %global copr_common_version 1.7.2
 
 Name:       copr-backend
-Version:    2.14.hotfix.0
+Version:    2.14.hotfix.1
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Aug 25 2026 Jakub Kadlcik <frostyx@email.cz> 2.14.hotfix.1-1
+- Revert setup.py change done by standard tito tagger
+
 * Tue Aug 25 2026 Jakub Kadlcik <frostyx@email.cz> 2.14.hotfix.0-1
 - backend: init_project doesn't return values (it raises exceptions)
 - fix: update copr-change-storage for PulpHTTPRedirect lock API
