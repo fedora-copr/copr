@@ -5,7 +5,7 @@
 %global copr_common_version 1.7.2
 
 Name:       copr-backend
-Version:    2.14
+Version:    2.14.hotfix.0
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,12 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Aug 25 2026 Jakub Kadlcik <frostyx@email.cz> 2.14.hotfix.0-1
+- backend: init_project doesn't return values (it raises exceptions)
+- fix: update copr-change-storage for PulpHTTPRedirect lock API
+- backend: don't require cert/key in pulp's config
+- backend: skip owners with currently running actions or builds
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.14-1
 - Raise the wait-for-repo timeout
 - Log chroot/arch/pakage info in prmeta predictions
