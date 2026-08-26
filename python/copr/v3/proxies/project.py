@@ -72,7 +72,7 @@ class ProjectProxy(BaseProxy):
             delete_after_days=None, multilib=False, module_hotfixes=False,
             bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=True,
             fedora_review=None, appstream=False, runtime_dependencies=None, packit_forge_projects_allowed=None,
-            repo_priority=None, exist_ok=False, storage=None):
+            repo_priority=None, exist_ok=False, storage=None, tags=None):
         """
         Create a project
 
@@ -111,6 +111,7 @@ class ProjectProxy(BaseProxy):
         :param list packit_forge_projects_allowed: List of forge projects that
             will be allowed to build in the project via Packit
         :param str storage: Admin only - What storage should be used for this project
+        :param list tags: List of tags to attach to the project
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -144,6 +145,7 @@ class ProjectProxy(BaseProxy):
             "packit_forge_projects_allowed": packit_forge_projects_allowed,
             "repo_priority": repo_priority,
             "storage": storage,
+            "tags": tags,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)
@@ -163,7 +165,7 @@ class ProjectProxy(BaseProxy):
              delete_after_days=None, multilib=None, module_hotfixes=None,
              bootstrap=None, bootstrap_image=None, isolation=None, follow_fedora_branching=None,
              fedora_review=None, appstream=None, runtime_dependencies=None, packit_forge_projects_allowed=None,
-             repo_priority=None):
+             repo_priority=None, tags=None):
         """
         Edit a project
 
@@ -200,6 +202,7 @@ class ProjectProxy(BaseProxy):
             enabled together with this project repository.
         :param list packit_forge_projects_allowed: List of forge projects that
             will be allowed to build in the project via Packit
+        :param list tags: List of tags to attach to the project
         :return: Munch
         """
         endpoint = "/project/edit/{ownername}/{projectname}"
@@ -230,6 +233,7 @@ class ProjectProxy(BaseProxy):
             "runtime_dependencies": runtime_dependencies,
             "packit_forge_projects_allowed": packit_forge_projects_allowed,
             "repo_priority": repo_priority,
+            "tags": tags,
         }
 
         _compat_use_bootstrap_container(data, use_bootstrap_container)

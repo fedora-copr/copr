@@ -42,6 +42,26 @@ render_bootstrap_options %}
     {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.',
           info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.') }}
 
+    {% if form.default_tags.choices %}
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+        Default tags
+      </label>
+      <div class="col-sm-10">
+      {% for tag in form.default_tags %}
+        <div class="checkbox">
+          <label>
+            {{ tag }}
+            {{ tag.label }}
+          </label>
+        </div>
+      {% endfor %}
+     </div>
+    </div>
+    {% endif %}
+
+    {{ render_field(form.tags, placeholder='Optional - comma separated tags, e.g. cli, devtools, monitoring', info='Add any tag not in the default list above; new tags are created automatically.') }}
+
     {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.', info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.') }}
 
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}

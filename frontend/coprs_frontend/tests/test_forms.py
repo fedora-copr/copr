@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 import wtforms
 import flask
+from werkzeug.datastructures import MultiDict
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
 from coprs.forms import (
@@ -10,6 +11,7 @@ from coprs.forms import (
     CoprFormFactory,
     CreateModuleForm,
     RpmValidator,
+    ProjectTagsFilter,
     REGEX_BOOTSTRAP_IMAGE,
     REGEX_CHROOT_DENYLIST,
 )
@@ -24,6 +26,78 @@ class TestCoprsFormFactory(CoprsTestCase):
             form = CoprFormFactory.create_form_cls()(name="foo")
             assert not form.validate()
             assert "At least one chroot" in form.errors[None][0]
+
+
+class TestProjectTagsFilter:
+    def test_basic_comma_split(self):
+        """
+        Comma-separated tag names are split into a list.
+        """
+        assert ProjectTagsFilter()("cli, devtools") == ["cli", "devtools"]
+
+    def test_ascii_drops_unicode_no_transliterate(self):
+        """
+        Non-ASCII characters are dropped outright rather than transliterated.
+        """
+        assert ProjectTagsFilter()("café") == ["caf"]
+
+    def test_minimum_length_three(self):
+        """
+        Tag names shorter than 3 characters are silently dropped.
+        """
+        assert ProjectTagsFilter()("cli, ab, xyz") == ["cli", "xyz"]
+
+    def test_dedup_preserves_order(self):
+        """
+        Duplicate tag names are removed while preserving first-seen order.
+        """
+        assert ProjectTagsFilter()("cli, devtools, cli") == ["cli", "devtools"]
+
+    def test_empty_value(self):
+        """
+        Empty or missing input produces an empty list rather than erroring.
+        """
+        assert not ProjectTagsFilter()("")
+        assert not ProjectTagsFilter()(None)
+
+
+class TestAdditionalProjectTagsField(CoprsTestCase):
+    """
+    Regression tests for the AdditionalProjectTagsField.process_formdata()
+    fix: the API's `tags` input is preserved as a real list (unlike the web
+    form's single comma-separated string), so the field has to reconcile
+    both shapes into one before ProjectTagsFilter runs.
+    """
+
+    @pytest.mark.usefixtures("f_users", "f_db")
+    def test_multiple_formdata_values_all_preserved(self):
+        """
+        Repeated `tags` form values (the API's list shape) are all joined into one comma-separated string.
+        """
+        with app.test_request_context():
+            flask.g.user = self.u2
+            formdata = MultiDict([
+                ("name", "foo"),
+                ("tags", "cli"),
+                ("tags", "monitoring"),
+                ("tags", "devtools"),
+            ])
+            form = CoprFormFactory.create_form_cls()(formdata, meta={"csrf": False})
+            assert form.tags.data == ["cli", "monitoring", "devtools"]
+
+    @pytest.mark.usefixtures("f_users", "f_db")
+    def test_single_comma_string_still_works(self):
+        """
+        A single comma-separated `tags` value (the web form's shape) is still handled correctly.
+        """
+        with app.test_request_context():
+            flask.g.user = self.u2
+            formdata = MultiDict([
+                ("name", "foo"),
+                ("tags", "cli, monitoring, devtools"),
+            ])
+            form = CoprFormFactory.create_form_cls()(formdata, meta={"csrf": False})
+            assert form.tags.data == ["cli", "monitoring", "devtools"]
 
 
 class TestPinnedCoprsForm(CoprsTestCase):

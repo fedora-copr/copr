@@ -1,0 +1,16 @@
+{% extends "coprs/show.html" %}
+{% block title %}Projects tagged '{{ tag_name }}'{% endblock %}
+{% block header %}Projects tagged '{{ tag_name }}'{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li class="active">
+    Tag: {{ tag_name }}
+  </li>
+</ol>
+{% endblock %}
+{% block show_top %}
+<h1> Projects tagged <small>{{ tag_name }}</small></h1>
+{% endblock %}

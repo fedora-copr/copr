@@ -19,7 +19,7 @@ from copr_common.enums import (
 from coprs import app, cache, models
 
 from coprs.repos import generate_repo_name
-from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic, ProjectTagsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
 from commands.create_chroot import create_chroot_function
@@ -1209,3 +1209,23 @@ class TestCoprActionsGeneration(CoprsTestCase):
         assert resp.status_code == 200  # error!
         error = parse_web_form_error(resp.data, variant="b")
         assert error == "Error in project config"
+
+
+class TestCoprsByTag(CoprsTestCase):
+    """
+    Tests for the /coprs/tags/<tag_name>/ browse-by-tag route.
+    """
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_by_tag_route_exact_match_only(self):
+        """
+        The route must do an exact tag-name join filter, not a broad fulltext search.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["devtools"], user=self.u1)
+        self.db.session.commit()
+
+        r = self.tc.get("/coprs/tags/devtools/")
+        assert r.status_code == 200
+        content = r.data.decode("utf-8")
+        assert "foocopr" in content
+        assert "barcopr" not in content
