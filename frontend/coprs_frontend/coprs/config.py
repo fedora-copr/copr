@@ -168,6 +168,14 @@ class Config(object):
     # e.g. ou=users,dc=company,dc=com
     LDAP_SEARCH_STRING = None
 
+    # Path to a Kerberos keytab used for binding to the LDAP server via
+    # SASL/GSSAPI. When unset, LDAP is queried anonymously (no bind).
+    KRB5_KEYTAB = None
+
+    # Kerberos principal to use with KRB5_KEYTAB, e.g. copr/ldap@EXAMPLE.COM
+    # When unset, the keytab's default principal is used.
+    KRB5_PRINCIPAL = None
+
     # If a project has more package than this, normal users can't fork it.
     # Only admins can.
     FORK_PACKAGES_LIMIT = 1000
