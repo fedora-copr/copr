@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.8
+Version:    2.9
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -377,6 +377,10 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Aug 26 2026 Pavel Raiskup <pavel@raiskup.cz> 2.9-1
+- correctly extract group info from today's LDAP
+- bind to LDAP via Kerberos keytab (SASL/GSSAPI)
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.8-1
 - Upload rpm to python and cli
 - Add direct RPM upload build type
