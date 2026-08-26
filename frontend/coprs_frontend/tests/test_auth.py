@@ -23,10 +23,12 @@ class TestGroupAuth(CoprsTestCase):
         # Some internal values were redacted but otherwise it's a copy-pasted
         # response
         get_user_groups.return_value = [
-            b'cn=group1,ou=foo,dc=company,dc=com',
-            b'cn=group2,ou=bar,dc=company,dc=com',
-            b'cn=another-group,ou=baz,ou=qux,dc=company,dc=com',
-            b'cn=another-group-2,ou=foo,ou=bar,dc=company,dc=com'
+            b'cn=group1,cn=groups,ou=foo,dc=company,dc=com',
+            b'cn=group2,cn=groups,ou=bar,dc=company,dc=com',
+            b'cn=another-group,cn=groups,ou=baz,ou=qux,dc=company,dc=com',
+            b'ipaUniqueID=ba3ba98a-a12d-11f1-af9d-f691a8b0dc3a,cn=hbac,dc=domain,dc=example,dc=com',
+            b'cn=somerole,cn=roles,cn=accounts,dc=domain,dc=example,dc=com',
+            b'cn=another-group-2,cn=groups,ou=foo,ou=bar,dc=company,dc=com'
         ]
         user = mock.MagicMock()
         GroupAuth.update_user_groups(user, LDAPGroups.group_names(user.username))

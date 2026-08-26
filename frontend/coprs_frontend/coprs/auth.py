@@ -234,8 +234,26 @@ class LDAPGroups:
         groups = []
         for group in ldap_client.get_user_groups(username):
             group = group.decode("utf-8")
-            attrs = dict([tuple(x.split("=")) for x in group.split(",")])
-            groups.append(attrs["cn"])
+            # Various output types, filter those that we care about.
+            # cn=somenamegroup,cn=groups,cn=accounts,dc=domain,dc=example,dc=com
+            # ipaUniqueID=<UUID>,cn=hbac,dc=domain,dc=example,dc=com
+            # cn=somerole,cn=roles,cn=accounts,dc=domain,dc=example,dc=com
+            group_dn = ldap.dn.str2dn(group)
+            # Converts to:
+            # [[('cn', 'another-group-2', 1)],
+            # [('cn', 'groups', 1)],
+            # [('ou', 'foo', 1)],
+            # [('ou', 'bar', 1)],
+            # [('dc', 'company', 1)],
+            # [('dc', 'com', 1)]]
+            app.logger.debug("Considering memberOf: '%s'", group)
+            specifier, group_name, _ = group_dn[0][0]
+            if specifier != 'cn':
+                continue
+            specifier, group_category, _ = group_dn[1][0]
+            if specifier != 'cn' or group_category != "groups":
+                continue
+            groups.append(group_name)
         return groups
 
 
@@ -268,6 +286,7 @@ class LDAP:
         """
         Send a single request to a LDAP server
         """
+        app.logger.debug("LDAP query: attrs=%s ffilter=%s", attrs, ffilter)
         try:
             connect = ldap.initialize(self.url)
             self._bind(connect)
