@@ -63,8 +63,8 @@ rlJournalStart
         rlAssertEquals "A build was forked" `cat $OUTPUT | wc -l` 2
 
         # give backend some time to fork the data
-        echo "sleep 60 seconds to give backend enough time to fork data"
-        sleep 60
+        echo "Wait to give backend enough time to fork data"
+        wait_for_finished_fork "${NAME_PREFIX}Project10Fork"
 
         # use package from forked project
         rlRun "yes | dnf copr enable $DNF_COPR_ID/${NAME_PREFIX}Project10Fork $CHROOT"

@@ -364,6 +364,7 @@ rlJournalStart
         rlAssertEquals "Updating packages" `grep -r 'Updating packages in' $OUTPUT |wc -l` 1
 
         # give backend some time to fork the data
+        wait_for_finished_fork "${NAME_PREFIX}Project10Fork"
         echo "sleep 60 seconds to give backend enough time to fork data"
         sleep 60
 

@@ -142,3 +142,30 @@ join_lines()
 {
     tr '\n' ' ' | sed 's/ $//'
 }
+
+wait_for_finished_fork()
+{
+    # Wait until a project is forked or timeout is reached
+    # $1 - project name
+    local project=$1
+    local timeout=300
+    local started now forking
+
+    started=$(date +%s)
+    rlLog "Waiting for the $project to finish forking"
+    while :; do
+        now=$(date +%s)
+        curl "$FRONTEND_URL/coprs/$project/" \
+            | grep -q "Forked project is still being prepared for you"
+        forking=$?
+        if [ "$forking" -eq 1 ]; then
+            rlLogInfo "Project $project finished forking"
+            break
+        fi
+        if [ $(( now - started )) -gt "$timeout" ]; then
+            rlLogFatal "This waiting is taking too long... stopping."
+            break
+        fi
+        sleep 10
+    done
+}
