@@ -2,9 +2,12 @@
 Authentication-related code for communication with FAS, Kerberos, LDAP, etc.
 """
 
+import os
 import time
 import flask
+import gssapi
 import ldap
+import ldap.sasl
 from coprs import app
 from coprs.exceptions import CoprHttpException, AccessRestricted
 from coprs.logic.users_logic import UsersLogic
@@ -267,11 +270,40 @@ class LDAP:
         """
         try:
             connect = ldap.initialize(self.url)
+            self._bind(connect)
             return connect.search_s(ou, ldap.SCOPE_ONELEVEL,
                                     ffilter, attrs)
         except ldap.SERVER_DOWN as ex:
             msg = ex.args[0]["desc"]
             raise CoprHttpException(msg) from ex
+
+    @staticmethod
+    def _bind(connect):
+        """
+        Bind to the LDAP server using a Kerberos ticket obtained from a
+        keytab (SASL/GSSAPI), if KRB5_KEYTAB is configured. Otherwise the
+        connection stays anonymous.
+        """
+        keytab = app.config.get("KRB5_KEYTAB")
+        if not keytab:
+            return
+
+        principal = app.config.get("KRB5_PRINCIPAL")
+        name = None
+        if principal:
+            gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+
+        # Acquire a ticket from the keytab into a process-local memory
+        # ccache, and point Kerberos to it so that the SASL/GSSAPI bind
+        # below picks it up.
+        ccache = f"MEMORY:copr-ldap-{os.getpid()}"
+        gssapi.Credentials(
+            name=name, store={"client_keytab": keytab, "ccache": ccache},
+            usage="initiate")
+        os.environ["KRB5CCNAME"] = ccache
+
+        connect.sasl_interactive_bind_s("", ldap.sasl.gssapi())
+        app.logger.info("LDAP Authenticated over GSSAPI")
 
     def query_one(self, attrs, filters=None):
         """

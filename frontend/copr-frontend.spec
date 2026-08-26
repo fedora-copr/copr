@@ -109,6 +109,7 @@ BuildRequires: python3dist(sphinxcontrib-httpdomain)
 BuildRequires: python3dist(whoosh)
 BuildRequires: python3dist(wtforms) >= 2.2.1
 BuildRequires: python3dist(python-ldap)
+BuildRequires: python3dist(gssapi)
 BuildRequires: python3dist(pyyaml)
 BuildRequires: python3dist(backoff) >= 1.9.0
 BuildRequires: python3dist(pygal)
@@ -164,6 +165,7 @@ Requires: python3dist(templated-dictionary)
 Requires: python3dist(wtforms) >= 2.2.1
 Requires: python3dist(pyzmq)
 Requires: python3dist(python-ldap)
+Requires: python3dist(gssapi)
 Requires: python3dist(backoff) >= 1.9.0
 Requires: python3dist(pygal)
 Requires: python3dist(xstatic-bootstrap-scss)
