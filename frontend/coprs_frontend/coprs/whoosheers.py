@@ -109,7 +109,7 @@ class CoprWhoosheer(AbstractWhoosheer):
         for change in changes:
             if change[0].__class__ in cls.models:
                 copr_id = change[0].get_search_related_copr_id()
-                with db.engine.connect() as connection:
+                with db.engine.begin() as connection:
                     connection.execute(text(
                         """
                         UPDATE copr SET latest_indexed_data_update = {0}
