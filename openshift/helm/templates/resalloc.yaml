@@ -97,6 +97,17 @@ spec:
               value: /resalloc-home
 
           command: ["/usr/bin/resalloc-server"]
+          readinessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 49100
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
 
       volumes:
         - name: resalloc-config

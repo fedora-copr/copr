@@ -117,6 +117,18 @@ spec:
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.distgit.httpd | indent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: 5001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
           volumeMounts:
             - name: distgit-copr-config
               mountPath: /etc/copr

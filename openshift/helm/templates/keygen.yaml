@@ -81,6 +81,16 @@ spec:
           ports:
             - containerPort: 5167
               protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5167
+            initialDelaySeconds: 15
+            periodSeconds: 30
 
         - name: httpd
           image: {{ .Values.copr_keygen_image | quote }}
@@ -96,6 +106,17 @@ spec:
           ports:
             - containerPort: 5003
               protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 5003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5003
+            initialDelaySeconds: 15
+            periodSeconds: 30
 
       volumes:
         - name: storage

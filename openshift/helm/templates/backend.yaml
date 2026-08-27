@@ -131,6 +131,11 @@ spec:
 {{ toYaml .Values.resources.backend.log | indent 12 }}
           command: ["/usr/bin/tini", "--"]
           args: ["/usr/bin/copr_run_logger.py"]
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr_run_logger"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
           volumeMounts:
             - name: config
               mountPath: /etc/copr
@@ -151,6 +156,11 @@ spec:
               mountPath: /var/lock/copr-backend
           command: ["/usr/bin/tini", "--"]
           args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher-backend", "actions"]
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr-run-dispatcher"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
 
         - name: builds
           image: {{ .Values.copr_backend_image | quote }}
@@ -171,6 +181,11 @@ spec:
               value: /backend-home
           command: ["/usr/bin/tini", "--"]
           args: ["/run-backend", "--sign-host", "copr-keygen", "/usr/bin/copr-run-dispatcher-backend", "builds"]
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "copr-run-dispatcher"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
 
       # start these containers on the same node with copr-backend-httpd!
       affinity:
@@ -256,6 +271,20 @@ spec:
           resources:
 {{ toYaml .Values.resources.backend.httpd | indent 12 }}
           command: ["nginx", "-g", "daemon off;"]
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
           volumeMounts:
             - name: results
               mountPath: /opt/app-root/src
