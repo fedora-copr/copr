@@ -57,6 +57,26 @@ spec:
               protocol: TCP
           resources:
 {{ toYaml .Values.resources.frontend.app | indent 12 }}
+          startupProbe:
+            httpGet:
+              path: /
+              port: 5000
+            failureThreshold: 30
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
           volumeMounts:
             - name: copr-frontend-config
               mountPath: /etc/copr

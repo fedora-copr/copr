@@ -45,11 +45,25 @@ spec:
       containers:
         - image: {{ .Values.redis_image | quote }}
           imagePullPolicy: IfNotPresent
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -i
+                - -c
+                - test "$(redis-cli -h 127.0.0.1 ping)" == "PONG"
+            failureThreshold: 30
+            periodSeconds: 5
           livenessProbe:
-            initialDelaySeconds: 30
-            tcpSocket:
-              port: 6379
-            timeoutSeconds: 1
+            exec:
+              command:
+                - /bin/sh
+                - -i
+                - -c
+                - test "$(redis-cli -h 127.0.0.1 ping)" == "PONG"
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
           name: redis
           ports:
             - containerPort: 6379

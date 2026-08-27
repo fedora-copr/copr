@@ -73,6 +73,12 @@ spec:
                   name: postgresql
           image: {{ .Values.postgresql_image | quote }}
           imagePullPolicy: IfNotPresent
+          startupProbe:
+            exec:
+              command:
+                - /usr/libexec/check-container
+            failureThreshold: 30
+            periodSeconds: 2
           livenessProbe:
             exec:
               command:
