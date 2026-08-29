@@ -70,3 +70,22 @@ class BuildChrootProxy(BaseProxy):
         }
         response = self.request.send(endpoint=endpoint, params=params)
         return munchify(response)
+
+    def get_results_urls(self, build_id, chrootname):
+        """
+        For a given Copr build ID,
+        return a list of downloadable URLs for its results
+        """
+        build_chroot = self.get(build_id, chrootname)
+        results = self.get_built_packages(build_id, chrootname)
+        urls = []
+        for nevra in results["packages"]:
+            filename = "{N}-{V}-{R}.{A}.rpm".format(
+                N=nevra["name"],
+                V=nevra["version"],
+                R=nevra["release"],
+                A=nevra["arch"],
+            )
+            url = build_chroot.result_url + filename
+            urls.append(url)
+        return urls
