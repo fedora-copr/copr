@@ -1,16 +1,25 @@
+import hashlib
+import json
 import os
+import tarfile
+import tempfile
 
 import pytest
 
 from main import build_rpm, build_rpm_upload
+from copr_rpmbuild.rpm_upload import process_uploaded_tarball
 
 from . import TestCase
 
 try:
     from unittest import mock
 except ImportError:
-    # Python 2 version depends on mock
     import mock
+
+
+RPM_NAME = "hello-2.8-1.fc40.x86_64.rpm"
+RPM_CONTENT = b"fake rpm content"
+CHROOT = "fedora-40-x86_64"
 
 
 def _fake_header(arch):
@@ -23,6 +32,123 @@ def _fake_header(arch):
     }
 
 
+def _sha256_of_bytes(content):
+    return hashlib.sha256(content).hexdigest()
+
+
+def _build_upload_tarball(files, dirname="upload"):
+    tarball_fd, tarball_path = tempfile.mkstemp(suffix=".tar.gz")
+    os.close(tarball_fd)
+    try:
+        with tempfile.TemporaryDirectory() as workdir:
+            content_dir = os.path.join(workdir, dirname)
+            os.makedirs(content_dir)
+            for filename, content in files.items():
+                with open(os.path.join(content_dir, filename), "wb") as handle:
+                    handle.write(content)
+            with tarfile.open(tarball_path, "w:gz") as tar:
+                tar.add(content_dir, arcname=dirname)
+    except Exception:
+        os.unlink(tarball_path)
+        raise
+    return tarball_path
+
+
+class TestRpmUploadTarball(TestCase):
+
+    config = {}
+    workdir = None
+    resultdir = None
+    workspace = None
+
+    def auto_test_setup(self):
+        self.config_basic_dirs()
+
+    def auto_test_cleanup(self):
+        self.cleanup_basic_dirs()
+
+    def _process_tarball(self, files, chroot=CHROOT, header_arch="x86_64"):
+        tarball_path = _build_upload_tarball(files)
+        try:
+            with mock.patch(
+                    "copr_rpmbuild.rpm_upload.get_rpm_header") as mc_get_header:
+                mc_get_header.return_value = _fake_header(header_arch)
+                process_uploaded_tarball(tarball_path, self.resultdir, chroot)
+                return mc_get_header
+        finally:
+            os.unlink(tarball_path)
+
+    def test_process_publishes_rpm_and_files(self):
+        self._process_tarball({
+            RPM_NAME: RPM_CONTENT,
+            "sha256.json": json.dumps({
+                RPM_NAME: _sha256_of_bytes(RPM_CONTENT),
+            }).encode("utf-8"),
+            "hello-2.8-1.fc40.src.rpm": b"fake srpm content",
+            "build.log": b"build log",
+            "README.txt": b"notes",
+        })
+
+        assert os.path.exists(os.path.join(self.resultdir, RPM_NAME))
+        assert os.path.exists(os.path.join(
+            self.resultdir, "hello-2.8-1.fc40.src.rpm"))
+
+        logs_tarball = os.path.join(self.resultdir, "uploaded-logs.tar.gz")
+        assert os.path.exists(logs_tarball)
+        with tarfile.open(logs_tarball, "r:gz") as tar:
+            assert sorted(tar.getnames()) == ["README.txt", "build.log"]
+
+    def test_process_noarch_is_allowed(self):
+        self._process_tarball(
+            {"hello-2.8-1.fc40.noarch.rpm": RPM_CONTENT},
+            header_arch="noarch",
+        )
+        assert os.path.exists(os.path.join(
+            self.resultdir, "hello-2.8-1.fc40.noarch.rpm"))
+
+    def test_process_sha256_failures(self):
+        with pytest.raises(RuntimeError) as error:
+            self._process_tarball({
+                RPM_NAME: RPM_CONTENT,
+                "sha256.json": json.dumps({
+                    RPM_NAME: "0" * 64,
+                    "missing.rpm": "1" * 64,
+                }).encode("utf-8"),
+            })
+        message = str(error.value)
+        assert "SHA256 mismatch" in message
+        assert "not found: missing.rpm" in message
+
+    def test_process_rejects_arch_mismatch(self):
+        with pytest.raises(RuntimeError) as error:
+            self._process_tarball(
+                {RPM_NAME: RPM_CONTENT}, header_arch="aarch64")
+        assert "aarch64" in str(error.value)
+
+    def test_process_allows_i686_on_i386_chroot(self):
+        self._process_tarball(
+            {RPM_NAME: RPM_CONTENT},
+            chroot="fedora-40-i386",
+            header_arch="i686",
+        )
+        assert os.path.exists(os.path.join(self.resultdir, RPM_NAME))
+
+    def test_process_rejects_no_binary_rpms(self):
+        with pytest.raises(RuntimeError) as error:
+            self._process_tarball(
+                {"hello-2.8-1.fc40.src.rpm": b"fake srpm content"})
+        assert "at least one binary RPM" in str(error.value)
+
+    def test_process_rejects_multiple_srpms(self):
+        with pytest.raises(RuntimeError) as error:
+            self._process_tarball({
+                RPM_NAME: RPM_CONTENT,
+                "hello-2.8-1.fc40.src.rpm": b"fake srpm content",
+                "hello-2.8-1.fc40.nosrc.rpm": b"fake nosrc content",
+            })
+        assert "at most one SRPM" in str(error.value)
+
+
 class TestBuildRpmUpload(TestCase):
 
     config = {}
@@ -31,11 +157,10 @@ class TestBuildRpmUpload(TestCase):
     workspace = None
 
     task = {
-        "chroot": "fedora-40-x86_64",
+        "chroot": CHROOT,
         "package_name": None,
-        "prebuilt_rpm_urls": [
-            "https://copr.example.com/tmp/abc/hello-2.8-1.fc40.x86_64.rpm",
-        ],
+        "prebuilt_tarball_url": (
+            "https://copr.example.com/tmp/abc/upload.tar.gz"),
     }
 
     def auto_test_setup(self):
@@ -44,26 +169,22 @@ class TestBuildRpmUpload(TestCase):
     def auto_test_cleanup(self):
         self.cleanup_basic_dirs()
 
-    @staticmethod
-    def _fake_download_file(url, destination):
-        filename = os.path.basename(url)
-        path = os.path.join(destination, filename)
-        with open(path, "w", encoding="utf-8") as fd:
-            fd.write("fake rpm content")
-        return path
-
     @mock.patch("main.run_automation_tools")
-    @mock.patch("main.get_rpm_header")
+    @mock.patch("main.process_uploaded_tarball")
     @mock.patch("main.download_file")
-    def test_build_rpm_upload_success(self, mc_download, mc_get_header,
-                                      mc_run_automation_tools):
-        mc_download.side_effect = self._fake_download_file
-        mc_get_header.return_value = _fake_header("x86_64")
+    def test_build_rpm_upload_success(
+            self, mc_download, mc_process, mc_run_automation_tools):
+        tarball_fd, tarball_path = tempfile.mkstemp(suffix=".tar.gz")
+        os.close(tarball_fd)
+        mc_download.return_value = tarball_path
 
         build_rpm_upload(self.task, self.config)
 
         mc_download.assert_called_once_with(
-            self.task["prebuilt_rpm_urls"][0], self.resultdir)
+            self.task["prebuilt_tarball_url"], self.resultdir)
+        mc_process.assert_called_once_with(
+            tarball_path, self.resultdir, self.task["chroot"])
+        assert not os.path.exists(tarball_path)
 
         success_file = os.path.join(self.resultdir, "success")
         assert os.path.exists(success_file)
@@ -73,59 +194,18 @@ class TestBuildRpmUpload(TestCase):
         mc_run_automation_tools.assert_called_once_with(
             self.task, self.resultdir, None, mock.ANY, self.config)
 
-    @mock.patch("main.run_automation_tools")
-    @mock.patch("main.get_rpm_header")
-    @mock.patch("main.download_file")
-    def test_build_rpm_upload_noarch_is_allowed(self, mc_download,
-                                                mc_get_header,
-                                                mc_run_automation_tools):
-        mc_download.side_effect = self._fake_download_file
-        mc_get_header.return_value = _fake_header("noarch")
+    def test_build_rpm_upload_download_failure(self):
+        with mock.patch("main.run_automation_tools") as mc_run_automation_tools:
+            with mock.patch("main.download_file") as mc_download:
+                mc_download.side_effect = RuntimeError("Failed to download")
 
-        build_rpm_upload(self.task, self.config)
+                with pytest.raises(RuntimeError):
+                    build_rpm_upload(self.task, self.config)
 
-        assert os.path.exists(os.path.join(self.resultdir, "success"))
-        mc_run_automation_tools.assert_called_once()
-
-    @mock.patch("main.run_automation_tools")
-    @mock.patch("main.get_rpm_header")
-    @mock.patch("main.download_file")
-    def test_build_rpm_upload_arch_mismatch(self, mc_download, mc_get_header,
-                                            mc_run_automation_tools):
-        mc_download.side_effect = self._fake_download_file
-        mc_get_header.return_value = _fake_header("aarch64")
-
-        with pytest.raises(RuntimeError) as error:
-            build_rpm_upload(self.task, self.config)
-
-        assert "aarch64" in str(error.value)
-        assert "fedora-40-x86_64" in str(error.value)
-
-        # a failed validation must not leave a stray success marker, and
-        # results.json must not be generated for a failed task
-        assert not os.path.exists(os.path.join(self.resultdir, "success"))
-        mc_run_automation_tools.assert_not_called()
-
-    @mock.patch("main.run_automation_tools")
-    @mock.patch("main.get_rpm_header")
-    @mock.patch("main.download_file")
-    def test_build_rpm_upload_download_failure(self, mc_download,
-                                               mc_get_header,
-                                               mc_run_automation_tools):
-        mc_download.side_effect = RuntimeError("Failed to download")
-
-        with pytest.raises(RuntimeError):
-            build_rpm_upload(self.task, self.config)
-
-        mc_get_header.assert_not_called()
-        mc_run_automation_tools.assert_not_called()
+                mc_run_automation_tools.assert_not_called()
 
 
 class TestBuildRpmDispatch(TestCase):
-    """
-    Make sure build_rpm() routes "direct RPM upload" tasks to
-    build_rpm_upload() instead of the normal DistGit+Mock flow.
-    """
 
     config = {}
     workdir = None
@@ -142,14 +222,15 @@ class TestBuildRpmDispatch(TestCase):
     @mock.patch("main.providers.DistGitProvider")
     @mock.patch("main.log_task")
     @mock.patch("main.get_task")
-    def test_build_rpm_routes_prebuilt_rpm_urls(
+    def test_build_rpm_routes_prebuilt_tarball_url(
             self, mc_get_task, _mc_log_task, mc_distgit, mc_build_rpm_upload):
         task = {
-            "chroot": "fedora-40-x86_64",
-            "prebuilt_rpm_urls": ["https://copr.example.com/tmp/abc/hello.rpm"],
+            "chroot": CHROOT,
+            "prebuilt_tarball_url": (
+                "https://copr.example.com/tmp/abc/upload.tar.gz"),
         }
         mc_get_task.return_value = task
-        args = mock.Mock(chroot="fedora-40-x86_64", build_id="123", copr=None)
+        args = mock.Mock(chroot=CHROOT, build_id="123", copr=None)
 
         build_rpm(args, self.config)
 

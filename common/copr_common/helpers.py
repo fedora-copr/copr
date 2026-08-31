@@ -70,6 +70,17 @@ def timedelta_to_dhms(delta):
     return int(days), int(hours), int(minutes), int(seconds)
 
 
+def format_evr(epoch, version, release):
+    """
+    Return evr in format (epoch:)version-release.  The argument 'epoch' should
+    be integer value or null (but we rather also consider "strings" values).
+    """
+    if epoch is not None:
+        if isinstance(epoch, int) or str(epoch).isdigit():
+            return f"{epoch}:{version}-{release}"
+    return f"{version}-{release}"
+
+
 @contextlib.contextmanager
 def nullcontext():
     """

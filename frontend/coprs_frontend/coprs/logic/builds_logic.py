@@ -1,4 +1,3 @@
-import hashlib
 import tempfile
 import shutil
 import json
@@ -17,6 +16,7 @@ from sqlalchemy import bindparam, Integer, String
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from copr_common.enums import FailTypeEnum, StatusEnum
+from copr_common.helpers import format_evr
 from coprs import app
 from coprs import cache
 from coprs import db
@@ -52,17 +52,6 @@ log = app.logger
 PROCESSING_STATES = [StatusEnum(s) for s in [
     "running", "pending", "starting", "importing", "waiting",
 ]]
-
-
-def sha256_of_file(path):
-    """
-    Return sha256sum string for given filename path.
-    """
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 class BuildsLogic(object):
@@ -749,49 +738,28 @@ class BuildsLogic(object):
         return build
 
     @classmethod
-    def _save_uploaded_rpms(cls, form_files, expected_sha256=None):
+    def _save_uploaded_tarball(cls, tarball_file):
         """
-        Save each uploaded file into a fresh STORAGE_DIR tmp directory.
+        Store an uploaded .tar.gz tarball in frontend tmp storage.
 
-        :return: (tmp_name, filenames)
-        :raises BadRequest: if there isn't exactly one uploaded file, or if
-            its filename is invalid / not a ".rpm", or if expected_sha256
-            doesn't match
+        :return: (tmp_name, tarball_filename)
+        :raises BadRequest: if filename is invalid
         :raises InsufficientStorage
         """
-        if len(form_files) != 1:
-            # multi-RPM upload may be added later
+        tarball_name = secure_filename(tarball_file.filename)
+        if not tarball_name or not tarball_name.endswith(".tar.gz"):
             raise BadRequest(
-                "Only one RPM can be uploaded per call for now "
-                "(multi-RPM upload may be added later).")
-
-        sanitized_names = []
-        for form_file in form_files:
-            sanitized = secure_filename(form_file.filename)
-            if (not sanitized or not sanitized.endswith(".rpm") or
-                    sanitized.endswith((".src.rpm", ".nosrc.rpm"))):
-                raise BadRequest(
-                    f"Uploaded filename '{form_file.filename}' is invalid "
-                    "or could not be safely sanitized to a valid .rpm filename.")
-            sanitized_names.append(sanitized)
+                f"Uploaded filename '{tarball_file.filename}' is invalid "
+                "or could not be safely sanitized to a valid filename.")
 
         tmp = None
         try:
             tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
             tmp_name = os.path.basename(tmp)
-            filenames = []
-            for form_file, filename in zip(form_files, sanitized_names):
-                file_path = os.path.join(tmp, filename)
-                save_form_file_field_to(form_file, file_path)
-                if expected_sha256:
-                    actual = sha256_of_file(file_path)
-                    if expected_sha256.lower() != actual.lower():
-                        raise BadRequest(
-                            f"SHA256 mismatch for '{filename}': "
-                            f"expected {expected_sha256}, got {actual}")
-                filenames.append(filename)
-            return tmp_name, filenames
-        except (OSError, BadRequest):
+            save_form_file_field_to(
+                tarball_file, os.path.join(tmp, tarball_name))
+            return tmp_name, tarball_name
+        except OSError:
             if tmp:
                 shutil.rmtree(tmp)
             raise
@@ -816,11 +784,9 @@ class BuildsLogic(object):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def create_new_from_rpm_upload(cls, user, copr, chroot_names, form_files, *,
-                                   copr_dirname=None, background=False,
-                                   timeout=None, after_build_id=None,
-                                   with_build_id=None,
-                                   expected_sha256=None):
+    def create_new_from_rpm_upload(cls, user, copr, chroot_names, tarball_file, *,
+                                   name, version, release, epoch=None,
+                                   copr_dirname=None, **build_options):
         """
         Create a build that publishes built RPMs directly for one or more
         chroots, skipping the SRPM build and dist-git import phases
@@ -829,27 +795,33 @@ class BuildsLogic(object):
         :type user: models.User
         :type copr: models.Copr
         :param chroot_names: names of the chroots to publish into
-        :param form_files: list of uploaded-file objects
+        :param tarball_file: uploaded ".tar.gz" file object
+        :param name: package name provided by the user
+        :param version: package version provided by the user
+        :param release: package release provided by the user
+        :param epoch: optional package epoch provided by the user
+        :param build_options: background, timeout, after_build_id,
+            with_build_id
         :return: models.Build
         """
+        # pylint: disable=too-many-locals
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr, "You don't have permissions to build in this copr.")
 
-        tmp_name, filenames = cls._save_uploaded_rpms(form_files, expected_sha256)
+        tmp_name, tarball_filename = cls._save_uploaded_tarball(tarball_file)
 
         try:
-            pkg_name = helpers.parse_package_name(filenames[0])
-            if not pkg_name:
-                raise BadRequest(
-                    f"Can not derive a package name from the uploaded "
-                    f"filename '{filenames[0]}'")
-
-            source_json = json.dumps({"tmp": tmp_name, "files": filenames})
+            source_json = json.dumps({
+                "tmp": tmp_name,
+                "tarball": tarball_filename,
+            })
             package = cls._find_or_create_rpm_upload_package(
-                user, copr, pkg_name, source_json)
-            batch = cls.setup_batch(after_build_id, with_build_id, user)
+                user, copr, name, source_json)
+            batch = cls.setup_batch(
+                build_options.get("after_build_id"),
+                build_options.get("with_build_id"), user)
 
             copr_dir = None
             if copr_dirname:
@@ -857,7 +829,8 @@ class BuildsLogic(object):
 
             build = models.Build(
                 user=user,
-                pkgs=", ".join(filenames),
+                pkgs=tarball_filename,
+                pkg_version=format_evr(epoch, version, release),
                 copr=copr,
                 copr_dir=copr_dir,
                 package=package,
@@ -865,9 +838,9 @@ class BuildsLogic(object):
                 source_json=source_json,
                 source_status=StatusEnum("succeeded"),
                 submitted_on=int(time.time()),
-                is_background=bool(background),
+                is_background=bool(build_options.get("background")),
                 batch=batch,
-                timeout=timeout or app.config["DEFAULT_BUILD_TIMEOUT"],
+                timeout=build_options.get("timeout") or app.config["DEFAULT_BUILD_TIMEOUT"],
             )
             db.session.add(build)
 
