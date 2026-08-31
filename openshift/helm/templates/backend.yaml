@@ -78,8 +78,8 @@ metadata:
 spec:
   ports:
     - name: copr-backend-httpd
-      port: 8080
-      targetPort: 8080
+      port: 5002
+      targetPort: 5002
   selector:
     name: copr-backend-httpd
 
@@ -106,7 +106,7 @@ spec:
   tags:
     - from:
         kind: DockerImage
-        name: quay.io/centos7/nginx-120-centos7
+        name: {{ .Values.nginx_image | quote }}
       importPolicy:
         scheduled: true
       name: test
@@ -274,22 +274,22 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 5002
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 5002
             initialDelaySeconds: 15
             periodSeconds: 30
             timeoutSeconds: 5
           volumeMounts:
             - name: results
-              mountPath: /opt/app-root/src
+              mountPath: /var/lib/copr/public_html
             - name: config
-              mountPath: /opt/app-root/etc/nginx.d/
+              mountPath: /etc/nginx/conf.d/extra/
 
       volumes:
         - name: results
