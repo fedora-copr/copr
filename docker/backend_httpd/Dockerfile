@@ -1,10 +1,19 @@
-# Crafted with the help of the SCLOrg docs:
-# https://github.com/sclorg/nginx-container/tree/master/1.20#3-prepare-an-application-inside-a-container
-
-FROM quay.io/centos7/nginx-120-centos7:centos7
+FROM registry.fedoraproject.org/fedora:43
 
 MAINTAINER copr-devel@lists.fedorahosted.org
 
-COPY files/etc/nginx/conf.d/copr-be.conf /opt/app-root/etc/nginx.d/
+RUN dnf -y install nginx \
+    && dnf clean all
 
-CMD nginx -g "daemon off;"
+COPY files/etc/nginx/conf.d/copr-be.conf /etc/nginx/conf.d/copr-be.conf
+
+# Serve the results volume, and stay compatible with OpenShift's
+# restricted SCC (random UID, group 0).
+RUN mkdir -p /var/lib/copr/public_html \
+    && chown -R root:root /var/lib/copr /var/log/nginx /var/lib/nginx /run \
+    && chmod -R g+rwX /var/lib/copr /var/log/nginx /var/lib/nginx /run
+
+USER 987
+EXPOSE 5002
+
+CMD ["nginx", "-g", "daemon off;"]
