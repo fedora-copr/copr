@@ -18,6 +18,7 @@ from cachetools.func import ttl_cache
 
 from copr_common.enums import StatusEnum, StorageEnum
 from copr_common.helpers import (
+    format_evr,
     USER_SSH_DEFAULT_EXPIRATION,
     USER_SSH_MAX_EXPIRATION,
     USER_SSH_EXPIRATION_PATH,
@@ -33,7 +34,7 @@ from copr_backend.exceptions import (
 )
 from copr_backend.rpmeta import rpmeta_predict_build_time
 from copr_backend.helpers import (
-    run_cmd, register_build_result, format_evr,
+    run_cmd, register_build_result,
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender

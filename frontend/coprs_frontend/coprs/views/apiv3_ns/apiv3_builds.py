@@ -328,17 +328,25 @@ class CreateFromRpmUpload(Resource):
     def post(self):
         """
         Create a build from RPM upload
+
         Publish an already-built RPM directly for one or more chroots.
+
+        The uploaded tarball must be a .tar.gz with exactly one top-level
+        directory containing payload files directly inside it: at least one
+        binary RPM matching the target chroot architecture or noarch
+        (required), optionally one SRPM, optional extra files (archived as
+        uploaded-logs.tar.gz), and an optional sha256.json checksum manifest.
         """
         if not app.config["DIRECT_RPM_UPLOAD"]:
             raise BadRequest(
                 "Direct RPM upload is not enabled on this Copr instance")
 
         copr = get_copr()
-        data = get_form_compatible_data(preserve=["chroots", "exclude_chroots"])
+        data = get_form_compatible_data(
+            preserve=["chroots", "exclude_chroots"])
         # pylint: disable-next=not-callable
         form = forms.BuildFormRpmUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
-        form.pkgs.data = flask.request.files.getlist("pkgs")
+        form.tarball.data = flask.request.files.get("tarball")
         if not form.validate_on_submit():
             raise BadRequest(f"Bad request parameters: {form.errors}")
 
@@ -347,13 +355,16 @@ class CreateFromRpmUpload(Resource):
                                    f"to build in the copr: {copr.full_name}")
 
         build = BuildsLogic.create_new_from_rpm_upload(
-            flask.g.user, copr, form.selected_chroots, form.pkgs.data,
+            flask.g.user, copr, form.selected_chroots, form.tarball.data,
+            name=form.name.data,
+            version=form.version.data,
+            release=form.release.data,
+            epoch=form.epoch.data,
             copr_dirname=form.project_dirname.data,
             background=form.background.data,
             timeout=form.timeout.data,
             after_build_id=form.after_build_id.data,
             with_build_id=form.with_build_id.data,
-            expected_sha256=form.sha256.data or None,
         )
         db.session.commit()
         return to_dict(build)

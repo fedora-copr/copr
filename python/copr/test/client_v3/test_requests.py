@@ -1,6 +1,7 @@
 from requests import Response
+from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor
 from copr.test import mock
-from copr.v3.requests import Request, munchify
+from copr.v3.requests import FileRequest, Request, munchify
 
 
 class TestResponse(object):
@@ -35,3 +36,19 @@ class TestRequest(object):
         args, kwargs = request.call_args
         assert kwargs["method"] == "GET"
         assert kwargs["url"] == "http://copr/api_3/foo"
+
+
+class TestFileRequest(object):
+    def test_request_params_dict_files(self):
+        req = FileRequest(
+            api_base_url="http://copr/api_3",
+            files={"pkgs": ("f.rpm", b"data", "application/x-rpm")},
+        )
+        # pylint: disable-next=protected-access
+        params = req._request_params(endpoint="foo", method="POST", data={"a": 1})
+
+        assert isinstance(params["data"], MultipartEncoderMonitor)
+        assert params["json"] is None
+        fields = params["data"].encoder.fields
+        assert fields["pkgs"] == ("f.rpm", b"data", "application/x-rpm")
+        assert fields["json"][0] == "json"

@@ -1,3 +1,4 @@
+import io
 import unittest
 import tempfile
 import shutil
@@ -28,6 +29,7 @@ class TestDownloadFile:
     @staticmethod
     def _fake_response(chunks):
         response = mock.MagicMock()
+        response.raw = io.BytesIO(b"".join(chunks))
         response.iter_content.return_value = iter(chunks)
         # a real requests.Response.__exit__ never suppresses exceptions;
         # MagicMock's default (truthy) return value would incorrectly
