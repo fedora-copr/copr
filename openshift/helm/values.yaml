@@ -20,7 +20,7 @@ postgresql_image: ""
 redis_image: ""
 copr_frontend_image: quay.io/copr/frontend:test
 copr_backend_image: quay.io/copr/backend:test
-nginx_image: quay.io/centos7/nginx-120-centos7
+nginx_image: quay.io/copr/backend-httpd:test
 copr_distgit_image: quay.io/copr/distgit:test
 resalloc_image: quay.io/copr/resalloc:test
 copr_keygen_image: quay.io/copr/keygen:test
@@ -32,3 +32,57 @@ aws_config:
     name: ""
     private: ""
     public: ""
+
+# Conservative defaults, sized for a small stage/dev deployment.
+# Override per-environment via a values file.
+resources:
+  backend:
+    log: &small_app
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    actions: *small_app
+    builds: *small_app
+    httpd: *small_app
+    strategy: &rollout
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi
+
+  frontend:
+    app: &medium_app
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    strategy: *rollout
+
+  distgit:
+    imports: *medium_app
+    httpd: *small_app
+    strategy: *rollout
+
+  keygen:
+    signer: *small_app
+    httpd: *small_app
+    strategy: *rollout
+
+  resalloc:
+    app: *small_app
+    strategy: *rollout
+
+  postgres:
+    app: *medium_app
+    strategy: *rollout
+
+  redis:
+    app: *small_app
+    strategy: *rollout
