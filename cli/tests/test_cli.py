@@ -1,4 +1,5 @@
 # pylint: disable=too-many-positional-arguments
+# pylint: disable=too-many-lines
 
 import os
 import argparse
@@ -678,25 +679,38 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
+@pytest.mark.parametrize("epoch", [None, 2])
 @mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_rpm_upload')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
-def test_create_upload_rpm(watch_builds, _config_from_file,
-                           create_from_rpm_upload, _check_before_build,
-                           capsys):
+def test_create_upload_rpm(
+        watch_builds, _config_from_file, create_from_rpm_upload,
+        _check_before_build, capsys, epoch):
     create_from_rpm_upload.return_value = Munch(projectname="foo", id=123)
 
-    with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm_file:
-        main.main(argv=[
-            "uploadrpm", "--nowait", "copr_name", rpm_file.name,
-        ])
+    argv = [
+        "uploadrpm", "--nowait",
+        "--name", "hello", "--version", "1.0", "--release", "1",
+    ]
+    if epoch is not None:
+        argv.extend(["--epoch", str(epoch)])
+    with tempfile.NamedTemporaryFile(suffix=".tar.gz") as tarball_file:
+        argv.extend(["copr_name", tarball_file.name])
+        main.main(argv=argv)
+        tarball_path = tarball_file.name
 
     stdout, _stderr = capsys.readouterr()
     assert "Created builds" in stdout
     assert "Build was added to foo" in stdout
     assert not watch_builds.called
     create_from_rpm_upload.assert_called_once()
+    _args, kwargs = create_from_rpm_upload.call_args
+    assert kwargs["tarball_path"] == tarball_path
+    assert kwargs["name"] == "hello"
+    assert kwargs["version"] == "1.0"
+    assert kwargs["release"] == "1"
+    assert kwargs["epoch"] == epoch
 
 
 @mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')

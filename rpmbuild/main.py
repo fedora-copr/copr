@@ -30,8 +30,8 @@ from copr_rpmbuild.helpers import (
     macros_for_task,
     locate_srpm,
     download_file,
-    get_rpm_header,
 )
+from copr_rpmbuild.rpm_upload import process_uploaded_tarball
 
 from copr_rpmbuild import __version__
 
@@ -238,7 +238,7 @@ def build_rpm(args, config):
     task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
-    if task.get("prebuilt_rpm_urls"):
+    if task.get("prebuilt_tarball_url"):
         build_rpm_upload(task, config)
         return
 
@@ -269,16 +269,12 @@ def build_rpm_upload(task, config):
     Build a --chroot task for a "direct RPM upload" build.
     """
     resultdir = config.get("main", "resultdir")
-    chroot_arch = task["chroot"].rsplit("-", 1)[-1]
-
-    for url in task["prebuilt_rpm_urls"]:
-        rpm_path = download_file(url, resultdir)
-        hdr = get_rpm_header(rpm_path)
-        if hdr["arch"] not in (chroot_arch, "noarch"):
-            raise RuntimeError(
-                "Uploaded RPM {0} has arch '{1}', which doesn't match "
-                "chroot '{2}'".format(
-                    os.path.basename(rpm_path), hdr["arch"], task["chroot"]))
+    tarball_path = download_file(task["prebuilt_tarball_url"], resultdir)
+    try:
+        process_uploaded_tarball(tarball_path, resultdir, task["chroot"])
+    finally:
+        if os.path.exists(tarball_path):
+            os.unlink(tarball_path)
 
     with open(os.path.join(resultdir, "success"), "w", encoding="utf-8") as success:
         success.write("done")

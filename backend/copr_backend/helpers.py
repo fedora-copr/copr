@@ -655,17 +655,6 @@ def get_chroot_arch(chroot):
     return chroot.rsplit("-", 2)[2]
 
 
-def format_evr(epoch, version, release):
-    """
-    Return evr in format (epoch:)version-release.  The argument 'epoch' should
-    be integer value or null (but we rather also consider "strings" values).
-    """
-    if epoch is not None:
-        if isinstance(epoch, int) or epoch.isdigit():
-            return f"{epoch}:{version}-{release}"
-    return f"{version}-{release}"
-
-
 def format_filename(name, version, release, epoch, arch, zero_epoch=False):
     if not epoch.isdigit() and zero_epoch:
         epoch = "0"

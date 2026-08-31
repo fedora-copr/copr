@@ -268,16 +268,56 @@ This limitation comes from the COPR API.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli uploadrpm [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                          [--background]
-                          copr_repo RPM
+                          [--background] [--name NAME] [--version VERSION] [--release RELEASE]
+                          [--epoch EPOCH]
+                          copr_repo TARBALL
 
-Publish an already-built local RPM directly to a project, skipping the SRPM
-build phase entirely.
+Publish a pre-built RPM upload tarball directly to a project, skipping the
+SRPM build phase entirely.
 
 For the arguments, see `copr-cli build` command above.
 
-RPM::
-Local path to the already-built .rpm file to publish.
+TARBALL::
+Local path to a .tar.gz file containing the RPM upload payload.  The
+archive must contain exactly one top-level directory with payload files
+directly inside it (no nested subdirectories).
+
+Required contents::
+
+* at least one binary RPM (`*.rpm`, excluding `*.src.rpm` and `*.nosrc.rpm`)
+
+Optional contents::
+
+* up to one SRPM (`*.src.rpm` or `*.nosrc.rpm`)
+* arbitrary additional files (e.g. build logs, `README.txt`, `LICENSE.txt`);
+  these are archived into `uploaded-logs.tar.gz` in the build results
+* `sha256.json` -- JSON object mapping file basenames to SHA256 hex digests;
+  when present, every listed file is verified during the build
+
+Example::
+
+  upload.tar.gz
+  └── upload/
+      ├── package-1.0-1.fc40.x86_64.rpm
+      ├── package-1.0-1.fc40.src.rpm
+      ├── build.log
+      └── sha256.json
+
+Binary RPM architectures must match the target chroot (or be `noarch`).
+Package name, version, release, and optional epoch are provided via the
+options below and are not taken from the RPM headers.
+
+--name NAME::
+Package name.
+
+--version VERSION::
+Package version.
+
+--release RELEASE::
+Package release.
+
+--epoch EPOCH::
+Optional package epoch.
 
 
 `copr-cli buildpypi [options]`
