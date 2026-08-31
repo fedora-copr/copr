@@ -10,6 +10,8 @@ from coprs.forms import (
     CoprFormFactory,
     CreateModuleForm,
     RpmValidator,
+    LogValidator,
+    Sha256Validator,
     REGEX_BOOTSTRAP_IMAGE,
     REGEX_CHROOT_DENYLIST,
 )
@@ -138,6 +140,68 @@ class TestRpmValidator:
         validator = RpmValidator()
         with pytest.raises(wtforms.ValidationError):
             validator(None, self._field(""))
+
+
+class TestLogValidator:
+    @staticmethod
+    def _field(filename):
+        file_storage = mock.Mock()
+        file_storage.filename = filename
+        field = mock.Mock()
+        field.data = [file_storage]
+        return field
+
+    @pytest.mark.parametrize("filename", [
+        "builder-live.log",
+        "backend.log.gz",
+        "notes.txt",
+        "notes.txt.gz",
+    ])
+    def test_valid_log(self, filename):
+        validator = LogValidator()
+        validator(None, self._field(filename))
+
+    def test_rejects_non_log(self):
+        validator = LogValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field("hello.rpm"))
+
+    def test_rejects_missing_filename(self):
+        validator = LogValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(None))
+
+    def test_rejects_empty_filename(self):
+        validator = LogValidator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(""))
+
+
+class TestSha256Validator:
+    @staticmethod
+    def _field(values):
+        field = mock.Mock()
+        field.data = values
+        return field
+
+    def test_valid_checksums(self):
+        validator = Sha256Validator()
+        validator(None, self._field(["a" * 64, "F" * 64]))
+
+    def test_empty_is_valid(self):
+        validator = Sha256Validator()
+        validator(None, self._field([]))
+        validator(None, self._field(None))
+
+    def test_rejects_wrong_length(self):
+        validator = Sha256Validator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(["a" * 63]))
+
+    def test_rejects_non_hex(self):
+        validator = Sha256Validator()
+        with pytest.raises(wtforms.ValidationError):
+            validator(None, self._field(["g" * 64]))
 
 
 def test_form_regexes():

@@ -212,10 +212,21 @@ def get_build_record(task, for_backend=False):
         # in copr-rpmbuild requires "source_type" to be absent
         source_data = task.build.source_json_dict
         base_url = app.config["PUBLIC_COPR_BASE_URL"]
+        tmp = source_data.get("tmp")
         build_record["prebuilt_rpm_urls"] = [
-            f"{base_url}/tmp/{source_data.get('tmp')}/{filename}"
-            for filename in source_data.get("files", [])
+            f"{base_url}/tmp/{tmp}/{filename}"
+            for filename in source_data.get("rpms", [])
         ]
+
+        if source_data.get("srpm"):
+            build_record["prebuilt_srpm_url"] = \
+                f"{base_url}/tmp/{tmp}/{source_data['srpm']}"
+
+        if source_data.get("logs"):
+            build_record["prebuilt_log_urls"] = [
+                f"{base_url}/tmp/{tmp}/{filename}"
+                for filename in source_data["logs"]
+            ]
 
     return build_record
 

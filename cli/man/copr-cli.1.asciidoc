@@ -268,16 +268,29 @@ This limitation comes from the COPR API.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli uploadrpm [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                          [--background]
-                          copr_repo RPM
+                          [--background] [--name NAME] [--srpm SRPM] [--logs LOG [LOG ...]]
+                          copr_repo RPMS [RPMS ...]
 
-Publish an already-built local RPM directly to a project, skipping the SRPM
-build phase entirely.
+Publish one or more already-built local RPMs directly to a project, skipping
+the SRPM build phase entirely.
 
 For the arguments, see `copr-cli build` command above.
 
-RPM::
-Local path to the already-built .rpm file to publish.
+RPMS::
+Local path(s) to the already-built .rpm file(s) to publish.
+
+--name NAME::
+Package name. Optional when uploading a single RPM (guessed from its
+filename), required when uploading more than one RPM.
+
+--srpm SRPM::
+Optional local path to an accompanying .src.rpm/.nosrc.rpm file, published
+alongside the uploaded RPM(s).
+
+--logs LOG [LOG ...]::
+Optional local path(s) to .log/.log.gz/.txt/.txt.gz file(s). They are
+auto-compressed into a single tarball and stored to Copr, downloadable the same way
+as regular build logs e.g. via `copr-cli download-build --logs`.
 
 
 `copr-cli buildpypi [options]`

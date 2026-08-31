@@ -307,6 +307,66 @@ class RpmValidator:
                 raise wtforms.ValidationError(self.message)
 
 
+class LogValidator:
+    """
+    Validate that every uploaded file looks like a log/text file
+    (.log, .log.gz, .txt, or .txt.gz) with a usable filename.
+    """
+    def __init__(self, message=None):
+        if not message:
+            message = ("You can only upload .log, .log.gz, .txt, and "
+                        ".txt.gz files")
+        self.message = message
+
+    def __call__(self, form, field):
+        for file_storage in field.data or []:
+            if not file_storage.filename:
+                raise wtforms.ValidationError(self.message)
+
+            filename = file_storage.filename.lower()
+            if not filename.endswith((".log", ".log.gz", ".txt", ".txt.gz")):
+                raise wtforms.ValidationError(self.message)
+
+
+class Sha256Validator:
+    """
+    Validate that every given value looks like a SHA256 hex digest (64
+    hex characters).
+    """
+    def __init__(self, message=None):
+        if not message:
+            message = "SHA256 checksums must be 64 hexadecimal characters"
+        self.message = message
+
+    def __call__(self, form, field):
+        for value in field.data or []:
+            if not re.match(r"^[0-9a-fA-F]{64}$", value):
+                raise wtforms.ValidationError(self.message)
+
+
+class SrpmUploadValidator:
+    """
+    Validate that the (optional, single) uploaded file looks like a
+    .src.rpm / .nosrc.rpm file with a usable filename.
+    """
+    def __init__(self, message=None):
+        if not message:
+            message = "You can upload at most one .src.rpm or .nosrc.rpm file"
+        self.message = message
+
+    def __call__(self, form, field):
+        file_storage = field.data
+        if not file_storage:
+            return
+
+        if not file_storage.filename:
+            raise wtforms.ValidationError(self.message)
+
+        filename = file_storage.filename.lower()
+        if not filename.endswith((".src.rpm", ".nosrc.rpm")):
+            raise wtforms.ValidationError(self.message)
+
+
 class CoprUniqueNameValidator(object):
 
     def __init__(self, message=None, user=None, group=None, exist_ok=False):
@@ -1502,7 +1562,17 @@ class BuildFormRpmUploadFactory:
         form.pkgs = MultipleFileField('rpms', validators=[
             FileRequired(),
             RpmValidator()])
-        form.sha256 = wtforms.StringField('sha256')
+        form.srpm = FileField('srpm', validators=[
+            wtforms.validators.Optional(),
+            SrpmUploadValidator()])
+        form.logs = MultipleFileField('logs', validators=[
+            wtforms.validators.Optional(),
+            LogValidator()])
+        form.name = wtforms.StringField('name', validators=[
+            wtforms.validators.Optional()])
+        form.sha256 = wtforms.StringField('sha256', validators=[
+            wtforms.validators.Optional(),
+            Sha256Validator()])
         return form
 
 

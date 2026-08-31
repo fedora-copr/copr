@@ -280,6 +280,15 @@ def build_rpm_upload(task, config):
                 "chroot '{2}'".format(
                     os.path.basename(rpm_path), hdr["arch"], task["chroot"]))
 
+    if task.get("prebuilt_srpm_url"):
+        download_file(task["prebuilt_srpm_url"], resultdir)
+
+    if task.get("prebuilt_log_urls"):
+        uploaded_logs_dir = os.path.join(resultdir, "uploaded-logs")
+        os.makedirs(uploaded_logs_dir, exist_ok=True)
+        for url in task["prebuilt_log_urls"]:
+            download_file(url, uploaded_logs_dir)
+
     with open(os.path.join(resultdir, "success"), "w", encoding="utf-8") as success:
         success.write("done")
 

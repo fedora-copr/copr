@@ -487,8 +487,12 @@ class TestBuildsLogic(CoprsTestCase):
         assert {bch.name for bch in build.build_chroots} == {"fedora-18-x86_64"}
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_multiple_files(self):
-        # only one RPM can be uploaded per call for now
+    def test_rpm_upload_multi_requires_name(self):
+        # name can't be reliably guessed when more than one RPM is
+        # uploaded, so --name is required in that case
+        storage_dir = self.app.config["STORAGE_DIR"]
+        before = set(os.listdir(storage_dir))
+
         rpm_files = [
             self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm"),
             self._fake_rpm_file("hello-devel-2.8-1.fc18.x86_64.rpm"),
@@ -496,10 +500,55 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(BadRequest) as error:
             BuildsLogic.create_new_from_rpm_upload(
                 self.u1, self.c1, ["fedora-18-x86_64"], rpm_files)
-        assert "Only one RPM can be uploaded per call" in str(error.value)
+        assert "A package name is required" in str(error.value)
         assert self.models.Build.query.first() is None
         for rpm_file in rpm_files:
-            rpm_file.save.assert_not_called()
+            rpm_file.save.assert_called_once()
+
+        # the files were saved before the name check, make sure the tmp
+        # dir got cleaned up again once the check failed
+        after = set(os.listdir(storage_dir))
+        assert after == before
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_multiple_files_with_name(self):
+        rpm_files = [
+            self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm"),
+            self._fake_rpm_file("hello-devel-2.8-1.fc18.x86_64.rpm"),
+        ]
+        build = BuildsLogic.create_new_from_rpm_upload(
+            self.u1, self.c1, ["fedora-18-x86_64"], rpm_files, name="hello")
+        self.db.session.commit()
+        assert build.package.name == "hello"
+        assert build.source_json_dict["rpms"] == [
+            "hello-2.8-1.fc18.x86_64.rpm", "hello-devel-2.8-1.fc18.x86_64.rpm"]
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_with_srpm(self):
+        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        srpm_file = self._fake_rpm_file("hello-2.8-1.fc18.src.rpm")
+        build = BuildsLogic.create_new_from_rpm_upload(
+            self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file],
+            srpm_form_file=srpm_file)
+        self.db.session.commit()
+        assert build.source_json_dict["srpm"] == "hello-2.8-1.fc18.src.rpm"
+        srpm_file.save.assert_called_once()
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_rpm_upload_with_logs(self):
+        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        log_files = [
+            self._fake_rpm_file("builder-live.log", content=b"log contents"),
+            self._fake_rpm_file("backend.log.gz", content=b"gz contents"),
+        ]
+        build = BuildsLogic.create_new_from_rpm_upload(
+            self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file],
+            log_form_files=log_files)
+        self.db.session.commit()
+        assert build.source_json_dict["logs"] == [
+            "builder-live.log", "backend.log.gz"]
+        for log_file in log_files:
+            log_file.save.assert_called_once()
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_rpm_upload_rejects_unsanitizable_name(self):

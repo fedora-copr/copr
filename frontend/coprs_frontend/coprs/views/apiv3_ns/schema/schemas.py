@@ -781,9 +781,26 @@ class CreateBuildRpmUpload(_BuildDataCommon, _BuildOptionsBase, InputSchema):
         description="application/x-rpm files to publish directly, "
                     "skipping the SRPM build phase entirely",
     )
-    sha256: String = String(
-        description="Expected SHA256 hex digest of the uploaded file; "
-                    "the build is rejected on mismatch",
+    name: String = String(
+        description="Package name. Optional when uploading a single RPM "
+                    "(guessed from its filename), required when uploading "
+                    "more than one RPM.",
+    )
+    srpm: Raw = Raw(
+        description="Optional accompanying .src.rpm/.nosrc.rpm file "
+                    "(at most one), published alongside the uploaded RPM(s)",
+    )
+    logs: List = List(
+        Raw,
+        description="Optional .log/.log.gz/.txt/.txt.gz files, "
+                    "auto-compressed into a single tarball and stored on "
+                    "the backend filesystem",
+    )
+    sha256: List = List(
+        String,
+        description="Optional expected SHA256 hex digest(s), one per "
+                    "uploaded RPM in the same order as pkgs; the build is "
+                    "rejected on mismatch",
     )
 
 

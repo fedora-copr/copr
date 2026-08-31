@@ -464,17 +464,31 @@ class Commands(object):
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
         buildopts = buildopts_from_args(args)
 
-        if not os.path.exists(args.rpm):
-            raise CoprException("File {0} not found".format(args.rpm))
+        if len(args.rpms) > 1 and not args.pkgname:
+            raise CoprException(
+                "--name is required when uploading more than one RPM "
+                "(it can't be reliably guessed).")
 
-        progress_callback = get_progress_callback(os.path.getsize(args.rpm))
+        all_paths = list(args.rpms)
+        if args.srpm:
+            all_paths.append(args.srpm)
+        if args.logs:
+            all_paths.extend(args.logs)
+
+        for path in all_paths:
+            if not os.path.exists(path):
+                raise CoprException("File {0} not found".format(path))
+
+        total_size = sum(os.path.getsize(path) for path in all_paths)
+        progress_callback = get_progress_callback(total_size)
         buildopts["progress_callback"] = progress_callback
-        print('Uploading package {0}'.format(args.rpm))
+        print('Uploading package(s) {0}'.format(', '.join(all_paths)))
         try:
             build = self.client.build_proxy.create_from_rpm_upload(
                 ownername=username, projectname=projectname,
                 project_dirname=project_dirname, buildopts=buildopts,
-                path=args.rpm,
+                paths=args.rpms, name=args.pkgname,
+                srpm_path=args.srpm, log_paths=args.logs,
                 sha256=getattr(args, "sha256", None))
         finally:
             if progress_callback:
@@ -884,6 +898,8 @@ class Commands(object):
 
             if args.logs:
                 cmd.extend(["-A", "*.log.gz"])
+                # tarball of client-uploaded logs for "uploadrpm" builds
+                cmd.extend(["-A", "uploaded-logs.tar.gz"])
 
             if args.review:
                 cmd.extend([
@@ -1739,13 +1755,30 @@ def setup_parser():
     # create the parser for the "uploadrpm" command
     parser_upload_rpm = subparsers.add_parser(
         "uploadrpm", parents=[parser_build_parent],
-        help="Publish an already-built local RPM directly to a specified copr, "
-             "skipping the SRPM build phase entirely")
+        help="Publish one or more already-built local RPMs directly to a "
+             "specified copr, skipping the SRPM build phase entirely")
     parser_upload_rpm.add_argument(
-        "rpm", help="Local path to the already-built .rpm file to publish")
+        "rpms", nargs="+",
+        help="Local path(s) to the already-built .rpm file(s) to publish")
     parser_upload_rpm.add_argument(
-        "--sha256", help="Expected SHA256 hex digest of the uploaded file; "
-        "the server rejects the build on mismatch")
+        "--name", dest="pkgname", required=False,
+        help=("Package name. Optional when uploading a single RPM "
+              "(guessed from its filename), required when uploading "
+              "more than one RPM."))
+    parser_upload_rpm.add_argument(
+        "--srpm", dest="srpm", metavar="SRPM", required=False,
+        help=("Optional local path to an accompanying .src.rpm/.nosrc.rpm "
+              "file, published alongside the uploaded RPM(s)"))
+    parser_upload_rpm.add_argument(
+        "--logs", dest="logs", nargs="+", metavar="LOG", required=False,
+        help=("Optional local path(s) to .log/.log.gz/.txt/.txt.gz "
+              "file(s), auto-compressed into a single tarball and "
+              "stored on the backend filesystem"))
+    parser_upload_rpm.add_argument(
+        "--sha256", nargs="+", metavar="SHA256", required=False,
+        help=("Optional expected SHA256 hex digest(s) of the uploaded "
+              "RPM(s), one per RPM in the same order as the RPM "
+              "arguments; the server rejects the build on mismatch"))
     parser_upload_rpm.set_defaults(func="action_upload_rpm")
 
     # create the parser for the "buildpypi" command

@@ -8,6 +8,7 @@ import logging
 import os
 import shutil
 import statistics
+import tarfile
 import time
 import json
 import shlex
@@ -581,6 +582,22 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         except SSHConnectionError as exc:
             return "Stopped following builder for broken SSH: {}".format(exc)
 
+    def _archive_uploaded_logs(self):
+        uploaded_logs_dir = os.path.join(self.job.results_dir, "uploaded-logs")
+        if not os.path.isdir(uploaded_logs_dir):
+            return
+
+        tarball_path = os.path.join(self.job.results_dir, "uploaded-logs.tar.gz")
+        try:
+            with tarfile.open(tarball_path, "w:gz") as tar:
+                for entry in sorted(os.listdir(uploaded_logs_dir)):
+                    tar.add(os.path.join(uploaded_logs_dir, entry), arcname=entry)
+        except OSError as ex:
+            self.log.error("Unable to archive uploaded logs: %s", ex)
+            return
+
+        shutil.rmtree(uploaded_logs_dir, ignore_errors=True)
+
     def _compress_logs(self):
         """
         Compress builder-live.log, backend.log, and fedora-review.log using gzip.
@@ -1106,6 +1123,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             self._drop_host()
             if self.job:
                 self._mark_finished()
+                self._archive_uploaded_logs()
                 self._compress_logs()
             else:
                 self.log.error("No job object from Frontend")
