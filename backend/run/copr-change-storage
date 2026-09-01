@@ -178,6 +178,12 @@ def change_storage_for_project(project, dst, config):
                 to_upload = []
                 rpms = storage.find_build_results(resultdir)
                 for rpm in rpms:
+                    # It should never happen that a RPM package is 0 bytes, but
+                    # unfortunately sometimes it happened. Nobody knows why.
+                    if os.path.getsize(rpm) == 0:
+                        log.error("RPM package has zero bytes: %s", rpm)
+                        continue
+
                     # Was a package with this NEVRA already uploaded?
                     # We cannot simply uploaded.get(rpm) because the keys are
                     # full paths and we need to compare only basenames
