@@ -678,11 +678,13 @@ def test_create_multilib_project(config_from_file, project_proxy_add, capsys):
     assert stdout == "New project was successfully created: http://copr/coprs/jdoe/foo/\n"
 
 
+@mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')
 @mock.patch('copr.v3.proxies.build.BuildProxy.create_from_rpm_upload')
 @mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
 @mock.patch('copr_cli.main.Commands._watch_builds')
 def test_create_upload_rpm(watch_builds, _config_from_file,
-                           create_from_rpm_upload, capsys):
+                           create_from_rpm_upload, _check_before_build,
+                           capsys):
     create_from_rpm_upload.return_value = Munch(projectname="foo", id=123)
 
     with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm_file:

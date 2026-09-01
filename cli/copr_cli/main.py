@@ -464,6 +464,15 @@ class Commands(object):
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
         buildopts = buildopts_from_args(args)
 
+        # Before we start uploading potentially large source RPM file, make sure
+        # that the user has valid credentials and can build in the project.
+        self.client.build_proxy.check_before_build(
+            ownername=username,
+            projectname=projectname,
+            project_dirname=project_dirname,
+            buildopts=buildopts,
+        )
+
         if not os.path.exists(args.rpm):
             raise CoprException("File {0} not found".format(args.rpm))
 
