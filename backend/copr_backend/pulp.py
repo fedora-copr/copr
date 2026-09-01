@@ -16,6 +16,7 @@ from urllib.parse import urlencode
 from copr_common.request import SafeRequest
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
+from copr_backend.helpers import format_filename
 
 
 # JSON data in a POST request can be large but they probably cannot be
@@ -194,9 +195,38 @@ class BatchedAddRemoveContent:
         rpms_to_add -= common
         rpms_to_remove -= common
 
+        # Make sure we are not trying to add the same NEVRAs in one request
+        rpms_to_add = self._unique_nevras(rpms_to_add)
+
         return {"add_content_units": list(rpms_to_add),
                 "remove_content_units": list(rpms_to_remove),
                 "dirs_to_delete": list(dirs_to_delete)}
+
+    def _unique_nevras(self, pulp_hrefs):
+        unique = {}
+        for pulp_href in pulp_hrefs:
+            data = self.client.get_by_href(pulp_href).json()
+
+            # We are intentionally leaving out epoch because Pulp cannot handle
+            # two different epochs in one repository
+            # https://github.com/pulp/pulp_rpm/issues/4239
+            nevra = format_filename(
+                data["name"],
+                data["version"],
+                data["release"],
+                "",
+                data["arch"],
+            )
+
+            if nevra in unique:
+                self.log.warning("Duplicate NEVRA in one request: %s ", nevra)
+
+            build_id = int(data["pulp_labels"]["build_id"])
+            if nevra not in unique or unique[nevra][1] < build_id:
+                unique[nevra] = (pulp_href, build_id)
+
+        self.log.info("Unique NEVRAs: %s", list(unique.keys()))
+        return {x[0] for x in unique.values()}
 
     def commit(self):
         """
