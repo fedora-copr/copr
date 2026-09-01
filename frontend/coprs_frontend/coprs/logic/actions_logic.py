@@ -364,6 +364,9 @@ class ActionsLogic(object):
             "copr": dst.name,
             "builds_map": builds_map,
             "storage": src.storage,
+            "ownername": dst.owner_name,
+            "projectname": dst.name,
+            "devel": dst.devel_mode,
         }
 
         action = models.Action(
