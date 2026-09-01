@@ -71,6 +71,44 @@ class TestGetBuildTask(CoprsTestCase):
         base_url = app.config["PUBLIC_COPR_BASE_URL"]
         assert data["prebuilt_rpm_urls"] == [f"{base_url}/tmp/{tmp}/{filename}"]
 
+    def test_rpm_upload_prebuilt_srpm_and_log_urls(self, f_users, f_coprs,
+                                                    f_mock_chroots, f_db):
+        """
+        An optional accompanying srpm and/or uploaded log files also get
+        translated into their own public tmp URLs for the Builder.
+        """
+        rpm_filename = "hello-2.8-1.fc18.x86_64.rpm"
+        srpm_filename = "hello-2.8-1.fc18.src.rpm"
+        log_filenames = ["builder-live.log", "backend.log.gz"]
+
+        rpm_file = FileStorage(stream=BytesIO(b"fake rpm bytes"),
+                               filename=rpm_filename,
+                               content_type="application/x-rpm")
+        srpm_file = FileStorage(stream=BytesIO(b"fake srpm bytes"),
+                                filename=srpm_filename,
+                                content_type="application/x-rpm")
+        log_files = [
+            FileStorage(stream=BytesIO(b"log data"), filename=name)
+            for name in log_filenames
+        ]
+
+        build = BuildsLogic.create_new_from_rpm_upload(
+            self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file],
+            srpm_form_file=srpm_file, log_form_files=log_files)
+        self.db.session.commit()
+
+        build_chroot = build.build_chroots[0]
+        task_id = f"{build.id}-{build_chroot.name}"
+        r = self.tc.get(f"/backend/get-build-task/{task_id}",
+                        headers=self.auth_header).data
+        data = json.loads(r.decode("utf-8"))
+
+        tmp = build.source_json_dict["tmp"]
+        base_url = app.config["PUBLIC_COPR_BASE_URL"]
+        assert data["prebuilt_srpm_url"] == f"{base_url}/tmp/{tmp}/{srpm_filename}"
+        assert data["prebuilt_log_urls"] == [
+            f"{base_url}/tmp/{tmp}/{name}" for name in log_filenames]
+
 
 class TestWaitingBuilds(CoprsTestCase):
 

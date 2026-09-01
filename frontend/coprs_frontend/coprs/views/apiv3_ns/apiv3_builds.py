@@ -335,10 +335,14 @@ class CreateFromRpmUpload(Resource):
                 "Direct RPM upload is not enabled on this Copr instance")
 
         copr = get_copr()
-        data = get_form_compatible_data(preserve=["chroots", "exclude_chroots"])
+        data = get_form_compatible_data(
+            preserve=["chroots", "exclude_chroots", "sha256"])
         # pylint: disable-next=not-callable
         form = forms.BuildFormRpmUploadFactory(copr.active_chroots)(data, meta={'csrf': False})
         form.pkgs.data = flask.request.files.getlist("pkgs")
+        form.srpm.data = flask.request.files.get("srpm")
+        form.logs.data = flask.request.files.getlist("logs")
+        form.sha256.data = data.getlist("sha256")
         if not form.validate_on_submit():
             raise BadRequest(f"Bad request parameters: {form.errors}")
 
@@ -348,12 +352,15 @@ class CreateFromRpmUpload(Resource):
 
         build = BuildsLogic.create_new_from_rpm_upload(
             flask.g.user, copr, form.selected_chroots, form.pkgs.data,
+            name=form.name.data or None,
+            srpm_form_file=form.srpm.data,
+            log_form_files=form.logs.data,
             copr_dirname=form.project_dirname.data,
             background=form.background.data,
             timeout=form.timeout.data,
             after_build_id=form.after_build_id.data,
             with_build_id=form.with_build_id.data,
-            expected_sha256=form.sha256.data or None,
+            expected_sha256s=form.sha256.data or None,
         )
         db.session.commit()
         return to_dict(build)

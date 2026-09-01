@@ -298,7 +298,7 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
         assert build_chroot.status == StatusEnum("pending")
 
         source_data = json.loads(build.source_json)
-        assert source_data["files"] == ["hello-2.8-1.fc43.x86_64.rpm"]
+        assert source_data["rpms"] == ["hello-2.8-1.fc43.x86_64.rpm"]
 
         # no Action is queued for this build type -- the pending BuildChroot
         # is picked up and dispatched to a real builder like any other build
@@ -325,26 +325,9 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_multiple_files(self):
-        # only one RPM can be uploaded per call for now
-        user = self.models.User.query.filter_by(username="user2").first()
-        content = {
-            "ownername": "user2",
-            "projectname": "foocopr",
-            "chroots": "fedora-17-x86_64",
-            "pkgs": [
-                _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
-                _fake_rpm_file("hello-debuginfo-2.8-1.fc43.x86_64.rpm"),
-            ],
-        }
-        response = self.post_api3_with_auth_multipart(
-            "/api_3/build/create/rpm-upload", content, user)
-        assert response.status_code == 400
-        assert self.models.Build.query.first() is None
-
-    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
-                             "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_srpm(self):
+    def test_rpm_upload_rejects_srpm_in_pkgs(self):
+        # a src.rpm posted through the "pkgs" field (rather than the
+        # dedicated "srpm" field) is still rejected
         user = self.models.User.query.filter_by(username="user2").first()
         content = {
             "ownername": "user2",
@@ -359,35 +342,25 @@ class TestAPIv3BuildsRpmUpload(CoprsTestCase):
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
                              "f_mock_chroots", "f_db")
-    def test_rpm_upload_sha256_match(self):
+    def test_rpm_upload_sha256_count_mismatch(self):
+        # two RPMs but only one checksum -- ambiguous, must be rejected
         user = self.models.User.query.filter_by(username="user2").first()
         content = {
             "ownername": "user2",
             "projectname": "foocopr",
             "chroots": "fedora-17-x86_64",
-            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+            "pkgs": [
+                _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
+                _fake_rpm_file("hello-debuginfo-2.8-1.fc43.x86_64.rpm",
+                               content=b"other rpm bytes"),
+            ],
+            "name": "hello",
             "sha256": "dae37be1717e714967b78e21ea9fdf00928a7652687d462f3ad631cde43d1a3d",
         }
         response = self.post_api3_with_auth_multipart(
             "/api_3/build/create/rpm-upload", content, user)
-        assert response.status_code == 200
-        assert self.models.Build.query.first() is not None
-
-    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
-                             "f_mock_chroots", "f_db")
-    def test_rpm_upload_sha256_mismatch(self):
-        user = self.models.User.query.filter_by(username="user2").first()
-        content = {
-            "ownername": "user2",
-            "projectname": "foocopr",
-            "chroots": "fedora-17-x86_64",
-            "pkgs": _fake_rpm_file("hello-2.8-1.fc43.x86_64.rpm"),
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-        }
-        response = self.post_api3_with_auth_multipart(
-            "/api_3/build/create/rpm-upload", content, user)
         assert response.status_code == 400
-        assert "SHA256 mismatch" in response.json["error"]
+        assert "checksum(s)" in response.json["error"]
         assert self.models.Build.query.first() is None
 
     @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",

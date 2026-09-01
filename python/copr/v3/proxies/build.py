@@ -149,35 +149,67 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
-    def create_from_rpm_upload(self, ownername, projectname, path, *,
-                               buildopts=None, project_dirname=None,
-                               sha256=None):
+    def create_from_rpm_upload(self, ownername, projectname, *,
+                               paths=None, name=None, srpm_path=None,
+                               log_paths=None, buildopts=None,
+                               project_dirname=None, sha256=None):
         """
-        Publish an already-built local RPM file directly, skipping the SRPM
-        build and dist-git import phases entirely.
+        Publish one or more already-built local RPM files directly,
+        skipping the SRPM build and dist-git import phases entirely.
 
         :param str ownername:
         :param str projectname:
-        :param str path: local path to the already-built .rpm file
+        :param list paths: local path(s) to the already-built .rpm file(s)
+            to publish
+        :param str name: package name. Optional (guessed from the
+            filename) when uploading a single RPM, required when
+            uploading more than one RPM
+        :param str srpm_path: optional local path to an accompanying
+            .src.rpm/.nosrc.rpm file, published alongside the RPM(s)
+        :param list log_paths: optional local path(s) to
+            .log/.log.gz/.txt/.txt.gz file(s), auto-compressed into a
+            single tarball and stored on the backend
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
-        :param str sha256: expected SHA256 hex digest of the uploaded file
+        :param list sha256: optional expected SHA256 hex digest(s), one
+            per uploaded RPM, in the same order as `paths`
         :return: Munch
         """
+        if not paths:
+            raise CoprValidationException("'paths' has to be provided")
+
         endpoint = "/build/create/rpm-upload"
-        # the file must stay open for the whole request (sent by _create()
-        # below), so it can't be wrapped in a local "with" block here
-        # pylint: disable-next=consider-using-with
-        f = open(path, "rb")
+        # the files must stay open for the whole request (sent by
+        # _create() below), so they can't be wrapped in local "with"
+        # blocks here
+        # pylint: disable=consider-using-with
+        files = []
+        for path in paths:
+            files.append((
+                "pkgs",
+                (os.path.basename(path), open(path, "rb"), "application/x-rpm"),
+            ))
+
+        if srpm_path:
+            files.append((
+                "srpm",
+                (os.path.basename(srpm_path), open(srpm_path, "rb"),
+                 "application/x-rpm"),
+            ))
+
+        for log_path in log_paths or []:
+            files.append((
+                "logs",
+                (os.path.basename(log_path), open(log_path, "rb"),
+                 "text/plain"),
+            ))
 
         data = {
             "ownername": ownername,
             "projectname": projectname,
             "project_dirname": project_dirname,
+            "name": name,
             "sha256": sha256,
-        }
-        files = {
-            "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
         }
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 

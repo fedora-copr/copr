@@ -1,4 +1,5 @@
 # pylint: disable=too-many-positional-arguments
+# pylint: disable=too-many-lines
 
 import os
 import argparse
@@ -695,6 +696,59 @@ def test_create_upload_rpm(watch_builds, _config_from_file,
     assert "Build was added to foo" in stdout
     assert not watch_builds.called
     create_from_rpm_upload.assert_called_once()
+    _args, kwargs = create_from_rpm_upload.call_args
+    assert kwargs["paths"] == [rpm_file.name]
+    assert kwargs["name"] is None
+    assert kwargs["srpm_path"] is None
+    assert kwargs["log_paths"] is None
+
+
+@mock.patch('copr.v3.proxies.build.BuildProxy.create_from_rpm_upload')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+@mock.patch('copr_cli.main.Commands._watch_builds')
+def test_create_upload_rpm_multi_requires_name(
+        watch_builds, _config_from_file, create_from_rpm_upload, capsys):
+    with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm1, \
+            tempfile.NamedTemporaryFile(suffix=".rpm") as rpm2:
+        with pytest.raises(SystemExit):
+            main.main(argv=[
+                "uploadrpm", "--nowait", "copr_name", rpm1.name, rpm2.name,
+            ])
+
+    _stdout, stderr = capsys.readouterr()
+    assert "--name is required" in stderr
+    assert not watch_builds.called
+    create_from_rpm_upload.assert_not_called()
+
+
+@mock.patch('copr.v3.proxies.build.BuildProxy.create_from_rpm_upload')
+@mock.patch('copr_cli.main.config_from_file', return_value=mock_config)
+@mock.patch('copr_cli.main.Commands._watch_builds')
+def test_create_upload_rpm_multi_with_srpm_logs(
+        watch_builds, _config_from_file, create_from_rpm_upload, capsys):
+    create_from_rpm_upload.return_value = Munch(projectname="foo", id=123)
+
+    with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm1, \
+            tempfile.NamedTemporaryFile(suffix=".rpm") as rpm2, \
+            tempfile.NamedTemporaryFile(suffix=".src.rpm") as srpm, \
+            tempfile.NamedTemporaryFile(suffix=".log") as log1, \
+            tempfile.NamedTemporaryFile(suffix=".log.gz") as log2:
+        main.main(argv=[
+            "uploadrpm", "--nowait", "copr_name", rpm1.name, rpm2.name,
+            "--name", "hello",
+            "--srpm", srpm.name,
+            "--logs", log1.name, log2.name,
+        ])
+
+    stdout, _stderr = capsys.readouterr()
+    assert "Build was added to foo" in stdout
+    assert not watch_builds.called
+    create_from_rpm_upload.assert_called_once()
+    _args, kwargs = create_from_rpm_upload.call_args
+    assert kwargs["paths"] == [rpm1.name, rpm2.name]
+    assert kwargs["name"] == "hello"
+    assert kwargs["srpm_path"] == srpm.name
+    assert kwargs["log_paths"] == [log1.name, log2.name]
 
 
 @mock.patch('copr.v3.proxies.build.BuildProxy.check_before_build')

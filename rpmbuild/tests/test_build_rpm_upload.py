@@ -120,6 +120,55 @@ class TestBuildRpmUpload(TestCase):
         mc_get_header.assert_not_called()
         mc_run_automation_tools.assert_not_called()
 
+    @mock.patch("main.run_automation_tools")
+    @mock.patch("main.get_rpm_header")
+    @mock.patch("main.download_file")
+    def test_build_rpm_upload_with_srpm(self, mc_download, mc_get_header,
+                                        mc_run_automation_tools):
+        mc_download.side_effect = self._fake_download_file
+        mc_get_header.return_value = _fake_header("x86_64")
+
+        task = dict(self.task, prebuilt_srpm_url=(
+            "https://copr.example.com/tmp/abc/hello-2.8-1.fc40.src.rpm"))
+
+        build_rpm_upload(task, self.config)
+
+        mc_download.assert_any_call(
+            task["prebuilt_srpm_url"], self.resultdir)
+        assert os.path.exists(
+            os.path.join(self.resultdir, "hello-2.8-1.fc40.src.rpm"))
+        mc_run_automation_tools.assert_called_once()
+
+    @mock.patch("main.run_automation_tools")
+    @mock.patch("main.get_rpm_header")
+    @mock.patch("main.download_file")
+    def test_build_rpm_upload_with_logs(self, mc_download, mc_get_header,
+                                        mc_run_automation_tools):
+        mc_download.side_effect = self._fake_download_file
+        mc_get_header.return_value = _fake_header("x86_64")
+
+        log_urls = [
+            "https://copr.example.com/tmp/abc/builder-live.log",
+            "https://copr.example.com/tmp/abc/backend.log.gz",
+            "https://copr.example.com/tmp/abc/notes.txt",
+            "https://copr.example.com/tmp/abc/notes.txt.gz",
+        ]
+        task = dict(self.task, prebuilt_log_urls=log_urls)
+
+        build_rpm_upload(task, self.config)
+
+        # the builder only downloads the plain files into a dedicated
+        # subdirectory -- it's Copr Backend's job to tar them up once
+        # transferred, see _archive_uploaded_logs() in background_worker_build
+        uploaded_logs_dir = os.path.join(self.resultdir, "uploaded-logs")
+        assert sorted(os.listdir(uploaded_logs_dir)) == sorted(
+            os.path.basename(url) for url in log_urls)
+        assert not os.path.exists(
+            os.path.join(self.resultdir, "uploaded-logs.tar.gz"))
+        for url in log_urls:
+            mc_download.assert_any_call(url, uploaded_logs_dir)
+        mc_run_automation_tools.assert_called_once()
+
 
 class TestBuildRpmDispatch(TestCase):
     """

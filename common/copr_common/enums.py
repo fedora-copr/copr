@@ -118,7 +118,7 @@ class BuildSourceEnum(metaclass=EnumType):
             "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
             "custom": 9, # user-provided script to build sources
             "distgit": 10, # distgit_instance, package_name, committish
-            "rpm_upload": 11, # tmp, files -- pre-built RPMs uploaded directly, no SRPM build
+            "rpm_upload": 11, # logfiles, and prebuilt srpm and rpms uploaded directly
            }
 
 

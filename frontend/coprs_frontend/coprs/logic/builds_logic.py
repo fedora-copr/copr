@@ -749,48 +749,79 @@ class BuildsLogic(object):
         return build
 
     @classmethod
-    def _save_uploaded_rpms(cls, form_files, expected_sha256=None):
-        """
-        Save each uploaded file into a fresh STORAGE_DIR tmp directory.
+    def _sanitize_uploaded_filename(cls, form_file, allowed_suffixes, reject_suffixes=()):
+        sanitized = secure_filename(form_file.filename)
+        if (not sanitized or not sanitized.endswith(allowed_suffixes) or
+                sanitized.endswith(reject_suffixes)):
+            raise BadRequest(
+                f"Uploaded filename '{form_file.filename}' is invalid "
+                "or could not be safely sanitized to a valid filename.")
+        return sanitized
 
-        :return: (tmp_name, filenames)
-        :raises BadRequest: if there isn't exactly one uploaded file, or if
-            its filename is invalid / not a ".rpm", or if expected_sha256
+    @classmethod
+    def _save_uploaded_files(cls, rpm_files, srpm_file=None, log_files=None,
+                             expected_sha256s=None):
+        """
+        :param rpm_files: list of uploaded ".rpm" file objects
+        :param srpm_file: optional src.rpm
+        :param log_files: optional list logs and txts
+        :param expected_sha256s: optional list of expected SHA256 hex
+            digests, one per uploaded RPM, in the same order as rpm_files
+        :return: (tmp_name, rpm_filenames, srpm_filename, log_filenames)
+        :raises BadRequest: if there isn't at least one uploaded RPM file,
+            if any filename is invalid, if the number of expected_sha256s
+            doesn't match the number of rpm_files, or if a checksum
             doesn't match
         :raises InsufficientStorage
         """
-        if len(form_files) != 1:
-            # multi-RPM upload may be added later
-            raise BadRequest(
-                "Only one RPM can be uploaded per call for now "
-                "(multi-RPM upload may be added later).")
+        if not rpm_files:
+            raise BadRequest("At least one .rpm file has to be uploaded.")
 
-        sanitized_names = []
-        for form_file in form_files:
-            sanitized = secure_filename(form_file.filename)
-            if (not sanitized or not sanitized.endswith(".rpm") or
-                    sanitized.endswith((".src.rpm", ".nosrc.rpm"))):
-                raise BadRequest(
-                    f"Uploaded filename '{form_file.filename}' is invalid "
-                    "or could not be safely sanitized to a valid .rpm filename.")
-            sanitized_names.append(sanitized)
+        if expected_sha256s and len(expected_sha256s) != len(rpm_files):
+            raise BadRequest(
+                f"Got {len(expected_sha256s)} --sha256 checksum(s) for "
+                f"{len(rpm_files)} uploaded RPM(s); provide one checksum "
+                "per RPM, in the same order.")
+
+        rpm_names = [
+            cls._sanitize_uploaded_filename(rpm_file, (".rpm",), (".src.rpm", ".nosrc.rpm"))
+            for rpm_file in rpm_files
+        ]
+
+        srpm_name = None
+        if srpm_file:
+            srpm_name = cls._sanitize_uploaded_filename(
+                srpm_file, (".src.rpm", ".nosrc.rpm"))
+
+        log_names = [
+            cls._sanitize_uploaded_filename(
+                log_file, (".log", ".log.gz", ".txt", ".txt.gz"))
+            for log_file in (log_files or [])
+        ]
 
         tmp = None
         try:
             tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
             tmp_name = os.path.basename(tmp)
-            filenames = []
-            for form_file, filename in zip(form_files, sanitized_names):
+
+            sha256s = expected_sha256s or [None] * len(rpm_files)
+            for rpm_file, filename, expected_sha256 in zip(rpm_files, rpm_names, sha256s):
                 file_path = os.path.join(tmp, filename)
-                save_form_file_field_to(form_file, file_path)
+                save_form_file_field_to(rpm_file, file_path)
                 if expected_sha256:
                     actual = sha256_of_file(file_path)
                     if expected_sha256.lower() != actual.lower():
                         raise BadRequest(
                             f"SHA256 mismatch for '{filename}': "
                             f"expected {expected_sha256}, got {actual}")
-                filenames.append(filename)
-            return tmp_name, filenames
+
+            if srpm_file:
+                save_form_file_field_to(srpm_file, os.path.join(tmp, srpm_name))
+
+            for log_file, filename in zip(log_files or [], log_names):
+                save_form_file_field_to(log_file, os.path.join(tmp, filename))
+
+            return tmp_name, rpm_names, srpm_name, log_names
         except (OSError, BadRequest):
             if tmp:
                 shutil.rmtree(tmp)
@@ -816,11 +847,36 @@ class BuildsLogic(object):
 
     # pylint: disable=too-many-arguments
     @classmethod
+    def _resolve_rpm_upload_pkg_name(cls, name, rpm_filenames):
+        """
+        Determine the package name for a "direct RPM upload" build: use
+        the explicitly given name if any, guess it from the (single)
+        uploaded RPM's filename otherwise, or fail if that's not possible.
+
+        :raises BadRequest
+        """
+        if name:
+            return name
+
+        if len(rpm_filenames) == 1:
+            pkg_name = helpers.parse_package_name(rpm_filenames[0])
+            if pkg_name:
+                return pkg_name
+
+            raise BadRequest(
+                f"Can not derive a package name from the uploaded "
+                f"filename '{rpm_filenames[0]}'")
+
+        raise BadRequest(
+            "A package name is required when uploading more than "
+            "one RPM (it can't be reliably guessed).")
+
+    @classmethod
     def create_new_from_rpm_upload(cls, user, copr, chroot_names, form_files, *,
-                                   copr_dirname=None, background=False,
-                                   timeout=None, after_build_id=None,
-                                   with_build_id=None,
-                                   expected_sha256=None):
+                                   name=None, srpm_form_file=None,
+                                   log_form_files=None, copr_dirname=None,
+                                   expected_sha256s=None,
+                                   **build_options):
         """
         Create a build that publishes built RPMs directly for one or more
         chroots, skipping the SRPM build and dist-git import phases
@@ -829,35 +885,57 @@ class BuildsLogic(object):
         :type user: models.User
         :type copr: models.Copr
         :param chroot_names: names of the chroots to publish into
-        :param form_files: list of uploaded-file objects
+        :param form_files: list of uploaded ".rpm" file objects (at least one)
+        :param name: explicit package name. Optional (guessed from the
+            uploaded filename) when exactly one RPM is uploaded, but
+            required when more than one RPM is uploaded because the name
+            can't be reliably guessed from a single filename anymore.
+        :param srpm_form_file: optional uploaded ".src.rpm"/".nosrc.rpm"
+            file object, published alongside the RPM(s)
+        :param log_form_files: optional list of uploaded
+            ".log"/".log.gz"/".txt"/".txt.gz" file objects, auto-compressed
+            into a single tarball and kept on the backend filesystem only
+        :param expected_sha256s: optional list of expected SHA256 hex
+            digests, one per uploaded RPM, in the same order as form_files
+        :param build_options: background, timeout, after_build_id,
+            with_build_id
         :return: models.Build
         """
+        # pylint: disable=too-many-locals
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             copr, "Can't build while there is an operation in progress: {action}")
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr, "You don't have permissions to build in this copr.")
 
-        tmp_name, filenames = cls._save_uploaded_rpms(form_files, expected_sha256)
+        tmp_name, rpm_filenames, srpm_filename, log_filenames = \
+            cls._save_uploaded_files(form_files, srpm_form_file, log_form_files,
+                                     expected_sha256s)
 
         try:
-            pkg_name = helpers.parse_package_name(filenames[0])
-            if not pkg_name:
-                raise BadRequest(
-                    f"Can not derive a package name from the uploaded "
-                    f"filename '{filenames[0]}'")
-
-            source_json = json.dumps({"tmp": tmp_name, "files": filenames})
+            pkg_name = cls._resolve_rpm_upload_pkg_name(name, rpm_filenames)
+            source_json = json.dumps({
+                "tmp": tmp_name,
+                "rpms": rpm_filenames,
+                "srpm": srpm_filename,
+                "logs": log_filenames,
+            })
             package = cls._find_or_create_rpm_upload_package(
                 user, copr, pkg_name, source_json)
-            batch = cls.setup_batch(after_build_id, with_build_id, user)
+            batch = cls.setup_batch(
+                build_options.get("after_build_id"),
+                build_options.get("with_build_id"), user)
 
             copr_dir = None
             if copr_dirname:
                 copr_dir = coprs_logic.CoprDirsLogic.get_or_create(copr, copr_dirname)
 
+            pkgs_display = list(rpm_filenames)
+            if srpm_filename:
+                pkgs_display.append(srpm_filename)
+
             build = models.Build(
                 user=user,
-                pkgs=", ".join(filenames),
+                pkgs=", ".join(pkgs_display),
                 copr=copr,
                 copr_dir=copr_dir,
                 package=package,
@@ -865,9 +943,9 @@ class BuildsLogic(object):
                 source_json=source_json,
                 source_status=StatusEnum("succeeded"),
                 submitted_on=int(time.time()),
-                is_background=bool(background),
+                is_background=bool(build_options.get("background")),
                 batch=batch,
-                timeout=timeout or app.config["DEFAULT_BUILD_TIMEOUT"],
+                timeout=build_options.get("timeout") or app.config["DEFAULT_BUILD_TIMEOUT"],
             )
             db.session.add(build)
 

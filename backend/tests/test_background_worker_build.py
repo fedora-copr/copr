@@ -11,6 +11,7 @@ import json
 import os
 import shutil
 import subprocess
+import tarfile
 import time
 import tempfile
 from unittest import mock
@@ -895,3 +896,55 @@ def test_buildjob_chroot_dir(f_build_rpm_case):
     job_dict = copy.deepcopy(testlib.VALID_SUBPROJECT_PRM_JOB)
     job = BuildJob(job_dict, worker.opts)
     assert job.chroot_dir.endswith("copr-pull-requests:pr:3568/fedora-40-x86_64")
+
+def test_archive_uploaded_logs_creates_tarball(f_build_rpm_case):
+    config = f_build_rpm_case
+    worker = config.bw
+    worker.job = _get_rpm_job_object(worker.opts)
+
+    uploaded_logs_dir = os.path.join(worker.job.results_dir, "uploaded-logs")
+    os.makedirs(uploaded_logs_dir)
+    with open(os.path.join(uploaded_logs_dir, "builder-live.log"), "w",
+             encoding="utf-8") as handle:
+        handle.write("live log")
+    with open(os.path.join(uploaded_logs_dir, "notes.txt.gz"), "wb") as handle:
+        handle.write(b"gz data")
+
+    worker._archive_uploaded_logs()
+
+    tarball_path = os.path.join(worker.job.results_dir, "uploaded-logs.tar.gz")
+    assert os.path.exists(tarball_path)
+    assert not os.path.exists(uploaded_logs_dir)
+    with tarfile.open(tarball_path, "r:gz") as tar:
+        names = sorted(tar.getnames())
+    assert names == ["builder-live.log", "notes.txt.gz"]
+
+def test_archive_uploaded_logs_noop_without_dir(f_build_rpm_case):
+    config = f_build_rpm_case
+    worker = config.bw
+    worker.job = _get_rpm_job_object(worker.opts)
+    os.makedirs(worker.job.results_dir, exist_ok=True)
+
+    worker._archive_uploaded_logs()
+
+    tarball_path = os.path.join(worker.job.results_dir, "uploaded-logs.tar.gz")
+    assert not os.path.exists(tarball_path)
+
+def test_archive_uploaded_logs_tar_error(f_build_rpm_case, caplog):
+    config = f_build_rpm_case
+    worker = config.bw
+    worker.job = _get_rpm_job_object(worker.opts)
+
+    uploaded_logs_dir = os.path.join(worker.job.results_dir, "uploaded-logs")
+    os.makedirs(uploaded_logs_dir)
+    with open(os.path.join(uploaded_logs_dir, "builder-live.log"), "w",
+             encoding="utf-8") as handle:
+        handle.write("live log")
+
+    with mock.patch("copr_backend.background_worker_build.tarfile.open",
+                    side_effect=OSError("disk full")):
+        worker._archive_uploaded_logs()
+
+    assert_logs_exist(["Unable to archive uploaded logs"], caplog)
+    # the raw directory is left in place, nothing crashed
+    assert os.path.isdir(uploaded_logs_dir)

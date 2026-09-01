@@ -34,5 +34,13 @@ copr-cli buildpypi test-project --packagename pydantic-ai --with-deps --chroot f
 # to publish an already-built local RPM directly, skipping the SRPM build
 copr-cli uploadrpm test-project ~/packages/package-1.6-1.fc28.x86_64.rpm
 
+# to publish multiple built RPMs (plus their srpm and build logs) directly,
+# skipping the SRPM build; --name is required with more than one RPM
+copr-cli uploadrpm test-project --name package \
+    --srpm ~/packages/package-1.6-1.fc28.src.rpm \  # optional
+    --logs ~/packages/build.log ~/packages/build.txt \
+    ~/packages/package-1.6-1.fc28.x86_64.rpm \
+    ~/packages/package-devel-1.6-1.fc28.x86_64.rpm
+
 # to regenerate repository metadata for a project
 copr-cli regenerate-repos test-project

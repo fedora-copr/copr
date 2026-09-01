@@ -75,10 +75,22 @@
   {% endif %}
 
   {% if source_type_text == "rpm_upload" %}
+  {% if source_json_dict.get("srpm") %}
+  <dt>Uploaded SRPM:</dt>
+  <dd>{{ source_json_dict["srpm"] }}</dd>
+  {% endif %}
+  {% if source_json_dict.get("rpms") %}
   <dt>Uploaded RPMs:</dt>
-  {% for filename in source_json_dict.get("files", []) %}
+    {% for filename in source_json_dict.get("rpms", []) %}
+    <dd>{{ filename }}</dd>
+    {% endfor %}
+  {% endif %}
+  {% if source_json_dict.get("logs") %}
+  <dt>Uploaded logs:</dt>
+  {% for filename in source_json_dict.get("logs", []) %}
   <dd>{{ filename }}</dd>
   {% endfor %}
+  {% endif %}
   {% endif %}
 
 {% if source_type_text == "distgit" %}

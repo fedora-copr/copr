@@ -1,7 +1,9 @@
 import tempfile
 
+import pytest
 from requests import Response
 from copr.v3 import Client, BuildProxy
+from copr.v3.exceptions import CoprValidationException
 from copr.v3.requests import Request
 
 from copr.test import config_location, mock
@@ -44,7 +46,7 @@ def test_build_rpm_upload(send):
     mock_client = Client.create_from_config_file(config_location)
     with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm_file:
         mock_client.build_proxy.create_from_rpm_upload(
-            "praiskup", "ping", rpm_file.name,
+            "praiskup", "ping", paths=[rpm_file.name],
             buildopts={"chroots": ["fedora-40-x86_64"]},
         )
         assert len(send.call_args_list) == 1
@@ -54,5 +56,34 @@ def test_build_rpm_upload(send):
         assert args['endpoint'] == '/build/create/rpm-upload'
         assert args['data'] == {
             'ownername': 'praiskup', 'projectname': 'ping',
-            'project_dirname': None, 'chroots': ['fedora-40-x86_64'],
-            'sha256': None}
+            'project_dirname': None, 'name': None,
+            'chroots': ['fedora-40-x86_64'], 'sha256': None}
+
+
+@mock.patch('copr.v3.proxies.Request.send')
+def test_build_rpm_upload_multi(send):
+    mock_client = Client.create_from_config_file(config_location)
+    with tempfile.NamedTemporaryFile(suffix=".rpm") as rpm1, \
+            tempfile.NamedTemporaryFile(suffix=".rpm") as rpm2, \
+            tempfile.NamedTemporaryFile(suffix=".src.rpm") as srpm, \
+            tempfile.NamedTemporaryFile(suffix=".log") as log:
+        mock_client.build_proxy.create_from_rpm_upload(
+            "praiskup", "ping", paths=[rpm1.name, rpm2.name],
+            name="ping", srpm_path=srpm.name, log_paths=[log.name],
+            buildopts={"chroots": ["fedora-40-x86_64"]},
+        )
+        assert len(send.call_args_list) == 1
+        call = send.call_args_list[0]
+        args = call[1]
+        assert args['method'] == 'POST'
+        assert args['endpoint'] == '/build/create/rpm-upload'
+        assert args['data'] == {
+            'ownername': 'praiskup', 'projectname': 'ping',
+            'project_dirname': None, 'name': 'ping',
+            'chroots': ['fedora-40-x86_64'], 'sha256': None}
+
+
+def test_build_rpm_upload_requires_paths():
+    mock_client = Client.create_from_config_file(config_location)
+    with pytest.raises(CoprValidationException):
+        mock_client.build_proxy.create_from_rpm_upload("praiskup", "ping")

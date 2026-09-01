@@ -108,8 +108,14 @@ class FileRequest(Request):
     def _request_params(self, *args, **kwargs):
         params = super(FileRequest, self)._request_params(*args, **kwargs)
 
-        data = self.files or {}
-        data["json"] = ("json", json.dumps(params["json"]), "application/json")
+        json_field = ("json", json.dumps(params["json"]), "application/json")
+        if isinstance(self.files, list):
+            # A list-of-tuples is needed (instead of a dict) whenever more
+            # than one file has to be sent under the same field name
+            data = list(self.files) + [("json", json_field)]
+        else:
+            data = dict(self.files or {})
+            data["json"] = json_field
 
         callback = self.progress_callback or (lambda x: x)
         m = MultipartEncoder(data)
