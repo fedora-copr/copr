@@ -331,8 +331,13 @@ def test_full_srpm_build(f_build_srpm):
 
 
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.sign._unsign_one")
 @mock.patch("copr_backend.sign._sign_one")
-def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
+def test_build_and_sign(mc_sign_one, mc_unsign_one, f_build_rpm_sign_on, caplog):
+    manager = mock.Mock()
+    manager.attach_mock(mc_unsign_one, "unsign_one")
+    manager.attach_mock(mc_sign_one, "sign_one")
+
     config = f_build_rpm_sign_on
     worker = config.bw
     worker.process()
@@ -353,13 +358,28 @@ def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
     for call in expected_calls:
         assert call in mc_sign_one.call_args_list
     assert len(mc_sign_one.call_args_list) == 2
+
+    # existing signatures must be dropped before packages are re-signed
+    for call in [mock.call(rpm), mock.call(srpm)]:
+        assert call in mc_unsign_one.call_args_list
+    assert len(mc_unsign_one.call_args_list) == 2
+
+    unsign_calls = [
+        c for c in manager.mock_calls if c[0] == "unsign_one"
+    ]
+    sign_calls = [
+        c for c in manager.mock_calls if c[0] == "sign_one"
+    ]
+    assert manager.mock_calls.index(unsign_calls[-1]) < \
+        manager.mock_calls.index(sign_calls[0])
+
     for record in caplog.record_tuples:
         _, level, _ = record
         assert level <= logging.INFO
 
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
 @mock.patch("copr_backend.sign._sign_one")
-@_patch_bwbuild_object("sign_rpms_in_dir")
+@_patch_bwbuild_object("resign_rpms_in_dir")
 def test_sign_built_packages_exception(mc_sign_rpms, mc_sign_one,
                                        f_build_rpm_sign_on, caplog):
     _side_effect = mc_sign_one
@@ -585,7 +605,8 @@ def test_cancel_before_start(f_build_rpm_sign_on, caplog):
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
 @mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
-def test_build_retry(f_build_rpm_sign_on):
+@mock.patch("copr_backend.sign._unsign_one")
+def test_build_retry(mc_unsign_one, f_build_rpm_sign_on):
     config = f_build_rpm_sign_on
     worker = config.bw
     class _SideEffect():
@@ -619,6 +640,7 @@ def test_build_retry(f_build_rpm_sign_on):
     assert find_msgs == found_msgs
     assert _get_log_content(worker.job, "builder-live.log.gz").splitlines() == \
         ["build log stdout", "build log stderr"]
+    assert mc_unsign_one.called
 
 def assert_messages_sent(topics, sender):
     """ check msg bus calls """
