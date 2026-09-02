@@ -228,7 +228,7 @@ def _get_limits_conf(parser):
                     key, count = limit_spec.split("=")
                     key = key.strip()
                     count = int(count.strip())
-                    if not key or not count:
+                    if not key:
                         raise CoprBackendError("Empty '{}' spec".format(option))
                     if key in limits[config_type]:
                         raise CoprBackendError(err2.format(key, config_type))
