@@ -465,6 +465,11 @@ class _ProjectFields:
         ),
         example=["github.com/fedora-copr/copr", "github.com/another/project", "github.com/theproject/*"],
     )
+    tags: List = List(
+        String,
+        description="Project tags",
+        example=["cli", "devtools"],
+    )
     follow_fedora_branching: Boolean = Boolean(
         description=(
             "If chroots for the new branch should be auto-enabled and populated from "

@@ -14,7 +14,7 @@ from sqlalchemy import desc
 from sqlalchemy import func
 from sqlalchemy.event import listens_for
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.orm.attributes import NEVER_SET, NO_VALUE
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
@@ -53,6 +53,8 @@ class CoprsLogic(object):
         query = (db.session.query(models.Copr)
                  .join(models.Copr.user)
                  .options(db.contains_eager(models.Copr.user))
+                 .options(selectinload(models.Copr.copr_project_tags)
+                         .joinedload(models.CoprProjectTag.project_tag))
                  .filter(models.Copr.deleted == False))
         return query
 
@@ -133,6 +135,8 @@ class CoprsLogic(object):
             .join(models.Copr.user)
             .outerjoin(models.Group)
             .options(db.contains_eager(models.Copr.user))
+            .options(selectinload(models.Copr.copr_project_tags)
+                    .joinedload(models.CoprProjectTag.project_tag))
         )
 
         if not include_deleted:
@@ -259,7 +263,9 @@ class CoprsLogic(object):
             fulltext = None
 
         query = (models.Copr.query.order_by(desc(models.Copr.created_on))
-                 .filter(models.Copr.deleted == False))
+                 .filter(models.Copr.deleted == False)
+                 .options(selectinload(models.Copr.copr_project_tags)
+                         .joinedload(models.CoprProjectTag.project_tag)))
 
         if projectname:
             value = "%{}%".format(projectname)
@@ -285,6 +291,18 @@ class CoprsLogic(object):
                 fulltext, whoosheer=CoprWhoosheer, order_by_relevance=100)
 
         return query
+
+    @classmethod
+    def get_copr_projects_by_tag_name(cls, tag_name):
+        """
+        Get all coprs that have the given project tag
+        """
+        query = cls.get_multiple()
+        return (
+            query.join(models.Copr.copr_project_tags)
+            .join(models.CoprProjectTag.project_tag)
+            .filter(models.ProjectTag.name == tag_name)
+        )
 
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
@@ -496,6 +514,83 @@ class CoprsLogic(object):
         raise exceptions.InsufficientRightsException(
             f"Forge project {packit_forge_project} can't build in this Copr via Packit."
         )
+
+
+class ProjectTagsLogic:
+    """
+    Logic for project tags
+    """
+    @classmethod
+    def get_tag(cls, name):
+        """
+        Get a project tag by its name
+        """
+        return models.ProjectTag.query.filter(models.ProjectTag.name == name).first()
+
+    @classmethod
+    def new_tag(cls, name, user=None):
+        """
+        Create new project tag
+        """
+        tag = models.ProjectTag(name=name, created_on=int(time.time()), user=user)
+        db.session.add(tag)
+        return tag
+
+    @classmethod
+    def create_tag(cls, name, user=None):
+        """
+        Get or create a project tag
+        """
+        tag = cls.get_tag(name)
+        if tag:
+            return tag
+        return cls.new_tag(name, user=user)
+
+    @classmethod
+    def get_tags_by_names(cls, names):
+        """
+        Get existing project tags matching names
+        """
+        return {t.name: t for t in
+                models.ProjectTag.query.filter(models.ProjectTag.name.in_(names))}
+
+    @classmethod
+    def get_default_tags(cls):
+        """
+        Get only the default (admin-curated) project tags
+        """
+        return (models.ProjectTag.query
+                .filter_by(is_default=True)
+                .options(joinedload(models.ProjectTag.user))
+                .order_by(models.ProjectTag.name))
+
+    @classmethod
+    def set_copr_tags(cls, copr, tag_names, user=None):
+        """
+        Set the tags for a copr project
+        """
+        names = list(dict.fromkeys(tag_names))
+        if len(names) > 10:
+            raise exceptions.BadRequest("A project can have at most 10 tags.")
+
+        existing = cls.get_tags_by_names(names)
+        new_tags = [existing.get(name) or cls.new_tag(name, user=user) for name in names]
+
+        current_tags = list(copr.project_tags)
+        for tag in current_tags:
+            if tag not in new_tags:
+                copr.project_tags.remove(tag)
+        for tag in new_tags:
+            if tag not in current_tags:
+                copr.project_tags.append(tag)
+
+    @classmethod
+    def delete_tag(cls, tag):
+        """
+        Delete a project tag
+        """
+        models.CoprProjectTag.query.filter_by(project_tag_id=tag.id).delete()
+        db.session.delete(tag)
 
 
 class CoprPermissionsLogic(object):

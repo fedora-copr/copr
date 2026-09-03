@@ -26,7 +26,7 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound, BadRequest
-from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
+from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic, ProjectTagsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.webhooks_logic import WebhooksLogic
 from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
@@ -148,6 +148,28 @@ def coprs_by_user(username=None, page=1):
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  users_builds=users_builds,
+                                 graph=data)
+
+
+@coprs_ns.route("/tags/<tag_name>/", defaults={"page": 1})
+@coprs_ns.route("/tags/<tag_name>/<int:page>/")
+def coprs_by_tag(tag_name, page=1):
+    """
+    List the (paginated) projects tagged with an exact tag name.
+    """
+    query = CoprsLogic.get_copr_projects_by_tag_name(tag_name)
+    query = CoprsLogic.set_query_order(query, desc=True)
+    paginator = helpers.Paginator(query, query.count(), page)
+    coprs = paginator.sliced_query
+
+    data = builds_logic.BuildsLogic.get_small_graph_data('30min')
+
+    return flask.render_template("coprs/show/by_tag.html",
+                                 tag_name=tag_name,
+                                 coprs=coprs,
+                                 pinned=[],
+                                 paginator=paginator,
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
                                  graph=data)
 
 
@@ -339,10 +361,14 @@ def copr_new(username=None, group_name=None):
                 repo_priority=form.repo_priority.data
             )
 
+            ProjectTagsLogic.set_copr_tags(
+                copr, form.default_tags.data + form.tags.data, user=flask.g.user)
+
             db.session.commit()
             after_the_project_creation(copr, form)
             return flask.redirect(url_for_copr_details(copr))
-        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
+        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject,
+                exceptions.BadRequest) as e:
             flask.flash(str(e), "error")
 
     return flask.render_template(redirect, form=form, group=group)
@@ -621,11 +647,14 @@ def process_copr_update(copr, form):
     try:
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.selected_chroots)
+        ProjectTagsLogic.set_copr_tags(
+            copr, form.default_tags.data + form.tags.data, user=flask.g.user)
         # form validation checks for duplicates
         coprs_logic.CoprsLogic.update(flask.g.user, copr)
     except (exceptions.ActionInProgressException,
             exceptions.InsufficientRightsException,
-            exceptions.ConflictingRequest) as e:
+            exceptions.ConflictingRequest,
+            exceptions.BadRequest) as e:
 
         flask.flash(str(e), "error")
         db.session.rollback()

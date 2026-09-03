@@ -13,6 +13,7 @@ markupsafe
 pyLibravatar
 pydns # pyLibravatar uses this
 python-dateutil
+python-slugify
 netaddr
 alembic
 redis
