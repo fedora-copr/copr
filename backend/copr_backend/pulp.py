@@ -202,10 +202,13 @@ class BatchedAddRemoveContent:
                 "remove_content_units": list(rpms_to_remove),
                 "dirs_to_delete": list(dirs_to_delete)}
 
-    def _unique_nevras(self, pulp_hrefs):
+    def _unique_nevras(self, hrefs_or_prns):
         unique = {}
-        for pulp_href in pulp_hrefs:
-            data = self.client.get_by_href(pulp_href).json()
+        for href_or_prn in hrefs_or_prns:
+            if href_or_prn.startswith("prn:"):
+                data = self.client.get_package_by_prn(href_or_prn).json()
+            else:
+                data = self.client.get_by_href(href_or_prn).json()
 
             # We are intentionally leaving out epoch because Pulp cannot handle
             # two different epochs in one repository
@@ -223,7 +226,7 @@ class BatchedAddRemoveContent:
 
             build_id = int(data["pulp_labels"]["build_id"])
             if nevra not in unique or unique[nevra][1] < build_id:
-                unique[nevra] = (pulp_href, build_id)
+                unique[nevra] = (href_or_prn, build_id)
 
         self.log.info("Unique NEVRAs: %s", list(unique.keys()))
         return {x[0] for x in unique.values()}
@@ -441,6 +444,13 @@ class PulpClient:
         url = self.config["base_url"] + href
         self.log.info("Pulp: get_by_href: %s", href)
         return self.send("GET", url)
+
+    def get_package_by_prn(self, prn):
+        """
+        Get a detailed information about a package
+        """
+        pulp_id = prn.rsplit(":", 1)[1]
+        return self.get_by_href(f"/pulp/api/v3/content/rpm/packages/{pulp_id}/")
 
     def create_distribution(self, name, repository, basepath=None):
         """
