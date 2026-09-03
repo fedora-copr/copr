@@ -1757,6 +1757,11 @@ class CoprForkFormFactory(object):
                 "Confirm",
                 false_values=FALSE_VALUES,
                 default=False)
+
+            fork_all = wtforms.BooleanField(
+                "Fork all builds",
+                false_values=FALSE_VALUES,
+                default=False)
         return F
 
 

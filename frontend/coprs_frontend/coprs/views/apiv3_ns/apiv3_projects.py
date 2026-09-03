@@ -396,7 +396,8 @@ class ProjectFork(Resource):
                         )
                     )
                 fcopr, _ = ComplexLogic.fork_copr(
-                    copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup
+                    copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup,
+                    all_builds=form.fork_all.data,
                 )
                 db.session.commit()
 
