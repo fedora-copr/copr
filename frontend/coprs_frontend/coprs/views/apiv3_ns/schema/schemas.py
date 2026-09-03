@@ -541,6 +541,14 @@ class ProjectFork(InputSchema):
             "to confirm that user is aware of that."
         )
     )
+    fork_all: Boolean = Boolean(
+        default=False,
+        description=(
+            "Fork all successful builds for each package and chroot, not only "
+            "the latest successful build per chroot. This may significantly "
+            "increase fork duration."
+        ),
+    )
 
 
 @dataclass
