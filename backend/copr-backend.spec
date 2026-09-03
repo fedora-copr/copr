@@ -5,7 +5,7 @@
 %global copr_common_version 1.7.2
 
 Name:       copr-backend
-Version:    2.14
+Version:    2.14.hotfix.2
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,26 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Thu Sep 03 2026 Jakub Kadlcik <frostyx@email.cz> 2.14.hotfix.2-1
+- backend: don't batch duplicate NEVRAs into the same Pulp request
+- backend: don't upload zero bytes RPMs to Pulp
+- backend: allow WorkerLimit set to zero
+- backend: add BuildTagCombinationLimit for multi-tag worker limits
+- backend: init_project doesn't return values (it raises exceptions)
+- fix: update copr-change-storage for PulpHTTPRedirect lock API
+- backend: don't require cert/key in pulp's config
+- backend: skip owners with currently running actions or builds
+
+* Thu Sep 03 2026 Jakub Kadlcik <frostyx@email.cz>
+- backend: don't batch duplicate NEVRAs into the same Pulp request
+- backend: don't upload zero bytes RPMs to Pulp
+- backend: allow WorkerLimit set to zero
+- backend: add BuildTagCombinationLimit for multi-tag worker limits
+- backend: init_project doesn't return values (it raises exceptions)
+- fix: update copr-change-storage for PulpHTTPRedirect lock API
+- backend: don't require cert/key in pulp's config
+- backend: skip owners with currently running actions or builds
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.14-1
 - Raise the wait-for-repo timeout
 - Log chroot/arch/pakage info in prmeta predictions
