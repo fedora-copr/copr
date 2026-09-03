@@ -264,6 +264,30 @@ class TestAPIv3Builds(CoprsTestCase):
         build = self.models.Build.query.first()
         assert {chroot.name for chroot in build.chroots} == expected
 
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_coprs",
+                             "f_mock_chroots", "f_db")
+    def test_v3_build_pypi(self):
+        user = self.models.User.query.filter_by(username="user2").first()
+        endpoint = "/api_3/build/create/pypi"
+        data = {
+            "ownername": "user2",
+            "projectname": "foocopr",
+            "pypi_package_name": "pyp2spec",
+            "pypi_package_version": None,
+            "spec_generator": "pyp2spec",
+            "spec_template": "",
+            "python_versions": ["3"],
+        }
+        response = self.post_api3_with_auth(endpoint, data, user)
+        assert response.status_code == 200
+        build = self.models.Build.query.first()
+        assert build.source_json_dict["spec_generator"] == "pyp2spec"
+
+        data["spec_generator"] = "pyp2rpm"
+        response = self.post_api3_with_auth(endpoint, data, user)
+        assert response.status_code == 400
+        assert "pyp2rpm is not maintained" in response.json["error"]
+
 
 def _fake_rpm_file(filename, content=b"fake rpm bytes"):
     return FileStorage(stream=BytesIO(content), filename=filename,

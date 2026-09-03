@@ -1594,12 +1594,12 @@ def setup_parser():
         "--spec-generator",
         dest="spec_generator",
         help="Tool for generating specfile from a PyPI package",
-        choices=["pyp2rpm", "pyp2spec"],
+        choices=["pyp2spec"],
         default="pyp2spec",
     )
 
     parser_pypi_args_optional.add_argument("--template", "-t", dest="spec_template",
-                                         help="Spec template to be used to build srpm with pyp2rpm")
+                                         help="Spec template to be used to build srpm with pyp2spec")
 
     parser_pypi_args_parent = argparse.ArgumentParser(add_help=False, parents=[parser_pypi_args_optional])
     parser_pypi_args_parent.add_argument("--packagename", required=True, metavar="PYPINAME",

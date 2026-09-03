@@ -31,7 +31,7 @@ class TestAnitya(CoprsTestCase):
                 project, "umap-pytorch",
                 options={
                     "webhook_rebuild": True,
-                    "spec_generator": "pyp2rpm",
+                    "spec_generator": "pyp2spec",
                 },
             )
             # This is not going to be rebuilt, the update is 2.1.7rc1
@@ -93,7 +93,7 @@ class TestAnitya(CoprsTestCase):
                     'pypi_package_name': 'umap-pytorch',
                     'pypi_package_version': '0.0.5',
                     'python_versions': ['3'],
-                    'spec_generator': 'pyp2rpm',
+                    'spec_generator': 'pyp2spec',
                     'spec_template': '',
                 }
             elif copr == "user1/bar":
@@ -111,7 +111,7 @@ class TestAnitya(CoprsTestCase):
                     'pypi_package_name': 'umap-pytorch',
                     'pypi_package_version': None,
                     'python_versions': ['3'],
-                    'spec_generator': 'pyp2rpm',
+                    'spec_generator': 'pyp2spec',
                     'spec_template': '',
                 }
             elif copr == "user1/inprogress-match":
@@ -130,7 +130,7 @@ class TestAnitya(CoprsTestCase):
                         'pypi_package_name': 'umap-pytorch',
                         'pypi_package_version': '0.0.5',
                         'python_versions': ['3'],
-                        'spec_generator': 'pyp2rpm',
+                        'spec_generator': 'pyp2spec',
                         'spec_template': '',
                     }
             else:
