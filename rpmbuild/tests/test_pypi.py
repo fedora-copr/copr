@@ -28,14 +28,21 @@ class TestPyPIProvider(TestCase):
        self.assertEqual(provider.spec_template, "epel7")
        self.assertEqual(provider.python_versions, [2, 3])
 
+    @mock.patch("copr_rpmbuild.providers.base.Provider.build_srpm_from_spec")
     @mock.patch("copr_rpmbuild.providers.pypi.run_cmd")
+    @mock.patch("copr_rpmbuild.providers.pypi.locate_spec")
+    @mock.patch('copr_rpmbuild.providers.base.os.chdir')
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open)
     @mock.patch('copr_rpmbuild.providers.base.os.mkdir')
-    def test_produce_srpm(self, mock_mkdir, mock_open, run_cmd):
+    def test_produce_srpm(self, mock_mkdir, mock_open, _mock_chdir, locate_spec,
+                          pypi_run_cmd, build_srpm_from_spec):
+        locate_spec.return_value = "/foo/bar/motionpaint.spec"
         provider = PyPIProvider(self.source_json, self.config)
         provider.produce_srpm()
         assert_cmd = [
-            "pyp2rpm", "motionpaint", "-t", "epel7", "--srpm",
-            "-d", self.config.get("main", "resultdir"),
-            "-b", "2", "-p", "3", "-v", "1.52"]
-        run_cmd.assert_called_with(assert_cmd)
+            "pyp2spec", "motionpaint",
+            "--fedora-compliant", "--automode",
+            "-v", "1.52",
+        ]
+        pypi_run_cmd.assert_called_with(assert_cmd)
+        build_srpm_from_spec.assert_called_with("/foo/bar/motionpaint.spec")
