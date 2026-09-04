@@ -305,7 +305,8 @@ class BackendStorage(Storage):
             new_chroot_path = os.path.join(new_path, chroot)
             ensure_dir_exists(new_chroot_path, self.log)
 
-            if createrepo and not call_copr_repo(new_chroot_path, logger=self.log):
+            if createrepo and not call_copr_repo(new_chroot_path, devel=self.devel,
+                                                 logger=self.log):
                 return False
         return True
 
