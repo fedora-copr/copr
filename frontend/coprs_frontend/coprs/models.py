@@ -252,6 +252,15 @@ class User(db.Model, helpers.Serializer, AbstractUser):
                 count())
 
     @property
+    def unseen_notifications_count(self):
+        """
+        Get number of unseen notification messages for this user.
+        """
+        return (Notification.query.filter_by(user_id=self.id).
+                filter(Notification.seen_on.is_(None)).
+                count())
+
+    @property
     def gravatar_url(self):
         """
         Return url to libravatar image.
@@ -2718,3 +2727,29 @@ def insert_fedora_distgit(*args, **kwargs):
         clone_package_uri="{namespace}/rpms/{pkgname}",
         default_namespace="",
     ))
+
+
+class Notification(db.Model):
+    """
+    Represents a message in the notification.
+    """
+
+    __table_args__ = (
+        db.Index('notification_user_seen_idx', 'user_id', 'seen_on'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id"),
+        nullable=False
+    )
+
+    notification_type = db.Column(db.Integer, nullable=False)
+
+    subject = db.Column(db.String(255), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+
+    seen_on = db.Column(db.Integer)
+    created_on = db.Column(db.Integer, nullable=False)

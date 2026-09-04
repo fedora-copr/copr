@@ -4,7 +4,7 @@
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
-%global copr_common_version 1.7.3
+%global copr_common_version 1.8.1
 
 # Please bump the %%flavor_guard version every-time some incompatible change
 # happens (since the last release) in %%flavor_files set of files.  Those files
