@@ -9,6 +9,8 @@ images:
 	podman push quay.io/copr/frontend:test
 	podman build -t quay.io/copr/backend:test ../docker/backend/
 	podman push quay.io/copr/backend:test
+	podman build -t quay.io/copr/backend-httpd:test ../docker/backend_httpd/
+	podman push quay.io/copr/backend-httpd:test
 	podman build -t quay.io/copr/distgit:test ../docker/distgit/
 	podman push quay.io/copr/distgit:test
 	podman build -t quay.io/copr/keygen:test ../docker/keygen/
