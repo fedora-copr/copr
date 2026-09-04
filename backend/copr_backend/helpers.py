@@ -425,6 +425,9 @@ class BackendConfigReader(object):
         opts.pulp_content_url = _get_conf(
             cp, "backend", "pulp_content_url", None)
 
+        opts.pulp_content_guard = _get_conf(
+            cp, "backend", "pulp_content_guard", None)
+
         # ssh options
         opts.ssh = Munch()
         opts.ssh.builder_config = _get_conf(

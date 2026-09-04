@@ -101,6 +101,14 @@ prune_days=14
 # some CDN caches (e.g. when RPMs in repository are re-signed).
 #aws_cloudfront_distribution=EX55ITR8LVMOH
 
+# Pulp content guard (pulp_href) assigned to every distribution that copr
+# creates in Pulp. Typically a composite content guard combining the feature
+# guards (e.g. RHEL-OS-x86_64, RHEL-OS-aarch64). When unset, distributions are
+# created without a content guard. The guard itself must be created in the Pulp
+# domain beforehand (feature and composite guards are not available in the Pulp
+# CLI, only via the REST API).
+#pulp_content_guard=/api/pulp/<domain>/api/v3/contentguards/core/composite/<uuid>/
+
 # the domain name of the auto-generated sign key
 # e.g. format: user#projectname@copr.{sign_domain}
 #sign_domain=fedorahosted.org
