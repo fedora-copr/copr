@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+
+"""
+Assign a Pulp content guard to all distributions belonging to a given project.
+
+Copr assigns the content guard from the `pulp_content_guard` configuration
+option to distributions at the time they are created. This script is useful for
+(re)setting the content guard on distributions of an already existing project,
+e.g. after the configuration option is introduced or changed.
+
+Example:
+
+    copr-pulp-set-content-guard @copr/copr \\
+        --content-guard /api/pulp/<domain>/api/v3/contentguards/core/composite/<uuid>/
+
+When --content-guard is not specified, the value of the `pulp_content_guard`
+option from the backend configuration is used.
+"""
+
+import sys
+import argparse
+from copr_backend.helpers import BackendConfigReader
+from copr_backend.pulp import PulpClient
+
+
+def get_arg_parser():
+    """
+    CLI argument parser
+    """
+    parser = argparse.ArgumentParser(
+        description="Assign a Pulp content guard to all distributions of a "
+                    "given <owner>/<project>")
+    parser.add_argument(
+        "project",
+        help="Project in the <owner>/<project> format")
+    parser.add_argument(
+        "--content-guard",
+        help="The pulp_href of the content guard to assign. When not "
+             "specified, the pulp_content_guard backend configuration option "
+             "is used.")
+    return parser
+
+
+def main():
+    """
+    The main function
+    """
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    content_guard = args.content_guard
+    if not content_guard:
+        opts = BackendConfigReader().read()
+        content_guard = opts.pulp_content_guard
+    if not content_guard:
+        print("Error: No content guard specified and pulp_content_guard is "
+              "not configured.")
+        sys.exit(1)
+
+    client = PulpClient.create_from_config_file()
+
+    # Distributions are named <owner>/<project>/<chroot> (with an optional
+    # -devel suffix), so all distributions of a project share this prefix.
+    prefix = "{0}/".format(args.project.rstrip("/"))
+    response = client.list_distributions(prefix)
+    response.raise_for_status()
+    distributions = response.json()["results"]
+
+    if not distributions:
+        print("No distributions found for {0}".format(args.project))
+        return
+
+    requests = []
+    for distribution in distributions:
+        print("Setting content guard on {0}".format(distribution["name"]))
+        requests.append(client.update_distribution(
+            distribution["pulp_href"], content_guard=content_guard))
+
+    client.deliver_and_wait(requests)
+    print("Done, updated {0} distribution(s)".format(len(requests)))
+
+
+if __name__ == "__main__":
+    main()

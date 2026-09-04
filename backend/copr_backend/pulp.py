@@ -452,7 +452,8 @@ class PulpClient:
         pulp_id = prn.rsplit(":", 1)[1]
         return self.get_by_href(f"/pulp/api/v3/content/rpm/packages/{pulp_id}/")
 
-    def create_distribution(self, name, repository, basepath=None):
+    def create_distribution(self, name, repository, basepath=None,
+                            content_guard=None):
         """
         Create an RPM distribution
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_create
@@ -463,11 +464,13 @@ class PulpClient:
             "repository": repository,
             "base_path": basepath or name,
         }
+        if content_guard:
+            data["content_guard"] = content_guard
         return PulpRequest("POST", uri, data,
                            f"create distribution {name}")
 
     def update_distribution(self, distribution, publication=None,
-                            repository=None):
+                            repository=None, content_guard=None):
         """
         Build a PulpRequest to update an RPM distribution.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
@@ -475,6 +478,8 @@ class PulpClient:
         This allows us to point a distribution to either a publication or
         a repository. Not both, that doesn't make sense and Pulp would raise
         "Only one of the attributes 'repository' and 'publication' may be used simultaneously."
+
+        A content guard can be assigned to the distribution at the same time.
         """
         if publication and repository:
             raise RuntimeError("Specify either publication or repository")
@@ -484,6 +489,8 @@ class PulpClient:
             "publication": publication,
             "repository": repository,
         }
+        if content_guard is not None:
+            data["content_guard"] = content_guard
         return PulpRequest("PATCH", url, data,
                            f"update distribution {distribution}")
 

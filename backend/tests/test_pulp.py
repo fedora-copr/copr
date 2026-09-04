@@ -140,6 +140,37 @@ class TestPulp:
         assert "Content must be queried for specific builds" in str(ex)
         assert not client.send.called
 
+    def test_create_distribution_without_content_guard(self):
+        client = PulpClient(self.config)
+        request = client.create_distribution("foo", "/repo/1/")
+        assert request.data == {
+            "name": "foo",
+            "repository": "/repo/1/",
+            "base_path": "foo",
+        }
+
+    def test_create_distribution_with_content_guard(self):
+        client = PulpClient(self.config)
+        request = client.create_distribution(
+            "foo", "/repo/1/", content_guard="/guard/1/")
+        assert request.data == {
+            "name": "foo",
+            "repository": "/repo/1/",
+            "base_path": "foo",
+            "content_guard": "/guard/1/",
+        }
+
+    def test_update_distribution_without_content_guard(self):
+        client = PulpClient(self.config)
+        request = client.update_distribution("/dist/1/", repository="/repo/1/")
+        assert "content_guard" not in request.data
+
+    def test_update_distribution_with_content_guard(self):
+        client = PulpClient(self.config)
+        request = client.update_distribution(
+            "/dist/1/", content_guard="/guard/1/")
+        assert request.data["content_guard"] == "/guard/1/"
+
 
 class TestDeliverRequests:
 
