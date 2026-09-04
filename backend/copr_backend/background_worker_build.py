@@ -37,7 +37,7 @@ from copr_backend.helpers import (
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender
-from copr_backend.sign import sign_rpms_in_dir, get_pubkey
+from copr_backend.sign import resign_rpms_in_dir, get_pubkey
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError
 from copr_backend.vm_alloc import ResallocHostFactory
 from copr_backend.storage import storage_for_job
@@ -717,7 +717,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         self.log.info("Going to sign pkgs from source: %s in chroot: %s",
                       self.job.task_id, self.job.chroot_dir)
 
-        sign_rpms_in_dir(
+        resign_rpms_in_dir(
             self.job.project_owner,
             self.job.project_name,
             os.path.join(self.job.chroot_dir, self.job.target_dir_name),
