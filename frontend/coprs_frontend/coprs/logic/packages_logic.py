@@ -411,7 +411,7 @@ class PackagesLogic(object):
             db.session.commit()
 
     @classmethod
-    def last_successful_build_chroots(cls, package):
+    def successful_build_chroots(cls, package, all_builds=False):
         builds = {}
         for chroot in package.chroots:
             for build in reversed(package.builds):
@@ -425,7 +425,9 @@ class PackagesLogic(object):
                     builds[build] = [build_chroot]
                 else:
                     builds[build].append(build_chroot)
-                break
+
+                if not all_builds:
+                    break
         return builds
 
 
