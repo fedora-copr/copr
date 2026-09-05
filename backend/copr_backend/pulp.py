@@ -450,7 +450,9 @@ class PulpClient:
         Get a detailed information about a package
         """
         pulp_id = prn.rsplit(":", 1)[1]
-        return self.get_by_href(f"/pulp/api/v3/content/rpm/packages/{pulp_id}/")
+        uri = f"/api/v3/content/rpm/packages/{pulp_id}/"
+        self.log.info("Pulp: get_by_prn: %s", uri)
+        return self.send("GET", uri)
 
     def create_distribution(self, name, repository, basepath=None):
         """
