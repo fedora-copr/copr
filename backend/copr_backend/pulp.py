@@ -407,6 +407,15 @@ class PulpClient:
         return PulpRequest("POST", uri, data,
                            f"create repository {name}")
 
+    def _log_list_response(self, response):
+        data = response.json()
+        if "results" not in data or not data["results"]:
+            self.log.info("No result found.")
+            return
+        for index, item in enumerate(data["results"], 1):
+            href = item.get("pulp_href", "no href provided by Pulp")
+            self.log.info("[%s] pulp_href: %s", index, href)
+
     def get_repository(self, name):
         """
         Get a single RPM repository
@@ -417,7 +426,10 @@ class PulpClient:
         uri = "/api/v3/repositories/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_repository: %s", uri)
-        return self.send("GET", uri)
+
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def get_distribution(self, name):
         """
@@ -429,7 +441,9 @@ class PulpClient:
         uri = "/api/v3/distributions/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_distribution: %s", uri)
-        return self.send("GET", uri)
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def get_task(self, task):
         """
@@ -507,7 +521,9 @@ class PulpClient:
         uri = "/api/v3/publications/rpm/rpm/?"
         uri += urlencode({"repository": repository, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_publication: %s", uri)
-        return self.send("GET", uri)
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def create_content(self, path, labels, timeout=3600):
         """
@@ -520,6 +536,10 @@ class PulpClient:
             files = {"file": fp}
             self.log.info("Pulp: create_content: %s %s", uri, path)
             package = self.send("POST", uri, data=data, files=files, timeout=timeout)
+        pulp_href = "pulp_href unknown: invalid POST request"
+        if package.ok:
+            pulp_href = package.json().get("pulp_href", "pulp_href unknown: missing field")
+        self.log.info("Created pulp_href: %s", pulp_href)
         return package
 
     def create_content_chunked(self, path, labels):
@@ -707,6 +727,7 @@ class PulpClient:
             self.log.debug("Pulp: get_content: fetching page (offset=%d)", offset)
 
             response = self.send("GET", uri)
+            self._log_list_response(response)
             response.raise_for_status()
             data = response.json()
             results = data.get("results", [])

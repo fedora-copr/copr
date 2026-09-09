@@ -737,7 +737,9 @@ class PulpStorage(Storage):
     def _get_repository(self, chroot, dirname=None):
         name = self._repository_name(chroot, dirname)
         response = self.client.get_repository(name)
-        return response.json()["results"][0]["pulp_href"]
+        href = response.json()["results"][0]["pulp_href"]
+        self.log.info("Got repo href: %s", href)
+        return href
 
     def _get_distribution(self, chroot, dirname=None, devel=None, full=False):
         if devel is None:

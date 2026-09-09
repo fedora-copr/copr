@@ -56,7 +56,7 @@ class TestPulp:
     def test_get_content_pagination_single_page(self):
         client = PulpClient(self.config)
 
-        results = [{"prn": f"rpm-{i}"} for i in range(50)]
+        results = [{"prn": f"rpm-{i}", "pulp_href": "bar"} for i in range(50)]
         mock_response = self.create_mock_response(results, 50, next_url=None)
         client.send = Mock(return_value=mock_response)
 
@@ -77,19 +77,19 @@ class TestPulp:
         def mock_send(_, uri):
             if "offset=0" in uri:
                 # First page
-                results = [{"prn": f"rpm-{i}"} for i in range(1000)]
+                results = [{"prn": f"rpm-{i}", "pulp_href": "baz"} for i in range(1000)]
                 return self.create_mock_response(
                     results, 2500, next_url="http://test/api/v3/content/rpm/packages/?offset=1000"
                 )
             if "offset=1000" in uri:
                 # Second page
-                results = [{"prn": f"rpm-{i}"} for i in range(1000, 2000)]
+                results = [{"prn": f"rpm-{i}", "pulp_href": "baz2"} for i in range(1000, 2000)]
                 return self.create_mock_response(
                     results, 2500, next_url="http://test/api/v3/content/rpm/packages/?offset=2000"
                 )
             if "offset=2000" in uri:
                 # Third page (partial)
-                results = [{"prn": f"rpm-{i}"} for i in range(2000, 2500)]
+                results = [{"prn": f"rpm-{i}", "pulp_href": "baz3"} for i in range(2000, 2500)]
                 return self.create_mock_response(results, 2500, next_url=None)
             return self.create_mock_response([], 2500, next_url=None)
 
@@ -117,7 +117,7 @@ class TestPulp:
 
     def test_get_content_build_ids_batched(self):
         client = PulpClient(self.config)
-        results = [{"prn": f"rpm-{i}"} for i in range(50)]
+        results = [{"prn": f"rpm-{i}", "pulp_href": "foo"} for i in range(50)]
         mock_response = self.create_mock_response(results, 50, next_url=None)
         client.send = Mock(return_value=mock_response)
 
