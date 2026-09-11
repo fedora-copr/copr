@@ -1,0 +1,65 @@
+#!/usr/bin/python3
+
+"""
+Set retain_package_versions=0 on all Pulp RPM repositories.
+Rewrite to set any other attribute or make this general in the future.
+"""
+
+from urllib.parse import urlencode
+from copr_backend.pulp import PulpClient, PulpRequest
+
+
+def pulp_repositories(client):
+    """
+    Iterate over all Pulp RPM repositories.
+    """
+    limit = 100
+    offset = 0
+
+    while True:
+        query = urlencode({"limit": limit, "offset": offset})
+        response = client.send("GET", f"/api/v3/repositories/rpm/rpm/?{query}")
+        response.raise_for_status()
+        data = response.json()
+
+        repositories = data["results"]
+        yield from repositories
+        if not data["next"]:
+            break
+        offset += limit
+
+
+def main():
+    """
+    The main function.
+    """
+    client = PulpClient.create_from_config_file()
+    requests = []
+
+    for repository in pulp_repositories(client):
+        if repository.get("retain_package_versions") == 0:
+            continue
+
+        href = repository["pulp_href"]
+        requests.append(PulpRequest(
+            "PATCH",
+            client.config["base_url"] + href,
+            {"retain_package_versions": 0},
+            f"set retain_package_versions=0 on {repository['name']}",
+        ))
+
+    print(f"Going to update {len(requests)} repositories")
+    if not requests:
+        return
+
+    # We have a hardcoded attribute and value, so rather ask, in case somebody
+    # runs this accidentally
+    if input("Are you sure? [yes/no] ") != "yes":
+        print("Aborted")
+        return
+
+    client.deliver_and_wait(requests)
+
+
+if __name__ == "__main__":
+    main()
