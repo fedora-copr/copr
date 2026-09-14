@@ -12,7 +12,8 @@ from coprs import app
 from coprs.forms import PinnedCoprsForm, ChrootForm, ModuleEnableNameValidator
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import (CoprsLogic, CoprChrootsLogic,
-                                     PinnedCoprsLogic, CoprScoreLogic)
+                                     PinnedCoprsLogic, CoprScoreLogic,
+                                     ProjectTagsLogic)
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -23,6 +24,7 @@ from coprs.exceptions import (
     AccessRestricted,
     ConflictingRequest,
     InsufficientRightsException,
+    BadRequest,
 )
 
 
@@ -495,3 +497,98 @@ class TestCoprSearchLogic(CoprsTestCase):
             packagename="world",
         )
         assert set(result) == {self.c2}
+
+
+class TestProjectTagsLogic(CoprsTestCase):
+    """
+    Tests for ProjectTagsLogic.
+    """
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_create_tag_is_get_or_create(self):
+        """
+        Creating a tag with a name that already exists reuses the original row and creator.
+        """
+        tag1 = ProjectTagsLogic.create_tag("cli", user=self.u1)
+        self.db.session.commit()
+        tag2 = ProjectTagsLogic.create_tag("cli", user=self.u2)
+        assert tag1.id == tag2.id
+        # the original creator is preserved, not overwritten by reuse
+        assert tag2.user == self.u1
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_get_default_tags_filters_and_orders(self):
+        """
+        get_default_tags() returns only is_default tags, alphabetically ordered.
+        """
+        self.db.session.add_all([
+            self.models.ProjectTag(name="zeta", is_default=True),
+            self.models.ProjectTag(name="acme", is_default=True),
+            self.models.ProjectTag(name="custom", is_default=False),
+        ])
+        self.db.session.commit()
+        names = [t.name for t in ProjectTagsLogic.get_default_tags()]
+        assert names == ["acme", "zeta"]
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_set_copr_tags_caps_at_ten(self):
+        """
+        Assigning more than 10 tags to a project raises BadRequest.
+        """
+        names = [f"tag{i}" for i in range(11)]
+        with pytest.raises(BadRequest):
+            ProjectTagsLogic.set_copr_tags(self.c1, names, user=self.u1)
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_set_copr_tags_dedups(self):
+        """
+        Duplicate tag names in the input are collapsed to one tag.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli", "cli", "devtools"], user=self.u1)
+        self.db.session.commit()
+        assert sorted(t.name for t in self.c1.project_tags) == ["cli", "devtools"]
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_reuses_existing_tag_across_projects(self):
+        """
+        Two projects tagging the same name share the same underlying ProjectTag row.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli"], user=self.u1)
+        self.db.session.commit()
+        ProjectTagsLogic.set_copr_tags(self.c2, ["cli"], user=self.u2)
+        self.db.session.commit()
+        assert self.c1.project_tags[0].id == self.c2.project_tags[0].id
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_reedit_with_overlap_does_not_raise(self):
+        """
+        Regression test: re-editing with an overlapping tag no
+        longer raises a UniqueViolation.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli", "devtools"], user=self.u1)
+        self.db.session.commit()
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli", "monitoring"], user=self.u1)
+        self.db.session.commit()
+        assert sorted(t.name for t in self.c1.project_tags) == ["cli", "monitoring"]
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_set_copr_tags_removes_all_when_empty(self):
+        """
+        Passing an empty tag list clears every tag from the project.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli", "devtools"], user=self.u1)
+        self.db.session.commit()
+        ProjectTagsLogic.set_copr_tags(self.c1, [], user=self.u1)
+        self.db.session.commit()
+        assert not list(self.c1.project_tags)
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_get_multiple_by_tag_exact_match_only(self):
+        """
+        Matches the exact tag name only, not similar-looking ones.
+        """
+        ProjectTagsLogic.set_copr_tags(self.c1, ["cli"], user=self.u1)
+        ProjectTagsLogic.set_copr_tags(self.c3, ["cli-tool"], user=self.u2)
+        self.db.session.commit()
+        results = CoprsLogic.get_copr_projects_by_tag_name("cli").all()
+        assert [c.id for c in results] == [self.c1.id]

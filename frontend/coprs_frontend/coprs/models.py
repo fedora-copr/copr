@@ -308,6 +308,42 @@ class CoprScore(db.Model, helpers.Serializer):
                             name="copr_score_copr_id_user_id_uniq"),
     )
 
+
+class ProjectTag(db.Model, helpers.Serializer):
+    """
+    Project tags attached to copr projects.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True, index=True)
+    # default tags that would appear when creating a copr project
+    # configured by the admin
+    is_default = db.Column(db.Boolean, default=False, nullable=False,
+                          server_default="0")
+    created_on = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    user = db.relationship("User")
+
+
+class CoprProjectTag(db.Model, helpers.Serializer):
+    """
+    Many to many relation between copr and project_tag.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=False, index=True)
+    project_tag_id = db.Column(db.Integer, db.ForeignKey("project_tag.id"), nullable=False, index=True)
+
+    project_tag = db.relationship("ProjectTag")
+    copr = db.relationship("Copr",
+                           backref=db.backref(
+                               "copr_project_tags",
+                               cascade="all,delete,delete-orphan"))
+
+    __table_args__ = (
+        db.UniqueConstraint("copr_id", "project_tag_id",
+                            name="copr_project_tag_copr_id_project_tag_id_uniq"),
+    )
+
+
 _group_unique_where = text("deleted is not true and group_id is not null")
 _user_unique_where = text("deleted is not true and group_id is null")
 
@@ -453,6 +489,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # relations
     user = db.relationship("User", backref=db.backref("coprs"))
     group = db.relationship("Group", backref=db.backref("groups"))
+    project_tags = association_proxy(
+        "copr_project_tags", "project_tag",
+        creator=lambda project_tag: CoprProjectTag(project_tag=project_tag))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
     forked_from = db.relationship("Copr",
             remote_side=_CoprPublic.id,

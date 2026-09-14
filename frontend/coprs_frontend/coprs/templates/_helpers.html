@@ -844,6 +844,15 @@
           </small>
         </li>
       {% endfor %}
+      {% if copr.project_tags %}
+        <li>
+          <strong>Tags:</strong>
+          <small>
+          {% for tag in copr.project_tags[:6] %}{{ tag.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% if copr.project_tags|length > 6 %}, +{{ copr.project_tags|length - 6 }} more{% endif %}
+          </small>
+        </li>
+      {% endif %}
       </ul>
     </span>
 </a>

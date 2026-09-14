@@ -116,6 +116,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--persistent]
                        [--auto-prune {on,off}]
                        [--isolation {default, nspawn, simple}]
+                       [--tags TAG]
                        name
 
 --chroot::
@@ -123,6 +124,9 @@ Chroot to use for this project. Can be specified multiple times, but at least on
 
 --repo::
 Repository to add to this project. Can be specified multiple times.
+
+--tags::
+Tag to attach to this project, e.g. cli. Can be specified multiple times.
 
 --initial-pkgs::
 List of packages to build in this new project. Can be specified multiple times.
@@ -166,6 +170,7 @@ usage: copr-cli modify [-h] [--repo REPOS]
                        [--unlisted-on-hp {on,off}]
                        [--auto-prune {on,off}]
                        [--isolation {default, nspawn, simple}]
+                       [--tags TAG]
                        name
 
 Alters only specified project property.
@@ -178,6 +183,11 @@ Chroot to use for this project. Can be specified multiple times.
 When this option is not used, chroots in the project remain unchanged.
 Once you specify a chroot, it is going to be enabled in the project, but
 current chroots will not be preserved if they are not specified.
+
+--tags::
+Tag to attach to this project, e.g. cli. Can be specified multiple times.
+When this option is not used, tags on the project remain unchanged; once
+specified, it replaces the full set of tags on the project.
 
 --description::
 Description of the project.

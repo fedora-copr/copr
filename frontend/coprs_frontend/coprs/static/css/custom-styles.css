@@ -62,3 +62,7 @@ input.input-field-12em {
     margin-top: 10px;
     margin-right: 20px;
 }
+
+.tag-btn {
+    margin: 0 4px 4px 0;
+}

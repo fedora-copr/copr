@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch, MagicMock
 
 import pytest
+from sqlalchemy import inspect as sa_inspect
 
 from coprs.models import User, Copr
 
@@ -75,10 +76,54 @@ class TestApiv3Projects(CoprsTestCase):
         self.api3.post(route, data)
         assert Copr.query.one().isolation == read
 
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_add_project_with_tags(self):
+        """
+        Test that tags are added correctly when adding a project.
+        """
+        route = "/api_3/project/add/{}".format(self.transaction_username)
+        resp = self.api3.post(route, {
+            "name": "test-tags",
+            "chroots": ["fedora-rawhide-i386"],
+            "tags": ["cli", "monitoring", "devtools"],
+        })
+        assert resp.status_code == 200
+        assert sorted(resp.json["tags"]) == ["cli", "devtools", "monitoring"]
+        copr = Copr.query.filter_by(name="test-tags").one()
+        assert sorted(t.name for t in copr.project_tags) == \
+            ["cli", "devtools", "monitoring"]
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_users_api", "f_mock_chroots", "f_db")
+    def test_edit_project_tags_is_partial_update(self):
+        """
+        Editing a project without mentioning tags must leave existing tags untouched.
+        """
+        route = "/api_3/project/add/{}".format(self.transaction_username)
+        self.api3.post(route, {
+            "name": "test-tags-edit",
+            "chroots": ["fedora-rawhide-i386"],
+            "tags": ["cli"],
+        })
+
+        # editing without mentioning tags must leave the existing tag alone
+        self.api3.modify_project("test-tags-edit", description="new desc")
+        copr = Copr.query.filter_by(name="test-tags-edit").one()
+        assert [t.name for t in copr.project_tags] == ["cli"]
+
+        # editing with tags replaces the previous set entirely
+        self.api3.modify_project("test-tags-edit", tags=["devtools", "review-tool"])
+        self.db.session.expire(copr)
+        assert sorted(t.name for t in copr.project_tags) == \
+            ["devtools", "review-tool"]
+
     def _get_copr_id_data(self, copr_id):
         copr = self.db.session.get(self.models.Copr, copr_id)
-        data = copy.deepcopy(copr.__dict__)
-        data.pop("_sa_instance_state")
+        # only compare columns attrs, not relationships
+        column_attrs = {attr.key for attr in sa_inspect(copr).mapper.column_attrs}
+        data = {k: copy.deepcopy(v) for k, v in copr.__dict__.items()
+                if k in column_attrs}
         data.pop("latest_indexed_data_update")
         return data
 

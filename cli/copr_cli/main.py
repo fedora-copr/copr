@@ -712,6 +712,7 @@ class Commands(object):
             packit_forge_projects_allowed=args.packit_forge_projects_allowed,
             repo_priority=args.repo_priority,
             storage=args.storage,
+            tags=args.tags,
         )
 
         owner_part = username.replace('@', "g/")
@@ -746,6 +747,7 @@ class Commands(object):
             runtime_dependencies=args.runtime_dependencies,
             packit_forge_projects_allowed=args.packit_forge_projects_allowed,
             repo_priority=args.repo_priority,
+            tags=args.tags,
         )
 
     @requires_api_auth
@@ -1304,6 +1306,11 @@ def create_and_modify_common_opts(parser):
             "via Packit in format github.com/packit/ogr. "
             "Supports wildcard patterns (e.g., github.com/theproject/* will allow "
             "all repositories in the theproject organization). "
+            "Can be specified multiple times."
+    ))
+    parser.add_argument(
+        "--tags", dest="tags", metavar="TAG", action="append", help=(
+            "Tag to attach to this project, e.g. cli. "
             "Can be specified multiple times."
     ))
 

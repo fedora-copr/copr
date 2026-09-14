@@ -7,6 +7,7 @@ from fnmatch import fnmatch, filter as fnmatch_filter
 
 import flask
 import wtforms
+from slugify import slugify
 
 from flask_wtf.file import FileRequired, FileField, MultipleFileField
 
@@ -20,7 +21,8 @@ from coprs import app
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
-from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
+
+from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic, ProjectTagsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -211,6 +213,89 @@ class ChrootsField(MultiCheckboxField):
         copr_mock_chroots = copr.active_chroots if copr else []
         copr_chroot_names = [ch.name for ch in copr_mock_chroots]
         self.default = [ch for ch in active_names if ch in copr_chroot_names]
+
+
+class AdditionalProjectTagsField(wtforms.StringField):
+    """
+    Input fields for project tags
+    """
+    def __init__(self, label="", validators=None, copr=None, **kwargs):
+        """
+        Pre-fill the field with `copr`'s existing non-default tag names, if given.
+        """
+        super().__init__(label, validators, **kwargs)
+        self.label = label or "Additional tags"
+        self.data = ""
+        if copr:
+            custom_names = [t.name for t in copr.project_tags if not t.is_default]
+            self.default = ", ".join(custom_names)
+
+    def process_formdata(self, valuelist):
+        """
+        Join multiple submitted values into comma separated string
+        """
+        self.data = ", ".join(valuelist) if valuelist else ""
+
+    def _value(self):
+        """
+        Render the field's current data back into its comma-separated string form.
+        """
+        if self.data:
+            return ", ".join(self.data)
+        return ""
+
+
+class ProjectTagsFilter:
+    """
+    Turn comma separated tag names into deduplicated, slugified tag names.
+    """
+    @staticmethod
+    def normalize_tag_name(name):
+        """
+        Remove non-ascii characters and slugify the tag name.
+        """
+        encoded_name = name.encode("ascii", "ignore").decode("ascii")
+        slugified_name = slugify(encoded_name, max_length=50)
+        return slugified_name
+
+    def __call__(self, value):
+        """
+        Split a comma-separated string into cleaned, deduplicated tag names.
+        """
+        if not value:
+            return []
+        cleaned = []
+        for name in value.split(","):
+            normalized_name = self.normalize_tag_name(name)
+            if normalized_name and len(normalized_name) >= 3:
+                cleaned.append(normalized_name)
+        return list(dict.fromkeys(cleaned))
+
+
+class DefaultTagsField(MultiCheckboxField):
+    """
+    Checkboxes for default tags
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self, label="", validators=None, copr=None, **kwargs):
+        """
+        Build the default-tag checkbox choices and pre-tick `copr`'s own default tags, if given.
+        """
+        super().__init__(label, validators, **kwargs)
+        self.label = label or "Default tags"
+
+        default_tag_names = [t.name for t in ProjectTagsLogic.get_default_tags()]
+        self.choices = [(name, name) for name in default_tag_names]
+        self.default = self.ticked_default_names(copr)
+
+    @staticmethod
+    def ticked_default_names(copr):
+        """
+        Display the default tags that were already selected.
+        """
+        if not copr:
+            return []
+        return [t.name for t in copr.project_tags if t.is_default]
 
 
 class UrlListValidator(object):
@@ -589,6 +674,13 @@ class CoprForm(BaseForm):
 
     chroots = ChrootsField()
 
+    default_tags = DefaultTagsField()
+
+    tags = AdditionalProjectTagsField(
+        "Additional tags",
+        filters=[ProjectTagsFilter()],
+    )
+
     description = wtforms.TextAreaField("Description")
 
     instructions = wtforms.TextAreaField("Instructions")
@@ -805,6 +897,14 @@ class CoprFormFactory(object):
             # We are redefining the original `CoprForm` field because we need to set
             # a list of default chroots based on `copr`
             chroots = ChrootsField(copr=copr)
+
+            # We are redefining the original `CoprForm` field because we need to
+            # pre-tick the default tags already set on `copr`
+            default_tags = DefaultTagsField(copr=copr)
+
+            # We are redefining the original `CoprForm` field because we need to
+            # pre-fill the project's existing non-default tags
+            tags = AdditionalProjectTagsField(copr=copr, filters=[ProjectTagsFilter()])
 
             @property
             def selected_chroots(self):
