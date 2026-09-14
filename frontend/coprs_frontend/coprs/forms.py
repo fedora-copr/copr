@@ -24,6 +24,7 @@ from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.dist_git_logic import DistGitLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.notifications_logic import NotificationsLogic
 
 from wtforms import ValidationError
 
@@ -1803,6 +1804,32 @@ class PinnedCoprsForm(BaseForm):
 
         if len(list(filter(None, self.copr_ids.data))) != len(set(filter(None, self.copr_ids.data))):
             self.copr_ids.errors.append("You can pin a particular project only once")
+            return False
+
+        return True
+
+
+class MarkNotificationsSeenForm(BaseForm):
+    """
+    Form for marking a user's unseen notifications as seen.
+    """
+    notification_ids = SelectMultipleFieldNoValidation(wtforms.IntegerField("Notification ID"))
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def validate(self, extra_validators=None):
+        """
+        Validate that the submitted notification ids belong to the user's
+        own unseen notifications.
+        """
+        # pylint: disable=unused-argument
+        super().validate()
+
+        choices = [str(n.id) for n in NotificationsLogic.get_unseen_user_notifications(self.user)]
+        if any(i not in choices for i in self.notification_ids.data):
+            self.notification_ids.errors.append("Unexpected value selected")
             return False
 
         return True
