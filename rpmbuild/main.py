@@ -242,6 +242,8 @@ def build_rpm(args, config):
         build_rpm_upload(task, config)
         return
 
+    distgit = None
+    builder = None
     try:
         source_json = {
             "clone_url": task["git_repo"],
@@ -260,8 +262,10 @@ def build_rpm(args, config):
         run_automation_tools(
             task, resultdir, builder.mock_config_file, log, config)
     finally:
-        builder.archive_configs()
-        distgit.cleanup()
+        if builder is not None:
+            builder.archive_configs()
+        if distgit is not None:
+            distgit.cleanup()
 
 
 def build_rpm_upload(task, config):
