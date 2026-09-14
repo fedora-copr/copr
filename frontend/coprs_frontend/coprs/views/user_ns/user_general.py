@@ -1,6 +1,6 @@
 import flask
 from coprs import app, db, models, helpers
-from coprs.forms import PinnedCoprsForm, ProfileDescriptionForm
+from coprs.forms import MarkNotificationsSeenForm, PinnedCoprsForm, ProfileDescriptionForm
 from coprs.views.misc import login_required
 from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.builds_logic import BuildsLogic
@@ -37,23 +37,28 @@ def user_info_download():
     return response
 
 
+def render_notifications(user, page=1, form=None):
+    """Render the paginated list of a user's unseen notifications."""
+    query = NotificationsLogic.get_unseen_user_notifications(user)
+    paginator = helpers.Paginator(query, query.count(), page)
+    notifications = paginator.sliced_query
+    return flask.render_template("notifications.html",
+                                 user=user,
+                                 notifications=notifications,
+                                 paginator=paginator,
+                                 form=form or MarkNotificationsSeenForm(user),
+                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
+                                 graph=BuildsLogic.get_small_graph_data('30min'))
+
+
 @user_ns.route("/notifications", defaults={"page": 1})
 @user_ns.route("/notifications/<int:page>/")
 @login_required
-def notifications(page=1):
+def get_notifications(page=1):
     """
     List the current user's unseen notification messages, paginated.
     """
-    user = flask.g.user
-    query = NotificationsLogic.get_unseen_user_notifications(user)
-    paginator = helpers.Paginator(query, query.count(), page)
-    user_notifications = paginator.sliced_query
-    return flask.render_template("notifications.html",
-                                 user=user,
-                                 notifications=user_notifications,
-                                 paginator=paginator,
-                                 tasks_info=ComplexLogic.get_queue_sizes_cached(),
-                                 graph=BuildsLogic.get_small_graph_data('30min'))
+    return render_notifications(flask.g.user, page)
 
 
 @user_ns.route("/notifications/mark-seen", methods=["POST"])
@@ -62,10 +67,17 @@ def notifications_mark_seen():
     """
     Mark the selected notification messages as seen for the current user.
     """
-    notification_ids = [int(x) for x in flask.request.form.getlist("notification_ids[]")]
-    NotificationsLogic.mark_seen_by_ids(flask.g.user, notification_ids)
+    user = flask.g.user
+    form = MarkNotificationsSeenForm(user)
+    if not form.validate_on_submit():
+        flask.flash(form.errors, "error")
+        return render_notifications(user, form=form)
+
+    notification_ids = [int(x) for x in form.notification_ids.data]
+    NotificationsLogic.mark_seen_by_ids(user, notification_ids)
     db.session.commit()
-    return flask.jsonify({"msg": "success"})
+    flask.flash("Notifications have been marked as seen.")
+    return flask.redirect(flask.url_for("user_ns.get_notifications"))
 
 
 @user_ns.route("/delete")

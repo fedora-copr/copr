@@ -342,7 +342,7 @@
         My groups
       </a>
     {% endif %}
-      <a href="{{ url_for('user_ns.notifications') }}" class="list-group-item">
+      <a href="{{ url_for('user_ns.get_notifications') }}" class="list-group-item">
         <span class="badge"> {{ user.unseen_notifications_count }} </span>
         Notifications
       </a>

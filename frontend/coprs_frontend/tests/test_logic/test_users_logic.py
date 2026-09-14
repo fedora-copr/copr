@@ -1,5 +1,6 @@
 import json
 from coprs import app
+from coprs.logic.notifications_logic import NotificationsLogic
 from coprs.logic.users_logic import UserDataDumper, UsersLogic
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -59,11 +60,16 @@ class TestUserDataDumper(CoprsTestCase):
 class TestUserDelete(CoprsTestCase):
 
     def test_delete_user_data(self, f_users, f_fas_groups, f_coprs, f_db):
+        NotificationsLogic.create(self.u1, "subject", "body", "eol_chroot")
+        self.db.session.commit()
+        assert self.models.Notification.query.filter_by(user_id=self.u1.id).count() == 1
+
         UsersLogic.delete_user_data(self.u1)
         self.db.session.commit()
         user = UsersLogic.get(self.u1.username).one()
         assert not user.admin
         assert not user.api_login
+        assert self.models.Notification.query.filter_by(user_id=self.u1.id).count() == 0
 
     @TransactionDecorator("u1")
     def test_delete_data_view(self, f_users, f_fas_groups, f_coprs, f_db):

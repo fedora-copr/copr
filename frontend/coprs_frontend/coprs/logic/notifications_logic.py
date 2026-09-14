@@ -40,13 +40,6 @@ class NotificationsLogic:
                          models.Notification.id.desc()))
 
     @classmethod
-    def unseen_count(cls, user):
-        """
-        Count of all unseen messages
-        """
-        return user.unseen_notifications_count
-
-    @classmethod
     def mark_seen(cls, notification):
         """
         Mark a single notification message as seen.
@@ -64,3 +57,12 @@ class NotificationsLogic:
                          .filter(models.Notification.id.in_(notification_ids)))
         for notification in notifications:
             cls.mark_seen(notification)
+
+    @classmethod
+    def delete_user_notifications(cls, user):
+        """
+        Delete all notification messages belonging to a user.
+        """
+        (models.Notification.query
+         .filter(models.Notification.user_id == user.id)
+         .delete())

@@ -22,7 +22,8 @@
 {% if not notifications %}
 <p>You have no unseen notifications.</p>
 {% else %}
-<form class="mark-seen-form">
+<form class="mark-seen-form" method="post" action="{{ url_for('user_ns.notifications_mark_seen') }}">
+  {{ form.csrf_token }}
   <div class="notification-list">
     <div class="notification-list-header">
       <label class="notification-select-all-label">
@@ -52,18 +53,6 @@
 <script>
   $('#notification-select-all').change(function() {
     $('.notification-row :checkbox[name=notification_ids]').prop('checked', $(this).prop('checked'));
-  });
-
-  $('form.mark-seen-form').submit(function(event) {
-    var notification_ids = [];
-    $('.notification-row :checkbox[name=notification_ids]:checked').each(function() {
-      notification_ids.push(this.value);
-    });
-
-    $.post("{{ url_for('user_ns.notifications_mark_seen') }}", {"notification_ids": notification_ids}, function() {
-      $(location).attr('href', "{{ url_for('user_ns.notifications', page=[paginator.page - 1, 1] | max) }}");
-    });
-    return false;
   });
 </script>
 

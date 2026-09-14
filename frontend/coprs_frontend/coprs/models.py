@@ -2750,6 +2750,5 @@ class Notification(db.Model):
 
     subject = db.Column(db.String(255), nullable=False)
     body = db.Column(db.Text, nullable=False)
-
     seen_on = db.Column(db.Integer)
     created_on = db.Column(db.Integer, nullable=False)
