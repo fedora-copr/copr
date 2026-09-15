@@ -1,5 +1,6 @@
 import errno
 import logging
+import shutil
 import subprocess
 import glob
 import os
@@ -177,9 +178,12 @@ def download_file(url, destination, request=None):
 
     try:
         with response:
+            # Do not transparently decode Content-Encoding (e.g. gzip).  Tmp
+            # storage serves .tar.gz with gzip encoding; iter_content() would
+            # store the decompressed tar stream, not the original archive.
+            response.raw.decode_content = False
             with open(filepath, "wb") as f:
-                for chunk in response.iter_content(1024):
-                    f.write(chunk)
+                shutil.copyfileobj(response.raw, f)
     except OSError as ex:
         raise RuntimeError(f"Failed to save {filepath}: {ex}") from ex
     return filepath

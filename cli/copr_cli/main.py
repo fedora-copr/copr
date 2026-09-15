@@ -464,7 +464,7 @@ class Commands(object):
         username, projectname, project_dirname = self.parse_dirname(args.copr_repo)
         buildopts = buildopts_from_args(args)
 
-        # Before we start uploading potentially large source RPM file, make sure
+        # Before we start uploading potentially large tarball, make sure
         # that the user has valid credentials and can build in the project.
         self.client.build_proxy.check_before_build(
             ownername=username,
@@ -473,18 +473,21 @@ class Commands(object):
             buildopts=buildopts,
         )
 
-        if not os.path.exists(args.rpm):
-            raise CoprException("File {0} not found".format(args.rpm))
+        tarball_path = args.tarball
+        if not os.path.exists(tarball_path):
+            raise CoprException("File {0} not found".format(tarball_path))
 
-        progress_callback = get_progress_callback(os.path.getsize(args.rpm))
+        total_size = os.path.getsize(tarball_path)
+        progress_callback = get_progress_callback(total_size)
         buildopts["progress_callback"] = progress_callback
-        print('Uploading package {0}'.format(args.rpm))
+        print('Uploading tarball {0}'.format(tarball_path))
         try:
             build = self.client.build_proxy.create_from_rpm_upload(
                 ownername=username, projectname=projectname,
                 project_dirname=project_dirname, buildopts=buildopts,
-                path=args.rpm,
-                sha256=getattr(args, "sha256", None))
+                tarball_path=tarball_path, name=args.pkgname,
+                version=args.version, release=args.release,
+                epoch=args.epoch)
         finally:
             if progress_callback:
                 progress_callback.finish()
@@ -893,6 +896,8 @@ class Commands(object):
 
             if args.logs:
                 cmd.extend(["-A", "*.log.gz"])
+                # tarball of client-uploaded logs for "uploadrpm" builds
+                cmd.extend(["-A", "uploaded-logs.tar.gz"])
 
             if args.review:
                 cmd.extend([
@@ -1748,13 +1753,24 @@ def setup_parser():
     # create the parser for the "uploadrpm" command
     parser_upload_rpm = subparsers.add_parser(
         "uploadrpm", parents=[parser_build_parent],
-        help="Publish an already-built local RPM directly to a specified copr, "
-             "skipping the SRPM build phase entirely")
+        help="Publish a pre-built RPM upload tarball directly to a "
+             "specified copr, skipping the SRPM build phase entirely")
     parser_upload_rpm.add_argument(
-        "rpm", help="Local path to the already-built .rpm file to publish")
+        "tarball",
+        help="Local path to a .tar.gz with one top-level directory "
+             "containing binary RPMs (see man copr-cli uploadrpm)")
     parser_upload_rpm.add_argument(
-        "--sha256", help="Expected SHA256 hex digest of the uploaded file; "
-        "the server rejects the build on mismatch")
+        "--name", dest="pkgname", required=True,
+        help="Package name")
+    parser_upload_rpm.add_argument(
+        "--version", dest="version", required=True,
+        help="Package version")
+    parser_upload_rpm.add_argument(
+        "--release", dest="release", required=True,
+        help="Package release")
+    parser_upload_rpm.add_argument(
+        "--epoch", dest="epoch", type=int, required=False,
+        help="Optional package epoch")
     parser_upload_rpm.set_defaults(func="action_upload_rpm")
 
     # create the parser for the "buildpypi" command

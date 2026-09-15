@@ -466,87 +466,55 @@ class TestBuildsLogic(CoprsTestCase):
         assert "[Errno 28] No space left on device" in str(error.value)
 
     @staticmethod
-    def _fake_rpm_file(filename, content=b"fake rpm bytes"):
-        rpm_file = FileStorage(stream=BytesIO(content), filename=filename,
-                               content_type="application/x-rpm")
-        # spy on .save() (still calls through to the real implementation)
-        # so tests can assert whether/how many times it was called
-        rpm_file.save = mock.Mock(wraps=rpm_file.save)
-        return rpm_file
+    def _fake_tarball_file(filename="upload.tar.gz", content=b"fake tarball bytes"):
+        tarball_file = FileStorage(stream=BytesIO(content), filename=filename,
+                                   content_type="application/gzip")
+        tarball_file.save = mock.Mock(wraps=tarball_file.save)
+        return tarball_file
+
+    @staticmethod
+    def _rpm_upload_kwargs(**overrides):
+        values = {
+            "name": "hello",
+            "version": "2.8",
+            "release": "1.fc18",
+        }
+        values.update(overrides)
+        return values
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_rpm_upload_ignores_unknown_chroots(self):
-        # unknown chroot names among the requested ones are silently
-        # filtered out (same as create_new() does for other build types),
-        # as long as at least one requested chroot is valid
-        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        tarball_file = self._fake_tarball_file()
         build = BuildsLogic.create_new_from_rpm_upload(
             self.u1, self.c1, ["fedora-18-x86_64", "no-such-chroot"],
-            [rpm_file])
+            tarball_file, **self._rpm_upload_kwargs())
         self.db.session.commit()
         assert {bch.name for bch in build.build_chroots} == {"fedora-18-x86_64"}
 
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_multiple_files(self):
-        # only one RPM can be uploaded per call for now
-        rpm_files = [
-            self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm"),
-            self._fake_rpm_file("hello-devel-2.8-1.fc18.x86_64.rpm"),
-        ]
+    def test_rpm_upload_rejects_bad_tarball_name(self):
+        tarball_file = self._fake_tarball_file("日本語.tar.gz")
         with pytest.raises(BadRequest) as error:
             BuildsLogic.create_new_from_rpm_upload(
-                self.u1, self.c1, ["fedora-18-x86_64"], rpm_files)
-        assert "Only one RPM can be uploaded per call" in str(error.value)
-        assert self.models.Build.query.first() is None
-        for rpm_file in rpm_files:
-            rpm_file.save.assert_not_called()
-
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_unsanitizable_name(self):
-        # secure_filename() strips filenames it can't safely represent
-        # (e.g. non-ASCII names) down to something that no longer ends
-        # with ".rpm", or even an empty string
-        rpm_file = self._fake_rpm_file("日本語.rpm")
-        with pytest.raises(BadRequest) as error:
-            BuildsLogic.create_new_from_rpm_upload(
-                self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file])
+                self.u1, self.c1, ["fedora-18-x86_64"], tarball_file,
+                **self._rpm_upload_kwargs())
         assert "invalid" in str(error.value)
         assert self.models.Build.query.first() is None
-        rpm_file.save.assert_not_called()
-
-    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
-    def test_rpm_upload_rejects_bad_pkg_name(self):
-        storage_dir = self.app.config["STORAGE_DIR"]
-        before = set(os.listdir(storage_dir))
-
-        rpm_file = self._fake_rpm_file("1-2.rpm")
-        with pytest.raises(BadRequest) as error:
-            BuildsLogic.create_new_from_rpm_upload(
-                self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file])
-        assert "Can not derive a package name" in str(error.value)
-        assert self.models.Build.query.first() is None
-
-        # the file was already saved before the name could be derived
-        # make sure the tmp dir got cleaned up again
-        after = set(os.listdir(storage_dir))
-        assert after == before
+        tarball_file.save.assert_not_called()
 
     @mock.patch("coprs.logic.coprs_logic.CoprDirsLogic.get_or_create")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
     def test_rpm_upload_cleans_tmpdir_on_failure(self, get_or_create):
-        # any failure occurring after the files were already saved to
-        # STORAGE_DIR (e.g. resolving copr_dir) must not leak the
-        # just-created tmp upload directory
         get_or_create.side_effect = RuntimeError("boom")
 
         storage_dir = self.app.config["STORAGE_DIR"]
         before = set(os.listdir(storage_dir))
 
-        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        tarball_file = self._fake_tarball_file()
         with pytest.raises(RuntimeError):
             BuildsLogic.create_new_from_rpm_upload(
-                self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file],
-                copr_dirname="some-dir")
+                self.u1, self.c1, ["fedora-18-x86_64"], tarball_file,
+                copr_dirname="some-dir", **self._rpm_upload_kwargs())
 
         assert self.models.Build.query.first() is None
         after = set(os.listdir(storage_dir))
@@ -559,22 +527,24 @@ class TestBuildsLogic(CoprsTestCase):
         user = self.db.session.get(models.User, 1)
         copr = models.Copr.query.first()
 
-        rpm_file = self._fake_rpm_file("hello-2.8-1.fc18.x86_64.rpm")
+        tarball_file = self._fake_tarball_file()
         build = BuildsLogic.create_new_from_rpm_upload(
-            user, copr, ["fedora-18-x86_64"], [rpm_file])
+            user, copr, ["fedora-18-x86_64"], tarball_file,
+            **self._rpm_upload_kwargs())
         self.db.session.commit()
 
         assert build.source_type == BuildSourceEnum("rpm_upload")
         assert build.source_status == StatusEnum("succeeded")
         assert build.package is not None
         assert build.package.name == "hello"
+        assert build.pkg_version == "2.8-1.fc18"
         assert len(build.build_chroots) == 1
 
         build_chroot = build.build_chroots[0]
         assert build_chroot.name == "fedora-18-x86_64"
         assert build_chroot.status == StatusEnum("pending")
 
-        rpm_file.save.assert_called_once()
+        tarball_file.save.assert_called_once()
 
         # no Action is queued for this build (e.g. new_project() above may
         # have queued unrelated ones, like gen_gpg_key) -- the pending
@@ -584,9 +554,12 @@ class TestBuildsLogic(CoprsTestCase):
             object_type="build", object_id=build.id).all()
         assert build_actions == []
 
+        assert build.source_json_dict["tarball"] == "upload.tar.gz"
+
         tmp_dir_name = build.source_json_dict["tmp"]
         storage_path = os.path.join(self.app.config["STORAGE_DIR"], tmp_dir_name)
         assert os.path.isdir(storage_path)
+        assert os.path.isfile(os.path.join(storage_path, "upload.tar.gz"))
 
         # simulate a builder reporting a successful build (via the generic
         # /backend/update endpoint, same as any other build/chroot)

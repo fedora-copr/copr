@@ -776,15 +776,32 @@ class CreateBuildRpmUpload(_BuildDataCommon, _BuildOptionsBase, InputSchema):
         description="List of chroot names",
         example=["fedora-37-x86_64", "fedora-rawhide-x86_64"],
     )
-    pkgs: List = List(
-        Raw,
-        description="application/x-rpm files to publish directly, "
-                    "skipping the SRPM build phase entirely",
+    tarball: Raw = Raw(
+        description=(
+            "A .tar.gz file containing the RPM upload payload.  The archive "
+            "must contain exactly one top-level directory with payload files "
+            "directly inside it.  Required: at least one binary RPM matching "
+            "the target chroot architecture or noarch.  Optional: up to one "
+            "SRPM, arbitrary extra files (archived as uploaded-logs.tar.gz), "
+            "and sha256.json mapping basenames to SHA256 hex digests."
+        ),
     )
-    sha256: String = String(
-        description="Expected SHA256 hex digest of the uploaded file; "
-                    "the build is rejected on mismatch",
+    name: String = String(
+        description="Package name",
     )
+    version: String = String(
+        description="Package version",
+    )
+    release: String = String(
+        description="Package release",
+    )
+    epoch: Integer = Integer(
+        description="Optional package epoch",
+    )
+
+    @property
+    def required_attrs(self) -> list:
+        return [self.tarball, self.name, self.version, self.release]
 
 
 @dataclass
