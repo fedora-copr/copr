@@ -261,6 +261,24 @@ builders <https://frostyx.cz/posts/ssh-access-to-copr-builders>`_ blog
 post.
 
 
+.. _forking_projects:
+.. _fork_build_selection:
+
+Forking projects
+----------------
+
+**Other Actions** → **Fork this project**, or ``copr fork OWNER/SOURCE OWNER/DESTINATION``.
+Copying RPM data on the backend may take a few minutes.
+
+Use cases: your copy of someone else's project; snapshot of your own project; fill an
+existing project with missing packages/builds from another (needs ``--confirm``).
+
+Forking into an existing project: new packages are added; for packages already present,
+only **newest** successful builds by time from the source are copied by default. See
+`Copr - Forking Projects <http://frostyx.cz/posts/copr-forking-projects>`_ blog for
+more details.
+
+
 Temporary projects
 ------------------
 
