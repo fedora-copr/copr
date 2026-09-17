@@ -36,12 +36,18 @@ class TestPackagesLogic(CoprsTestCase):
                 self.u1, self.c1, [package],
                 chroot_names=["fedora-18-x86_64"])
 
-    def test_last_successful_build_chroots(self, f_users, f_fork_prepare, f_build_few_chroots):
-        builds_p4 = PackagesLogic.last_successful_build_chroots(self.p4)
-        builds_p5 = PackagesLogic.last_successful_build_chroots(self.p5)
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_build_few_chroots")
+    def test_successful_build_chroots(self):
+        builds_p4 = PackagesLogic.successful_build_chroots(self.p4)
+        builds_p5 = PackagesLogic.successful_build_chroots(self.p5)
         assert builds_p4 == {self.b6: self.b6_bc}
         assert builds_p5 == {self.b10: [self.b10_bc[0]],
                              self.b11: [self.b11_bc[1]]}
+
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_build_few_chroots")
+    def test_successful_build_chroots_all_builds(self):
+        builds_p2 = PackagesLogic.successful_build_chroots(self.p2, all_builds=True)
+        assert builds_p2 == {self.b7: self.b7_bc, self.b8: self.b8_bc}
 
     @staticmethod
     @pytest.mark.parametrize(

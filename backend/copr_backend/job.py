@@ -68,6 +68,7 @@ class BuildJob(object):
         self.pkg_release = None
 
         self.srpm_url = None
+        self.prebuilt_rpm_urls = None
         self.uses_devel_repo = None
         self.sandbox = None
 

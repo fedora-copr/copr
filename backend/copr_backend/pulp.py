@@ -407,6 +407,15 @@ class PulpClient:
         return PulpRequest("POST", uri, data,
                            f"create repository {name}")
 
+    def _log_list_response(self, response):
+        data = response.json()
+        if "results" not in data or not data["results"]:
+            self.log.info("No result found.")
+            return
+        for index, item in enumerate(data["results"], 1):
+            href = item.get("pulp_href", "no href provided by Pulp")
+            self.log.info("[%s] pulp_href: %s", index, href)
+
     def get_repository(self, name):
         """
         Get a single RPM repository
@@ -417,7 +426,10 @@ class PulpClient:
         uri = "/api/v3/repositories/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_repository: %s", uri)
-        return self.send("GET", uri)
+
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def get_distribution(self, name):
         """
@@ -429,7 +441,9 @@ class PulpClient:
         uri = "/api/v3/distributions/rpm/rpm/?"
         uri += urlencode({"name": name, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_distribution: %s", uri)
-        return self.send("GET", uri)
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def get_task(self, task):
         """
@@ -454,7 +468,8 @@ class PulpClient:
         self.log.info("Pulp: get_by_prn: %s", uri)
         return self.send("GET", uri)
 
-    def create_distribution(self, name, repository, basepath=None):
+    def create_distribution(self, name, repository, basepath=None,
+                            content_guard=None):
         """
         Create an RPM distribution
         https://docs.pulpproject.org/pulp_rpm/restapi.html#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_create
@@ -465,11 +480,13 @@ class PulpClient:
             "repository": repository,
             "base_path": basepath or name,
         }
+        if content_guard:
+            data["content_guard"] = content_guard
         return PulpRequest("POST", uri, data,
                            f"create distribution {name}")
 
     def update_distribution(self, distribution, publication=None,
-                            repository=None):
+                            repository=None, content_guard=None):
         """
         Build a PulpRequest to update an RPM distribution.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Distributions:-Rpm/operation/distributions_rpm_rpm_update
@@ -477,6 +494,8 @@ class PulpClient:
         This allows us to point a distribution to either a publication or
         a repository. Not both, that doesn't make sense and Pulp would raise
         "Only one of the attributes 'repository' and 'publication' may be used simultaneously."
+
+        A content guard can be assigned to the distribution at the same time.
         """
         if publication and repository:
             raise RuntimeError("Specify either publication or repository")
@@ -486,6 +505,8 @@ class PulpClient:
             "publication": publication,
             "repository": repository,
         }
+        if content_guard is not None:
+            data["content_guard"] = content_guard
         return PulpRequest("PATCH", url, data,
                            f"update distribution {distribution}")
 
@@ -507,7 +528,9 @@ class PulpClient:
         uri = "/api/v3/publications/rpm/rpm/?"
         uri += urlencode({"repository": repository, "offset": 0, "limit": 1})
         self.log.info("Pulp: get_publication: %s", uri)
-        return self.send("GET", uri)
+        response = self.send("GET", uri)
+        self._log_list_response(response)
+        return response
 
     def create_content(self, path, labels, timeout=3600):
         """
@@ -520,6 +543,10 @@ class PulpClient:
             files = {"file": fp}
             self.log.info("Pulp: create_content: %s %s", uri, path)
             package = self.send("POST", uri, data=data, files=files, timeout=timeout)
+        pulp_href = "pulp_href unknown: invalid POST request"
+        if package.ok:
+            pulp_href = package.json().get("pulp_href", "pulp_href unknown: missing field")
+        self.log.info("Created pulp_href: %s", pulp_href)
         return package
 
     def create_content_chunked(self, path, labels):
@@ -707,6 +734,7 @@ class PulpClient:
             self.log.debug("Pulp: get_content: fetching page (offset=%d)", offset)
 
             response = self.send("GET", uri)
+            self._log_list_response(response)
             response.raise_for_status()
             data = response.json()
             results = data.get("results", [])

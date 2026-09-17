@@ -221,7 +221,8 @@ def create_user_keys(username, projectname, opts, try_indefinitely=False):
 
 
 def _unsign_one(path):
-    # Requires rpm-sign package
+    # Requires rpm-sign package.
+    # rpm --delsign on an unsigned RPM is a no-op (exit code 0).
     cmd = ["/usr/bin/rpm", "--delsign", path]
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
     stdout, stderr = handle.communicate()

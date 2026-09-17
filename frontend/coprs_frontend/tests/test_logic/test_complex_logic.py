@@ -57,6 +57,20 @@ class TestComplexLogic(CoprsTestCase):
                                '11-new-package': '00000015-new-package'}}
 
     @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
+    def test_fork_copr_all_builds(self):
+        flask.g.user = self.u2
+
+        _, created = ComplexLogic.fork_copr(self.c2, self.u2, u"dstname", all_builds=True)
+        assert created
+        self.db.session.commit()
+
+        actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
+        assert len(actions) == 1
+        data = json.loads(actions[0].data)
+        assert '7-whatsupthere-world' in data["builds_map"]["fedora-17-x86_64"]
+        assert '8-whatsupthere-world' in data["builds_map"]["fedora-17-x86_64"]
+
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
     def test_fork_copr_with_eoled_chroots(self):
         flask.g.user = self.u2
 
@@ -65,7 +79,7 @@ class TestComplexLogic(CoprsTestCase):
         self.db.session.add(self.mc3)
         self.db.session.commit()
 
-        new_copr, created = ComplexLogic.fork_copr(self.c2, self.u2, u"dstname")
+        new_copr, created = ComplexLogic.fork_copr(self.c2, self.u2, "dstname")
         assert created
         assert [cc.mock_chroot.name for cc in new_copr.copr_chroots] == [
             "fedora-17-x86_64"

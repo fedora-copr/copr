@@ -1016,12 +1016,20 @@ class PackageFormPyPI(BasePackageForm):
             wtforms.validators.Optional(),
         ])
 
-    spec_generator = wtforms.SelectField(
+    spec_generator = wtforms.HiddenField(
         "Spec generator",
-        choices=[
-            ("pyp2rpm", "pyp2rpm"),
-            ("pyp2spec", "pyp2spec"),
-        ], default="pyp2spec")
+        default="pyp2spec",
+        validators=[
+            wtforms.validators.AnyOf(
+                ["pyp2spec"],
+                message=(
+                    "The only supported spec generator is pyp2spec now. "
+                    "The pyp2rpm is not maintained and therefore was "
+                    "deprecated in Copr as well."
+                )
+            ),
+        ],
+    )
 
     spec_template = wtforms.SelectField(
         "Spec template",
@@ -1747,6 +1755,11 @@ class CoprForkFormFactory(object):
 
             confirm = wtforms.BooleanField(
                 "Confirm",
+                false_values=FALSE_VALUES,
+                default=False)
+
+            fork_all = wtforms.BooleanField(
+                "Fork all builds",
                 false_values=FALSE_VALUES,
                 default=False)
         return F

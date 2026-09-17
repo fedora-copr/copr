@@ -367,7 +367,8 @@ class PulpStorage(Storage):
         try:
             self.client.deliver_and_wait([
                 self.client.create_distribution(
-                    distribution_name, repository_href),
+                    distribution_name, repository_href,
+                    content_guard=self.opts.pulp_content_guard),
             ])
         except RequestError as ex:
             if "This field must be unique" not in ex.response.text:
@@ -737,7 +738,9 @@ class PulpStorage(Storage):
     def _get_repository(self, chroot, dirname=None):
         name = self._repository_name(chroot, dirname)
         response = self.client.get_repository(name)
-        return response.json()["results"][0]["pulp_href"]
+        href = response.json()["results"][0]["pulp_href"]
+        self.log.info("Got repo href: %s", href)
+        return href
 
     def _get_distribution(self, chroot, dirname=None, devel=None, full=False):
         if devel is None:

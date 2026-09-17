@@ -106,6 +106,7 @@ from coprs.log import setup_log
 import coprs.whoosheers
 
 cache = Cache(app, config={
+    'CACHE_TYPE': 'RedisCache',
     'CACHE_REDIS_HOST': app.config["REDIS_HOST"],
     'CACHE_REDIS_PORT': app.config["REDIS_PORT"],
 })

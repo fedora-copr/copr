@@ -1,5 +1,5 @@
 FROM registry.fedoraproject.org/fedora:43
-MAINTAINER copr-devel@lists.fedorahosted.org
+LABEL maintainer="copr-devel@lists.fedorahosted.org"
 
 ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
 
