@@ -47,18 +47,20 @@ class TestGetBuildTask(CoprsTestCase):
         data = json.loads(r.decode("utf-8"))
         assert data['modules']['toggle'] == [{'disable': 'XXX'}, {'enable': 'YYY'}, {'enable': 'ZZZ'}]
 
-    def test_rpm_upload_prebuilt_rpm_urls(self, f_users, f_coprs, f_mock_chroots, f_db):
+    def test_rpm_upload_prebuilt_tarball_url(self, f_users, f_coprs,
+                                             f_mock_chroots, f_db):
         """
         A "direct RPM upload" build has no dist-git source, so the Builder
-        needs the uploaded RPMs' URLs (served from Frontend's tmp storage)
+        needs the uploaded tarball URL (served from Frontend's tmp storage)
         instead of the usual git_repo/git_hash.
         """
-        filename = "hello-2.8-1.fc18.x86_64.rpm"
-        rpm_file = FileStorage(stream=BytesIO(b"fake rpm bytes"),
-                               filename=filename,
-                               content_type="application/x-rpm")
+        filename = "upload.tar.gz"
+        tarball_file = FileStorage(stream=BytesIO(b"fake tarball bytes"),
+                                   filename=filename,
+                                   content_type="application/gzip")
         build = BuildsLogic.create_new_from_rpm_upload(
-            self.u1, self.c1, ["fedora-18-x86_64"], [rpm_file])
+            self.u1, self.c1, ["fedora-18-x86_64"], tarball_file,
+            name="hello", version="2.8", release="1.fc18")
         self.db.session.commit()
 
         build_chroot = build.build_chroots[0]
@@ -69,7 +71,8 @@ class TestGetBuildTask(CoprsTestCase):
 
         tmp = build.source_json_dict["tmp"]
         base_url = app.config["PUBLIC_COPR_BASE_URL"]
-        assert data["prebuilt_rpm_urls"] == [f"{base_url}/tmp/{tmp}/{filename}"]
+        assert data["prebuilt_tarball_url"] == \
+            f"{base_url}/tmp/{tmp}/{filename}"
 
 
 class TestWaitingBuilds(CoprsTestCase):

@@ -108,7 +108,7 @@ class FileRequest(Request):
     def _request_params(self, *args, **kwargs):
         params = super(FileRequest, self)._request_params(*args, **kwargs)
 
-        data = self.files or {}
+        data = dict(self.files or {})
         data["json"] = ("json", json.dumps(params["json"]), "application/json")
 
         callback = self.progress_callback or (lambda x: x)

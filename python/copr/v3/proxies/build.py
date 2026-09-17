@@ -149,37 +149,60 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
-    def create_from_rpm_upload(self, ownername, projectname, path, *,
-                               buildopts=None, project_dirname=None,
-                               sha256=None):
+    def create_from_rpm_upload(self, ownername, projectname, *,
+                               tarball_path=None, name=None, version=None,
+                               release=None, epoch=None, buildopts=None,
+                               project_dirname=None):
         """
-        Publish an already-built local RPM file directly, skipping the SRPM
-        build and dist-git import phases entirely.
+        Publish a pre-built RPM upload tarball directly, skipping the
+        SRPM build and dist-git import phases entirely.
+
+        The tarball must be a .tar.gz with exactly one top-level directory
+        containing payload files directly inside it: at least one binary RPM
+        matching the target chroot architecture or noarch (required),
+        optionally one SRPM, optional extra files (archived as
+        uploaded-logs.tar.gz), and an optional sha256.json checksum manifest.
 
         :param str ownername:
         :param str projectname:
-        :param str path: local path to the already-built .rpm file
+        :param str tarball_path: local path to a .tar.gz upload payload
+        :param str name: package name
+        :param str version: package version
+        :param str release: package release
+        :param int epoch: optional package epoch
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
-        :param str sha256: expected SHA256 hex digest of the uploaded file
         :return: Munch
         """
-        endpoint = "/build/create/rpm-upload"
-        # the file must stay open for the whole request (sent by _create()
-        # below), so it can't be wrapped in a local "with" block here
-        # pylint: disable-next=consider-using-with
-        f = open(path, "rb")
+        if not tarball_path:
+            raise CoprValidationException("'tarball_path' has to be provided")
+        if not name:
+            raise CoprValidationException("'name' has to be provided")
+        if not version:
+            raise CoprValidationException("'version' has to be provided")
+        if not release:
+            raise CoprValidationException("'release' has to be provided")
 
+        endpoint = "/build/create/rpm-upload"
         data = {
             "ownername": ownername,
             "projectname": projectname,
             "project_dirname": project_dirname,
-            "sha256": sha256,
+            "name": name,
+            "version": version,
+            "release": release,
         }
-        files = {
-            "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
-        }
-        return self._create(endpoint, data, files=files, buildopts=buildopts)
+        if epoch is not None:
+            data["epoch"] = epoch
+
+        with open(tarball_path, "rb") as tarball_fp:
+            files = {
+                "tarball": (
+                    os.path.basename(tarball_path), tarball_fp,
+                    "application/gzip",
+                ),
+            }
+            return self._create(endpoint, data, files=files, buildopts=buildopts)
 
     def check_before_build(self, ownername, projectname,
                            project_dirname=None, buildopts=None):
