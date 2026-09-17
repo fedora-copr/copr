@@ -167,6 +167,13 @@ class ComplexLogic(object):
             if not builds:
                 continue
 
+            # get_packages_with_latest_builds_for_dir gets max(id) instead of actual
+            # NEVRA or something. Also who knows what other assumptions across the codebase
+            # are made, so keeping this sorted and forking exactly in the same order
+            # as the source breaks nothing.
+            if all_builds:
+                builds = dict(sorted(builds.items(), key=lambda item: item[0].id))
+
             for build, build_chroots in builds.items():
                 fbuild = forking.fork_build(build, fcopr, fpackage, build_chroots)
 
