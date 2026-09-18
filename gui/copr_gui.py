@@ -3547,6 +3547,17 @@ class BuildType(QMainWindow):
             qml.setSource(QUrl.fromLocalFile(path))
 
             identifier = qml.rootObject().property("identifier")
+            identifier_split = identifier.split('-')
+            identifier = identifier_split[0]
+            if len(identifier_split) > 1:
+                spl = identifier_split[1]
+                if is_package:
+                    if not ('P' in spl):
+                        continue
+                else:
+                    if not ('B' in spl):
+                        continue
+            
             name = qml.rootObject().property("name") or identifier
             self.qml_ids[identifier] = qml_current_id
             qml_current_id = qml_current_id + 1
@@ -3600,8 +3611,9 @@ class BuildType(QMainWindow):
         self.resize(800, 600)
 
     def fill_package_data(self, data):
+        data_name = data.get('name', '')
         if self.name is not None:
-            self.name.setText(data.name)
+            self.name.setText(data_name)
         index = self.qml_ids[data.source_type]
         self.combo.setCurrentIndex(index)
 
@@ -3616,6 +3628,15 @@ class BuildType(QMainWindow):
                 "setDict", 
                 Q_ARG(QVariant, data.source_dict)
             )
+            method_index = qml_root.metaObject().indexOfMethod(
+                "setName(QVariant)")
+            if method_index != -1:
+                meta_method = qml_root.metaObject().method(
+                    method_index)
+                meta_method.invoke(
+                    qml_root, 
+                    Q_ARG(QVariant, data_name)
+                )
             return not not success
 
     def fetch_qml_data(self, owner="", project=""):

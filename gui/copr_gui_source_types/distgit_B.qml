@@ -6,13 +6,17 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
-    readonly property string identifier: "distgit"
+    readonly property string identifier: "distgit-B"
     readonly property string name: "DistGit"
+    
+    function setName(name) {
+        packagename.text = name;
+    }
 
     function setDict(data) {
-        committish.text = data["committish"];
-        namespace.text = data["namespace"];
-        distgit.text = data["distgit"];
+        committish.text = data["committish"] || "";
+        namespace.text = data["namespace"] || "";
+        distgit.text = data["distgit"] || "";
     }
 
     function isempty(str) {
@@ -20,7 +24,9 @@ Rectangle {
     }
 
     function getDict() {
-        var ret = {};
+        var ret = {
+            "packagename": packagename.text
+        };
         var com = committish.text;
         var nmsp = namespace.text;
         var dgit = distgit.text;
