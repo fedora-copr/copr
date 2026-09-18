@@ -17,12 +17,8 @@ Rectangle {
         script_repos.text = data["repos"]
     }
 
-    function isempty(str){
-        if (typeof str === "string" && str.length === 0) {
-            return true;
-        } else {
-            return false;
-        }
+    function isempty(str) {
+        return typeof str === "string" && str.length === 0;
     }
     
     function getDict() {
