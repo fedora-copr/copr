@@ -6,6 +6,7 @@ from flask import url_for
 
 from coprs import app, db
 from coprs.logic import coprs_logic
+from coprs.logic.notifications_logic import NotificationsLogic
 from coprs.models import User, Group
 from coprs.helpers import copr_url, generate_api_token
 from sqlalchemy import update
@@ -142,6 +143,8 @@ class UsersLogic(object):
                 "mail": ""}
         for k, v in null.items():
             setattr(user, k, v)
+        # delete the user notifications as well
+        NotificationsLogic.delete_user_notifications(user)
         app.logger.info("Deleting user '%s' data", user.name)
 
     @classmethod

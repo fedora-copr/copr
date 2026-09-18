@@ -367,3 +367,70 @@ table.permissions {
 .outage-warning {
   text-align: center;
 }
+
+.notification-list {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+
+.notification-list-header {
+  padding: 8px 12px;
+  background: #f6f6f6;
+  border-bottom: 1px solid #ddd;
+  border-radius: 3px 3px 0 0;
+}
+
+.notification-select-all-label {
+  font-weight: normal;
+  margin: 0;
+}
+
+.notification-select-all-text {
+  margin-left: 10px;
+}
+
+.notification-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-row:last-child {
+  border-bottom: none;
+}
+
+.notification-row:hover {
+  background: #ECECEC;
+}
+
+.notification-row input[type=checkbox] {
+  margin-top: 3px;
+}
+
+.notification-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.notification-row-time {
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+  margin-left: 10px;
+}
+
+.notification-row-body {
+  color: #555;
+  font-size: 13px;
+  margin-top: 4px;
+  white-space: pre-line;
+}
