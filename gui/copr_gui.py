@@ -3392,8 +3392,14 @@ class ProjectWindow(QMainWindow):
             add_worker_and_thread(worker, thread)
         def save_project_chroots():
             nonlocal self, save_project_options
+            chroots = self.chroot_widgets.chroots()
+            repos = {}
+            chroot_repos = self.project.chroot_repos
+            for i in chroots:
+                repos[i] = chroot_repos[i]
+            self.project.chroot_repos = repos
             save_project_options({
-				"chroots": self.chroot_widgets.chroots()
+				"chroots": chroots
 			})
         self.chroot_widgets.changed.connect(save_project_chroots)   
         self.project_options.saved.connect(save_project_options)
