@@ -48,6 +48,18 @@ Rectangle {
         Column {
             width: parent.width
             Label {
+                text: "Package name"
+                color: textColor
+            }
+            TextField {
+                id: packageName
+                width: parent.width
+                placeholderText: "Enter package name..."
+            }
+        }
+        Column {
+            width: parent.width
+            Label {
                 text: "Committish"
                 // qmllint disable unqualified
                 color: textColor
