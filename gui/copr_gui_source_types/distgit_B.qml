@@ -49,7 +49,9 @@ Rectangle {
             width: parent.width
             Label {
                 text: "Package name"
+                // qmllint disable unqualified
                 color: textColor
+                // qmllint enable unqualified
             }
             TextField {
                 id: packagename
