@@ -14,15 +14,15 @@ Rectangle {
     }
 
     function setDict(data) {
-        pypi_package_name.text = data["package_name"] || "";
-        pypi_package_version.text = data["version"] || "";
+        pypi_package_name.text = data["pypi_package_name"] || "";
+        pypi_package_version.text = data["pypi_package_version"] || "";
 
         var generatorIndex = spec_generator.find(data["spec_generator"]);
         if (generatorIndex !== -1) {
             spec_generator.currentIndex = generatorIndex;
         }
 
-        spec_template.text = data["template"] || "";
+        spec_template.text = data["spec_template"] || "";
 
         var versions = data["python_versions"]
         if (versions) {
