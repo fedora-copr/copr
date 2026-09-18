@@ -25,6 +25,13 @@ export STORAGE
 
 export VENDOR="Testing Copr - user single-host-testing"
 
+# Warm up the /status/stats/ graph caches (BuildsStatistics / ActionsStatistics).
+# This is normally done hourly by the copr-frontend cron job, but on a freshly
+# provisioned Testing Farm machine that cron has not run yet, so the very first
+# request to /status/stats/ (see runtest-webui.sh) would compute hundreds of
+# time buckets in a single request and time out.  Populate the caches up front.
+sudo -i -u copr-fe copr-frontend update-graphs || exit 1
+
 SCRIPT_DIR="."
 LOG_DIR="./logs"
 
