@@ -17,9 +17,7 @@ Rectangle {
     function getDict() {
         return {
             "pypi_package_name": pypi_package_name.text,
-            "pypi_package_version": pypi_package_version.text,
-            "spec_generator": "pyp2spec",
-            "python_versions": []
+            "pypi_package_version": pypi_package_version.text
         };
     }
 
