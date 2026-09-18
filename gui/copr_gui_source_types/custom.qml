@@ -33,13 +33,13 @@ Rectangle {
             chroot = "fedora-latest-x86_64"
         }
         ret["chroot"] = chroot
-        if (isempty(resultdir)) {
+        if (!isempty(resultdir)) {
             ret["resultdir"] = resultdir
         }
-        if (isempty(builddeps)) {
+        if (!isempty(builddeps)) {
             ret["builddeps"] = builddeps
         }
-        if (isempty(repos)) {
+        if (!isempty(repos)) {
             ret["repos"] = repos
         }
         return ret
