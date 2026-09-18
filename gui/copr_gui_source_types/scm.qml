@@ -15,9 +15,14 @@ Rectangle {
         committish.text = data.committish;
         subdirectory.text = data.subdirectory;
         specfile.text = data.spec;
+        
+        var scm_type_str = data.type
+        if (! scm_type_str){
+            scm_type_str = data.scm_type
+        }
 
-        if (data.scm_type) {
-            var scmIndex = scm_type.find(data.scm_type);
+        if (scm_type_str) {
+            var scmIndex = scm_type.find(scm_type_str);
             if (scmIndex !== -1) {
                 scm_type.currentIndex = scmIndex;
             }
