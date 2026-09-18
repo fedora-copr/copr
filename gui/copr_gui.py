@@ -379,6 +379,12 @@ class DeleteBuildWorker(QObject):
     def run(self):
         try:
             for build in self.data:
+                try:
+                    self.client.build_proxy.cancel(
+                        build.id
+                    )
+                except Exception:
+                    pass
                 self.client.build_proxy.delete(
                     build.id
                 )
