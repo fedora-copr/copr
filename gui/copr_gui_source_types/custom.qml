@@ -64,7 +64,7 @@ Rectangle {
 
             TextArea {
                 id: script_text
-                textFormat: TextEdit.RichText
+                textFormat: TextEdit.PlainText
                 placeholderText: "Enter script..."
             }
         }
@@ -128,7 +128,7 @@ Rectangle {
 
             TextArea {
                 id: script_repos
-                textFormat: TextEdit.RichText
+                textFormat: TextEdit.PlainText
                 placeholderText: "Enter repos..."
             }
         }
