@@ -52,7 +52,7 @@ Rectangle {
                 color: textColor
             }
             TextField {
-                id: packageName
+                id: packagename
                 width: parent.width
                 placeholderText: "Enter package name..."
             }
