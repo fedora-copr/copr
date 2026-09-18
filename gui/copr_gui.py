@@ -3396,7 +3396,7 @@ class ProjectWindow(QMainWindow):
             repos = {}
             chroot_repos = self.project.chroot_repos
             for i in chroots:
-                repos[i] = chroot_repos[i]
+                repos[i] = chroot_repos.get(i, "")
             self.project.chroot_repos = repos
             save_project_options({
 				"chroots": chroots
