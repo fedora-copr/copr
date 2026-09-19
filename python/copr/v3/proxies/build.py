@@ -434,6 +434,10 @@ class BuildProxy(BaseProxy):
         Recreate a build
 
         :param int build_id:
+        :param str ownername:
+        :param str projectname:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
+        :param str project_dirname:
         :return: Munch
         """
         build = self.get(build_id)
