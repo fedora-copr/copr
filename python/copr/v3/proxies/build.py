@@ -424,7 +424,7 @@ class BuildProxy(BaseProxy):
         """
         try:
             self.cancel(build_id)
-        except Exception:
+        except CoprRequestException:
             pass
         return self.delete(build_id)
 
