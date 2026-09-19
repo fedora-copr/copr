@@ -429,7 +429,8 @@ class BuildProxy(BaseProxy):
         return self.delete(build_id)
 
 
-    def rebuild(self, build_id, ownername=None, projectname=None, buildopts=None, project_dirname=None):
+    # pylint: disable=too-many-positional-arguments
+    def rebuild(self, build_id, ownername=None, projectname=None, buildopts=None, project_dirname=None):  # noqa: PLR0917
         """
         Recreate a build
 
