@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os
 from . import BaseProxy
 from ..requests import FileRequest, munchify, DELETE, POST, PUT
-from ..exceptions import CoprValidationException
+from ..exceptions import CoprValidationException, CoprRequestException
 from ..helpers import for_all_methods, bind_proxy
 
 
@@ -413,6 +413,24 @@ class BuildProxy(BaseProxy):
         response = self.request.send(
             endpoint=endpoint, method=DELETE, auth=self.auth)
         return munchify(response)
+
+    
+    def rebuild(self, build_id, buildopts=None):
+        """
+        Recreate a build
+
+        :param int build_id:
+        :return Munch
+        """
+        build = self.get(build_id)
+        if build:
+            source = build.source_package
+            if source:
+                url = source.get('url', None)
+                if url:
+                    return self.create_from_url(ownername=build.ownername, projectname=build.projectname, url, buildopts=buildopts, project_dirname=build.project_dirname)
+        raise CoprRequestException(f"Source package is not available for build with id {build_id}", 404)
+                
 
     def delete_list(self, build_ids):
         """
