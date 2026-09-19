@@ -428,7 +428,7 @@ class BuildProxy(BaseProxy):
             pass
         return self.delete(build_id)
 
-    
+
     def rebuild(self, build_id, ownername=None, projectname=None, buildopts=None, project_dirname=None):
         """
         Recreate a build
@@ -448,9 +448,11 @@ class BuildProxy(BaseProxy):
                         projectname = build.projectname
                     if project_dirname is None:
                         project_dirname = build.project_dirname
-                    return self.create_from_url(ownername=ownername, projectname=projectname, url=url, buildopts=buildopts, project_dirname=project_dirname)
-        raise CoprRequestException(f"Source package is not available for build with id {build_id}", 404)
-                
+                    return self.create_from_url(ownername=ownername, projectname=projectname, 
+                                    url=url, buildopts=buildopts, project_dirname=project_dirname)
+        raise CoprRequestException(
+            f"Source package is not available for build with id {build_id}", 404)
+
 
     def delete_list(self, build_ids):
         """
