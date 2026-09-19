@@ -2379,6 +2379,9 @@ class CoprTableView(QTableView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.actions = {}
+        
+    def press_event(self):
+        pass
 
     def keyPressEvent(self, event):
         if event.key() in (
@@ -3181,53 +3184,50 @@ class ProjectOptionsWidget(QWidget):
             "appstream",
         ):
             getattr(self, name).setChecked(
-                options.get(name, False)
+                bool(options.get(name))
             )
 
         self.delete_after_days.setValue(
             options.get(
                 "delete_after_days",
-                0,
-            )
+                None
+            ) or 0
         )
 
         self._set_combo(
             self.bootstrap,
             options.get(
                 "bootstrap",
-                "default",
-            ),
+                None
+            ) or "default"
         )
 
         self.bootstrap_image.setText(
             options.get(
                 "bootstrap_image",
-                "",
-            )
+                None,
+            ) or ""
         )
 
         self._set_combo(
             self.isolation,
             options.get(
-                "isolation",
-                "default",
-            ),
+                "isolation", None
+            ) or "default"
         )
 
         self._set_lines(
             self.runtime_dependencies,
             options.get(
-                "runtime_dependencies",
-                [],
-            ),
+                "runtime_dependencies", None
+            ) or []
         )
 
         self._set_lines(
             self.packit_forge_projects_allowed,
             options.get(
-                "packit_forge_projects_allowed",
-                [],
-            ),
+                "packit_forge_projects_allowed", None
+            ) or []
         )
 
     # -------------------------------------------------------------
@@ -3491,14 +3491,14 @@ class BuildType(QMainWindow):
         def accepted():
             nonlocal window, self
             self.build_options = window.values()
-        if self.build_options is not None:
-            window.set_values(self.build_options)
         window.accepted.connect(
             accepted
         )
         keys = list(self.project.chroot_repos.keys())
         keys.sort()
         window.chroots.set_chroots(keys)
+        if self.build_options is not None:
+            window.set_values(self.build_options)
         window.show()
 
     def __init__(self, parent, *args, is_package=False, **kwargs):
@@ -3611,10 +3611,12 @@ class BuildType(QMainWindow):
         self.resize(800, 600)
 
     def fill_package_data(self, data):
-        data_name = data.get('name', '')
+        data_name = data.get('name', None) or ''
         if self.name is not None:
             self.name.setText(data_name)
-        index = self.qml_ids[data.source_type]
+        index = self.qml_ids.get(data.source_type, -1000)
+        if index == -1000:
+            return
         self.combo.setCurrentIndex(index)
 
         current_widget = self.stack.currentWidget()
@@ -4027,7 +4029,8 @@ class ChrootWidget(QWidget):
             cleanup
         )
 
-        thread.start()
+        thread.start
+        add_worker_and_thread(worker, thread)
 
     # ========================================================
     # Get JSON
