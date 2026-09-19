@@ -415,7 +415,7 @@ class BuildProxy(BaseProxy):
         return munchify(response)
 
     
-    def rebuild(self, build_id, buildopts=None):
+    def rebuild(self, build_id, ownername=None, projectname=None, buildopts=None, project_dirname=None):
         """
         Recreate a build
 
@@ -428,7 +428,13 @@ class BuildProxy(BaseProxy):
             if source:
                 url = source.get('url', None)
                 if url:
-                    return self.create_from_url(ownername=build.ownername, projectname=build.projectname, url, buildopts=buildopts, project_dirname=build.project_dirname)
+                    if ownername is None: 
+                        ownername = build.ownername
+                    if projectname is None:
+                        projectname = build.projectname
+                    if project_dirname is None:
+                        project_dirname = build.project_dirname
+                    return self.create_from_url(ownername=ownername, projectname=projectname, url=url, buildopts=buildopts, project_dirname=project_dirname)
         raise CoprRequestException(f"Source package is not available for build with id {build_id}", 404)
                 
 
