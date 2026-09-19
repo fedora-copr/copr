@@ -3652,10 +3652,13 @@ class BuildType(QMainWindow):
             )
             
             if data_dict is not None:
+                source_type = qml_root.property("type")
+                if source_type is None:
+                    source_type = qml_root.property("identifier"
+                        ).split("-")[0]
                 data_dict = {
                     "data": data_dict.toVariant(),
-                    "type": qml_root.property(
-                        "identifier").split("-")[0]
+                    "type": source_type
                 }
                 if self.name is not None:
                     data_dict["name"] = self.name.text()

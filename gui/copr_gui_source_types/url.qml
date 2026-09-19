@@ -6,6 +6,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "url"
     readonly property string identifier: "url-B"
     readonly property string name: "Url"
 

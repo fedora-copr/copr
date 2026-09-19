@@ -7,6 +7,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "scm"
     readonly property string identifier: "scm"
     readonly property string name: "Source Control Manager"
 

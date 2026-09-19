@@ -6,6 +6,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "distgit"
     readonly property string identifier: "distgit-P"
     readonly property string name: "DistGit"
 

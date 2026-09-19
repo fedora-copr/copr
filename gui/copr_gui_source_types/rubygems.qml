@@ -6,6 +6,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "rubygems"
     readonly property string identifier: "rubygems"
     readonly property string name: "RubyGems"
 

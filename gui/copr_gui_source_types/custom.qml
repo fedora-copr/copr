@@ -6,6 +6,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "custom"
     readonly property string identifier: "custom"
     readonly property string name: "Custom Script"
 

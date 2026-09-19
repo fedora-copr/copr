@@ -6,6 +6,7 @@ Rectangle {
     color: windowColor
     // qmllint enable unqualified
 
+    readonly property string type: "pypi"
     readonly property string identifier: "pypi"
     readonly property string name: "PyPI"
 
