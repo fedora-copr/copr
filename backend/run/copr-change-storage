@@ -66,6 +66,12 @@ def get_arg_parser():
         default=False,
         help="After migrating the data, remove it from the old storage",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="Run the migration even if the project has already been migrated",
+    )
     return parser
 
 
@@ -301,18 +307,18 @@ def has_comps(project, config):
     return False
 
 
-def all_projects_for_owner(owner, config):
+def all_projects_for_owner(owner, config, force):
     """
     Return full names of all projects for a given owner
     We cannot simply list all directories in
     `os.path.join(config.destdir, owner)` because we need to filter out
-    projects that were already migrated to Pulp.
+    projects that were already migrated to Pulp unless force is enabled.
     """
     fullnames = []
     client = Client({"copr_url": config.frontend_base_url})
     projects = client.project_proxy.get_list(owner)
     for project in projects:
-        if project.storage == "pulp":
+        if project.storage == "pulp" and not force:
             continue
         fullnames.append(project.full_name)
     return fullnames
@@ -362,7 +368,7 @@ def owners_with_running_actions(frontend_client, redis):
     )
 
 
-def handle_project(fullname, config, dst):
+def handle_project(fullname, config, dst, force):
     """
     Process a single project migration
     """
@@ -373,7 +379,8 @@ def handle_project(fullname, config, dst):
             "The project {0} has already been migrated to {1}"
             .format(fullname, dst)
         )
-        return 1
+        if not force:
+            return 1
 
     if project.devel_mode:
         log.error("Skip: project %s uses manual createrepo, see %s",
@@ -388,7 +395,7 @@ def handle_project(fullname, config, dst):
     return 0
 
 
-def handle_projects(projects, config, dst):
+def handle_projects(projects, config, dst, force):
     """
     Process a migration of multiple projects
     """
@@ -414,7 +421,7 @@ def handle_projects(projects, config, dst):
                 "[{0}/{1}] Migrating {2} to {3}"
                 .format(i, len(projects_from_owner), fullname, dst)
             )
-            success = handle_project(fullname, config, dst) == 0
+            success = handle_project(fullname, config, dst, force) == 0
             status = "Success." if success else "Failure."
             log.info("Project migration for %s %s", fullname, status)
             if not success:
@@ -444,16 +451,16 @@ def main():
 
     config = BackendConfigReader("/etc/copr/copr-be.conf").read()
     if args.project:
-        sys.exit(handle_project(args.project, config, args.dst))
+        sys.exit(handle_project(args.project, config, args.dst, args.force))
     elif args.owner:
-        projects = all_projects_for_owner(args.owner, config)
-        sys.exit(handle_projects(projects, config, args.dst))
+        projects = all_projects_for_owner(args.owner, config, args.force)
+        sys.exit(handle_projects(projects, config, args.dst, args.force))
     elif args.blocked_owners:
         result = 0
         projects = []
         for owner in config.builds_limits["blocked_owners"]:
-            projects.extend(all_projects_for_owner(owner, config))
-        if handle_projects(projects, config, args.dst) != 0:
+            projects.extend(all_projects_for_owner(owner, config, args.force))
+        if handle_projects(projects, config, args.dst, args.force) != 0:
             result = 1
         sys.exit(result)
     else:
