@@ -414,13 +414,27 @@ class BuildProxy(BaseProxy):
             endpoint=endpoint, method=DELETE, auth=self.auth)
         return munchify(response)
 
+
+    def purge(self, build_id):
+        """
+        Delete a build, try cancel before delete
+
+        :param int build_id:
+        :return: Munch
+        """
+        try:
+            self.cancel(build_id)
+        except Exception:
+            pass
+        return self.delete(build_id)
+
     
     def rebuild(self, build_id, ownername=None, projectname=None, buildopts=None, project_dirname=None):
         """
         Recreate a build
 
         :param int build_id:
-        :return Munch
+        :return: Munch
         """
         build = self.get(build_id)
         if build:
