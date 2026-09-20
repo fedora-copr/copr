@@ -3941,7 +3941,6 @@ class BuildOptions(QDialog):
         # bootstrap
         self.bootstrap = QComboBox()
         self.bootstrap.addItems([
-            "untouched",
             "default",
             "image",
             "on",
@@ -3977,12 +3976,12 @@ class BuildOptions(QDialog):
         layout.addWidget(buttons)
 
     def set_values(self, values):
-        self.timeout.setValue(int(values["timeout"]))
-        self.chroots.set_chroots(values["chroots"])
-        self.background.setChecked(values["background"])
-        self.bootstrap.setCurrentText(values["bootstrap"])
-        self.with_build_id.setValue(values["with_build_id"])
-        self.after_build_id.setValue(values["after_build_id"])
+        self.timeout.setValue(int(values.get("timeout", None) or None))
+        self.chroots.set_chroots(values.get("chroots", []) or [])
+        self.background.setChecked(bool(values.get("background", False)))
+        self.bootstrap.setCurrentText(values.get("bootstrap", "") or "")
+        self.with_build_id.setValue(values.get("with_build_id", None) or -1)
+        self.after_build_id.setValue(values.get("after_build_id", None) or -1)
 
     def values(self):
         chroots = self.chroots.chroots()
@@ -4604,11 +4603,10 @@ class ChrootConfigWidget(QWidget):
     changed = pyqtSignal()
 
     BOOTSTRAP_VALUES = [
+        "default"
         "on",
         "off",
-        "image",
-        "default",
-        "untouched",
+        "image"
     ]
 
     ISOLATION_VALUES = [
@@ -6548,12 +6546,14 @@ class LargeLogViewerWindow(QMainWindow):
 # ============================================================
 # Main
 # ============================================================
+from PyQt6.QtCore import QStandardPaths
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
 def main():
     app = QApplication(sys.argv)
-
+    app.setWindowIcon(QIcon.fromTheme("copr"))
     window = CoprWindow()
     window.show()
-
     sys.exit(app.exec())
 
 
