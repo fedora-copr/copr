@@ -1,7 +1,11 @@
 #!/bin/python3
 import sys
 import random
+import tempfile
 import string
+
+from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QDesktopServices
 
 from pathlib import Path
 from PyQt6.QtCore import Qt, QTimer, QThread, QObject, pyqtSignal
@@ -604,7 +608,7 @@ class ProjectCard(QFrame):
 
         open_action = QAction("Open", self)
         delete_action = QAction("Delete", self)
-        view_json = QAction("View Json", self)
+        view_json = QAction("View JSON", self)
 
         menu.addAction(open_action)
         menu.addAction(delete_action)
@@ -1882,7 +1886,7 @@ class ProjectPackagesFrame(QFrame):
             EDIT_ACTION: "Edit",
             BUILD_ACTION: "Build",
             DELETE_ACTION: "Delete",
-            VIEW_JSON_ACTION: "View Json"
+            VIEW_JSON_ACTION: "View JSON"
         }, action = self.copr_action)
         layout.addWidget(self.view, 1)
 
@@ -2232,6 +2236,7 @@ BUILD_ACTION = NONE_ACTION + int(random.random() * 100) + 1
 EDIT_ACTION = BUILD_ACTION + int(random.random() * 100) + 1
 ADD_ACTION = EDIT_ACTION + int(random.random() * 100) + 1
 NEW_ACTION = ADD_ACTION + int(random.random() * 100) + 1
+VIEW_BUILD_ACTION = NEW_ACTION + int(random.random() * 100) + 1
 DATA_ROLE = int(random.random() * 100) + Qt.ItemDataRole.UserRole + 1
 BUILD_SECTION = int(random.random() * 100) + 1
 PACKAGE_SECTION = int(random.random() * 100) + BUILD_SECTION + 1
@@ -2277,6 +2282,10 @@ def CoprAction(self, data, action, section, finish_job = None):
             "Json",
             pretty,
         )
+    elif action == VIEW_BUILD_ACTION:
+        if len(data) > 0:
+            CoprViewBuilds(self, data[0])
+            return
     elif action == NEW_ACTION:
         if section == BUILD_SECTION:
             Worker = AddBuildWorker
@@ -2751,6 +2760,8 @@ class CoprTable(QObject):
         self.worker = None
 
 
+
+
 # ============================================================
 # ProjectBuildsFrame
 # ============================================================
@@ -2801,7 +2812,8 @@ class ProjectBuildsFrame(QFrame):
         ), menus={
             ADD_ACTION: "Add build",
             DELETE_ACTION: "Delete",
-            VIEW_JSON_ACTION: "View Json"
+            VIEW_JSON_ACTION: "View JSON",
+            VIEW_BUILD_ACTION: "View build"
         }, action = self.copr_action)
         layout.addWidget(self.view, 1)
 
@@ -3400,11 +3412,211 @@ class ProjectWindow(QMainWindow):
                 repos[i] = chroot_repos.get(i, "")
             self.project.chroot_repos = repos
             save_project_options({
-				"chroots": chroots
-			})
+                "chroots": chroots
+            })
         self.chroot_widgets.changed.connect(save_project_chroots)   
         self.project_options.saved.connect(save_project_options)
         self.setCentralWidget(tabs)
+
+
+# ===========================================================
+# Build chroots
+# ===========================================================
+from PyQt6.QtWidgets import QAbstractItemView
+class BuildTableModel(QAbstractTableModel):
+    def __init__(self, data=None, parent=None):
+        super().__init__(parent)
+
+        self._data = data or []
+
+        self._headers = [
+            "Chroot",
+            "Started On",
+            "BuildTime",
+            "Status",
+        ]
+
+    def rowCount(self, parent=QModelIndex()):
+        if parent.isValid():
+            return 0
+
+        return len(self._data)
+
+    def columnCount(self, parent=QModelIndex()):
+        if parent.isValid():
+            return 0
+
+        return len(self._headers)
+
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+        if not index.isValid():
+            return None
+
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
+
+        build = self._data[index.row()]
+        column = index.column()
+
+        if column == 0:
+            return build.get("name") or ""
+
+        elif column == 1:
+            return time_ago(
+                build.get("started_on") or ""
+            )
+
+        elif column == 2:
+            return format_duration(
+                build.get("ended_on") or "",
+                build.get("started_on") or "",
+            )
+
+        elif column == 3:
+            return build.get("state") or ""
+
+        return None
+
+    def headerData(
+        self,
+        section,
+        orientation,
+        role=Qt.ItemDataRole.DisplayRole,
+    ):
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
+
+        if orientation == Qt.Orientation.Horizontal:
+            if 0 <= section < len(self._headers):
+                return self._headers[section]
+
+        if orientation == Qt.Orientation.Vertical:
+            return str(section + 1)
+
+        return None
+
+    def set_data(self, data):
+        self.beginResetModel()
+        self._data = data or []
+        self.endResetModel()
+
+
+class BuildWindow(QMainWindow):
+    def __init__(self, parent, _id, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.parent = parent
+        self.id = _id
+        self.client = parent.client
+
+        self.list = QTableView()
+        self.list.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.list.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+
+        self.list.setSelectionMode(
+            QAbstractItemView.SelectionMode.ExtendedSelection
+        )
+        self.list.customContextMenuRequested.connect(
+            self.show_context_menu
+        )
+
+        self.model = BuildTableModel(parent=self)
+        self.list.setModel(self.model)
+
+        self.list.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+
+        self.config_widget = QWidget(self)
+
+        layout = QVBoxLayout(self.config_widget)
+        layout.addWidget(self.list)
+
+        self.setCentralWidget(self.config_widget)
+
+        self.resize(800, 600)
+
+        RunAsync(
+            self,
+            self.refresh,
+            finished=self.refresh_finished,
+            error=self.refresh_failed,
+        )
+
+
+
+    def refresh(self):
+        return self.client.build_chroot_proxy.get_list(self.id)
+
+    def refresh_finished(self, builds):
+        self.model.set_data(builds)
+
+    def refresh_failed(self, error):
+        QMessageBox.critical(
+            self,
+            "Refresh failed",
+            str(error),
+        )
+    def show_context_menu(self, position):
+        index = self.list.indexAt(position)
+        menu = QMenu(self)
+        if index.isValid():
+            # If right-clicked row isn't already selected,
+            # make it the only selected row.
+            if not self.list.selectionModel().isRowSelected(
+                index.row(),
+                QModelIndex(),
+            ):
+                self.list.clearSelection()
+
+                self.list.selectRow(index.row())
+
+            view_action = menu.addAction("View JSON")
+            log_action = menu.addAction("View result")
+            menu.addSeparator()
+        else:
+            view_action = None
+            log_action = None
+        refresh_action = menu.addAction("Refresh")
+        action = menu.exec(
+            self.list.viewport().mapToGlobal(position)
+        )
+        rows = [
+                index.row()
+                for index in self.list.selectionModel().selectedRows()
+            ]
+        builds = [
+                self.model._data[row]
+                for row in rows
+            ]
+        if action == refresh_action:
+            RunAsync(
+                self,
+                self.refresh,
+                finished=self.refresh_finished,
+                error=self.refresh_failed,
+            )
+        elif action == log_action:
+            if len(builds) > 0:
+                for i in builds:
+                    url = i.get('result_url', '')
+                    if url:
+                        QDesktopServices.openUrl(QUrl(url))
+                        break
+       #     GrowingFileDownloader()
+        elif action == view_action:
+            if len(builds) == 1:
+                builds = builds[0]
+            ChrootWidget._show_json(self, builds)
+
+def CoprViewBuilds(self, build):
+    self.build_window = BuildWindow(self, build.id)
+    self.build_window.show()
+
 
 # ============================================================
 # Create build and package
@@ -4013,23 +4225,6 @@ class ChrootWidget(QWidget):
             thread.deleteLater
         )
 
-        # Keep references alive.
-        self._workers.append(
-            (thread, worker)
-        )
-
-        # Remove references after the thread finishes.
-        def cleanup():
-            self._workers[:] = [
-                pair
-                for pair in self._workers
-                if pair[0] is not thread
-            ]
-
-        thread.finished.connect(
-            cleanup
-        )
-
         thread.start
         add_worker_and_thread(worker, thread)
 
@@ -4252,7 +4447,7 @@ class ChrootWidget(QWidget):
         )
 
         view_json_action = menu.addAction(
-            "View Json"
+            "View JSON"
         )
 
         menu.addSeparator()
@@ -4755,6 +4950,48 @@ class ChrootConfigWidget(QWidget):
         self.changed.emit()
 
 
+class AsyncWorker(QObject):
+    finished = pyqtSignal(object)
+    error = pyqtSignal(object)
+
+    def __init__(self, function):
+        super().__init__()
+        self.function = function
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            result = self.function()
+        except Exception as exception:
+            self.error.emit(exception)
+        else:
+            self.finished.emit(result)
+
+
+def RunAsync(parent, function, finished=None, error=None):
+    thread = QThread()
+    worker = AsyncWorker(function)
+
+    worker.moveToThread(thread)
+
+    thread.started.connect(worker.run)
+
+    if finished is not None:
+        worker.finished.connect(finished)
+
+    if error is not None:
+        worker.error.connect(error)
+
+    worker.finished.connect(thread.quit)
+    worker.error.connect(thread.quit)
+
+    thread.finished.connect(worker.deleteLater)
+
+    thread.start()
+
+    add_worker_and_thread(worker, thread)
+
+
 class ChrootConfig(QMainWindow):
     def __getattr__(self, name):
         return getattr(self.config_widget, name)
@@ -4777,6 +5014,1538 @@ class ChrootConfig(QMainWindow):
         self.setCentralWidget(scroll)
 
 # ============================================================
+# GrowingFileDownloader
+# ============================================================
+import time
+from pathlib import Path
+
+import requests
+
+
+class GrowingFileDownloader:
+    def __init__(
+        self,
+        url,
+        output,
+        check_interval=2.0,
+        chunk_size=1024 * 1024,
+        timeout=30,
+    ):
+        self.url = url
+        self.output = Path(output)
+        self.check_interval = check_interval
+        self.chunk_size = chunk_size
+        self.timeout = timeout
+
+        self.session = requests.Session()
+        self._closed = False
+
+    def remote_size(self):
+        response = self.session.head(
+            self.url,
+            allow_redirects=True,
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+
+        size = response.headers.get("Content-Length")
+
+        if size is None:
+            raise RuntimeError(
+                "Server did not provide Content-Length"
+            )
+
+        return int(size)
+
+    def local_size(self):
+        if not self.output.exists():
+            return 0
+
+        return self.output.stat().st_size
+
+    def download_range(self, start, end):
+        headers = {
+            "Range": f"bytes={start}-{end}",
+        }
+
+        with self.session.get(
+            self.url,
+            headers=headers,
+            stream=True,
+            timeout=self.timeout,
+        ) as response:
+            response.raise_for_status()
+
+            if response.status_code != 206:
+                raise RuntimeError(
+                    f"Server did not honor Range request: "
+                    f"HTTP {response.status_code}"
+                )
+
+            with self.output.open("ab") as file:
+                for chunk in response.iter_content(
+                    chunk_size=self.chunk_size
+                ):
+                    if chunk:
+                        file.write(chunk)
+
+    def update(self):
+        """
+        Download everything that is currently missing.
+
+        Returns:
+            Number of bytes downloaded.
+        """
+        local = self.local_size()
+        remote = self.remote_size()
+
+        if remote <= local:
+            return 0
+
+        self.download_range(
+            local,
+            remote - 1,
+        )
+
+        return remote - local
+
+    def follow(self):
+        """
+        Continuously follow the remote growing file.
+        """
+        NoNewDataCount = 0
+        while NoNewDataCount < 40 and not self._closed:
+            try:
+                local = self.local_size()
+                remote = self.remote_size()
+
+                if remote > local:
+                    downloaded = self.update()
+                    NoNewDataCount = 0
+
+                elif remote < local:
+                    # Remote file was truncated or replaced.
+                    self.output.unlink(missing_ok=True)
+                    NoNewDataCount = 0
+
+                else:
+                    NoNewDataCount += 1
+
+            except requests.RequestException as e:
+                print(f"Network error: {e}")
+
+            except Exception as e:
+                print(f"Error: {e}")
+
+            time.sleep(self.check_interval)
+
+    def close(self):
+        self.session.close()
+        self._closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+
+# ============================================================
+# LargeLogViewerWindow
+# ============================================================
+
+import os
+import sys
+
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import (
+    QFont,
+    QFontMetrics,
+    QPainter,
+)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QAbstractScrollArea,
+    QFileDialog,
+    QMainWindow,
+    QToolBar,
+)
+
+
+class LargeLogViewer(QAbstractScrollArea):
+    """
+    Large-file log viewer.
+
+    The complete file is never loaded into memory.
+
+    Features:
+        - Very large files
+        - Continuously growing files
+        - Automatic follow mode
+        - Mouse text selection
+        - Ctrl+C
+        - Ctrl+A
+        - Double-click word selection
+        - Selection across multiple lines
+        - Selection highlighting
+        - UTF-8 with replacement for invalid bytes
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # =====================================================
+        # File
+        # =====================================================
+
+        self._file = None
+        self._path = None
+        self._file_size = 0
+
+        # =====================================================
+        # Font
+        # =====================================================
+
+        self._font = QFont("Monospace")
+        self._font.setStyleHint(
+            QFont.StyleHint.TypeWriter
+        )
+
+        self.setFont(self._font)
+
+        self._metrics = QFontMetrics(self._font)
+
+        self._line_height = (
+            self._metrics.lineSpacing()
+        )
+
+        self._char_width = (
+            self._metrics.horizontalAdvance("M")
+        )
+
+        # =====================================================
+        # Position
+        # =====================================================
+
+        self._top_offset = 0
+
+        # Scrollbar value -> byte offset.
+        self._scroll_scale = 1
+
+        # =====================================================
+        # Visible line cache
+        # =====================================================
+
+        # Each entry:
+        #
+        # {
+        #     "start": absolute byte offset,
+        #     "end": absolute byte offset,
+        #     "text": decoded text,
+        # }
+        #
+        # "end" is the byte offset after the line's content,
+        # but before the newline.
+
+        self._lines = []
+        self._lines_offset = -1
+
+        # =====================================================
+        # Follow mode
+        # =====================================================
+
+        self._follow = True
+
+        # =====================================================
+        # Selection
+        # =====================================================
+
+        # Selection endpoints are absolute byte offsets.
+        #
+        # None means there is no selection.
+        self._selection_start = None
+        self._selection_end = None
+
+        self._selection_anchor = None
+
+        self._dragging = False
+
+        # =====================================================
+        # Scrollbars
+        # =====================================================
+
+        self.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        self.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
+        self.verticalScrollBar().valueChanged.connect(
+            self._scrollbar_changed
+        )
+
+        # =====================================================
+        # File monitoring
+        # =====================================================
+
+        self._timer = QTimer(self)
+
+        self._timer.setInterval(250)
+
+        self._timer.timeout.connect(
+            self._check_file
+        )
+
+        self._timer.start()
+
+        # =====================================================
+        # Focus
+        # =====================================================
+
+        self.setFocusPolicy(
+            Qt.FocusPolicy.StrongFocus
+        )
+
+        self.setMouseTracking(True)
+
+    # =========================================================
+    # File
+    # =========================================================
+
+    def set_file(self, path):
+        self.close_file()
+
+        self._path = os.path.abspath(path)
+
+        self._file = open(
+            self._path,
+            "rb",
+            buffering=1024 * 1024,
+        )
+
+        self._file.seek(
+            0,
+            os.SEEK_END,
+        )
+
+        self._file_size = self._file.tell()
+
+        self._top_offset = 0
+
+        self._follow = True
+
+        self.clear_selection()
+
+        self._invalidate_cache()
+
+        self._update_scrollbar()
+
+        self._go_to_end()
+
+        self.viewport().update()
+
+    def close_file(self):
+        if self._file is not None:
+            try:
+                self._file.close()
+            except Exception:
+                pass
+
+        self._file = None
+        self._path = None
+
+        self._file_size = 0
+        self._top_offset = 0
+
+        self.clear_selection()
+
+        self._invalidate_cache()
+
+        self._update_scrollbar()
+
+        self.viewport().update()
+
+    # =========================================================
+    # File monitoring
+    # =========================================================
+
+    def _check_file(self):
+        if self._file is None:
+            return
+
+        try:
+            size = os.path.getsize(
+                self._path
+            )
+        except OSError:
+            return
+
+        if size == self._file_size:
+            return
+
+        # -----------------------------------------------------
+        # File was truncated/replaced.
+        # -----------------------------------------------------
+
+        if size < self._file_size:
+            self._file.seek(0)
+
+            self._file_size = size
+
+            self._top_offset = 0
+
+            self.clear_selection()
+
+            self._invalidate_cache()
+
+            self._follow = True
+
+            self._update_scrollbar()
+
+            self._go_to_end()
+
+            self.viewport().update()
+
+            return
+
+        # -----------------------------------------------------
+        # File grew.
+        # -----------------------------------------------------
+
+        self._file_size = size
+
+        was_at_bottom = self._is_at_bottom()
+
+        self._invalidate_cache()
+
+        self._update_scrollbar()
+
+        if self._follow or was_at_bottom:
+            self._follow = True
+            self._go_to_end()
+
+        self.viewport().update()
+
+    # =========================================================
+    # Cache
+    # =========================================================
+
+    def _invalidate_cache(self):
+        self._lines.clear()
+        self._lines_offset = -1
+
+    # =========================================================
+    # Reading
+    # =========================================================
+
+    def _read_lines(self, offset, count):
+        """
+        Read visible lines.
+
+        Returns:
+
+            actual_offset, lines
+
+        Each line contains:
+
+            start
+            end
+            text
+        """
+
+        if self._file is None:
+            return offset, []
+
+        if self._file_size <= 0:
+            return 0, []
+
+        offset = max(
+            0,
+            min(
+                offset,
+                self._file_size,
+            ),
+        )
+
+        self._file.seek(offset)
+
+        # If offset is in the middle of a line,
+        # discard that partial line.
+        if offset > 0:
+            self._file.readline()
+
+        actual_offset = self._file.tell()
+
+        lines = []
+
+        for _ in range(count):
+            start = self._file.tell()
+
+            data = self._file.readline()
+
+            if not data:
+                break
+
+            # Remove line ending only from the displayed text.
+            content = data.rstrip(
+                b"\r\n"
+            )
+
+            end = start + len(content)
+
+            text = content.decode(
+                "utf-8",
+                errors="replace",
+            )
+
+            lines.append(
+                {
+                    "start": start,
+                    "end": end,
+                    "text": text,
+                }
+            )
+
+        return actual_offset, lines
+
+    def _read_previous_line(self, offset):
+        """
+        Find the beginning of the line before offset.
+        """
+
+        if offset <= 0:
+            return 0
+
+        block_size = 4096
+
+        position = max(
+            0,
+            offset - block_size,
+        )
+
+        while True:
+            self._file.seek(position)
+
+            data = self._file.read(
+                offset - position
+            )
+
+            index = data.rfind(b"\n")
+
+            if index >= 0:
+                return position + index + 1
+
+            if position == 0:
+                return 0
+
+            offset = position
+
+            position = max(
+                0,
+                position - block_size,
+            )
+
+    # =========================================================
+    # Scrollbar
+    # =========================================================
+
+    def _update_scrollbar(self):
+        scrollbar = self.verticalScrollBar()
+
+        if self._file_size <= 0:
+            scrollbar.setRange(0, 0)
+            return
+
+        viewport_lines = max(
+            1,
+            self.viewport().height()
+            // self._line_height,
+        )
+
+        self._scroll_scale = max(
+            1,
+            self._file_size // 10_000_000,
+        )
+
+        maximum = max(
+            0,
+            self._file_size
+            // self._scroll_scale,
+        )
+
+        scrollbar.blockSignals(True)
+
+        scrollbar.setRange(
+            0,
+            maximum,
+        )
+
+        scrollbar.setPageStep(
+            max(
+                1,
+                viewport_lines,
+            )
+        )
+
+        value = (
+            self._top_offset
+            // self._scroll_scale
+        )
+
+        scrollbar.setValue(
+            max(
+                0,
+                min(
+                    value,
+                    maximum,
+                ),
+            )
+        )
+
+        scrollbar.blockSignals(False)
+
+    def _scrollbar_changed(self, value):
+        if self._file is None:
+            return
+
+        offset = (
+            value
+            * self._scroll_scale
+        )
+
+        offset = min(
+            offset,
+            self._file_size,
+        )
+
+        self._top_offset = offset
+
+        if offset > 0:
+            self._top_offset = (
+                self._read_previous_line(
+                    offset
+                )
+            )
+
+        self._follow = self._is_at_bottom()
+
+        self._invalidate_cache()
+
+        self.viewport().update()
+
+    def _is_at_bottom(self):
+        scrollbar = self.verticalScrollBar()
+
+        return (
+            scrollbar.value()
+            >= scrollbar.maximum() - 1
+        )
+
+    # =========================================================
+    # Go to end
+    # =========================================================
+
+    def _go_to_end(self):
+        if self._file is None:
+            return
+
+        self._file.seek(
+            0,
+            os.SEEK_END,
+        )
+
+        end = self._file.tell()
+
+        if end <= 0:
+            self._top_offset = 0
+            self._update_scrollbar()
+            return
+
+        self._top_offset = (
+            self._read_previous_line(end)
+        )
+
+        lines_needed = max(
+            1,
+            self.viewport().height()
+            // self._line_height,
+        )
+
+        for _ in range(lines_needed - 1):
+            previous = (
+                self._read_previous_line(
+                    self._top_offset
+                )
+            )
+
+            if previous == self._top_offset:
+                break
+
+            self._top_offset = previous
+
+        self._invalidate_cache()
+
+        self._update_scrollbar()
+
+    # =========================================================
+    # Selection
+    # =========================================================
+
+    def has_selection(self):
+        return (
+            self._selection_start is not None
+            and self._selection_end is not None
+            and self._selection_start
+            != self._selection_end
+        )
+
+    def clear_selection(self):
+        self._selection_start = None
+        self._selection_end = None
+        self._selection_anchor = None
+
+        self.viewport().update()
+
+    def _set_selection(self, start, end):
+        start = max(
+            0,
+            min(
+                start,
+                self._file_size,
+            ),
+        )
+
+        end = max(
+            0,
+            min(
+                end,
+                self._file_size,
+            ),
+        )
+
+        self._selection_start = start
+        self._selection_end = end
+
+        self.viewport().update()
+
+    def select_all(self):
+        if self._file is None:
+            return
+
+        self._selection_start = 0
+        self._selection_end = self._file_size
+        self._selection_anchor = 0
+
+        self.viewport().update()
+
+    # =========================================================
+    # Mouse position -> file offset
+    # =========================================================
+
+    def _position_to_offset(self, position):
+        """
+        Convert a viewport mouse position to an absolute
+        byte offset in the file.
+        """
+
+        if not self._lines:
+            return self._top_offset
+
+        y = position.y()
+
+        row = max(
+            0,
+            y // self._line_height,
+        )
+
+        if row >= len(self._lines):
+            line = self._lines[-1]
+        else:
+            line = self._lines[row]
+
+        text = line["text"]
+
+        # -----------------------------------------------------
+        # Find character from X coordinate.
+        # -----------------------------------------------------
+
+        x = max(
+            0,
+            position.x() - 4,
+        )
+
+        # Since we're using a monospace font this is cheap,
+        # but horizontalAdvance also handles the actual font.
+        column = min(
+            len(text),
+            max(
+                0,
+                int(
+                    x / self._char_width
+                    + 0.5
+                ),
+            ),
+        )
+
+        # Convert character position into UTF-8 byte offset.
+        prefix = text[:column]
+
+        byte_offset = len(
+            prefix.encode(
+                "utf-8",
+                errors="replace",
+            )
+        )
+
+        return min(
+            line["start"] + byte_offset,
+            line["end"],
+        )
+
+    # =========================================================
+    # Find word
+    # =========================================================
+
+    def _word_at_position(self, position):
+        """
+        Return the byte range of the word under the mouse.
+        """
+
+        if not self._lines:
+            return None
+
+        y = position.y()
+
+        row = max(
+            0,
+            y // self._line_height,
+        )
+
+        if row >= len(self._lines):
+            return None
+
+        line = self._lines[row]
+
+        text = line["text"]
+
+        if not text:
+            return None
+
+        x = max(
+            0,
+            position.x() - 4,
+        )
+
+        column = min(
+            len(text) - 1,
+            max(
+                0,
+                int(
+                    x / self._char_width
+                ),
+            ),
+        )
+
+        # -----------------------------------------------------
+        # Find word boundaries.
+        # -----------------------------------------------------
+
+        if not (
+            text[column].isalnum()
+            or text[column] == "_"
+        ):
+            return None
+
+        start = column
+        end = column + 1
+
+        while start > 0:
+            char = text[start - 1]
+
+            if not (
+                char.isalnum()
+                or char == "_"
+            ):
+                break
+
+            start -= 1
+
+        while end < len(text):
+            char = text[end]
+
+            if not (
+                char.isalnum()
+                or char == "_"
+            ):
+                break
+
+            end += 1
+
+        start_bytes = len(
+            text[:start].encode(
+                "utf-8",
+                errors="replace",
+            )
+        )
+
+        end_bytes = len(
+            text[:end].encode(
+                "utf-8",
+                errors="replace",
+            )
+        )
+
+        return (
+            line["start"] + start_bytes,
+            line["start"] + end_bytes,
+        )
+
+    # =========================================================
+    # Mouse events
+    # =========================================================
+
+    def mousePressEvent(self, event):
+        if event.button() != (
+            Qt.MouseButton.LeftButton
+        ):
+            return
+
+        if self._file is None:
+            return
+
+        self.setFocus()
+
+        offset = self._position_to_offset(
+            event.position().toPoint()
+        )
+
+        # -----------------------------------------------------
+        # Shift-click extends the existing selection.
+        # -----------------------------------------------------
+
+        if (
+            event.modifiers()
+            & Qt.KeyboardModifier.ShiftModifier
+        ):
+            if self._selection_anchor is None:
+                self._selection_anchor = offset
+
+            self._set_selection(
+                self._selection_anchor,
+                offset,
+            )
+
+        else:
+            self._selection_anchor = offset
+
+            self._set_selection(
+                offset,
+                offset,
+            )
+
+        self._dragging = True
+
+        self._follow = False
+
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        if not self._dragging:
+            return
+
+        offset = self._position_to_offset(
+            event.position().toPoint()
+        )
+
+        if self._selection_anchor is None:
+            self._selection_anchor = offset
+
+        self._set_selection(
+            self._selection_anchor,
+            offset,
+        )
+
+        self._follow = False
+
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == (
+            Qt.MouseButton.LeftButton
+        ):
+            self._dragging = False
+
+            event.accept()
+
+            return
+
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() != (
+            Qt.MouseButton.LeftButton
+        ):
+            return
+
+        word = self._word_at_position(
+            event.position().toPoint()
+        )
+
+        if word is not None:
+            start, end = word
+
+            self._selection_anchor = start
+
+            self._set_selection(
+                start,
+                end,
+            )
+
+            self._follow = False
+
+        event.accept()
+
+    # =========================================================
+    # Copy
+    # =========================================================
+
+    def copy_selection(self):
+        if self._file is None:
+            return
+
+        if not self.has_selection():
+            return
+
+        start = min(
+            self._selection_start,
+            self._selection_end,
+        )
+
+        end = max(
+            self._selection_start,
+            self._selection_end,
+        )
+
+        if start == end:
+            return
+
+        self._file.seek(start)
+
+        data = self._file.read(
+            end - start
+        )
+
+        text = data.decode(
+            "utf-8",
+            errors="replace",
+        )
+
+        QApplication.clipboard().setText(
+            text
+        )
+
+    # =========================================================
+    # Painting
+    # =========================================================
+
+    def _selection_range_for_line(self, line):
+        if not self.has_selection():
+            return None
+
+        start = min(
+            self._selection_start,
+            self._selection_end,
+        )
+
+        end = max(
+            self._selection_start,
+            self._selection_end,
+        )
+
+        line_start = line["start"]
+        line_end = line["end"]
+
+        if end <= line_start:
+            return None
+
+        if start >= line_end:
+            return None
+
+        selected_start = max(
+            start,
+            line_start,
+        )
+
+        selected_end = min(
+            end,
+            line_end,
+        )
+
+        return (
+            selected_start,
+            selected_end,
+        )
+
+    def _byte_offset_to_column(
+        self,
+        text,
+        line_start,
+        offset,
+    ):
+        relative = max(
+            0,
+            offset - line_start,
+        )
+
+        if relative <= 0:
+            return 0
+
+        encoded = text.encode(
+            "utf-8",
+            errors="replace",
+        )
+
+        relative = min(
+            relative,
+            len(encoded),
+        )
+
+        # Decode the prefix to determine the number
+        # of Unicode characters.
+        prefix = encoded[:relative]
+
+        decoded = prefix.decode(
+            "utf-8",
+            errors="ignore",
+        )
+
+        return len(decoded)
+
+    def paintEvent(self, event):
+        painter = QPainter(
+            self.viewport()
+        )
+
+        painter.setFont(
+            self._font
+        )
+
+        rect = self.viewport().rect()
+
+        # -----------------------------------------------------
+        # Background
+        # -----------------------------------------------------
+
+        painter.fillRect(
+            rect,
+            self.palette().base(),
+        )
+
+        if self._file is None:
+            return
+
+        # -----------------------------------------------------
+        # Get visible lines
+        # -----------------------------------------------------
+
+        lines_needed = max(
+            1,
+            rect.height()
+            // self._line_height
+            + 2,
+        )
+
+        if (
+            self._lines_offset
+            != self._top_offset
+            or len(self._lines)
+            < lines_needed
+        ):
+            (
+                self._lines_offset,
+                self._lines,
+            ) = self._read_lines(
+                self._top_offset,
+                lines_needed,
+            )
+
+        # -----------------------------------------------------
+        # Colors
+        # -----------------------------------------------------
+
+        normal_color = (
+            self.palette()
+            .text()
+            .color()
+        )
+
+        selection_background = (
+            self.palette()
+            .highlight()
+            .color()
+        )
+
+        selection_color = (
+            self.palette()
+            .highlightedText()
+            .color()
+        )
+
+        # -----------------------------------------------------
+        # Draw lines
+        # -----------------------------------------------------
+
+        y = self._line_height
+
+        for line in self._lines:
+            text = line["text"]
+
+            selection = (
+                self._selection_range_for_line(
+                    line
+                )
+            )
+
+            if selection is None:
+                painter.setPen(
+                    normal_color
+                )
+
+                painter.drawText(
+                    4,
+                    y,
+                    text,
+                )
+
+            else:
+                selected_start, selected_end = (
+                    selection
+                )
+
+                start_column = (
+                    self._byte_offset_to_column(
+                        text,
+                        line["start"],
+                        selected_start,
+                    )
+                )
+
+                end_column = (
+                    self._byte_offset_to_column(
+                        text,
+                        line["start"],
+                        selected_end,
+                    )
+                )
+
+                start_column = max(
+                    0,
+                    min(
+                        start_column,
+                        len(text),
+                    ),
+                )
+
+                end_column = max(
+                    start_column,
+                    min(
+                        end_column,
+                        len(text),
+                    ),
+                )
+
+                before = text[
+                    :start_column
+                ]
+
+                selected = text[
+                    start_column:end_column
+                ]
+
+                after = text[
+                    end_column:
+                ]
+
+                x = 4
+
+                # -------------------------------------------------
+                # Before selection
+                # -------------------------------------------------
+
+                painter.setPen(
+                    normal_color
+                )
+
+                if before:
+                    painter.drawText(
+                        x,
+                        y,
+                        before,
+                    )
+
+                    x += (
+                        self._metrics
+                        .horizontalAdvance(
+                            before
+                        )
+                    )
+
+                # -------------------------------------------------
+                # Selection background
+                # -------------------------------------------------
+
+                selected_width = (
+                    self._metrics
+                    .horizontalAdvance(
+                        selected
+                    )
+                )
+
+                painter.fillRect(
+                    x,
+                    y - self._metrics.ascent(),
+                    selected_width,
+                    self._line_height,
+                    selection_background,
+                )
+
+                painter.setPen(
+                    selection_color
+                )
+
+                painter.drawText(
+                    x,
+                    y,
+                    selected,
+                )
+
+                x += selected_width
+
+                # -------------------------------------------------
+                # After selection
+                # -------------------------------------------------
+
+                painter.setPen(
+                    normal_color
+                )
+
+                painter.drawText(
+                    x,
+                    y,
+                    after,
+                )
+
+            y += self._line_height
+
+            if y > rect.height():
+                break
+
+    # =========================================================
+    # Resize
+    # =========================================================
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        self._update_scrollbar()
+
+        if self._follow:
+            self._go_to_end()
+
+        self.viewport().update()
+
+    # =========================================================
+    # Keyboard
+    # =========================================================
+
+    def keyPressEvent(self, event):
+        key = event.key()
+
+        modifiers = event.modifiers()
+
+        scrollbar = self.verticalScrollBar()
+
+        # -----------------------------------------------------
+        # Ctrl+C
+        # -----------------------------------------------------
+
+        if (
+            key == Qt.Key.Key_C
+            and modifiers
+            & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.copy_selection()
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Ctrl+A
+        # -----------------------------------------------------
+
+        if (
+            key == Qt.Key.Key_A
+            and modifiers
+            & Qt.KeyboardModifier.ControlModifier
+        ):
+            self.select_all()
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Escape
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_Escape:
+            self.clear_selection()
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # End
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_End:
+            self._follow = True
+
+            self._go_to_end()
+
+            self.viewport().update()
+
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Home
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_Home:
+            self._follow = False
+
+            scrollbar.setValue(
+                scrollbar.minimum()
+            )
+
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Page Down
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_PageDown:
+            scrollbar.setValue(
+                scrollbar.value()
+                + scrollbar.pageStep()
+            )
+
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Page Up
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_PageUp:
+            scrollbar.setValue(
+                scrollbar.value()
+                - scrollbar.pageStep()
+            )
+
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Down
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_Down:
+            scrollbar.setValue(
+                scrollbar.value() + 1
+            )
+
+            event.accept()
+            return
+
+        # -----------------------------------------------------
+        # Up
+        # -----------------------------------------------------
+
+        if key == Qt.Key.Key_Up:
+            scrollbar.setValue(
+                scrollbar.value() - 1
+            )
+
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
+
+    # =========================================================
+    # Mouse wheel
+    # =========================================================
+
+    def wheelEvent(self, event):
+        super().wheelEvent(event)
+
+        self._follow = self._is_at_bottom()
+
+
+class LargeLogViewerWindow(QMainWindow):
+    def __init__(self, path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle(
+            "Large Log Viewer"
+        )
+        self.resize(
+            1000,
+            700,
+        )
+        # =====================================================
+        # Viewer
+        # =====================================================
+        self.viewer = LargeLogViewer(
+            self
+        )
+        self.setCentralWidget(
+            self.viewer
+        )
+        # =====================================================
+        # Toolbar
+        # =====================================================
+        if not path:
+            toolbar = QToolBar(
+                self
+            )
+            self.addToolBar(
+                toolbar
+            )
+            open_action = toolbar.addAction(
+                "Open"
+            )
+            open_action.triggered.connect(
+                self.open_file
+            )
+        else:
+            self.open_file(path)
+
+    def open_file(self, path = ""):
+        if not path:
+            path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Open log file",
+            )
+        if not path:
+            return
+        self.viewer.set_file(
+            path
+        )
+        self.setWindowTitle(
+            f"Large Log Viewer - {path}"
+        )
+
+# ============================================================
 # Main
 # ============================================================
 def main():
@@ -4790,3 +6559,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
