@@ -683,6 +683,61 @@ and put ``custom-macros`` into the "Packages" field. Then submit your package
 which requires these macros. It should build successfully.
 
 
+External repositories
+---------------------
+
+It is possible to configure additional repositories that are needed for your
+project to work. We support both repositories that are required at buildtime and
+repositories that are required at runtime.
+
+They can be configured in your project settings, where the buildtime repositories
+are called "External repositories", and the runtime repositories are called
+"Runtime dependencies".
+
+Both need to be defined as DNF ``baseurl`` URLs, and they can optionally contain
+variables. Here is a list of supported DNF variables that will be expanded (with
+example values):
+
+- ``$chroot`` (``fedora-21-x86_64``)
+- ``$releasever`` (``21``)
+- ``$basearch`` (``x86_64``)
+- ``$distname`` (``fedora``)
+
+We have syntactic sugar for depending on another Copr project, so that you
+don't have to look for its ``baseurl``. You can simply define it as::
+
+  # syntax
+  copr://<user>/<project>
+
+  # example for a personal project
+  copr://frostyx/foo
+
+  # example for a group project
+  copr://@copr/copr-dev
+
+Sometimes you need to set some DNF properties on the repositories that you are
+enabling. For example you might need to prioritize the repository over the
+official Fedora repositories, etc. This can be done by appending ``priority``
+to the query parameters of your URL, e.g.::
+
+  # This works for both normal URLs
+  https://foo.bar/baz?priority=90
+
+  # and also the `copr://` syntax
+  copr://frostyx/foo?priority=10
+
+The following parameters are recognized:
+
+- ``?priority=`` - expects an integer
+- ``?module_hotfixes=`` - expects ``true`` or ``false``
+
+See ``man dnf.conf`` for the documentation of these options. These parameters
+work only for the buildtime repositories.
+
+More information in the `Prioritize BuildRequires from Copr
+<https://frostyx.cz/posts/prioritize-buildrequires-from-copr>`_ blog post.
+
+
 Creating repositories manually
 ------------------------------
 
