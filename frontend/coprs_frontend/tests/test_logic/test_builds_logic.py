@@ -817,3 +817,62 @@ class TestBuildsLogic(CoprsTestCase):
         )
         assert response.status_code == 200
         assert [x.state for x in build.build_chroots] == states
+
+
+class TestGraphCacheLogic(CoprsTestCase):
+    """
+    The graph-stats caches (BuildsStatistics / ActionsStatistics) are populated
+    in batches: cache_*_graph_data() only stages rows, and a single
+    commit_cached_*_graph_data() call flushes them (no per-bucket SELECT, no
+    per-bucket commit).
+    """
+
+    @pytest.mark.usefixtures("f_db")
+    def test_build_graph_cache_batched(self):
+        BuildsLogic.cache_graph_data("10min", time=100, pending=1, running=2)
+        BuildsLogic.cache_graph_data("10min", time=200, pending=3, running=4)
+        BuildsLogic.commit_cached_graph_data()
+
+        rows = models.BuildsStatistics.query.filter_by(stat_type="10min").all()
+        assert {(r.time, r.pending, r.running) for r in rows} == {
+            (100, 1, 2), (200, 3, 4)}
+
+    @pytest.mark.usefixtures("f_db")
+    def test_build_graph_cache_dedup(self):
+        BuildsLogic.cache_graph_data("10min", time=100, pending=1, running=2)
+        BuildsLogic.commit_cached_graph_data()
+
+        # Re-staging an already cached (time, stat_type) must not raise and must
+        # not create a duplicate row -- the IntegrityError is rolled back.
+        BuildsLogic.cache_graph_data("10min", time=100, pending=9, running=9)
+        BuildsLogic.commit_cached_graph_data()
+
+        rows = models.BuildsStatistics.query.filter_by(stat_type="10min").all()
+        assert len(rows) == 1
+        assert (rows[0].pending, rows[0].running) == (1, 2)
+
+    @pytest.mark.usefixtures("f_db")
+    def test_action_graph_cache_batched(self):
+        ActionsLogic.cache_action_graph_data(
+            "10min", time=100, waiting=1, success=2, failure=3)
+        ActionsLogic.cache_action_graph_data(
+            "10min", time=200, waiting=4, success=5, failure=6)
+        ActionsLogic.commit_cached_action_graph_data()
+
+        rows = models.ActionsStatistics.query.filter_by(stat_type="10min").all()
+        assert {(r.time, r.waiting, r.success, r.failed) for r in rows} == {
+            (100, 1, 2, 3), (200, 4, 5, 6)}
+
+    @pytest.mark.usefixtures("f_db")
+    def test_action_graph_cache_dedup(self):
+        ActionsLogic.cache_action_graph_data(
+            "10min", time=100, waiting=1, success=2, failure=3)
+        ActionsLogic.commit_cached_action_graph_data()
+
+        ActionsLogic.cache_action_graph_data(
+            "10min", time=100, waiting=9, success=9, failure=9)
+        ActionsLogic.commit_cached_action_graph_data()
+
+        rows = models.ActionsStatistics.query.filter_by(stat_type="10min").all()
+        assert len(rows) == 1
+        assert (rows[0].waiting, rows[0].success, rows[0].failed) == (1, 2, 3)
