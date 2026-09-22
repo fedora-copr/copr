@@ -5,7 +5,7 @@
 %global copr_common_version 1.8.1
 
 Name:       copr-backend
-Version:    2.14
+Version:    2.15
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -242,6 +242,15 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/lighttpd
 
 %changelog
+* Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.15-1
+- uploadrpm: support multiple RPMs, optional srpm/logs
+- Pulp: content guards, PRNs/hrefs, domains, skip zero-byte RPMs, no duplicate NEVRAs in one request
+- script to set attribute for all Pulp repositories
+- BuildTagCombinationLimit; allow WorkerLimit zero
+- skip owners with running actions/builds
+- don't require cert/key in pulp config
+- fix copr-change-storage for PulpHTTPRedirect lock API
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.14-1
 - Raise the wait-for-repo timeout
 - Log chroot/arch/pakage info in prmeta predictions
