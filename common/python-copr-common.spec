@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.8.1
+Version:    1.9
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -80,6 +80,9 @@ version=%version %py3_install
 
 
 %changelog
+* Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.9-1
+- uploadrpm: multiple RPMs, optional srpm/logs
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 1.8-1
 - Add direct RPM upload build type
 - Efactor lock() function into Lock class
