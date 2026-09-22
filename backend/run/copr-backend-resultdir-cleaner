@@ -10,6 +10,7 @@ import argparse
 import time
 import datetime
 import shutil
+import sentry_sdk
 
 from copr_common.log import setup_script_logger
 from copr_common.tree import walk_limited
@@ -171,6 +172,10 @@ def _main():
     logging.basicConfig(level=logging.DEBUG)
     config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
     opts = BackendConfigReader(config_file).read()
+
+    if opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=opts["sentry_dsn"])
+
     setup_script_logger(LOG, os.path.join(opts["log_dir"], "resultdir-cleaner.log"))
     args = _get_arg_parser().parse_args()
     dry_run = not args.real_run
