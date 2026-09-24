@@ -12,6 +12,7 @@ import argparse
 
 import json
 import multiprocessing
+import sentry_sdk
 
 from prunerepo.helpers import get_rpms_to_remove
 
@@ -356,15 +357,19 @@ def redirect_logging(opts):
 
 
 def main():
+    args = parser.parse_args()
+    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
+    opts = BackendConfigReader(config_file).read()
+
+    if opts["sentry_dsn"]:
+        sentry_sdk.init(dsn=opts["sentry_dsn"])
+
     # We start multiple threads, and the code traverses the entire result
     # directory, which is overall very I/O intensive.  The default limit for
     # opened files (1024) is insufficient.
     _, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
     resource.setrlimit(resource.RLIMIT_NOFILE, (65535, hard))
 
-    args = parser.parse_args()
-    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
-    opts = BackendConfigReader(config_file).read()
     redirect_logging(opts)
     pruner = Pruner(opts, args)
     try:
