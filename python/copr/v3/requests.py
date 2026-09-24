@@ -145,7 +145,13 @@ def handle_errors(response):
 
         raise CoprRequestException(response_json["error"], response=response)
 
-    except ValueError:
+    except ValueError as ex:
+        # If there is no Copr config, Kerberos is used by default, even if
+        # there is no valid Kerberos ticket. And Apache responds with non-JSON
+        # response.
+        if response.status_code == 401:
+            raise CoprAuthException(response.reason, response=response) from ex
+
         # When the request timeouted on the apache layer, we couldn't return a
         # nice JSON response and therefore its parsing fails.
         if response.status_code == 504:
