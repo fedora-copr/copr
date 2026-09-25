@@ -157,6 +157,9 @@ cp -a copr-backend-service %{buildroot}/%{_bindir}/
 cp -a run/* %{buildroot}%{_bindir}/
 cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
+install -d %{buildroot}%{_pkgdocdir}
+install -p -m 644 conf/copr-be.conf.example %{buildroot}%{_pkgdocdir}/copr-be.conf.example
+
 install -p -m 755 conf/crontab/daily %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 install -p -m 755 conf/crontab/weekly  %{buildroot}%{_sysconfdir}/cron.weekly/copr-backend
 
@@ -218,6 +221,7 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/lighttpd
+%doc %{_pkgdocdir}/copr-be.conf.example
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/*.service
@@ -240,6 +244,7 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %license LICENSE
 %{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
+%exclude %{_pkgdocdir}/copr-be.conf.example
 
 %changelog
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.15-1
