@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.7
+Version:    2.8
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.8-1
+- Provide bindings for uploadrpm feature
+- Add function for getting a list of downloadable build results URLs
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.7-1
 - Upload rpm to python and cli
 - Fix container-based unit test workflow
