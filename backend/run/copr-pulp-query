@@ -77,6 +77,16 @@ def query_href(client, args):
     return [data]
 
 
+def query_prn(client, args):
+    """
+    Query any Pulp object based on its `prn` value
+    """
+    response = client.get_package_by_prn(args.prn)
+    response.raise_for_status()
+    data = response.json()
+    return [data]
+
+
 def get_arg_parser():
     """
     CLI argument parser
@@ -86,6 +96,7 @@ def get_arg_parser():
     exclusive.add_argument("--build", type=int, dest="build_id")
     exclusive.add_argument("--project")
     exclusive.add_argument("--href")
+    exclusive.add_argument("--prn")
     parser.add_argument("--chroot")
     return parser
 
@@ -106,6 +117,9 @@ def main():
 
     elif args.href:
         results = query_href(client, args)
+
+    elif args.prn:
+        results = query_prn(client, args)
 
     else:
         print("Error: Don't know what to query.")
