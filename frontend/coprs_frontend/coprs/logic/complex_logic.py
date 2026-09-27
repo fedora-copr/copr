@@ -167,7 +167,15 @@ class ComplexLogic(object):
             if not builds:
                 continue
 
-            for build, build_chroots in builds.items():
+            # We need to guarantee the build order as it is in the source
+            # repository, because otherwise the metadata (NEVRA) in the target
+            # Package won't be accurate (the last forked build actually
+            # overwrites the NEVRA in Package).
+            #
+            # Also, the "max builds" feature doesn't address NEVRA at all, but
+            # rather retains the latest BUILD IDs... so it would delete builds
+            # in the wrong order.
+            for build, build_chroots in sorted(builds.items(), key=lambda item: item[0].id):
                 fbuild = forking.fork_build(build, fcopr, fpackage, build_chroots)
 
                 if build.result_dir:

@@ -244,6 +244,7 @@ class BuildsLogic(object):
             data[0].append(pending)
             data[1].append(running)
             cls.cache_graph_data(type, time=step_start, pending=pending, running=running)
+        cls.commit_cached_graph_data()
 
         running_total = 0
         for i in range(1, params["steps"] + 1):
@@ -269,27 +270,32 @@ class BuildsLogic(object):
             running = cls.get_running_jobs_bucket(step_start, step_end)
             data[0].append(running)
             cls.cache_graph_data(type, time=step_start, running=running)
+        cls.commit_cached_graph_data()
 
         return data
 
     @classmethod
     def cache_graph_data(cls, type, time, pending=0, running=0):
-        result = models.BuildsStatistics.query\
-                .filter(models.BuildsStatistics.stat_type == type)\
-                .filter(models.BuildsStatistics.time == time).first()
-        if result:
-            return
+        # Only stage the row into the session; the caller commits the whole
+        # batch at once.  We deliberately don't SELECT for an already existing
+        # row first -- the caller only computes not-yet-cached buckets, so the
+        # check was pure overhead (one query per bucket).  A concurrent writer
+        # that cached the same buckets meanwhile is handled by the
+        # IntegrityError rollback in commit_cached_graph_data().
+        db.session.add(models.BuildsStatistics(
+            time=time,
+            stat_type=type,
+            running=running,
+            pending=pending,
+        ))
 
+    @staticmethod
+    def commit_cached_graph_data():
+        """ Commit the graph rows staged by cache_graph_data() in one go. """
         try:
-            cached_data = models.BuildsStatistics(
-                time = time,
-                stat_type = type,
-                running = running,
-                pending = pending
-            )
-            db.session.add(cached_data)
             db.session.commit()
-        except IntegrityError: # other process already calculated the graph data and cached it
+        except IntegrityError:
+            # another process already calculated (some of) these buckets
             db.session.rollback()
 
     @classmethod

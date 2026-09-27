@@ -433,23 +433,24 @@ class ActionsLogic(object):
 
     @classmethod
     def cache_action_graph_data(cls, type, time, waiting, success, failure):
-        result = models.ActionsStatistics.query\
-                .filter(models.ActionsStatistics.stat_type == type)\
-                .filter(models.ActionsStatistics.time == time).first()
-        if result:
-            return
+        # Only stage the row into the session; get_action_graph_data() commits
+        # the whole batch at once.  See BuildsLogic.cache_graph_data() for the
+        # rationale (no per-bucket SELECT, no per-bucket commit).
+        db.session.add(models.ActionsStatistics(
+            time=time,
+            stat_type=type,
+            waiting=waiting,
+            success=success,
+            failed=failure,
+        ))
 
+    @staticmethod
+    def commit_cached_action_graph_data():
+        """ Commit the graph rows staged by cache_action_graph_data(). """
         try:
-            cached_data = models.ActionsStatistics(
-                time = time,
-                stat_type = type,
-                waiting = waiting,
-                success = success,
-                failed = failure
-            )
-            db.session.add(cached_data)
-            db.session.commit()  # @FIXME We should not commit here
-        except IntegrityError: # other process already calculated the graph data and cached it
+            db.session.commit()
+        except IntegrityError:
+            # another process already calculated (some of) these buckets
             db.session.rollback()
 
     @classmethod
@@ -511,6 +512,7 @@ class ActionsLogic(object):
             data[1].append(success)
             data[2].append(failure)
             cls.cache_action_graph_data(type, time=step_start, waiting=waiting, success=success, failure=failure)
+        cls.commit_cached_action_graph_data()
 
         for i in range(params["start"], params["end"], params["step"]):
             data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))

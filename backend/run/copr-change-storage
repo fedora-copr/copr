@@ -12,6 +12,7 @@ import tempfile
 import argparse
 import logging
 import time
+import resource
 from itertools import groupby
 from copr.v3 import Client, CoprRequestException
 from copr_common.log import setup_script_logger
@@ -433,6 +434,9 @@ def main():
     """
     The main function
     """
+    _, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, (65535, hard))
+
     setup_script_logger(log, "/var/log/copr-backend/change-storage.log")
     parser = get_arg_parser()
     args = parser.parse_args()

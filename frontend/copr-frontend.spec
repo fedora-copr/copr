@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.9
+Version:    2.10
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -377,6 +377,13 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.10-1
+- allow altering user email and tokens
+- allow setting module_hotfixes on external repositories
+- fork-all action (API); fix fork-all package latest version
+- uploadrpm: support multiple RPMs, optional srpm/logs
+- drop support for pyp2rpm
+
 * Wed Aug 26 2026 Pavel Raiskup <pavel@raiskup.cz> 2.9-1
 - correctly extract group info from today's LDAP
 - bind to LDAP via Kerberos keytab (SASL/GSSAPI)

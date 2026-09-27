@@ -82,8 +82,9 @@ def pre_process_repo_url(chroot, repo_url):
                 "results", user, prj, chroot
             ]) + "/"
 
-    elif "priority" in query:
-        query.pop("priority")
+    elif "priority" in query or "module_hotfixes" in query:
+        query.pop("priority", None)
+        query.pop("module_hotfixes", None)
         query_string = urlencode(query, doseq=True)
         parsed_url = parsed_url._replace(query=query_string)
         repo_url = urlunparse(parsed_url)
@@ -99,14 +100,22 @@ def parse_repo_params(repo, supported_keys=None):
     :param supported_keys list of supported optional parameters
     :return: dict of optional parameters parsed from the repo URL
     """
-    supported_keys = supported_keys or ["priority"]
+    supported_keys = supported_keys or ["priority", "module_hotfixes"]
     params = {}
     qs = parse_qs(urlparse(repo).query)
     for k, v in qs.items():
         if k in supported_keys:
             # parse_qs returns values as lists, but we allow setting the param only once,
             # so we can take just first value from it
-            value = int(v[0]) if v[0].isnumeric() else v[0]
+            value = v[0]
+
+            if value.isnumeric():
+                value = int(value)
+            elif value.lower() == "true":
+                value = True
+            elif value.lower() == "false":
+                value = False
+
             params[k] = value
     return params
 

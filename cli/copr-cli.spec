@@ -2,7 +2,7 @@
 %global min_python_copr_version 2.5.1
 
 Name:       copr-cli
-Version:    2.6
+Version:    2.7
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.7-1
+- Provide command for rpmupload feature
+- Drop support for pyp2rpm
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.6-1
 - Add --chroot-denylist to add/edit-package commands
 - Upload rpm to python and cli
