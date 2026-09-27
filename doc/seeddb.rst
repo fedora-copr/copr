@@ -44,8 +44,13 @@ be necessary::
     $ docker exec -it copr_frontend_1 /bin/bash
     [copr-fe@frontend /]$ cd /opt/copr/frontend/coprs_frontend/
     [copr-fe@frontend coprs_frontend]$ alembic-3 upgrade head
-    [copr-fe@frontend coprs_frontend]$ exit
+
+The database dump doesn't contain private data (e.g. emails), and therefore you
+won't be able to log in. Set the email address that you have configured in FAS::
+
+    [copr-fe@frontend coprs_frontend]$ copr-frontend alter-user frostyx --mail frostyx@example.com
 
 Finally, start the frontend container again::
 
+    [copr-fe@frontend coprs_frontend]$ exit
     $ docker-compose start frontend

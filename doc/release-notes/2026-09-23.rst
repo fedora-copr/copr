@@ -1,0 +1,39 @@
+.. _release_notes_2026_09_23:
+
+Highlights from 2026-09-23 release
+==================================
+
+Enhancements
+------------
+
+- External repositories can now set ``module_hotfixes``.
+- New API-only ``fork-all`` action forks an entire project in one request.
+- `#4119`_ - The Python API can list downloadable URLs for build results
+  (``get_results_urls``).
+- `#4445`_ - LDAP authentication can bind via Kerberos keytab (SASL/GSSAPI).
+- `#4442`_ - Direct RPM upload builds can now include multiple RPMs, optional
+  Source RPM, SHA256 checksums, and build logs. This feature is not available
+  on Fedora Copr.
+
+
+Bugfixes
+--------
+
+- Fixed LDAP group membership parsing for current LDAP DN formats.
+- ``copr-rpmbuild`` no longer prints an ugly traceback on early build failure.
+
+
+Removals
+--------
+
+- `#4476`_ - Support for ``pyp2rpm`` was removed. Use ``pyp2spec`` (or another
+  maintained PyPI packaging tool) instead. Related: RHBZ `#2517932`_,
+  `#2517929`_.
+
+
+.. _#4119: https://github.com/fedora-copr/copr/issues/4119
+.. _#4442: https://github.com/fedora-copr/copr/issues/4442
+.. _#4445: https://github.com/fedora-copr/copr/issues/4445
+.. _#4476: https://github.com/fedora-copr/copr/issues/4476
+.. _#2517932: https://bugzilla.redhat.com/show_bug.cgi?id=2517932
+.. _#2517929: https://bugzilla.redhat.com/show_bug.cgi?id=2517929
