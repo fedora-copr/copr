@@ -648,6 +648,7 @@ class PulpStorage(Storage):
                     dst_fullname.split("/")[0],
                     dst_fullname.split("/")[1],
                     chroot,
+                    dst_dir,
                 )
                 if build_hrefs:
                     hrefs.extend(build_hrefs)
@@ -664,15 +665,25 @@ class PulpStorage(Storage):
                 ])
 
     def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
-                    dst_owner, dst_project, chroot):
-        # pylint: disable=too-many-positional-arguments
+                    dst_owner, dst_project, chroot, dst_dir):
+        # pylint: disable=too-many-positional-arguments,too-many-locals
         """
         Fork RPMs of a single build and upload them to Pulp.  Return the list
         of uploaded ``pulp_href`` values, the caller is responsible for
         creating a repository version from them.
         """
         src_fullname = "{0}/{1}".format(src_owner, src_project)
-        with TemporaryDirectory(prefix="copr-fork-") as tmp:
+
+        # Don't use /tmp for the temporary copy of the RPMs, it is typically a
+        # small (or even memory-backed) filesystem while builds can be huge.
+        # The results directory lives on a large persistent storage, and the
+        # destination build directory (with logs) is already created there by
+        # BackendStorage.fork_project().
+        workdir = os.path.join(self.opts.destdir, dst_owner, dst_project,
+                               chroot, dst_dir)
+        ensure_dir_exists(workdir, self.log)
+
+        with TemporaryDirectory(prefix=".copr-fork-", dir=workdir) as tmp:
             response = self.client.get_content(
                 [src_build_id],
                 chroot,
