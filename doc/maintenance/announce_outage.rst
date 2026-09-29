@@ -84,6 +84,9 @@ Resolved outage
 6. Remove the warning banner from frontend page using
    ``copr-frontend warning-banner --remove``
 
+7. Post a short note about the release on
+   `Fosstodon <https://fosstodon.org/>`_, with a link to the release notes.
+
 
 .. _`copr-devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`Fedora Outage SOP`: https://docs.fedoraproject.org/en-US/infra/sysadmin_sops/outage/
