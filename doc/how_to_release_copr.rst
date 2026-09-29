@@ -505,6 +505,9 @@ to CLOSED/CURRENTRELEASE with comment like 'New Copr has been released.'
 
 Fix this document to make it easy for the release nanny of the next release to use it.
 
+Post a short note about the release on
+`Fosstodon <https://fosstodon.org/>`_, with a link to the release notes.
+
 .. _`Copr release directory`: https://releases.pagure.org/copr/copr
 .. _`copr-devel`: https://lists.fedoraproject.org/archives/list/copr-devel@lists.fedorahosted.org/
 .. _`example stg infra repo`: https://kojipkgs.fedoraproject.org/repos-dist/f36-infra-stg/
