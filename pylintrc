@@ -19,7 +19,12 @@ ignored-classes=SQLAlchemy,scoped_session
 #     Example error: Module 'alembic.op' has no 'drop_index' member
 # setproctitle:
 #     https://github.com/dvarrazzo/py-setproctitle/issues/31
-ignored-modules=alembic,setproctitle
+# ldap:
+#     Constants and exceptions (SERVER_DOWN, OPT_TIMEOUT, SCOPE_ONELEVEL, ...)
+#     are injected into the module from the _ldap C extension, so Pylint can
+#     not see them.
+#     Example error: Module 'ldap' has no 'SERVER_DOWN' member
+ignored-modules=alembic,setproctitle,ldap
 
 init-hook=
     import os
