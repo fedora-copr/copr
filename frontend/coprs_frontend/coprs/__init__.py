@@ -1,5 +1,12 @@
 # This is very complicated module.  TODO: drop the ignores
 # pylint: disable=wrong-import-order,wrong-import-position,cyclic-import
+#
+# The imports in this file are deliberately not at the top, and some of them
+# are done only for their side effects (route registration), so we silence
+# E402 and F401 for the whole file.  RUF100 is silenced on top of that because
+# not every Ruff version/configuration has E402 enabled, and those would then
+# report the E402 exemption above as an unused noqa directive.
+# ruff: noqa: E402,F401,RUF100
 
 import os
 import flask
@@ -158,6 +165,7 @@ from coprs.views.apiv3_ns import (
 from coprs.views import batches_ns
 from coprs.views.batches_ns import coprs_batches
 from coprs.views import coprs_ns
+from coprs.views.coprs_ns import coprs_actions
 from coprs.views.coprs_ns import coprs_builds
 from coprs.views.coprs_ns import coprs_general
 from coprs.views.coprs_ns import coprs_chroots

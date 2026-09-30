@@ -2315,6 +2315,8 @@ class Action(db.Model, helpers.Serializer):
 
     __table_args__ = (
         db.Index('action_result_action_type', 'result', 'action_type'),
+        # for the per-project action list, which is ordered by ID
+        db.Index('action_copr_id_id', 'copr_id', 'id'),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -2375,6 +2377,27 @@ class Action(db.Model, helpers.Serializer):
     def default_priority(self):
         action_type_str = ActionTypeEnum(self.action_type)
         return DefaultActionPriorityEnum.vals.get(action_type_str, 0)
+
+    @property
+    def type_name(self):
+        """ Human readable action type, e.g. "createrepo" """
+        try:
+            return ActionTypeEnum(self.action_type)
+        except KeyError:
+            return "unknown"
+
+    @property
+    def state(self):
+        """
+        Textual representation of the action result.  We intentionally use the
+        same names as builds have, so we can re-use the build state widgets in
+        templates.
+        """
+        return {
+            BackendResultEnum("waiting"): "waiting",
+            BackendResultEnum("success"): "succeeded",
+            BackendResultEnum("failure"): "failed",
+        }.get(self.result, "unknown")
 
 
 class CounterStat(db.Model, helpers.Serializer):

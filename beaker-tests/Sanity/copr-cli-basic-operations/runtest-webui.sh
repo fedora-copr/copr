@@ -64,6 +64,7 @@ rlJournalStart
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor/simple"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/monitor/detailed"
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/actions/"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/edit"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/permissions"
         rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/integrations"
@@ -84,6 +85,14 @@ rlJournalStart
         rlRun "curl $FRONTEND_URL/status/running"
         rlRun "curl $FRONTEND_URL/status/batches"
         rlRun "curl $FRONTEND_URL/status/stats"
+
+        # the routes above are checked for the status code only, but for the
+        # action detail we first need to find some existing action ID
+        actions_url=$FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/actions/
+        action_id=$(/usr/bin/curl -A "$COPR_USER_AGENT" -s -f "$actions_url" \
+                    | sed -n 's|.*/action/\([0-9]\+\)/.*|\1|p' | head -1)
+        rlAssertNotEquals "some action exists in the project" "$action_id" ""
+        rlRun "curl $FRONTEND_URL/coprs/$owner_part/$PROJECTNAME/action/$action_id/"
     rlPhaseEnd
 
     rlPhaseStartCleanup
