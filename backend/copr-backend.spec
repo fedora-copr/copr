@@ -5,7 +5,7 @@
 %global copr_common_version 1.8.1
 
 Name:       copr-backend
-Version:    2.16
+Version:    2.17
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/copr-be.conf.example
 
 %changelog
+* Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.17-1
+- return success value when forking pulp repo
+
 * Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.16-1
 - add sentry for cleanup scripts
 - fix prebuilt task attribute name and log unsign command
