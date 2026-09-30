@@ -7,7 +7,7 @@ import pytest
 
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
-from coprs.auth import GroupAuth, LDAP, LDAPGroups
+from coprs.auth import GroupAuth, Kerberos, LDAP, LDAPGroups
 from coprs.exceptions import CoprHttpException
 
 
@@ -40,6 +40,59 @@ class TestGroupAuth(CoprsTestCase):
         assert user.openid_groups == {
             "fas_groups": ["group1", "group2", "another-group",
                            "another-group-2"]}
+
+
+class TestLDAPOutage(CoprsTestCase):
+    """
+    An unreachable LDAP server must not block users who logged in before
+    """
+
+    error = CoprHttpException("Can't contact LDAP server", code=503)
+
+    @mock.patch("coprs.auth.LDAPGroups.group_names")
+    def test_known_user_keeps_groups(self, group_names):
+        group_names.side_effect = self.error
+        user = mock.MagicMock()
+        user.openid_groups = {"fas_groups": ["foo", "bar"]}
+
+        # No exception, and the groups stay untouched
+        Kerberos.load_ldap_groups(user)
+        assert user.openid_groups == {"fas_groups": ["foo", "bar"]}
+
+    @mock.patch("coprs.auth.LDAPGroups.group_names")
+    def test_user_with_no_groups_keeps_them(self, group_names):
+        """
+        Belonging to no group is a legitimate state, and it is different
+        from never having asked LDAP
+        """
+        group_names.side_effect = self.error
+        user = mock.MagicMock()
+        user.openid_groups = {"fas_groups": []}
+
+        Kerberos.load_ldap_groups(user)
+        assert user.openid_groups == {"fas_groups": []}
+
+    @mock.patch("coprs.auth.LDAPGroups.group_names")
+    def test_first_login_fails(self, group_names):
+        """
+        For a brand new user we don't know the groups at all, so we can not
+        let them in
+        """
+        group_names.side_effect = self.error
+        user = mock.MagicMock()
+        user.openid_groups = None
+
+        with pytest.raises(CoprHttpException):
+            Kerberos.load_ldap_groups(user)
+
+    @mock.patch("coprs.auth.LDAPGroups.group_names")
+    def test_working_ldap_updates_groups(self, group_names):
+        group_names.return_value = ["new-group"]
+        user = mock.MagicMock()
+        user.openid_groups = {"fas_groups": ["old-group"]}
+
+        Kerberos.load_ldap_groups(user)
+        assert user.openid_groups == {"fas_groups": ["new-group"]}
 
 
 class TestLDAP(CoprsTestCase):
