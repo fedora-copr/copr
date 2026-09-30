@@ -1,9 +1,14 @@
 # pylint: disable=no-self-use
 
 from unittest import mock
+
+import ldap
+import pytest
+
 from tests.coprs_test_case import CoprsTestCase
 from coprs import app
-from coprs.auth import GroupAuth, LDAPGroups
+from coprs.auth import GroupAuth, LDAP, LDAPGroups
+from coprs.exceptions import CoprHttpException
 
 
 class TestGroupAuth(CoprsTestCase):
@@ -35,3 +40,77 @@ class TestGroupAuth(CoprsTestCase):
         assert user.openid_groups == {
             "fas_groups": ["group1", "group2", "another-group",
                            "another-group-2"]}
+
+
+class TestLDAP(CoprsTestCase):
+
+    @mock.patch("coprs.auth.ldap.initialize")
+    def test_server_down_fails_immediately(self, initialize):
+        """
+        A LDAP server that is down must fail the log-in right away, not spin
+        in an endless retry loop
+        """
+        error = ldap.SERVER_DOWN({"desc": "Can't contact LDAP server"})
+        initialize.return_value.search_s.side_effect = error
+
+        client = LDAP("ldap://not-important", "ou=users,dc=example,dc=com")
+        with pytest.raises(CoprHttpException) as ex:
+            client.get_user("someuser")
+
+        assert "Can't contact LDAP server" in str(ex.value)
+        assert ex.value.code == 503
+        assert initialize.call_count == 1
+        initialize.return_value.unbind_s.assert_called_once()
+
+    @mock.patch("coprs.auth.ldap.initialize")
+    def test_timeout_is_an_outage_too(self, initialize):
+        """
+        Hitting LDAP_TIMEOUT must end up as CoprHttpException, the same way
+        an unreachable server does.  Note that ldap.TIMEOUT has no args.
+        """
+        initialize.return_value.search_s.side_effect = ldap.TIMEOUT()
+
+        client = LDAP("ldap://not-important", "ou=users,dc=example,dc=com")
+        with pytest.raises(CoprHttpException) as ex:
+            client.get_user("someuser")
+
+        assert ex.value.code == 503
+        assert "unknown error" in str(ex.value)
+
+    @mock.patch("coprs.auth.ldap.initialize")
+    def test_timeouts_are_set(self, initialize):
+        """
+        Both the connect and the query timeout need to be limited, otherwise
+        a non-responding server blocks the request for minutes
+        """
+        app.config["LDAP_TIMEOUT"] = 10
+        initialize.return_value.search_s.return_value = []
+
+        client = LDAP("ldap://not-important", "ou=users,dc=example,dc=com")
+        assert client.get_user_groups("someuser") == []
+
+        timeouts = {}
+        for call in initialize.return_value.set_option.call_args_list:
+            option, value = call.args
+            assert 0 < value <= 10
+            timeouts.setdefault(option, value)
+        assert set(timeouts) == {ldap.OPT_NETWORK_TIMEOUT, ldap.OPT_TIMEOUT}
+
+    @mock.patch("coprs.auth.ldap.initialize")
+    def test_timeout_budget_is_shared(self, initialize):
+        """
+        The whole lookup must fit into LDAP_TIMEOUT.  A slow bind shortens the
+        timeout left for the query itself.
+        """
+        app.config["LDAP_TIMEOUT"] = 10
+        initialize.return_value.search_s.return_value = []
+
+        # deadline, the timeout for connect+bind, and the one after the bind
+        with mock.patch("coprs.auth.time.monotonic", side_effect=[0, 0, 6]):
+            client = LDAP("ldap://not-important", "ou=users,dc=example,dc=com")
+            assert client.get_user_groups("someuser") == []
+
+        # The last OPT_TIMEOUT set before search_s() is the remaining budget
+        option, value = initialize.return_value.set_option.call_args_list[-1].args
+        assert option == ldap.OPT_TIMEOUT
+        assert value == 4
