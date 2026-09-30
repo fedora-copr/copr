@@ -5,7 +5,7 @@
 %global copr_common_version 1.8.1
 
 Name:       copr-backend
-Version:    2.15
+Version:    2.16
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,14 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/copr-be.conf.example
 
 %changelog
+* Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.16-1
+- add sentry for cleanup scripts
+- fix prebuilt task attribute name and log unsign command
+- don't use /tmp when forking Pulp builds
+- create one Pulp repo version per fork action
+- install copr-be.conf.example as a doc file
+- allow querying Pulp objects via PRN
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.15-1
 - uploadrpm: support multiple RPMs, optional srpm/logs
 - Pulp: content guards, PRNs/hrefs, domains, skip zero-byte RPMs, no duplicate NEVRAs in one request
