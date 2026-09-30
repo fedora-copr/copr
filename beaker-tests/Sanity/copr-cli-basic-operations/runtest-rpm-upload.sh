@@ -143,6 +143,13 @@ build_upload_tarball_sha256_json()
         | tee "$payload_dir/sha256.json" >&2
 }
 
+# Print the GPG key ID the given RPM file is signed with (empty if unsigned).
+rpm_signature_key_id()
+{
+    rpm -qpi "$1" 2>/dev/null \
+        | sed -n 's/.*Key ID \([0-9a-fA-F]*\).*/\1/p' | head -1
+}
+
 assert_build_chroot_rpms_signed()
 {
     local dest="$1"
@@ -205,10 +212,10 @@ rlJournalStart
             $PACKAGE"
         rlAssertRpm "$PACKAGE"
 
-        SIGN_CHECK_DEST=$(mktemp -d)
-        rlRun "copr-cli download-build $BUILD_ID --dest $SIGN_CHECK_DEST"
-        assert_build_chroot_rpms_signed "$SIGN_CHECK_DEST" 1
-        rm -rf "$SIGN_CHECK_DEST"
+        # Kept (not removed) for the re-sign phase below
+        SIGNED_RPM_DEST=$(mktemp -d)
+        rlRun "copr-cli download-build $BUILD_ID --dest $SIGNED_RPM_DEST"
+        assert_build_chroot_rpms_signed "$SIGNED_RPM_DEST" 1
     rlPhaseEnd
 
     rlPhaseStartTest "uploadrpm tarball with logs"
@@ -301,9 +308,53 @@ rlJournalStart
         rm -rf "$SIGN_CHECK_DEST"
     rlPhaseEnd
 
+    rlPhaseStartTest "uploadrpm of an already signed RPM is re-signed"
+        if [[ $FRONTEND_URL == "https://copr.stg.fedoraproject.org" ]]; then
+            rlLog "Skipping, RPM uploads are not enabled for the Fedora Copr instance"
+            exit 0
+        fi
+
+        # The RPM downloaded in the first phase is already signed by the first
+        # project's key.  Uploading it to another project must drop that
+        # signature and re-sign it with the second project's key.
+        rlRun "SIGNED_RPM=\$(find $SIGNED_RPM_DEST/$CHROOT -name '*.rpm' | head -1)" \
+            0 "Locating the RPM signed by the first project"
+        rlAssertExists "$SIGNED_RPM"
+        rlRun "KEYID_FIRST=\$(rpm_signature_key_id \"$SIGNED_RPM\")" \
+            0 "Getting the signing key ID of the first project"
+        rlRun "test -n \"$KEYID_FIRST\"" 0 \
+            "RPM from the first project is signed ($KEYID_FIRST)"
+
+        FIRST_PROJECT=$PROJECT
+        setupProjectName "rpm-upload-resign"
+        rlRun "copr-cli create --chroot $CHROOT $PROJECT"
+
+        rlRun "TARBALL_PATH=\$(build_upload_tarball \"$SIGNED_RPM\")" \
+            0 "Building upload tarball from the already signed RPM"
+        rlRun -s "copr-cli uploadrpm --nowait --chroot $CHROOT \
+            --name $PACKAGE --version 1 --release 1 \
+            $PROJECT $TARBALL_PATH"
+        rlRun "parse_build_id"
+        rlRun "copr watch-build $BUILD_ID"
+
+        RESIGN_DEST=$(mktemp -d)
+        rlRun "copr-cli download-build $BUILD_ID --dest $RESIGN_DEST"
+        assert_build_chroot_rpms_signed "$RESIGN_DEST" 1
+        rlRun "RESIGNED_RPM=\$(find $RESIGN_DEST/$CHROOT -name '*.rpm' | head -1)" \
+            0 "Locating the re-signed RPM"
+        rlRun "KEYID_SECOND=\$(rpm_signature_key_id \"$RESIGNED_RPM\")" \
+            0 "Getting the signing key ID of the second project"
+        rlRun "test \"$KEYID_FIRST\" != \"$KEYID_SECOND\"" 0 \
+            "RPM re-signed with the second project key ($KEYID_FIRST -> $KEYID_SECOND)"
+
+        rm -rf "$SIGNED_RPM_DEST" "$RESIGN_DEST"
+    rlPhaseEnd
+
     rlPhaseStartCleanup
         cleanAction dnf -y remove "$PACKAGE" "$PACKAGE_MULTI" "$PACKAGE_MULTI-subpkg"
-        cleanAction dnf -y copr remove "$DNF_COPR_ID/$PROJECT"
+        # FIRST_PROJECT is unset when we never got to the re-sign phase
+        cleanAction dnf -y copr remove "$DNF_COPR_ID/${FIRST_PROJECT:-$PROJECT}"
+        test -n "$FIRST_PROJECT" && cleanProject "$FIRST_PROJECT"
         cleanProject
         if ! $COPR_CLEANUP; then
             rlLogInfo "COPR_CLEANUP=false: left project $PROJECT (builds/repos) for inspection"

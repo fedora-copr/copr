@@ -220,10 +220,11 @@ def create_user_keys(username, projectname, opts, try_indefinitely=False):
             request=query, response=response)
 
 
-def _unsign_one(path):
+def _unsign_one(path, log):
     # Requires rpm-sign package.
     # rpm --delsign on an unsigned RPM is a no-op (exit code 0).
     cmd = ["/usr/bin/rpm", "--delsign", path]
+    log.info("Unsigning %s, command: %s", path, " ".join(cmd))
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
     stdout, stderr = handle.communicate()
 
@@ -257,7 +258,7 @@ def unsign_rpms_in_dir(path, opts, log):
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _unsign_one(rpm)
+            _unsign_one(rpm, log)
             log.info("unsigned rpm: %s", rpm)
 
         except CoprSignError as e:
