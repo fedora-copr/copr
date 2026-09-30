@@ -624,6 +624,7 @@ class PulpStorage(Storage):
         # all builds are in the main CoprDir.
         # See https://github.com/fedora-copr/copr/issues/3820
         dst_dirname = dst_project
+        failed = False
 
         for chroot, src_dst_dir in builds_map.items():
             # It should be a dirname here but since forking CoprDirs is not
@@ -650,6 +651,11 @@ class PulpStorage(Storage):
                     chroot,
                     dst_dir,
                 )
+
+                if build_hrefs is False:
+                    failed = True
+                    continue
+
                 if build_hrefs:
                     hrefs.extend(build_hrefs)
 
@@ -663,6 +669,8 @@ class PulpStorage(Storage):
                 self.client.deliver_and_wait([
                     self.client.publish(repository),
                 ])
+
+        return not failed
 
     def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
                     dst_owner, dst_project, chroot, dst_dir):
