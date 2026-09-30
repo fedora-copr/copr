@@ -50,6 +50,20 @@ class ActionsLogic(object):
         return query
 
     @classmethod
+    def get_copr_actions(cls, copr):
+        """
+        Return all the actions belonging to the given project, the newest first
+
+        Keep this query simple enough so it can be answered by the
+        'action_copr_id_id' index alone;  the whole result is dumped into the
+        Actions tab and projects with many thousands of actions are not rare.
+        """
+
+        return (models.Action.query
+                .filter(models.Action.copr_id == copr.id)
+                .order_by(models.Action.id.desc()))
+
+    @classmethod
     def get_by_ids(cls, ids):
         """
         Return actions matching passed `ids`

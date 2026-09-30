@@ -1,0 +1,85 @@
+{% extends "coprs/detail.html" %}
+{% from "_helpers.html" import action_state, copr_name %}
+{% from "coprs/detail/_action_states.html" import action_states %}
+
+{% block title %}Action {{ action.id }} in {{ copr_name(copr) }}{% endblock %}
+
+{% set selected_tab = "actions" %}
+
+{%block project_breadcrumb %}
+<li>
+  <a href="{{ copr_url('coprs_ns.copr_actions', copr) }}">Actions</a>
+</li>
+<li class="active">
+  {{ action.id }}
+</li>
+{%endblock%}
+
+{% block detail_body %}
+
+<h2 class="page-title">Action {{ action.id }}</h2>
+
+<div class="row">
+  <div class="col-sm-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">General Information</h3>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dt> Type: </dt>
+          <dd> {{ action.type_name }} </dd>
+          <dt> Status: </dt>
+          <dd>
+            {{ action_state(action) }} - {{ action.state | action_state_description }}
+          </dd>
+          <dt> Created: </dt>
+          <dd>
+            {% if action.created_on %}
+              {{ action.created_on|localized_time(g.user.timezone if g.user else 'UTC') }}
+              ({{ action.created_on|time_ago }} ago)
+            {% else %}
+              -
+            {% endif %}
+          </dd>
+          <dt> Finished: </dt>
+          <dd>
+            {% if action.ended_on %}
+              {{ action.ended_on|localized_time(g.user.timezone if g.user else 'UTC') }}
+              ({{ action.ended_on|time_ago }} ago)
+            {% else %}
+              Not yet
+            {% endif %}
+          </dd>
+          <dt> Message: </dt>
+          <dd> {{ action.message or "-" }} </dd>
+          <dt> Object: </dt>
+          <dd> {{ action.object_type or "-" }} {{ action.object_id if action.object_id is not none }} </dd>
+          <dt> Old value: </dt>
+          <dd> {{ action.old_value or "-" }} </dd>
+          <dt> New value: </dt>
+          <dd> {{ action.new_value or "-" }} </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if action.data %}
+<div class="row">
+  <div class="col-sm-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Action Data</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ action.data|pretty_json }}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{{ action_states() }}
+
+{% endblock %}

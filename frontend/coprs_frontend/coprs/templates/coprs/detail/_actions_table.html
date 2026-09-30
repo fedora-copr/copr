@@ -1,0 +1,56 @@
+{% from "_helpers.html" import action_state, copr_url, initialize_datatables %}
+{% from "coprs/detail/_action_states.html" import action_states %}
+
+{% macro actions_table(actions) %}
+  {% for action in actions %}
+    {% if loop.first %}
+    <table class="datatable dataTable table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Action ID</th>
+          <th>Type</th>
+          <th>Created</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+    {% endif %}
+
+        <tr class="action-row">
+          <td>
+            <b><a href="{{ copr_url('coprs_ns.copr_action', copr, action_id=action.id) }}">
+              {{ action.id }}
+            </a></b>
+          </td>
+          <td>{{ action.type_name }}</td>
+          <td title="{{ action.created_on | localized_time(g.user.timezone if g.user else 'UTC') }}">
+            {% if action.created_on %}
+              {{ action.created_on|time_ago() }} ago
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ action.created_on|time_ago(action.ended_on) }}</td>
+          <td>{{ action_state(action) }}</td>
+          <td>{{ action.message or "-" }}</td>
+        </tr>
+
+    {% if loop.last %}
+      </tbody>
+    </table>
+    {{ initialize_datatables() }}
+    {{ action_states() }}
+    {% endif %}
+
+  {% else %}
+    <div class="blank-slate-pf">
+      <h1>No Actions in This Project</h1>
+      <p>
+        Actions are background tasks executed by Copr backend, e.g. repository
+        metadata regeneration, project forking or removal of old builds.
+      </p>
+    </div>
+  {% endfor %}
+{% endmacro %}

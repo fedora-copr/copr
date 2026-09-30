@@ -62,6 +62,8 @@
     {{ nav_element("builds", "Builds", "fa fa-tasks", copr_url('coprs_ns.copr_builds', copr)) }}
     {{ nav_element("monitor", "Monitor", "fa fa-desktop", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
+    {{ nav_element("actions", "Actions", "fa fa-cogs", copr_url('coprs_ns.copr_actions', copr)) }}
+
     {% if g.user %}
       {% set settings_view = 'coprs_ns.copr_edit' if g.user and g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
       {{ nav_element("settings", "Settings", "pficon pficon-settings",  copr_url(settings_view, copr)) }}
