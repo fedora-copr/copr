@@ -187,8 +187,32 @@ class Kerberos:
         user.mail = username + "@" + krb_config['email_domain']
         keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
         if all(app.config[k] for k in keys):
-            GroupAuth.update_user_groups(user, LDAPGroups.group_names(user.username))
+            Kerberos.load_ldap_groups(user)
         return user
+
+    @staticmethod
+    def load_ldap_groups(user):
+        """
+        (Re)load the list of groups 'user' belongs to from LDAP.
+
+        Loading the groups is the one and only reason why we contact LDAP at
+        all.  So when the server is down, but we already know the groups from
+        some previous log-in, keep those and let the user in - an LDAP outage
+        then only means that a group membership changed in the meantime is not
+        picked up yet.  Only the very first log-in really depends on LDAP.
+        """
+        try:
+            groups = LDAPGroups.group_names(user.username)
+        except CoprHttpException as ex:
+            if user.openid_groups is None:
+                # We have never talked to LDAP about this user, and without
+                # the group list we can not tell what they may access
+                raise
+            app.logger.warning(
+                "LDAP is not usable (%s), keeping the groups of '%s' from "
+                "the previous log-in: %s", ex, user.username, user.user_teams)
+            return
+        GroupAuth.update_user_groups(user, groups)
 
     @staticmethod
     def _krb5_login_redirect(next_url=None):
