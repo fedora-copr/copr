@@ -448,6 +448,7 @@ class PulpStorage(Storage):
         finally:
             redirect = PulpHTTPRedirect(lock=self._lock)
             redirect.add(self.owner, self.project)
+        return True
 
     def upload_rpm(self, path, labels):
         """
