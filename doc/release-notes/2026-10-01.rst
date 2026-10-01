@@ -1,0 +1,42 @@
+.. _release_notes_2026_10_01:
+
+Highlights from 2026-10-01 release
+===================================
+
+Enhancements
+------------
+
+- `#1108`_ - Project detail page has a new (public) "Actions" tab listing the
+  background actions belonging to the project (createrepo, fork, delete, ...)
+  together with their type, timing, status and the message from backend.
+  Each action has a detail page showing the raw data sent to backend.
+- A temporary LDAP outage no longer prevents already known users from logging
+  in; the previously stored group membership is used instead.  Only users that
+  have never been looked up in LDAP still get an error.  Note that `Fedora
+  Copr`_ isn't using LDAP, so that Copr instance is not affected by this change.
+- Forking a project backed by Pulp storage is now considerably faster, only
+  one repository version per chroot is created instead of one per build.
+- The ``copr-be.conf.example`` configuration file is now installed as
+  documentation, so ``rpm -qd copr-backend`` lists it.
+
+
+Bugfixes
+--------
+
+- An unreachable LDAP server used to block the ``gssapi_login`` API request for
+  minutes and exhaust the WSGI thread pool.  The whole lookup now has a single
+  10s timeout budget and such an outage is reported as 503.  Also,
+  ``KRB5_PRINCIPAL`` was silently ignored and is now honored.
+- Forking Pulp-backed builds no longer downloads the RPMs into ``/tmp``, which
+  could easily run out of space.  The destination build directory on the
+  results storage is used instead.
+- Fork actions against Pulp storage were always marked as failed, even when
+  they succeeded.
+- Direct RPM uploads are correctly re-signed again (the prebuilt task attribute
+  name did not match the one sent by frontend).
+- The backend cleanup scripts (e.g. ``copr_prune_results.py``) report their
+  failures to Sentry now, previously such a traceback could stay unnoticed.
+
+
+.. _#1108: https://github.com/fedora-copr/copr/issues/1108
+.. _`Fedora Copr`: https://copr.fedorainfracloud.org/coprs/
