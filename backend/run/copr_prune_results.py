@@ -244,6 +244,12 @@ class Pruner(object):
                 LOG.info("Skipped %s/%s since auto-prunning is disabled for the project",
                          username, projectdir)
                 return
+
+            if project_info.storage == "pulp":
+                LOG.info("Skipped %s/%s since the project is in Pulp",
+                         username, projectdir)
+                return
+
         except CoprException as exception:
             LOG.error("Failed to get project details for %s/%s with error: %s",
                       username, projectdir, exception)
