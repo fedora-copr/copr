@@ -203,6 +203,10 @@
   {% endif %}
 {% endmacro %}
 
+{% macro action_state(action) %}
+  {{ build_state_text(action.state, reason=action.state|action_state_description) }}
+{% endmacro %}
+
 {% macro module_state(module) %}
   {{ build_state_text(module.status | module_state_from_num) }}
 {% endmacro %}

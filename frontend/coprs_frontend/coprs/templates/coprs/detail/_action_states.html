@@ -1,0 +1,20 @@
+{% macro action_states() %}
+{% from "_helpers.html" import build_state_text %}
+    <dl class="aligned">
+        <div>
+            <details>
+            <summary style="display: list-item"> Possible action states</summary>
+            {% for state in [
+              "waiting",
+              "succeeded",
+              "failed",
+            ]%}
+                {{ build_state_text(state, reason=state|action_state_description) }}
+                - {{state|action_state_description}}
+            <br />
+
+            {% endfor %}
+            </details>
+        </div>
+    </dl>
+{% endmacro %}

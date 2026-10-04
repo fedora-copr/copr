@@ -719,7 +719,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                       self.job.task_id, self.job.chroot_dir)
 
         # delsign on unsigned RPMs is a no-op (exit code 0)
-        action = resign_rpms_in_dir if self.job.prebuilt_rpm_urls else sign_rpms_in_dir
+        action = resign_rpms_in_dir if self.job.prebuilt_tarball_url else sign_rpms_in_dir
         action(
             self.job.project_owner,
             self.job.project_name,

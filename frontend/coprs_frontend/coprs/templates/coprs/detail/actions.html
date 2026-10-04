@@ -1,0 +1,26 @@
+{% extends "coprs/detail.html" %}
+{% block title %}Actions for {{ copr.full_name }}{% endblock %}
+
+{% from "coprs/detail/_actions_table.html" import actions_table with context %}
+
+{% set selected_tab = "actions" %}
+
+{%block project_breadcrumb %}
+<li class="active">
+  Actions
+</li>
+{%endblock%}
+
+{% block detail_body %}
+
+<h2 class="page-title">Project Actions</h2>
+
+<p>
+  Actions are background tasks executed by Copr backend on behalf of this
+  project, e.g. repository metadata regeneration, project forking, or removal
+  of builds.
+</p>
+
+{{ actions_table(actions) }}
+
+{% endblock %}

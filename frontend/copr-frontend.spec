@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.10
+Version:    2.11
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -377,6 +377,11 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.11-1
+- new Actions tab in project detail
+- survive a LDAP outage for already known users
+- fail fast when the LDAP server is unreachable
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.10-1
 - allow altering user email and tokens
 - allow setting module_hotfixes on external repositories

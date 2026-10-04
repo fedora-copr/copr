@@ -448,6 +448,7 @@ class PulpStorage(Storage):
         finally:
             redirect = PulpHTTPRedirect(lock=self._lock)
             redirect.add(self.owner, self.project)
+        return True
 
     def upload_rpm(self, path, labels):
         """
@@ -620,12 +621,19 @@ class PulpStorage(Storage):
     def fork_project(self, src_fullname, dst_fullname, builds_map, createrepo=True):
         _dst_owner, dst_project = dst_fullname.split("/")
 
+        # Forking doesn't support CoprDirs yet. For now, let's assume
+        # all builds are in the main CoprDir.
+        # See https://github.com/fedora-copr/copr/issues/3820
+        dst_dirname = dst_project
+        failed = False
+
         for chroot, src_dst_dir in builds_map.items():
             # It should be a dirname here but since forking CoprDirs is not
             # supported yet, we pass the project name
             # See https://github.com/fedora-copr/copr/issues/3820
             self.init_project(dst_project, chroot)
 
+            hrefs = []
             for old_dir_name, new_dir_name in src_dst_dir.items():
                 src_dir, dst_dir = old_dir_name, new_dir_name
                 if not src_dir or not dst_dir:
@@ -634,21 +642,28 @@ class PulpStorage(Storage):
                 src_build_id = int(src_dir.split("-")[0])
                 dst_build_id = int(dst_dir.split("-")[0])
 
-                # Forking doesn't support CoprDirs yet. For now, let's assume
-                # all builds are in the main CoprDir.
-                # See https://github.com/fedora-copr/copr/issues/3820
-                dst_dirname = dst_fullname.split("/")[1]
-
-                self._fork_build(
+                build_hrefs = self._fork_build(
                     src_build_id,
                     dst_build_id,
                     src_fullname.split("/")[0],
                     src_fullname.split("/")[1],
                     dst_fullname.split("/")[0],
                     dst_fullname.split("/")[1],
-                    dst_dirname,
                     chroot,
+                    dst_dir,
                 )
+
+                if build_hrefs is False:
+                    failed = True
+                    continue
+
+                if build_hrefs:
+                    hrefs.extend(build_hrefs)
+
+            # Create only one repository version for all the forked builds in
+            # this chroot, creating it per-build is needlessly expensive.
+            if hrefs:
+                self.create_repository_version(dst_dirname, chroot, hrefs)
 
             if createrepo:
                 repository = self._get_repository(chroot)
@@ -656,11 +671,28 @@ class PulpStorage(Storage):
                     self.client.publish(repository),
                 ])
 
+        return not failed
+
     def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
-                    dst_owner, dst_project, dst_dirname, chroot):
-        # pylint: disable=too-many-positional-arguments
+                    dst_owner, dst_project, chroot, dst_dir):
+        # pylint: disable=too-many-positional-arguments,too-many-locals
+        """
+        Fork RPMs of a single build and upload them to Pulp.  Return the list
+        of uploaded ``pulp_href`` values, the caller is responsible for
+        creating a repository version from them.
+        """
         src_fullname = "{0}/{1}".format(src_owner, src_project)
-        with TemporaryDirectory(prefix="copr-fork-") as tmp:
+
+        # Don't use /tmp for the temporary copy of the RPMs, it is typically a
+        # small (or even memory-backed) filesystem while builds can be huge.
+        # The results directory lives on a large persistent storage, and the
+        # destination build directory (with logs) is already created there by
+        # BackendStorage.fork_project().
+        workdir = os.path.join(self.opts.destdir, dst_owner, dst_project,
+                               chroot, dst_dir)
+        ensure_dir_exists(workdir, self.log)
+
+        with TemporaryDirectory(prefix=".copr-fork-", dir=workdir) as tmp:
             response = self.client.get_content(
                 [src_build_id],
                 chroot,
@@ -717,7 +749,7 @@ class PulpStorage(Storage):
             hrefs = [x["pulp_href"] for x in result.values()]
 
         self.log.info("Forked Pulp build %s as %s", src_build_id, dst_build_id)
-        return self.create_repository_version(dst_dirname, chroot, hrefs)
+        return hrefs
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([

@@ -187,8 +187,32 @@ class Kerberos:
         user.mail = username + "@" + krb_config['email_domain']
         keys = ["LDAP_URL", "LDAP_SEARCH_STRING"]
         if all(app.config[k] for k in keys):
-            GroupAuth.update_user_groups(user, LDAPGroups.group_names(user.username))
+            Kerberos.load_ldap_groups(user)
         return user
+
+    @staticmethod
+    def load_ldap_groups(user):
+        """
+        (Re)load the list of groups 'user' belongs to from LDAP.
+
+        Loading the groups is the one and only reason why we contact LDAP at
+        all.  So when the server is down, but we already know the groups from
+        some previous log-in, keep those and let the user in - an LDAP outage
+        then only means that a group membership changed in the meantime is not
+        picked up yet.  Only the very first log-in really depends on LDAP.
+        """
+        try:
+            groups = LDAPGroups.group_names(user.username)
+        except CoprHttpException as ex:
+            if user.openid_groups is None:
+                # We have never talked to LDAP about this user, and without
+                # the group list we can not tell what they may access
+                raise
+            app.logger.warning(
+                "LDAP is not usable (%s), keeping the groups of '%s' from "
+                "the previous log-in: %s", ex, user.username, user.user_teams)
+            return
+        GroupAuth.update_user_groups(user, groups)
 
     @staticmethod
     def _krb5_login_redirect(next_url=None):
@@ -268,33 +292,71 @@ class LDAP:
 
     def send_request(self, ou, attrs, ffilter):
         """
-        Send a /safe/ request to a LDAP server
-        """
-        return self._send_request_repeatedly(ou, attrs, ffilter)
-
-    def _send_request_repeatedly(self, ou, attrs, ffilter):
-        i = 0
-        while True:
-            i += 1
-            try:
-                return self._send_request(ou, attrs, ffilter)
-            except ldap.SERVER_DOWN as ex:
-                print(str(ex))
-                time.sleep(0.5)
-
-    def _send_request(self, ou, attrs, ffilter):
-        """
-        Send a single request to a LDAP server
+        Send a /safe/ request to a LDAP server.  Give up (and raise
+        CoprHttpException) once LDAP_TIMEOUT seconds elapse;  a user waiting
+        for a log-in must not be blocked for minutes just because the LDAP
+        server is unreachable.
         """
         app.logger.debug("LDAP query: attrs=%s ffilter=%s", attrs, ffilter)
+        deadline = time.monotonic() + app.config["LDAP_TIMEOUT"]
+
+        app.logger.debug("LDAP initialize: %s", self.url)
+        connect = ldap.initialize(self.url)
+        # We need both options, they cover different phases:
+        # OPT_NETWORK_TIMEOUT limits establishing the TCP connection, i.e. the
+        # connect() call, while OPT_TIMEOUT limits waiting for a response to an
+        # operation that has already been sent (bind, search).  Without the
+        # former, an unreachable server (SYN packets dropped, no RST) keeps the
+        # request hanging for as long as the kernel retransmits the SYN, which
+        # is over two minutes with the default tcp_syn_retries.  Without the
+        # latter, a server that accepts the connection but never answers keeps
+        # us waiting forever.
+        timeout = self._remaining(deadline)
+        app.logger.debug("LDAP set_option: OPT_NETWORK_TIMEOUT=%.1fs", timeout)
+        connect.set_option(ldap.OPT_NETWORK_TIMEOUT, timeout)
+        app.logger.debug("LDAP set_option: OPT_TIMEOUT=%.1fs", timeout)
+        connect.set_option(ldap.OPT_TIMEOUT, timeout)
+
         try:
-            connect = ldap.initialize(self.url)
             self._bind(connect)
-            return connect.search_s(ou, ldap.SCOPE_ONELEVEL,
-                                    ffilter, attrs)
-        except ldap.SERVER_DOWN as ex:
-            msg = ex.args[0]["desc"]
-            raise CoprHttpException(msg) from ex
+            # Binding could have eaten a part of the budget already
+            timeout = self._remaining(deadline)
+            app.logger.debug("LDAP set_option: OPT_TIMEOUT=%.1fs", timeout)
+            connect.set_option(ldap.OPT_TIMEOUT, timeout)
+            app.logger.debug("LDAP search_s: ou=%s", ou)
+            result = connect.search_s(ou, ldap.SCOPE_ONELEVEL, ffilter, attrs)
+            app.logger.debug("LDAP search_s: %s object(s) returned",
+                             len(result))
+            return result
+        except (ldap.SERVER_DOWN, ldap.TIMEOUT) as ex:
+            # Both mean "the server did not give us the data", and both have
+            # to become CoprHttpException so that the callers can fall back
+            # to the group list from a previous log-in
+            try:
+                msg = ex.args[0]["desc"]
+            except (IndexError, KeyError, TypeError):
+                # Unlike SERVER_DOWN, ldap.TIMEOUT is typically raised with
+                # no arguments at all
+                msg = "unknown error"
+            app.logger.error("LDAP server %s is not usable: %s", self.url, msg)
+            # This is an outage on the LDAP side, not a client error
+            raise CoprHttpException(msg, code=503) from ex
+        finally:
+            app.logger.debug("LDAP unbind_s")
+            try:
+                connect.unbind_s()
+            except ldap.LDAPError:
+                # Closing a connection that never got established fails, and
+                # we must not shadow the original exception with that
+                pass
+
+    @staticmethod
+    def _remaining(deadline):
+        """
+        Seconds left till 'deadline'.  Never return zero or less, that would
+        mean "no timeout at all" for the OPT_* options below.
+        """
+        return max(deadline - time.monotonic(), 0.1)
 
     @staticmethod
     def _bind(connect):
@@ -305,24 +367,28 @@ class LDAP:
         """
         keytab = app.config.get("KRB5_KEYTAB")
         if not keytab:
+            app.logger.debug("LDAP bind: none, KRB5_KEYTAB is not configured")
             return
 
         principal = app.config.get("KRB5_PRINCIPAL")
         name = None
         if principal:
-            gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+            name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
 
         # Acquire a ticket from the keytab into a process-local memory
         # ccache, and point Kerberos to it so that the SASL/GSSAPI bind
         # below picks it up.
         ccache = f"MEMORY:copr-ldap-{os.getpid()}"
+        app.logger.debug("Kerberos credentials: keytab=%s ccache=%s",
+                         keytab, ccache)
         gssapi.Credentials(
             name=name, store={"client_keytab": keytab, "ccache": ccache},
             usage="initiate")
         os.environ["KRB5CCNAME"] = ccache
 
+        app.logger.debug("LDAP sasl_interactive_bind_s: GSSAPI")
         connect.sasl_interactive_bind_s("", ldap.sasl.gssapi())
-        app.logger.info("LDAP Authenticated over GSSAPI")
+        app.logger.debug("LDAP Authenticated over GSSAPI")
 
     def query_one(self, attrs, filters=None):
         """

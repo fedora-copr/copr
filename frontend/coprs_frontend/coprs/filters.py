@@ -3,6 +3,7 @@ Jinja2 filters specific for Copr Frontend
 """
 
 import datetime
+import json
 import os
 import re
 import time
@@ -223,6 +224,36 @@ def build_state_decoration(state):
     }
 
     return description_map.get(state, "")
+
+
+@app.template_filter("action_state_description")
+def action_state_description(state):
+    """
+    Human readable explanation of the given action state, or an empty string
+    for states we have no description for.
+    """
+    description_map = {
+        "waiting": "The action is waiting in queue, or is being processed.",
+        "succeeded": "The action was successfully processed by backend.",
+        "failed": ("The action failed.  Please contact the Copr maintainers "
+                   "if the problem persists."),
+    }
+
+    return description_map.get(state, "")
+
+
+@app.template_filter("pretty_json")
+def pretty_json(data):
+    """
+    Indent a JSON string so it is human readable.  Non-JSON data (and None) are
+    returned unchanged, we never want this to break the page rendering.
+    """
+    if not data:
+        return ""
+    try:
+        return json.dumps(json.loads(data), indent=2, sort_keys=True)
+    except (ValueError, TypeError):
+        return data
 
 
 @app.template_filter("build_source_description")

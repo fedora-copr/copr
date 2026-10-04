@@ -168,6 +168,11 @@ class Config(object):
     # e.g. ou=users,dc=company,dc=com
     LDAP_SEARCH_STRING = None
 
+    # Total time budget (seconds) for one LDAP lookup, covering the TCP
+    # connect, the SASL bind and the query together.  Once it is over, the
+    # log-in fails instead of blocking the user for minutes.
+    LDAP_TIMEOUT = 10
+
     # Path to a Kerberos keytab used for binding to the LDAP server via
     # SASL/GSSAPI. When unset, LDAP is queried anonymously (no bind).
     KRB5_KEYTAB = None

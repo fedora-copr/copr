@@ -5,7 +5,7 @@
 %global copr_common_version 1.8.1
 
 Name:       copr-backend
-Version:    2.15
+Version:    2.17
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -157,6 +157,9 @@ cp -a copr-backend-service %{buildroot}/%{_bindir}/
 cp -a run/* %{buildroot}%{_bindir}/
 cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
+install -d %{buildroot}%{_pkgdocdir}
+install -p -m 644 conf/copr-be.conf.example %{buildroot}%{_pkgdocdir}/copr-be.conf.example
+
 install -p -m 755 conf/crontab/daily %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 install -p -m 755 conf/crontab/weekly  %{buildroot}%{_sysconfdir}/cron.weekly/copr-backend
 
@@ -218,6 +221,7 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/lighttpd
+%doc %{_pkgdocdir}/copr-be.conf.example
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/*.service
@@ -240,8 +244,20 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %license LICENSE
 %{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
+%exclude %{_pkgdocdir}/copr-be.conf.example
 
 %changelog
+* Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.17-1
+- return success value when forking pulp repo
+
+* Wed Sep 30 2026 Pavel Raiskup <pavel@raiskup.cz> 2.16-1
+- add sentry for cleanup scripts
+- fix prebuilt task attribute name and log unsign command
+- don't use /tmp when forking Pulp builds
+- create one Pulp repo version per fork action
+- install copr-be.conf.example as a doc file
+- allow querying Pulp objects via PRN
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.15-1
 - uploadrpm: support multiple RPMs, optional srpm/logs
 - Pulp: content guards, PRNs/hrefs, domains, skip zero-byte RPMs, no duplicate NEVRAs in one request
