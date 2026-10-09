@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import pwd
 
 from copr_backend.helpers import BackendConfigReader, call_copr_repo, run_cmd
-from copr_backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, create_user_keys, create_gpg_email
+from copr_backend.sign import get_signer, unsign_rpms_in_dir, sign_rpms_in_dir
 
 logging.basicConfig(
     filename="/var/log/copr-backend/fix_gpg.log",
@@ -69,12 +69,13 @@ def fix_copr(args, opts, copr_full_name):
         log.info('Ignoring %s. Directory does not exist.', copr_path)
         return
 
+    signer = get_signer(copr_full_name, opts, log)
     log.info("Generate key-pair on copr-keygen (if not generated) for email %s",
-             create_gpg_email(owner, coprname, opts.sign_domain))
-    create_user_keys(owner, coprname, opts)
+             signer.create_gpg_email(owner, coprname, opts.sign_domain))
+    signer.create_user_keys(owner, coprname)
 
     log.info("Regenerate pubkey.gpg in copr %s", copr_path)
-    get_pubkey(owner, coprname, log, opts.sign_domain, os.path.join(copr_path, 'pubkey.gpg'))
+    signer.get_pubkey(owner, coprname, opts.sign_domain, os.path.join(copr_path, 'pubkey.gpg'))
 
     # Match the "00001231-anycharacer" directory names.  Compile once, use many.
     builddir_matcher = re.compile(r"\d{8,}-")
