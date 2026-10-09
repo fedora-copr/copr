@@ -125,7 +125,10 @@ Requires: fedora-review-plugin-java
 %endif
 # We need %%pypi_source defined, which is in 3-29+
 Requires: python-srpm-macros >= 3-29
+# rpkg (from rpkg-util) is not available in EPEL
+%if 0%{?fedora}
 Requires: rpkg
+%endif
 Requires: rsync
 Requires: tito
 # yum* to allow mock to build against el* chroots without bootstrap_container
@@ -140,11 +143,11 @@ Requires: yum-utils
 %if 0%{?fedora} >= 38
 %latest_requires dnf5
 %latest_requires dnf5-plugins
+%latest_requires python3-libdnf5
+%latest_requires libdnf5
 %endif
 
-%latest_requires python3-libdnf5
 %latest_requires dist-git-client
-%latest_requires libdnf5
 %latest_requires librepo
 %latest_requires libsolv
 %latest_requires mock
