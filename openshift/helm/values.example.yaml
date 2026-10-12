@@ -18,6 +18,7 @@ frontend_backend_password: ...
 frontend_base_url: http://<pod-name>-<project-name>.<openshift-stack-domain>
 distgit_fqdn: <pod-name>-<project-name>.<openshift-stack-domain>
 backend_fqdn: <pod-name>-<project-name>.<openshift-stack-domain>
+resalloc_webui_fqdn: <pod-name>-<project-name>.<openshift-stack-domain>
 
 # AWS EC2 configuration
 aws_config:

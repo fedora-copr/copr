@@ -1,13 +1,15 @@
 ---
 apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
   name: resalloc-config
-type: Opaque
 data:
-  pools.yaml: {{ tpl (.Files.Get "config/resalloc-pool.yaml.j2") . | b64enc | quote }}
-  server.yaml: {{ tpl (.Files.Get "config/resalloc-server.yaml.j2") . | b64enc | quote }}
-  spinup-playbook.yml: {{ tpl (.Files.Get "config/resalloc-spinup-playbook.yml.j2") . | b64enc | quote }}
+  pools.yaml: |
+{{ tpl (.Files.Get "config/resalloc-pool.yaml.j2") . | indent 4 }}
+  server.yaml: |
+{{ tpl (.Files.Get "config/resalloc-server.yaml.j2") . | indent 4 }}
+  spinup-playbook.yml: |
+{{ tpl (.Files.Get "config/resalloc-spinup-playbook.yml.j2") . | indent 4 }}
 
 ---
 apiVersion: v1
@@ -45,9 +47,11 @@ spec:
     - name: resalloc
       port: 49100
       targetPort: 49100
+    - name: webui
+      port: 5007
+      targetPort: 5007
   selector:
     name: resalloc
-
 
 ---
 apiVersion: image.openshift.io/v1
@@ -84,12 +88,13 @@ spec:
           volumeMounts:
             - name: resalloc-data
               mountPath: /var/lib/resallocserver
-            - name: resalloc-data
+            - name: resalloc-logs
               mountPath: /var/log/resallocserver
             - name: resalloc-config
               mountPath: /etc/resallocserver
             - name: resalloc-home
               mountPath: /resalloc-home
+
           env:
             - name: CONFIG_DIR
               value: /etc/resallocserver
@@ -109,10 +114,43 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 5
 
+        - name: resalloc-webui
+          image: {{ .Values.resalloc_image | quote }}
+          imagePullPolicy: IfNotPresent
+          resources:
+{{ toYaml .Values.resources.resalloc.webui | indent 12 }}
+          volumeMounts:
+            - name: resalloc-data
+              mountPath: /var/lib/resallocserver
+            - name: resalloc-logs
+              mountPath: /var/log/resallocserver
+            - name: resalloc-config
+              mountPath: /etc/resallocserver
+          env:
+            - name: CONFIG_DIR
+              value: /etc/resallocserver
+          command:
+            - python3
+            - "-c"
+            - "from resallocwebui.app import app; app.run(host='0.0.0.0', port=5007)"
+          ports:
+            - containerPort: 5007
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 5007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5007
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
       volumes:
         - name: resalloc-config
-          secret:
-            secretName: resalloc-config
+          configMap:
+            name: resalloc-config
             optional: false
 
         - name: resalloc-home
@@ -136,6 +174,9 @@ spec:
           persistentVolumeClaim:
             claimName: resalloc-data
 
+        - name: resalloc-logs
+          emptyDir: {}
+
       restartPolicy: Always
 
   replicas: 1
@@ -149,11 +190,27 @@ spec:
         automatic: true
         containerNames:
           - server
+          - resalloc-webui
         from:
           kind: ImageStreamTag
           name: resalloc:test
       type: ImageChange
 
     - type: ConfigChange
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: copr-resalloc
+spec:
+  {{- if .Values.resalloc_webui_fqdn }}
+  host: {{ .Values.resalloc_webui_fqdn | quote }}
+  {{- end }}
+  port:
+    targetPort: webui
+  to:
+    kind: Service
+    name: resalloc
 
 # vim: ft=yaml
