@@ -54,35 +54,35 @@ spec:
     name: resalloc
 
 ---
-apiVersion: image.openshift.io/v1
-kind: ImageStream
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: resalloc
+  labels:
+    app: copr
+    component: resalloc
 spec:
-  tags:
-    - from:
-        kind: DockerImage
-        name: quay.io/copr/resalloc:test
-      importPolicy:
-        scheduled: true
-      name: test
-
----
-kind: DeploymentConfig
-apiVersion: apps.openshift.io/v1
-metadata:
-  name: resalloc
-spec:
+  replicas: 1
   revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: resalloc
   template:
     metadata:
       labels:
         name: resalloc
+        app: copr
+        component: resalloc
     spec:
       containers:
         - name: server
-          image: {{ .Values.resalloc_image | quote }}
+          image: {{ .Values.resalloc_image }}
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 49100
+              protocol: TCP
           resources:
 {{ toYaml .Values.resources.resalloc.app | indent 12 }}
           volumeMounts:
@@ -115,7 +115,7 @@ spec:
             timeoutSeconds: 5
 
         - name: resalloc-webui
-          image: {{ .Values.resalloc_image | quote }}
+          image: {{ .Values.resalloc_image }}
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.resalloc.webui | indent 12 }}
@@ -151,12 +151,10 @@ spec:
         - name: resalloc-config
           configMap:
             name: resalloc-config
-            optional: false
 
         - name: resalloc-home
           secret:
             secretName: resalloc-home
-            optional: false
             defaultMode: 0600
             items:
               - key: aws_config
@@ -178,25 +176,6 @@ spec:
           emptyDir: {}
 
       restartPolicy: Always
-
-  replicas: 1
-  strategy:
-    type: Recreate
-    resources:
-{{ toYaml .Values.resources.resalloc.strategy | indent 6 }}
-
-  triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-          - server
-          - resalloc-webui
-        from:
-          kind: ImageStreamTag
-          name: resalloc:test
-      type: ImageChange
-
-    - type: ConfigChange
 
 ---
 apiVersion: route.openshift.io/v1
