@@ -20,7 +20,7 @@ postgresql_image: ""
 redis_image: ""
 copr_frontend_image: quay.io/copr/frontend:test
 copr_backend_image: quay.io/copr/backend:test
-nginx_image: quay.io/copr/backend-httpd:test
+nginx_image: quay.io/sclorg/nginx-126-c10s
 copr_distgit_image: quay.io/copr/distgit:test
 resalloc_image: quay.io/copr/resalloc:test
 copr_keygen_image: quay.io/copr/keygen:test

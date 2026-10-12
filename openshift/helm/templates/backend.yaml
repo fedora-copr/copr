@@ -63,12 +63,12 @@ stringData:
 
 ---
 apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
   name: copr-backend-httpd-config
-type: Opaque
 data:
-  nginx-copr-be.conf: {{ tpl (.Files.Get "config/backend-nginx.conf") . | b64enc | quote }}
+  copr-be.conf: |
+{{ .Files.Get "config/backend-nginx.conf" | indent 4 }}
 
 ---
 apiVersion: v1
@@ -81,51 +81,34 @@ spec:
       port: 5002
       targetPort: 5002
   selector:
-    name: copr-backend-httpd
+    name: copr-backend
 
 ---
-apiVersion: image.openshift.io/v1
-kind: ImageStream
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: copr-backend
+  labels:
+    app: copr
+    component: backend
 spec:
-  tags:
-    - from:
-        kind: DockerImage
-        name: quay.io/copr/backend:test
-      importPolicy:
-        scheduled: true
-      name: test
-
----
-apiVersion: image.openshift.io/v1
-kind: ImageStream
-metadata:
-  name: copr-backend-httpd
-spec:
-  tags:
-    - from:
-        kind: DockerImage
-        name: {{ .Values.nginx_image | quote }}
-      importPolicy:
-        scheduled: true
-      name: test
-
----
-kind: DeploymentConfig
-apiVersion: apps.openshift.io/v1
-metadata:
-  name: copr-backend
-spec:
+  replicas: 1
   revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: copr-backend
   template:
     metadata:
       labels:
         name: copr-backend
+        app: copr
+        component: backend
     spec:
       containers:
         - name: log
-          image: {{ .Values.copr_backend_image | quote }}
+          image: {{ .Values.copr_backend_image }}
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.backend.log | indent 12 }}
@@ -143,7 +126,7 @@ spec:
               mountPath: /var/log/copr-backend
 
         - name: actions
-          image: {{ .Values.copr_backend_image | quote }}
+          image: {{ .Values.copr_backend_image }}
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.backend.actions | indent 12 }}
@@ -163,7 +146,7 @@ spec:
             periodSeconds: 30
 
         - name: builds
-          image: {{ .Values.copr_backend_image | quote }}
+          image: {{ .Values.copr_backend_image }}
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.backend.builds | indent 12 }}
@@ -187,89 +170,14 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
 
-      # start these containers on the same node with copr-backend-httpd!
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: name
-                    operator: In
-                    values:
-                      - copr-backend-httpd
-              topologyKey: kubernetes.io/hostname
-
-
-      volumes:
-        - name: config
-          secret:
-            secretName: copr-backend-config
-            optional: false
-
-        - name: home
-          secret:
-            secretName: backend-home
-            optional: false
-            defaultMode: 0600
-            items:
-              - key: id_rsa
-                path: .ssh/id_rsa
-              - key: ssh_config
-                path: .ssh/config
-
-        - name: logs
-          persistentVolumeClaim:
-            claimName: copr-backend-logs
-
-        - name: results
-          persistentVolumeClaim:
-            claimName: copr-backend-results
-
-        - name: locks
-          persistentVolumeClaim:
-            claimName: copr-backend-locks
-
-      restartPolicy: Always
-
-  replicas: 1
-  strategy:
-    type: Recreate
-    resources:
-{{ toYaml .Values.resources.backend.strategy | indent 6 }}
-
-  triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-          - actions
-          - builds
-          - log
-        from:
-          kind: ImageStreamTag
-          name: copr-backend:test
-      type: ImageChange
-
-    - type: ConfigChange
-
-
----
-kind: DeploymentConfig
-apiVersion: apps.openshift.io/v1
-metadata:
-  name: copr-backend-httpd
-spec:
-  revisionHistoryLimit: 1
-  template:
-    metadata:
-      labels:
-        name: copr-backend-httpd
-    spec:
-      containers:
         - name: httpd
-          image: {{ .Values.nginx_image | quote }}
+          image: {{ .Values.nginx_image }}
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources.backend.httpd | indent 12 }}
+          ports:
+            - containerPort: 5002
+              protocol: TCP
           command: ["nginx", "-g", "daemon off;"]
           readinessProbe:
             httpGet:
@@ -288,38 +196,44 @@ spec:
           volumeMounts:
             - name: results
               mountPath: /var/lib/copr/public_html
-            - name: config
-              mountPath: /etc/nginx/conf.d/extra/
+            - name: httpd-config
+              mountPath: /opt/app-root/etc/nginx.d/copr-be.conf
+              subPath: copr-be.conf
 
       volumes:
+        - name: config
+          secret:
+            secretName: copr-backend-config
+            optional: false
+
+        - name: home
+          secret:
+            secretName: backend-home
+            optional: false
+            defaultMode: 0600
+            items:
+              - key: id_rsa
+                path: .ssh/id_rsa
+              - key: ssh_config
+                path: .ssh/config
+
+        - name: httpd-config
+          configMap:
+            name: copr-backend-httpd-config
+
+        - name: logs
+          persistentVolumeClaim:
+            claimName: copr-backend-logs
+
         - name: results
           persistentVolumeClaim:
             claimName: copr-backend-results
 
-        - name: config
-          secret:
-            secretName: copr-backend-httpd-config
-            optional: false
+        - name: locks
+          persistentVolumeClaim:
+            claimName: copr-backend-locks
 
       restartPolicy: Always
-
-  replicas: 1
-  strategy:
-    type: Recreate
-    resources:
-{{ toYaml .Values.resources.backend.strategy | indent 6 }}
-
-  triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-          - httpd
-        from:
-          kind: ImageStreamTag
-          name: copr-backend-httpd:test
-      type: ImageChange
-
-    - type: ConfigChange
 
 ---
 apiVersion: route.openshift.io/v1
