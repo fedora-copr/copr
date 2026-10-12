@@ -14,6 +14,7 @@ frontend_backend_password: ""
 frontend_base_url: http://copr-frontend:5000
 distgit_fqdn: copr-distgit
 backend_fqdn: copr-backend
+resalloc_webui_fqdn: ""
 
 # Empty PostgreSQL/Redis images preserve the legacy ImageStream trigger flow.
 postgresql_image: ""
@@ -77,6 +78,7 @@ resources:
 
   resalloc:
     app: *small_app
+    webui: *small_app
     strategy: *rollout
 
   postgres:

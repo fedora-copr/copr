@@ -133,6 +133,13 @@ resources:
       limits:
         memory: "512Mi"
         cpu: "100m"
+    webui:
+      requests:
+        memory: "64Mi"
+        cpu: "10m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
     strategy:
       requests:
         memory: "16Mi"
