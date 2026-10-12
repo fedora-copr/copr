@@ -487,7 +487,7 @@ class Spec:
             # TODO We want to loop over all name-version chroots and parse the
             # spec values for each of them. For that, we will set dist macros.
             with open(path, "r", **Specfile.ENCODING_ARGS) as fd:
-                self.spec = Specfile(file=fd, macros=macros)
+                self.spec = Specfile(file=fd, macros=macros, force_parse=True)
         except TypeError as ex:
             raise RuntimeError("No .spec file") from ex
         except OSError as ex:
