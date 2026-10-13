@@ -977,7 +977,7 @@ class TestAction(object):
             lines = fd.readlines()
             assert lines == [text]
 
-    @mock.patch("copr_backend.actions.shutil.rmtree")
+    @mock.patch("copr_backend.actions.ensure_dir_removed")
     def test_remove_dirs(self, mock_rmtree, mc_time):
         _unused = mc_time
         test_action = Action.create_from(
