@@ -14,7 +14,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # https://fedoraproject.org/wiki/Changes/Python3.12#The_Python_standard_library_distutils_module_will_be_removed
 from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from distutils.errors import DistutilsFileError # pylint: disable=deprecated-module
-import shutil
 import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
 from copr_common.lock import Lock
@@ -223,13 +222,13 @@ class BackendStorage(Storage):
         if not os.path.isdir(chroot_path):
             self.log.error("Directory %s not found", chroot_path)
             return
-        shutil.rmtree(chroot_path)
+        ensure_dir_removed(chroot_path)
 
     def delete_project(self, dirname):
         path = os.path.join(self.opts.destdir, self.owner, dirname)
         if os.path.exists(path):
             self.log.info("Removing copr dir %s", path)
-            shutil.rmtree(path)
+            ensure_dir_removed(path)
 
     def delete_builds(self, dirname, chroot_builddirs, build_ids):
         result = True

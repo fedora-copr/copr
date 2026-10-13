@@ -6,7 +6,6 @@ import functools
 import glob
 import logging
 import os
-import shutil
 import statistics
 import time
 import json
@@ -34,7 +33,7 @@ from copr_backend.exceptions import (
 )
 from copr_backend.rpmeta import rpmeta_predict_build_time
 from copr_backend.helpers import (
-    run_cmd, register_build_result,
+    run_cmd, register_build_result, ensure_dir_removed,
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender
@@ -204,7 +203,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 elif not file_path.endswith(".rpm"):
                     os.remove(file_path)
             else:
-                shutil.rmtree(file_path)
+                ensure_dir_removed(file_path)
 
     def _setup_resultdir_and_logging(self):
         """ Prepare the result directory and log file ASAP """
