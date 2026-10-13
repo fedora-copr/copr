@@ -18,12 +18,16 @@ from copr_common.enums import (
 from copr_common.worker_manager import WorkerManager
 from copr_backend.worker_manager import BackendQueueTask
 from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
+from copr_backend.sign import get_signer
 
-from .sign import create_user_keys, CoprKeygenRequestError
-from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
+from .exceptions import (
+    CoprKeygenRequestError,
+    CoprSignError,
+    CreateRepoError,
+    FrontendClientException,
+)
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
                       call_copr_repo, copy2_but_hardlink_rpms)
-from .sign import get_pubkey
 
 
 class Action(object):
@@ -148,7 +152,9 @@ class GPGMixin(object):
             # skip key creation, most probably sign component is unused
             return True
         try:
-            create_user_keys(ownername, projectname, self.opts)
+            fullname = f"{ownername}/{projectname}"
+            signer = get_signer(fullname, self.opts, self.log)
+            signer.create_user_keys(ownername, projectname)
             return True
         except CoprKeygenRequestError as e:
             self.log.exception(e)
@@ -192,7 +198,9 @@ class Fork(Action, GPGMixin):
                 # Generate brand new gpg key.
                 self.generate_gpg_key(data["user"], data["copr"])
                 # Put the new public key into forked build directory.
-                get_pubkey(data["user"], data["copr"], self.log, self.opts.sign_domain, pubkey_path)
+                fullname = f"{data['user']}/{data['copr']}"
+                signer = get_signer(fullname, self.opts, self.log)
+                signer.get_pubkey(data["user"], data["copr"], self.opts.sign_domain, pubkey_path)
 
             kwargs = {
                 "src_fullname": self.data["old_value"],

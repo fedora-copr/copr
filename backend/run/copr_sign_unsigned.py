@@ -12,7 +12,7 @@ import pwd
 
 from copr_backend.helpers import (BackendConfigReader, create_file_logger,
                              uses_devel_repo, call_copr_repo)
-from copr_backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
+from copr_backend.sign import get_signer, sign_rpms_in_dir
 from copr_backend.exceptions import CoprSignNoKeyError
 
 
@@ -84,7 +84,9 @@ def check_pubkey(pubkey_path, user, project, opts):
     else:
         log.info("Missing pubkey for %s/%s", user, project)
         try:
-            get_pubkey(user, project, log, opts.sign_domain, pubkey_path)
+            fullname = f"{user}/{project}"
+            signer = get_signer(fullname, opts, log)
+            signer.get_pubkey(user, project, opts.sign_domain, pubkey_path)
             return True
         except Exception as err:
             log.exception(err)
@@ -92,6 +94,7 @@ def check_pubkey(pubkey_path, user, project, opts):
 
 
 def main():
+    # pylint: disable=too-many-statements
     users_done_old = set()
     try:
         with open("/tmp/users_done.txt") as handle:
@@ -119,11 +122,13 @@ def main():
             project_name = project_name_entry.name
             log.info("Checking project dir: %s", project_name)
 
+            fullname = f"{user_name}/{project_name}"
+            signer = get_signer(fullname, opts, log)
             try:
-                get_pubkey(user_name, project_name, log, opts.sign_domain)
+                signer.get_pubkey(user_name, project_name, opts.sign_domain)
                 log.info("Key-pair exists for %s/%s", user_name, project_name)
             except CoprSignNoKeyError:
-                create_user_keys(user_name, project_name, opts)
+                signer.create_user_keys(user_name, project_name)
                 log.info("Created new key-pair for %s/%s", user_name, project_name)
             except Exception as err:
                 log.error("Failed to get pubkey for {}/{}, mark as failed, skipping")

@@ -10,9 +10,9 @@ import pytest
 
 from copr_backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
 from copr_backend.sign import (
-    get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys,
+    get_signer,
+    sign_rpms_in_dir,
     gpg_hashtype_for_chroot,
-    call_sign_bin,
 )
 
 STDOUT = "stdout"
@@ -23,6 +23,7 @@ class TestSign(object):
     # pylint: disable=too-many-public-methods
 
     def setup_method(self, method):
+        # pylint: disable=attribute-defined-outside-init
         self.username = "foo"
         self.projectname = "bar"
 
@@ -30,9 +31,10 @@ class TestSign(object):
         self.test_time = time.time()
         self.tmp_dir_path = None
 
-        self.opts = Munch(keygen_host="example.com")
+        self.opts = Munch(keygen_host="example.com", signers=["obs-sign"])
         self.opts.gently_gpg_sha256 = False
         self.opts.sign_domain = "fedorahosted.org"
+        self.signer = get_signer("foo/bar", self.opts, MagicMock())
 
     def teardown_method(self, method):
         if self.tmp_dir_path:
@@ -53,28 +55,28 @@ class TestSign(object):
             with open(path, "w") as handle:
                 handle.write("1")
 
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.Popen")
     def test_get_pubkey(self, mc_popen):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
         mc_handle.returncode = 0
         mc_popen.return_value = mc_handle
 
-        result = get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
+        result = self.signer.get_pubkey(self.username, self.projectname, self.opts.sign_domain)
         assert result == STDOUT
         assert mc_popen.call_args[0][0] == ['/bin/sign', '-u', self.usermail, '-p']
 
 
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.Popen")
     def test_get_pubkey_error(self, mc_popen):
         mc_popen.side_effect = IOError(STDERR)
 
         with pytest.raises(CoprSignError):
-            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
+            self.signer.get_pubkey(self.username, self.projectname, self.opts.sign_domain)
 
 
-    @mock.patch("copr_backend.sign.time.sleep")
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.time.sleep")
+    @mock.patch("copr_backend.signer.Popen")
     def test_get_pubkey_unknown_key(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, "unknown key: foobar")
@@ -82,12 +84,12 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignNoKeyError) as err:
-            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
+            self.signer.get_pubkey(self.username, self.projectname, self.opts.sign_domain)
 
         assert "There are no gpg keys for user foo in keyring" in str(err)
 
-    @mock.patch("copr_backend.sign.time.sleep")
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.time.sleep")
+    @mock.patch("copr_backend.signer.Popen")
     def test_get_pubkey_unknown_error(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
@@ -95,11 +97,11 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         with pytest.raises(CoprSignError) as err:
-            get_pubkey(self.username, self.projectname, MagicMock(), self.opts.sign_domain)
+            self.signer.get_pubkey(self.username, self.projectname, self.opts.sign_domain)
 
         assert "Failed to get user pubkey" in str(err)
 
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.Popen")
     def test_get_pubkey_outfile(self, mc_popen, tmp_dir):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
@@ -108,7 +110,7 @@ class TestSign(object):
 
         outfile_path = os.path.join(self.tmp_dir_path, "out.pub")
         assert not os.path.exists(outfile_path)
-        result = get_pubkey(self.username, self.projectname, MagicMock(),
+        result = self.signer.get_pubkey(self.username, self.projectname,
                             self.opts.sign_domain, outfile_path)
         assert result == STDOUT
         assert os.path.exists(outfile_path)
@@ -116,7 +118,7 @@ class TestSign(object):
             content = handle.read()
             assert STDOUT == content
 
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.Popen")
     def test_sign_one(self, mc_popen):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
@@ -124,23 +126,23 @@ class TestSign(object):
         mc_popen.return_value = mc_handle
 
         fake_path = "/tmp/pkg.rpm"
-        result = _sign_one(fake_path, self.usermail, "sha1", MagicMock())
+        result = self.signer.sign_one(fake_path, self.usermail, "sha1")
         assert STDOUT, STDERR == result
 
         expected_cmd = ['/bin/sign', "-4", "-h", "sha1", "-u", self.usermail,
                         "-r", fake_path]
         assert mc_popen.call_args[0][0] == expected_cmd
 
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.Popen")
     def test_sign_one_popen_error(self, mc_popen):
         mc_popen.side_effect = IOError()
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail, "sha256", MagicMock())
+            self.signer.sign_one(fake_path, self.usermail, "sha256")
 
-    @mock.patch("copr_backend.sign.time.sleep")
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.time.sleep")
+    @mock.patch("copr_backend.signer.Popen")
     def test_sign_one_cmd_erro(self, mc_popen, _sleep):
         mc_handle = MagicMock()
         mc_handle.communicate.return_value = (STDOUT, STDERR)
@@ -149,10 +151,10 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-            _sign_one(fake_path, self.usermail, "sha256", MagicMock())
+            self.signer.sign_one(fake_path, self.usermail, "sha256")
 
-    @mock.patch("copr_backend.sign.time.sleep")
-    @mock.patch("copr_backend.sign.Popen")
+    @mock.patch("copr_backend.signer.time.sleep")
+    @mock.patch("copr_backend.signer.Popen")
     def test_call_sign_bin_repeatedly(self, mc_popen, _sleep):
         """
         Test that we attempt to run /bin/sign multiple times if it returns
@@ -162,13 +164,13 @@ class TestSign(object):
         mc_handle.communicate.return_value = (STDOUT, STDERR)
         mc_handle.returncode = 1
         mc_popen.return_value = mc_handle
-        call_sign_bin(cmd=[], log=MagicMock())
+        self.signer.call_sign_bin(cmd=[])
         assert mc_popen.call_count == 3
 
-    @mock.patch("copr_backend.sign.SafeRequest.send")
+    @mock.patch("copr_backend.signer.obs_sign.SafeRequest.send")
     def test_create_user_keys(self, mc_request):
         mc_request.return_value.status_code = 200
-        create_user_keys(self.username, self.projectname, self.opts)
+        self.signer.create_user_keys(self.username, self.projectname)
 
         assert mc_request.called
         expected_call = mock.call(
@@ -178,28 +180,28 @@ class TestSign(object):
         )
         assert mc_request.call_args == expected_call
 
-    @mock.patch("copr_backend.sign.SafeRequest.send")
+    @mock.patch("copr_backend.signer.obs_sign.SafeRequest.send")
     def test_create_user_keys_error_1(self, mc_request):
         mc_request.side_effect = IOError()
         with pytest.raises(CoprKeygenRequestError) as err:
-            create_user_keys(self.username, self.projectname, self.opts)
+            self.signer.create_user_keys(self.username, self.projectname)
 
         assert "Failed to create key-pair" in str(err)
 
 
-    @mock.patch("copr_backend.sign.SafeRequest.send")
+    @mock.patch("copr_backend.signer.obs_sign.SafeRequest.send")
     def test_create_user_keys_err(self, mc_request):
         for code in [400, 401, 404, 500, 599]:
             mc_request.return_value.status_code = code
             mc_request.return_value.content = "error: {}".format(code)
 
             with pytest.raises(CoprKeygenRequestError) as err:
-                create_user_keys(self.username, self.projectname, self.opts)
+                self.signer.create_user_keys(self.username, self.projectname)
             assert "Failed to create key-pair for user: foo, project:bar" in str(err)
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_nothing(self, mc_gp, mc_cuk, mc_so,
                                       tmp_dir):
         # empty target dir doesn't produce error
@@ -211,9 +213,9 @@ class TestSign(object):
         assert not mc_cuk.called
         assert not mc_so.called
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_ok(self, mc_gp, mc_cuk, mc_so,
                                       tmp_dir, tmp_files):
 
@@ -233,9 +235,9 @@ class TestSign(object):
                 assert os.path.join(self.tmp_dir_path, name) in pathes
         assert len(pathes) == count
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_error_on_pubkey(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
@@ -249,9 +251,9 @@ class TestSign(object):
         assert not mc_cuk.called
         assert not mc_so.called
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_no_pub_key(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
@@ -265,9 +267,9 @@ class TestSign(object):
         assert mc_cuk.called
         assert mc_so.called
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_sign_error_one(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
@@ -284,9 +286,9 @@ class TestSign(object):
 
         assert mc_so.called
 
-    @mock.patch("copr_backend.sign._sign_one")
-    @mock.patch("copr_backend.sign.create_user_keys")
-    @mock.patch("copr_backend.sign.get_pubkey")
+    @mock.patch("copr_backend.sign.OBSSign.sign_one")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.get_pubkey")
     def test_sign_rpms_id_dir_sign_error_all(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 

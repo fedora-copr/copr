@@ -813,7 +813,7 @@ class TestAction(object):
         assert test_action.run() == BackendResultEnum("failure")
 
     @unittest.skip("Fixme, test doesn't work.")
-    @mock.patch("copr_backend.actions.create_user_keys")
+    @mock.patch("copr_backend.sign.OBSSign.create_user_keys")
     def test_handle_generate_gpg_key(self, mc_cuk, mc_time):
         uname = "foo"
         pname = "bar"

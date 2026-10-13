@@ -1,100 +1,41 @@
 # coding: utf-8
 
 """
-Wrapper for /bin/sign from obs-sign package
+Signing and unsigning packages
 """
 
-from subprocess import Popen, PIPE, SubprocessError
 import os
-import time
+from subprocess import PIPE, Popen
 
 from packaging import version
 
-from copr_common.request import SafeRequest
-from copr_backend.helpers import get_redis_logger
-from .exceptions import CoprSignError, CoprSignNoKeyError, \
-    CoprKeygenRequestError
+from copr_backend.signer.obs_sign import OBSSign
+
+from .exceptions import CoprSignError, CoprSignNoKeyError
 
 
-SIGN_BINARY = "/bin/sign"
-
-def create_gpg_email(username, projectname, domain):
+def get_signer(fullname, opts, log):
     """
-    Creates canonical name_email to identify gpg key
+    Return a signer object that is appropriate for this Copr instance and project.
     """
+    ownername, projectname = fullname.split("/")
 
-    return "{}#{}@copr.{}".format(username, projectname, domain)
+    # Ideally we would have automatic discovery of third-party signing plugins
+    # but since there is only one known implementation at the moment, let's
+    # keep it simple and hardcode it here.
+    if "redhat" in opts.signers:
+        # pylint: disable=import-outside-toplevel,no-name-in-module
+        from copr_backend.signer.redhat_sign import RedHatSign
+        signer = RedHatSign(opts, log)
+        if signer.has_key(ownername, projectname):
+            return signer
 
+    if "obs-sign" in opts.signers:
+        # If `obs-sign` is enabled, we don't want to check the key availability
+        # and just use it.
+        return OBSSign(opts, log)
 
-def call_sign_bin(cmd, log):
-    """
-    Call /bin/sign and return (rc, stdout, stderr).  Re-try the call
-    automatically upon certain failures (if that makes sense).
-    """
-    cmd_pretty = ' '.join(cmd)
-    for attempt in [1, 2, 3]:
-        log.info("Calling '%s' (attempt #%s)", cmd_pretty, attempt)
-        try:
-            handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
-            stdout, stderr = handle.communicate()
-        except (SubprocessError, OSError) as err:
-            new_err = CoprSignError("Failed to invoke '{}'".format(cmd_pretty))
-            raise new_err from err
-
-        if handle.returncode != 0:
-            log.warning("Command '%s' failed with: %s",
-                        cmd_pretty, stderr.rstrip())
-            sleeptime = 20
-            log.warning("Going to sleep %ss and re-try.", sleeptime)
-            time.sleep(sleeptime)
-            continue
-        break
-    return handle.returncode, stdout, stderr
-
-
-def get_pubkey(username, projectname, log, sign_domain, outfile=None):
-    """
-    Retrieves public key for user/project from signer host.
-
-    :param sign_domain: the domain name of the sign key
-    :param outfile: [optional] file to write obtained key
-    :return: public keys
-
-    :raises CoprSignError: failed to retrieve key, see error message
-    :raises CoprSignNoKeyError: if there are no such user in keyring
-    """
-    usermail = create_gpg_email(username, projectname, sign_domain)
-    cmd = [SIGN_BINARY, "-u", usermail, "-p"]
-
-    returncode, stdout, stderr = call_sign_bin(cmd, log)
-    if returncode != 0:
-        if "unknown key:" in stderr:
-            raise CoprSignNoKeyError(
-                "There are no gpg keys for user {} in keyring".format(username),
-                return_code=returncode,
-                cmd=cmd, stdout=stdout, stderr=stderr)
-        raise CoprSignError(
-            msg="Failed to get user pubkey\n"
-                "sign stdout: {}\n sign stderr: {}\n".format(stdout, stderr),
-            return_code=returncode,
-            cmd=cmd, stdout=stdout, stderr=stderr)
-
-    if outfile:
-        with open(outfile, "w") as handle:
-            handle.write(stdout)
-
-    return stdout
-
-
-def _sign_one(path, email, hashtype, log):
-    cmd = [SIGN_BINARY, "-4", "-h", hashtype, "-u", email, "-r", path]
-    returncode, stdout, stderr = call_sign_bin(cmd, log)
-    if returncode != 0:
-        raise CoprSignError(
-            msg="Failed to sign {} by user {}".format(path, email),
-            return_code=returncode,
-            cmd=cmd, stdout=stdout, stderr=stderr)
-    return stdout, stderr
+    raise CoprSignError("No tool for signing available")
 
 
 def gpg_hashtype_for_chroot(chroot, opts):
@@ -164,17 +105,19 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
         return
 
     hashtype = gpg_hashtype_for_chroot(chroot, opts)
+    fullname = f"{username}/{projectname}"
+    signer = get_signer(fullname, opts, log)
 
     try:
-        get_pubkey(username, projectname, log, opts.sign_domain)
+        signer.get_pubkey(username, projectname, opts.sign_domain)
     except CoprSignNoKeyError:
-        create_user_keys(username, projectname, opts, try_indefinitely=True)
+        signer.create_user_keys(username, projectname, try_indefinitely=True)
 
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _sign_one(rpm, create_gpg_email(username, projectname, opts.sign_domain),
-                      hashtype, log)
+            gpg_email = signer.create_gpg_email(username, projectname, opts.sign_domain)
+            signer.sign_one(rpm, gpg_email, hashtype)
             log.info("signed rpm: %s", rpm)
 
         except CoprSignError as e:
@@ -186,38 +129,6 @@ def sign_rpms_in_dir(username, projectname, path, chroot, opts, log):
                             .format([err[0] for err in errors]))
 
 
-def create_user_keys(username, projectname, opts, try_indefinitely=False):
-    """
-    Generate a new key-pair at sign host
-
-    :param username:
-    :param projectname:
-    :param opts: backend config
-
-    :return: None
-    """
-    data = {
-        "name_real": "{}_{}".format(username, projectname),
-        "name_email": create_gpg_email(username, projectname, opts.sign_domain)
-    }
-
-    log = get_redis_logger(opts, "sign", "actions")
-    keygen_url = "http://{}/gen_key".format(opts.keygen_host)
-    query = dict(url=keygen_url, data=data, method="post")
-    try:
-        request = SafeRequest(log=log, try_indefinitely=try_indefinitely)
-        response = request.send(**query)
-    except Exception as e:
-        raise CoprKeygenRequestError(
-            msg="Failed to create key-pair for user: {},"
-                " project:{} with error: {}"
-            .format(username, projectname, e), request=query)
-
-    if response.status_code >= 400:
-        raise CoprKeygenRequestError(
-            msg="Failed to create key-pair for user: {}, project:{}, status_code: {}, response: {}"
-            .format(username, projectname, response.status_code, response.text),
-            request=query, response=response)
 
 
 def _unsign_one(path, log):

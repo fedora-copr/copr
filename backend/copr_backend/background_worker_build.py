@@ -38,7 +38,7 @@ from copr_backend.helpers import (
 )
 from copr_backend.job import BuildJob
 from copr_backend.msgbus import MessageSender
-from copr_backend.sign import resign_rpms_in_dir, sign_rpms_in_dir, get_pubkey
+from copr_backend.sign import resign_rpms_in_dir, sign_rpms_in_dir, get_signer
 from copr_backend.sshcmd import SSHConnection, SSHConnectionError
 from copr_backend.vm_alloc import ResallocHostFactory
 from copr_backend.storage import storage_for_job
@@ -827,7 +827,9 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
         # TODO: uncomment this when key revoke/change will be implemented
         # if os.path.exists(pubkey_path):
         #    return
-        get_pubkey(user, project, self.log, self.opts.sign_domain, pubkey_path)
+        fullname = f"{user}/{project}"
+        signer = get_signer(fullname, self.opts, self.log)
+        signer.get_pubkey(user, project, self.opts.sign_domain, pubkey_path)
         self.log.info("Added pubkey for user %s project %s into: %s",
                       user, project, pubkey_path)
 

@@ -302,6 +302,9 @@ class BackendConfigReader(object):
         opts.do_sign = _get_conf(
             cp, "backend", "do_sign", False, mode="bool")
 
+        opts.signers = _get_conf(
+            cp, "backend", "signers", ["obs-sign"], mode="list")
+
         opts.keygen_host = _get_conf(
             cp, "backend", "keygen_host", "copr-keygen.cloud.fedoraproject.org")
 

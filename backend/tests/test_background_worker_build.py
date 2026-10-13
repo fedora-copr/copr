@@ -330,8 +330,8 @@ def test_full_srpm_build(f_build_srpm):
         "00855954/hello-2.8-1.src.rpm")
 
 
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
-@mock.patch("copr_backend.sign._sign_one")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.sign.OBSSign.sign_one")
 def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -347,8 +347,8 @@ def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
     srpm = os.path.join(worker.job.results_dir,
                         "example-1.0.14-1.fc30.src.rpm")
     expected_calls = [
-        mock.call(rpm, mail, "sha256", mc_sign_one.call_args_list[0][0][3]),
-        mock.call(srpm, mail, "sha256", mc_sign_one.call_args_list[1][0][3]),
+        mock.call(rpm, mail, "sha256"),
+        mock.call(srpm, mail, "sha256"),
     ]
     for call in expected_calls:
         assert call in mc_sign_one.call_args_list
@@ -357,8 +357,8 @@ def test_build_and_sign(mc_sign_one, f_build_rpm_sign_on, caplog):
         _, level, _ = record
         assert level <= logging.INFO
 
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
-@mock.patch("copr_backend.sign._sign_one")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.sign.OBSSign.sign_one")
 @_patch_bwbuild_object("sign_rpms_in_dir")
 def test_sign_built_packages_exception(mc_sign_rpms, mc_sign_one,
                                        f_build_rpm_sign_on, caplog):
@@ -458,7 +458,7 @@ def test_invalid_job_info(f_build_rpm_case, caplog):
 
 @mock.patch("copr_backend.vm_alloc.time.sleep", mock.MagicMock())
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_build_on_vm_allocation(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -519,7 +519,7 @@ class _CancelFunction():
             time.sleep(0.25)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_build_on_tail_log_no_ssh(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -548,7 +548,7 @@ def test_cancel_build_on_tail_log_no_ssh(f_build_rpm_sign_on, caplog):
     assert "canceled stdout" in log
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_before_vm(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -564,7 +564,7 @@ def test_cancel_before_vm(f_build_rpm_sign_on, caplog):
     assert_logs_dont_exist(["Releasing VM back to pool"], caplog)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_before_start(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -584,7 +584,7 @@ def test_cancel_before_start(f_build_rpm_sign_on, caplog):
     ], caplog)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_build_retry(f_build_rpm_sign_on):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -656,7 +656,7 @@ def test_fe_failed_start(f_build_rpm_sign_on, caplog):
     assert worker.redis_get_worker_flag("status") == "done"
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_script_failure(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
@@ -678,7 +678,7 @@ def test_cancel_script_failure(f_build_rpm_sign_on, caplog):
     ], caplog)
 
 @_patch_bwbuild_object("CANCEL_CHECK_PERIOD", 0.5)
-@mock.patch("copr_backend.sign.SIGN_BINARY", "tests/fake-bin-sign")
+@mock.patch("copr_backend.signer.obs_sign.OBSSign.SIGN_BINARY", "tests/fake-bin-sign")
 def test_cancel_build_during_log_download(f_build_rpm_sign_on, caplog):
     config = f_build_rpm_sign_on
     worker = config.bw
