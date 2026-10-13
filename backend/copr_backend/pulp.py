@@ -6,7 +6,6 @@ import io
 import json
 import logging
 import os
-import shutil
 import time
 import tomllib
 import hashlib
@@ -16,7 +15,7 @@ from urllib.parse import urlencode
 from copr_common.request import SafeRequest
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
-from copr_backend.helpers import format_filename
+from copr_backend.helpers import format_filename, ensure_dir_removed
 
 
 # JSON data in a POST request can be large but they probably cannot be
@@ -270,7 +269,7 @@ class BatchedAddRemoveContent:
     def _delete_dirs(self, dirs_to_delete):
         for path in dirs_to_delete:
             self.log.info("Removing directory %s", path)
-            shutil.rmtree(path)
+            ensure_dir_removed(path)
 
     def try_lock(self, repository):
         """

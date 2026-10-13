@@ -7,7 +7,6 @@ Script to prune srpm-builds directories
 import os
 import sys
 import pwd
-import shutil
 import logging
 import argparse
 import multiprocessing
@@ -15,6 +14,7 @@ from datetime import datetime, timedelta
 from copr_common.tree import walk_limited
 from copr_backend.helpers import (
     BackendConfigReader,
+    ensure_dir_removed,
     get_redis_logger,
 )
 
@@ -104,7 +104,7 @@ def prune(path, days, dry_run=False, stdout=False):
             print_remove_text(subdir, modified, stdout)
             if not dry_run:
                 try:
-                    shutil.rmtree(subdir)
+                    ensure_dir_removed(subdir)
                 except PermissionError:
                     # Handle Permission Denied error explicitly
                     error_message = "No permission to delete path {}".format(subdir)

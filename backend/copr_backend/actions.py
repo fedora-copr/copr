@@ -22,7 +22,8 @@ from copr_backend.storage import storage_for_enum, BackendStorage, PulpStorage
 from .sign import create_user_keys, CoprKeygenRequestError
 from .exceptions import CreateRepoError, CoprSignError, FrontendClientException
 from .helpers import (get_redis_logger, silent_remove, ensure_dir_exists,
-                      call_copr_repo, copy2_but_hardlink_rpms)
+                      ensure_dir_removed, call_copr_repo,
+                      copy2_but_hardlink_rpms)
 from .sign import get_pubkey
 
 
@@ -436,10 +437,7 @@ class RemoveDirs(Action):
             assert ':pr:' in copr_dir
             directory = os.path.join(self.destdir, copr_dir)
             self.log.info("RemoveDirs: removing %s", directory)
-            try:
-                shutil.rmtree(directory)
-            except FileNotFoundError:
-                self.log.error("RemoveDirs: %s not found", directory)
+            ensure_dir_removed(directory)
 
     def run(self):
         result = BackendResultEnum("failure")

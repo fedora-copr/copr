@@ -3,7 +3,6 @@
 import logging
 import os
 import resource
-import shutil
 import sys
 import subprocess
 import pwd
@@ -21,6 +20,7 @@ from copr.v3.exceptions import CoprException
 from copr_backend.helpers import (
     BackendConfigReader,
     call_copr_repo,
+    ensure_dir_removed,
     get_project_info,
     get_redis_logger,
     uses_devel_repo,
@@ -325,7 +325,7 @@ def clean_copr(path, days=DEF_DAYS, verbose=True):
         if verbose:
             LOG.info('Removing: %s', dir_path)
         try:
-            shutil.rmtree(dir_path)
+            ensure_dir_removed(dir_path)
         except PermissionError:
             # Handle Permission Denied error explicitly
             LOG.error("No permission to delete path %s", dir_path)
