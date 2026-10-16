@@ -273,6 +273,11 @@ Copying RPM data on the backend may take a few minutes.
 Use cases: your copy of someone else's project; snapshot of your own project; fill an
 existing project with missing packages/builds from another (needs ``--confirm``).
 
+A new destination project can only be created in your own namespace, or in a group
+you are a member of.  An **existing** project can be anywhere, even in a namespace
+of some other user, you just need the **admin** permission for it (being only a
+builder there is not enough).
+
 Forking into an existing project: new packages are added; for packages already present,
 only **newest** successful builds by time from the source are copied by default. See
 `Copr - Forking Projects <http://frostyx.cz/posts/copr-forking-projects>`_ blog for
