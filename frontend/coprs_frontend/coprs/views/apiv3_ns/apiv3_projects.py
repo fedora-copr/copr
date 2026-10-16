@@ -374,20 +374,11 @@ class ProjectFork(Resource):
 
         if form.validate_on_submit() and copr:
             try:
-                dstgroup = (
-                    [
-                        g
-                        for g in flask.g.user.user_groups
-                        if g.at_name == form.owner.data
-                    ]
-                    or [None]
-                )[0]
-                if flask.g.user.name != form.owner.data and not dstgroup:
-                    return ObjectNotFound(
-                        "There is no such group: {}".format(form.owner.data)
-                    )
+                dstuser, dstgroup = ComplexLogic.fork_destination(
+                    flask.g.user, form.owner.data)
 
-                dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+                dst_copr = ComplexLogic.get_fork_destination_copr(
+                    form.name.data, dstuser, dstgroup)
                 if dst_copr and not form.confirm.data:
                     raise BadRequest(
                         "You are about to fork into existing project: {}\n"
@@ -397,7 +388,7 @@ class ProjectFork(Resource):
                     )
                 fcopr, _ = ComplexLogic.fork_copr(
                     copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup,
-                    all_builds=form.fork_all.data,
+                    all_builds=form.fork_all.data, dstuser=dstuser,
                 )
                 db.session.commit()
 
