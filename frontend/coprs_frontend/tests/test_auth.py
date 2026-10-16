@@ -2,6 +2,7 @@
 
 from unittest import mock
 
+import gssapi
 import ldap
 import pytest
 
@@ -129,6 +130,27 @@ class TestLDAP(CoprsTestCase):
 
         assert ex.value.code == 503
         assert "unknown error" in str(ex.value)
+
+    @mock.patch("coprs.auth.gssapi.Credentials")
+    @mock.patch("coprs.auth.ldap.initialize")
+    def test_unusable_keytab_is_an_outage_too(self, initialize, credentials):
+        """
+        An expired/missing/unreadable keytab must not end up as HTTP 500,
+        the log-in has to fall back to the previously known groups
+        """
+        # 458752 = GSS_S_NO_CRED, 2529639107 = "No credentials cache found"
+        credentials.side_effect = gssapi.exceptions.MissingCredentialsError(
+            458752, 2529639107)
+
+        client = LDAP("ldap://not-important", "ou=users,dc=example,dc=com")
+        with mock.patch.dict(app.config,
+                             {"KRB5_KEYTAB": "/some/where/httpd.keytab"}):
+            with pytest.raises(CoprHttpException) as ex:
+                client.get_user("someuser")
+
+        assert ex.value.code == 503
+        initialize.return_value.search_s.assert_not_called()
+        initialize.return_value.unbind_s.assert_called_once()
 
     @mock.patch("coprs.auth.ldap.initialize")
     def test_timeouts_are_set(self, initialize):
