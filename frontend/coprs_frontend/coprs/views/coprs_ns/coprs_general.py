@@ -25,7 +25,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.exceptions import ObjectNotFound, BadRequest
+from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic, PinnedCoprsLogic, MockChrootsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.webhooks_logic import WebhooksLogic
@@ -1088,16 +1088,16 @@ def render_copr_fork(copr, form, confirm=False):
 def copr_fork_post(copr):
     form = forms.CoprForkFormFactory.create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)()
     if form.validate_on_submit():
-        dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
-        if flask.g.user.name != form.owner.data and not dstgroup:
-            raise BadRequest("There is no such group: {}".format(form.owner.data))
+        dstuser, dstgroup = ComplexLogic.fork_destination(flask.g.user,
+                                                          form.owner.data)
 
-        dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+        dst_copr = ComplexLogic.get_fork_destination_copr(form.name.data,
+                                                          dstuser, dstgroup)
         if dst_copr and not form.confirm.data:
             return render_copr_fork(copr, form, confirm=True)
 
         fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data,
-                                                dstgroup=dstgroup)
+                                                dstgroup=dstgroup, dstuser=dstuser)
 
         if created:
             msg = ("Forking project {} for you into {}. Please be aware that it may take a few minutes "
