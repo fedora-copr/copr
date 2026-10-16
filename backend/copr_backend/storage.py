@@ -15,7 +15,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from distutils.errors import DistutilsFileError # pylint: disable=deprecated-module
 import shutil
-import requests
 from copr_common.enums import StorageEnum, CreaterepoReason
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
@@ -709,23 +708,21 @@ class PulpStorage(Storage):
                     filename,
                 )
 
-                self.log.info("Downloading %s", url)
-                response = requests.get(url, timeout=60)
+                try:
+                    self.log.info("Downloading %s", url)
+                    response = SafeRequest(timeout=60).get(url)
+                    path = os.path.join(tmp, os.path.basename(url))
+                    with open(path, "wb") as fp:
+                        fp.write(response.content)
+                except RequestError as ex:
+                    # The package was likely in a CoprDir and forking supports only
+                    # main CoprDirs now. This check could be improved though.
+                    if ex.response and ex.response.status_code == 404:
+                        self.log.error("Not found %s", url)
+                        continue
 
-                # The package was likely in a CoprDir and forking supports only
-                # main CoprDirs now. This check could be improved though.
-                if response.status_code == 404:
-                    self.log.error("Not found %s", url)
-                    continue
-
-                if not response.ok:
-                    self.log.error("Failed to download %s because %s",
-                                   url, response.reason)
+                    self.log.error("Failed to download %s because %s", url, ex)
                     return False
-
-                path = os.path.join(tmp, os.path.basename(url))
-                with open(path, "wb") as fp:
-                    fp.write(response.content)
 
             # It is possible we didn't download any RPMs. That would be the case
             # for builds in CoprDirs.
