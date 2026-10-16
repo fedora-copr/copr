@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+from coprs import helpers, models
 from coprs.models import User, Copr
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -216,6 +217,59 @@ class TestApiv3Projects(CoprsTestCase):
         copr = self.db.session.get(Copr, self.c1.id)
         assert copr.fedora_review
         assert copr.delete_after_days == 5
+
+    @TransactionDecorator("u3")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_group_copr",
+                             "f_users_api", "f_db")
+    def test_fork_into_administered_group_project(self):
+        """
+        Forking into an existing group project is allowed for those who can
+        administer it, even though they are not members of that group
+        """
+        self.db.session.add_all([self.c1, self.gc1, self.u3])
+        assert not self.u3.admin
+        assert not self.u3.can_build_in_group(self.g1)
+
+        route = "/api_3/project/fork/{}".format(self.c1.full_name)
+        data = {"ownername": "@group1", "name": "groupcopr1", "confirm": True}
+
+        # being only a builder in @group1/groupcopr1 is not enough
+        permission = models.CoprPermission(
+            copr=self.gc1, user=self.u3,
+            copr_builder=helpers.PermissionEnum("approved"),
+            copr_admin=helpers.PermissionEnum("nothing"))
+        self.db.session.add(permission)
+        self.db.session.commit()
+        response = self.api3.post(route, data)
+        assert response.status_code == 403
+
+        # being an admin there is enough
+        permission.copr_admin = helpers.PermissionEnum("approved")
+        self.db.session.commit()
+        response = self.api3.post(route, data)
+        assert response.status_code == 200
+        assert response.json["full_name"] == "@group1/groupcopr1"
+
+    @TransactionDecorator("u3")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_group_copr",
+                             "f_users_api", "f_db")
+    def test_fork_into_group_without_permissions(self):
+        """ Without any permissions, forking into @group1 is refused """
+        self.db.session.add_all([self.c1, self.u3])
+        route = "/api_3/project/fork/{}".format(self.c1.full_name)
+
+        # an existing project needs the admin permission
+        response = self.api3.post(route, {"ownername": "@group1",
+                                          "name": "groupcopr1",
+                                          "confirm": True})
+        assert response.status_code == 403
+        assert "permissions to administer" in response.json["error"]
+
+        # a new project in the group needs a group membership
+        response = self.api3.post(route, {"ownername": "@group1",
+                                          "name": "nonexistent"})
+        assert response.status_code == 403
+        assert "doesn't have access to the copr group" in response.json["error"]
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_users_api", "f_mock_chroots", "f_db")
