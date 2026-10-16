@@ -328,16 +328,13 @@ class LDAP:
             app.logger.debug("LDAP search_s: %s object(s) returned",
                              len(result))
             return result
-        except (ldap.SERVER_DOWN, ldap.TIMEOUT) as ex:
-            # Both mean "the server did not give us the data", and both have
-            # to become CoprHttpException so that the callers can fall back
-            # to the group list from a previous log-in
-            try:
-                msg = ex.args[0]["desc"]
-            except (IndexError, KeyError, TypeError):
-                # Unlike SERVER_DOWN, ldap.TIMEOUT is typically raised with
-                # no arguments at all
-                msg = "unknown error"
+        except (ldap.LDAPError, gssapi.exceptions.GSSError) as ex:
+            # Whatever went wrong - the server is down, the query timed out,
+            # or we failed to authenticate with the keytab - it all means "we
+            # did not get the data".  Turn it into CoprHttpException so that
+            # the callers can fall back to the group list from a previous
+            # log-in instead of returning HTTP 500 to the user.
+            msg = self._error_message(ex)
             app.logger.error("LDAP server %s is not usable: %s", self.url, msg)
             # This is an outage on the LDAP side, not a client error
             raise CoprHttpException(msg, code=503) from ex
@@ -349,6 +346,20 @@ class LDAP:
                 # Closing a connection that never got established fails, and
                 # we must not shadow the original exception with that
                 pass
+
+    @staticmethod
+    def _error_message(ex):
+        """
+        A human readable one-liner for an LDAP or GSSAPI error
+        """
+        if isinstance(ex, gssapi.exceptions.GSSError):
+            return ex.gen_message()
+        try:
+            return ex.args[0]["desc"]
+        except (IndexError, KeyError, TypeError):
+            # Unlike SERVER_DOWN, ldap.TIMEOUT is typically raised with no
+            # arguments at all
+            return "unknown error"
 
     @staticmethod
     def _remaining(deadline):
