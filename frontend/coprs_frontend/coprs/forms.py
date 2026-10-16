@@ -1752,6 +1752,10 @@ class CoprForkFormFactory(object):
                 "Fork owner",
                 choices=[(user.name, user.name)] + [(g.at_name, g.at_name) for g in groups],
                 default=user.name,
+                # The choices are just a hint for the web-UI.  One can fork
+                # also into a group project they administer, and we can not
+                # enumerate those here;  ProjectForking checks the ACLs.
+                validate_choice=False,
                 validators=[wtforms.validators.DataRequired()])
 
             name = wtforms.StringField(

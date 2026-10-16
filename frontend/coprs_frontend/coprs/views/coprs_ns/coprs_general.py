@@ -1088,11 +1088,13 @@ def render_copr_fork(copr, form, confirm=False):
 def copr_fork_post(copr):
     form = forms.CoprForkFormFactory.create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)()
     if form.validate_on_submit():
-        dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
+        dstgroup = (ComplexLogic.get_group_by_name(form.owner.data[1:])
+                    if form.owner.data.startswith("@") else None)
         if flask.g.user.name != form.owner.data and not dstgroup:
             raise BadRequest("There is no such group: {}".format(form.owner.data))
 
-        dst_copr = CoprsLogic.get(flask.g.user.name, form.name.data).all()
+        dst_copr = ComplexLogic.get_fork_destination_copr(form.name.data,
+                                                          dstgroup)
         if dst_copr and not form.confirm.data:
             return render_copr_fork(copr, form, confirm=True)
 

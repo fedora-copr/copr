@@ -510,22 +510,48 @@ class ComplexLogic(object):
                    "please contact Copr maintainers.".format(packages_count))
             raise exceptions.CoprHttpException(msg)
 
+    @staticmethod
+    def get_fork_destination_copr(name, dstgroup=None):
+        """
+        Get the already existing project a fork would be merged into, or None
+        if there's no such project (yet).
+        """
+        if dstgroup:
+            return CoprsLogic.get_by_group_id(dstgroup.id, name).first()
+        return CoprsLogic.filter_without_group_projects(
+            CoprsLogic.get(flask.g.user.name, name)).first()
+
 
 class ProjectForking(object):
     def __init__(self, user, group=None):
         self.user = user
         self.group = group
 
-        if group and not user.can_build_in_group(group):
-            raise exceptions.InsufficientRightsException(
-                "Only members may create projects in the particular groups.")
-
     def get(self, copr, name):
-        return CoprsLogic.get_by_group_id(self.group.id, name).first() if self.group \
-            else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, name)).first()
+        return ComplexLogic.get_fork_destination_copr(name, self.group)
+
+    def raise_if_cant_fork_into(self, fcopr):
+        """
+        Raise InsufficientRightsException if self.user is not allowed to fork
+        into the destination project (fcopr is None if it doesn't exist yet).
+        """
+        if fcopr:
+            # Forking into an existing project only modifies that project, so
+            # the permission to administer it is what we require here.  Note
+            # that being just a builder there is not enough.
+            if not self.user.can_edit(fcopr):
+                raise exceptions.InsufficientRightsException(
+                    "You don't have permissions to administer the {0} project."
+                    .format(fcopr.full_name))
+
+        elif self.group:
+            # A new project is about to be created in the group, so the same
+            # check as when creating a project from scratch applies.
+            UsersLogic.raise_if_not_in_group(self.user, self.group)
 
     def fork_copr(self, copr, name):
         fcopr = self.get(copr, name)
+        self.raise_if_cant_fork_into(fcopr)
 
         if fcopr and copr.storage != fcopr.storage:
             raise exceptions.CoprHttpException(
