@@ -674,7 +674,8 @@ class BuildsLogic(object):
     def create_new_from_distgit(cls, user, copr, package_name,
                                 distgit_name=None, distgit_namespace=None,
                                 committish=None, chroot_names=None,
-                                copr_dirname=None, **build_options):
+                                copr_dirname=None, forked_from=None,
+                                **build_options):
         """ Request build of package from DistGit repository """
         source_type = helpers.BuildSourceEnum("distgit")
 
@@ -696,6 +697,8 @@ class BuildsLogic(object):
             source_dict["namespace"] = distgit_namespace
         if committish:
             source_dict["committish"] = committish
+        if forked_from:
+            source_dict["forked_from"] = forked_from
 
         return cls.create_new(
             user, copr, source_type, json.dumps(source_dict), chroot_names,

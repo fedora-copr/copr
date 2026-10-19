@@ -1229,6 +1229,22 @@ class PackageFormDistGitSimple(BasePackageForm):
             "placeholder": "Optional - string, e.g. '@copr/copr', or 'forks/someuser'"},
     )
 
+    forked_from = wtforms.StringField(
+        "DistGit forked from",
+        validators=[wtforms.validators.Optional()],
+        default=None,
+        description=(
+            "When building from a fork of a DistGit repository (see the "
+            "namespace field above), specify here the clone URL of the "
+            "original repository the fork was created from.  It is used "
+            "to detect the appropriate lookaside cache for downloading "
+            "sources."
+        ),
+        render_kw={
+            "placeholder": "Optional - e.g. "
+                           "https://src.fedoraproject.org/rpms/mock"},
+    )
+
     build_requires_package_name = True
 
     @property
@@ -1241,7 +1257,8 @@ class PackageFormDistGitSimple(BasePackageForm):
         if self.distgit.data:
             data["distgit"] = self.distgit.data
 
-        for field_name in ["distgit", "namespace", "committish"]:
+        for field_name in ["distgit", "namespace", "committish",
+                           "forked_from"]:
             field = getattr(self, field_name)
             if field.data:
                 data[field_name] = field.data

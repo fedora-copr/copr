@@ -828,6 +828,14 @@ class CreateBuildDistGit(_BuildDataCommon, _GenericBuildOptions, InputSchema):
     )
     package_name: String = fields.packagename
     committish: String = fields.committish
+    forked_from: String = String(
+        description=(
+            "Clone URL of the DistGit repository that the built repository "
+            "was forked from.  Use this when building from a fork, so the "
+            "correct lookaside cache can be detected."
+        ),
+        example="https://src.fedoraproject.org/rpms/mock",
+    )
     project_dirname: String = fields.project_dirname
 
 
