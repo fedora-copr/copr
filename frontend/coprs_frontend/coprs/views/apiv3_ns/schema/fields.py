@@ -281,6 +281,15 @@ distgit = String(
     example="fedora",
 )
 
+forked_from = String(
+    description=(
+        "Clone URL of the DistGit repository that the built repository "
+        "was forked from.  Use this when building from a fork, so the "
+        "correct lookaside cache can be detected."
+    ),
+    example="https://src.fedoraproject.org/rpms/mock",
+)
+
 # TODO: these needs description
 
 memory_limit = Integer()

@@ -97,6 +97,28 @@ lookaside_uri_pattern = lookaside/{{filename}}
         cloned_file = os.path.join(dgp.workdir, "origin", "datafile")
         assert os.path.exists(cloned_file)
 
+    def test_distgit_method_forked_from(self):
+        source_dict = {
+            "clone_url": self.origin,
+            "forked_from": "http://example.com/origin.git",
+        }
+        dgp = DistGitProvider(source_dict, self.main_config)
+        with mock.patch("copr_rpmbuild.helpers.run_cmd") as run:
+            dgp.produce_srpm()
+
+        dgc_calls = []
+        for call in run.call_args_list:
+            cmd = call[0][0]
+            if cmd[0] != "dist-git-client":
+                # git clone/checkout commands from git_clone_and_checkout()
+                continue
+            assert cmd[:3] == ["dist-git-client", "--forked-from",
+                               "http://example.com/origin.git"]
+            dgc_calls.append(cmd[3])
+
+        # one call for "sources", one for "srpm"
+        assert dgc_calls == ["sources", "srpm"]
+
     def test_remote_refs(self):
         os.chdir(self.workdir)
         cmd = """
