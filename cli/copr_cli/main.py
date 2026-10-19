@@ -884,8 +884,14 @@ class Commands(object):
                 continue
 
             dst = os.path.join(args.dest, chroot.name)
+
+            # Run wget from within DST instead of pointing it there by
+            # '-P dst'.  Wget2 v2.3.0 resolves even an absolute
+            # --directory-prefix relatively to the current directory,
+            # see https://github.com/rockdaboot/wget2/issues/394
+            os.makedirs(dst, exist_ok=True)
+
             cmd = ['wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"', '-e', 'robots=off', '--no-verbose']
-            cmd.extend(['-P', dst])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
 
             if args.rpms:
@@ -913,15 +919,10 @@ class Commands(object):
                 cmd.append(chroot.result_url + "fedora-review/")
 
             cmd.append(chroot.result_url)
-            subprocess.call(cmd)
+            subprocess.call(cmd, cwd=dst)
 
             if project.storage != "pulp":
                 continue
-
-            # wget above uses -P to specify the prefix, but if there is no
-            # hit (e.g., --rpms && PULP, see #4167), we must pre-create the
-            # directory manually.
-            os.makedirs(dst, exist_ok=True)
 
             chroot_result_url = chroot.result_url
             if project.devel_mode:

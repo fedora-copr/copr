@@ -389,7 +389,10 @@ def test_download_build(
     build_proxy_get,
     mock_sp,
     capsys,
+    tmpdir,
+    monkeypatch,
 ):
+    monkeypatch.chdir(str(tmpdir))
     build_proxy_get.return_value = MagicMock(
         repo_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
 
@@ -413,16 +416,16 @@ def test_download_build(
     expected_sp_call_args = [
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
-            '-e', 'robots=off', '--no-verbose', '-P', './epel-6-x86_64',
+            '-e', 'robots=off', '--no-verbose',
             '--cut-dirs', '6',
             'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
-        ]),
+        ], cwd='./epel-6-x86_64'),
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
-            '-e', 'robots=off', '--no-verbose', '-P', './epel-6-i386',
+            '-e', 'robots=off', '--no-verbose',
             '--cut-dirs', '6',
             'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20'
-        ])
+        ], cwd='./epel-6-i386')
     ]
 
     for call_args_list in mock_sp.call.call_args_list:
@@ -446,7 +449,10 @@ def test_download_pulp_manual_createrepo(
     mock_sp,
     mock_requests,
     _mock_open,
+    tmpdir,
+    monkeypatch,
 ):
+    monkeypatch.chdir(str(tmpdir))
     project_proxy_get.return_value = MagicMock(
         storage="pulp",
         devel_mode=True,
@@ -512,7 +518,10 @@ def test_download_build_select_chroot(
     build_proxy_get,
     mock_sp,
     capsys,
+    tmpdir,
+    monkeypatch,
 ):
+    monkeypatch.chdir(str(tmpdir))
     build_proxy_get.return_value = MagicMock(
         repo_url="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20")
 
@@ -535,10 +544,10 @@ def test_download_build_select_chroot(
     expected_sp_call_args = [
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', '"index.html*"',
-            '-e', 'robots=off', '--no-verbose', '-P', u'./epel-6-x86_64',
+            '-e', 'robots=off', '--no-verbose',
             '--cut-dirs', '6',
             'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
-        ]),
+        ], cwd=u'./epel-6-x86_64'),
     ]
 
     assert mock_sp.call.call_args_list == expected_sp_call_args
