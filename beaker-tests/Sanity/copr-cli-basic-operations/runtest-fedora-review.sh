@@ -48,7 +48,10 @@ rlJournalStart
         rlRun -s "copr-cli build ${NAME_PREFIX}FedoraReview ${HELLO} --nowait"
         rlRun "parse_build_id"
         rlRun "copr watch-build $BUILD_ID"
-        rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/review.txt"
+        # Wget2 v2.3.0 resolves even an absolute --directory-prefix (-P)
+        # relatively to the current directory, so use -O instead.
+        # https://github.com/rockdaboot/wget2/issues/394
+        rlRun "wget -O $resultdir/review.txt $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/review.txt"
         rlRun "[ -s $resultdir/review.txt ]"
 
         # Test the copr-cli download-build command
@@ -64,12 +67,12 @@ rlJournalStart
         rlRun -s "copr-cli build ${NAME_PREFIX}FedoraReview ${HELLO} --nowait"
         rlRun "parse_build_id"
         rlRun "copr watch-build $BUILD_ID"
-        rlRun "wget -P $resultdir $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/" 8
+        rlRun "wget -O /dev/null $BACKEND_URL/results/${NAME_PREFIX}FedoraReview/$CHROOT/$(build_id_with_leading_zeroes)-hello/fedora-review/" 8
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}FedoraReview"
-        cleanupAction rlRun "rm -rf $resultdir/*"
+        cleanProject "${NAME_PREFIX}FedoraReview"
+        cleanAction rm -rf "$resultdir"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
