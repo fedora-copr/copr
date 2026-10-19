@@ -59,8 +59,8 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
-        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}ExclusiveArch"
-        cleanupAction rlRun "copr-cli delete ${NAME_PREFIX}ExcludeArch"
+        cleanProject "${NAME_PREFIX}ExclusiveArch"
+        cleanProject "${NAME_PREFIX}ExcludeArch"
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
