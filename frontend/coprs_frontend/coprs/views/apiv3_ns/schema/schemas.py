@@ -828,6 +828,7 @@ class CreateBuildDistGit(_BuildDataCommon, _GenericBuildOptions, InputSchema):
     )
     package_name: String = fields.packagename
     committish: String = fields.committish
+    forked_from: String = fields.forked_from
     project_dirname: String = fields.project_dirname
 
 

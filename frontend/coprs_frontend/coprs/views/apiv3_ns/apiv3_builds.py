@@ -424,6 +424,7 @@ class CreateFromDistGit(Resource):
                 distgit_name=form.distgit.data,
                 distgit_namespace=form.namespace.data,
                 committish=form.committish.data,
+                forked_from=form.forked_from.data,
                 **options,
             )
 

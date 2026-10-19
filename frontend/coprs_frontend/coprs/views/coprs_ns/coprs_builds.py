@@ -254,6 +254,7 @@ def process_new_build_distgit(copr, add_view, url_on_success):
             distgit_name=form.distgit.data,
             distgit_namespace=form.namespace.data,
             committish=form.committish.data,
+            forked_from=form.forked_from.data,
             chroot_names=form.selected_chroots,
             **build_options
         )

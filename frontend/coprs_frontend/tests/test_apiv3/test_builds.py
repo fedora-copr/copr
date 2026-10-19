@@ -87,6 +87,27 @@ CASES = [(
         "distgit": "namespaced",
         "namespace": "@copr/copr",
     },
+), (
+    "distgit",
+    {
+        "ownername": "user2",
+        "projectname": "foocopr",
+        "package_name": "blah",
+        "namespace": "forks/user2",
+        "distgit": "namespaced",
+        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+    },
+    {
+        "clone_url": "https://namespaced.org/some/other/uri/forks/user2/blah/git",
+        "distgit": "namespaced",
+        "namespace": "forks/user2",
+        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+    },
+    {
+        "distgit": "namespaced",
+        "namespace": "forks/user2",
+        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+    },
 )]
 
 
