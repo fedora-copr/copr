@@ -237,7 +237,6 @@ class BackendStorage(Storage):
                 self.opts.destdir, self.owner, dirname, chroot)
             if not os.path.exists(chroot_path):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
-                result = False
                 continue
 
             self.log.info("Deleting subdirs [%s] in %s",
@@ -593,8 +592,6 @@ class PulpStorage(Storage):
                 self.opts.destdir, self.owner, dirname, chroot)
             if not os.path.exists(chroot_path):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
-                result = False
-                continue
 
             repository = self._get_repository(chroot)
             # Find the RPMs by list of build ids
