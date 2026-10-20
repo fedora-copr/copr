@@ -160,7 +160,7 @@ assert_build_chroot_rpms_signed()
     pubkey=$(mktemp --suffix=.gpg)
     rlRun "wget -q -O $pubkey $BACKEND_URL/results/$PROJECT/pubkey.gpg" \
         0 "Fetching project pubkey.gpg"
-    rlRun "rpmkeys --import $pubkey" 0 "Importing Copr project signing key"
+    rlRun "import_rpm_key $pubkey" 0 "Importing Copr project signing key"
     rm -f "$pubkey"
 
     rlAssertExists "$chroot_dir"
