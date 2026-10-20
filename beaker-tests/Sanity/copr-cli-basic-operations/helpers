@@ -194,7 +194,10 @@ wait_for_finished_fork()
     # Wait until a project is forked or timeout is reached
     # $1 - project name
     local project=$1
-    local timeout=300
+    # The single-host Testing Farm machine is heavily loaded (builds alone
+    # take tens of minutes there), forking takes much longer than against
+    # a production Copr instance.
+    local timeout=1200
     local started now forking
 
     started=$(date +%s)
