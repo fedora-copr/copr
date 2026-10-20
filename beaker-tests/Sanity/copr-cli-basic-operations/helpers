@@ -96,6 +96,52 @@ build_id_with_leading_zeroes()
     printf "%08d" "$BUILD_ID"
 }
 
+# import_rpm_key KEYFILE
+# ----------------------
+# Import an OpenPGP key into the system rpm keyring.  The test scripts run
+# in parallel on the single-host Testing Farm machine and share one system
+# rpmdb.  dnf5 does not wait for the rpmdb transaction lock -- an import
+# colliding with a dnf transaction of another test makes the dnf process
+# fail outright (with a misleading "Signature verification failed" or
+# "Rpm transaction failed" message).  dnf5 however does wait on its system
+# repository lock, /var/lib/dnf/system-repo.lock (fcntl record lock).  Take
+# that lock for writing around the import: concurrent dnf5 processes then
+# print "Waiting for a lock on the system repository" and wait for the
+# import instead of failing, and we in turn wait for in-flight dnf5
+# transactions before importing.  libdnf5 takes the lock with fcntl record
+# locks, which the flock(1) utility can not interoperate with, hence the
+# python3 helper.
+#
+# It would be nice if DNF5 took care about this:
+# https://github.com/rpm-software-management/dnf5/issues/2998
+import_rpm_key()
+{
+    python3 - "$1" <<'EOF'
+import fcntl, os, signal, subprocess, sys
+
+path = "/var/lib/dnf/system-repo.lock"
+keyfile = sys.argv[1]
+
+fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o664)
+
+def _alarm(signum, frame):
+    raise TimeoutError()
+
+signal.signal(signal.SIGALRM, _alarm)
+signal.alarm(120)  # fail the test rather than wait for a stuck dnf5 forever
+try:
+    fcntl.lockf(fd, fcntl.LOCK_EX)
+except TimeoutError:
+    sys.exit(1)
+finally:
+    signal.alarm(0)
+try:
+    sys.exit(subprocess.call(["rpmkeys", "--import", keyfile]))
+finally:
+    fcntl.lockf(fd, fcntl.LOCK_UN)
+EOF
+}
+
 get_srpm_builder_log()
 {
     _log_file="$BACKEND_URL/results/$PROJECT/srpm-builds/$(build_id_with_leading_zeroes)/builder-live.log.gz"
