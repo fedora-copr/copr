@@ -40,7 +40,14 @@ collect_logs()
 }
 
 cd "$(git rev-parse --show-toplevel)"
+
+# tmt enforces the test duration limit by sending SIGTERM (through the
+# "timeout" utility) and then killing the process.  The EXIT trap alone
+# does not run on an untrapped fatal signal, which would lose all the
+# collected logs -- exit from the TERM trap (with 128+15 TERM status) so the
+# EXIT trap runs.
 trap collect_logs EXIT
+trap 'exit 143' TERM
 
 mkdir -p "$BUILD_LOGS_DIR"
 (
