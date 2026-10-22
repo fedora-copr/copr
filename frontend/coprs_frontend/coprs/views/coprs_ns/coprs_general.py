@@ -1072,45 +1072,49 @@ def copr_build_monitor(copr, detailed=False, page=1):
 @coprs_ns.route("/g/<group_name>/<coprname>/fork/")
 @login_required
 @req_with_copr
-def copr_fork(copr):
-    form = forms.CoprForkFormFactory.create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)()
-    return render_copr_fork(copr, form)
+def copr_fork(src_copr):
+    form = forms.CoprForkFormFactory.create_form_cls(
+        copr=src_copr, user=flask.g.user, groups=flask.g.user.user_groups)()
+    return render_copr_fork(src_copr, form)
 
 
-def render_copr_fork(copr, form, confirm=False):
-    return flask.render_template("coprs/fork.html", copr=copr, form=form, confirm=confirm)
+def render_copr_fork(src_copr, form, confirm=False):
+    return flask.render_template("coprs/fork.html", copr=src_copr, form=form, confirm=confirm)
 
 
 @coprs_ns.route("/<username>/<coprname>/fork/", methods=["POST"])
 @coprs_ns.route("/g/<group_name>/<coprname>/fork/", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_fork_post(copr):
-    form = forms.CoprForkFormFactory.create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)()
+def copr_fork_post(src_copr):
+    form = forms.CoprForkFormFactory.create_form_cls(
+        copr=src_copr, user=flask.g.user, groups=flask.g.user.user_groups)()
     if form.validate_on_submit():
-        dstuser, dstgroup = ComplexLogic.fork_destination(flask.g.user,
-                                                          form.owner.data)
+        dst_user, dst_group = ComplexLogic.fork_destination(flask.g.user,
+                                                            form.owner.data)
 
-        dst_copr = ComplexLogic.get_fork_destination_copr(form.name.data,
-                                                          dstuser, dstgroup)
-        if dst_copr and not form.confirm.data:
-            return render_copr_fork(copr, form, confirm=True)
+        existing_copr = ComplexLogic.get_fork_destination_copr(
+            form.name.data, dst_user, dst_group)
+        if existing_copr and not form.confirm.data:
+            return render_copr_fork(src_copr, form, confirm=True)
 
-        fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data,
-                                                dstgroup=dstgroup, dstuser=dstuser)
+        dst_copr, created = ComplexLogic.fork_copr(src_copr, flask.g.user,
+                                                      dst_name=form.name.data,
+                                                      dst_group=dst_group,
+                                                      dst_user=dst_user)
 
         if created:
             msg = ("Forking project {} for you into {}. Please be aware that it may take a few minutes "
-                   "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
+                   "to duplicate backend data.".format(src_copr.full_name, dst_copr.full_name))
         else:
             msg = ("Updating packages in {} from {}. Please be aware that it may take a few minutes "
-                   "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
+                   "to duplicate backend data.".format(src_copr.full_name, dst_copr.full_name))
 
         db.session.commit()
         flask.flash(msg)
 
-        return flask.redirect(url_for_copr_details(fcopr))
-    return render_copr_fork(copr, form)
+        return flask.redirect(url_for_copr_details(dst_copr))
+    return render_copr_fork(src_copr, form)
 
 
 @coprs_ns.route("/<username>/<coprname>/forks/")

@@ -1,5 +1,8 @@
 # coding: utf-8
 
+# This module is slightly over the limit, splitting it is a separate story
+# pylint: disable=too-many-lines
+
 import os
 import datetime
 import time
@@ -144,30 +147,45 @@ class ComplexLogic(object):
 
 
     @classmethod
-    def fork_copr(cls, copr, user, dstname, dstgroup=None, all_builds=False,
-                  dstuser=None):
+    def fork_copr(cls, src_copr, forking_user, dst_name, dst_group=None,
+                  all_builds=False, dst_user=None):
+        """
+        Fork src_copr into the dst_name project in the dst_user (or
+        dst_group) namespace.  The destination project doesn't have to
+        exist;  if it does, it is only filled with the packages and builds
+        missing there.
+
+        Returns a (dst_copr, created) tuple where 'created' says which of
+        the two happened - the callers report those cases differently
+        ("project forked" vs. "packages updated").
+        """
         # we walk through the whole project here, packages, builds and their
         # chroots;  splitting this into pieces wouldn't help anyone
         # pylint: disable=too-many-locals
-        cls.raise_if_cant_fork(user, copr)
-        forking = ProjectForking(user, dstgroup, dstuser)
-        created = (not bool(forking.get(copr, dstname)))
-        fcopr = forking.fork_copr(copr, dstname)
+        cls.raise_if_too_large_to_fork(forking_user, src_copr)
+        forking = ProjectForking(forking_user, dst_name, dst_group, dst_user)
 
-        if fcopr.full_name == copr.full_name:
+        # Ask *before* forking.  Afterwards the destination project exists
+        # either way, and we could no longer tell whether we have just
+        # created it, or whether it had been there before.
+        created = not forking.destination_exists()
+
+        dst_copr = forking.fork_copr(src_copr)
+
+        if dst_copr.full_name == src_copr.full_name:
             raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
-        for chroot in copr.active_chroots:
-            builds_map[chroot.name] = {}
+        for src_chroot in src_copr.active_chroots:
+            builds_map[src_chroot.name] = {}
 
         srpm_builds_src = []
         srpm_builds_dst = []
 
-        for package in copr.packages:
-            fpackage = forking.fork_package(package, fcopr)
+        for src_package in src_copr.packages:
+            dst_package = forking.fork_package(src_package, dst_copr)
 
-            builds = PackagesLogic.successful_build_chroots(package, all_builds=all_builds)
+            builds = PackagesLogic.successful_build_chroots(src_package, all_builds=all_builds)
             if not builds:
                 continue
 
@@ -179,26 +197,27 @@ class ComplexLogic(object):
             # Also, the "max builds" feature doesn't address NEVRA at all, but
             # rather retains the latest BUILD IDs... so it would delete builds
             # in the wrong order.
-            for build, build_chroots in sorted(builds.items(), key=lambda item: item[0].id):
-                fbuild = forking.fork_build(build, fcopr, fpackage, build_chroots)
+            for src_build, src_chroots in sorted(builds.items(), key=lambda item: item[0].id):
+                dst_build = forking.fork_build(src_build, dst_copr,
+                                               dst_package, src_chroots)
 
-                if build.result_dir:
-                    srpm_builds_src.append(build.result_dir)
-                    srpm_builds_dst.append(fbuild.result_dir)
+                if src_build.result_dir:
+                    srpm_builds_src.append(src_build.result_dir)
+                    srpm_builds_dst.append(dst_build.result_dir)
 
-                for chroot, fchroot in zip(build_chroots, fbuild.build_chroots):
-                    if not chroot.result_dir:
+                for src_chroot, dst_chroot in zip(src_chroots, dst_build.build_chroots):
+                    if not src_chroot.result_dir:
                         continue
-                    if chroot.name not in builds_map:
-                        builds_map[chroot.name] = {chroot.result_dir: fchroot.result_dir}
+                    if src_chroot.name not in builds_map:
+                        builds_map[src_chroot.name] = {src_chroot.result_dir: dst_chroot.result_dir}
                     else:
-                        builds_map[chroot.name][chroot.result_dir] = fchroot.result_dir
+                        builds_map[src_chroot.name][src_chroot.result_dir] = dst_chroot.result_dir
 
         builds_map['srpm-builds'] = dict(zip(srpm_builds_src, srpm_builds_dst))
 
         db.session.commit()
-        ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
-        return fcopr, created
+        ActionsLogic.send_fork_copr(src_copr, dst_copr, builds_map)
+        return dst_copr, created
 
     @staticmethod
     def get_group_copr(group_name, copr_name, **kwargs):
@@ -499,14 +518,16 @@ class ComplexLogic(object):
         return sorted(coprs, key=lambda copr: copr.full_name)
 
     @classmethod
-    def raise_if_cant_fork(cls, user, copr):
+    def raise_if_too_large_to_fork(cls, forking_user, src_copr):
         """
-        Raise CoprHttpException if a given user cant fork a given copr.
-        Return None otherwise.
+        Everybody may fork from any project, we just don't want anyone to
+        duplicate the really huge ones (FORK_PACKAGES_LIMIT).  Raise
+        CoprHttpException if src_copr is over the limit, return None
+        otherwise.  Copr maintainers are not limited.
         """
         limit = app.config["FORK_PACKAGES_LIMIT"]
-        packages_count = PackagesLogic.get_all(copr.id).count()
-        if packages_count > limit and not user.admin:
+        packages_count = PackagesLogic.get_all(src_copr.id).count()
+        if packages_count > limit and not forking_user.admin:
             msg = ("This project is too large to be forked, it has {0} "
                    "packages. Forking this such projects is restricted because "
                    "it could cause unexpected performance or storage issues. "
@@ -515,141 +536,192 @@ class ComplexLogic(object):
             raise exceptions.CoprHttpException(msg)
 
     @classmethod
-    def fork_destination(cls, user, ownername):
+    def fork_destination(cls, forking_user, dst_ownername):
         """
-        Translate the "ownername" of a fork destination into a (user, group)
-        tuple.  No permission checks are done here, that's a job for
-        ProjectForking.raise_if_cant_fork_into().
+        Translate the "ownername" of a fork destination into a
+        (dst_user, dst_group) tuple.  No permission checks are done here,
+        that's a job for ProjectForking.raise_if_cant_fork_into().
         """
-        if ownername.startswith("@"):
-            return user, cls.get_group_by_name(ownername[1:])
+        if dst_ownername.startswith("@"):
+            return forking_user, cls.get_group_by_name(dst_ownername[1:])
 
-        if ownername == user.name:
-            return user, None
+        if dst_ownername == forking_user.name:
+            return forking_user, None
 
-        dstuser = UsersLogic.get(ownername).first()
-        if not dstuser:
-            raise ObjectNotFound("No such user `{0}'".format(ownername))
-        return dstuser, None
+        dst_user = UsersLogic.get(dst_ownername).first()
+        if not dst_user:
+            raise ObjectNotFound("No such user `{0}'".format(dst_ownername))
+        return dst_user, None
 
     @staticmethod
-    def get_fork_destination_copr(name, dstuser, dstgroup=None):
+    def get_fork_destination_copr(dst_name, dst_user, dst_group=None):
         """
         Get the already existing project a fork would be merged into, or None
         if there's no such project (yet).
         """
-        if dstgroup:
-            return CoprsLogic.get_by_group_id(dstgroup.id, name).first()
+        if dst_group:
+            return CoprsLogic.get_by_group_id(dst_group.id, dst_name).first()
         return CoprsLogic.filter_without_group_projects(
-            CoprsLogic.get(dstuser.name, name)).first()
+            CoprsLogic.get(dst_user.name, dst_name)).first()
 
 
 class ProjectForking(object):
-    def __init__(self, user, group=None, dstuser=None):
-        self.user = user
-        self.group = group
+    """
+    Fork into the destination project given by (dst_user|dst_group)/dst_name.
+    That destination is fixed for the whole lifetime of the object, and
+    fork_copr() either finds it, or creates it.
+
+    The fork_package()/fork_build() methods take the destination project as
+    an argument instead (and dst_name is optional for them), so that they
+    can be used separately, without any parent fork_copr() call.
+    """
+    def __init__(self, forking_user, dst_name=None, dst_group=None,
+                 dst_user=None):
+        # The user who performs the fork, it is their permissions that we
+        # check against the destination project/namespace.
+        self.forking_user = forking_user
+        self.dst_name = dst_name
+        self.dst_group = dst_group
         # The destination namespace owner;  it is the forking user themselves
         # unless we fork into a project owned by somebody else.
-        self.dstuser = dstuser or user
+        self.dst_user = dst_user or forking_user
 
-    def get(self, copr, name):
-        return ComplexLogic.get_fork_destination_copr(name, self.dstuser,
-                                                      self.group)
+    def get_destination(self):
+        """
+        The project we are going to fork into, None if it doesn't exist yet.
+        """
+        return ComplexLogic.get_fork_destination_copr(self.dst_name,
+                                                      self.dst_user,
+                                                      self.dst_group)
 
-    def raise_if_cant_fork_into(self, fcopr):
+    def destination_exists(self):
         """
-        Raise InsufficientRightsException if self.user is not allowed to fork
-        into the destination project (fcopr is None if it doesn't exist yet).
+        True when the destination project is already there and we are only
+        going to fill it with the missing packages/builds.
         """
-        if fcopr:
+        return bool(self.get_destination())
+
+    def raise_if_cant_fork_into(self, existing_copr):
+        """
+        Raise InsufficientRightsException if self.forking_user is not allowed
+        to fork into the destination project (existing_copr is None when
+        there's no such project yet).
+        """
+        if existing_copr:
             # Forking into an existing project only modifies that project, so
             # the permission to administer it is what we require here.  It
             # doesn't matter whose namespace it lives in.  Note that being
             # just a builder there is not enough.
-            if not self.user.can_edit(fcopr):
+            if not self.forking_user.can_edit(existing_copr):
                 raise exceptions.InsufficientRightsException(
                     "You don't have permissions to administer the {0} project."
-                    .format(fcopr.full_name))
+                    .format(existing_copr.full_name))
 
-        elif self.group:
+        elif self.dst_group:
             # A new project is about to be created in the group, so the same
             # check as when creating a project from scratch applies.
-            UsersLogic.raise_if_not_in_group(self.user, self.group)
+            UsersLogic.raise_if_not_in_group(self.forking_user, self.dst_group)
 
-        elif self.dstuser != self.user and not self.user.admin:
+        elif self.dst_user != self.forking_user and not self.forking_user.admin:
             # Ditto, a new project can only be created in one's own namespace
             # (or by a copr maintainer, as CoprsLogic.add() allows, too).
             raise exceptions.InsufficientRightsException(
                 "You can create a new project only in your own namespace.")
 
-    def fork_copr(self, copr, name):
-        fcopr = self.get(copr, name)
-        self.raise_if_cant_fork_into(fcopr)
+    def fork_copr(self, src_copr):
+        """
+        Return the destination project to fork src_copr into;  a copy of
+        src_copr settings/chroots when it has to be created, the existing
+        project otherwise (its settings are kept intact in that case).
+        Packages and builds are not forked here, see fork_package() and
+        fork_build().
+        """
+        dst_copr = self.get_destination()
+        self.raise_if_cant_fork_into(dst_copr)
 
-        if fcopr and copr.storage != fcopr.storage:
+        if dst_copr and src_copr.storage != dst_copr.storage:
             raise exceptions.CoprHttpException(
                 "Cannot fork a project from one storage to another")
 
-        if not fcopr:
-            fcopr = self.create_object(models.Copr, copr,
-                                       exclude=["id", "group_id", "created_on",
-                                                "scm_repo_url", "scm_api_type", "scm_api_auth_json",
-                                                "persistent", "auto_prune", "contact", "webhook_secret"])
-            db.session.add(fcopr)
+        if not dst_copr:
+            dst_copr = self.create_object(
+                models.Copr, src_copr,
+                exclude=["id", "group_id", "created_on",
+                         "scm_repo_url", "scm_api_type", "scm_api_auth_json",
+                         "persistent", "auto_prune", "contact",
+                         "webhook_secret"])
+            db.session.add(dst_copr)
 
-            fcopr.forked_from_id = copr.id
-            fcopr.user = self.dstuser
-            fcopr.created_on = int(time.time())
-            if name:
-                fcopr.name = name
-            if self.group:
-                fcopr.group = self.group
-                fcopr.group_id = self.group.id
+            dst_copr.forked_from_id = src_copr.id
+            dst_copr.user = self.dst_user
+            dst_copr.created_on = int(time.time())
+            if self.dst_name:
+                dst_copr.name = self.dst_name
+            if self.dst_group:
+                dst_copr.group = self.dst_group
+                dst_copr.group_id = self.dst_group.id
 
-            fcopr_dir = models.CoprDir(name=fcopr.name, copr=fcopr, main=True)
-            db.session.add(fcopr_dir)
+            dst_copr_dir = models.CoprDir(name=dst_copr.name, copr=dst_copr,
+                                          main=True)
+            db.session.add(dst_copr_dir)
 
-            for chroot in list(copr.active_copr_chroots):
-                CoprChrootsLogic.create_chroot_from(chroot,
-                                                    mock_chroot=chroot.mock_chroot,
-                                                    copr=fcopr)
+            for src_chroot in list(src_copr.active_copr_chroots):
+                CoprChrootsLogic.create_chroot_from(src_chroot,
+                                                    mock_chroot=src_chroot.mock_chroot,
+                                                    copr=dst_copr)
 
-        return fcopr
+        return dst_copr
 
-    def fork_package(self, package, fcopr):
-        fpackage = PackagesLogic.get(fcopr.id, package.name).first()
-        if not fpackage:
-            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "webhook_rebuild"])
-            fpackage.copr = fcopr
-            db.session.add(fpackage)
-        return fpackage
+    def fork_package(self, src_package, dst_copr):
+        """
+        Fork src_package into the dst_copr project, and return the new (or
+        the already existing) package.  The destination project is an
+        argument here, this can be used without fork_copr().
+        """
+        dst_package = PackagesLogic.get(dst_copr.id, src_package.name).first()
+        if not dst_package:
+            dst_package = self.create_object(
+                models.Package, src_package,
+                exclude=["id", "copr_id", "webhook_rebuild"])
+            dst_package.copr = dst_copr
+            db.session.add(dst_package)
+        return dst_package
 
-    def fork_build(self, build, fcopr, fpackage, build_chroots):
-        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "copr_dir_id", "package_id", "result_dir"])
-        db.session.add(fbuild)
-        fbuild.copr = fcopr
-        fbuild.package = fpackage
-        fbuild.copr_dir = fcopr.main_dir
-        fbuild.source_status = StatusEnum("forked")
+    def fork_build(self, src_build, dst_copr, dst_package, src_chroots):
+        """
+        Fork src_build (only its src_chroots) into the dst_copr/dst_package,
+        and return the new build.  Ditto, the destination is an argument so
+        that this can be used on its own.
+        """
+        dst_build = self.create_object(
+            models.Build, src_build,
+            exclude=["id", "copr_id", "copr_dir_id", "package_id",
+                     "result_dir"])
+        db.session.add(dst_build)
+        dst_build.copr = dst_copr
+        dst_build.package = dst_package
+        dst_build.copr_dir = dst_copr.main_dir
+        dst_build.source_status = StatusEnum("forked")
 
-        fbuild.result_dir = '{:08}'.format(fbuild.id)
-        fbuild.build_chroots = [
+        dst_build.result_dir = '{:08}'.format(dst_build.id)
+        dst_build.build_chroots = [
             self.create_object(models.BuildChroot, c,
                                exclude=["id", "build_id", "result_dir",
                                         "copr_chroot_id"])
-            for c in build_chroots
+            for c in src_chroots
         ]
-        for chroot in fbuild.build_chroots:
-            chroot.result_dir = '{:08}-{}'.format(fbuild.id, fpackage.name)
-            chroot.status = StatusEnum("forked")
+        for dst_chroot in dst_build.build_chroots:
+            dst_chroot.result_dir = '{:08}-{}'.format(dst_build.id,
+                                                      dst_package.name)
+            dst_chroot.status = StatusEnum("forked")
             # the CoprChroot could be disabled in project (when we fork directly
             # by fork_build(), without parent fork_copr(), hence one_or_none()
-            chroot.copr_chroot = CoprChrootsLogic.get_by_mock_chroot_id(
-                fcopr,
-                chroot.mock_chroot_id,
+            dst_chroot.copr_chroot = CoprChrootsLogic.get_by_mock_chroot_id(
+                dst_copr,
+                dst_chroot.mock_chroot_id,
             ).one_or_none()
-        db.session.add(fbuild)
-        return fbuild
+        db.session.add(dst_build)
+        return dst_build
 
     def create_object(self, clazz, from_object, exclude=list()):
         arguments = {}
