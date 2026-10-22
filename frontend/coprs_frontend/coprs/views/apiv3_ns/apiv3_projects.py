@@ -362,33 +362,34 @@ class ProjectEdit(Resource):
 class ProjectFork(Resource):
     @staticmethod
     def _common(ownername, projectname):
-        copr = get_copr(ownername, projectname)
+        src_copr = get_copr(ownername, projectname)
 
         # @FIXME we want "ownername" from the outside, but our internal Form expects "owner" instead
         data = get_form_compatible_data(preserve=["chroots"])
         data["owner"] = data.get("ownername")
 
         form = forms.CoprForkFormFactory.create_form_cls(
-            copr=copr, user=flask.g.user, groups=flask.g.user.user_groups
+            copr=src_copr, user=flask.g.user, groups=flask.g.user.user_groups
         )(data, meta={"csrf": False})
 
-        if form.validate_on_submit() and copr:
+        if form.validate_on_submit() and src_copr:
             try:
-                dstuser, dstgroup = ComplexLogic.fork_destination(
+                dst_user, dst_group = ComplexLogic.fork_destination(
                     flask.g.user, form.owner.data)
 
-                dst_copr = ComplexLogic.get_fork_destination_copr(
-                    form.name.data, dstuser, dstgroup)
-                if dst_copr and not form.confirm.data:
+                existing_copr = ComplexLogic.get_fork_destination_copr(
+                    form.name.data, dst_user, dst_group)
+                if existing_copr and not form.confirm.data:
                     raise BadRequest(
                         "You are about to fork into existing project: {}\n"
                         "Please use --confirm if you really want to do this".format(
                             form.name.data
                         )
                     )
-                fcopr, _ = ComplexLogic.fork_copr(
-                    copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup,
-                    all_builds=form.fork_all.data, dstuser=dstuser,
+                dst_copr, _ = ComplexLogic.fork_copr(
+                    src_copr, flask.g.user, dst_name=form.name.data,
+                    dst_group=dst_group, dst_user=dst_user,
+                    all_builds=form.fork_all.data,
                 )
                 db.session.commit()
 
@@ -398,7 +399,7 @@ class ProjectFork(Resource):
         else:
             raise InvalidForm(form)
 
-        return to_dict(fcopr)
+        return to_dict(dst_copr)
 
     @api_login_required
     @apiv3_projects_ns.doc(params=fullname_params)
