@@ -1,6 +1,14 @@
 ENV="local"
 BACKEND_PASSWORD = '{{ be_fe_token["content"] | b64decode }}'
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://copr-fe:coprpass@/copr-fe'
+# Keep the connection pool in sync with the mod_wsgi daemon process threads
+# (see coprs.conf.j2).  With the pool left at SQLAlchemy defaults (size 5 +
+# overflow 10) the parallel sanity tests exhaust it at startup and the
+# frontend answers 500 "QueuePool limit of size 5 overflow 10 reached".
+SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_size": 32,
+    "max_overflow": 32,
+}
 DEBUG = True
 SQLALCHEMY_ECHO = True
 SEND_EMAILS = False
