@@ -6,7 +6,7 @@ discover:
 provision:
   how: virtual
   hardware:
-    memory: ">= 8 GB"
+    memory: ">= 16 GB"
     cpu:
       processors: ">= 4"
 

@@ -26,7 +26,11 @@
     SSLCertificateKeyFile   "{{ httpd_ssl_keys_dir }}/copr.key"
 
     WSGIPassAuthorization On
-    WSGIDaemonProcess 127.0.0.1 user=copr-fe group=copr-fe threads=5
+    # The sanity tests run 40+ beaker scripts in parallel against this
+    # single-host frontend (plus the backend polling it).  With the default
+    # mod_wsgi threads=5 the daemon process queue overflows at test startup
+    # and httpd returns 504 Gateway Timeout to the copr-cli clients.
+    WSGIDaemonProcess 127.0.0.1 user=copr-fe group=copr-fe threads=32
     WSGIScriptAlias / /usr/share/copr/coprs_frontend/application
     WSGIProcessGroup 127.0.0.1
     <Directory /usr/share/copr>
