@@ -205,8 +205,8 @@ class TestProjectForking(CoprsTestCase):
     def test_fork_copr(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         with mock.patch('flask.g') as mc_flask_g:
             mc_flask_g.user.name = self.u2.name
-            forking = ProjectForking(self.u1)
-            fc1 = forking.fork_copr(self.c1, "new-name")
+            forking = ProjectForking(self.u1, "new-name")
+            fc1 = forking.fork_copr(self.c1)
 
             assert fc1.id != self.c1.id
             assert fc1.name == "new-name"
