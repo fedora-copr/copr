@@ -450,15 +450,32 @@ def macros_for_task(task, config):
     if task_id:
         macros["%buildtag"] = ".copr" + re.sub("-.*", "", task_id)
 
+    urlhelper_opts = []
+
     if is_srpm_build(task):
         macros["%dist"] = "%nil"
         macros["%_disable_source_fetch"] = "0"
+        # rpm downloads the spec sources by running the %_urlhelper command
+        # (plain "curl") just once per Source URL, without any retries and
+        # without a connect timeout.  A temporarily unreachable Source0 host
+        # (a fedorapeople outage, for example) then fails the whole SRPM
+        # build after ~2 minutes of kernel TCP SYN retransmissions - have
+        # curl retry the download to ride over such short outages instead.
+        urlhelper_opts += [
+            "--connect-timeout", "15",
+            "--retry", "8",
+            "--retry-delay", "3",
+            "--retry-connrefused",
+        ]
 
     protocols_str = config.get("main", "enabled_source_protocols", fallback=None)
     if task["source_type"] != BuildSourceEnum.upload and protocols_str:
         protocols_list = string2list(protocols_str)
         protocols = ",".join(["+" + protocol for protocol in protocols_list])
-        macros["%__urlhelper_localopts"] = "--proto -all,{0}".format(protocols)
+        urlhelper_opts += ["--proto", "-all,{0}".format(protocols)]
+
+    if urlhelper_opts:
+        macros["%__urlhelper_localopts"] = " ".join(urlhelper_opts)
 
     return macros
 

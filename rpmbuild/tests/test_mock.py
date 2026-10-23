@@ -164,6 +164,7 @@ config_opts['macros']['%vendor'] = 'Copr Testsuite - group @copr'
 config_opts['macros']['%buildtag'] = '.copr10'
 config_opts['macros']['%dist'] = '%nil'
 config_opts['macros']['%_disable_source_fetch'] = '0'
+config_opts['macros']['%__urlhelper_localopts'] = '--connect-timeout 15 --retry 8 --retry-delay 3 --retry-connrefused'
 
 """  # TODO: make the output nicer
 

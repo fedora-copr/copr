@@ -37,7 +37,8 @@ class TestProvider(TestCase):
         calls = [
             mock.call.__enter__().write('%_disable_source_fetch 0\n'),
             mock.call.__enter__().write(
-                '%__urlhelper_localopts --proto -all,+https,+ftps\n'),
+                '%__urlhelper_localopts --connect-timeout 15 --retry 8 '
+                '--retry-delay 3 --retry-connrefused --proto -all,+https,+ftps\n'),
             mock.call.__enter__().write('%copr_username @copr\n'),
             mock.call.__enter__().write('%copr_projectname copr-dev\n'),
             mock.call.__enter__().write('%buildtag .copr123\n'),
