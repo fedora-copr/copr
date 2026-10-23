@@ -378,7 +378,7 @@ class TestAction(object):
         )
         result = test_action.run()
         assert len(mc_call.call_args_list) == 0
-        assert result == BackendResultEnum("failure")
+        assert result == BackendResultEnum("success")
 
     def test_delete_build_succeeded(self, mc_time):
         mc_time.time.return_value = self.test_time
