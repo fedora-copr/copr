@@ -82,7 +82,7 @@
   {% endif %}
 
 {% if source_type_text == "distgit" %}
-  {% for info in ["distgit", "committish", "clone_url"] %}
+  {% for info in ["distgit", "committish", "namespace", "forked_from", "clone_url"] %}
   {% if source_json_dict.get(info) %}
   <dt>{{ info.title() }}:</dt>
   <dd>{{ source_json_dict[info] }}</dd>

@@ -49,7 +49,8 @@ class TestDistGitMethodBuild(object):
         'packagename': 'test',
         'distgit': None,
         'namespace': None,
-        'committish': None
+        'committish': None,
+        'forked_from': None,
     }
 
     @staticmethod
@@ -100,6 +101,22 @@ class TestDistGitMethodBuild(object):
         })
         assert call[1] == result
 
+    def test_distgit_build_from_fork(self, f_patch_create_from_distgit, capsys):
+        _assert_output(
+            ['build-distgit', '--name', 'test', 'project', '--nowait',
+             '--namespace', 'forks/jdoe', '--forked-from',
+             'https://src.fedoraproject.org/rpms/test'],
+            self.build_1, "",
+            capsys)
+        assert len(f_patch_create_from_distgit.call_args_list) == 1
+        call = f_patch_create_from_distgit.call_args_list[0]
+        result = copy.deepcopy(self.default_build_call)
+        result.update({
+            "namespace": "forks/jdoe",
+            "forked_from": "https://src.fedoraproject.org/rpms/test",
+        })
+        assert call[1] == result
+
 
 class TestDistGitMethodPackage(object):
     success_stdout = "Create or edit operation was successful.\n"
@@ -123,6 +140,7 @@ class TestDistGitMethodPackage(object):
             {'distgit': None,
              'namespace': None,
              'committish': None,
+             'forked_from': None,
              'max_builds': None,
              'timeout': None,
              'chroot_denylist': None,
@@ -143,6 +161,7 @@ class TestDistGitMethodPackage(object):
             {'distgit': "centos",
              'namespace': "ns",
              'committish': "master",
+             'forked_from': None,
              'max_builds': "1",
              'timeout': "18000",
              'chroot_denylist': None,
