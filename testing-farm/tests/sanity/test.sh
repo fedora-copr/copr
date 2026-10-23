@@ -31,11 +31,13 @@ sync_data_logs()
 }
 
 # The service logs are appended to, so every sync re-copies the grown files
-# whole - sync them on a coarser cadence than sync_data_logs.
+# whole - sync them on a coarser cadence than sync_data_logs.  Note rsync
+# does not create intermediate destination directories, only the last
+# component - the service-logs/ parent has to exist beforehand.
 sync_service_logs()
 {
     test -n "${TMT_TEST_DATA:-}" || return 0
-    mkdir -p "$TMT_TEST_DATA"
+    mkdir -p "$TMT_TEST_DATA/service-logs"
     rsync -a /var/log/copr-backend/ "$TMT_TEST_DATA/service-logs/copr-backend/" || :
     rsync -a /var/log/copr-frontend/ "$TMT_TEST_DATA/service-logs/copr-frontend/" || :
     rsync -a /var/log/copr-keygen/ "$TMT_TEST_DATA/service-logs/copr-keygen/" || :
@@ -106,6 +108,10 @@ trap collect_logs EXIT
 trap 'exit 143' TERM HUP
 
 mkdir -p "$BUILD_LOGS_DIR"
+# The beaker test logs dir is normally created by all-on-single-host.sh a
+# bit later - create it upfront so the rsync in the dumper loop below does
+# not warn about a missing source directory in the first iterations.
+mkdir -p "$BEAKER_LOGS_DIR"
 
 (
     set +x
