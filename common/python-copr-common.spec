@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.9
+Version:    1.9.1
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 

@@ -4,6 +4,7 @@ import click
 from sqlalchemy.exc import SQLAlchemyError
 from coprs import db, app
 from coprs.logic import coprs_logic
+from coprs.logic.notifications_logic import NotificationsLogic
 from coprs.mail import send_mail, OutdatedChrootMessage
 
 
@@ -113,6 +114,8 @@ class Notifier:
             app.logger.exception("Failed to notify %s", user.mail)
             return
 
+        # if the email succeeds, we will create a notification message
+        NotificationsLogic.create(user, msg.subject, msg.text, "eol_chroot")
         # If `send_mail` didn't raise any exception,
         # we consider the email to be sent correctly
         for chroot in chroots:
