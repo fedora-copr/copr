@@ -48,6 +48,7 @@ app.config["SESSION_TYPE"] = "redis"
 app.config["SESSION_REDIS"] = StrictRedis(
     host=app.config["REDIS_HOST"],
     port=app.config["REDIS_PORT"],
+    password=app.config.get("REDIS_PASSWORD"),
     db=1,
 )
 
@@ -116,6 +117,7 @@ cache = Cache(app, config={
     'CACHE_TYPE': 'RedisCache',
     'CACHE_REDIS_HOST': app.config["REDIS_HOST"],
     'CACHE_REDIS_PORT': app.config["REDIS_PORT"],
+    'CACHE_REDIS_PASSWORD': app.config.get("REDIS_PASSWORD"),
 })
 
 app.cache = cache
