@@ -142,6 +142,7 @@ class Config(object):
     # Redis connection for sessions, cache, etc
     REDIS_HOST = "localhost"
     REDIS_PORT = "6379"
+    REDIS_PASSWORD = None
 
     # Caching templates
     # https://flask-caching.readthedocs.io/en/latest/
