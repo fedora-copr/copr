@@ -19,20 +19,20 @@
     {% endif %}
 
         <tr class="action-row">
-          <td>
+          <td data-order="{{ action.id }}">
             <b><a href="{{ copr_url('coprs_ns.copr_action', copr, action_id=action.id) }}">
               {{ action.id }}
             </a></b>
           </td>
           <td>{{ action.type_name }}</td>
-          <td title="{{ action.created_on | localized_time(g.user.timezone if g.user else 'UTC') }}">
+          <td data-order="{{ action.created_on or 0 }}" title="{{ action.created_on | localized_time(g.user.timezone if g.user else 'UTC') }}">
             {% if action.created_on %}
               {{ action.created_on|time_ago() }} ago
             {% else %}
               -
             {% endif %}
           </td>
-          <td>{{ action.created_on|time_ago(action.ended_on) }}</td>
+          <td data-order="{{ action.created_on|timestamp_diff(action.ended_on) }}">{{ action.created_on|time_ago(action.ended_on) }}</td>
           <td>{{ action_state(action) }}</td>
           <td>{{ action.message or "-" }}</td>
         </tr>
