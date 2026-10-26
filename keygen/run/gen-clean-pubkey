@@ -1,0 +1,100 @@
+#! /bin/sh
+# gen-clean-pubkey KEY UID_NAME UID_EMAIL
+#
+# Print an armored public key for KEY with a single UID
+# "UID_NAME <UID_EMAIL>", e.g.:
+#
+#   runuser -u copr-signer -- gen-clean-pubkey \
+#       '@foo#proj1@copr.fedorahosted.org' '@foo' 'foo@copr.example.cz' \
+#       > foo-pubkey.asc
+#
+# Only the PUBLIC key is modified, and only in a temporary scratch keyring
+# — the production keygen keyring is never written to (not even trustdb).
+# The new UID's self-signature is created by the production gpg-agent
+# through gpg-copr, i.e. the very same (sanctioned) path used for signing
+# RPMs; this script never touches private key material (no copies, no
+# symlinks, no --export-secret-keys).
+#
+# See docs/gen-clean-pubkey.rst for the rationale and the guarantees.
+#
+# With $GNUPG_HOME set, plain "gpg --homedir $GNUPG_HOME" is used instead
+# of gpg-copr (used by the test-suite).
+
+set -eu
+
+test "$#" -eq 3 || { echo "usage: $0 KEY UID_NAME UID_EMAIL" >&2; exit 1; }
+KEY=$1
+NAME=$2
+EMAIL=$3
+NEW_UID="$NAME <$EMAIL>"
+
+# --------------------------------------------------------------------------
+# The gpg invocations used below, spelled out:
+
+# gpg against the production keygen keyring — via the gpg-copr wrapper
+# (or plain gpg with $GNUPG_HOME, for testing).  Used for read-only
+# operations and for the UID certification, which is performed by the
+# production gpg-agent (the same component that signs RPMs).  The extra
+# options keep gpg from writing trustdb/tofu bookkeeping into the
+# production homedir.
+if test -n "${GNUPG_HOME:-}"; then
+    gpg_copr() {
+        gpg --homedir "$GNUPG_HOME" --trust-model pgp \
+            --no-auto-check-trustdb "$@"
+    }
+else
+    if test "$(id -u -n)" != copr-signer; then
+        echo >&2 "execute as 'copr-signer' user"
+        exit 1
+    fi
+    gpg_copr() {
+        gpg-copr --trust-model pgp --no-auto-check-trustdb "$@"
+    }
+fi
+
+# scratch (neutral) homedir — holds only a public keyring, removed on exit
+NEUTRAL_HOMEDIR=$(mktemp -d)
+trap 'rm -rf "$NEUTRAL_HOMEDIR"' EXIT
+
+# gpg with the production keyring machinery (homedir, agent, config), but
+# with the public keyring redirected to the scratch keyring in the neutral
+# homedir: the key is looked up there and the modified key is written
+# there — never to the production pubring.
+gpg_copr_neutral_keyring() {
+    gpg_copr --no-default-keyring --keyring "$NEUTRAL_HOMEDIR/pubring.kbx" "$@"
+}
+
+# --------------------------------------------------------------------------
+# 1. import the public key into the scratch keyring (no secrets involved,
+#    nothing writes to the production homedir)
+gpg_copr --batch --export "$KEY" \
+    | gpg --homedir "$NEUTRAL_HOMEDIR" --batch --import 2>/dev/null
+
+# 2. add the new UID.  Keys have no passphrase; the certification goes
+#    through the production gpg-agent, the result is written only to the
+#    scratch keyring.  The primary-uid flag is deliberately not set: the
+#    export filter leaves a single UID in the output anyway.
+gpg_copr_neutral_keyring --batch --pinentry-mode loopback --passphrase '' \
+    --quick-add-uid "$KEY" "$NEW_UID"
+
+# 3. export from the scratch keyring with only the new UID.  Match the
+#    full UID string, not just the mailbox: a pre-existing UID with the
+#    same e-mail but a different name would survive an mbox-only filter.
+#    The "--" flag allows spaces (and && / ||) in the value.
+ARMORED_PUBKEY=$(gpg_copr_neutral_keyring --batch --armor \
+      --export-filter "keep-uid=-- uid = $NEW_UID" --export "$KEY") || {
+    echo "ERROR: export of '$KEY' failed" >&2
+    exit 1
+}
+
+# 4. sanity check (UID strings are base64-encoded in the armor, so parse
+#    the packets, don't grep): exactly one UID, and it's the requested one
+printf '%s\n' "$ARMORED_PUBKEY" \
+    | gpg --homedir "$NEUTRAL_HOMEDIR" --show-keys --with-colons 2>/dev/null \
+    | awk -F: -v want="$NEW_UID" \
+        '$1=="uid"{n++; if ($10 != want) bad=1} END{exit !(n==1 && !bad)}' || {
+    echo "ERROR: unexpected UIDs in the exported key" >&2
+    exit 1
+}
+
+printf '%s\n' "$ARMORED_PUBKEY"

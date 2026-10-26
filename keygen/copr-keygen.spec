@@ -113,6 +113,7 @@ install -d %{buildroot}%{_sysconfdir}/cron.daily
 %{__install} -p -m 0755 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 %{__install} -p -m 0755 run/gpg-copr %{buildroot}/%{_bindir}/
 %{__install} -p -m 0755 run/gpg-copr-prolong %{buildroot}/%{_bindir}/
+%{__install} -p -m 0755 run/gen-clean-pubkey %{buildroot}/%{_bindir}/
 
 %{__install} -p -m 0755 run/application.py %{buildroot}%{_datadir}/copr-keygen/
 %{__install} -p -m 0644 configs/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-keygen
@@ -143,7 +144,7 @@ systemctl condrestart httpd &>/dev/null || :
 
 %files
 %license LICENSE
-%doc docs/INSTALL.rst docs/README.rst
+%doc docs/INSTALL.rst docs/README.rst docs/gen-clean-pubkey.rst
 %doc configs/local_settings.py.example
 
 %{_datadir}/copr-keygen/*
@@ -152,6 +153,7 @@ systemctl condrestart httpd &>/dev/null || :
 %{_bindir}/gpg_copr.sh
 %{_bindir}/gpg-copr
 %{_bindir}/gpg-copr-prolong
+%{_bindir}/gen-clean-pubkey
 
 %config %{_sysconfdir}/cron.daily/*
 %config %{_sysconfdir}/logrotate.d/copr-keygen
