@@ -17,6 +17,7 @@ Content
 .. toctree::
     README
     INSTALL
+    gen-clean-pubkey
     Autodoc
 
 
