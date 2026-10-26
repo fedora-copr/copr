@@ -88,7 +88,8 @@ def gen_key():
 
     request fields:
         - **name_real, name_email, name_comment**: for key identification
-        - **key_length**: now supports 1024 or 2048 bytes
+        - **key_length**: [optional] RSA key length in bits, defaults to
+          the GPG_KEY_LENGTH server setting
         - **expire**: [optional] key expire in days, default 0  means never
 
     :return: Http response with plain text content
