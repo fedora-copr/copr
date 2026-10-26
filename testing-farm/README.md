@@ -38,3 +38,17 @@ Follow these steps:
       # cd /tmp/copr_code/testing-farm
       # COPR_CLEANUP=false ./all-on-single-host.sh runtest-coprdir.sh  # one test
       # COPR_CLEANUP=false ./all-on-single-host.sh  # all tests
+
+
+Flaky Tests
+-----------
+
+Some tests are known to be flaky, typically because they depend on an external
+service we have no control over (e.g. the epel-7 builds downloading from
+vault.centos.org).  Such tests are listed in the `FLAKY_TESTS` array in
+`all-on-single-host.sh`; when one of them fails, the failure is reported in the
+output (and in the final report) but it does not fail the overall test run.
+
+When a flaky test fails, please re-run it manually (see above) before
+investigating - it may simply pass this time.  If a flaky test starts to fail
+repeatedly, fix the root cause and remove it from the `FLAKY_TESTS` list.

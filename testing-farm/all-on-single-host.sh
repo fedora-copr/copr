@@ -42,6 +42,24 @@ case $STORAGE in
 pulp) EXPECTED_FAILURES+=( "runtest-regenerate-repos.sh" ) ;;
 esac
 
+# Tests that are known to be flaky, e.g. because they depend on an external
+# service we have no control over.  A failure of a flaky test is reported
+# (and its log printed), but it does not fail the overall run - re-run the
+# particular test to see whether it passes this time.
+FLAKY_TESTS=(
+    # The epel-7 builds download packages from vault.centos.org, which is
+    # intermittently unreachable from the Testing Farm machines.
+    "runtest-epel.sh"
+)
+
+is_flaky() {
+    local name=$1
+    for ft in "${FLAKY_TESTS[@]}"; do
+        test "$ft" = "$name" && return 0
+    done
+    return 1
+}
+
 is_expected_failure() {
     # Example usage:
     # if is_expected_failure "$script_name"; then
@@ -67,6 +85,7 @@ declare -A PID_TO_NAME
 # Counter for tracking total jobs launched
 JOB_COUNT=0
 FAILURE_COUNT=0
+FLAKY_FAILURE_COUNT=0
 FINAL_EXIT_CODE=0
 
 mkdir -p "$LOG_DIR"
@@ -110,6 +129,7 @@ done
 echo -e "\n--- Processing Results (Order of Completion) ---\n"
 
 FAILED_JOBS=()
+FLAKED_JOBS=()
 
 # Loop while there are active background jobs (PIDs array is not empty)
 while (( JOB_COUNT > 0 )); do
@@ -125,14 +145,23 @@ while (( JOB_COUNT > 0 )); do
     JOB_COUNT=$((JOB_COUNT - 1))
 
     if [ $exit_code -ne 0 ]; then
-        FAILURE_COUNT=$((FAILURE_COUNT + 1))
-        FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
+        if is_flaky "$script_name"; then
+            FLAKY_FAILURE_COUNT=$((FLAKY_FAILURE_COUNT + 1))
+            echo -e "🌀 FLAKY FAILURE (ignored): $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
+            FLAKED_JOBS+=( "$script_name" )
+            # print the log early, we can react to failure ASAP (while the
+            # rest of tests is finishing).
+            cat "$LOG_FILE"
+        else
+            FAILURE_COUNT=$((FAILURE_COUNT + 1))
+            FINAL_EXIT_CODE=1  # Set final exit code to 1 if any script failed
 
-        echo -e "❌ FAILED: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
-        FAILED_JOBS+=( "$script_name" )
-        # print the log early, we can react to failure ASAP (while the rest of
-        # tests is finishing).
-        cat "$LOG_FILE"
+            echo -e "❌ FAILED: $script_name (Exit Code: $exit_code, log $LOG_FILE) - Completed at $(date +%H:%M:%S)"
+            FAILED_JOBS+=( "$script_name" )
+            # print the log early, we can react to failure ASAP (while the rest of
+            # tests is finishing).
+            cat "$LOG_FILE"
+        fi
     else
         echo -e "✅ SUCCESS: $script_name - Completed at $(date +%H:%M:%S)"
     fi
@@ -145,15 +174,24 @@ for job in "${FAILED_JOBS[@]}"; do
     echo -e "❌ FAILED: $job"
 done
 
+for job in "${FLAKED_JOBS[@]}"; do
+    echo -e "🌀 FLAKY FAILURE (ignored): $job"
+done
+
 echo -e "\n--- FINAL REPORT ---"
 echo "Total Scripts: ${#PIDS[@]}"
-echo "Successful: $(( ${#PIDS[@]} - FAILURE_COUNT ))"
+echo "Successful: $(( ${#PIDS[@]} - FAILURE_COUNT - FLAKY_FAILURE_COUNT ))"
 echo "Failed: $FAILURE_COUNT"
+echo "Flaky failures (ignored): $FLAKY_FAILURE_COUNT"
 
 if [ $FINAL_EXIT_CODE -ne 0 ]; then
     echo -e "\n🚨 ONE OR MORE SCRIPTS FAILED. EXITING WITH CODE 1."
     exit 1
-else
-    echo -e "\n🎉 ALL SCRIPTS COMPLETED SUCCESSFULLY."
-    exit 0
 fi
+
+if [ $FLAKY_FAILURE_COUNT -ne 0 ]; then
+    echo -e "\n🌀 ALL SCRIPTS COMPLETED, BUT $FLAKY_FAILURE_COUNT FLAKY TEST(S) FAILED."
+fi
+
+echo -e "\n🎉 ALL SCRIPTS COMPLETED SUCCESSFULLY."
+exit 0
