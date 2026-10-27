@@ -1,0 +1,261 @@
+#! /bin/sh
+# share-gpg-key --ownername NAME --project KEEP --project OTHER [...]
+#
+# Share one GPG key between multiple Copr projects of the same owner,
+# e.g. all the projects of a group:
+#
+#   runuser -u copr-signer -- share-gpg-key \
+#       --ownername '@foo' --project proj1 --project proj2 --project proj3
+#
+# Full documentation: docs/share-gpg-key.rst
+#
+# With $GNUPG_HOME set, plain "gpg --homedir $GNUPG_HOME" is used instead
+# of gpg-copr (used by the test-suite), and messages are only printed to
+# stdout, not logged anywhere.
+
+set -eu
+
+# Everything this script creates must stay private — the backup file
+# below contains exported secret keys.
+umask 077
+
+ORIGINAL_ARGUMENTS=$*
+
+# log() appends every message to $LOG_FILE (when set) and echoes it to
+# stdout; die() does the same but writes to stderr and exits.
+log() {
+    if test -n "${LOG_FILE:-}"; then
+        printf '%s %s\n' "$(date +'%Y-%m-%dT%H:%M:%S')" "$*" >> "$LOG_FILE"
+    fi
+    printf '%s\n' "$*"
+}
+
+die() {
+    if test -n "${LOG_FILE:-}"; then
+        printf '%s %s\n' "$(date +'%Y-%m-%dT%H:%M:%S')" "ERROR: $*" >> "$LOG_FILE"
+    fi
+    printf 'ERROR: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    echo "usage: $0 --ownername NAME --project KEEP --project OTHER [...]" >&2
+    echo "       [--no-backup] [--dry-run]  (run as 'copr-signer' on the" >&2
+    echo "       keygen host)" >&2
+    exit 1
+}
+
+OWNER=
+PROJECTS=
+DO_BACKUP=1
+DRY_RUN=0
+while test $# -gt 0; do
+    case $1 in
+        --ownername)
+            test $# -ge 2 || usage
+            OWNER=$2
+            shift 2
+            ;;
+        --project)
+            test $# -ge 2 || usage
+            PROJECTS="$PROJECTS $2"
+            shift 2
+            ;;
+        --no-backup)
+            DO_BACKUP=0
+            shift
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+test -n "$OWNER" || usage
+set -- $PROJECTS
+test $# -ge 2 || usage
+KEPT_PROJECT=$1
+shift
+ADDITIONAL_PROJECTS=$*
+
+# gpg against the production keygen keyring — via the gpg-copr wrapper
+# (or plain gpg with $GNUPG_HOME, for testing).  The extra options keep
+# gpg from writing trustdb/tofu bookkeeping into the production homedir.
+if test -n "${GNUPG_HOME:-}"; then
+    gpg_copr() {
+        gpg --homedir "$GNUPG_HOME" --trust-model pgp \
+            --no-auto-check-trustdb "$@"
+    }
+else
+    if test "$(id -u -n)" != copr-signer; then
+        echo >&2 "execute as 'copr-signer' user"
+        exit 1
+    fi
+    LOG_FILE=/var/log/copr-keygen/share-gpg-key.log
+    gpg_copr() {
+        gpg-copr --trust-model pgp --no-auto-check-trustdb "$@"
+    }
+fi
+
+log "started: $0 $ORIGINAL_ARGUMENTS"
+
+# --------------------------------------------------------------------------
+# Resolve the kept key, and the sign domain from its UID
+
+kept_uid=$(
+    gpg_copr --list-keys --with-colons 2>/dev/null \
+    | awk -F: -v want="$OWNER#$KEPT_PROJECT@" \
+        '$1=="uid" && index($10, want) {print $10; exit}'
+)
+test -n "$kept_uid" || die "no key found for project '$KEPT_PROJECT' of '$OWNER'"
+
+# the UID is "Name <email>", or a bare e-mail
+kept_email=$(printf '%s\n' "$kept_uid" | sed -n 's/.*<\([^>]*\)>.*/\1/p')
+test -n "$kept_email" || kept_email=$kept_uid
+
+# the sign domain is read from the kept key's UID, so the script works
+# for any [backend] sign_domain without extra options
+sign_domain=${kept_email##*@copr.}
+test "$sign_domain" != "$kept_email" \
+    || die "cannot parse the sign domain out of '$kept_email'"
+
+gpg_email() {
+    # e.g. @foo#proj2@copr.fedorahosted.org
+    printf '%s#%s@copr.%s' "$OWNER" "$1" "$sign_domain"
+}
+
+key_fingerprints_by_email() {
+    # fingerprint(s) of the key(s) carrying the given UID e-mail
+    gpg_copr --list-keys --with-colons "<$1>" 2>/dev/null \
+        | awk -F: '$1=="fpr" {print $10}'
+}
+
+kept_fingerprint=$(key_fingerprints_by_email "$kept_email")
+kept_fingerprint_count=$(printf '%s\n' "$kept_fingerprint" | awk 'NF{n++} END{print n+0}')
+if test "$kept_fingerprint_count" -ne 1; then
+    die "expected exactly one key for <$kept_email>, got:" \
+        "$(printf '%s\n' "$kept_fingerprint" | tr '\n' ' ')"
+fi
+
+if test "$DO_BACKUP" -eq 1; then
+    BACKUP_FILE="$OWNER-key-backup-$(date +%Y%m%d-%H%M%S).asc"
+fi
+
+# --------------------------------------------------------------------------
+# Migrate the additional projects, one by one
+
+for project in $ADDITIONAL_PROJECTS; do
+    email=$(gpg_email "$project")
+    # the same UID format keygen uses when it creates keys
+    new_uid="${OWNER}_${project} <${email}>"
+
+    # does the kept key already carry the new UID?  (re-run)
+    has_new_uid=$(gpg_copr --list-keys --with-colons "$kept_fingerprint" 2>/dev/null \
+        | awk -F: -v want="$new_uid" '$1=="uid" && $10==want {f=1} END{print f+0}')
+
+    # The old key(s) of this project = the key(s) carrying the e-mail,
+    # minus the kept key — which legitimately carries the e-mail once
+    # the UID was added (e.g. after a run interrupted between adding
+    # the UID and deleting the old key; such a run is resumed here).
+    old_fingerprints=$(
+        key_fingerprints_by_email "$email" \
+        | grep -v -x -F "$kept_fingerprint" || true
+    )
+    old_fingerprint_count=$(printf '%s\n' "$old_fingerprints" | awk 'NF{n++} END{print n+0}')
+    old_fingerprint=
+    case $old_fingerprint_count in
+        0)
+            if test "$has_new_uid" -eq 1; then
+                log "NOTE: '$project' already uses the kept key"
+            else
+                log "NOTE: '$project' has no key of its own, only adding the UID"
+            fi
+            ;;
+        1)
+            old_fingerprint=$old_fingerprints
+            ;;
+        *)
+            die "multiple keys for <$email>, resolve manually first:" \
+                "$(printf '%s\n' "$old_fingerprints" | tr '\n' ' ')"
+            ;;
+    esac
+
+    # backup the key we are about to delete — the only way back
+    if test -n "$old_fingerprint" && test "$DO_BACKUP" -eq 1; then
+        if test "$DRY_RUN" -eq 1; then
+            log "DRY-RUN: would back up the key of '$project'" \
+                "to $BACKUP_FILE"
+        else
+            gpg_copr --armor --export-secret-keys "$old_fingerprint" \
+                >> "$BACKUP_FILE" \
+                || die "failed to back up the key of '$project'"
+            log "backed up the key of '$project' ($old_fingerprint)" \
+                "to $BACKUP_FILE"
+        fi
+    fi
+
+    # add the UID to the kept key (self-signed through the production
+    # gpg-agent, the same path used for signing RPMs)
+    if test "$has_new_uid" -eq 0; then
+        if test "$DRY_RUN" -eq 1; then
+            log "DRY-RUN: would add UID '$new_uid' to $kept_fingerprint"
+        else
+            gpg_copr --batch --pinentry-mode loopback --passphrase '' \
+                --quick-add-uid "$kept_fingerprint" "$new_uid" \
+                || die "failed to add the UID '$new_uid'"
+            log "added UID '$new_uid' to $kept_fingerprint"
+        fi
+    fi
+
+    # the old key is superseded — keeping it would leave two keys with
+    # the same UID e-mail, making the signing lookups (/bin/sign -u,
+    # keygen's user_exists) ambiguous
+    if test -n "$old_fingerprint"; then
+        if test "$DRY_RUN" -eq 1; then
+            log "DRY-RUN: would delete the key of '$project'" \
+                "($old_fingerprint)"
+        else
+            gpg_copr --batch --yes --delete-secret-and-public-key "$old_fingerprint" \
+                || die "failed to delete the key of '$project' ($old_fingerprint)"
+            log "deleted the key of '$project' ($old_fingerprint)"
+        fi
+    fi
+
+    # in dry-run nothing changed, so there is nothing to check
+    if test "$DRY_RUN" -eq 1; then
+        continue
+    fi
+
+    # the e-mail must now resolve to exactly the kept key
+    resolved=$(key_fingerprints_by_email "$email")
+    if test "$resolved" != "$kept_fingerprint"; then
+        die "<$email> does not resolve to the kept key after migrating" \
+            "'$project': $(printf '%s\n' "$resolved" | tr '\n' ' ')"
+    fi
+    log "OK: $project -> $kept_fingerprint"
+done
+
+# --------------------------------------------------------------------------
+echo
+if test "$DRY_RUN" -eq 1; then
+    log "DRY-RUN: no changes were made, re-run without --dry-run to apply"
+else
+    log "key $kept_fingerprint is now shared by:$PROJECTS"
+    if test "$DO_BACKUP" -eq 1 && test -e "$BACKUP_FILE"; then
+        log "backup of the deleted keys (contains SECRET keys!): $BACKUP_FILE"
+        log "move it somewhere safe (and encrypted)."
+    fi
+    echo
+    echo "The RPMs of the migrated projects still carry signatures of their"
+    echo "old (deleted) keys.  On the backend host (as user 'copr'), create a"
+    echo "file with the full names:"
+    for project in $ADDITIONAL_PROJECTS; do
+        echo "    $OWNER/$project"
+    done
+    echo "and run:"
+    echo "    copr-fix-gpg <file>"
+fi
