@@ -592,7 +592,16 @@ class PulpStorage(Storage):
             if not os.path.exists(chroot_path):
                 self.log.error("%s chroot path doesn't exist", chroot_path)
 
-            repository = self._get_repository(chroot)
+            repository = self._get_repository(chroot, dirname)
+
+            # A user could have disabled the entire chroot from their project
+            if not repository:
+                self.log.info(
+                    "Skipping, repository %s/%s/%s doesn't exist",
+                    self.owner, dirname, chroot,
+                )
+                continue
+
             # Find the RPMs by list of build ids
             content_response = self.client.get_content(build_ids, fields=["prn"])
             list_of_prns = [package["prn"] for package in content_response.json()["results"]]
@@ -763,7 +772,10 @@ class PulpStorage(Storage):
     def _get_repository(self, chroot, dirname=None):
         name = self._repository_name(chroot, dirname)
         response = self.client.get_repository(name)
-        href = response.json()["results"][0]["pulp_href"]
+        repositories = response.json()["results"]
+        if not repositories:
+            return None
+        href = repositories[0]["pulp_href"]
         self.log.info("Got repo href: %s", href)
         return href
 
