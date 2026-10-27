@@ -18,6 +18,7 @@ Content
     README
     INSTALL
     gen-clean-pubkey
+    share-gpg-key
     Autodoc
 
 
