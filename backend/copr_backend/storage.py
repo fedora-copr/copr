@@ -75,9 +75,9 @@ class Storage:
         self.opts = opts
         self.log = log
 
-    def init_project(self, dirname, chroot, reason=None):
+    def init_project(self, dirname, chroots, reason=None):
         """
-        Make sure users can enable a DNF repository for this project/chroot
+        Make sure users can enable a DNF repository for the given chroots
 
         This function is called in various situations.
         Some of them you might not expect:
@@ -184,19 +184,23 @@ class BackendStorage(Storage):
     Store build results in `/var/lib/copr/public_html/results/`
     """
 
-    def init_project(self, dirname, chroot, reason=None):
-        self.log.info("Creating repo for: %s/%s/%s",
-                      self.owner, dirname, chroot)
-        repo = os.path.join(self.opts.destdir, self.owner,
-                            dirname, chroot)
-        try:
-            os.makedirs(repo)
-            self.log.info("Empty repo so far, directory created")
-        except FileExistsError:
-            pass
+    def init_project(self, dirname, chroots, reason=None):
+        success = True
+        for chroot in chroots:
+            self.log.info("Creating repo for: %s/%s/%s",
+                          self.owner, dirname, chroot)
+            repo = os.path.join(self.opts.destdir, self.owner,
+                                dirname, chroot)
+            try:
+                os.makedirs(repo)
+                self.log.info("Empty repo so far, directory created")
+            except FileExistsError:
+                pass
 
-        return call_copr_repo(repo, appstream=self.appstream, devel=self.devel,
-                              logger=self.log)
+            success &= call_copr_repo(repo, appstream=self.appstream,
+                                      devel=self.devel,
+                                      logger=self.log)
+        return success
 
     def publish_repository(self, chroot, **kwargs):
         assert "chroot_dir" in kwargs
@@ -338,114 +342,172 @@ class PulpStorage(Storage):
         self._redis_conn = get_redis_connection(self.opts)
         self._lock = Lock(self._redis_conn, self.log)
 
-    def init_project(self, dirname, chroot, reason=None):
-        repository_name = self._repository_name(chroot, dirname)
+    def init_project(self, dirname, chroots, reason=None):
+        """
+        Make sure users can enable a DNF repository for all the given
+        project chroots.
+
+        Every repository and distribution creation in Pulp is a background
+        task that takes a couple of seconds to finish.  When a project with
+        many chroots is created, waiting for the tasks per-chroot takes a
+        very long time, and the build tasks may hit the wait-for-repo
+        timeout (see REPO_TIMEOUT) and fail even before we create all the
+        repositories.  Therefore we submit the requests for all the chroots
+        at once, and wait for the corresponding tasks only once per batch.
+        """
+        repository_hrefs = self._create_repositories(dirname, chroots)
+        self._create_distributions(dirname, repository_hrefs)
+
+        # The "manual createrepo" feature needs a per-chroot care (querying
+        # publications, waiting for other repositories, etc), and it is rarely
+        # used.  We only batch the update tasks, not those queries.
+        self._update_distributions(dirname, repository_hrefs, reason)
+
+        # And finally, publish the repositories (create their initial,
+        # empty publications) in one batch, so that they are servable
+        # through the distributions
         try:
-            self.client.deliver_and_wait([
-                self.client.create_repository(
-                    repository_name,
-                    persistent=self.persistent,
-                ),
-            ])
-        except RequestError as ex:
-            if "This field must be unique" not in ex.response.text:
-                raise
-
-        # When a repository is mentioned in other endpoints, it needs to be
-        # mentioned by its href, not name
-        response = self.client.get_repository(repository_name)
-        repository = response.json()["results"][0]
-        repository_href = repository["pulp_href"]
-
-        distribution_name = self._distribution_name(chroot, dirname)
-        public_distribution_name = self._distribution_name(chroot, dirname, devel=False)
-        devel_distribution_name = self._distribution_name(chroot, dirname, devel=True)
-
-        try:
-            self.client.deliver_and_wait([
-                self.client.create_distribution(
-                    distribution_name, repository_href,
-                    content_guard=self.opts.pulp_content_guard),
-            ])
-        except RequestError as ex:
-            if "This field must be unique" not in ex.response.text:
-                raise
-
-        # If a project enabled the manual createrepo mode, we need to create a
-        # devel distribution to be consumed by other builds within the project
-        if self.devel:
-            baseurl = "{0}/{1}/".format(
-                self.opts.pulp_content_url,
-                public_distribution_name,
-            )
-            self.wait_for_repo(dirname, chroot, "copr_base", baseurl)
-
-            response = self.client.get_publication(repository_href)
-            publication = response.json()["results"][0]["pulp_href"]
-            public_distribution = self._get_distribution(chroot, dirname, devel=False)
-            self.client.deliver_and_wait([
-                self.client.update_distribution(
-                    public_distribution, publication=publication),
-            ])
-
-        # We want to disable the manual createrepo feature on a project
-        elif reason == CreaterepoReason.manual_createrepo_toggle:
-            public_distribution = self._get_distribution(chroot)
-            self.client.deliver_and_wait([
-                self.client.update_distribution(
-                    public_distribution, repository=repository_href),
-            ])
-
-        # The "Regenerate" button was clicked for a manual createrepo project.
-        # We want to copy packages from the devel repo to the public repo.
-        # Or more precisely, point the public distribution to
-        # the same publication as the devel distribution points to.
-        #
-        # A note regarding implementation:
-        # It is weird to do this in the `init_project` method, pointing to the
-        # fact that our abstractions are probably wrong and should be fixed.
-        # We have the `publish_repository` method which is called after a build
-        # is finished. We don't want to copy the packages there. This
-        # `init_project` method is called when a project is created (for which
-        # the copying does nothing) but also when a "Regenerate" button is
-        # clicked (for which we copy the data). We should probably separate
-        # these two concepts.
-        elif reason == CreaterepoReason.manual_createrepo_event:
-            response = self.client.get_publication(repository_href)
-            publication = response.json()["results"][0]["pulp_href"]
-            public_distribution = self._get_distribution(chroot, full=True)
-
-            # Only update the Pulp distribution if the project uses the manual
-            # createrepo feature. If not, do nothing.
-            # We cannot rely on the `self.devel` option because doesn't say
-            # anything about the project setting of the feature, it only says
-            # that the current action should affect the public repository. If
-            # the distribution points to a publication, than the project uses
-            # manual createrepo, if it points to a repository, it is a normal
-            # project.
-            if public_distribution["publication"]:
-                self.log.info(
-                    "Pointing %s to the same publication as %s which is %s",
-                    public_distribution_name,
-                    devel_distribution_name,
-                    publication,
-                )
-                self.client.deliver_and_wait([
-                    self.client.update_distribution(
-                        public_distribution["pulp_href"],
-                        publication=publication),
-                ])
-
-        # And finally, run the actual createrepo for either the devel or
-        # the public repository
-        try:
-            self.client.deliver_and_wait([
-                self.client.publish(repository_href),
-            ])
+            self.client.deliver_and_wait(
+                [self.client.publish(href) for href in repository_hrefs.values()])
         finally:
+            # The publication may time out, but it possibly finishes later
+            # in Pulp, and the repositories and distributions exist already.
+            # Make sure the requests are redirected to Pulp even then.
             redirect = PulpHTTPRedirect(lock=self._lock)
             redirect.add(self.owner, self.project)
         return True
+
+    def _create_repositories(self, dirname, chroots):
+        """
+        Create the Pulp repositories that don't exist yet, and return the
+        {chroot: repository_href} mapping.
+        """
+        repository_hrefs = {}
+        create_requests = []
+        for chroot in chroots:
+            repository_name = self._repository_name(chroot, dirname)
+            response = self.client.get_repository(repository_name)
+            results = response.json()["results"]
+            if results:
+                # When a repository is mentioned in other endpoints, it needs to be
+                # mentioned by its href, not name
+                repository_hrefs[chroot] = results[0]["pulp_href"]
+                continue
+            create_requests.append((chroot, self.client.create_repository(
+                repository_name, persistent=self.persistent)))
+
+        # A concurrent Createrepo Action for the same project may create
+        # the same repositories in the meantime — the backend runs
+        # multiple action workers in parallel, and several frontend events
+        # enqueue such an action (a new project, an enabled chroot,
+        # a new CoprDir, the auto_createrepo toggle).  Tolerate that —
+        # the repositories exist either way.
+        created = self.client.deliver_and_wait(
+            [request for _, request in create_requests], exist_ok=True)
+
+        for (chroot, _request), result in zip(create_requests, created):
+            if result and "created_resources" in result:
+                # A finished task, take the href from its result and avoid
+                # querying Pulp for the repository once more
+                repository_hrefs[chroot] = result["created_resources"][0]
+            else:
+                # None means a duplicate creation tolerated by exist_ok
+                repository_hrefs[chroot] = self._get_repository(chroot, dirname)
+        return repository_hrefs
+
+    def _create_distributions(self, dirname, repository_hrefs):
+        """
+        Create the Pulp distributions that don't exist yet.
+        """
+        create_requests = []
+        for chroot, repository_href in repository_hrefs.items():
+            distribution_name = self._distribution_name(chroot, dirname)
+            response = self.client.get_distribution(distribution_name)
+            if response.json()["results"]:
+                continue
+            create_requests.append(self.client.create_distribution(
+                distribution_name, repository_href,
+                content_guard=self.opts.pulp_content_guard))
+        # Tolerate the distributions created by a concurrent action,
+        # see _create_repositories
+        self.client.deliver_and_wait(create_requests, exist_ok=True)
+
+    def _update_distributions(self, dirname, repository_hrefs, reason):
+        """
+        Update the Pulp distributions of the given chroots according to the
+        "manual createrepo" feature.  Nothing to do for the common reasons
+        (project creation, new chroot, etc).
+
+        The update tasks are submitted as one batch.
+        """
+        update_requests = []
+        for chroot, repository_href in repository_hrefs.items():
+            public_distribution_name = self._distribution_name(
+                chroot, dirname, devel=False)
+            devel_distribution_name = self._distribution_name(
+                chroot, dirname, devel=True)
+
+            # If a project enabled the manual createrepo mode, we need to create a
+            # devel distribution to be consumed by other builds within the project
+            if self.devel:
+                baseurl = "{0}/{1}/".format(
+                    self.opts.pulp_content_url,
+                    public_distribution_name,
+                )
+                self.wait_for_repo(dirname, chroot, "copr_base", baseurl)
+
+                response = self.client.get_publication(repository_href)
+                publication = response.json()["results"][0]["pulp_href"]
+                public_distribution = self._get_distribution(chroot, dirname, devel=False)
+                update_requests.append(self.client.update_distribution(
+                    public_distribution, publication=publication))
+
+            # We want to disable the manual createrepo feature on a project
+            elif reason == CreaterepoReason.manual_createrepo_toggle:
+                public_distribution = self._get_distribution(chroot)
+                update_requests.append(self.client.update_distribution(
+                    public_distribution, repository=repository_href))
+
+            # The "Regenerate" button was clicked for a manual createrepo project.
+            # We want to copy packages from the devel repo to the public repo.
+            # Or more precisely, point the public distribution to
+            # the same publication as the devel distribution points to.
+            #
+            # A note regarding implementation:
+            # It is weird to do this in the `init_project` method, pointing to the
+            # fact that our abstractions are probably wrong and should be fixed.
+            # We have the `publish_repository` method which is called after a build
+            # is finished. We don't want to copy the packages there. This
+            # `init_project` method is called when a project is created (for which
+            # the copying does nothing) but also when a "Regenerate" button is
+            # clicked (for which we copy the data). We should probably separate
+            # these two concepts.
+            elif reason == CreaterepoReason.manual_createrepo_event:
+                response = self.client.get_publication(repository_href)
+                publication = response.json()["results"][0]["pulp_href"]
+                public_distribution = self._get_distribution(chroot, full=True)
+
+                # Only update the Pulp distribution if the project uses the manual
+                # createrepo feature. If not, do nothing.
+                # We cannot rely on the `self.devel` option because doesn't say
+                # anything about the project setting of the feature, it only says
+                # that the current action should affect the public repository. If
+                # the distribution points to a publication, than the project uses
+                # manual createrepo, if it points to a repository, it is a normal
+                # project.
+                if public_distribution["publication"]:
+                    self.log.info(
+                        "Pointing %s to the same publication as %s which is %s",
+                        public_distribution_name,
+                        devel_distribution_name,
+                        publication,
+                    )
+                    update_requests.append(self.client.update_distribution(
+                        public_distribution["pulp_href"],
+                        publication=publication))
+
+        if update_requests:
+            self.client.deliver_and_wait(update_requests)
 
     def upload_rpm(self, path, labels):
         """
@@ -635,7 +697,7 @@ class PulpStorage(Storage):
             # It should be a dirname here but since forking CoprDirs is not
             # supported yet, we pass the project name
             # See https://github.com/fedora-copr/copr/issues/3820
-            self.init_project(dst_project, chroot)
+            self.init_project(dst_project, [chroot])
 
             hrefs = []
             for old_dir_name, new_dir_name in src_dst_dir.items():

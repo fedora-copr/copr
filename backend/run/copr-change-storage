@@ -161,7 +161,7 @@ def change_storage_for_project(project, dst, config):
             # are currently writing into the results directory. Otherwise
             # we can end up with incosystent data in Pulp.
 
-            storage.init_project(subproject, chroot)
+            storage.init_project(subproject, [chroot])
 
             uploaded = {}
 
