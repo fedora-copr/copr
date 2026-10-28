@@ -20,7 +20,6 @@ RUN set -ex ; \
                    wget \
                    vim \
                    yum \
-                   sudo \
                    python3-alembic \
                    python3-anytree \
                    postgresql-server \
