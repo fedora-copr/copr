@@ -31,6 +31,9 @@ RUN echo "AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside
 
 RUN sed -i 's/Listen 80/Listen 5001/' /etc/httpd/conf/httpd.conf
 
+# The importer pushes to local repositories without SSH/Gitolite.
+RUN crudini --set /etc/dist-git/dist-git.conf dist-git gitolite False
+
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git
 
@@ -51,9 +54,13 @@ RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
     chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig
 
 RUN sed -i "s/^cache-size.*//" /etc/cgitrc
-RUN echo 'scan-path=/var/lib/dist-git/git/rpms' | tee -a /etc/cgitrc
+RUN echo 'scan-path=/var/lib/dist-git/git' | tee -a /etc/cgitrc
 
-RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /run/lock" ; \
+RUN mkdir -p /var/lib/dist-git/per-task-logs
+
+# Shared volumes use group 0 so they remain writable across service UID changes.
+RUN usermod -a -G root copr-dist-git
+RUN directories="/etc/httpd /var/run/httpd /var/log/httpd /var/lib/dist-git /var/cache/cgit /run/lock" ; \
     chown -R copr-dist-git:root $directories && \
     chmod -R g+rwX $directories
 
