@@ -25,6 +25,23 @@ x-ulimits: &ulimits_settings
 
 services:
 
+  backend-ssh-init:
+    build:
+      context: docker/backend
+    user: root
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        cp /local/id_rsa /ssh/id_rsa
+        cp /home/copr/.ssh/builder_config /ssh/builder_config
+        chown -R copr:copr /ssh
+        chmod 700 /ssh
+        chmod 600 /ssh/id_rsa /ssh/builder_config
+    volumes:
+      - ./.copr-compose/id_rsa:/local/id_rsa:ro,z
+      - backend-ssh:/ssh
+
   # @TODO Probably not all backend services should use the same Dockerfile
 
   backend-log:
@@ -47,12 +64,16 @@ services:
     hostname: backend-build
     command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "builds"]
     depends_on:
-      - resalloc
+      resalloc:
+        condition: service_started
+      backend-ssh-init:
+        condition: service_completed_successfully
     stdin_open: true
     tty: true
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+      - backend-ssh:/home/copr/.ssh:ro
     <<: *ulimits_settings
 
   backend-action:
@@ -118,6 +139,7 @@ services:
     privileged: true
     volumes:
       - .:/opt/copr:z
+      - ./.copr-compose/id_rsa.pub:/run/builder-authorized-keys:ro,z
 
   frontend:
     build:
@@ -212,6 +234,7 @@ services:
 
 
 volumes:
+  backend-ssh:
   results:
   copr-keygen:
   dist-git:

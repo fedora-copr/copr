@@ -18,6 +18,7 @@ _tmp/
 .pytest_cache/
 .localwrap/
 .mypy_cache/
+.copr-compose/
 
 backend/docs/build
 backend/dump.rdb

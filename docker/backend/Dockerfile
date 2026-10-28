@@ -23,7 +23,7 @@ RUN set -ex ; \
                    iputils \
                    vim \
                    git \
-                   openssh-server \
+                   openssh-clients \
                    resalloc \
                    psmisc \
                    nginx \
@@ -44,20 +44,9 @@ RUN set -ex ; \
 # needed to be able to ping
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
 
-# needed to run sshd
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
-
-# setup root user
-RUN echo 'root:passwd' | chpasswd && chmod 700 /root /root/.ssh
-
-# setup copr user
+# SSH client identities are mounted at runtime.
 RUN set -x ; \
-    echo 'copr:passwd' | chpasswd && \
     mkdir -p /home/copr/.ssh && chmod 700 /home/copr /home/copr/.ssh && \
-    ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@locahost && \
-    touch /home/copr/.ssh/authorized_keys && chmod 600 /home/copr/.ssh/authorized_keys && \
-    cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
-    cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown copr:copr -R /home/copr
 
 # system setup for copr-backend
@@ -67,8 +56,6 @@ RUN usermod -a -G mock copr
 COPY files/ /
 RUN chmod 700 /root && \
     chmod 700 /home/copr && \
-    chmod 400 /home/copr/.ssh/id_rsa && \
-    chmod 600 /home/copr/.ssh/id_rsa.pub && \
     chown -R copr:copr /home/copr
 
 # Copr user needs permissions for /bin/sign.  We drop the setuid bit here as in
