@@ -138,13 +138,21 @@ services:
       - redis:/var/lib/redis/data
 
   backend_httpd:
-    build:
-      context: docker/backend_httpd
+    image: quay.io/sclorg/nginx-126-c10s
     hostname: backend_httpd
+    command: ["nginx", "-g", "daemon off;"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:5002/"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
     ports:
       - "5002:5002"
     volumes:
       - results:/var/lib/copr/public_html/results:z
+    configs:
+      - source: backend-httpd-config
+        target: /opt/app-root/etc/nginx.d/copr-be.conf
 
   builder:
     build:
@@ -181,8 +189,7 @@ services:
       - .:/opt/copr:z
 
   database:
-    build:
-      context: docker/database/
+    image: quay.io/sclorg/postgresql-18-c10s
     hostname: database
     stdin_open: true
     tty: true
@@ -205,6 +212,9 @@ services:
     build:
       context: docker/distgit/
     hostname: distgit
+    depends_on:
+      backend_httpd:
+        condition: service_healthy
     stdin_open: true
     tty: true
     volumes:
@@ -272,6 +282,9 @@ services:
 
 # Runtime configs are interpolated by Compose, never copied into image layers.
 configs:
+  backend-httpd-config:
+    file: ./docker/backend_httpd/files/etc/nginx/conf.d/copr-be.conf
+
   backend-config:
     content: |
       [backend]
