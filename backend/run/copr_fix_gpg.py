@@ -8,8 +8,11 @@ import argparse
 from urllib.parse import urlparse
 import pwd
 
-from copr_backend.helpers import BackendConfigReader, call_copr_repo, run_cmd
+from copr_common.enums import StorageEnum
+from copr_backend.helpers import BackendConfigReader, call_copr_repo, run_cmd, \
+    get_project_info
 from copr_backend.sign import get_signer, unsign_rpms_in_dir, sign_rpms_in_dir
+from copr_backend.storage import storage_for_enum
 
 logging.basicConfig(
     filename="/var/log/copr-backend/fix_gpg.log",
@@ -59,6 +62,58 @@ def invalidate_aws_cloudfront_data(opts, owner, project, chroot):
     run_cmd(command, logger=log)
 
 
+def _get_storage(opts, owner, coprname, copr_full_name):
+    """
+    Return a (storage, pulp_storage) tuple for the given project, where
+    storage is the StorageEnum of the project's storage and pulp_storage is
+    a PulpStorage instance for the Pulp-hosted projects.  For the projects
+    stored on the local filesystem (those are re-signed in place) it is
+    (storage, None).
+    """
+    project_info = get_project_info(opts.frontend_base_url, owner, coprname)
+    # The frontend API returns the storage by its name, e.g. "pulp"
+    storage = StorageEnum(project_info.get("storage") or "backend")
+    if storage != StorageEnum.pulp:
+        return storage, None
+    log.info("Project %s is hosted in Pulp", copr_full_name)
+    return storage, storage_for_enum(
+        StorageEnum.pulp, owner, coprname,
+        project_info.get("appstream", False), False, True, opts, log)
+
+
+def _resign_pulp_chroot(pulp_storage, coprname, chroot, copr_full_name):
+    """
+    Re-sign a chroot of a Pulp-hosted project, and loudly report the builds
+    that failed to re-sign.  A failure in one chroot doesn't prevent the
+    other chroots of the project from being re-signed.
+    """
+    try:
+        failed_builds = pulp_storage.resign_builds(coprname, chroot)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        log.exception(str(e))
+        return
+    if failed_builds:
+        log.error("Builds %s in %s/%s were not re-signed, they still "
+                  "have the old GPG signature", failed_builds,
+                  copr_full_name, chroot)
+
+
+def _builddir_names(dir_path, builddir_matcher):
+    """
+    Names of the build directories (matching e.g. "00001231-anycharacter")
+    in a chroot directory.
+    """
+    names = []
+    for entry in os.scandir(dir_path):
+        if not entry.is_dir():
+            continue
+        if not builddir_matcher.match(entry.name):
+            log.debug("Skipping %s, not a build dir", entry.name)
+            continue
+        names.append(entry.name)
+    return names
+
+
 def fix_copr(args, opts, copr_full_name):
     log.info("Going to fix %s", copr_full_name)
 
@@ -68,6 +123,11 @@ def fix_copr(args, opts, copr_full_name):
     if not os.path.isdir(copr_path):
         log.info('Ignoring %s. Directory does not exist.', copr_path)
         return
+
+    # Projects hosted in Pulp need a completely different re-signing flow
+    # (download from Pulp, re-sign, upload back) than the projects stored
+    # on the local filesystem.
+    storage, pulp_storage = _get_storage(opts, owner, coprname, copr_full_name)
 
     signer = get_signer(copr_full_name, opts, log)
     log.info("Generate key-pair on copr-keygen (if not generated) for email %s",
@@ -102,16 +162,16 @@ def fix_copr(args, opts, copr_full_name):
                          ", ".join(args.chroot))
                 continue
 
-        log.info("Signing in %s chroot", chroot)
-        for builddir_name_entry in os.scandir(dir_path):
-            builddir_name = builddir_name_entry.name
-            builddir_path = os.path.join(dir_path, builddir_name)
-            if not builddir_name_entry.is_dir():
-                continue
-            if not builddir_matcher.match(builddir_name):
-                log.debug("Skipping %s, not a build dir", builddir_name)
-                continue
+        if storage == StorageEnum.pulp:
+            log.info("Re-signing in Pulp in %s chroot", chroot)
+            _resign_pulp_chroot(pulp_storage, coprname, chroot, copr_full_name)
+            continue
 
+        builddir_names = _builddir_names(dir_path, builddir_matcher)
+
+        log.info("Signing in %s chroot", chroot)
+        for builddir_name in builddir_names:
+            builddir_path = os.path.join(dir_path, builddir_name)
             log.info("Processing rpms in builddir %s", builddir_path)
             try:
                 unsign_rpms_in_dir(builddir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign

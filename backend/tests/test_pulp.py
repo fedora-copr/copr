@@ -53,6 +53,27 @@ class TestPulp:
         }
         return mock_response
 
+    @patch("copr_backend.pulp.MAX_CONTENT_UNITS_IN_BATCH", 2)
+    @patch("copr_backend.pulp.BatchedAddRemoveContent")
+    def test_modify_content_pagination(self, mc_batch):
+        """
+        Content is modified in batches of at most MAX_CONTENT_UNITS_IN_BATCH
+        units, the additions and the removals paginated together as one
+        sequence (all the additions first).  An interrupted operation thus
+        never leaves the repository without the content that it was about
+        to replace, and an uneven split doesn't produce almost-empty
+        requests.
+        """
+        client = PulpClient(self.config)
+
+        client.modify_content("/repositories/rpm/rpm/repo/",
+                              ["a", "b", "c"], ["x", "y"])
+
+        pages = [call.args[1:3] for call in mc_batch.call_args_list]
+        assert pages == [(["a", "b"], []), (["c"], ["x"]), ([], ["y"])]
+        assert mc_batch.return_value.make_request.call_count == 3
+        assert mc_batch.return_value.try_lock.call_count == 3
+
     def test_get_content_pagination_single_page(self):
         client = PulpClient(self.config)
 
@@ -139,6 +160,31 @@ class TestPulp:
             client.get_content([], fields=["prn"])
         assert "Content must be queried for specific builds" in str(ex)
         assert not client.send.called
+
+    def test_get_build_ids(self):
+        """Builds of a repository are enumerated from its latest version."""
+        client = PulpClient(self.config)
+
+        repo_response = Mock()
+        repo_response.json.return_value = {
+            "latest_version_href": "/versions/42/"}
+        client.get_by_href = Mock(return_value=repo_response)
+
+        results = [
+            {"pulp_labels": {"build_id": "123"}},
+            {"pulp_labels": {"build_id": "456"}},
+            # one more RPM of the first build
+            {"pulp_labels": {"build_id": "123"}},
+        ]
+        client.send = Mock(return_value=self.create_mock_response(
+            results, 3, next_url=None))
+
+        build_ids = client.get_build_ids("/repositories/rpm/rpm/repo/")
+
+        assert build_ids == [123, 456]
+        uri = client.send.call_args_list[0].args[1]
+        assert "repository_version=%2Fversions%2F42%2F" in uri
+        assert "fields=pulp_labels" in uri
 
     def test_distribution_without_content_guard(self):
         client = PulpClient(self.config)
