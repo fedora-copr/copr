@@ -648,46 +648,65 @@ class PulpClient:
         return PulpRequest("POST", url, data,
                            f"modify repository content {repository}")
 
-    def add_content(self, repository, artifacts):
+    def modify_content(self, repository, artifacts_to_add=None,
+                       artifacts_to_remove=None, dirs_to_delete=None):
         """
-        Add a list of artifacts to a repository
-        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
-        """
-        size = MAX_CONTENT_UNITS_IN_BATCH
-        pages = [list(x) for x in batched(artifacts, size)]
-        for i, page in enumerate(pages, start=1):
-            batch = BatchedAddRemoveContent(
-                repository, page, None, self.opts, self.log, client=self)
-            # Put our task to Redis DB and allow _others_ to process our
-            # own task.  This needs to be run _before_ try_lock().
-            batch.make_request()
-            batch.try_lock(repository)
-            self.log.info(
-                "Pulp: add_content: %s (%s) [%s/%s]",
-                repository, page, i, len(pages),
-            )
-        return True
+        Add and/or remove a list of artifacts to/from a repository.
 
-    def delete_content(self, repository, artifacts, dirs_to_delete=None):
-        """
-        Delete a list of artifacts from a repository
+        The artifacts are paginated into requests of at most
+        MAX_CONTENT_UNITS_IN_BATCH units — bigger requests take Pulp a long
+        time to process and eventually start timing out.  The additions and
+        the removals are paginated together, as one sequence, so that an
+        uneven split doesn't produce almost-empty requests.
+
+        The additions come before the removals in the sequence.  Adding
+        content with an already present repository key silently overwrites
+        the existing unit, and removing an already overwritten (and thus no
+        longer present) unit is a no-op.  This way an interrupted
+        modification never leaves the repository without a build it was
+        about to replace — every removal happens either after its
+        replacement was added in an earlier request, or together with it
+        in one repository version.  Each request creates (and publishes)
+        its own repository version though, so users may temporarily see a
+        repository where only some of the artifacts are already modified.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
-        size = MAX_CONTENT_UNITS_IN_BATCH
-        pages = [list(x) for x in batched(artifacts, size)]
+        to_add = list(artifacts_to_add or [])
+        to_remove = list(artifacts_to_remove or [])
+        operations = ([("add", unit) for unit in to_add]
+                      + [("remove", unit) for unit in to_remove])
+
+        pages = list(batched(operations, MAX_CONTENT_UNITS_IN_BATCH))
         for i, page in enumerate(pages, start=1):
+            page_to_add = [unit for op, unit in page if op == "add"]
+            page_to_remove = [unit for op, unit in page if op == "remove"]
             batch = BatchedAddRemoveContent(
-                repository, None, page, self.opts, self.log,
+                repository, page_to_add, page_to_remove, self.opts, self.log,
                 dirs_to_delete=dirs_to_delete, client=self)
             # Put our task to Redis DB and allow _others_ to process our
             # own task.  This needs to be run _before_ try_lock().
             batch.make_request()
             batch.try_lock(repository)
             self.log.info(
-                "Pulp: delete_content: %s (%s) [%s/%s]",
-                repository, page, i, len(pages),
+                "Pulp: modify_content: %s (add %s, remove %s) [%s/%s]",
+                repository, page_to_add, page_to_remove, i, len(pages),
             )
         return True
+
+    def add_content(self, repository, artifacts):
+        """
+        Add a list of artifacts to a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        return self.modify_content(repository, artifacts_to_add=artifacts)
+
+    def delete_content(self, repository, artifacts, dirs_to_delete=None):
+        """
+        Delete a list of artifacts from a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
+        """
+        return self.modify_content(repository, artifacts_to_remove=artifacts,
+                                   dirs_to_delete=dirs_to_delete)
 
     def get_content(self, build_ids, chroot=None, fields=None):
         """
@@ -720,25 +739,31 @@ class PulpClient:
                 query += "\""
             query += ")"
 
+        params = {"q": query}
+        if fields:
+            params["fields"] = ",".join(fields)
+
+        return self._list_packages(params)
+
+    def _list_packages(self, params):
+        """
+        Paginated listing of the RPM content units matching the base query in
+        PARAMS (e.g. a label select query, or a repository version filter).
+        """
         all_results = []
         offset = 0
         limit = 1000
 
         while True:
-            params = {"q": query, "offset": offset, "limit": limit}
-            if fields:
-                params["fields"] = ",".join(fields)
-
-            uri = "api/v3/content/rpm/packages/?" + urlencode(params)
-            self.log.debug("Pulp: get_content: fetching page (offset=%d)", offset)
+            query = dict(params, offset=offset, limit=limit)
+            uri = "api/v3/content/rpm/packages/?" + urlencode(query)
+            self.log.debug("Pulp: listing packages (offset=%d)", offset)
 
             response = self.send("GET", uri)
             self._log_list_response(response)
             response.raise_for_status()
             data = response.json()
             results = data.get("results", [])
-
-            self.log.debug("Pulp: get_content: fetched %d items", len(results))
 
             all_results.extend(results)
 
@@ -748,8 +773,21 @@ class PulpClient:
 
             offset += limit
 
-        self.log.info("Pulp: get_content: fetched %d items", len(all_results))
+        self.log.info("Pulp: listed %d packages", len(all_results))
         return all_results, response
+
+    def get_build_ids(self, repository):
+        """
+        List IDs of the builds that have RPM content in the latest repository
+        version of REPOSITORY.  For Pulp-hosted projects we can't rely on the
+        local results directory to tell which builds exist.
+        """
+        response = self.get_by_href(repository)
+        version = response.json()["latest_version_href"]
+        results, _response = self._list_packages(
+            {"repository_version": version, "fields": "pulp_labels"})
+        build_ids = {int(rpm["pulp_labels"]["build_id"]) for rpm in results}
+        return sorted(build_ids)
 
     def delete_repository(self, repository):
         """

@@ -637,23 +637,22 @@ class PulpStorage(Storage):
                 src_build_id = int(src_dir.split("-")[0])
                 dst_build_id = int(dst_dir.split("-")[0])
 
-                build_hrefs = self._fork_build(
-                    src_build_id,
-                    dst_build_id,
-                    src_fullname.split("/")[0],
-                    src_fullname.split("/")[1],
-                    dst_fullname.split("/")[0],
-                    dst_fullname.split("/")[1],
-                    chroot,
-                    dst_dir,
-                )
-
-                if build_hrefs is False:
+                try:
+                    build_hrefs = self._fork_build(
+                        src_build_id,
+                        dst_build_id,
+                        src_fullname.split("/")[0],
+                        src_fullname.split("/")[1],
+                        dst_fullname.split("/")[0],
+                        dst_fullname.split("/")[1],
+                        chroot,
+                        dst_dir,
+                    )
+                except RequestError:
                     failed = True
                     continue
 
-                if build_hrefs:
-                    hrefs.extend(build_hrefs)
+                hrefs.extend(build_hrefs)
 
             # Create only one repository version for all the forked builds in
             # this chroot, creating it per-build is needlessly expensive.
@@ -668,37 +667,37 @@ class PulpStorage(Storage):
 
         return not failed
 
-    def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
-                    dst_owner, dst_project, chroot, dst_dir):
-        # pylint: disable=too-many-positional-arguments,too-many-locals
+    def _resign_pulp_build(self, fullname, build_id, chroot, workdir,
+                           sign_owner, sign_project, upload_build_id):
+        # pylint: disable=too-many-positional-arguments
         """
-        Fork RPMs of a single build and upload them to Pulp.  Return the list
-        of uploaded ``pulp_href`` values, the caller is responsible for
-        creating a repository version from them.
-        """
-        src_fullname = "{0}/{1}".format(src_owner, src_project)
+        Download the RPMs of a build from Pulp, (re-)sign them with the key
+        of SIGN_OWNER/SIGN_PROJECT, and upload them back as new Pulp content.
+        Return an (old_hrefs, new_hrefs) tuple where old_hrefs are the content
+        units replaced by new_hrefs; both lists are empty when the build has
+        no RPMs (e.g. a build in a CoprDir).  Raise RequestError when an RPM
+        fails to download.
 
-        # Don't use /tmp for the temporary copy of the RPMs, it is typically a
-        # small (or even memory-backed) filesystem while builds can be huge.
-        # The results directory lives on a large persistent storage, and the
-        # destination build directory (with logs) is already created there by
-        # BackendStorage.fork_project().
-        workdir = os.path.join(self.opts.destdir, dst_owner, dst_project,
-                               chroot, dst_dir)
+        Don't use /tmp for the temporary copy of the RPMs, it is typically a
+        small (or even memory-backed) filesystem while builds can be huge.
+        The caller is responsible for providing a WORKDIR on a large
+        persistent storage.
+        """
         ensure_dir_exists(workdir, self.log)
 
-        with TemporaryDirectory(prefix=".copr-fork-", dir=workdir) as tmp:
+        with TemporaryDirectory(prefix=".copr-resign-", dir=workdir) as tmp:
             response = self.client.get_content(
-                [src_build_id],
+                [build_id],
                 chroot,
-                fields=["location_href"],
+                fields=["location_href", "pulp_href"],
             )
             rpms = response.json()["results"]
+            old_hrefs = []
             for rpm in rpms:
                 filename = rpm["location_href"]
                 url = "{0}/{1}/{2}/Packages/{3}/{4}".format(
                     self.opts.pulp_content_url,
-                    src_fullname,
+                    fullname,
                     chroot,
                     filename[0],
                     filename,
@@ -718,16 +717,17 @@ class PulpStorage(Storage):
                         continue
 
                     self.log.error("Failed to download %s because %s", url, ex)
-                    return False
+                    raise
+                old_hrefs.append(rpm["pulp_href"])
 
-            # It is possible we didn't download any RPMs. That would be the case
-            # for builds in CoprDirs.
+            # It is possible we didn't download any RPMs. That would be the
+            # case for builds in CoprDirs.
             if not os.listdir(tmp):
-                return None
+                return [], []
 
             resign_rpms_in_dir(
-                dst_owner,
-                dst_project,
+                sign_owner,
+                sign_project,
                 tmp,
                 chroot,
                 self.opts,
@@ -737,12 +737,110 @@ class PulpStorage(Storage):
             result = self.upload_build_results(
                 rpms,
                 chroot,
-                build_id=dst_build_id,
+                build_id=upload_build_id,
             )
-            hrefs = [x["pulp_href"] for x in result.values()]
+            new_hrefs = [x["pulp_href"] for x in result.values()]
 
+        return old_hrefs, new_hrefs
+
+    def _fork_build(self, src_build_id, dst_build_id, src_owner, src_project,
+                    dst_owner, dst_project, chroot, dst_dir):
+        # pylint: disable=too-many-positional-arguments
+        """
+        Fork RPMs of a single build and upload them to Pulp.  Return the list
+        of uploaded ``pulp_href`` values (empty when the build has no RPMs),
+        the caller is responsible for creating a repository version from
+        them.  Raise RequestError when an RPM fails to download.
+        """
+        workdir = os.path.join(self.opts.destdir, dst_owner, dst_project,
+                               chroot, dst_dir)
+        _replaced_hrefs, hrefs = self._resign_pulp_build(
+            "{0}/{1}".format(src_owner, src_project),
+            src_build_id,
+            chroot,
+            workdir,
+            dst_owner,
+            dst_project,
+            dst_build_id,
+        )
         self.log.info("Forked Pulp build %s as %s", src_build_id, dst_build_id)
         return hrefs
+
+    def resign_builds(self, dirname, chroot):
+        """
+        Re-sign all the Pulp-hosted RPMs in this chroot of this project with
+        the project's key (e.g. after the project started to share a GPG key
+        with another project).  The RPMs are downloaded from Pulp, re-signed
+        and uploaded back as new content, and the old content is removed from
+        the repository.  Return the list of build IDs that failed to re-sign.
+
+        The builds to re-sign are enumerated from the Pulp repository itself
+        because for the Pulp-hosted projects we can't rely on the local
+        results directory to contain all the build directories.
+
+        Raise CoprBackendError when signing is disabled on this backend —
+        the RPMs would be re-published unsigned (resign_rpms_in_dir drops
+        the old signatures even when it can't add new ones).
+        """
+        if not self.opts.do_sign:
+            raise CoprBackendError(
+                "Refusing to re-sign {0}/{1}/{2} in Pulp with signing "
+                "disabled (do_sign=false in the backend config)".format(
+                    self.owner, dirname, chroot))
+
+        chroot_dir = os.path.join(self.opts.destdir, self.owner, dirname, chroot)
+        fullname = "{0}/{1}".format(self.owner, dirname)
+
+        repository = self._get_repository(chroot, dirname)
+        build_ids = self.client.get_build_ids(repository)
+
+        to_add, to_remove, failed_builds = [], [], []
+        for build_id in build_ids:
+            try:
+                old_hrefs, new_hrefs = self._resign_pulp_build(
+                    fullname, build_id, chroot, chroot_dir,
+                    self.owner, self.project, build_id)
+            except RequestError:
+                self.log.error("Failed to re-sign build %s in %s",
+                               build_id, chroot)
+                failed_builds.append(build_id)
+                continue
+            to_remove.extend(old_hrefs)
+            to_add.extend(new_hrefs)
+
+        if not to_add:
+            self.log.info("No RPMs to re-sign in Pulp in %s/%s/%s",
+                          self.owner, dirname, chroot)
+            return failed_builds
+
+        # Remove the (stale) local metadata, if any, for the very same reason
+        # as create_repository_version() does.
+        self._cleanup_backend_storage(chroot_dir)
+
+        repository = self._get_repository(chroot, dirname)
+        self.client.modify_content(repository, to_add, to_remove)
+
+        # Projects with the manual createrepo feature have their public
+        # distribution pointed to a fixed publication, so the repository
+        # version created above is not yet visible in the public repository.
+        # Point the distribution to the newly created publication, the same
+        # way the "Regenerate" action does.
+        publication = self.client.get_publication(repository)\
+            .json()["results"][0]["pulp_href"]
+        public_distribution = self._get_distribution(chroot, dirname, full=True)
+        if public_distribution["publication"]:
+            self.log.info("Pointing %s to publication %s",
+                          self._distribution_name(chroot, dirname, devel=False),
+                          publication)
+            self.client.deliver_and_wait([
+                self.client.update_distribution(
+                    public_distribution["pulp_href"],
+                    publication=publication),
+            ])
+
+        self.log.info("Re-signed %s RPMs in Pulp in %s/%s/%s",
+                      len(to_add), self.owner, dirname, chroot)
+        return failed_builds
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([
@@ -757,7 +855,7 @@ class PulpStorage(Storage):
         if devel is None:
             devel = self.devel
         if devel:
-            return "{0}-devel".format(repository)
+            return f"{repository}-devel"
         return repository
 
     def _get_repository(self, chroot, dirname=None):
