@@ -184,6 +184,20 @@ setup_checks()
     rlRun "cat /etc/os-release |grep VERSION_ID=${FEDORA_VERSION}"
 }
 
+# download_file URL OUTPUT
+# ------------------------
+# Download URL into OUTPUT, retrying transient network errors.  Plain
+# `curl URL > OUTPUT` fails outright on e.g. "Connection reset by peer"
+# (curl exit code 35, not retried by default), and leaves OUTPUT empty
+# or partial -- a build fed with such file then fails with a confusing
+# "does not appear to be a specfile" error.
+download_file()
+{
+    local url=$1 output=$2
+    rlRun "curl --fail --retry 5 --retry-delay 5 --retry-all-errors -o '$output' '$url'" \
+        0 "Downloading $url into $output"
+}
+
 join_lines()
 {
     tr '\n' ' ' | sed 's/ $//'

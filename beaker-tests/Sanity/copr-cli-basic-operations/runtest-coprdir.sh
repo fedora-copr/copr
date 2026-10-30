@@ -55,12 +55,12 @@ rlJournalStart
         spec_url=https://src.fedoraproject.org/rpms/hello/raw/f44/f/hello.spec
 
         # This is the dependency (e.g. python-copr)
-        rlRun "curl $spec_url > $tmp/hello-1.spec"
+        download_file "$spec_url" "$tmp/hello-1.spec"
         rlRun "sed -i '1s/^/Epoch: 6\n/' $tmp/hello-1.spec"
         rlRun "copr-cli build $PROJECT:custom:foo $tmp/hello-1.spec"
 
         # And this is the package that builds on top of it (e.g. copr-cli)
-        rlRun "curl $spec_url > $tmp/hello-2.spec"
+        download_file "$spec_url" "$tmp/hello-2.spec"
         rlRun "sed -i '1s/^/BuildRequires: hello >= 6:\n/' $tmp/hello-2.spec"
         rlRun "copr-cli build $PROJECT:custom:foo $tmp/hello-2.spec"
     rlPhaseEnd
