@@ -1,3 +1,6 @@
+# This stack is for local development. The public local-only credentials below
+# are Compose defaults, not image defaults. Production Helm supplies its own secrets.
+#
 # Port-layout
 # ===========
 #
@@ -25,6 +28,23 @@ x-ulimits: &ulimits_settings
 
 services:
 
+  backend-ssh-init:
+    build:
+      context: docker/backend
+    user: root
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        cp /local/id_rsa /ssh/id_rsa
+        cp /home/copr/.ssh/builder_config /ssh/builder_config
+        chown -R copr:copr /ssh
+        chmod 700 /ssh
+        chmod 600 /ssh/id_rsa /ssh/builder_config
+    volumes:
+      - ./.copr-compose/id_rsa:/local/id_rsa:ro,z
+      - backend-ssh:/ssh
+
   # @TODO Probably not all backend services should use the same Dockerfile
 
   backend-log:
@@ -39,6 +59,9 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+    configs:
+      - source: backend-config
+        target: /etc/copr/copr-be.conf
     <<: *ulimits_settings
 
   backend-build:
@@ -47,12 +70,21 @@ services:
     hostname: backend-build
     command: ["/run-backend", "--sign-host", "keygen-signd", "/usr/bin/copr-run-dispatcher-backend", "builds"]
     depends_on:
-      - resalloc
+      resalloc:
+        condition: service_started
+      backend-ssh-init:
+        condition: service_completed_successfully
     stdin_open: true
     tty: true
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+      - backend-ssh:/home/copr/.ssh:ro
+    configs:
+      - source: backend-config
+        target: /etc/copr/copr-be.conf
+      - source: pulp-cli-config
+        target: /home/copr/.config/pulp/cli.toml
     <<: *ulimits_settings
 
   backend-action:
@@ -67,6 +99,11 @@ services:
     volumes:
       - .:/opt/copr:z
       - results:/var/lib/copr/public_html/results:z
+    configs:
+      - source: backend-config
+        target: /etc/copr/copr-be.conf
+      - source: pulp-cli-config
+        target: /home/copr/.config/pulp/cli.toml
     <<: *ulimits_settings
 
   resalloc:
@@ -101,13 +138,21 @@ services:
       - redis:/var/lib/redis/data
 
   backend_httpd:
-    build:
-      context: docker/backend_httpd
+    image: quay.io/sclorg/nginx-126-c10s
     hostname: backend_httpd
+    command: ["nginx", "-g", "daemon off;"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:5002/"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
     ports:
       - "5002:5002"
     volumes:
       - results:/var/lib/copr/public_html/results:z
+    configs:
+      - source: backend-httpd-config
+        target: /opt/app-root/etc/nginx.d/copr-be.conf
 
   builder:
     build:
@@ -118,31 +163,46 @@ services:
     privileged: true
     volumes:
       - .:/opt/copr:z
+      - ./.copr-compose/id_rsa.pub:/run/builder-authorized-keys:ro,z
 
   frontend:
     build:
       context: docker/frontend/
     hostname: frontend
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_started
     stdin_open: true
     tty: true
+    environment:
+      COPR_FRONTEND_ENV: local
+      COPR_FRONTEND_DEBUG: "true"
+      TEST_REMOTE_USER: jdoe
+      COPR_BACKEND_PASSWORD: local-only-backend-password
+      COPR_FRONTEND_SECRET_KEY: local-only-frontend-session-secret-do-not-use-outside-development
+      COPR_DATABASE_URI: postgresql+psycopg2://copr-fe:local-only-database-password@database/coprdb
     ports:
       - "5000:5000"
     volumes:
       - .:/opt/copr:z
 
   database:
-    build:
-      context: docker/database/
+    image: quay.io/sclorg/postgresql-18-c10s
     hostname: database
     stdin_open: true
     tty: true
     environment:
-      - POSTGRESQL_USER=copr-fe
-      - POSTGRESQL_PASSWORD=coprpass
-      - POSTGRESQL_DATABASE=coprdb
+      POSTGRESQL_USER: copr-fe
+      POSTGRESQL_PASSWORD: local-only-database-password
+      POSTGRESQL_DATABASE: coprdb
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -h 127.0.0.1 -U "$$POSTGRESQL_USER" -d "$$POSTGRESQL_DATABASE"']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
     ports:
       - 5009:5432
     volumes:
@@ -152,11 +212,17 @@ services:
     build:
       context: docker/distgit/
     hostname: distgit
+    depends_on:
+      backend_httpd:
+        condition: service_healthy
     stdin_open: true
     tty: true
     volumes:
       - .:/opt/copr:z
       - dist-git:/var/lib/dist-git:z
+    configs:
+      - source: distgit-config
+        target: /etc/copr/copr-dist-git.conf
     <<: *ulimits_settings
 
   distgit-httpd:
@@ -170,6 +236,9 @@ services:
     volumes:
       - .:/opt/copr:z
       - dist-git:/var/lib/dist-git:z
+    configs:
+      - source: distgit-config
+        target: /etc/copr/copr-dist-git.conf
     command: /usr/sbin/httpd -DFOREGROUND
     <<: *ulimits_settings
 
@@ -200,8 +269,8 @@ services:
     stdin_open: true
     tty: true
     environment:
-      - PULP_DEFAULT_ADMIN_PASSWORD=admin
-      - PULP_SECRET_KEY=change-me-to-something-secret
+      PULP_DEFAULT_ADMIN_PASSWORD: local-only-pulp-password
+      PULP_SECRET_KEY: local-only-pulp-secret-do-not-use-outside-this-development-stack
     ports:
       - 5006:80
     volumes:
@@ -211,7 +280,53 @@ services:
       - /dev/fuse:/dev/fuse
 
 
+# Runtime configs are interpolated by Compose, never copied into image layers.
+configs:
+  backend-httpd-config:
+    file: ./docker/backend_httpd/files/etc/nginx/conf.d/copr-be.conf
+
+  backend-config:
+    content: |
+      [backend]
+      build_user=root
+      results_baseurl=http://backend_httpd:5002/results/
+      frontend_base_url=http://frontend:5000
+      frontend_auth=local-only-backend-password
+      dist_git_url=http://distgit-httpd/cgit
+      destdir=/var/lib/copr/public_html/results
+      sleeptime=30
+      resalloc_connection=http://resalloc:49100
+      do_sign=true
+      keygen_host=keygen-httpd:5003
+      prune_days=14
+      redis_host=redis
+      redis_port=6379
+      pulp_content_url=http://pulp:80/pulp/content
+      [builder]
+      timeout=3600
+      builder_perl=True
+      [ssh]
+      builder_config=/home/copr/.ssh/builder_config
+  distgit-config:
+    content: |
+      [dist-git]
+      frontend_base_url=http://frontend:5000
+      frontend_auth=local-only-backend-password
+      per_task_log_dir=/var/lib/dist-git/per-task-logs
+      redis_host=redis
+      redis_port=6379
+  pulp-cli-config:
+    content: |
+      [cli]
+      base_url = "http://pulp:80"
+      api_root = "/pulp/"
+      domain = "default"
+      username = "admin"
+      password = "local-only-pulp-password"
+      verify_ssl = true
+
 volumes:
+  backend-ssh:
   results:
   copr-keygen:
   dist-git:

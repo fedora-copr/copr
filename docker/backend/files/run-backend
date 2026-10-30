@@ -31,7 +31,7 @@ done
 cat >/etc/sign.conf <<EOF
 server: $opt_sign_host
 allowuser: $opt_sign_user
-allow-unprivileged-ports: true
+use-unprivileged-ports: true
 EOF
 
 # execute the remaining part of the command

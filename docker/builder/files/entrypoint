@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+if [ ! -s /run/builder-authorized-keys ]; then
+    echo "Mount builder authorized_keys before starting sshd" >&2
+    exit 1
+fi
+install -o root -g root -m 600 /run/builder-authorized-keys /root/.ssh/authorized_keys
+ssh-keygen -A
+exec "$@"
