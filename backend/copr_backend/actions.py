@@ -141,14 +141,13 @@ class Createrepo(Action):
         result = BackendResultEnum("success")
 
         for project_dirname in project_dirnames:
-            for chroot in chroots:
-                success = self.storage.init_project(
-                    project_dirname,
-                    chroot,
-                    reason=reason,
-                )
-                if not success:
-                    result = BackendResultEnum("failure")
+            success = self.storage.init_project(
+                project_dirname,
+                chroots,
+                reason=reason,
+            )
+            if not success:
+                result = BackendResultEnum("failure")
         return result
 
 
