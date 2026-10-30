@@ -12,7 +12,7 @@ import hashlib
 from itertools import batched
 from urllib.parse import urlencode
 
-from copr_common.request import SafeRequest
+from copr_common.request import SafeRequest, RequestError
 from copr_common.lock import Lock
 from copr_common.redis_helpers import get_redis_connection
 from copr_backend.helpers import format_filename, ensure_dir_removed
@@ -769,17 +769,32 @@ class PulpClient:
         return PulpRequest("DELETE", url,
                            description=f"delete distribution {distribution}")
 
-    def deliver_and_wait(self, requests, timeout=86400):
+    def deliver_and_wait(self, requests, timeout=86400, exist_ok=False):
         """
         Submit multiple PulpRequests and wait for all background tasks to
         finish.  Retry failed requests/tasks until timeout.  Raise
-        RuntimeError if any request cannot be completed within the timeout.
+        RuntimeError if any request cannot be completed within the timeout,
+        or re-raise the RequestError if Pulp refuses some of the requests.
+
+        When Pulp refuses one of the requests (e.g. a duplicate object
+        creation), we don't abort the whole batch — the remaining requests
+        are still submitted and waited for, and the error is re-raised
+        only once everything else is done.  When a single request is
+        refused, its original RequestError is re-raised as-is; when
+        multiple requests are refused, a RuntimeError aggregating all
+        of them is raised.
+
+        With EXIST_OK, the requests refused because of a duplicate
+        object creation ("This field must be unique") are tolerated —
+        the object exists either way, so the caller can simply query Pulp
+        for it.  All the other refusals are still re-raised.
         """
         if not requests:
             return []
 
         deadline = time.monotonic() + timeout
         results = [None] * len(requests)
+        errors = {}
 
         # Initialize the todo-list.
         # (index, request, task_href_or_None, backoff_sleep)
@@ -796,7 +811,22 @@ class PulpClient:
             for i, req, task, backoff_sleep in pending:
                 if task is None:
                     self.log.info("Pulp: submitting %s", req.description)
-                    response = self.send(req.method, req.url, req.data)
+                    try:
+                        response = self.send(req.method, req.url, req.data)
+                    except RequestError as ex:
+                        if exist_ok and \
+                                "This field must be unique" in ex.response.text:
+                            self.log.info(
+                                "Pulp: %s already exists, created by "
+                                "a concurrent task", req.description)
+                            continue
+                        # Pulp refuses this request, retrying it doesn't
+                        # make sense.  Submit and wait for the rest of the
+                        # batch, and re-raise this error afterwards.
+                        self.log.warning("Pulp: %s refused: %s",
+                                         req.description, ex)
+                        errors[i] = ex
+                        continue
                     if response.status_code != 202:
                         results[i] = response.json()
                         continue
@@ -826,6 +856,15 @@ class PulpClient:
             if pending:
                 time.sleep(max(s for _, _, _, s in pending))
 
+        if errors:
+            if len(errors) == 1:
+                raise errors[min(errors)]
+            message = "; ".join(
+                "{} ({})".format(requests[i].description, ex)
+                for i, ex in sorted(errors.items()))
+            raise RuntimeError(
+                "{0} of {1} Pulp requests failed: {2}".format(
+                    len(errors), len(requests), message)) from errors[min(errors)]
         return results
 
     def list_distributions(self, prefix):
