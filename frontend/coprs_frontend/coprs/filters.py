@@ -8,7 +8,7 @@ import os
 import re
 import time
 from urllib.parse import urlparse
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from markdown_it import MarkdownIt
 
@@ -134,7 +134,10 @@ def localized_time(time_in, timezone):
     format_tz = "%Y-%m-%d %H:%M %Z"
     utc_tz = ZoneInfo("UTC")
     if timezone:
-        user_tz = ZoneInfo(timezone)
+        try:
+            user_tz = ZoneInfo(timezone)
+        except ZoneInfoNotFoundError:
+            user_tz = utc_tz
     else:
         user_tz = utc_tz
     dt_aware = datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
