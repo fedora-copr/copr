@@ -120,19 +120,19 @@ proceeding.
    packages from a Copr directory, identified by the upstream commit whose short
    hash appears in the RPM Release field::
 
-     ssha="..."
+     sha="..."
 
      scp releng/install-copr-packages root@copr-be-dev.aws.fedoraproject.org:/tmp/
-     ssh root@copr-be-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-backend python3-copr-common python3-copr copr-cli'
+     ssh root@copr-be-dev.aws.fedoraproject.org "/tmp/install-copr-packages @copr/copr-dev $sha copr-backend python3-copr-common python3-copr copr-cli"
 
      scp releng/install-copr-packages root@copr-fe-dev.aws.fedoraproject.org:/tmp/
-     ssh root@copr-fe-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-frontend copr-frontend-fedora python3-copr-common'
+     ssh root@copr-fe-dev.aws.fedoraproject.org "/tmp/install-copr-packages @copr/copr-dev $sha copr-frontend copr-frontend-fedora python3-copr-common"
 
      scp releng/install-copr-packages root@copr-dist-git-dev.aws.fedoraproject.org:/tmp/
-     ssh root@copr-dist-git-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-dist-git python3-copr-common python3-copr'
+     ssh root@copr-dist-git-dev.aws.fedoraproject.org "/tmp/install-copr-packages @copr/copr-dev $sha copr-dist-git python3-copr-common python3-copr"
 
      scp releng/install-copr-packages root@copr-keygen-dev.aws.fedoraproject.org:/tmp/
-     ssh root@copr-keygen-dev.aws.fedoraproject.org '/tmp/install-copr-packages @copr/copr-dev $sha copr-keygen python3-copr-common'
+     ssh root@copr-keygen-dev.aws.fedoraproject.org "/tmp/install-copr-packages @copr/copr-dev $sha copr-keygen python3-copr-common"
 
 
 Test on dev machines
