@@ -921,6 +921,13 @@ though they are recommended to do so. In particular, kernel modules
 may be built in Copr, as long as they don't violate the license
 requirements in point 2. above.
 
+.. note::
+   Packages that download proprietary content during build-time but don't
+   include it in the resulting RPMs are currently a gray area. Unfortunately, we
+   have to err on the side of safety, so until we get a
+   `definitive ruling from Fedora Legal <https://lists.fedoraproject.org/archives/list/legal@lists.fedoraproject.org/thread/RK5OCUHCY37KQHMTFXVPWPVYQDSTBDCA/>`_,
+   such packages are not allowed.
+
 .. _`faq-high-performance-builders`:
 
 .. rubric:: Can you lend me faster Copr builders? :ref:`¶ <faq-high-performance-builders>`
