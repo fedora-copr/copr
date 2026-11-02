@@ -2,7 +2,7 @@
 %global copr_common_version 0.16.3.dev
 
 Name:       copr-keygen
-Version:    2.3
+Version:    2.4
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -175,6 +175,9 @@ systemctl condrestart httpd &>/dev/null || :
 %endif
 
 %changelog
+* Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.4-1
+- Add share-gpg-key and gen-clean-pubkey scripts
+
 * Wed Aug 12 2026 Jakub Kadlcik <frostyx@email.cz> 2.3-1
 - Fix container-based unit test workflow
 
