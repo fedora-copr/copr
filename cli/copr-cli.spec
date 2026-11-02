@@ -2,7 +2,7 @@
 %global min_python_copr_version 2.5.1
 
 Name:       copr-cli
-Version:    2.7
+Version:    2.8
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,10 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.8-1
+- Support builds from DistGit repository forks
+- Use a relative directory prefix when downloading build results with wget
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.7-1
 - Provide command for rpmupload feature
 - Drop support for pyp2rpm
