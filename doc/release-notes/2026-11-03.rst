@@ -1,0 +1,49 @@
+.. _release_notes_2026_11_03:
+
+Highlights from 2026-11-03 release
+===================================
+
+Enhancements
+------------
+
+- `#1230`_ - A new notification inbox with the same messages that we
+  send via email. Some users find emails unreliable because of spam filters, etc
+  and miss vital notifications.
+- `#4561`_ - Builds from DistGit repository forks can now use the original
+  repository's lookaside cache.
+- Many requests to Pulp are now batched when initializing Copr projects to
+- Initializing Pulp repositories for projects with multiple chroots is now
+  reduce the wait before builds can start.
+- When building SRPM packages, the ``Source`` downloads now have retries
+- Multiple projects can now share the same signing key. This is not relevant for
+  the Fedora Copr instance.
+- The backend now supports multiple signing tools. The Fedora Copr instance will
+  continue to use obs-sign.
+
+
+Bugfixes
+--------
+
+- Projects can now be forked into any existing project the user has admin
+  permission for, including projects in another user's namespace.
+- Forking into an existing group project now correctly requires confirmation.
+- ``copr-cli download-build --dest`` now downloads into the correct directory
+- `#4540`_ - Invalid timezones now fall back to UTC
+- `#4325`_ - Parsing a spec file that loads a macro file not yet extracted from
+  the SRPM no longer causes a traceback.
+- An unusable LDAP Kerberos keytab no longer causes an internal server error
+  during login.
+- `#4567`_ - The project's Actions tab now sorts actions chronologically
+- `#4564`_ - Deleting builds no longer leaves leftovers in the Pulp repositories
+- `#4530`_ - Successful createrepo actions are now correctly reported as
+  successful.
+
+
+.. _#1230: https://github.com/fedora-copr/copr/issues/1230
+.. _#4561: https://github.com/fedora-copr/copr/issues/4561
+.. _#4540: https://github.com/fedora-copr/copr/issues/4540
+.. _#4325: https://github.com/fedora-copr/copr/issues/4325
+.. _#4567: https://github.com/fedora-copr/copr/issues/4567
+.. _#4564: https://github.com/fedora-copr/copr/issues/4564
+.. _#4530: https://github.com/fedora-copr/copr/issues/4530
+.. _Wget2 #394: https://github.com/rockdaboot/wget2/issues/394
