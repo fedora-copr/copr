@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.9.1
+Version:    1.10
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -80,6 +80,9 @@ version=%version %py3_install
 
 
 %changelog
+* Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 1.10-1
+- Add inbox support for chroots marked end of life
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.9-1
 - uploadrpm: multiple RPMs, optional srpm/logs
 
