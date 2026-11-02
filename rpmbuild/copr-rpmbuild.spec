@@ -14,7 +14,7 @@ Requires: %1 \
 %{expand: %%global latest_requires_packages %1 %%{?latest_requires_packages}}
 
 Name:    copr-rpmbuild
-Version: 1.10
+Version: 1.11
 Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://github.com/fedora-copr/copr
@@ -304,6 +304,12 @@ EOF
 
 
 %changelog
+* Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 1.11-1
+- Support builds from DistGit repository forks
+- Retry source URL downloads when building SRPMs
+- Handle missing macro files without a traceback
+- Fix package installation dependencies
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 1.10-1
 - avoid ugly tracebacks on early failure in build_rpm()
 - uploadrpm: support multiple RPMs, optional srpm/logs
