@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.8
+Version:    2.9
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.9-1
+- Support builds from DistGit repository forks
+- Handle non-JSON HTTP 401 responses
+
 * Tue Sep 22 2026 Jiri Kyjovsky <j1.kyjovsky@gmail.com> 2.8-1
 - Provide bindings for uploadrpm feature
 - Add function for getting a list of downloadable build results URLs
