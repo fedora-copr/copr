@@ -51,9 +51,11 @@ RUN sed -i "s/REDIS_HOST = \"redis\"/REDIS_HOST = \"${REDIS_HOST}\"/g" /etc/copr
 # We can't have these directories owned by copr-fe:copr-fe
 # because OpenShift runs pod as a semi-randomly generated user
 # https://docs.openshift.com/container-platform/4.3/openshift_images/create-images.html#use-uid_create-images
+RUN mkdir -p /var/lib/copr/data/srpm_storage
 RUN chown -R copr-fe:root \
     /usr/share/copr \
     /var/log/copr-frontend \
+    /var/lib/copr/data \
     /etc/httpd/ \
     /var/run/httpd/ \
     /var/log/httpd/
@@ -63,6 +65,7 @@ RUN chown -R copr-fe:root \
 RUN chmod -R g+rwX \
     /usr/share/copr \
     /var/log/copr-frontend \
+    /var/lib/copr/data \
     /etc/httpd/ \
     /var/run/httpd/ \
     /var/log/httpd/
