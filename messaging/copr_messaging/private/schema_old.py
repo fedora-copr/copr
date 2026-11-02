@@ -17,6 +17,7 @@
 
 from copr_common.enums import StatusEnum
 from .hierarchy import _BuildChrootMessage
+from .schema_pulp import PULP_METADATA_SCHEMA
 
 class _PreFMBuildMessage(_BuildChrootMessage):
     """ old obsoleted msg format """
@@ -98,6 +99,7 @@ class _PreFMBuildMessage(_BuildChrootMessage):
                 "description": "process ID of the process on backend taking "
                                "care of the task",
             },
+            "pulp": PULP_METADATA_SCHEMA,
         },
     }
 

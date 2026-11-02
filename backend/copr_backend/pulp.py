@@ -26,6 +26,26 @@ from copr_backend.helpers import format_filename, ensure_dir_removed
 MAX_CONTENT_UNITS_IN_BATCH = 10000
 
 
+def _publication_href(task):
+    """Get one unambiguous publication from a completed publishing task."""
+
+    if not isinstance(task, dict):
+        return None
+
+    resources = task.get("created_resources")
+    if not isinstance(resources, list):
+        return None
+
+    hrefs = [href for href in resources if isinstance(href, str)
+             and href.startswith("/") and href.endswith("/")
+             and "/api/v3/publications/rpm/rpm/" in href]
+
+    if not hrefs:
+        return None
+
+    return hrefs[0]
+
+
 class PaginatedResponse:
     """
     A response-like object that maintains backward compatibility with PULP API responses
@@ -70,6 +90,7 @@ class BatchedAddRemoveContent:
         self.log = log
         self.noop = noop
         self.client = client
+        self.publication_href = None
 
         if not backend_opts:
             self.log.error("can't get access to redis, batch disabled")
@@ -114,11 +135,15 @@ class BatchedAddRemoveContent:
         if self.noop:
             return False
 
-        status = self.redis.hget(self.key, "status") == "success"
-        self.log.debug("Has already a status? %s", status)
+        result = self.redis.hgetall(self.key)
+        success = result.get("status") == "success"
+        if success:
+            self.publication_href = result.get("publication_href")
+
+        self.log.debug("Has already a status? %s", success)
 
         try:
-            if not status:
+            if not success:
                 # not yet processed
                 return False
         finally:
@@ -128,10 +153,10 @@ class BatchedAddRemoveContent:
             # The 'delete_if_not = True' is not a TOCTOU case.  Our caller holds
             # the lock, hence no other machine may take our task (would require
             # lock) and re-process it.
-            if status or delete_if_not:
+            if success or delete_if_not:
                 self.redis.delete(self.key)
 
-        return status
+        return success
 
     def options(self):
         """
@@ -239,9 +264,13 @@ class BatchedAddRemoveContent:
         if self.noop:
             return
 
+        result = {"status": "success"}
+        if self.publication_href is not None:
+            result["publication_href"] = self.publication_href
+
         for key in self.notify_keys:
             self.log.info("Notifying %s that we succeeded", key)
-            self.redis.hset(key, "status", "success")
+            self.redis.hset(key, mapping=result)
 
     def _execute_locked(self, repository):
         """
@@ -260,9 +289,13 @@ class BatchedAddRemoveContent:
             self.client.deliver_and_wait([
                 self.client.modify_repository_content(repository, **data),
             ])
-            self.client.deliver_and_wait([
+            task = self.client.deliver_and_wait([
                 self.client.publish(repository),
-            ])
+            ])[0]
+
+            self.publication_href = _publication_href(task)
+            if not self.publication_href:
+                self.log.warning("Publication completed without snapshot metadata")
         finally:
             self._delete_dirs(dirs_to_delete)
 
@@ -652,6 +685,7 @@ class PulpClient:
                        artifacts_to_remove=None, dirs_to_delete=None):
         """
         Add and/or remove a list of artifacts to/from a repository.
+        Return (success, last_publication_href), with None when no href is available.
 
         The artifacts are paginated into requests of at most
         MAX_CONTENT_UNITS_IN_BATCH units — bigger requests take Pulp a long
@@ -671,6 +705,7 @@ class PulpClient:
         repository where only some of the artifacts are already modified.
         https://pulpproject.org/pulp_rpm/restapi/#tag/Repositories:-Rpm/operation/repositories_rpm_rpm_modify
         """
+        publication_href = None
         to_add = list(artifacts_to_add or [])
         to_remove = list(artifacts_to_remove or [])
         operations = ([("add", unit) for unit in to_add]
@@ -687,11 +722,12 @@ class PulpClient:
             # own task.  This needs to be run _before_ try_lock().
             batch.make_request()
             batch.try_lock(repository)
+            publication_href = batch.publication_href
             self.log.info(
                 "Pulp: modify_content: %s (add %s, remove %s) [%s/%s]",
                 repository, page_to_add, page_to_remove, i, len(pages),
             )
-        return True
+        return True, publication_href
 
     def add_content(self, repository, artifacts):
         """

@@ -592,6 +592,7 @@ class PulpStorage(Storage):
     def create_repository_version(self, dirname, chroot, package_hrefs_or_prns):
         """
         Create a new repository version by adding a list of RPMs to the latest repository version.
+        Return (success, publication_href), with None when no href is available.
         """
 
         # Perform backend cleanup whenever new Pulp content is created.  This

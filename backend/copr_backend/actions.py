@@ -407,7 +407,7 @@ class RawhideToRelease(Action):
                     )
                     rpms = response.json()["results"]
                     prns = [rpm["prn"] for rpm in rpms]
-                    success = self.storage.create_repository_version(
+                    success, _ = self.storage.create_repository_version(
                         data["copr_dir"],
                         data["dest_chroot"],
                         prns,

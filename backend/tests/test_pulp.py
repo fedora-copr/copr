@@ -2,7 +2,7 @@
 Test Pulp client
 """
 
-# pylint: disable=attribute-defined-outside-init
+# pylint: disable=attribute-defined-outside-init,protected-access
 
 from unittest.mock import Mock, patch
 
@@ -11,7 +11,7 @@ import pytest
 
 from copr_common.enums import CreaterepoReason
 from copr_common.request import RequestError
-from copr_backend.pulp import PulpClient, PulpRequest
+from copr_backend.pulp import BatchedAddRemoveContent, PulpClient, PulpRequest
 from copr_backend.storage import PulpStorage
 
 
@@ -71,14 +71,45 @@ class TestPulp:
         requests.
         """
         client = PulpClient(self.config)
+        batches = [Mock(publication_href=f"/publication/{i}/") for i in range(3)]
+        mc_batch.side_effect = batches
 
-        client.modify_content("/repositories/rpm/rpm/repo/",
-                              ["a", "b", "c"], ["x", "y"])
+        result = client.modify_content("/repositories/rpm/rpm/repo/",
+                                       ["a", "b", "c"], ["x", "y"])
 
         pages = [call.args[1:3] for call in mc_batch.call_args_list]
         assert pages == [(["a", "b"], []), (["c"], ["x"]), ([], ["y"])]
-        assert mc_batch.return_value.make_request.call_count == 3
-        assert mc_batch.return_value.try_lock.call_count == 3
+        assert all(batch.make_request.call_count == 1 for batch in batches)
+        assert all(batch.try_lock.call_count == 1 for batch in batches)
+        assert result == (True, "/publication/2/")
+        assert client.modify_content("/repositories/rpm/rpm/empty/") == (True, None)
+
+    @pytest.mark.parametrize("href", [None, "/pulp/api/v3/publications/rpm/rpm/snapshot/"])
+    @patch("copr_backend.pulp.get_redis_connection")
+    def test_publication_handoff(self, mc_redis, href):
+        client = Mock()
+        resources = [href] if href else []
+        client.deliver_and_wait.side_effect = [[], [{"created_resources": resources}]]
+        batch = BatchedAddRemoveContent(
+            "/repo/", ["/rpm/"], [], backend_opts=object(), log=Mock(), client=client)
+        with patch.object(batch, "options", return_value={
+                "add_content_units": ["/rpm/"], "remove_content_units": []}):
+            batch._execute_locked("/repo/")
+        assert batch.publication_href == href
+
+        batch.notify_keys = ["waiting-worker"]
+        batch.commit()
+        result = mc_redis.return_value.hset.call_args.kwargs["mapping"]
+        expected = {"status": "success"}
+        if href is not None:
+            expected["publication_href"] = href
+        assert result == expected
+        mc_redis.return_value.hgetall.return_value = result
+        batch.publication_href = None
+        batch._execute_locked("/repo/")
+        assert batch.publication_href == href
+        assert client.deliver_and_wait.call_count == 2
+        client.get_publication.assert_not_called()
 
     def test_get_content_pagination_single_page(self):
         client = PulpClient(self.config)
@@ -770,3 +801,14 @@ class TestPulpStorageInitProject:
         mc_update.assert_any_call("/dist/1/", publication="/publication/1/")
         assert mc_update.call_count == 2
         assert batches[-2] == ["update-dist:/dist/1/", "update-dist:/dist/1/"]
+
+    @pytest.mark.parametrize("href", [None, "/pulp/api/v3/publications/rpm/rpm/snapshot/"])
+    @pytest.mark.parametrize("success", [False, True])
+    def test_create_repository_version_captures_publication(self, tmp_path, href, success):
+        storage = self._storage()
+        storage.opts.destdir = str(tmp_path)
+        self._mock_client(storage, existing_repos=["owner/project/fedora-40-x86_64"])
+        storage.client.add_content.return_value = (success, href)
+        with patch.object(storage, "_cleanup_backend_storage"):
+            assert storage.create_repository_version(
+                "project", "fedora-40-x86_64", ["/rpm/1/"]) == (success, href)

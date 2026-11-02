@@ -682,7 +682,7 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
             return
 
         hrefs = [x["pulp_href"] for x in result.values()]
-        success = self.storage.create_repository_version(
+        success, publication_href = self.storage.create_repository_version(
             self.job.project_dirname,
             self.job.chroot,
             hrefs,
@@ -692,6 +692,8 @@ class BuildBackgroundWorker(BackendBackgroundWorker):
                 "Pulp: Failed to create repository version for {0} and {1}"
                 .format(self.job.project_dirname, self.job.chroot)
             )
+
+        self.job.pulp_publication_href = publication_href
 
     def _check_build_success(self):
         """

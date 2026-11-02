@@ -77,6 +77,7 @@ class BuildJob(object):
         self.allow_user_ssh = None
         self.ssh_public_keys = None
         self.storage = None
+        self.pulp_publication_href = None
         self.repos = []
 
         # TODO: validate update data
