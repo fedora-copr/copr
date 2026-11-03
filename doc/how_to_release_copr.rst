@@ -286,6 +286,11 @@ If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or some
     one** at once.  Keep one package to be submitted later, when other tasks are
     already processed to "poke through" potencially broken repository.
 
+.. note::
+   Copr builders can run on a different Fedora version than the servers
+   (e.g., f44 vs f43). Make sure to submit all packages for the Fedora
+   versions where they are needed.
+
 We have wrappers around the ``koji`` tool for this.  First we "tag" the packages
 into the infra staging repo like (`example stg infra repo`_)::
 
