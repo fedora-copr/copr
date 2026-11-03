@@ -386,6 +386,14 @@ Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask Mi
 
 .. note::
 
+    The upgrade playbooks should force DNF to refresh its cache but they
+    reliably don't and sometimes packages are not updated. When it happens,
+    refresh the cache manually::
+
+      ./releng/run-on-all-infra 'dnf clean all'
+
+.. note::
+
     You shouldn't need to upgrade DB manually, playbook covers it.
 
 .. note::
