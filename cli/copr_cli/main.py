@@ -541,7 +541,7 @@ class Commands(object):
             "distgit": args.instance,
             "namespace": args.namespace,
             "committish": args.committish,
-            "forked_from": args.forked_from,
+            "clone_url": args.clone_url,
         }
         return self.process_build(
             args, self.client.build_proxy.create_from_distgit, data)
@@ -1097,7 +1097,7 @@ class Commands(object):
             "distgit": args.instance,
             "namespace": args.namespace,
             "committish": args.committish,
-            "forked_from": args.forked_from,
+            "clone_url": args.clone_url,
             "max_builds": args.max_builds,
             "timeout": args.timeout,
             "chroot_denylist": args.chroot_denylist,
@@ -1649,11 +1649,11 @@ def setup_parser():
         ),
     )
     parser_distgit_simple_parent.add_argument(
-        "--forked-from", dest="forked_from", default=None,
+        "--clone-url", dest="clone_url", default=None,
         help=(
-            "Clone URL of the original repository when building from a "
-            "DistGit fork (e.g. when --namespace forks/username is used). "
-            "It is used to detect the appropriate lookaside cache."
+            "Clone the DistGit repository from this URL instead of the "
+            "one generated from the DistGit instance, namespace and "
+            "package name, e.g. a URL of a repository fork."
         ),
     )
 

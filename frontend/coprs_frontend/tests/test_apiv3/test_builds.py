@@ -93,20 +93,16 @@ CASES = [(
         "ownername": "user2",
         "projectname": "foocopr",
         "package_name": "blah",
-        "namespace": "forks/user2",
-        "distgit": "namespaced",
-        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+        "distgit": "fedora",
+        "clone_url": "https://src.fedoraproject.org/fork/user2/rpms/blah",
     },
     {
-        "clone_url": "https://namespaced.org/some/other/uri/forks/user2/blah/git",
-        "distgit": "namespaced",
-        "namespace": "forks/user2",
-        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+        "clone_url": "https://src.fedoraproject.org/fork/user2/rpms/blah",
+        "forked_from": "https://src.fedoraproject.org/rpms/blah",
+        "distgit": "fedora",
     },
     {
-        "distgit": "namespaced",
-        "namespace": "forks/user2",
-        "forked_from": "https://namespaced.org/some/other/uri/blah/git",
+        "distgit": "fedora",
     },
 )]
 
