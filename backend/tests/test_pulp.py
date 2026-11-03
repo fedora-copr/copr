@@ -81,8 +81,8 @@ class TestPulp:
         assert pages == [(["a", "b"], []), (["c"], ["x"]), ([], ["y"])]
         assert all(batch.make_request.call_count == 1 for batch in batches)
         assert all(batch.try_lock.call_count == 1 for batch in batches)
-        assert result == (True, "/publication/2/")
-        assert client.modify_content("/repositories/rpm/rpm/empty/") == (True, None)
+        assert result == "/publication/2/"
+        assert client.modify_content("/repositories/rpm/rpm/empty/") is None
 
     @pytest.mark.parametrize("href", [None, "/pulp/api/v3/publications/rpm/rpm/snapshot/"])
     @patch("copr_backend.pulp.get_redis_connection")
@@ -803,12 +803,11 @@ class TestPulpStorageInitProject:
         assert batches[-2] == ["update-dist:/dist/1/", "update-dist:/dist/1/"]
 
     @pytest.mark.parametrize("href", [None, "/pulp/api/v3/publications/rpm/rpm/snapshot/"])
-    @pytest.mark.parametrize("success", [False, True])
-    def test_create_repository_version_captures_publication(self, tmp_path, href, success):
+    def test_create_repository_version_captures_publication(self, tmp_path, href):
         storage = self._storage()
         storage.opts.destdir = str(tmp_path)
         self._mock_client(storage, existing_repos=["owner/project/fedora-40-x86_64"])
-        storage.client.add_content.return_value = (success, href)
+        storage.client.add_content.return_value = href
         with patch.object(storage, "_cleanup_backend_storage"):
             assert storage.create_repository_version(
-                "project", "fedora-40-x86_64", ["/rpm/1/"]) == (success, href)
+                "project", "fedora-40-x86_64", ["/rpm/1/"]) == href

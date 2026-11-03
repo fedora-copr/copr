@@ -685,7 +685,7 @@ class PulpClient:
                        artifacts_to_remove=None, dirs_to_delete=None):
         """
         Add and/or remove a list of artifacts to/from a repository.
-        Return (success, last_publication_href), with None when no href is available.
+        Return the last publication href, or None when no href is available.
 
         The artifacts are paginated into requests of at most
         MAX_CONTENT_UNITS_IN_BATCH units — bigger requests take Pulp a long
@@ -727,7 +727,7 @@ class PulpClient:
                 "Pulp: modify_content: %s (add %s, remove %s) [%s/%s]",
                 repository, page_to_add, page_to_remove, i, len(pages),
             )
-        return True, publication_href
+        return publication_href
 
     def add_content(self, repository, artifacts):
         """

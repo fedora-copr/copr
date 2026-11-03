@@ -407,13 +407,11 @@ class RawhideToRelease(Action):
                     )
                     rpms = response.json()["results"]
                     prns = [rpm["prn"] for rpm in rpms]
-                    success, _ = self.storage.create_repository_version(
+                    self.storage.create_repository_version(
                         data["copr_dir"],
                         data["dest_chroot"],
                         prns,
                     )
-                    if not success:
-                        return BackendResultEnum("failure")
 
             return self._createrepo_repeatedly(chrootdir, appstream)
 
