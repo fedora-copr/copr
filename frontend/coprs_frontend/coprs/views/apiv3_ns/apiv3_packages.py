@@ -354,8 +354,14 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
     try:
         if package and data:
             formdata = data.copy()
-            for key in package.source_json_dict.keys() - data.keys():
-                value = package.source_json_dict[key]
+            old_source_dict = package.source_json_dict
+            if source_type_text == "distgit":
+                # Don't pre-fill the form's clone_url override field with
+                # the generated clone URL, see distgit_form_data().
+                old_source_dict = forms.distgit_form_data(
+                    old_source_dict, package.name)
+            for key in old_source_dict.keys() - data.keys():
+                value = old_source_dict[key]
                 add_function = formdata.setlist if type(value) == list else formdata.add
                 add_function(key, value)
         form = forms.get_package_form_cls_by_source_type_text(source_type_text)(formdata, meta={'csrf': False})

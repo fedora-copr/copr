@@ -2,9 +2,13 @@
 Steps related to Copr builds
 """
 
+import filecmp
+import glob
 import json
 import os
 import random
+import shlex
+import shutil
 import tempfile
 from hamcrest import assert_that, equal_to, contains_string
 from behave import when, then  # pylint: disable=no-name-in-module
@@ -101,6 +105,81 @@ def step_build_from_fork(context, distgit, package_name, committish, committish_
         context.last_project_name,
     ])
     context.cli.wait_success_build(build)
+
+
+@when('build of {distgit} DistGit {package_name} package from {committish} '
+      '{committish_type} from fork clone url "{clone_url}" is done')
+def step_build_from_fork_clone_url(context, distgit, package_name,
+                                   committish, committish_type, clone_url):
+    _ = committish_type
+    distgit = distgit.lower()
+    build = context.cli.run_build([
+        "build-distgit",
+        "--name", package_name,
+        "--distgit", distgit,
+        "--commit", committish,
+        "--clone-url", clone_url,
+        context.last_project_name,
+    ])
+    context.last_distgit_package_name = package_name
+    context.cli.wait_success_build(build)
+
+
+def _last_build_srpm_url(context):
+    """
+    Return the source RPM URL of the last requested build.
+    """
+    owner = context.cli.whoami()
+    project = context.last_project_name
+    package = context.last_distgit_package_name
+    build_id = context.builds[-1]
+    for build in context.cli.get_package_builds(owner, project, package):
+        if build["id"] == build_id:
+            return build["source_package"]["url"]
+    raise RuntimeError("build {} not found".format(build_id))
+
+
+@then('the source RPM of the last build contains the same specfile as '
+      '"{clone_url}"')
+def step_check_srpm_specfile(context, clone_url):
+    """
+    Check that the spec file inside the source RPM of the last build is
+    identical to the spec file in the given (fork) git repository, so
+    we know the package was built from the requested sources.
+    """
+    srpm_url = _last_build_srpm_url(context)
+
+    if not shutil.which("cpio"):
+        run_check(["sudo", "dnf", "-y", "install", "cpio"])
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        srpm = os.path.join(tmp_dir, "source-rpm.rpm")
+        run_check(["curl", "--fail", "--silent", "--show-error",
+                   "--output", srpm, srpm_url])
+
+        out, _ = run_check([
+            "rpm", "-qp", "--qf", "%{NEVRA}", srpm])
+        print("Downloaded source RPM: {} ({})".format(out, srpm_url))
+
+        # extract the spec file from the source RPM
+        srpm_dir = os.path.join(tmp_dir, "srpm")
+        os.makedirs(srpm_dir)
+        run_check(["bash", "-c",
+                   "cd {0} && rpm2cpio {1} | cpio -im --quiet".format(
+                       shlex.quote(srpm_dir), shlex.quote(srpm))])
+        specs = glob.glob(os.path.join(srpm_dir, "*.spec"))
+        assert len(specs) == 1, "one spec file expected in {}".format(srpm_dir)
+
+        # get the spec file from the forked repository
+        fork_dir = os.path.join(tmp_dir, "fork")
+        run_check(["git", "clone", "--quiet", "--depth", "1",
+                   clone_url, fork_dir])
+        fork_specs = glob.glob(os.path.join(fork_dir, "*.spec"))
+        assert len(fork_specs) == 1, \
+            "one spec file expected in {}".format(fork_dir)
+
+        assert filecmp.cmp(specs[0], fork_specs[0], shallow=False), \
+            "spec file in {} differs from {}".format(specs[0], fork_specs[0])
 
 
 @when('a build from specfile template "{template}" is done')

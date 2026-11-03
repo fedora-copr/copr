@@ -269,7 +269,7 @@ class BuildProxy(BaseProxy):
     def create_from_distgit(self, ownername, projectname, packagename,
                             committish=None, namespace=None, distgit=None,
                             buildopts=None, project_dirname=None,
-                            forked_from=None):
+                            clone_url=None):
         """
         Create a build from a DistGit repository
 
@@ -278,17 +278,15 @@ class BuildProxy(BaseProxy):
         :param str packagename: the DistGit package name to build
         :param str committish: name of a branch, tag, or a git hash
         :param str namespace: DistGit namespace, e.g. '@copr/copr' for
-            the '@copr/copr/copr-cli' package, or 'forks/username' when
-            building from a fork
+            the '@copr/copr/copr-cli' package
         :param str distgit: the DistGit instance name we build against,
             for example 'fedora'.  Optional, and the default is deployment
             specific.
-        :param str forked_from: when building from a fork of a DistGit
-            repository, this is the clone URL of the original repository
-            the fork was created from;  it is used on the builder to
-            detect the appropriate lookaside cache
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :param str project_dirname:
+        :param str clone_url: clone the repository from this URL instead of
+            the URL generated from the DistGit instance, namespace and
+            package name, e.g. a fork of the DistGit repository
         :return: Munch
         """
         endpoint = "/build/create/distgit"
@@ -299,8 +297,8 @@ class BuildProxy(BaseProxy):
             "namespace": namespace,
             "package_name": packagename,
             "committish": committish,
+            "clone_url": clone_url,
             "project_dirname": project_dirname,
-            "forked_from": forked_from,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 

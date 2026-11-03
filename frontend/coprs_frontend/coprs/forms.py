@@ -8,6 +8,8 @@ from fnmatch import fnmatch, filter as fnmatch_filter
 import flask
 import wtforms
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from flask_wtf.file import FileRequired, FileField
 
 try: # get rid of deprecation warning with newer flask_wtf
@@ -1196,6 +1198,44 @@ class DistGitSelectField(wtforms.SelectField):
         )
 
 
+def distgit_form_data(source_dict, package_name):
+    """
+    Prepare a DistGit package source_dict (Package.source_json_dict) for
+    PackageFormDistGitSimple pre-filling.  The form's 'clone_url' field is a
+    user-specified override (e.g. a fork of the DistGit repository), so
+    pre-fill it only if the stored clone URL is such an override, that is
+    when it differs from the URL generated from the stored DistGit instance,
+    namespace and package name.  Otherwise (a generated URL, including the
+    ones stored by older Copr versions where 'forked_from' only held the
+    lookaside-detection URL) drop it and let the form re-generate it, so a
+    stale URL doesn't persist when the DistGit instance or namespace is
+    changed.  The 'forked_from' value is always re-generated on submit, drop
+    it too.
+    """
+    data = dict(source_dict)
+    if _is_generated_clone_url(data, package_name):
+        data.pop("clone_url", None)
+    data.pop("forked_from", None)
+    return data
+
+
+def _is_generated_clone_url(source_dict, package_name):
+    """
+    Detect that source_dict['clone_url'] is a URL generated from the stored
+    DistGit instance, namespace and package name, and not a user-specified
+    override.  When we can not re-generate the URL (e.g. the DistGit instance
+    is no longer configured), assume it is an override - the form will refuse
+    to submit such source dict anyway.
+    """
+    try:
+        generated = DistGitLogic.get_clone_url(source_dict.get("distgit"),
+                                               package_name,
+                                               source_dict.get("namespace"))
+    except (KeyError, NoResultFound):
+        return False
+    return source_dict.get("clone_url") == generated
+
+
 class PackageFormDistGitSimple(BasePackageForm):
     """
     This represents basically a variant of the SCM method, but with a very
@@ -1209,6 +1249,23 @@ class PackageFormDistGitSimple(BasePackageForm):
         render_kw={
             "placeholder": "Optional - Specific branch, tag, or commit that "
                            "you want to build from"},
+    )
+
+    clone_url = wtforms.StringField(
+        "DistGit clone URL",
+        validators=[wtforms.validators.Optional()],
+        default=None,
+        description=(
+            "Clone the DistGit repository from this URL, instead of "
+            "generating the clone URL from the DistGit instance, "
+            "namespace and package name below.  This is useful e.g. "
+            "for building from a fork of a DistGit repository.  The "
+            "lookaside cache is still detected according to the "
+            "DistGit instance selected above."
+        ),
+        render_kw={
+            "placeholder": "Optional - e.g. "
+                           "https://src.fedoraproject.org/fork/user/rpms/mock"},
     )
 
     namespace = wtforms.StringField(
@@ -1229,43 +1286,33 @@ class PackageFormDistGitSimple(BasePackageForm):
             "placeholder": "Optional - string, e.g. '@copr/copr', or 'forks/someuser'"},
     )
 
-    forked_from = wtforms.StringField(
-        "DistGit forked from",
-        validators=[wtforms.validators.Optional()],
-        default=None,
-        description=(
-            "When building from a fork of a DistGit repository (see the "
-            "namespace field above), specify here the clone URL of the "
-            "original repository the fork was created from.  It is used "
-            "to detect the appropriate lookaside cache for downloading "
-            "sources."
-        ),
-        render_kw={
-            "placeholder": "Optional - e.g. "
-                           "https://src.fedoraproject.org/rpms/mock"},
-    )
-
     build_requires_package_name = True
 
     @property
     def source_json(self):
         """ Source json stored in DB in Package.source_json """
-        data = {
-            "clone_url": self.clone_url(),
-        }
+        data = {}
+
+        if self.clone_url.data:
+            data["clone_url"] = self.clone_url.data
+            # Tell the builder to detect the lookaside cache from the
+            # generated "canonical" clone URL, not from the (possibly
+            # undetectable) clone URL above, e.g. a fork.
+            data["forked_from"] = self.generate_clone_url()
+        else:
+            data["clone_url"] = self.generate_clone_url()
 
         if self.distgit.data:
             data["distgit"] = self.distgit.data
 
-        for field_name in ["distgit", "namespace", "committish",
-                           "forked_from"]:
+        for field_name in ["distgit", "namespace", "committish"]:
             field = getattr(self, field_name)
             if field.data:
                 data[field_name] = field.data
 
         return json.dumps(data)
 
-    def clone_url(self):
+    def generate_clone_url(self):
         """ One-time generate the clone_url from the form data """
         return DistGitLogic.get_clone_url(self.distgit.data,
                                           self.package_name.data,
@@ -1281,7 +1328,7 @@ class PackageFormDistGitSimple(BasePackageForm):
             return False
 
         try:
-            self.clone_url()
+            self.generate_clone_url()
         except Exception as e:  # pylint: disable=broad-except
             self.distgit.errors.append(
                 "Can not validate DistGit input: {}".format(str(e))

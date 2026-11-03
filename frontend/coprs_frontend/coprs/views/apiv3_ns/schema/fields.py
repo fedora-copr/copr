@@ -281,13 +281,14 @@ distgit = String(
     example="fedora",
 )
 
-forked_from = String(
+distgit_clone_url = Url(
     description=(
-        "Clone URL of the DistGit repository that the built repository "
-        "was forked from.  Use this when building from a fork, so the "
-        "correct lookaside cache can be detected."
+        "Clone the DistGit repository from this URL, instead of the one "
+        "generated from the DistGit instance, namespace and package "
+        "name, e.g. a fork of the DistGit repository.  The lookaside "
+        "cache is still detected according to the DistGit instance."
     ),
-    example="https://src.fedoraproject.org/rpms/mock",
+    example="https://src.fedoraproject.org/fork/user/rpms/mock",
 )
 
 # TODO: these needs description
