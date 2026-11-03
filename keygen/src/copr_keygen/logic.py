@@ -121,7 +121,7 @@ def create_new_key(
 
     :param name_real: name for key identification
     :param name_email: email for key identification
-    :param key_length: length of key in bytes, accepts 1024 or 2048
+    :param key_length: RSA key length in bits, e.g. 2048 or 4096
     :param expire: [optional] days for key to expire, default 0 == never expire
     :param name_comment: [optional] comment for key
     :return: (stdout, stderr) from `gpg` invocation
@@ -138,7 +138,7 @@ def create_new_key(
     try:
         out.write(template.format(
             key_type="RSA",
-            key_length=key_length or 2048,
+            key_length=key_length or 4096,
             name_real=name_real,
             comment=name_comment,
             name_email=name_email,
