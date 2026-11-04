@@ -162,6 +162,28 @@ class TestPulpResignBuilds:
 
     @patch("copr_backend.storage.SafeRequest")
     @patch("copr_backend.storage.resign_rpms_in_dir")
+    def test_resign_builds_uppercase_rpm(self, _mc_resign, mc_safe_request,
+                                         tmp_path):
+        """
+        Pulp publishes into lower-cased single-letter directories, so an
+        RPM named with a capital letter must not be looked up in Packages/S/
+        — that used to 404 and silently leave the old signature in place.
+        """
+        storage = self._storage(tmp_path)
+        rpm_name = "Foo-7.0.1-1.el10.x86_64.rpm"
+        storage.client.get_content.return_value.json.return_value = {
+            "results": [{"location_href": rpm_name, "pulp_href": OLD_HREF}]}
+        mc_safe_request.return_value.get.return_value = self.download
+
+        storage.resign_builds("proj", CHROOT)
+
+        mc_safe_request.return_value.get.assert_called_once_with(
+            f"https://pulp.example.com/@foo/proj/{CHROOT}/Packages/f/{rpm_name}")
+        storage.client.modify_content.assert_called_once_with(
+            REPO_HREF, [NEW_HREF], [OLD_HREF])
+
+    @patch("copr_backend.storage.SafeRequest")
+    @patch("copr_backend.storage.resign_rpms_in_dir")
     def test_resign_builds_not_found(self, mc_resign, mc_safe_request,
                                      tmp_path):
         """A 404 download (a CoprDir build) is skipped, nothing is removed."""
