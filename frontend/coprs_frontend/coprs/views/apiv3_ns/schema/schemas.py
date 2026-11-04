@@ -499,6 +499,7 @@ class Project(_ProjectFields, _ProjectGetAddFields, Schema):
     ownername: String = fields.ownername
     full_name: String = fields.full_name
     chroot_repos: Raw = Raw()
+    runtime_dependencies: List = fields.runtime_dependencies
 
 
 @dataclass
