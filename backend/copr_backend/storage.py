@@ -766,11 +766,14 @@ class PulpStorage(Storage):
             old_hrefs = []
             for rpm in rpms:
                 filename = rpm["location_href"]
+                # Pulp publishes the packages into lower-cased single-letter
+                # subdirectories, so e.g. Foo-7.0.1-1.x86_64.rpm lives in
+                # Packages/f/ — not in Packages/F/.
                 url = "{0}/{1}/{2}/Packages/{3}/{4}".format(
                     self.opts.pulp_content_url,
                     fullname,
                     chroot,
-                    filename[0],
+                    filename[0].lower(),
                     filename,
                 )
 
