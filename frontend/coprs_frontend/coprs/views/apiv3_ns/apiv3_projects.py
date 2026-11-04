@@ -68,6 +68,7 @@ def to_dict(copr):
         "auto_prune": copr.auto_prune,
         "chroot_repos": CoprsLogic.get_yum_repos(copr, empty=True),
         "additional_repos": copr.repos_list,
+        "runtime_dependencies": copr.runtime_deps,
         "enable_net": copr.build_enable_net,
         "bootstrap": copr.bootstrap,
         "isolation": copr.isolation,

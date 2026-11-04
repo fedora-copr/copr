@@ -484,6 +484,7 @@ class _ProjectGetAddFields:
         description="Build and project is immune against deletion",
     )
     additional_repos: List = fields.additional_repos
+    runtime_dependencies: List = fields.runtime_dependencies
     storage: String = String(
         description=(
             "Admin only - what storage should be used for this project. "

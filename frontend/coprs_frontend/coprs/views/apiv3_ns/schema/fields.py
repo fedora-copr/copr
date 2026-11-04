@@ -81,6 +81,11 @@ additional_repos = List(
     description="Additional repos to be used for builds in this chroot",
 )
 
+runtime_dependencies = List(
+    String,
+    description="External repositories that will be enabled together with project repository",
+)
+
 additional_packages = List(
     String,
     description="Additional packages to be always present in minimal buildroot",
