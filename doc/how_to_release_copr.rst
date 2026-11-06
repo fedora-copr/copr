@@ -286,6 +286,10 @@ If you don't have permissions to do this, try `@praiskup` or `@frostyx`, or some
     one** at once.  Keep one package to be submitted later, when other tasks are
     already processed to "poke through" potencially broken repository.
 
+.. note::
+   Copr builders can be using a different Fedora version than the servers. Make
+   sure to submit all packages for the Fedora version that we need them for.
+
 We have wrappers around the ``koji`` tool for this.  First we "tag" the packages
 into the infra staging repo like (`example stg infra repo`_)::
 
@@ -383,6 +387,14 @@ Run on batcave01.rdu3.fedoraproject.org (if you do not have account there ask Mi
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org \
                        manual/copr/copr-dist-git-upgrade.yml
     sudo rbac-playbook -l copr-dist-git.aws.fedoraproject.org groups/copr-dist-git.yml
+
+.. note::
+
+    The upgrade playbooks should force DNF to refresh its cache but they
+    reliably don't and sometimes packages are not updated. When it happens,
+    refresh the cache manually::
+
+      ./releng/run-on-all-infra 'dnf clean all'
 
 .. note::
 
