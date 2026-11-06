@@ -22,23 +22,17 @@ We support docker-compose to spawn the whole docker stack, including builder, on
 Spawning the stack
 ------------------
 
-To start your developer environment, simply run ``docker-compose up`` command in the repository
+Use Docker Compose 2.23.1+ (also supported as a Podman Compose provider).
+Generate the local SSH keypair once, then start the stack:
 
 ::
 
     $ git clone https://github.com/fedora-copr/copr.git
-
     $ cd copr
+    $ ./docker/generate-ssh-keys
+    $ docker-compose up -d --build
 
-    $ docker-compose up -d
-
-    $ docker exec -it copr-frontend-1 bash
-
-    [copr-fe@frontend /]$ init-database.sh
-
-The ``docker-compose up`` command will take several minutes to complete.
-
-You should be now able to access the frontend on http://localhost:5000.
+Open http://localhost:5000. SSH keys are kept in the gitignored ``.copr-compose/`` directory.
 
 
 Testing your changes

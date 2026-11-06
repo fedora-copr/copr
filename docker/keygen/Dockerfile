@@ -22,13 +22,16 @@ RUN set -ex ; \
                    wget \
                    vim \
                    yum \
-                   sudo \
                    python3-alembic \
                    postgresql-server \
                    redis \
                    tini \
                    && \
     dnf -y install copr-keygen && \
+    # Containers run GPG as copr-signer; no sudoers from the package is needed.
+    # TODO: Move this rule into an opt-in copr-keygen-sudo subpackage or find
+    # another packaging solution to avoid this hack.
+    rm -f /etc/sudoers.d/copr_signer && \
     dnf clean all
 
 # Copy files from the host into the container

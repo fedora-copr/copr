@@ -1,6 +1,11 @@
 #! /bin/sh
+set -e
 
 cd /usr/share/copr/coprs_frontend/
-./manage.py create-db --alembic alembic.ini
-./manage.py create-chroot fedora-rawhide-x86_64
-TEST_REMOTE_USER=jdoe exec /usr/sbin/httpd -DFOREGROUND
+if [ "${COPR_FRONTEND_ENV:-production}" = local ]; then
+    /usr/bin/init-database.sh
+else
+    ./manage.py create-db --alembic alembic.ini
+    ./manage.py create-chroot fedora-rawhide-x86_64
+fi
+exec /usr/sbin/httpd -DFOREGROUND
