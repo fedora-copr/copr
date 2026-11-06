@@ -143,8 +143,8 @@
   {{ render_field(form.package_name) }}
   {{ render_field(form.distgit) }}
   {{ render_field(form.committish) }}
+  {{ render_field(form.clone_url) }}
   {{ render_field(form.namespace) }}
-  {{ render_field(form.forked_from) }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}

@@ -674,18 +674,25 @@ class BuildsLogic(object):
     def create_new_from_distgit(cls, user, copr, package_name,
                                 distgit_name=None, distgit_namespace=None,
                                 committish=None, chroot_names=None,
-                                copr_dirname=None, *, forked_from=None,
+                                copr_dirname=None, *, clone_url=None,
                                 **build_options):
         """ Request build of package from DistGit repository """
         source_type = helpers.BuildSourceEnum("distgit")
 
         source_dict = {}
 
-        if "clone_url" in build_options:
+        if clone_url is None:
+            clone_url = build_options.get("clone_url")
+        if clone_url:
             # Even though the DistGit instance is (probably) chosen, use a
-            # different clone URL.  If the pattern for this URL isn't configured
-            # on the builder side, the build may fail.
-            source_dict["clone_url"] = build_options["clone_url"]
+            # different clone URL, e.g. a fork of the DistGit repository.
+            # Generate the "canonical" clone URL from the DistGit instance,
+            # namespace and package name, and tell the builder to use it for
+            # detecting the appropriate lookaside cache (instead of the
+            # fork's clone URL which might not be detectable).
+            source_dict["clone_url"] = clone_url
+            source_dict["forked_from"] = DistGitLogic.get_clone_url(
+                    distgit_name, package_name, distgit_namespace)
         else:
             source_dict["clone_url"] = DistGitLogic.get_clone_url(
                     distgit_name, package_name, distgit_namespace)
@@ -697,8 +704,6 @@ class BuildsLogic(object):
             source_dict["namespace"] = distgit_namespace
         if committish:
             source_dict["committish"] = committish
-        if forked_from:
-            source_dict["forked_from"] = forked_from
 
         return cls.create_new(
             user, copr, source_type, json.dumps(source_dict), chroot_names,

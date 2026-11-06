@@ -159,6 +159,7 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormDistGitSimpleFactory
         f = render_add_build_distgit
         view_suffix = "_distgit"
+        data = forms.distgit_form_data(data, package_name)
         data["package_name"] = package_name
     else:
         flask.flash(NoPackageSourceException(package.name).message)
@@ -234,6 +235,8 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     if "form" in kwargs:
         form[source_type_text] = kwargs["form"]
     elif package.has_source_type_set:
+        if package.source_type_text == "distgit":
+            data = forms.distgit_form_data(data, package.name)
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)
 
     return flask.render_template("coprs/detail/edit_package.html", package=package, copr=copr,

@@ -31,3 +31,9 @@ Feature: Building from external DistGit instances
     Scenario: Test that dist-git builds from forks work
         When build of Fedora DistGit namespaced hello package from rawhide branch in forks/frostyx is done
         Then the build results are distributed
+
+    @builds
+    Scenario: Test that dist-git builds from fork clone urls work
+        When build of Fedora DistGit libecpg package from main branch from fork clone url "https://github.com/praiskup/example-fedora-konflux-libecpg" is done
+        Then the build results are distributed
+        And the source RPM of the last build contains the same specfile as "https://github.com/praiskup/example-fedora-konflux-libecpg"

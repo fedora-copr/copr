@@ -48,10 +48,11 @@ class DistGitProvider(Provider):
     def distgit_client_cmd(self, args):
         """
         Assemble the dist-git-client command, e.g. ["sources"] or
-        ["srpm", "--outputdir", ...].  When the DistGit repository we build from is a
-        fork, prefix the command with the --forked-from option that tells
-        dist-git-client to use the given URL (instead of the one detected from
-        the .git/config file) for detecting the appropriate lookaside cache.
+        ["srpm", "--outputdir", ...].  When the DistGit repository we build
+        from is a fork (the clone URL was overriden by the user), prefix the
+        command with the --forked-from option that tells dist-git-client to
+        use the given URL (instead of the one detected from the .git/config
+        file) for detecting the appropriate lookaside cache.
         """
         cmd = ["dist-git-client"]
         if self.forked_from:

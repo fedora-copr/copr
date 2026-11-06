@@ -2,9 +2,11 @@
 Test routes related to DistGit method
 """
 import json
+import re
 import pytest
 
 from copr_common.enums import BuildSourceEnum
+from coprs import helpers
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -33,6 +35,31 @@ class TestDistGitMethod(CoprsTestCase):
 
         assert len(build.chroots) == 1
         assert build.chroots[0].name == "fedora-18-x86_64"
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_copr_user_can_add_distgit_build_from_fork(self):
+        """ add build from a DistGit fork using web-UI """
+        self.db.session.add_all([self.u1, self.c1])
+        data = {
+            "package_name": "mock",
+            "committish": "master",
+            "clone_url": "https://src.fedoraproject.org/fork/praiskup/rpms/mock",
+            "chroots": ["fedora-18-x86_64"],
+        }
+        endpoint = "/coprs/{0}/{1}/new_build_distgit/".format(self.u1.name,
+                                                              self.c1.name)
+        self.test_client.post(endpoint, data=data, follow_redirects=True)
+        build = self.models.Build.query.first()
+        assert build.source_type == BuildSourceEnum.distgit
+        source_dict = json.loads(build.source_json)
+        assert source_dict["clone_url"] == \
+            "https://src.fedoraproject.org/fork/praiskup/rpms/mock"
+        # the canonical URL generated from the DistGit instance, used by the
+        # builder to detect the appropriate lookaside cache
+        assert source_dict["forked_from"] == \
+            "https://src.fedoraproject.org/rpms/mock"
+        assert source_dict["distgit"] == "fedora"
 
     @TransactionDecorator("u1")
     @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
@@ -98,3 +125,60 @@ class TestDistGitMethod(CoprsTestCase):
             "namespace": "forks/user1",
             "clone_url": "https://src.fedoraproject.org/forks/user1/rpms/mock"
         }
+
+    def _add_distgit_package(self, source_dict):
+        package = self.models.Package(
+            name="mock",
+            copr=self.c1,
+            source_type=helpers.BuildSourceEnum("distgit"),
+            source_json=json.dumps(source_dict),
+        )
+        self.db.session.add(package)
+        self.db.session.commit()
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_edit_does_not_prefill_generated_clone_url(self):
+        """
+        A clone URL generated from the DistGit instance, namespace and
+        package name (as stored by older Copr versions, together with a
+        'forked_from' lookaside URL) must not be pre-filled into the edit
+        form's clone_url override field.  Otherwise it would persist as an
+        override even after the namespace or DistGit instance is changed,
+        and builds would keep cloning the old repository.
+        """
+        self.db.session.add_all([self.u1, self.c1])
+        self._add_distgit_package({
+            "clone_url": "https://src.fedoraproject.org/forks/user1/rpms/mock",
+            "forked_from": "https://src.fedoraproject.org/rpms/mock",
+            "distgit": "fedora",
+            "namespace": "forks/user1",
+            "committish": "master",
+        })
+        endpoint = "/coprs/{0}/{1}/package/mock/edit/distgit".format(
+            self.u1.name, self.c1.name)
+        response = self.test_client.get(endpoint)
+        assert response.status_code == 200
+        match = re.search(br'<input[^>]*name="clone_url"[^>]*>', response.data)
+        assert match
+        assert b'value=""' in match.group(0)
+
+    @TransactionDecorator("u1")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots", "f_db")
+    def test_edit_prefills_clone_url_override(self):
+        """ A user-specified clone_url override is pre-filled on edit """
+        self.db.session.add_all([self.u1, self.c1])
+        self._add_distgit_package({
+            "clone_url": "https://src.fedoraproject.org/fork/praiskup/rpms/mock",
+            "forked_from": "https://src.fedoraproject.org/rpms/mock",
+            "distgit": "fedora",
+            "committish": "master",
+        })
+        endpoint = "/coprs/{0}/{1}/package/mock/edit/distgit".format(
+            self.u1.name, self.c1.name)
+        response = self.test_client.get(endpoint)
+        assert response.status_code == 200
+        match = re.search(br'<input[^>]*name="clone_url"[^>]*>', response.data)
+        assert match
+        assert (b'value="https://src.fedoraproject.org/fork/praiskup/'
+                b'rpms/mock"' in match.group(0))
