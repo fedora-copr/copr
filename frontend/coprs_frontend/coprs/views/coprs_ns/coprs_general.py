@@ -33,6 +33,7 @@ from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, Pe
 
 from coprs.logic.complex_logic import ComplexLogic, ReposLogic
 from coprs.logic.outdated_chroots_logic import OutdatedChrootsLogic
+from coprs.logic.notifications_logic import NotificationsLogic
 from coprs.repos import (
     pre_process_repo_url,
     generate_repo_id_and_name,
@@ -697,6 +698,13 @@ def copr_permissions_applier_change(copr):
         new_admin = applier_permissions_form.copr_admin.data
         coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(
             flask.g.user, copr, permission, new_builder, new_admin)
+
+        permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
+                           "new_builder": new_builder, "new_admin": new_admin}
+        msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
+        for admin in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(copr):
+            NotificationsLogic.create(admin, msg.subject, msg.text,
+                                      "permission_request")
         db.session.commit()
         flask.flash(
             "Successfully updated permissions for project '{0}'."
@@ -705,9 +713,6 @@ def copr_permissions_applier_change(copr):
         # sending emails
         if flask.current_app.config.get("SEND_EMAILS", False):
             for mail in copr.admin_mails:
-                permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
-                                   "new_builder": new_builder, "new_admin": new_admin}
-                msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
                 send_mail([mail], msg)
 
     return flask.redirect(helpers.copr_url("coprs_ns.copr_detail", copr))

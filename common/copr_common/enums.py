@@ -171,4 +171,5 @@ class NotificationTypeEnum(metaclass=EnumType):
     """
     vals = {
         "eol_chroot":  0,
+        "permission_request": 1,
     }
