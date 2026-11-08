@@ -14,6 +14,7 @@ from copr_common.enums import (
     ActionTypeEnum,
     ActionPriorityEnum,
     CreaterepoReason,
+    NotificationTypeEnum,
     StorageEnum,
 )
 from coprs import app, cache, models
@@ -601,6 +602,29 @@ class TestCoprApplyForPermissions(CoprsTestCase):
 
         assert new_perm.copr_builder == 1
         assert new_perm.copr_admin == 0
+
+    @TransactionDecorator("u2")
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_db")
+    def test_apply_creates_notification(self):
+        self.db.session.add_all([self.u1, self.u2, self.c1])
+        r = self.test_client.post(
+            f"/coprs/{self.u1.name}/{self.c1.name}/permissions_applier_change/",
+            data={"copr_builder": "1"},
+            follow_redirects=True)
+        assert b"Successfully updated" in r.data
+
+        owner = self.db.session.merge(self.u1)
+        applicant = self.db.session.merge(self.u2)
+        copr = self.db.session.merge(self.c1)
+        notifications = self.models.Notification.query.all()
+        assert len(notifications) == 1
+        notification = notifications[0]
+        assert notification.user_id == owner.id
+        assert notification.notification_type == \
+            NotificationTypeEnum("permission_request")
+        assert notification.seen_on is None
+        assert applicant.name in notification.subject
+        assert copr.full_name in notification.body
 
     @TransactionDecorator("u1")
     def test_apply_doesnt_lower_other_values_from_admin_to_request(
