@@ -1,4 +1,3 @@
-%global __python        %__python3
 %global python          python3
 %global python_pfx      python3
 %global rpm_python      python3-rpm
@@ -40,7 +39,6 @@ BuildRequires: %{rpm_python}
 BuildRequires: asciidoc
 BuildRequires: dist-git-client
 BuildRequires: git
-BuildRequires: %{python}-setuptools
 BuildRequires: %{python}-pytest
 BuildRequires: %{python_pfx}-munch
 BuildRequires: %{python}-requests
@@ -178,8 +176,14 @@ done
 PYTHON=%{python} ./run_tests.sh -vv --no-coverage
 
 
+%generate_buildrequires
+export name="%{name}" version="%{version}" summary="%{summary}"
+%pyproject_buildrequires
+
+
 %build
-name="%{name}" version="%{version}" summary="%{summary}" %py_build
+export name="%{name}" version="%{version}" summary="%{summary}"
+%pyproject_wheel
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
 %global mock_config_overrides %_sysconfdir/copr-rpmbuild/mock-config-overrides
@@ -247,7 +251,7 @@ install -p -m 755 bin/copr-rpmbuild-cancel %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-log %buildroot%_bindir
 install -p -m 755 bin/copr-rpmbuild-loggify %buildroot%_bindir
 
-name="%{name}" version="%{version}" summary="%{summary}" %py_install
+%pyproject_install
 
 install -p -m 755 copr-update-builder %buildroot%_bindir
 
