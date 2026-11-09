@@ -31,13 +31,17 @@ python-copr-common | [![badge](https://copr.fedorainfracloud.org/coprs/g/copr/co
 [//]: # (Please generate this table by ./build_aux/generate-build-status-table)
 
 ## Local Testing Environment
-You can use [Docker](https://docs.docker.com/) to run your local test environment. You need to install `docker-compose` tool for this to work.
+Use Docker Compose 2.23.1+ (also supported as a Podman Compose provider).
+Generate the local SSH keypair once, then start the stack:
 
-```
+```sh
 git clone https://github.com/fedora-copr/copr.git
 cd copr
-docker-compose up -d
+./docker/generate-ssh-keys
+docker-compose up -d --build
 ```
+
+Open http://localhost:5000. SSH keys are kept in the gitignored `.copr-compose/` directory.
 
 For more information see [our wiki page](https://docs.copr.fedorainfracloud.org/contribute.html?highlight=contribute).
 

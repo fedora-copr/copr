@@ -23,8 +23,7 @@ RUN set -ex ; \
                    iputils \
                    vim \
                    git \
-                   sudo \
-                   openssh-server \
+                   openssh-clients \
                    resalloc \
                    psmisc \
                    nginx \
@@ -36,26 +35,18 @@ RUN set -ex ; \
 # for unbuffer package
                    expect \
     && dnf -y install copr-backend \
+    # Containers use unprivileged sign; no sudoers from the package is needed.
+    # TODO: Move this rule into an opt-in copr-backend-sudo subpackage or find
+    # another packaging solution to avoid this hack.
+    && rm -f /etc/sudoers.d/copr \
     && dnf clean all
 
 # needed to be able to ping
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
 
-# needed to run sshd
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
-
-# setup root user
-RUN echo 'root:passwd' | chpasswd && chmod 700 /root /root/.ssh
-
-# setup copr user
+# SSH client identities are mounted at runtime.
 RUN set -x ; \
-    echo 'copr:passwd' | chpasswd && \
-    echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     mkdir -p /home/copr/.ssh && chmod 700 /home/copr /home/copr/.ssh && \
-    ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@locahost && \
-    touch /home/copr/.ssh/authorized_keys && chmod 600 /home/copr/.ssh/authorized_keys && \
-    cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
-    cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys && \
     chown copr:copr -R /home/copr
 
 # system setup for copr-backend
@@ -65,13 +56,11 @@ RUN usermod -a -G mock copr
 COPY files/ /
 RUN chmod 700 /root && \
     chmod 700 /home/copr && \
-    chmod 400 /home/copr/.ssh/id_rsa && \
-    chmod 600 /home/copr/.ssh/id_rsa.pub && \
     chown -R copr:copr /home/copr
 
 # Copr user needs permissions for /bin/sign.  We drop the setuid bit here as in
 # container scenario it is not desired.  We use the downstream-only option
-# allow-unprivileged-ports option: https://github.com/openSUSE/obs-sign/pull/36
+# use-unprivileged-ports option: https://github.com/openSUSE/obs-sign/pull/36
 RUN chmod 0755 /usr/bin/sign
 
 # entrypoint needs to have write access here (group=0)
