@@ -1,7 +1,7 @@
 %global srcname copr-common
 
 Name:       python-copr-common
-Version:    1.10.2
+Version:    1.11
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -80,6 +80,9 @@ version=%version %py3_install
 
 
 %changelog
+* Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 1.11-1
+- bump to a production (non-devel) version scheme
+
 * Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 1.10.2-1
 - show permission requests in notifications inbox
 
