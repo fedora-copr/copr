@@ -5,7 +5,7 @@
 %global copr_common_version 1.8.1
 
 Name:       copr-backend
-Version:    2.18
+Version:    2.19
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,9 @@ install -m0644 -D conf/copr-backend.sysusers.conf %{buildroot}%{_sysusersdir}/co
 %exclude %{_pkgdocdir}/copr-be.conf.example
 
 %changelog
+* Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 2.19-1
+- fix re-signing of upper-case named RPMs in Pulp
+
 * Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.18-1
 - Batch initial Pulp repository creation
 - Re-sign Pulp-hosted RPMs with copr-fix-gpg
