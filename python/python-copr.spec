@@ -1,7 +1,7 @@
 %global srcname copr
 
 Name:       python-copr
-Version:    2.9
+Version:    2.10
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -136,6 +136,9 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %doc %{_pkgdocdir}
 
 %changelog
+* Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 2.10-1
+- build from DistGit forks
+
 * Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.9-1
 - Support builds from DistGit repository forks
 - Handle non-JSON HTTP 401 responses
