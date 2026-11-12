@@ -1,0 +1,42 @@
+.. _release_notes_2026_11_12:
+
+Highlights from 2026-11-12 release
+===================================
+
+Copr components released on this day: ``python-copr-common-1.11``,
+``python-copr-2.10``, ``copr-cli-2.9``, ``copr-rpmbuild-1.12``,
+``copr-frontend-2.13``, and ``copr-backend-2.19``.
+
+Enhancements
+------------
+
+- `#4561`_ - Building from a fork of a DistGit repository can now be fully
+  driven by a custom ``clone_url``.  A new ``clone_url`` argument of
+  ``BuildProxy.create_from_distgit()`` is propagated through the API (and
+  ``copr-cli``'s ``--clone-url`` option) down to the builder.  When the clone
+  URL is overriden, the appropriate lookaside cache is still detected according
+  to the DistGit instance we build against.
+- `#4595`_ - Permission requests are now shown in the notifications inbox.
+- `#4602`_ - The project GET API now exposes ``runtime_dependencies``.
+- A new ``copr-sign`` helper script on the backend uses the configured signer
+  plugin to sign a package, print a pubkey, etc.  It mimics the interface of
+  the OBS ``sign`` command so it is easy to remember.
+
+Bugfixes
+--------
+
+- RPMs with an upper-case package name were silently left with the old GPG
+  signature during a full re-sign run in Pulp (they were requested from a
+  non-existent ``Packages/X/`` directory, and the resulting 404 was only
+  logged).
+- `RHBZ 2567105`_ - copr-rpmbuild no longer uses the deprecated
+  ``%py_build``/``%py_install`` macros.
+- The frontend SRPM storage is now writable by the OpenShift UID, fixing
+  ``Permission denied: '/var/lib/copr/data/srpm_storage/tmp...'`` on
+  OpenShift.
+
+
+.. _#4561: https://github.com/fedora-copr/copr/issues/4561
+.. _#4595: https://github.com/fedora-copr/copr/issues/4595
+.. _#4602: https://github.com/fedora-copr/copr/issues/4602
+.. _RHBZ 2567105: https://bugzilla.redhat.com/show_bug.cgi?id=2567105

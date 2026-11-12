@@ -5,6 +5,7 @@ Upstream Release Notes
 
 .. toctree::
 
+   release-notes/2026-11-12
    release-notes/2026-11-03
    release-notes/2026-10-01
    release-notes/2026-09-23
