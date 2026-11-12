@@ -475,6 +475,7 @@ class _ProjectFields:
         description="The priority value of this repository. Defaults to 99",
         example=42,
     )
+    runtime_dependencies: List = fields.runtime_dependencies
 
 
 @dataclass
@@ -499,7 +500,6 @@ class Project(_ProjectFields, _ProjectGetAddFields, Schema):
     ownername: String = fields.ownername
     full_name: String = fields.full_name
     chroot_repos: Raw = Raw()
-    runtime_dependencies: List = fields.runtime_dependencies
 
 
 @dataclass
@@ -509,13 +509,6 @@ class _ProjectAddEditFields:
     multilib: Boolean = Boolean()
     fedora_review: Boolean = Boolean(
         description="Run fedora-review tool for packages in this project"
-    )
-    runtime_dependencies: String = String(
-        description=(
-            "List of external repositories (== dependencies, specified as "
-            "baseurls) that will be automatically enabled together with "
-            "this project repository."
-        )
     )
 
 
