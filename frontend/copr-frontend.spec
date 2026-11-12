@@ -47,7 +47,7 @@
 }
 
 Name:       copr-frontend
-Version:    2.12
+Version:    2.13
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -377,6 +377,11 @@ install -m0644 -D conf/copr-frontend.sysusers.conf %{buildroot}%{_sysusersdir}/c
 
 
 %changelog
+* Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 2.13-1
+- expose `runtime_dependencies` in project GET
+- show permission requests in notifications inbox
+- build from DistGit forks via clone_url
+
 * Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.12-1
 - Fall back to UTC for invalid timezones
 - Support builds from DistGit repository forks
