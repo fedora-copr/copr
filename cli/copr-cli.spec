@@ -1,8 +1,8 @@
 %global __python %_bindir/python3
-%global min_python_copr_version 2.5.1
+%global min_python_copr_version 2.10
 
 Name:       copr-cli
-Version:    2.8
+Version:    2.9
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -114,6 +114,9 @@ install -m 755 copr_cli/package_build_order.py %{buildroot}/%{_bindir}/package-b
 
 
 %changelog
+* Thu Nov 12 2026 Pavel Raiskup <pavel@raiskup.cz> 2.9-1
+- uild from DistGit forks
+
 * Mon Nov 02 2026 Jakub Kadlcik <frostyx@email.cz> 2.8-1
 - Support builds from DistGit repository forks
 - Use a relative directory prefix when downloading build results with wget
