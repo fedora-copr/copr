@@ -15,7 +15,7 @@ def get_redis_connection(opts):
     :rtype: StrictRedis
     """
     kwargs = {}
-    for key in ["db", "host", "port", "password"]:
+    for key in ["db", "host", "port", "password", "ssl"]:
         config_key = "redis_" + key
 
         # dict-like objects
@@ -37,6 +37,10 @@ def get_redis_connection(opts):
         int(kwargs.get("port", 6379)),
         int(kwargs.get("db", 0)),
     )
+
+    # This only takes an effect when `ssl=True`
+    kwargs["ssl_check_hostname"] = True
+
     if cache_key not in _connections:
         _connections[cache_key] = StrictRedis(
             encoding="utf-8", decode_responses=True, **kwargs)

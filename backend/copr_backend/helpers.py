@@ -299,6 +299,9 @@ class BackendConfigReader(object):
         opts.redis_db = _get_conf(
             cp, "backend", "redis_db", "0")
 
+        opts.redis_ssl = _get_conf(
+            cp, "backend", "redis_ssl", False, mode="bool")
+
         opts.do_sign = _get_conf(
             cp, "backend", "do_sign", False, mode="bool")
 
