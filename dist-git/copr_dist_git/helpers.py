@@ -135,6 +135,8 @@ class ConfigReader(object):
         opts.redis_host = _get_conf(cp, "dist-git", "redis_host", "localhost")
         opts.redis_port = _get_conf(cp, "dist-git", "redis_port", "6379")
         opts.redis_password = _get_conf(cp, "dist-git", "redis_password", None)
+        opts.redis_ssl = _get_conf(
+            cp, "dist-git", "redis_ssl", False, mode="bool")
 
         opts.sentry_dsn = _get_conf(cp, "dist-git", "sentry_dsn", None)
 

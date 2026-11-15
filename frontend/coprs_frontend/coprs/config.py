@@ -143,6 +143,7 @@ class Config(object):
     REDIS_HOST = "localhost"
     REDIS_PORT = "6379"
     REDIS_PASSWORD = None
+    REDIS_SSL = False
 
     # Caching templates
     # https://flask-caching.readthedocs.io/en/latest/

@@ -49,6 +49,8 @@ app.config["SESSION_REDIS"] = StrictRedis(
     host=app.config["REDIS_HOST"],
     port=app.config["REDIS_PORT"],
     password=app.config.get("REDIS_PASSWORD"),
+    ssl=app.config.get("REDIS_SSL", False),
+    ssl_check_hostname=True,
     db=1,
 )
 
@@ -118,6 +120,10 @@ cache = Cache(app, config={
     'CACHE_REDIS_HOST': app.config["REDIS_HOST"],
     'CACHE_REDIS_PORT': app.config["REDIS_PORT"],
     'CACHE_REDIS_PASSWORD': app.config.get("REDIS_PASSWORD"),
+    'CACHE_OPTIONS': {
+        "ssl": app.config.get("REDIS_SSL", False),
+        "ssl_check_hostname": True,
+    },
 })
 
 app.cache = cache
