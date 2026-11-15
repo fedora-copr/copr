@@ -75,6 +75,7 @@ def list_projects_by_group(group_name, page=1):
         sqlalchemy.nullsfirst(models.Copr.delete_after),
         models.Copr.id.desc(),
     )
+    query = CoprsLogic.with_tags(query)
 
     paginator = Paginator(query, query.count(), page)
     coprs = paginator.sliced_query

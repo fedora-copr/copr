@@ -1,0 +1,61 @@
+{% extends "admin/layout.html" %}
+
+{% set selected_tab = "tags" %}
+
+{% block admin_body %}
+<h2 class="page-title"> Tags </h2>
+
+<form method="post" action="{{ url_for('admin_ns.tag_create') }}" class="form-inline" style="margin-bottom:15px">
+  <input type="text" name="name" class="form-control" placeholder="New default tag name, e.g. cli or cli, devtools" style="width:320px">
+  <input class="btn btn-primary" type="submit" value="Create">
+  <span class="help-block">Creates the tag (if it doesn't already exist) and marks it as default immediately. Comma-separated for multiple.</span>
+</form>
+
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Created by</th>
+      <th>Created on</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for tag in tags %}
+    <tr>
+      <td>
+        <form method="post" action="{{ url_for('admin_ns.tag_rename', tag_id=tag.id) }}" class="form-inline">
+          <input type="text" name="name" class="form-control input-sm" value="{{ tag.name }}" style="width:140px">
+          <input class="btn btn-xs btn-default" type="submit" value="Rename">
+        </form>
+      </td>
+      <td>
+        {% if tag.user %}
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=tag.user.name) }}">{{ tag.user.name }}</a>
+        {% else %}
+        <span class="text-muted">system</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if tag.created_on %}
+        <span title="{{ tag.created_on | localized_time(g.user.timezone if g.user else 'UTC') }}">{{ tag.created_on | time_ago() }} ago</span>
+        {% else %}
+        <span class="text-muted">unknown</span>
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" action="{{ url_for('admin_ns.tag_delete', tag_id=tag.id) }}" style="display:inline"
+              onsubmit="return confirm('Delete tag \'{{ tag.name }}\'? It will be removed from every project that has it.');">
+          <input class="btn btn-xs btn-danger" type="submit" value="Delete">
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr>
+      <td colspan="4"> No tags have been created yet. </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -33,7 +33,7 @@ from coprs.views.apiv3_ns.schema.schemas import (
 )
 from coprs.views.apiv3_ns.schema.docs import query_docs
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic, ProjectTagsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (
@@ -83,6 +83,7 @@ def to_dict(copr):
         #  but we have this inconsistency between name - projectname
         "projectname": copr.name,
         "storage": StorageEnum(copr.storage),
+        "tags": [t.name for t in copr.project_tags],
     }
 
 
@@ -156,6 +157,7 @@ class ProjectList(Resource):
         query = CoprsLogic.get_multiple()
         if ownername:
             query = CoprsLogic.filter_by_ownername(query, ownername)
+        query = CoprsLogic.with_tags(query)
         paginator = Paginator(query, models.Copr, **kwargs)
         projects = paginator.map(to_dict)
         return {"items": projects, "meta": paginator.meta}
@@ -177,7 +179,8 @@ class ProjectSearch(Resource):
         Get details for multiple Copr projects according to search query.
         """
         try:
-            search_query = CoprsLogic.get_multiple_fulltext(query)
+            search_query = CoprsLogic.with_tags(
+                CoprsLogic.get_multiple_fulltext(query))
             paginator = Paginator(search_query, models.Copr, **kwargs)
             projects = paginator.map(to_dict)
         except ValueError as ex:
@@ -203,7 +206,7 @@ class ProjectAdd(Resource):
         """
         exist_ok = flask.request.args.get("exist_ok") == "True"
         user, group = owner2tuple(ownername)
-        data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+        data = rename_fields(get_form_compatible_data(preserve=["chroots", "tags"]))
         form_class = forms.CoprFormFactory.create_form_cls(user=user, group=group,
                                                            exist_ok=exist_ok)
         set_defaults(data, form_class)
@@ -268,6 +271,7 @@ class ProjectAdd(Resource):
                 repo_priority=form.repo_priority.data,
                 storage=form.storage.data,
             )
+            ProjectTagsLogic.set_copr_tags(copr, form.tags.data, user=user)
             db.session.commit()
         except IntegrityError as ierr:
             app.logger.debug("Racy attempt to create %s/%s", ownername, projectname)
@@ -295,7 +299,7 @@ class ProjectEdit(Resource):
     @staticmethod
     def _common(ownername, projectname):
         copr = get_copr(ownername, projectname)
-        data = rename_fields(get_form_compatible_data(preserve=["chroots"]))
+        data = rename_fields(get_form_compatible_data(preserve=["chroots", "tags"]))
         form = forms.CoprForm(data, meta={"csrf": False})
 
         if not form.validate_on_submit():
@@ -303,7 +307,7 @@ class ProjectEdit(Resource):
         validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
         for field in form:
-            if field.data is None or field.name in ["csrf_token", "chroots"]:
+            if field.data is None or field.name in ["csrf_token", "chroots", "tags", "default_tags"]:
                 continue
             if field.name not in data.keys():
                 continue
@@ -313,6 +317,8 @@ class ProjectEdit(Resource):
             CoprChrootsLogic.update_from_names(flask.g.user, copr, form.chroots.data)
 
         try:
+            if "tags" in data:
+                ProjectTagsLogic.set_copr_tags(copr, form.tags.data, user=flask.g.user)
             CoprsLogic.update(flask.g.user, copr)
             if copr.group:  # load group.id
                 _ = copr.group.id

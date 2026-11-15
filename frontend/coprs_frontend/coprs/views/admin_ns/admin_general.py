@@ -2,6 +2,7 @@ import time
 import re
 
 import flask
+from sqlalchemy.exc import IntegrityError
 
 from copr_common.enums import RoleEnum
 from coprs import db
@@ -9,6 +10,7 @@ from coprs import models
 from coprs import forms
 
 from coprs.logic import coprs_logic
+from coprs.logic.coprs_logic import ProjectTagsLogic
 
 from coprs.views.admin_ns import admin_ns
 from coprs.views.misc import login_required
@@ -49,6 +51,74 @@ def legal_flag_resolve(flag_id):
     db.session.commit()
     flask.flash("Legal flag resolved")
     return flask.redirect(flask.url_for("admin_ns.legal_flag"))
+
+
+@admin_ns.route("/tags/")
+@login_required(role=RoleEnum("admin"))
+def tags():
+    """
+    List the default (admin-curated) project tags for management.
+    """
+    return flask.render_template("admin/tags.html",
+                                 tags=ProjectTagsLogic.get_default_tags().all())
+
+
+@admin_ns.route("/tags/create/", methods=["POST"])
+@login_required(role=RoleEnum("admin"))
+def tag_create():
+    """
+    Create (or reuse) one or more tags by name and mark them as default.
+    """
+    names = forms.ProjectTagsFilter()(flask.request.form.get("name", ""))
+    if not names:
+        flask.flash("Please provide at least one valid tag name.", "error")
+    else:
+        for name in names:
+            tag = ProjectTagsLogic.create_tag(name, user=flask.g.user)
+            tag.is_default = True
+        db.session.commit()
+        flask.flash("Created default tag(s): {0}".format(", ".join(names)))
+    return flask.redirect(flask.url_for("admin_ns.tags"))
+
+
+@admin_ns.route("/tags/<int:tag_id>/rename/", methods=["POST"])
+@login_required(role=RoleEnum("admin"))
+def tag_rename(tag_id):
+    """
+    Rename an existing tag
+    """
+    tag = models.ProjectTag.query.get_or_404(tag_id)
+    new_name = forms.ProjectTagsFilter.normalize_tag_name(
+        flask.request.form.get("name", ""))
+
+    if not new_name or len(new_name) < 3:
+        flask.flash("Please provide a valid tag name (at least 3 characters).", "error")
+        return flask.redirect(flask.url_for("admin_ns.tags"))
+
+    old_name = tag.name
+    tag.name = new_name
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flask.flash(f"A tag named '{new_name}' already exists.", "error")
+    else:
+        flask.flash(f"Renamed tag '{old_name}' to '{new_name}'.")
+    return flask.redirect(flask.url_for("admin_ns.tags"))
+
+
+@admin_ns.route("/tags/<int:tag_id>/delete/", methods=["POST"])
+@login_required(role=RoleEnum("admin"))
+def tag_delete(tag_id):
+    """
+    Delete a tag, detaching it from every project that had it.
+    """
+    tag = models.ProjectTag.query.get_or_404(tag_id)
+    name = tag.name
+    ProjectTagsLogic.delete_tag(tag)
+    db.session.commit()
+    flask.flash(f"Deleted tag '{name}' and detached it from all projects.")
+    return flask.redirect(flask.url_for("admin_ns.tags"))
 
 
 @admin_ns.route("/playground/", methods=["POST", "GET"])

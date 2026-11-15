@@ -246,7 +246,10 @@ def set_defaults(formdata, form_class):
             continue
         if field.name in formdata.keys():
             continue
-        formdata[field.name] = field.default
+        if isinstance(field.default, list):
+            formdata.setlist(field.name, field.default)
+        else:
+            formdata[field.name] = field.default
 
 
 def streamed_json_array_response(array_or_generator, message, field="data"):

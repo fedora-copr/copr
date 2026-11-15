@@ -159,6 +159,22 @@
         </div>
       </div>
     {% endif %}
+
+    {% if copr.project_tags %}
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"> Tags </h3>
+        </div>
+        <div class="panel-body">
+          {% for tag in copr.project_tags %}
+          <a href="{{ url_for('coprs_ns.coprs_by_tag', tag_name=tag.name) }}"
+             class="btn btn-default btn-xs tag-btn" title="Projects tagged '{{ tag.name }}'">
+            {{ tag.name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title"> Last Build </h3>
