@@ -7,6 +7,7 @@ ARG ADDITIONAL_COPR_REPOSITORIES="@copr/copr-dev"
 ENV TERM=linux
 ENV LANG=en_US.UTF-8
 ENV REDIS_HOST=redis
+ENV COPRS_ENVIRON_PRODUCTION=1
 
 # base packages
 RUN set -ex ; \
@@ -20,7 +21,6 @@ RUN set -ex ; \
                    wget \
                    vim \
                    yum \
-                   sudo \
                    python3-alembic \
                    python3-anytree \
                    postgresql-server \
