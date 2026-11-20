@@ -2,11 +2,15 @@
 Support for various data storages, e.g. results directory on backend, Pulp, etc.
 """
 
+# We should split this file and have one storage implementation per file
+# pylint: disable=too-many-lines
+
 import os
 import gc
 import time
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.request import urlretrieve
 # We need to stop using the deprecated distutils module.
 # See https://peps.python.org/pep-0632/
 # As of Python 3.12, it doesn't even exist now, we just use an alias provided
@@ -23,6 +27,7 @@ from copr_backend.helpers import (
     call_copr_repo,
     ensure_dir_exists,
     ensure_dir_removed,
+    silent_remove,
 )
 from copr_backend.pulp import PulpClient
 from copr_backend.exceptions import CoprBackendError
@@ -178,6 +183,19 @@ class Storage:
             .format(repo_id)
         )
 
+    def save_comps_xml(self, chroot, remote_comps_url):
+        """
+        Add `comps.xml` file to the repodata
+        https://forge.fedoraproject.org/releng/fedora-comps.git
+        """
+        raise NotImplementedError
+
+    def delete_comps_xml(self, chroot):
+        """
+        Delete `comps.xml` from the repodata
+        """
+        raise NotImplementedError
+
 
 class BackendStorage(Storage):
     """
@@ -330,6 +348,28 @@ class BackendStorage(Storage):
 
         self.log.info("Forked build %s as %s", src_path, dst_path)
         return new_chroot_path
+
+    def save_comps_xml(self, chroot, remote_comps_url):
+        destdir = os.path.join(self.opts.destdir, self.owner, self.project, chroot)
+        ensure_dir_exists(destdir, self.log)
+        local_comps_path = os.path.join(destdir, "comps.xml")
+        try:
+            urlretrieve(remote_comps_url, local_comps_path)
+            self.log.info("saved comps.xml for %s/%s/%s from %s ",
+                          self.owner, self.project, chroot, remote_comps_url)
+            return True
+        except (OSError, ValueError):
+            self.log.exception("Failed to update comps from %s at location %s",
+                               remote_comps_url, local_comps_path)
+            return False
+
+    def delete_comps_xml(self, chroot):
+        destdir = os.path.join(self.opts.destdir, self.owner, self.project, chroot)
+        local_comps_path = os.path.join(destdir, "comps.xml")
+        silent_remove(local_comps_path)
+        self.log.info("deleted comps.xml for %s/%s/%s from %s",
+                      self.owner, self.project, chroot, local_comps_path)
+        return True
 
 
 class PulpStorage(Storage):
@@ -915,6 +955,31 @@ class PulpStorage(Storage):
         self.log.info("Re-signed %s RPMs in Pulp in %s/%s/%s",
                       len(to_add), self.owner, dirname, chroot)
         return failed_builds
+
+    def save_comps_xml(self, chroot, remote_comps_url):
+        repository = self._get_repository(chroot)
+        with NamedTemporaryFile(suffix="-comps.xml") as tmp:
+            try:
+                urlretrieve(remote_comps_url, tmp.name)
+                self.client.deliver_and_wait([
+                    self.client.upload_comps_xml(repository, tmp),
+                ])
+                # This needs to be in a separate deliver_and_wait otherwise
+                # it could cause race conditions when the publish happens
+                # before the `comps.xml` is uploaded.
+                self.client.deliver_and_wait([
+                    self.client.publish(repository),
+                ])
+                return True
+            except (RuntimeError, OSError, ValueError) as ex:
+                self.log.error("Failed to download comps from frontend: %s", ex)
+                return False
+
+    def delete_comps_xml(self, chroot):
+        repository = self._get_repository(chroot)
+        response = self.client.list_comps(repository)
+        pulp_hrefs = [x["pulp_href"] for x in response.json()["results"]]
+        return self.client.delete_content(repository, pulp_hrefs)
 
     def _repository_name(self, chroot, dirname=None):
         return "/".join([
