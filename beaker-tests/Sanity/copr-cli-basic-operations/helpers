@@ -232,3 +232,39 @@ wait_for_finished_fork()
         sleep 10
     done
 }
+
+wait_for_url()
+{
+    local url=$1
+    local timeout=180
+    local deadline=$((SECONDS + timeout))
+
+    rlLog "Waiting for $url"
+    while (( SECONDS < deadline )); do
+        if curl --silent --fail "$url" -o /dev/null; then
+            return 0
+        fi
+        sleep 10
+    done
+    rlLogError "Timed out waiting for $url"
+    return 1
+}
+
+wait_for_no_pending_actions()
+{
+    local url="${FRONTEND_URL%/}/backend/pending-actions/"
+    local timeout=180
+    local deadline=$((SECONDS + timeout))
+    local actions
+
+    rlLog "Waiting for the action queue at $url to empty"
+    while (( SECONDS < deadline )); do
+        if actions=$(curl -fsSL --max-time 30 "$url") &&
+            jq -e '. == []' <<< "$actions" > /dev/null; then
+            return 0
+        fi
+        sleep 10
+    done
+    rlLogError "Timed out waiting for the action queue at $url to empty"
+    return 1
+}

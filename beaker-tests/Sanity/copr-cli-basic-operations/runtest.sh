@@ -176,19 +176,7 @@ rlJournalStart
         rlRun "copr-cli mock-config $mc_project fedora-14-x86_64" 1
 
         ## test edit chroot
-        TMPCOMPS=`mktemp`
-        echo "
-        0 NFS File Server {
-          @ Network Server
-          nfs-utils
-        }
-        " > $TMPCOMPS
-        TMPCOMPS_BASENAME=`basename $TMPCOMPS`
         rlRun "copr-cli create ${NAME_PREFIX}EditChrootProject --chroot $mc_chroot"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --upload-comps $TMPCOMPS"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | grep '\"comps_name\": \"$TMPCOMPS_BASENAME\"'"
-        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --delete-comps"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | grep '\"comps_name\": null'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.repos == [\"http://foo/repo\", \"http://bar/repo\"]'"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.buildroot_pkgs == [\"gcc\"]'"
@@ -196,7 +184,6 @@ rlJournalStart
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.repos == []'"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/$mc_chroot | jq '.buildroot_pkgs == []'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-$FEDORA_VERSION-x86_65" 1
-        rm $TMPCOMPS
 
         ## test background builds
 

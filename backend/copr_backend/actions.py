@@ -5,7 +5,6 @@ import shutil
 import time
 import traceback
 
-from urllib.request import urlretrieve
 from copr.exceptions import CoprRequestException
 from munch import Munch
 
@@ -28,7 +27,6 @@ from .exceptions import (
 )
 from .helpers import (
     get_redis_logger,
-    silent_remove,
     ensure_dir_exists,
     ensure_dir_removed,
     call_copr_repo,
@@ -257,31 +255,19 @@ class CompsUpdate(Action):
         self.log.debug("Action comps update")
 
         ext_data = json.loads(self.data["data"])
-        ownername = ext_data["ownername"]
-        projectname = ext_data["projectname"]
         chroot = ext_data["chroot"]
         url_path = ext_data["url_path"]
 
         remote_comps_url = self.opts.frontend_base_url + url_path
         self.log.info(remote_comps_url)
 
-        path = os.path.join(self.destdir, ownername, projectname, chroot)
-        ensure_dir_exists(path, self.log)
-        local_comps_path = os.path.join(path, "comps.xml")
         result = BackendResultEnum("success")
         if not ext_data.get("comps_present", True):
-            silent_remove(local_comps_path)
-            self.log.info("deleted comps.xml for %s/%s/%s from %s ",
-                          ownername, projectname, chroot, remote_comps_url)
+            success = self.storage.delete_comps_xml(chroot)
         else:
-            try:
-                urlretrieve(remote_comps_url, local_comps_path)
-                self.log.info("saved comps.xml for %s/%s/%s from %s ",
-                              ownername, projectname, chroot, remote_comps_url)
-            except Exception:
-                self.log.exception("Failed to update comps from %s at location %s",
-                                   remote_comps_url, local_comps_path)
-                result = BackendResultEnum("failure")
+            success = self.storage.save_comps_xml(chroot, remote_comps_url)
+        if not success:
+            result = BackendResultEnum("failure")
         return result
 
 
