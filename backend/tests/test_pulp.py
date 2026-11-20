@@ -263,7 +263,7 @@ class TestDeliverRequests:
         results = self.client.deliver_and_wait([req])
         assert results == [{"pulp_href": "/repo/1/"}]
         self.client.send.assert_called_once_with("POST",
-            "/api/v3/repositories/rpm/rpm/", {"name": "test"})
+            "/api/v3/repositories/rpm/rpm/", {"name": "test"}, files=None)
 
     @patch("time.sleep")
     def test_async_task_completed(self, _sleep):
