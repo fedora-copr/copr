@@ -13,6 +13,45 @@
     with_pulp: false
 
   pre_tasks:
+    - name: Re-add the ssl.PROTOCOL_TLSv1 attribute for old ansible-core
+      # The Testing Farm runner (as of worker-public 2026-10.1) runs
+      # ansible-core 2.16 whose module_utils/urls.py accesses the
+      # ssl.PROTOCOL_TLSv1 attribute at import time.  Python 3.15
+      # (Fedora 45+) removed that attribute, so every ansible module that
+      # (transitively) imports module_utils/urls.py fails on the guest
+      # (ansible.builtin.uri, community.general.copr,
+      # community.crypto.x509_certificate, ...).  Install a .pth file
+      # which python executes on every start-up and which re-adds the
+      # attribute as an alias of ssl.PROTOCOL_TLS - the ansible module
+      # payloads (AnsiballZ) run under the plain guest python3, so they
+      # pick this up as well.
+      # TODO: Drop this workaround once Testing Farm ships ansible-core
+      # >= 2.17 in its runner image.
+      ansible.builtin.shell: |
+        set -eu
+        {{ ansible_python_interpreter }} - <<'PY'
+        import os
+        import pathlib
+        import site
+
+        attributes = ("PROTOCOL_TLSv1", "PROTOCOL_TLSv1_1", "PROTOCOL_TLSv1_2")
+        shim = "import ssl; " + " ".join(
+            "ssl.%s = getattr(ssl, '%s', ssl.PROTOCOL_TLS);" % (a, a)
+            for a in attributes
+        )
+        # getsitepackages() may list non-existent directories first
+        dirs = [pathlib.Path(d) for d in site.getsitepackages() if os.path.isdir(d)]
+        if not dirs:
+            raise SystemExit("no existing site-packages directory found")
+        pth = dirs[0] / "zz-ansible-ssl-compat.pth"
+        pth.write_text(
+            "# Re-add ssl.PROTOCOL_TLSv1* removed in Python 3.15, needed by\n"
+            "# the old ansible-core in the Testing Farm runner.\n"
+            + shim + "\n"
+        )
+        print("Installed:", pth)
+        PY
+
     - name: Detect public IP address
       ansible.builtin.uri:
         url: https://ifconfig.me/ip
