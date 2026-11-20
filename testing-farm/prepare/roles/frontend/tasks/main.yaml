@@ -69,6 +69,18 @@
   tags:
     - frontend_init_database
 
+- name: Resolve the latest stable Fedora release
+  # Keep the created Fedora chroots in sync with the beaker tests which
+  # request chroots derived from the same alias (see the config file in
+  # beaker-tests/Sanity/copr-cli-basic-operations).  The
+  # python3-fedora-distro-aliases package is installed by the
+  # pre-release-packages role.
+  ansible.builtin.command: resolve-fedora-aliases fedora-latest-stable -o version
+  register: fedora_latest_stable
+  changed_when: false
+  tags:
+    - frontend_init_database
+
 - name: Initialize database object
   ansible.builtin.command: "copr-frontend create-chroot {{ item[0] }}-{{ item[1] }}"
   become_user: copr-fe
@@ -78,10 +90,11 @@
   loop_control:
     label: "Creating {{ item[0] }}-{{ item[1] }}"
   vars:
+    fedora_latest: "{{ fedora_latest_stable.stdout }}"
     distros:
       - fedora-rawhide
-      - fedora-44
-      - fedora-43
+      - "fedora-{{ fedora_latest }}"
+      - "fedora-{{ fedora_latest | int - 1 }}"
       - epel-10
       - epel-9
       - epel-8
