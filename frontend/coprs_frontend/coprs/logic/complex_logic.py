@@ -177,6 +177,14 @@ class ComplexLogic(object):
 
         builds_map = {}
         for src_chroot in src_copr.active_chroots:
+            if not created and src_chroot not in dst_copr.active_chroots:
+                app.logger.info(
+                    "Not forking %s because it is not enabled in %s",
+                    src_chroot.name,
+                    dst_copr.full_name,
+                )
+                continue
+
             builds_map[src_chroot.name] = {}
 
         srpm_builds_src = []
@@ -198,6 +206,14 @@ class ComplexLogic(object):
             # rather retains the latest BUILD IDs... so it would delete builds
             # in the wrong order.
             for src_build, src_chroots in sorted(builds.items(), key=lambda item: item[0].id):
+                if not created:
+                    src_chroots = [
+                        chroot for chroot in src_chroots
+                        if chroot.name in builds_map
+                    ]
+                    if not src_chroots:
+                        continue
+
                 dst_build = forking.fork_build(src_build, dst_copr,
                                                dst_package, src_chroots)
 
@@ -208,10 +224,7 @@ class ComplexLogic(object):
                 for src_chroot, dst_chroot in zip(src_chroots, dst_build.build_chroots):
                     if not src_chroot.result_dir:
                         continue
-                    if src_chroot.name not in builds_map:
-                        builds_map[src_chroot.name] = {src_chroot.result_dir: dst_chroot.result_dir}
-                    else:
-                        builds_map[src_chroot.name][src_chroot.result_dir] = dst_chroot.result_dir
+                    builds_map[src_chroot.name][src_chroot.result_dir] = dst_chroot.result_dir
 
         builds_map['srpm-builds'] = dict(zip(srpm_builds_src, srpm_builds_dst))
 
