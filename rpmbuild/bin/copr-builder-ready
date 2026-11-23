@@ -10,8 +10,8 @@ STDERR will be ignored.
 import os
 import sys
 import time
-from fnmatch import fnmatch
 from copr_rpmbuild.config import Config
+from copr_rpmbuild.subscription import subscription_required
 
 
 def check_mock_config(chroot):
@@ -27,19 +27,6 @@ def check_mock_config(chroot):
 
     print("Chroot config {} not found".format(config))
     sys.exit(1)
-
-
-def subscription_required(chroot):
-    """
-    Is subscription required for this task?
-    """
-    config = Config()
-    config.load_config()
-
-    for pattern in config.rhsm:
-        if fnmatch(chroot, pattern):
-            return True
-    return False
 
 
 def active_subscription():
@@ -86,7 +73,11 @@ def main():
     """
     chroot = sys.argv[1]
     check_mock_config(chroot)
-    if subscription_required(chroot):
+
+    config = Config()
+    config.load_config()
+
+    if subscription_required(chroot, config.rhsm):
         wait_for_subscription()
     else:
         print("Red Hat subscription not needed for {0}".format(chroot))
