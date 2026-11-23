@@ -16,4 +16,5 @@
 # Chroots that require active Red Hat subscription
 # rhsm:
 #   - rhel-*
+#   - rhel+*
 #   - epel-*

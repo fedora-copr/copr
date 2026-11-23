@@ -3,6 +3,7 @@ import sys
 import io
 import importlib
 from unittest import mock, skipIf
+from copr_rpmbuild.subscription import subscription_required
 
 try:
     import subscription_manager
@@ -41,3 +42,10 @@ def test_rhsm_subscribe_script():
                 assert sys.argv == ['subscription-manager', 'register',
                                     '--force', '--org', '1', '--name', 'system',
                                     '--activationkey', 'foo']
+
+
+def test_subscription_required():
+    patterns = ["rhel-*", "epel-*", "rhel+*"]
+    assert subscription_required("fedora-44-x86_64", patterns) is False
+    assert subscription_required("rhel-10-x86_64", patterns) is True
+    assert subscription_required("rhel+epel-10-x86_64", patterns) is True
