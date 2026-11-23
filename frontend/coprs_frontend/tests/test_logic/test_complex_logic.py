@@ -244,6 +244,43 @@ class TestProjectForking(CoprsTestCase):
         dest_copr = models.Copr.query.filter_by(id=dest_copr.id).one()
         assert len(dest_copr.builds) == 1
 
+    @TransactionDecorator("u2")
+    @pytest.mark.usefixtures("f_users", "f_fork_prepare", "f_db")
+    def test_forking_into_existing_project_different_chroots(self):
+        src_copr = self.c2
+        dst_copr = self.c3
+        only_src, shared, only_dst = self.mc3, self.mc2, self.mc4
+
+        # Modify the existing projects to have only one shared chroot
+        self.db.session.delete(CoprChrootsLogic.get_by_mock_chroot_id(dst_copr, self.mc1.id).one())
+        self.db.session.add(CoprChrootsLogic.create_chroot(self.u2, dst_copr, shared))
+        self.db.session.commit()
+        assert set(src_copr.active_chroots) == {only_src, shared}
+        assert set(dst_copr.active_chroots) == {shared, only_dst}
+
+        data = {
+            "name": dst_copr.name,
+            "ownername": self.u2.name,
+            "source": dst_copr.full_name,
+            "confirm": "y",
+        }
+        self.tc.post("/coprs/{0}/fork/".format(src_copr.full_name), data=data)
+
+        # Make sure only the correct chroots were created in the database
+        src_builds = [self.b6, self.b8, self.b10]
+        assert len(dst_copr.builds) == len(src_builds)
+        for build in dst_copr.builds:
+            assert set(build.chroots) == {shared}
+
+        action = ActionsLogic.get_many(ActionTypeEnum("fork")).one()
+        assert action.old_value == src_copr.full_name
+        assert action.new_value == dst_copr.full_name
+
+        # Make sure we tell backend to only fork the correct data
+        builds_map = json.loads(action.data)["builds_map"]
+        assert set(builds_map.keys()) == {shared.name, "srpm-builds"}
+        assert len(builds_map[shared.name]) == len(src_builds)
+
     def test_copr_by_repo_safe(self, f_users, f_coprs, f_mock_chroots, f_builds,
                                f_db):
 
