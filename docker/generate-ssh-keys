@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+"""Create a persistent external SSH identity for local compose builders."""
+
+import os
+from pathlib import Path
+import subprocess
+
+
+root = Path(__file__).resolve().parent.parent
+if not (root / "docker-compose.yaml").is_file():
+    raise SystemExit("Keep generate-ssh-keys in the checkout's docker/ directory.")
+
+# Private files default to owner-only access, outside image build contexts.
+os.umask(0o077)
+directory = root / ".copr-compose"
+directory.mkdir(mode=0o700, exist_ok=True)
+directory.chmod(0o700)
+
+# Preserve the identity across starts; generate it only when absent.
+key = directory / "id_rsa"
+if not key.exists():
+    subprocess.run(
+        [
+            "ssh-keygen",
+            "-t",
+            "ed25519",
+            "-N",
+            "",
+            "-q",
+            "-f",
+            str(key),
+            "-C",
+            "copr-local-compose",
+        ],
+        check=True,
+    )
+
+# Recover a missing public key without rotating the existing private key.
+public = key.with_suffix(".pub")
+if not public.exists():
+    public.write_bytes(subprocess.check_output(["ssh-keygen", "-y", "-f", str(key)]))
+
+# The builder mounts the public key; the SSH initializer reads the private key.
+key.chmod(0o600)
+public.chmod(0o644)
+print("Local SSH keys ready in .copr-compose/ (existing identity preserved).")

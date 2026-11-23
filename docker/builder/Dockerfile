@@ -34,15 +34,12 @@ RUN set -ex ; \
 
 COPY files/ /
 
-# needed to run sshd
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
-
-# setup root user
-RUN echo 'root:passwd' | chpasswd && \
-    chmod 700 /root /root/.ssh && \
-    touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && \
-    cat /root/.ssh/id_backend.pub >> /root/.ssh/authorized_keys
+# Only runtime-mounted public keys may authenticate.  Host keys are generated
+# at startup so they are unique to each container, never part of an image layer.
+RUN mkdir -p /root/.ssh /run/sshd && \
+    chmod 700 /root /root/.ssh
 
 RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
-CMD ["/usr/sbin/sshd", "-D"]
+ENTRYPOINT ["/entrypoint"]
+CMD ["/usr/sbin/sshd", "-D", "-e"]
