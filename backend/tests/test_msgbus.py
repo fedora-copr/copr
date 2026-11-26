@@ -10,7 +10,7 @@ from unittest import mock
 from munch import Munch
 import pytest
 
-from copr_backend.msgbus import MsgBusKafka, MessageSender
+from copr_backend.msgbus import MsgBusKafka, MessageSender, message_from_worker_job
 
 
 @pytest.fixture
@@ -69,3 +69,23 @@ def test_message_sender_dispatches_kafka_bus(kafka_producer, bus_opts):
     # also confirms MessageSender actually constructed a real KafkaProducer,
     # not just an MsgBusKafka wrapper around nothing
     kafka_producer.assert_called_once()
+
+
+@pytest.mark.parametrize("style", ["v1", "v1stomp"])
+@pytest.mark.parametrize("topic", ["build.start", "chroot.start", "build.end"])
+@pytest.mark.parametrize("href", [None, "/pulp/api/v3/publications/rpm/rpm/snapshot/"])
+def test_optional_snapshot_message(style, topic, href):
+    """Emit nested metadata only for completed builds with a known snapshot."""
+    job = Munch(
+        submitter="owner", project_name="project", project_owner="owner",
+        package_name="pkg", build_id=123, chroot="fedora-rawhide-x86_64",
+        package_version="1-1", status=1, pulp_publication_href=href,
+    )
+    with mock.patch("copr_backend.msgbus.schema") as schema:
+        message_from_worker_job(style, topic, job, "worker", "127.0.0.1", 1)
+    body = schema.mock_calls[0].kwargs["body"]
+    assert "pulp_publication_href" not in body
+    if topic == "build.end" and href:
+        assert body["pulp"] == {"publication_href": href}
+    else:
+        assert "pulp" not in body

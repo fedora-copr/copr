@@ -75,6 +75,10 @@ def message_from_worker_job(style, topic, job, who, ip, pid):
         }
 
         content['what'] = message_types[topic]['what'].format(**content)
+
+        if topic == 'build.end' and job.pulp_publication_href is not None:
+            content['pulp'] = {'publication_href': job.pulp_publication_href}
+
         message = message_types[topic]['class'](body=content)
         return message
 
@@ -134,6 +138,9 @@ def message_from_worker_job(style, topic, job, who, ip, pid):
         body = {}
         for key in msg_format[topic]['keys']:
             body[key] = msg_format[topic]['keys'][key].format(**content)
+
+        if topic == 'build.end' and job.pulp_publication_href is not None:
+            body['pulp'] = {'publication_href': job.pulp_publication_href}
 
         return msg_format[topic]['class'](body=body)
 

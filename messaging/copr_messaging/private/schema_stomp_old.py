@@ -24,6 +24,7 @@ import copy
 from copr_common.enums import StatusEnum
 
 from .hierarchy import _BuildChrootMessage
+from .schema_pulp import PULP_METADATA_SCHEMA
 
 
 BODY_SCHEMA = {
@@ -80,6 +81,7 @@ BODY_SCHEMA = {
             "type": "string",
             "description": "integer representation of build status",
         },
+        "pulp": PULP_METADATA_SCHEMA,
     },
 }
 

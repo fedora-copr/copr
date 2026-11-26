@@ -179,6 +179,13 @@ class BuildChrootEndedV1Test(BuildChrootStartedV1Test):
         message = self.msg_class(body=self.fedmsg_message["msg"])
         assert message.usernames == ["kbaig"]
 
+    def test_pulp_publication(self):
+        body = copy.deepcopy(self.fedmsg_message["msg"])
+        body["pulp"] = {
+            "publication_href": "/pulp/api/v3/publications/rpm/rpm/snapshot/",
+        }
+        self.msg_class(body=body).validate()
+
 
 class BuildChrootStartedV1DontUseTest(BuildChrootStartedV1Test):
     msg_class = schema.BuildChrootStartedV1DontUse
@@ -310,6 +317,13 @@ class BuildChrootStompOldEndTest(BuildChrootStompOldStartTest):
         assert message.package_version == '20190701_2127'
         assert message.package_release == '0'
         assert message.package_epoch == '1'
+
+    def test_pulp_publication(self):
+        body = copy.deepcopy(self.fedmsg_message)
+        body["pulp"] = {
+            "publication_href": "/pulp/api/v3/publications/rpm/rpm/snapshot/",
+        }
+        self.msg_class(body=body).validate()
 
 
 class BuildChrootStartedV1StompDontUseTest(unittest.TestCase):
