@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import pytest
+from copr_common.enums import StorageEnum
 from tests.coprs_test_case import (
     CoprsTestCase,
     TransactionDecorator,
@@ -21,7 +22,9 @@ U1_DATA = {'dependencies': [],
            'fedora-21': {'arch': _ARCH },
            'fedora-22': {'arch': _ARCH },
            'fedora-23': {'arch': _ARCH }},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'backend_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': 'http://copr-be-dev.cloud.fedoraproject.org/results/user1/foocopr/pubkey.gpg'}
 
 
 U2_DATA = {'delete_after_days': 179,
@@ -40,14 +43,18 @@ U2_DATA = {'delete_after_days': 179,
  'repos': {'fedora-18': {'arch': {'x86_64': {'delete_after_days': 9,
                                              'opts': {}}}},
            'fedora-rawhide': {'arch': {'i386': {'opts': {}}}}},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'backend_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': 'http://copr-be-dev.cloud.fedoraproject.org/results/user2/barcopr/pubkey.gpg'}
 
 
 DIRS = {'dependencies': [],
  'directories': {'test': {}, 'test:pr:1123': {'delete_after_days': 39}},
  'repos': {'fedora-17': {'arch': {'i386': {'opts': {}},
                                   'x86_64': {'opts': {}}}}},
- 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results'}
+ 'results_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'backend_url': 'http://copr-be-dev.cloud.fedoraproject.org/results',
+ 'pubkey_url': 'http://copr-be-dev.cloud.fedoraproject.org/results/user1/test/pubkey.gpg'}
 
 
 class TestApiRPMRepo(CoprsTestCase):
@@ -88,3 +95,23 @@ class TestApiRPMRepo(CoprsTestCase):
         for dirname in ['test', 'test:pr:11']:
             repodata = self.tc.get(f"/api_3/rpmrepo/user1/{dirname}/fedora-18/")
             assert repodata.json == DIRS
+
+    @pytest.mark.usefixtures("f_users", "f_coprs", "f_mock_chroots",
+                             "f_mock_chroots_many", "f_db")
+    def test_apiv3_rpmrepo_pulp_urls(self):
+        self.c1.storage = StorageEnum.pulp
+        self.app.config["PULP_CONTENT_URL"] = \
+            "https://pulp.example.com/pulp/content/"
+        self.db.session.commit()
+
+        repodata = self.tc.get(
+            "/api_3/rpmrepo/{0}/{1}/fedora-24/".format(
+                self.u1.name, self.c1.name))
+
+        # RPMs are served by Pulp, but the key still comes from the backend.
+        assert repodata.json["results_url"] == \
+            "https://pulp.example.com/pulp/content"
+        backend = self.app.config["BACKEND_BASE_URL"]
+        assert repodata.json["backend_url"] == f"{backend}/results"
+        assert repodata.json["pubkey_url"] == \
+            f"{backend}/results/user1/foocopr/pubkey.gpg"

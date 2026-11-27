@@ -6,7 +6,6 @@
 
 from flask_restx import Resource, Namespace
 
-from coprs import app
 from coprs.logic.coprs_logic import (
     CoprsLogic,
     CoprDirsLogic,
@@ -49,8 +48,14 @@ def get_project_rpmrepo_metadata(copr):
     repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
     repos_info = ReposLogic.repos_for_copr(copr, repo_dl_stat)
 
+    # The DNF5 Copr plugin looks up the "pubkey_url" key by name and falls
+    # back to deriving the key URL from "results_url" when it is missing.
+    # "backend_url" is the generic root for other files that may be served
+    # by the backend even when RPMs live in Pulp.
     data = {
-        "results_url": "/".join([app.config["BACKEND_BASE_URL"], "results"]),
+        "results_url": copr.results_url,
+        "backend_url": copr.backend_url,
+        "pubkey_url": copr.pubkey_url,
     }
 
     repos = data['repos'] = {}
