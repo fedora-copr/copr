@@ -162,6 +162,7 @@ class CreaterepoReason(metaclass=EnumType):
         "post_build": 5,
         "delete_build": 6,
         "prunerepo": 7,
+        "comps": 8,
     }
 
 

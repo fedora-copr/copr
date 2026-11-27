@@ -284,11 +284,12 @@ class PulpRequest:
     """
     A deferred Pulp API request that can be submitted and waited on.
     """
-    def __init__(self, method, url, data=None, description=""):
+    def __init__(self, method, url, data=None, description="", files=None):
         self.method = method
         self.url = url
         self.data = data
         self.description = description
+        self.files = files
 
 
 class PulpClient:
@@ -746,6 +747,9 @@ class PulpClient:
         return self._list_packages(params)
 
     def _list_packages(self, params):
+        return self._list_content("packages", params)
+
+    def _list_content(self, content_type, params):
         """
         Paginated listing of the RPM content units matching the base query in
         PARAMS (e.g. a label select query, or a repository version filter).
@@ -756,8 +760,8 @@ class PulpClient:
 
         while True:
             query = dict(params, offset=offset, limit=limit)
-            uri = "api/v3/content/rpm/packages/?" + urlencode(query)
-            self.log.debug("Pulp: listing packages (offset=%d)", offset)
+            uri = f"api/v3/content/rpm/{content_type}/?{urlencode(query)}"
+            self.log.debug("Pulp: listing %s (offset=%d)", content_type, offset)
 
             response = self.send("GET", uri)
             self._log_list_response(response)
@@ -773,7 +777,7 @@ class PulpClient:
 
             offset += limit
 
-        self.log.info("Pulp: listed %d packages", len(all_results))
+        self.log.info("Pulp: listed %d %s", len(all_results), content_type)
         return all_results, response
 
     def get_build_ids(self, repository):
@@ -851,7 +855,14 @@ class PulpClient:
                 if task is None:
                     self.log.info("Pulp: submitting %s", req.description)
                     try:
-                        response = self.send(req.method, req.url, req.data)
+                        for fp in (req.files or {}).values():
+                            fp.seek(0)
+                        response = self.send(
+                            req.method,
+                            req.url,
+                            req.data,
+                            files=req.files,
+                        )
                     except RequestError as ex:
                         if exist_ok and \
                                 "This field must be unique" in ex.response.text:
@@ -925,3 +936,46 @@ class PulpClient:
         data = {"key": name, "value": value}
         self.log.info("Pulp: set_label: %s", uri)
         return self.send("POST", uri, data)
+
+    def upload_comps_xml(self, repository, fp):
+        """
+        Upload the comps.xml to a repository
+        https://pulpproject.org/pulp_rpm/restapi/#tag/Rpm:-Comps/operation/rpm_comps_upload
+
+        This requires a manual publish afterward, so that the file appears in
+        the repodata.
+
+        We cannot take a file path here and open it here, because we deffer the
+        request to the caller ia `PulpRequest` and by that time, the file would
+        be closed. Hence `fp` and the caller is responsible for its lifetime.
+        """
+        uri = "/api/v3/rpm/comps/"
+        data = {"repository": repository, "replace": True}
+        files = {"file": fp}
+
+        self.log.info("Pulp: upload_comps_xml: %s %s", uri, fp.name)
+        return PulpRequest(
+            "POST", uri, data, f"upload comps xml {repository}", files)
+
+    def list_comps(self, repository):
+        """
+        List comps content units from a repository
+        """
+        response = self.get_by_href(repository)
+        version = response.json()["latest_version_href"]
+        all_results = []
+        params = {
+            "repository_version": version,
+            "fields": "pulp_href",
+        }
+        # https://docs.pulpproject.org/pulp_rpm_client/ContentApi/#parameters
+        content_types = [
+            "packagegroups",
+            "packagecategories",
+            "packageenvironments",
+            "packagelangpacks",
+        ]
+        for content_type in content_types:
+            results, response = self._list_content(content_type, params)
+            all_results.extend(results)
+        return PaginatedResponse(all_results, response)

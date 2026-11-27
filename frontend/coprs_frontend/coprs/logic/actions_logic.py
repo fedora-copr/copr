@@ -318,6 +318,7 @@ class ActionsLogic(object):
             "ownername": chroot.copr.owner_name,
             "projectname": chroot.copr.name,
             "chroot": chroot.name,
+            "storage": chroot.copr.storage,
             "comps_present": chroot.comps_zlib is not None,
             "url_path": url_path,
         }
