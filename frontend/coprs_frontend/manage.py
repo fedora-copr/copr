@@ -46,6 +46,7 @@ import commands.usage_treemap
 import commands.failed_to_succeeded_stats
 import commands.change_storage
 import commands.owners_in_storage
+import commands.projects_in_storage
 
 from coprs import app
 
@@ -102,6 +103,7 @@ commands_list =	[
     "failed_to_succeeded_stats",
     "change_storage",
     "owners_in_storage",
+    "projects_in_storage",
 ]
 
 
